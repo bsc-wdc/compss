@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
  */
 package es.bsc.compss.executor.external;
 
-
 public class ExternalExecutorException extends Exception {
+
+    /**
+     * Exception Version UID are 2L in all Runtime
+     */
+    private static final long serialVersionUID = 2L;
+
 
     public ExternalExecutorException() {
         super();

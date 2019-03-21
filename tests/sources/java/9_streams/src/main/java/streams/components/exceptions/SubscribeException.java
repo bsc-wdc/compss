@@ -10,7 +10,6 @@ public class SubscribeException extends Exception {
 
     /**
      * Creates a new exception for subscription
-     * 
      */
     public SubscribeException() {
         super();

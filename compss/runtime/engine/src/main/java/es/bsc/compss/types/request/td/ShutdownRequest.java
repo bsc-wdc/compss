@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import es.bsc.compss.util.ResourceManager;
 
 import java.util.concurrent.Semaphore;
 
+
 /**
  * This class represents a notification to end the execution
  */
@@ -32,6 +33,7 @@ public class ShutdownRequest extends TDRequest {
      * Semaphore where to synchronize until the operation is done
      */
     private Semaphore semaphore;
+
 
     /**
      * Constructs a new ShutdownRequest
@@ -52,11 +54,9 @@ public class ShutdownRequest extends TDRequest {
     }
 
     /**
-     * Sets the semaphore where to synchronize until the requested object can be
-     * read
+     * Sets the semaphore where to synchronize until the requested object can be read
      *
-     * @param sem the semaphore where to synchronize until the requested object
-     * can be read
+     * @param sem the semaphore where to synchronize until the requested object can be read
      */
     public void setSemaphore(Semaphore sem) {
         this.semaphore = sem;

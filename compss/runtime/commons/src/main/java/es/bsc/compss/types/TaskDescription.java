@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public class TaskDescription implements Serializable {
     private final boolean hasTarget;
     private final int numReturns;
 
+
     /**
      * Task description creation for METHODS
      *
@@ -61,8 +62,8 @@ public class TaskDescription implements Serializable {
      * @param numReturns
      * @param parameters
      */
-    public TaskDescription(Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int numReturns, Parameter[] parameters) {
+    public TaskDescription(Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.METHOD;
         this.lang = lang;
@@ -95,7 +96,8 @@ public class TaskDescription implements Serializable {
      * @param numReturns
      * @param parameters
      */
-    public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget, int numReturns, Parameter[] parameters) {
+    public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary,
+            boolean hasTarget, int numReturns, Parameter[] parameters) {
 
         this.type = TaskType.SERVICE;
         this.lang = Lang.UNKNOWN;
@@ -108,7 +110,8 @@ public class TaskDescription implements Serializable {
         this.numReturns = numReturns;
         this.parameters = parameters;
 
-        this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, numReturns, parameters);
+        this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, numReturns,
+                parameters);
         this.coreId = CoreManager.getCoreId(this.signature);
     }
 
@@ -211,9 +214,7 @@ public class TaskDescription implements Serializable {
     }
 
     /**
-     *
-     * /**
-     * Returns the number of return values of the task
+     * /** Returns the number of return values of the task
      *
      * @return
      */

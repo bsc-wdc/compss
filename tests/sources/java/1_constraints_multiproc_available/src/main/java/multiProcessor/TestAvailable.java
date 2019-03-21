@@ -134,7 +134,8 @@ public class TestAvailable {
         ActionOrchestrator orchestrator = COMPSsRuntimeImpl.getOrchestrator();
         Action a = new Action(orchestrator, ce3);
         if (a.findAvailableWorkers().containsKey(worker)) {
-            System.out.println("[ERROR] Available resources internalMemorySize filter inside Processor annotation is not working");
+            System.out.println(
+                    "[ERROR] Available resources internalMemorySize filter inside Processor annotation is not working");
             System.exit(-1);
         }
 
@@ -218,10 +219,13 @@ public class TestAvailable {
         System.out.println("[LOG] * Multi-processors test passed");
     }
 
-    private static boolean checkDescription(MethodResourceDescription description, int CPUcus, int GPUcus, int FPGAcus, int OTHERcus) {
+    private static boolean checkDescription(MethodResourceDescription description, int CPUcus, int GPUcus, int FPGAcus,
+            int OTHERcus) {
 
-        return description != null && description.getTotalCPUComputingUnits() == CPUcus && description.getTotalGPUComputingUnits() == GPUcus
-                && description.getTotalFPGAComputingUnits() == FPGAcus && description.getTotalOTHERComputingUnits() == OTHERcus;
+        return description != null && description.getTotalCPUComputingUnits() == CPUcus
+                && description.getTotalGPUComputingUnits() == GPUcus
+                && description.getTotalFPGAComputingUnits() == FPGAcus
+                && description.getTotalOTHERComputingUnits() == OTHERcus;
 
     }
 

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ package es.bsc.compss.types.resources;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
 
+
 public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
+
 
     public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration conf) {
         super(wsdl, description, conf, null);
@@ -67,7 +69,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     public boolean hasAvailable(ServiceResourceDescription consumption) {
         return true;
     }
-    
+
     @Override
     public boolean hasAvailableSlots() {
         return true;

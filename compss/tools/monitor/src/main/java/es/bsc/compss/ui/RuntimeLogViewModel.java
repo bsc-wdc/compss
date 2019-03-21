@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class RuntimeLogViewModel {
             }
             // Parse
             logger.debug("Parsing runtime.log file...");
-            
+
             try (BufferedReader br = new BufferedReader(new FileReader(this.runtimeLogPath))) {
                 StringBuilder sb = new StringBuilder("");
                 String line = br.readLine();

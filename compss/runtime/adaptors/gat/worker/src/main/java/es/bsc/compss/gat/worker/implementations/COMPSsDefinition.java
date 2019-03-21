@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,8 +49,8 @@ public class COMPSsDefinition extends ImplementationDefinition {
             this.workingDir = wDir;
         }
 
-        this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workerInMaster, this.workingDir, null, null,
-                null);
+        this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workerInMaster,
+                this.workingDir, null, null, null);
     }
 
     @Override

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.data.listener.EventListener;
 
+
 public class JobTransfersListener extends EventListener {
 
     private int operation = 0;
@@ -34,6 +35,7 @@ public class JobTransfersListener extends EventListener {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private final ExecutionAction execution;
+
 
     public JobTransfersListener(ExecutionAction execution) {
         this.execution = execution;

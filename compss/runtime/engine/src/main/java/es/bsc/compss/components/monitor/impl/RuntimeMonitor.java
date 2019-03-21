@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,10 +30,9 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ResourceManager;
 
+
 /**
- * Represents the thread to handle all the information needed by the COMPSs
- * Monitor
- *
+ * Represents the thread to handle all the information needed by the COMPSs Monitor
  */
 public class RuntimeMonitor implements Runnable {
 
@@ -84,13 +83,11 @@ public class RuntimeMonitor implements Runnable {
         monitorDirPath = GraphGenerator.getMonitorDirPath();
     }
 
+
     /**
-     * Constructs a new Runtime monitor. If the monitor parameter has been used,
-     * it starts a new thread which periodically checks the current state of the
-     * execution and gives the outputs to the user.
-     *
-     * If only the graph parameter (or none) has been used, the monitor starts
-     * but NOT as a thread.
+     * Constructs a new Runtime monitor. If the monitor parameter has been used, it starts a new thread which
+     * periodically checks the current state of the execution and gives the outputs to the user. If only the graph
+     * parameter (or none) has been used, the monitor starts but NOT as a thread.
      *
      * @param AP Task Processor associated to the monitor
      * @param TD Task Dispatcher associated to the monitor
@@ -112,8 +109,7 @@ public class RuntimeMonitor implements Runnable {
     }
 
     /**
-     * Checks periodically the status of the execution and returns the results
-     * to the user
+     * Checks periodically the status of the execution and returns the results to the user
      */
     public void run() {
         running = true;
@@ -170,7 +166,8 @@ public class RuntimeMonitor implements Runnable {
     private void getXMLTaskState() throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append("\n");
-        sb.append("<?xml-stylesheet type=\"text/xsl\" href=\"").append(installDir).append("/xml/monitor/monitor.xsl\"?>").append("\n");
+        sb.append("<?xml-stylesheet type=\"text/xsl\" href=\"").append(installDir)
+                .append("/xml/monitor/monitor.xsl\"?>").append("\n");
         sb.append("<COMPSsState>").append("\n");
         sb.append(AP.getCurrentTaskState());
         sb.append(TD.getCurrentMonitoringData());

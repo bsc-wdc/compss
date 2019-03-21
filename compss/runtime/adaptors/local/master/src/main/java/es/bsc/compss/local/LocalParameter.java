@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ public class LocalParameter implements InvocationParam {
 
     private Object value;
     private Class<?> valueClass;
+
 
     public LocalParameter(Parameter param) {
         this.param = param;
@@ -108,7 +109,7 @@ public class LocalParameter implements InvocationParam {
                 this.originalName = dPar.getOriginalName();
                 break;
             default:
-                //BASIC PARAMETERS
+                // BASIC PARAMETERS
                 BasicTypeParameter btParB = (BasicTypeParameter) param;
                 this.value = btParB.getValue();
                 this.preserveSourceData = false;
@@ -172,7 +173,7 @@ public class LocalParameter implements InvocationParam {
     public void setRenamedName(String renamedName) {
         this.renamedName = renamedName;
     }
-    
+
     @Override
     public Object getValue() {
         return this.value;
@@ -205,7 +206,7 @@ public class LocalParameter implements InvocationParam {
 
     @Override
     public List<? extends InvocationParamURI> getSources() {
-        //Shouldn't be used on the local node
+        // Shouldn't be used on the local node
         return null;
     }
 
@@ -215,6 +216,7 @@ public class LocalParameter implements InvocationParam {
 
     @Override
     public String toString() {
-        return this.getType() + " " + this.getValue() + " " + (this.isPreserveSourceData() ? "PRESERVE " : "VOLATILE ") + (this.isWriteFinalValue() ? "WRITE" : "DISMISS");
+        return this.getType() + " " + this.getValue() + " " + (this.isPreserveSourceData() ? "PRESERVE " : "VOLATILE ")
+                + (this.isWriteFinalValue() ? "WRITE" : "DISMISS");
     }
 }

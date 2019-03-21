@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public abstract class DataAccessId implements Serializable {
         R, // Read
         RW, // Read and write
         W, // Write
-        C
+        C // Concurrent
     }
 
 
@@ -42,7 +42,6 @@ public abstract class DataAccessId implements Serializable {
 
     /**
      * Read access
-     *
      */
     public static class RAccessId extends DataAccessId {
 
@@ -94,14 +93,14 @@ public abstract class DataAccessId implements Serializable {
 
         @Override
         public String toString() {
-            return "Read data: " + readDataVersion.getDataInstanceId() + (preserveSourceData ? ", Preserved" : ", Erased");
+            return "Read data: " + readDataVersion.getDataInstanceId()
+                    + (preserveSourceData ? ", Preserved" : ", Erased");
         }
 
     }
 
     /**
      * Write access
-     *
      */
     public static class WAccessId extends DataAccessId {
 
@@ -153,7 +152,6 @@ public abstract class DataAccessId implements Serializable {
 
     /**
      * Read-Write access
-     *
      */
     public static class RWAccessId extends DataAccessId {
 
@@ -211,8 +209,8 @@ public abstract class DataAccessId implements Serializable {
 
         @Override
         public String toString() {
-            return "Read data: " + readDataVersion.getDataInstanceId() + ", Written data: " + writtenDataVersion.getDataInstanceId()
-                    + (isPreserveSourceData() ? ", Preserved" : ", Erased");
+            return "Read data: " + readDataVersion.getDataInstanceId() + ", Written data: "
+                    + writtenDataVersion.getDataInstanceId() + (isPreserveSourceData() ? ", Preserved" : ", Erased");
         }
 
     }

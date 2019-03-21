@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -52,17 +52,17 @@ import java.util.List;
 
 /**
  * Representation of a GAT Worker node for the Runtime
- *
  */
 public class GATWorkerNode extends COMPSsWorker {
 
-    private static final String GAT_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
-            + File.separator + "adaptors" + File.separator + "gat" + File.separator;
+    private static final String GAT_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
+            + File.separator + "system" + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String CLEANER_SCRIPT_NAME = "clean.sh";
     private static final String INIT_SCRIPT_NAME = "init.sh";
 
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
+
 
     /**
      * New GAT Worker Node with name @name and configuration @config
@@ -105,8 +105,8 @@ public class GATWorkerNode extends COMPSsWorker {
         }
 
         try {
-            String initScriptPath = Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + GAT_SCRIPT_PATH
-                    + INIT_SCRIPT_NAME;
+            String initScriptPath = Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir
+                    + GAT_SCRIPT_PATH + INIT_SCRIPT_NAME;
             traceScripts.add(new URI(initScriptPath));
         } catch (URISyntaxException e) {
             new InitNodeException("Error addind initScript");
@@ -120,7 +120,8 @@ public class GATWorkerNode extends COMPSsWorker {
         LOGGER.debug("Initializing working dir " + workingDir + "  in host " + getName());
         boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "init_" + host);
         if (!result) {
-            throw new InitNodeException("Error executing init script for initializing working dir " + workingDir + " in host " + getName());
+            throw new InitNodeException(
+                    "Error executing init script for initializing working dir " + workingDir + " in host " + getName());
         }
     }
 
@@ -234,11 +235,11 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
-            JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
 
-        return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(), config.isUsingGlobus(),
-                slaveWorkersNodeNames);
+        return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(),
+                config.isUsingGlobus(), slaveWorkersNodeNames);
     }
 
     @Override
@@ -289,16 +290,16 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         Copy c = new GATCopy(srcData, source, target, tgtData, reason, listener);
         GATAdaptor.enqueueCopy(c);
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         Copy c = new GATCopy(ld, source, target, tgtData, reason, listener);
         GATAdaptor.enqueueCopy(c);
@@ -369,8 +370,8 @@ public class GATWorkerNode extends COMPSsWorker {
         }
 
         try {
-            traceScripts.add(new URI(
-                    Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + GAT_SCRIPT_PATH + CLEANER_SCRIPT_NAME));
+            traceScripts.add(new URI(Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir
+                    + GAT_SCRIPT_PATH + CLEANER_SCRIPT_NAME));
         } catch (URISyntaxException e) {
             LOGGER.error("Error deleting working dir " + workingDir + " in host " + getName(), e);
             return;
@@ -383,7 +384,8 @@ public class GATWorkerNode extends COMPSsWorker {
         LOGGER.debug("Deleting working dir " + workingDir + "  in host " + getName());
         boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "clean_" + host);
         if (!result) {
-            LOGGER.error("Error executing clean script for deleting working dir " + workingDir + " in host " + getName());
+            LOGGER.error(
+                    "Error executing clean script for deleting working dir " + workingDir + " in host " + getName());
         }
     }
 
@@ -409,13 +411,13 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        //Does not apply.
-        //Workers are created with all the resources to run a task. After that the worker dies
+        // Does not apply.
+        // Workers are created with all the resources to run a task. After that the worker dies
     }
 
     @Override
     public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        //Does not apply.
-        //Workers are created with all the resources to run a task. After that the worker dies
+        // Does not apply.
+        // Workers are created with all the resources to run a task. After that the worker dies
     }
 }

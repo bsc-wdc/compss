@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import es.bsc.compss.ws.master.configuration.WSConfiguration;
 public class ServiceInstance extends COMPSsWorker {
 
     private WSConfiguration config;
+
 
     public ServiceInstance(String name, WSConfiguration config) {
         super(name, config);
@@ -107,14 +108,14 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
         // Never sends Data
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         // Delegate on the master to obtain the data value
         String path = target.getProtocol().getSchema() + target.getPath();
@@ -208,13 +209,13 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        //Does not apply.
-        //The computing capabilities of a service is not controlled by the service user
+        // Does not apply.
+        // The computing capabilities of a service is not controlled by the service user
     }
 
     @Override
     public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        //Does not apply.
-        //The computing capabilities of a service is not controlled by the service user
+        // Does not apply.
+        // The computing capabilities of a service is not controlled by the service user
     }
 }

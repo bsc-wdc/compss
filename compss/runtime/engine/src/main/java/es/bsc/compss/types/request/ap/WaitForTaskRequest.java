@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
 import java.util.concurrent.Semaphore;
 
+
 public class WaitForTaskRequest extends APRequest {
 
     private int dataId;
     private final AccessMode am;
     private Semaphore sem;
+
 
     public WaitForTaskRequest(int dataId, AccessMode mode, Semaphore sem) {
         this.dataId = dataId;

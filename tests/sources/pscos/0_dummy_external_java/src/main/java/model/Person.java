@@ -132,7 +132,7 @@ public class Person extends StorageObject implements Serializable {
             e.printStackTrace();
         }
     }
-    
+
     // Task
     public void taskMap(String newName) {
         this.setName(newName);

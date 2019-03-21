@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,17 +27,21 @@ public class Constants {
 
     // Monitor Files structure
     public static final String MONITOR_XML_FILE = File.separator + "monitor" + File.separator + "COMPSs_state.xml";
-    public static final String MONITOR_CURRENT_DOT_FILE = File.separator + "monitor" + File.separator + "current_graph.dot";
-    public static final String MONITOR_COMPLETE_DOT_FILE = File.separator + "monitor" + File.separator + "complete_graph.dot";
+    public static final String MONITOR_CURRENT_DOT_FILE = File.separator + "monitor" + File.separator
+            + "current_graph.dot";
+    public static final String MONITOR_COMPLETE_DOT_FILE = File.separator + "monitor" + File.separator
+            + "complete_graph.dot";
     public static final String GRAPH_FILE_NAME = "graph.svg";
     public static final String COMPLETE_GRAPH_FILE_NAME = "completeGraph.svg";
     public static final String GRAPH_NOT_FOUND_PATH = File.separator + "svg" + File.separator + "graph_not_found.svg";
     public static final String EMPTY_GRAPH_PATH = File.separator + "svg" + File.separator + "empty_graph.svg";
     public static final String UNSELECTED_GRAPH_PATH = File.separator + "svg" + File.separator + "unselected_graph.svg";
-    public static final String GRAPH_EXECUTION_DONE_PATH = File.separator + "svg" + File.separator + "graph_execution_done.svg";
-    public static final String NO_CONNECTION_IMG_PATH = File.separator + "compss-monitor" + File.separator + "svg" + File.separator
-            + "loadGraphNoConnection.png";
-    public static final String COMPSS_MONITOR_DEFAULT = File.separator + "root" + File.separator + ".COMPSs" + File.separator;
+    public static final String GRAPH_EXECUTION_DONE_PATH = File.separator + "svg" + File.separator
+            + "graph_execution_done.svg";
+    public static final String NO_CONNECTION_IMG_PATH = File.separator + "compss-monitor" + File.separator + "svg"
+            + File.separator + "loadGraphNoConnection.png";
+    public static final String COMPSS_MONITOR_DEFAULT = File.separator + "root" + File.separator + ".COMPSs"
+            + File.separator;
 
     // Runtime files structure
     public static final String RUNTIME_LOG = "runtime.log";

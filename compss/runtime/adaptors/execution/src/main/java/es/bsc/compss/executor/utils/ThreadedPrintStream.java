@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,10 +32,11 @@ public class ThreadedPrintStream extends PrintStream {
     private final String end;
     private final PrintStream defaultStream;
 
+
     /**
      * Constructs a new ThreadedPrint stream.
      *
-     * @param end           extension of the file where the stream will print on
+     * @param end extension of the file where the stream will print on
      * @param defaultStream PrintStream used by those threads that have not been registered
      */
     public ThreadedPrintStream(String end, PrintStream defaultStream) {

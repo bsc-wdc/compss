@@ -38,7 +38,6 @@ public class COMPSsStream {
 
     /**
      * Initialize a new stream instance
-     * 
      */
     public COMPSsStream() {
         this.subscriberIds2consumerIds = new HashMap<>();
@@ -115,7 +114,8 @@ public class COMPSsStream {
         }
     }
 
-    public void updateSubscriptionTopics(RegistrationId registrationId, List<String> newTopics) throws InvalidCredentialsException {
+    public void updateSubscriptionTopics(RegistrationId registrationId, List<String> newTopics)
+            throws InvalidCredentialsException {
         // Check validity
         if (!isConsumerValid(registrationId)) {
             throw new InvalidCredentialsException();
@@ -130,7 +130,8 @@ public class COMPSsStream {
         this.consumerIds2topics.put(registrationId.getConsumerId(), newTopics);
     }
 
-    public ConsumerRecords<String, String> poll(RegistrationId registrationId, int timeout) throws InvalidCredentialsException {
+    public ConsumerRecords<String, String> poll(RegistrationId registrationId, int timeout)
+            throws InvalidCredentialsException {
         // Check validity
         if (!isConsumerValid(registrationId)) {
             throw new InvalidCredentialsException();
@@ -197,7 +198,8 @@ public class COMPSsStream {
         }
     }
 
-    public void publish(RegistrationId registrationId, String topic, String message) throws InvalidCredentialsException {
+    public void publish(RegistrationId registrationId, String topic, String message)
+            throws InvalidCredentialsException {
         // Check validity
         if (!isProducerValid(registrationId)) {
             throw new InvalidCredentialsException();

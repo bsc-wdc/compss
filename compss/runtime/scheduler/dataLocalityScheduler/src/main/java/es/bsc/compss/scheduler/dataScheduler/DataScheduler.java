@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,13 +30,11 @@ import org.json.JSONObject;
 
 /**
  * Representation of a Scheduler that considers only ready tasks and sorts them in data locality
- *
  */
 public class DataScheduler extends ReadyScheduler {
 
     /**
      * Constructs a new Ready Scheduler instance
-     *
      */
     public DataScheduler() {
         super();
@@ -50,8 +48,8 @@ public class DataScheduler extends ReadyScheduler {
      * *********************************************************************************************************
      */
     @Override
-    public <T extends WorkerResourceDescription> DataResourceScheduler<T> generateSchedulerForResource(Worker<T> w, JSONObject resJSON,
-            JSONObject implJSON) {
+    public <T extends WorkerResourceDescription> DataResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
+            JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[DataScheduler] Generate scheduler for resource " + w.getName());
         return new DataResourceScheduler<>(w, resJSON, implJSON);
     }
@@ -71,7 +69,8 @@ public class DataScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
+            ResourceScheduler<T> resource) {
 
         // Schedules all possible free actions (LIFO type)
         LOGGER.debug("[DataScheduler] Treating dependency free actions");

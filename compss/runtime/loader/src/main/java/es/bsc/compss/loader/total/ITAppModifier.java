@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -117,7 +117,8 @@ public class ITAppModifier {
          */
         CtMethod[] instrCandidates = appClass.getDeclaredMethods(); // Candidates to be instrumented if they are not
                                                                     // remote
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
+        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
+                itAppIdVar, appClass);
         // itAppEditor.setAppId(itAppIdVar);
         // itAppEditor.setAppClass(appClass);
 
@@ -134,7 +135,8 @@ public class ITAppModifier {
          * that are not in the remote list
          */
         if (DEBUG) {
-            LOGGER.debug("Flags: ToFile: " + WRITE_TO_FILE + " isWS: " + IS_WS_CLASS + " isMainClass: " + IS_MAIN_CLASS);
+            LOGGER.debug(
+                    "Flags: ToFile: " + WRITE_TO_FILE + " isWS: " + IS_WS_CLASS + " isMainClass: " + IS_MAIN_CLASS);
         }
         for (CtMethod m : instrCandidates) {
             if (LoaderUtils.checkRemote(m, remoteMethods) == null) {
@@ -266,10 +268,10 @@ public class ITAppModifier {
         }
         toInsertBefore.append(itApiVar + " = new " + LoaderConstants.CLASS_COMPSS_API_IMPL + "();")
                 .append(itApiVar + " = (" + LoaderConstants.CLASS_COMPSSRUNTIME_API + ")" + itApiVar + ";")
-                .append(itSRVar + " = new " + LoaderConstants.CLASS_STREAM_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI + ") "
-                        + itApiVar + " );")
-                .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI + ") "
-                        + itApiVar + " );")
+                .append(itSRVar + " = new " + LoaderConstants.CLASS_STREAM_REGISTRY + "(("
+                        + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + " );")
+                .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY + "(("
+                        + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + " );")
                 .append(itApiVar + ".startIT();");
 
         initializer.insertBefore(toInsertBefore.toString());

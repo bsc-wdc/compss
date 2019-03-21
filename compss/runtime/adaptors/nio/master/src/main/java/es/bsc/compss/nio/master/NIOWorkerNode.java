@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -80,6 +80,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     private final NIOAdaptor commManager;
     private boolean started = false;
     private WorkerStarter workerStarter;
+
 
     @Override
     public String getName() {
@@ -182,8 +183,8 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
-            JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return new NIOJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
@@ -241,8 +242,8 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         if (target.getHosts().contains(Comm.getAppHost())) {
             // Request to master
@@ -285,8 +286,8 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         if (ld == null) {
             return;
@@ -390,8 +391,8 @@ public class NIOWorkerNode extends COMPSsWorker {
         boolean preserveSource = sc.mustPreserveSourceData();
 
         if (DEBUG) {
-            LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getPscoId() + " to " + targetHostname
-                    + " with must preserve " + preserveSource);
+            LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getPscoId() + " to "
+                    + targetHostname + " with must preserve " + preserveSource);
         }
 
         // Get the PSCOId to replicate

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Support thread for VM destruction
- *
  */
 public class DeletionThread extends Thread {
 
@@ -104,7 +103,8 @@ public class DeletionThread extends Thread {
              * " should not be stopped."); }
              */
             if (DEBUG) {
-                RUNTIME_LOGGER.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
+                RUNTIME_LOGGER
+                        .debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }
             try {
                 this.operations.poweroff(vm);

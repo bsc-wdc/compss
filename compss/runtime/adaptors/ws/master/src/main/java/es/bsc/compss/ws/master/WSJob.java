@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -172,13 +172,13 @@ public class WSJob extends Job<ServiceInstance> {
                                     input.add(o);
                                     break;
                                 case FILE_T:
-                                	logger.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
+                                    logger.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
                                     // CAN'T USE A FILE AS A PARAMETER
                                     // SKIP!
                                     break;
                                 case BINDING_OBJECT_T:
-                                	logger.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
-                                	break;
+                                    logger.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
+                                    break;
                                 default:
                                     // Basic or String
                                     BasicTypeParameter btParB = (BasicTypeParameter) parameters[i];
@@ -251,7 +251,7 @@ public class WSJob extends Job<ServiceInstance> {
             if (!ld.isInMemory()) {
                 ld.loadFromStorage();
             }
-            
+
             return ld.getValue();
         }
     }

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ public class NIOBindingObjectTransferListener {
     private final Semaphore sem;
     private NIOAgent agent;
     private Transfer transfer;
+
 
     public NIOBindingObjectTransferListener(NIOAgent agent, Semaphore sem) {
         this.agent = agent;
@@ -98,26 +99,26 @@ public class NIOBindingObjectTransferListener {
     private void doFailures() {
         sem.release();
     }
-    
+
     public void aquire() {
-    	try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
-	public Transfer getTransfer() {
-		return transfer;
-	}
-	
-	public void setTransfer(Transfer t){
-		this.transfer=t;
-	}
-	
-	public NIOAgent getAgent(){
-       return agent;
+    public Transfer getTransfer() {
+        return transfer;
+    }
+
+    public void setTransfer(Transfer t) {
+        this.transfer = t;
+    }
+
+    public NIOAgent getAgent() {
+        return agent;
     }
 
 }

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@ import java.util.HashSet;
 
 /**
  * Supporting class to manage SSH connections
- * 
- *
  */
 public class SSHManager {
 
@@ -76,11 +74,12 @@ public class SSHManager {
 
             for (COMPSsWorker remote : workers) {
                 String[] cmd = new String[] { "ssh", remote.getUser() + "@" + remote.getName(),
-                        "ssh-keyscan -t rsa,dsa " + worker.getName() + " >> /home/" + remote.getUser() + "/.ssh/known_hosts" };
+                        "ssh-keyscan -t rsa,dsa " + worker.getName() + " >> /home/" + remote.getUser()
+                                + "/.ssh/known_hosts" };
                 p[i] = Runtime.getRuntime().exec(cmd);
                 i++;
-                cmd = new String[] { "ssh", remote.getUser() + "@" + remote.getName(),
-                        "ssh-keyscan -t rsa,dsa " + remote.getName() + " >> /home/" + worker.getUser() + "/.ssh/known_hosts" };
+                cmd = new String[] { "ssh", remote.getUser() + "@" + remote.getName(), "ssh-keyscan -t rsa,dsa "
+                        + remote.getName() + " >> /home/" + worker.getUser() + "/.ssh/known_hosts" };
                 p[i] = Runtime.getRuntime().exec(cmd);
                 i++;
             }
@@ -113,8 +112,9 @@ public class SSHManager {
 
             for (COMPSsWorker remote : workers) {
                 String user = remote.getUser();
-                String[] cmd = new String[] { "ssh", user + "@" + remote.getName(), "mv /home/" + user + "/.ssh/known_hosts known "
-                        + "&& grep -vw " + worker.getName() + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
+                String[] cmd = new String[] { "ssh", user + "@" + remote.getName(),
+                        "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw " + worker.getName()
+                                + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
                 p[i] = Runtime.getRuntime().exec(cmd);
                 i++;
             }
@@ -141,8 +141,8 @@ public class SSHManager {
      */
     public static void removeKey(COMPSsWorker worker) throws IOException {
         String user = System.getProperty("user.name");
-        String[] cmd = new String[] { "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw " + worker.getName()
-                + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
+        String[] cmd = new String[] { "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw "
+                + worker.getName() + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
         Process p = Runtime.getRuntime().exec(cmd);
         try {
             p.waitFor();

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -70,7 +70,8 @@ public class FIFODataResourceScheduler<T extends WorkerResourceDescription> exte
 
     @SuppressWarnings("unchecked")
     @Override
-    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
+            Score resourceScore) {
 
         // LOGGER.debug("[FIFODataResourceScheduler] Generate implementation score for action " + action);
         if (this.hasBlockedActions()) {

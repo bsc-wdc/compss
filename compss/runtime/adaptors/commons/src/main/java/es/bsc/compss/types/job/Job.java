@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -51,11 +51,15 @@ public abstract class Job<T extends COMPSsWorker> {
 
     // Environment variables for job execution
     private static final String CLASSPATH_FROM_ENV = (System.getProperty(COMPSsConstants.WORKER_CP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_CP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_CP) : "\"\"";
+            && !System.getProperty(COMPSsConstants.WORKER_CP).equals(""))
+                    ? System.getProperty(COMPSsConstants.WORKER_CP)
+                    : "\"\"";
     private final String workerClasspath;
 
     private static final String PYTHONPATH_FROM_ENV = (System.getProperty(COMPSsConstants.WORKER_PP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_PP).equals("")) ? System.getProperty(COMPSsConstants.WORKER_PP) : "\"\"";
+            && !System.getProperty(COMPSsConstants.WORKER_PP).equals(""))
+                    ? System.getProperty(COMPSsConstants.WORKER_PP)
+                    : "\"\"";
     private final String workerPythonpath;
 
     // Logger

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -121,7 +121,6 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      ---------------------------------------------------
      --------------------------------------------------*/
     /**
-     *
      * @param action
      * @param params
      * @param actionScore
@@ -145,12 +144,12 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             }
         }
         long actionPriority = actionScore.getActionScore();
-        long expectedDataAvailable = ((MOScore) actionScore).getExpectedDataAvailable() + resScore * MOConfiguration.DATA_TRANSFER_DELAY;
+        long expectedDataAvailable = ((MOScore) actionScore).getExpectedDataAvailable()
+                + resScore * MOConfiguration.DATA_TRANSFER_DELAY;
         return new MOScore(actionPriority, expectedDataAvailable, lessTimeStamp, 0, 0, 0);
     }
 
     /**
-     *
      * @param action
      * @param params
      * @param impl
@@ -158,15 +157,16 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      * @return
      */
     @Override
-    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
+            Score resourceScore) {
         long resourceFreeTime = getResourceFreeTime(impl);
         long expectedDataAvailable = ((MOScore) resourceScore).getExpectedDataAvailable();
         long actionPriority = resourceScore.getActionScore();
         return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, impl);
     }
 
-    public MOScore generateMoveImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
-            Score resourceScore, long moveTime) {
+    public MOScore generateMoveImplementationScore(AllocatableAction action, TaskDescription params,
+            Implementation impl, Score resourceScore, long moveTime) {
         long resourceFreeTime = getResourceFreeTime(impl) + moveTime;
         long expectedDataAvailable = ((MOScore) resourceScore).getExpectedDataAvailable() + moveTime;
         long actionPriority = resourceScore.getActionScore();
@@ -193,7 +193,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return resourceFreeTime;
     }
 
-    public MOScore generateCurrentImplementationScore(AllocatableAction action, Implementation impl, Score resourceScore) {
+    public MOScore generateCurrentImplementationScore(AllocatableAction action, Implementation impl,
+            Score resourceScore) {
         // Check if it is to be deleted
         long resourceFreeTime = Long.MAX_VALUE;
         Gap g = gaps.peekFirst();
@@ -206,7 +207,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
     }
 
-    public MOScore generateMOScore(long resourceFreeTime, long expectedDataAvailable, long actionPriority, Implementation impl) {
+    public MOScore generateMOScore(long resourceFreeTime, long expectedDataAvailable, long actionPriority,
+            Implementation impl) {
         long implScore = 0;
         double energy = 0;
         double cost = 0;
@@ -236,7 +238,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         synchronized (gaps) {
             if (opAction != null) { // If optimization in progress
                 ((MOSchedulingInformation) opAction.getSchedulingInfo()).addSuccessor(action);
-                Gap opActionGap = new Gap(0, 0, opAction, action.getAssignedImplementation().getRequirements().copy(), 0);
+                Gap opActionGap = new Gap(0, 0, opAction, action.getAssignedImplementation().getRequirements().copy(),
+                        0);
                 ((MOSchedulingInformation) action.getSchedulingInfo()).addPredecessor(opActionGap);
             } else {
                 scheduleUsingGaps(action, gaps);
@@ -318,7 +321,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                     Gap availableGap = gIt.next();
                     // Takes the resources from a predecessor,
                     ResourceDescription availableDesc = availableGap.getResources();
-                    ResourceDescription usedResources = ResourceDescription.reduceCommonDynamics(availableDesc, resToCover);
+                    ResourceDescription usedResources = ResourceDescription.reduceCommonDynamics(availableDesc,
+                            resToCover);
 
                     // If it could take some of the resources -> adds a dependency
                     // If all the resources from the predecessor are used -> removes from the list & unlock
@@ -329,8 +333,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                         if (availableOrigin != null) {
                             availableDSI = (MOSchedulingInformation) availableOrigin.getSchedulingInfo();
                             availableDSI.addSuccessor(successor);
-                            succDSI.addPredecessor(
-                                    new Gap(availableGap.getInitialTime(), Long.MAX_VALUE, availableOrigin, usedResources, 0));
+                            succDSI.addPredecessor(new Gap(availableGap.getInitialTime(), Long.MAX_VALUE,
+                                    availableOrigin, usedResources, 0));
                         }
                         if (availableDesc.isDynamicUseless()) {
                             gIt.remove();
@@ -379,7 +383,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         Implementation impl = action.getAssignedImplementation();
         MOProfile p = (MOProfile) getProfile(impl);
         if (p != null) {
-            long length = actionDSI.getExpectedEnd() - (actionDSI.getExpectedStart() < 0 ? 0 : actionDSI.getExpectedStart());
+            long length = actionDSI.getExpectedEnd()
+                    - (actionDSI.getExpectedStart() < 0 ? 0 : actionDSI.getExpectedStart());
             pendingActionsCost -= p.getPrice() * length;
             pendingActionsEnergy -= p.getPower() * length;
         }
@@ -412,7 +417,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
         if (expectedStart == Long.MAX_VALUE) {
             // There is some data dependency with blocked tasks in some resource
-            Gap opActionGap = new Gap(0, 0, dataBlockingAction, action.getAssignedImplementation().getRequirements().copy(), 0);
+            Gap opActionGap = new Gap(0, 0, dataBlockingAction,
+                    action.getAssignedImplementation().getRequirements().copy(), 0);
             MOSchedulingInformation dbaDSI = (MOSchedulingInformation) dataBlockingAction.getSchedulingInfo();
             dbaDSI.lock();
             schedInfo.lock();
@@ -469,7 +475,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                     predDSI.unlock();
                 }
             }
-            Gap opActionGap = new Gap(0, 0, resourceBlockingAction, action.getAssignedImplementation().getRequirements(), 0);
+            Gap opActionGap = new Gap(0, 0, resourceBlockingAction,
+                    action.getAssignedImplementation().getRequirements(), 0);
             MOSchedulingInformation rbaDSI = (MOSchedulingInformation) resourceBlockingAction.getSchedulingInfo();
             rbaDSI.lock();
             schedInfo.lock();
@@ -506,7 +513,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             }
             schedInfo.addPredecessor(pGap);
             if (IS_DEBUG) {
-                sb.append(pGap.getOrigin()).append(" with ").append(pGap.getResources().getDynamicDescription()).append(", ");
+                sb.append(pGap.getOrigin()).append(" with ").append(pGap.getResources().getDynamicDescription())
+                        .append(", ");
             }
         }
 
@@ -527,8 +535,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             addGap(new Gap(Long.MAX_VALUE, Long.MAX_VALUE, action, impl.getRequirements().copy(), 0));
         }
         if (IS_DEBUG) {
-            LOGGER.debug(LOG_PREFIX + "Scheduled " + action.toString() + ". Interval [ " + expectedStart + " - " + expectedEnd + "] "
-                    + sb.toString());
+            LOGGER.debug(LOG_PREFIX + "Scheduled " + action.toString() + ". Interval [ " + expectedStart + " - "
+                    + expectedEnd + "] " + sb.toString());
         }
     }
 
@@ -552,11 +560,11 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      ---------------------------------------------------
      --------------------------------------------------*/
     @SuppressWarnings("unchecked")
-    public PriorityQueue<AllocatableAction> localOptimization(long updateId, Comparator<AllocatableAction> selectionComparator,
-            Comparator<AllocatableAction> donorComparator) {
+    public PriorityQueue<AllocatableAction> localOptimization(long updateId,
+            Comparator<AllocatableAction> selectionComparator, Comparator<AllocatableAction> donorComparator) {
         // System.out.println("Local Optimization for " + this.getName() + " starts");
-        LocalOptimizationState state = new LocalOptimizationState(updateId, (MOResourceScheduler<WorkerResourceDescription>) this,
-                getReadyComparator(), selectionComparator);
+        LocalOptimizationState state = new LocalOptimizationState(updateId,
+                (MOResourceScheduler<WorkerResourceDescription>) this, getReadyComparator(), selectionComparator);
         PriorityQueue<AllocatableAction> actions = new PriorityQueue<AllocatableAction>(1, donorComparator);
 
         synchronized (gaps) {
@@ -853,13 +861,15 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     }
 
     @SuppressWarnings("unchecked")
-    public List<Gap> rescheduleTasks(LocalOptimizationState state, PriorityQueue<AllocatableAction> rescheduledActions) {
+    public List<Gap> rescheduleTasks(LocalOptimizationState state,
+            PriorityQueue<AllocatableAction> rescheduledActions) {
         this.runActionsCost = 0;
         this.runActionsEnergy = 0;
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             for (int implId = 0; implId < CoreManager.getNumberCoreImplementations(coreId); implId++) {
                 MOProfile profile = (MOProfile) this.getProfile(coreId, implId);
-                runActionsEnergy += profile.getPower() * profile.getExecutionCount() * profile.getAverageExecutionTime();
+                runActionsEnergy += profile.getPower() * profile.getExecutionCount()
+                        * profile.getAverageExecutionTime();
                 runActionsCost += profile.getPrice() * profile.getExecutionCount() * profile.getAverageExecutionTime();
             }
         }
@@ -919,7 +929,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                  * End Event:
                  * 
                  */
-                List<SchedulingEvent> result = e.process(state, (MOResourceScheduler<WorkerResourceDescription>) this, rescheduledActions);
+                List<SchedulingEvent> result = e.process(state, (MOResourceScheduler<WorkerResourceDescription>) this,
+                        rescheduledActions);
                 for (SchedulingEvent r : result) {
                     schedulingQueue.offer(r);
                 }

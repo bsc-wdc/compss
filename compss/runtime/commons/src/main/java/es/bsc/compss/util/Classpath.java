@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Support class to load jar files to the classpath
- *
  */
 public class Classpath {
 
@@ -55,7 +54,7 @@ public class Classpath {
         if (method == null) {
             throw new FileNotFoundException();
         }
-        
+
         method.setAccessible(true);
         scanFolder(sysloader, method, directory, logger);
     }

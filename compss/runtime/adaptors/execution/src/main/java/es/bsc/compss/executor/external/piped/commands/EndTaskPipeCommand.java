@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,13 +25,14 @@ public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCo
     public final Integer jobId;
     public final ExternalTaskStatus taskStatus;
 
+
     public EndTaskPipeCommand(String[] line) {
-        jobId = Integer.parseInt(line[1]);
-        taskStatus = new ExternalTaskStatus(line);
+        this.jobId = Integer.parseInt(line[1]);
+        this.taskStatus = new ExternalTaskStatus(line);
     }
 
     public ExternalTaskStatus getTaskStatus() {
-        return taskStatus;
+        return this.taskStatus;
     }
 
     @Override
@@ -45,6 +46,6 @@ public class EndTaskPipeCommand extends EndTaskExternalCommand implements PipeCo
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

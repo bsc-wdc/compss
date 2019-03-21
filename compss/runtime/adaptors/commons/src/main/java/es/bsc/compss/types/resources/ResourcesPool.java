@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,10 +23,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-/**
- *
- * @author flordan
- */
 public class ResourcesPool {
     // Log and debug
 
@@ -36,11 +32,11 @@ public class ResourcesPool {
     // List of all created resources
     private static final List<Resource> AVAILABLE_RESOURCES = new LinkedList<>();
 
+
     /**
      * Returns the Resource associated to the given name @name Null if any resource has been registered with the name
      *
      * @name
-     *
      * @param name
      * @return
      */

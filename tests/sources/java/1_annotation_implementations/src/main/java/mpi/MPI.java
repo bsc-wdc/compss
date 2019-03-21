@@ -2,7 +2,6 @@ package mpi;
 
 /**
  * Dummy MPI interface to compile MPI methods
- *
  */
 public class MPI {
 

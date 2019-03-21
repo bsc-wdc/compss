@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,20 +24,22 @@ public class RemoveExecutorPipeCommand extends RemoveExecutorExternalCommand imp
 
     private final PipePair pipe;
 
+
     public RemoveExecutorPipeCommand(PipePair pp) {
         this.pipe = pp;
     }
 
     @Override
     public String getAsString() {
-        return super.getAsString() + " " + pipe.getOutboundPipe() + " " + pipe.getInboundPipe();
+        return super.getAsString() + " " + this.pipe.getOutboundPipe() + " " + this.pipe.getInboundPipe();
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
         if (value != 0) {
-            value = pipe.getPipesLocation().compareTo(((RemoveExecutorPipeCommand) t).pipe.getPipesLocation());
+            RemoveExecutorPipeCommand rt = (RemoveExecutorPipeCommand) t;
+            value = this.pipe.getPipesLocation().compareTo(rt.pipe.getPipesLocation());
         }
         return value;
     }

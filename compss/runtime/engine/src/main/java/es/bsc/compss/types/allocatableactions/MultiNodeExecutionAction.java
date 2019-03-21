@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 /**
  * Representation of a multi-node execution action
- *
  */
 public class MultiNodeExecutionAction extends ExecutionAction {
 
@@ -48,8 +47,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      * @param task
      * @param group
      */
-    public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator, TaskProducer producer,
-            Task task, MultiNodeGroup group) {
+    public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+            TaskProducer producer, Task task, MultiNodeGroup group) {
 
         super(schedulingInformation, orchestrator, producer, task);
 
@@ -116,7 +115,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         }
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
         List<String> slaveNames = group.getSlavesNames();
-        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(), slaveNames, listener);
+        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
+                slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
         job.setHistory(Job.JobHistory.NEW);
 
@@ -159,8 +159,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      */
     @Override
     public String toString() {
-        return "MultiNodeExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName() + ") with GroupId = "
-                + this.multiNodeId;
+        return "MultiNodeExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName()
+                + ") with GroupId = " + this.multiNodeId;
     }
 
 }

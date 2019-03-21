@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -47,8 +47,8 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     private final List<String> slaveWorkersNodeNames;
 
 
-    public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
-            JobListener listener) {
+    public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
 
         super(taskId, task, impl, res, listener);
 
@@ -133,7 +133,8 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
                 className = multiNodeMethod.getDeclaringClass();
                 break;
             default:
-                ErrorManager.error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
+                ErrorManager
+                        .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
                 return null;
         }
 
@@ -150,7 +151,8 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
             case MULTI_NODE:
                 return (MultiNodeImplementation) this.impl;
             default:
-                ErrorManager.error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
+                ErrorManager
+                        .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
                 return null;
         }
     }

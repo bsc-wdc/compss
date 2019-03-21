@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,12 +21,14 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
 import java.util.List;
 
+
 public class CloudInstanceTypeDescription {
 
     private final String instanceTypeName;
     private final MethodResourceDescription rd;
     private int[] slotsCore;
     private int[][] slotsImpl;
+
 
     public CloudInstanceTypeDescription(String name, MethodResourceDescription rd) {
         this.instanceTypeName = name;

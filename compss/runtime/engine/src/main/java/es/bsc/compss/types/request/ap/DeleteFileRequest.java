@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ public class DeleteFileRequest extends APRequest {
     private final DataLocation loc;
     private final Semaphore sem;
 
+
     public DeleteFileRequest(DataLocation loc, Semaphore sem) {
         this.loc = loc;
         this.sem = sem;
@@ -50,7 +51,7 @@ public class DeleteFileRequest extends APRequest {
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
             String filePath = loc.getURIs().get(0).getPath();
             File f = new File(filePath);
-            if (f.exists()){
+            if (f.exists()) {
                 if (f.delete()) {
                     LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted");
                 } else {

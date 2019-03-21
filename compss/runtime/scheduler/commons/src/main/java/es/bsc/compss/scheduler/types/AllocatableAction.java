@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -40,21 +40,20 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Abstract representation of an Allocatable Action (task execution, task transfer, etc.)
- *
  */
 public abstract class AllocatableAction {
 
     /**
      * Available states for any allocatable action
-     *
      */
     private enum State {
-        RUNNABLE, // Action can be run
-        WAITING, // Action is waiting
-        RUNNING, // Action is running
-        FINISHED, // Action has been successfully completed
-        FAILED // Action has failed
+    RUNNABLE, // Action can be run
+    WAITING, // Action is waiting
+    RUNNING, // Action is running
+    FINISHED, // Action has been successfully completed
+    FAILED // Action has failed
     }
+
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
@@ -119,7 +118,6 @@ public abstract class AllocatableAction {
      */
     /**
      * Notify action completed to orchestrator
-     *
      */
     protected void notifyCompleted() {
         if (DEBUG) {
@@ -392,17 +390,16 @@ public abstract class AllocatableAction {
         // Gets the lock on the action
         lock.lock();
         if ( // has an assigned resource where to run
-                selectedResource != null
-                && // has not been started yet
-                state == State.RUNNABLE
-                && // has no data dependencies with other methods
-                !hasDataPredecessors()
-                && // scheduler does not block the execution
+        selectedResource != null && // has not been started yet
+                state == State.RUNNABLE && // has no data dependencies with other methods
+                !hasDataPredecessors() && // scheduler does not block the execution
                 schedulingInfo.isExecutable()) {
 
-            // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and task is not to stop; or the assigned resource is not the required
-            if ((selectedResource.isRemoved() && !isToStopResource()) || (isSchedulingConstrained() && unrequiredResource()
-                    || isTargetResourceEnforced() && selectedResource != schedulingInfo.getEnforcedTargetResource())) {
+            // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
+            // task is not to stop; or the assigned resource is not the required
+            if ((selectedResource.isRemoved() && !isToStopResource())
+                    || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
+                            && selectedResource != schedulingInfo.getEnforcedTargetResource())) {
                 // Allow other threads to access the action
                 lock.unlock();
                 // Notify invalid scheduling
@@ -469,7 +466,7 @@ public abstract class AllocatableAction {
         state = State.RUNNING;
         // Allow other threads to execute the task (complete and error executor)
         lock.unlock();
-        
+
         reserveResources();
         profile = selectedResource.generateProfileForRun(this);
         selectedResource.hostAction(this);
@@ -511,7 +508,6 @@ public abstract class AllocatableAction {
 
     /**
      * Reserves the needed resources to run the action
-     *
      */
     @SuppressWarnings("unchecked")
     private void reserveResources() {
@@ -522,7 +518,6 @@ public abstract class AllocatableAction {
     }
 
     /**
-     *
      * @return description of the resources occupied during the action execution
      */
     protected final WorkerResourceDescription getResourceConsumption() {
@@ -531,7 +526,6 @@ public abstract class AllocatableAction {
 
     /**
      * Releases the needed resources to run the action
-     *
      */
     @SuppressWarnings("unchecked")
     private void releaseResources() {
@@ -662,7 +656,6 @@ public abstract class AllocatableAction {
 
     /**
      * Triggers the unsuccessful action completion notification
-     *
      */
     protected abstract void doFailed();
 
@@ -692,7 +685,6 @@ public abstract class AllocatableAction {
      *
      * @param <W>
      * @param r Resource where the action should run.
-     *
      * @return {@literal true} if the action can run in the given resource.
      */
     public abstract <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r);
@@ -702,10 +694,10 @@ public abstract class AllocatableAction {
      *
      * @param <T>
      * @param r resource that should run the action
-     *
      * @return list of the action implementations that can run on the resource.
      */
-    public abstract <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(ResourceScheduler<T> r);
+    public abstract <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r);
 
     /**
      * Returns the action priority
@@ -719,12 +711,12 @@ public abstract class AllocatableAction {
      *
      * @param <T>
      * @targetWorker
-     *
      * @param targetWorker
      * @param actionScore
      * @return
      */
-    public abstract <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore);
+    public abstract <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore);
 
     /**
      * Schedules the action considering the @actionScore. Actions can be scheduled on full workers
@@ -744,8 +736,8 @@ public abstract class AllocatableAction {
      * @throws BlockedActionException
      * @throws UnassignedActionException
      */
-    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException;
+    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
+            Score actionScore) throws BlockedActionException, UnassignedActionException;
 
     /**
      * Schedules the implementation @impl of the action to a given @targetWorker
@@ -756,8 +748,8 @@ public abstract class AllocatableAction {
      * @throws BlockedActionException
      * @throws UnassignedActionException
      */
-    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException;
+    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
+            Implementation impl) throws BlockedActionException, UnassignedActionException;
 
     @Override
     public String toString() {

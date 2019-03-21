@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -72,23 +72,19 @@ public abstract class APRequest extends Request {
      *
      * @return returns the request type name of this instance
      * @result returns the request type name of this instance
-     *
      */
     public abstract APRequestType getRequestType();
 
     /**
      * Processes the Request
      *
-     * @param ap
-     *            AccessProcessor processing the request
-     * @param ta
-     *            Task Analyser of the processing AccessProcessor
-     * @param dip
-     *            DataInfoProvider of the processing AccessProcessor
-     * @param td
-     *            Task Dispatcher attached to the processing AccessProcessor
+     * @param ap AccessProcessor processing the request
+     * @param ta Task Analyser of the processing AccessProcessor
+     * @param dip DataInfoProvider of the processing AccessProcessor
+     * @param td Task Dispatcher attached to the processing AccessProcessor
      * @throws compss.types.request.exceptions.ShutdownException
      */
-    public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) throws ShutdownException;
+    public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
+            throws ShutdownException;
 
 }

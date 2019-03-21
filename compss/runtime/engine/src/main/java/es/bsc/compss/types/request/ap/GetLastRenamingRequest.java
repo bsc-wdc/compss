@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
+
 public class GetLastRenamingRequest extends APRequest {
 
     private int code;
     private Semaphore sem;
     private String response;
+
 
     public GetLastRenamingRequest(int code, Semaphore sem) {
         this.code = code;

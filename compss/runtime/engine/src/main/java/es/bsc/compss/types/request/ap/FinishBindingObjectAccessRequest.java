@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,23 +23,25 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.AccessParams.BindingObjectAccessParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
+
 public class FinishBindingObjectAccessRequest extends APRequest {
 
-	BindingObjectAccessParams boAP;
-	
-	public FinishBindingObjectAccessRequest(BindingObjectAccessParams boAP) {
-		this.boAP = boAP;
-	}
+    private BindingObjectAccessParams boAP;
 
-	@Override
-	public APRequestType getRequestType() {
-		return APRequestType.FINISH_ACCESS_FILE;
-	}
 
-	@Override
-	public void process(AccessProcessor ap, TaskAnalyser ta,
-			DataInfoProvider dip, TaskDispatcher td) throws ShutdownException {
-		dip.finishBindingObjectAccess(boAP.getMode(), boAP.getCode());
-	}
+    public FinishBindingObjectAccessRequest(BindingObjectAccessParams boAP) {
+        this.boAP = boAP;
+    }
+
+    @Override
+    public APRequestType getRequestType() {
+        return APRequestType.FINISH_ACCESS_FILE;
+    }
+
+    @Override
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
+            throws ShutdownException {
+        dip.finishBindingObjectAccess(boAP.getMode(), boAP.getCode());
+    }
 
 }

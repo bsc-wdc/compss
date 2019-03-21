@@ -12,7 +12,8 @@ import decaf.DECAF;
 public class Main {
 
     private static final int SLEEP_TIME = 5_000;
-    private static final String[] lines = { "Executing decaf data-flow generator: " + System.getenv("PWD") + "/decaf/test.py ",
+    private static final String[] lines = {
+            "Executing decaf data-flow generator: " + System.getenv("PWD") + "/decaf/test.py ",
             "Executing python script.", "Executing decaf data-flow: ./test.sh", "Executing binary" };
     private static final String endLine0 = ".hostfile --args ";
 
@@ -94,11 +95,13 @@ public class Main {
             String startLine = lines[0] + "-n " + tasks + " --hostfile ";
             String endLine = endLine0 + "\"" + arguments + "\"";
             if (!line.startsWith(startLine)) {
-                System.err.println("[ERROR] line 0 is not starting correctly : \"" + line + "\" options is: \"" + startLine + "\"");
+                System.err.println("[ERROR] line 0 is not starting correctly : \"" + line + "\" options is: \""
+                        + startLine + "\"");
                 System.exit(1);
             }
             if (!line.endsWith(endLine)) {
-                System.err.println("[ERROR] line 0 is not ending correctly : \"" + line + "\" options is: \"" + endLine + "\"");
+                System.err.println(
+                        "[ERROR] line 0 is not ending correctly : \"" + line + "\" options is: \"" + endLine + "\"");
                 System.exit(1);
             }
 

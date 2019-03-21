@@ -11,8 +11,7 @@ public class MainImpl {
     /**
      * Increment task.
      * 
-     * @param counterFile
-     *            File path
+     * @param counterFile File path
      */
     public static void increment(String counterFile) {
         int count = -1;

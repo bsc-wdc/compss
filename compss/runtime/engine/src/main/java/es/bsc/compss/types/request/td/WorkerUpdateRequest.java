@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TD
     private final Worker<T> worker;
     private final ResourceUpdate<T> ru;
 
+
     /**
      * Constructs a AddCloudNodeRequest with all its parameters
      *
      * @param worker Worker that has been added
      * @param update
-     *
      */
     public WorkerUpdateRequest(Worker<T> worker, ResourceUpdate<T> update) {
         this.worker = worker;

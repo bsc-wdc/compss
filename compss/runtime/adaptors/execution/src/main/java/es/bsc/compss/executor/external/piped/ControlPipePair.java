@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -42,14 +42,15 @@ public class ControlPipePair {
     private final List<PipeCommand> unusedCommands;
     private final Map<PipeCommand, PendingCommandStatus> waitingCommands;
 
+
     public ControlPipePair(String basePipePath, String id) {
-        pipe = new PipePair(basePipePath, id);
-        waitingCommands = new TreeMap<>();
-        unusedCommands = new LinkedList<>();
+        this.pipe = new PipePair(basePipePath, id);
+        this.waitingCommands = new TreeMap<>();
+        this.unusedCommands = new LinkedList<>();
     }
 
     public boolean sendCommand(PipeCommand command) {
-        return pipe.sendCommand(command);
+        return this.pipe.sendCommand(command);
     }
 
     public void waitForCommand(PipeCommand command) throws ClosedPipeException {
@@ -58,14 +59,14 @@ public class ControlPipePair {
         synchronized (this) {
             unusedCommand = pollMatchingUnusedCommand(command);
             if (unusedCommand == null) {
-                if (closed) {
+                if (this.closed) {
                     throw new ClosedPipeException();
                 }
-                waitingCommands.put(command, status);
-                if (!readerAlive && !closed) {
-                    readerAlive = true;
-                    reader = new Thread(new ControlPipeReader());
-                    reader.start();
+                this.waitingCommands.put(command, status);
+                if (!this.readerAlive && !this.closed) {
+                    this.readerAlive = true;
+                    this.reader = new Thread(new ControlPipeReader());
+                    this.reader.start();
                 }
             } else {
                 command.join(unusedCommand);
@@ -75,13 +76,13 @@ public class ControlPipePair {
             try {
                 status.waitUntilCompletion();
             } catch (InterruptedException ie) {
-                //Do nothing
+                // Do nothing
             }
         }
     }
 
     private PipeCommand pollMatchingUnusedCommand(PipeCommand command) {
-        Iterator<PipeCommand> commandsItr = unusedCommands.iterator();
+        Iterator<PipeCommand> commandsItr = this.unusedCommands.iterator();
         while (commandsItr.hasNext()) {
             PipeCommand unusedCommand = commandsItr.next();
             if (unusedCommand.compareTo(command) == 0) {
@@ -93,25 +94,25 @@ public class ControlPipePair {
     }
 
     public String getOutboundPipe() {
-        return pipe.getOutboundPipe();
+        return this.pipe.getOutboundPipe();
     }
 
     public String getInboundPipe() {
-        return pipe.getInboundPipe();
+        return this.pipe.getInboundPipe();
     }
 
     public void noLongerExists() {
         synchronized (this) {
-            closed = true;
+            this.closed = true;
         }
-        pipe.noLongerExists();
-        pipe.delete();
+        this.pipe.noLongerExists();
+        this.pipe.delete();
     }
 
     public void delete() {
-        readerAlive = false;
-        pipe.noLongerExists();
-        pipe.delete();
+        this.readerAlive = false;
+        this.pipe.noLongerExists();
+        this.pipe.delete();
     }
 
 
@@ -126,7 +127,8 @@ public class ControlPipePair {
                     try {
                         command = pipe.readCommand();
                     } catch (UnknownCommandException uce) {
-                        LOGGER.warn("UNKNOWN COMMAND RECEIVED TRHOUGH PIPE " + pipe.getInboundPipe() + ": " + uce.getMessage());
+                        LOGGER.warn("UNKNOWN COMMAND RECEIVED TRHOUGH PIPE " + pipe.getInboundPipe() + ": "
+                                + uce.getMessage());
                         continue;
                     }
                     synchronized (ControlPipePair.this) {
@@ -149,32 +151,32 @@ public class ControlPipePair {
         }
     }
 
-
     private static class PendingCommandStatus {
 
         private final PipeCommand expectedCommand;
         private final Semaphore sem;
         private boolean failed;
 
+
         private PendingCommandStatus(PipeCommand command) {
             this.sem = new Semaphore(0);
             this.expectedCommand = command;
-            failed = false;
+            this.failed = false;
         }
 
         private void waitUntilCompletion() throws InterruptedException, ClosedPipeException {
-            sem.acquire();
-            if (failed) {
+            this.sem.acquire();
+            if (this.failed) {
                 throw new ClosedPipeException();
             }
         }
 
         private void completed(boolean failure, PipeCommand receivedCommand) {
-            failed = failure;
+            this.failed = failure;
             if (!failure) {
-                expectedCommand.join(receivedCommand);
+                this.expectedCommand.join(receivedCommand);
             }
-            sem.release(Integer.MAX_VALUE);
+            this.sem.release(Integer.MAX_VALUE);
         }
     }
 }

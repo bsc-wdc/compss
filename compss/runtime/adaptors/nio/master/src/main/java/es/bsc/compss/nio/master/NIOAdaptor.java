@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -93,7 +93,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final int MASTER_PORT_CALCULATED = BASE_MASTER_PORT + RANDOM_VALUE;
     private static final String MASTER_PORT_PROPERTY = System.getProperty(COMPSsConstants.MASTER_PORT);
     public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty())
-            ? Integer.valueOf(MASTER_PORT_PROPERTY) : MASTER_PORT_CALCULATED;
+            ? Integer.valueOf(MASTER_PORT_PROPERTY)
+            : MASTER_PORT_CALCULATED;
 
     // Final jobs log directory
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + File.separator;
@@ -115,9 +116,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
 
+
     /**
      * New NIOAdaptor instance
-     *
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
@@ -151,7 +152,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
 
         /* Init tracing values */
-        tracing = System.getProperty(COMPSsConstants.TRACING) != null && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0;
+        tracing = System.getProperty(COMPSsConstants.TRACING) != null
+                && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0;
         tracing_level = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
 
         // Start the server
@@ -164,8 +166,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
 
         // Start the Transfer Manager thread (starts the EventManager)
-        //LOGGER.debug("  Starting TransferManager Thread");
-        //TM.start();
+        // LOGGER.debug(" Starting TransferManager Thread");
+        // TM.start();
     }
 
     @Override
@@ -382,8 +384,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private void updateParameter(DataType newType, String pscoId, DependencyParameter dp) {
         DataType previousType = dp.getType();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Updating parameter " + dp.getDataTarget() + " from type " + previousType + " to type " + newType + " with id "
-                    + pscoId);
+            LOGGER.debug("Updating parameter " + dp.getDataTarget() + " from type " + previousType + " to type "
+                    + newType + " with id " + pscoId);
         }
 
         switch (previousType) {
@@ -394,7 +396,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     dp.setDataTarget(pscoId);
                 } else {
                     // The parameter types do not match, log exception
-                    LOGGER.warn("WARN: Cannot update parameter " + dp.getDataTarget() + " because types are not compatible");
+                    LOGGER.warn("WARN: Cannot update parameter " + dp.getDataTarget()
+                            + " because types are not compatible");
                 }
                 break;
             default:
@@ -691,21 +694,23 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
+
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             worker = w;
             listener = l;
         }
     }
 
-
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
+
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
         }
     }
+
 
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {

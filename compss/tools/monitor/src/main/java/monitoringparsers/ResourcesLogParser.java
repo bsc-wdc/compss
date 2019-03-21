@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -42,9 +42,10 @@ public class ResourcesLogParser {
 
     private static final Logger logger = LogManager.getLogger(Loggers.RESOURCES_LOG_PARSER);
 
+
     /**
-     * Format: Each entry separated by " ". Entry = "time:totalLoad:numResources" (int:float:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:totalLoad:numResources" (int:float:int) TODO: javadoc.
+     * 
      * @return String
      */
     public static String getTotalLoad() {
@@ -63,8 +64,9 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:loadC0:...:loadCN:numResources" (int:float:...:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:loadC0:...:loadCN:numResources" (int:float:...:int) TODO:
+     * javadoc.
+     * 
      * @return String
      */
     public static String getLoadPerCore() {
@@ -105,8 +107,8 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:totalRunningCores:numResources" (int:int:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:totalRunningCores:numResources" (int:int:int) TODO: javadoc.
+     * 
      * @return
      */
     public static String getTotalRunningCores() {
@@ -127,8 +129,9 @@ public class ResourcesLogParser {
     //
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:#runningCore0:...:numResources" (int:int:...:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:#runningCore0:...:numResources" (int:int:...:int) TODO:
+     * javadoc.
+     * 
      * @return String
      */
     public static String getRunningCoresPerCore() {
@@ -169,8 +172,8 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:totalPendingCores:numResources" (int:int:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:totalPendingCores:numResources" (int:int:int) TODO: javadoc.
+     * 
      * @return String
      */
     public static String getTotalPendingCores() {
@@ -189,8 +192,9 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:#pendingCore0:...:numResources" (int:int:...:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:#pendingCore0:...:numResources" (int:int:...:int) TODO:
+     * javadoc.
+     * 
      * @return String
      */
     public static String getPendingCoresPerCore() {
@@ -231,8 +235,8 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Last entry only. Entry = "time:CPU:MEM" (int:int:int)
-     * TODO: javadoc.
+     * Format: Last entry only. Entry = "time:CPU:MEM" (int:int:int) TODO: javadoc.
+     * 
      * @return String
      */
     public static String getResourcesStatus() {
@@ -261,10 +265,9 @@ public class ResourcesLogParser {
                 clear();
                 resourcesLogPath = newPath;
             }
-            
+
             // Parse
-            try (FileReader fr = new FileReader(resourcesLogPath);
-                    BufferedReader br = new BufferedReader(fr)) {
+            try (FileReader fr = new FileReader(resourcesLogPath); BufferedReader br = new BufferedReader(fr)) {
 
                 String line = br.readLine(); // Parsed line
                 int i = 0; // Line counter
@@ -287,8 +290,8 @@ public class ResourcesLogParser {
                                 } else {
                                     // Generic entry. Set values as the before entry
                                     states.add(new StateData(states.lastElement()));
-                                    states.lastElement().setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp))
-                                            / 1000); // seconds
+                                    states.lastElement()
+                                            .setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp)) / 1000); // seconds
                                 }
                             } else {
                                 processInformation = false;

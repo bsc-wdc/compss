@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -82,7 +82,8 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r) {
         return null;
     }
 
@@ -92,7 +93,8 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore) {
         return null;
     }
 
@@ -100,7 +102,7 @@ public class OptimizationAction extends AllocatableAction {
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
-    
+
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
@@ -122,7 +124,7 @@ public class OptimizationAction extends AllocatableAction {
     public boolean isToReleaseResources() {
         return true;
     }
-    
+
     @Override
     public boolean isToStopResource() {
         return true;

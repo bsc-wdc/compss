@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import java.util.List;
 public class FakeNode extends COMPSsWorker {
 
     private final String name;
+
 
     public FakeNode(String name) {
         super(name, null);
@@ -92,17 +93,20 @@ public class FakeNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
         return null;
     }
 
     @Override
-    public void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
     }
 
     @Override
-    public void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
     }
 

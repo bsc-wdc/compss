@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -60,7 +60,8 @@ public class ApplicationsViewModel {
         setSelectedApp("");
 
         // Import new resources
-        String appsLocation = ((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).getCOMPSs_BASE_LOG();
+        String appsLocation = ((UserCredential) Sessions.getCurrent().getAttribute("userCredential"))
+                .getCOMPSs_BASE_LOG();
         File COMPSs_LOG_DIR = new File(appsLocation);
         if (COMPSs_LOG_DIR.exists()) {
             for (File f : COMPSs_LOG_DIR.listFiles()) {

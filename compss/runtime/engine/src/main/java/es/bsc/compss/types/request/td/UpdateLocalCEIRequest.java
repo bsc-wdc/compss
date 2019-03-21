@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,10 +24,12 @@ import es.bsc.compss.util.ResourceManager;
 import java.util.concurrent.Semaphore;
 import java.util.List;
 
+
 public class UpdateLocalCEIRequest extends TDRequest {
 
     private final Class<?> ceiClass;
     private final Semaphore sem;
+
 
     public UpdateLocalCEIRequest(Class<?> ceiClass, Semaphore sem) {
         this.ceiClass = ceiClass;

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.io.Serializable;
 
 /**
  * Exception representation for errors when calling the Storage ITF
- *
  */
 public class StorageException extends Exception implements Serializable {
 
@@ -30,7 +29,6 @@ public class StorageException extends Exception implements Serializable {
 
     /**
      * New empty storage exception
-     * 
      */
     public StorageException() {
 

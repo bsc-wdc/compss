@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
 
     private int connections;
 
+
     public ServiceResourceDescription(String serviceName, String namespace, String port, int connections) {
         this.serviceName = serviceName;
         this.namespace = namespace;
@@ -55,8 +56,8 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     public boolean canHost(Implementation impl) {
         if (impl.getTaskType() == TaskType.SERVICE) {
             ServiceResourceDescription s = (ServiceResourceDescription) impl.getRequirements();
-            return s.serviceName.compareTo(serviceName) == 0 && s.namespace.compareTo(namespace) == 0 && s.port.compareTo(port) == 0
-                    && s.connections < this.connections;
+            return s.serviceName.compareTo(serviceName) == 0 && s.namespace.compareTo(namespace) == 0
+                    && s.port.compareTo(port) == 0 && s.connections < this.connections;
         }
         return false;
     }
@@ -69,7 +70,7 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
 
     @Override
     public void mimic(ResourceDescription rd) {
-        //Do nothing
+        // Do nothing
     }
 
     @Override
@@ -116,8 +117,8 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
 
     @Override
     public String toString() {
-        return "[SERVICE " + "NAMESPACE=" + this.namespace + " " + "SERVICE_NAME=" + this.getServiceName() + " " + "PORT=" + this.port + " "
-                + "CONNECTIONS=" + this.connections + "]";
+        return "[SERVICE " + "NAMESPACE=" + this.namespace + " " + "SERVICE_NAME=" + this.getServiceName() + " "
+                + "PORT=" + this.port + " " + "CONNECTIONS=" + this.connections + "]";
     }
 
     @Override

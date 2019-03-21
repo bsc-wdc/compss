@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -43,8 +43,7 @@ public class MonitoringDataRequest extends TDRequest {
     /**
      * Constructs a new TaskStateRequest
      *
-     * @param sem
-     *            semaphore where to synchronize until the current state is described
+     * @param sem semaphore where to synchronize until the current state is described
      */
     public MonitoringDataRequest(Semaphore sem) {
         this.sem = sem;
@@ -62,8 +61,7 @@ public class MonitoringDataRequest extends TDRequest {
     /**
      * Sets the semaphore where to synchronize until the current state is described
      *
-     * @param sem
-     *            the semaphore where to synchronize until the current state is described
+     * @param sem the semaphore where to synchronize until the current state is described
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
@@ -81,8 +79,7 @@ public class MonitoringDataRequest extends TDRequest {
     /**
      * Sets the current state description
      *
-     * @param response
-     *            current state description
+     * @param response current state description
      */
     public void setResponse(String response) {
         this.response = response;
@@ -97,19 +94,22 @@ public class MonitoringDataRequest extends TDRequest {
         monitorData.append(prefix).append("<ResourceInfo>").append("\n");
         monitorData.append(ResourceManager.getPendingRequestsMonitorData(prefix + "\t"));
         for (Worker<? extends WorkerResourceDescription> worker : ResourceManager.getAllWorkers()) {
-            monitorData.append(prefix).append("\t").append("<Resource id=\"").append(worker.getName()).append("\">").append("\n");
+            monitorData.append(prefix).append("\t").append("<Resource id=\"").append(worker.getName()).append("\">")
+                    .append("\n");
             // CPU, Core, Memory, Disk, Provider, Image --> Inside resource
             monitorData.append(worker.getMonitoringData(prefix + "\t\t"));
             String runnningActions = ts.getRunningActionMonitorData(worker, prefix + "\t\t\t");
             if (runnningActions != null) {
                 // Resource state = running
-                monitorData.append(prefix).append("\t\t").append("<Status>").append("Running").append("</Status>").append("\n");
+                monitorData.append(prefix).append("\t\t").append("<Status>").append("Running").append("</Status>")
+                        .append("\n");
                 monitorData.append(prefix).append("\t\t").append("<Actions>").append("\n");
                 monitorData.append(runnningActions);
                 monitorData.append(prefix).append("\t\t").append("</Actions>").append("\n");
             } else {
                 // Resource state = on destroy
-                monitorData.append(prefix).append("\t\t").append("<Status>").append("On Destroy").append("</Status>").append("\n");
+                monitorData.append(prefix).append("\t\t").append("<Status>").append("On Destroy").append("</Status>")
+                        .append("\n");
                 monitorData.append(prefix).append("\t\t").append("<Actions>").append("</Actions>").append("\n");
             }
             monitorData.append(prefix).append("\t").append("</Resource>").append("\n");
@@ -118,8 +118,10 @@ public class MonitoringDataRequest extends TDRequest {
 
         monitorData.append(prefix).append("<Statistics>").append("\n");
         monitorData.append(prefix).append("\t").append("<Statistic>").append("\n");
-        monitorData.append(prefix).append("\t\t").append("<Key>").append("Accumulated Cost").append("</Key>").append("\n");
-        monitorData.append(prefix).append("\t\t").append("<Value>").append(ResourceManager.getTotalCost()).append("</Value>").append("\n");
+        monitorData.append(prefix).append("\t\t").append("<Key>").append("Accumulated Cost").append("</Key>")
+                .append("\n");
+        monitorData.append(prefix).append("\t\t").append("<Value>").append(ResourceManager.getTotalCost())
+                .append("</Value>").append("\n");
         monitorData.append(prefix).append("\t").append("</Statistic>").append("\n");
         monitorData.append(prefix).append("</Statistics>").append("\n");
 

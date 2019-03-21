@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,24 +44,18 @@ public class CollectionParameter extends DependencyParameter {
      * Default constructor. Intended to be called from COMPSsRuntimeImpl when gathering and compacting parameter
      * information fed from bindings or Java Loader
      * 
-     * @param collectionFile
-     *            Name of the File identifier of the collection object per se.
-     * @param parameters
-     *            Parameters of the CollectionParameter
-     * @param direction
-     *            Direction of the collection
-     * @param stream
-     *            N/A (At least temporarily)
-     * @param prefix
-     *            N/A (At least temporarily)
-     * @param name
-     *            Name of the parameter in the user code
+     * @param collectionFile Name of the File identifier of the collection object per se.
+     * @param parameters Parameters of the CollectionParameter
+     * @param direction Direction of the collection
+     * @param stream N/A (At least temporarily)
+     * @param prefix N/A (At least temporarily)
+     * @param name Name of the parameter in the user code
      * @see DependencyParameter
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
-    public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction, Stream stream, String prefix,
-            String name) {
+    public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction, Stream stream,
+            String prefix, String name) {
         // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
         super(DataType.COLLECTION_T, direction, stream, prefix, name);
@@ -81,8 +75,7 @@ public class CollectionParameter extends DependencyParameter {
     /**
      * Set the identifier of the collection
      * 
-     * @param collectionId
-     *            String
+     * @param collectionId String
      */
     public void setCollectionId(String collectionId) {
         this.collectionId = collectionId;
@@ -107,7 +100,6 @@ public class CollectionParameter extends DependencyParameter {
     }
 
     /**
-     *
      * @return List of Parameter
      */
     public List<Parameter> getParameters() {
@@ -115,9 +107,7 @@ public class CollectionParameter extends DependencyParameter {
     }
 
     /**
-     *
-     * @param parameters
-     *            List of Parameter
+     * @param parameters List of Parameter
      */
     public void setParameters(List<Parameter> parameters) {
         this.parameters = parameters;

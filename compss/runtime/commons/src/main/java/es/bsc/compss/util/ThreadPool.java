@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,12 +35,9 @@ public class ThreadPool {
     /**
      * Constructs a new thread pool but not the threads inside it.
      *
-     * @param size
-     *            number of threads that will be in the pool
-     * @param name
-     *            name of the thread pool inherited by the threads
-     * @param runObject
-     *            Request Dispatcher associated to the pool which implements the function executed by the threads
+     * @param size number of threads that will be in the pool
+     * @param name name of the thread pool inherited by the threads
+     * @param runObject Request Dispatcher associated to the pool which implements the function executed by the threads
      */
     public ThreadPool(int size, String name, RequestDispatcher<?> runObject) {
         this.size = size;
@@ -58,7 +55,6 @@ public class ThreadPool {
 
     /**
      * Creates and starts the threads of the pool and waits until they are created
-     * 
      */
     public void startThreads() {
         int i = 0;

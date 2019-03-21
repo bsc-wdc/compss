@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package es.bsc.compss.loader.total;
 public class ArrayAccessWatcher {
 
     /*
-     * For now, there is no need to do anything inside this methods but to return or modify the array position.
-     * The black-box synchronization will get us the right array before we reach the code of these methods.
+     * For now, there is no need to do anything inside this methods but to return or modify the array position. The
+     * black-box synchronization will get us the right array before we reach the code of these methods.
      * 
-     * TODO: Do not depend on the black-box, but deal directly with the object registry and distinguish 
-     * between read and write access
+     * TODO: Do not depend on the black-box, but deal directly with the object registry and distinguish between read and
+     * write access
      */
     public static void arrayWriteObject(Object array, int index, Object value) throws Throwable {
         // System.out.println("OBJECT ARRAY WRITE, index " + index + ", value " + value);

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /* Internal fields ************************************************** */
     protected Float value = 0.0f;
 
+
     /*
      * ******************************************* CONSTRUCTORS
      *******************************************/
@@ -161,12 +162,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
 
             // When loading from constraints, always use at least one computing unit
-            int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
+            int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR)
+                    : ONE_INT;
             p.setComputingUnits(cu);
 
             String speedSTR = constraints.processorSpeed();
             speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
-            float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
+            float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR))
+                    ? Float.valueOf(speedSTR)
                     : UNASSIGNED_FLOAT;
             if (speed != UNASSIGNED_FLOAT) {
                 p.setSpeed(speed);
@@ -186,9 +189,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
             String internalMemorySTR = constraints.processorInternalMemorySize();
             internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
-            float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
-                    ? Float.valueOf(internalMemorySTR)
-                    : UNASSIGNED_FLOAT;
+            float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty()
+                    && !internalMemorySTR.equals(UNASSIGNED_STR)) ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
             if (internalMemory != UNASSIGNED_FLOAT) {
                 p.setInternalMemory(internalMemory);
             }
@@ -248,9 +250,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String storageSizeSTR = constraints.storageSize();
         storageSizeSTR = EnvironmentLoader.loadFromEnvironment(storageSizeSTR);
-        float storageSize = (storageSizeSTR != null && !storageSizeSTR.isEmpty() && !storageSizeSTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(storageSizeSTR)
-                : UNASSIGNED_FLOAT;
+        float storageSize = (storageSizeSTR != null && !storageSizeSTR.isEmpty()
+                && !storageSizeSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(storageSizeSTR) : UNASSIGNED_FLOAT;
         if (storageSize != UNASSIGNED_FLOAT) {
             this.storageSize = storageSize;
         }
@@ -278,9 +279,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String wallClockLimitSTR = constraints.wallClockLimit();
         wallClockLimitSTR = EnvironmentLoader.loadFromEnvironment(wallClockLimitSTR);
-        int wallClockLimit = (wallClockLimitSTR != null && !wallClockLimitSTR.isEmpty() && !wallClockLimitSTR.equals(UNASSIGNED_STR))
-                ? Integer.valueOf(wallClockLimitSTR)
-                : UNASSIGNED_INT;
+        int wallClockLimit = (wallClockLimitSTR != null && !wallClockLimitSTR.isEmpty()
+                && !wallClockLimitSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(wallClockLimitSTR) : UNASSIGNED_INT;
         if (wallClockLimit != UNASSIGNED_INT) {
             this.wallClockLimit = wallClockLimit;
         }
@@ -299,7 +299,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     }
 
-    private Processor getProcessorFromProcessorsConstraint(es.bsc.compss.types.annotations.Processor processorConstraints) {
+    private Processor getProcessorFromProcessorsConstraint(
+            es.bsc.compss.types.annotations.Processor processorConstraints) {
         Processor p = new Processor();
         String procName = processorConstraints.name();
         if (procName != null && !procName.equals(UNASSIGNED_STR)) {
@@ -311,12 +312,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
 
         // When loading from constraints, always use at least one computing unit
-        int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
+        int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR)
+                : ONE_INT;
         p.setComputingUnits(cu);
 
         String speedSTR = processorConstraints.speed();
         speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
-        float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
+        float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR))
+                ? Float.valueOf(speedSTR)
                 : UNASSIGNED_FLOAT;
         if (speed != UNASSIGNED_FLOAT) {
             p.setSpeed(speed);
@@ -336,9 +339,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String internalMemorySTR = processorConstraints.internalMemorySize();
         internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
-        float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(internalMemorySTR)
-                : UNASSIGNED_FLOAT;
+        float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty()
+                && !internalMemorySTR.equals(UNASSIGNED_STR)) ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
         if (internalMemory != UNASSIGNED_FLOAT) {
             p.setInternalMemory(internalMemory);
         }
@@ -580,7 +582,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     return;
             }
         } else {
-            //Set the default values
+            // Set the default values
             switch (key.toLowerCase()) {
                 case COMPUTING_UNITS:
                     proc.setComputingUnits(ONE_INT);
@@ -705,8 +707,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
     }
 
-    public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type, float internalMemory,
-            String propName, String propValue) {
+    public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type,
+            float internalMemory, String propName, String propValue) {
 
         // This method is called from XML: empty and null values must be checked
         Processor p = new Processor();
@@ -1062,7 +1064,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         float processorDif = this.getTotalCPUComputingUnits() - mr2.getTotalCPUComputingUnits();
         float otherProcessorsDif = (this.getTotalGPUComputingUnits() + this.getTotalFPGAComputingUnits()
                 + this.getTotalOTHERComputingUnits())
-                - (mr2.getTotalGPUComputingUnits() + mr2.getTotalFPGAComputingUnits() + mr2.getTotalOTHERComputingUnits());
+                - (mr2.getTotalGPUComputingUnits() + mr2.getTotalFPGAComputingUnits()
+                        + mr2.getTotalOTHERComputingUnits());
         float memoryDif = this.memorySize - mr2.memorySize;
 
         return (processorDif * DIFFERENCE_WEIGHT) + (otherProcessorsDif * OTHER_PROC_DIFFERENCE_WEIGHT) + memoryDif;
@@ -1109,7 +1112,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     private boolean checkProcessorContains(Processor pThis, Processor pRc2) {
-        boolean contains = checkProcessorCompatibility(pThis, pRc2) && checkInclusion(pThis.getComputingUnits(), pRc2.getComputingUnits());
+        boolean contains = checkProcessorCompatibility(pThis, pRc2)
+                && checkInclusion(pThis.getComputingUnits(), pRc2.getComputingUnits());
 
         return contains;
     }
@@ -1131,7 +1135,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     private boolean checkStorage(MethodResourceDescription rc2) {
-        return checkInclusion(this.storageSize, rc2.storageSize) && checkCompatibility(this.storageType, rc2.storageType);
+        return checkInclusion(this.storageSize, rc2.storageSize)
+                && checkCompatibility(this.storageType, rc2.storageType);
     }
 
     private boolean checkCompatibility(ProcessorType type1, ProcessorType type2) {
@@ -1219,7 +1224,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             this.addProcessor(new Processor(p2));
         }
 
-        //Memory
+        // Memory
         this.memorySize = mrd2.memorySize;
         this.storageType = mrd2.storageType;
 

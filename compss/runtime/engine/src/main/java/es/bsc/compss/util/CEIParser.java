@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ public class CEIParser {
         LANG = l;
     }
 
+
     /**
      * Parses the different interfaces
      *
@@ -85,10 +86,8 @@ public class CEIParser {
     }
 
     /**
-     * JAVA CONSTRUCTOR
-     *
-     * Loads the annotated class and initializes the data structures that contain the constraints. For each method found
-     * in the annotated interface creates its signature and adds the constraints to the structures.
+     * JAVA CONSTRUCTOR Loads the annotated class and initializes the data structures that contain the constraints. For
+     * each method found in the annotated interface creates its signature and adds the constraints to the structures.
      *
      * @param annotItfClass package and name of the Annotated Interface class
      * @return

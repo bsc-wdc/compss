@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -89,12 +89,8 @@ public class GATScriptExecutor {
      * threads is destroyed. There's a timeout of 1 minute. if the task don't end during this time, the thread pool is
      * destroyed as well.
      *
-     *
-     *
-     * @param cleanScripts
-     *            list of locations where to find all the cleaning scripts that must be executed
-     * @param cleanParams
-     *            list with the input parameters that each script will run with
+     * @param cleanScripts list of locations where to find all the cleaning scripts that must be executed
+     * @param cleanParams list with the input parameters that each script will run with
      */
 
     public GATScriptExecutor(GATWorkerNode node) {
@@ -150,13 +146,17 @@ public class GATScriptExecutor {
                 if (debug) {
                     try {
                         org.gridlab.gat.io.File outFile = GAT.createFile(node.getContext(),
-                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".out");
+                                Protocol.ANY_URI.getSchema() + File.separator
+                                        + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
+                                        + stdOutFileName + ".out");
                         sd.setStdout(outFile);
                         org.gridlab.gat.io.File errFile = GAT.createFile(node.getContext(),
-                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".err");
+                                Protocol.ANY_URI.getSchema() + File.separator
+                                        + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
+                                        + stdOutFileName + ".err");
                         sd.setStderr(errFile);
                     } catch (Exception e) {
-                    	logger.error(CLEAN_JOB_ERR, e);
+                        logger.error(CLEAN_JOB_ERR, e);
                     }
                 }
 
@@ -201,11 +201,12 @@ public class GATScriptExecutor {
 
         // Move cleanX.out logs to default logger
         if (debug) {
-            String stdOutFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".out";
-            
+            String stdOutFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
+                    + ".out";
+
             try (FileReader cleanOut = new FileReader(stdOutFilePath);
                     BufferedReader br = new BufferedReader(cleanOut)) {
-               
+
                 String line = br.readLine();
                 while (line != null) {
                     logger.debug(line);
@@ -214,7 +215,7 @@ public class GATScriptExecutor {
             } catch (Exception e) {
                 logger.error("Error moving std out file", e);
             }
-            
+
             // Delete file
             if (!new File(stdOutFilePath).delete()) {
                 logger.error("Error deleting out file " + stdOutFilePath);
@@ -223,16 +224,17 @@ public class GATScriptExecutor {
 
         // Move cleanX.err logs to default logger
         if (debug) {
-            String stdErrFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".err";
-            
+            String stdErrFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
+                    + ".err";
+
             try (FileReader cleanErr = new FileReader(stdErrFilePath);
                     BufferedReader br = new BufferedReader(cleanErr)) {
-                
+
                 String line = br.readLine();
                 while (line != null) {
                     logger.error(line);
                     line = br.readLine();
-                } 
+                }
             } catch (Exception e) {
                 logger.error("Error moving std err file", e);
             }
@@ -260,12 +262,11 @@ public class GATScriptExecutor {
         /**
          * Constructs a new CleanDispatcher
          *
-         * @param sdQueue
-         *            list of the task to be executed
-         * @param jobQueue
-         *            list where all the already executed tasks will be left
+         * @param sdQueue list of the task to be executed
+         * @param jobQueue list where all the already executed tasks will be left
          */
-        public ScriptDispatcher(RequestQueue<SoftwareDescription> sdQueue, RequestQueue<Job> jobQueue, GATWorkerNode node) {
+        public ScriptDispatcher(RequestQueue<SoftwareDescription> sdQueue, RequestQueue<Job> jobQueue,
+                GATWorkerNode node) {
             super(sdQueue);
             this.jobQueue = jobQueue;
             this.node = node;
@@ -296,5 +297,5 @@ public class GATScriptExecutor {
             }
         }
     }
-    
+
 }

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Representation of the Communication interface of the Runtime
- *
  */
 public class Comm {
 
@@ -73,6 +72,7 @@ public class Comm {
 
     // Master information
     private static MasterResource appHost;
+
 
     /**
      * Private constructor to avoid instantiation
@@ -104,7 +104,8 @@ public class Comm {
         /*
          * Initializes the Tracer activation value to enable querying Tracer.isActivated()
          */
-        if (System.getProperty(COMPSsConstants.TRACING) != null && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
+        if (System.getProperty(COMPSsConstants.TRACING) != null
+                && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracing_level = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
             LOGGER.debug("Tracing is activated [" + tracing_level + ']');
             Tracer.init(tracing_level);
@@ -124,8 +125,8 @@ public class Comm {
      * @return
      * @throws ConstructConfigurationException
      */
-    public static Configuration constructConfiguration(String adaptorName, Object project_properties, Object resources_properties)
-            throws ConstructConfigurationException {
+    public static Configuration constructConfiguration(String adaptorName, Object project_properties,
+            Object resources_properties) throws ConstructConfigurationException {
 
         // Check if adaptor has already been used
         CommAdaptor adaptor = adaptors.get(adaptorName);
@@ -134,7 +135,8 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException
+                    | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 
                 throw new ConstructConfigurationException(e);
             }
@@ -269,6 +271,7 @@ public class Comm {
 
     /**
      * Registers a new value @value for the data with id @dataId dataId must exist
+     * 
      * @param dataId Identifier of the collection
      * @param parameters Parameters of the collection
      * @return LogicalData
@@ -451,7 +454,6 @@ public class Comm {
 
     /**
      * Stops all the submitted jobs
-     *
      */
     public static void stopSubmittedjobs() {
         for (CommAdaptor adaptor : adaptors.values()) {

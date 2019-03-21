@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -328,7 +328,8 @@ public class CloudManagerTest {
             fail("Cloud Manager is not properly keeping track of the requested VMs when refusing creation requests");
         }
         String vmName1 = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
+        ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0,
+                new HashMap<>());
         cp1.confirmedCreation(rcr1, cmw1, cmrd1);
 
         if (cm.getCurrentVMCount() != 2) {
@@ -348,7 +349,8 @@ public class CloudManagerTest {
         }
 
         String vmName2 = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw2 = new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
+        ExtendedCloudMethodWorker cmw2 = new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0,
+                new HashMap<>());
         cp2.confirmedCreation(rcr2, cmw2, cmrd2);
 
         if (cm.getCurrentVMCount() != 2) {
@@ -403,13 +405,15 @@ public class CloudManagerTest {
         CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
         ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);
         String vmName1 = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
+        ExtendedCloudMethodWorker cmw1 = new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0,
+                new HashMap<>());
         cp1.confirmedCreation(rcr1, cmw1, cmrd1);
 
         CloudMethodResourceDescription cmrd2 = createResourceDescriptionFromProvider(cp2);
         ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd2);
         String vmName2 = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw2 = new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
+        ExtendedCloudMethodWorker cmw2 = new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0,
+                new HashMap<>());
         cp2.confirmedCreation(rcr2, cmw2, cmrd2);
 
         if (cm.getCurrentVMCount() != 2) {

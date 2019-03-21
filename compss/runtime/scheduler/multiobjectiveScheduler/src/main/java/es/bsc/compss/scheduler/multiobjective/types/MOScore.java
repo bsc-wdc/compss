@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,9 +37,10 @@ public class MOScore extends Score {
     private final double expectedEnergy;
 
 
-    public MOScore(long taskPriority, long dataAvailability, long resourceAvailability, long execTime, double energy, double cost) {
+    public MOScore(long taskPriority, long dataAvailability, long resourceAvailability, long execTime, double energy,
+            double cost) {
         super(taskPriority, resourceAvailability, Math.max(resourceAvailability, dataAvailability), execTime);
-        
+
         expectedDataAvailable = dataAvailability;
         expectedCost = cost;
         expectedEnergy = energy;
@@ -113,9 +114,10 @@ public class MOScore extends Score {
 
     @Override
     public String toString() {
-        return "[MOScore = [" + "Action Priority:" + this.actionScore + ", " + "Resource Availability:" + this.resourceScore + ", "
-                + "Data Availability:" + this.expectedDataAvailable + ", " + "Expected Start Timestamp:" + this.waitingScore + ", "
-                + "Expected Execution Time:" + this.implementationScore + ", " + "Expected Execution Consumption:" + this.expectedEnergy
-                + ", " + "Expected Execution Cost:" + this.expectedCost + "]" + "]";
+        return "[MOScore = [" + "Action Priority:" + this.actionScore + ", " + "Resource Availability:"
+                + this.resourceScore + ", " + "Data Availability:" + this.expectedDataAvailable + ", "
+                + "Expected Start Timestamp:" + this.waitingScore + ", " + "Expected Execution Time:"
+                + this.implementationScore + ", " + "Expected Execution Consumption:" + this.expectedEnergy + ", "
+                + "Expected Execution Cost:" + this.expectedCost + "]" + "]";
     }
 }

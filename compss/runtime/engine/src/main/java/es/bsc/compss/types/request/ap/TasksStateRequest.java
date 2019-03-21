@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
+
 /**
- * The TasksStateRequests class represents a request to obtain the progress of
- * all the applications that are running
+ * The TasksStateRequests class represents a request to obtain the progress of all the applications that are running
  */
 public class TasksStateRequest extends APRequest {
 
@@ -37,33 +37,29 @@ public class TasksStateRequest extends APRequest {
      */
     private String response;
 
+
     /**
      * Constructs a new TaskStateRequest
      *
-     * @param sem semaphore where to synchronize until the current state is
-     * described
+     * @param sem semaphore where to synchronize until the current state is described
      */
     public TasksStateRequest(Semaphore sem) {
         this.sem = sem;
     }
 
     /**
-     * Returns the semaphore where to synchronize until the current state is
-     * described
+     * Returns the semaphore where to synchronize until the current state is described
      *
-     * @return the semaphore where to synchronize until the current state is
-     * described
+     * @return the semaphore where to synchronize until the current state is described
      */
     public Semaphore getSemaphore() {
         return sem;
     }
 
     /**
-     * Sets the semaphore where to synchronize until the current state is
-     * described
+     * Sets the semaphore where to synchronize until the current state is described
      *
-     * @param sem the semaphore where to synchronize until the current state is
-     * described
+     * @param sem the semaphore where to synchronize until the current state is described
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;

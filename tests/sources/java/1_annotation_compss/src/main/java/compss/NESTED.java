@@ -25,7 +25,7 @@ public class NESTED {
     public static Integer taskNoWorkerInMasterFit(int counter) {
         return -1;
     }
-    
+
     public static Integer taskNoWorkerInMasterNoFit(int counter) {
         return -1;
     }

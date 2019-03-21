@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -687,7 +687,8 @@ public class AllocatableActionTest {
         }
     }
 
-    public void error(FakeAllocatableAction action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
+    public void error(FakeAllocatableAction action)
+            throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
         FakeResourceScheduler resource = (FakeResourceScheduler) action.getAssignedResource();
         List<AllocatableAction> resourceFree;
         try {
@@ -716,8 +717,8 @@ public class AllocatableActionTest {
 
     private void checkExecutions(int[] pattern) {
         if (pattern.length != FakeAllocatableAction.getSize()) {
-            fail("Unconsistent execution arrays. " + FakeAllocatableAction.getSize() + " results obtained and " + pattern.length
-                    + " expected");
+            fail("Unconsistent execution arrays. " + FakeAllocatableAction.getSize() + " results obtained and "
+                    + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
@@ -730,8 +731,8 @@ public class AllocatableActionTest {
 
     private void checkErrors(int[] pattern) {
         if (pattern.length != FakeAllocatableAction.getSize()) {
-            fail("Unconsistent AllocatableActionImpl.error arrays. " + FakeAllocatableAction.getSize() + " results obtained and "
-                    + pattern.length + " expected");
+            fail("Unconsistent AllocatableActionImpl.error arrays. " + FakeAllocatableAction.getSize()
+                    + " results obtained and " + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
@@ -744,14 +745,14 @@ public class AllocatableActionTest {
 
     private void checkFailed(int[] pattern) {
         if (pattern.length != FakeAllocatableAction.getSize()) {
-            fail("Unconsistent AllocatableActionImpl.failed arrays. " + FakeAllocatableAction.getSize() + " results obtained and "
-                    + pattern.length + " expected");
+            fail("Unconsistent AllocatableActionImpl.failed arrays. " + FakeAllocatableAction.getSize()
+                    + " results obtained and " + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
             if (pattern[i] != FakeAllocatableAction.getFailed(i)) {
-                fail("AllocatableAction " + i + " should had AllocatableActionImpl.failed " + pattern[i] + " time and it was "
-                        + FakeAllocatableAction.getFailed(i));
+                fail("AllocatableAction " + i + " should had AllocatableActionImpl.failed " + pattern[i]
+                        + " time and it was " + FakeAllocatableAction.getFailed(i));
 
             }
         }

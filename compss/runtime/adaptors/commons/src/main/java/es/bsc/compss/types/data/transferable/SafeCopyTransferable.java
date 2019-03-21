@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,14 +26,15 @@ public class SafeCopyTransferable implements Transferable {
     private String dataTarget;
     private DataType type;
 
-    public SafeCopyTransferable(DataType dt){
-        this.type=dt;
+
+    public SafeCopyTransferable(DataType dt) {
+        this.type = dt;
     }
-    
-    public SafeCopyTransferable(){
+
+    public SafeCopyTransferable() {
         this.type = DataType.FILE_T;
     }
-    
+
     @Override
     public Object getDataSource() {
         return dataSource;

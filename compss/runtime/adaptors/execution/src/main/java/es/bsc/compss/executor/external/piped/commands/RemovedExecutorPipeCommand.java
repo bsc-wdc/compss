@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,29 +25,32 @@ public class RemovedExecutorPipeCommand extends RemovedExecutorExternalCommand i
     private final String inPipe;
     private final String outPipe;
 
+
     public RemovedExecutorPipeCommand(String[] command) {
-        inPipe = command[1];
-        outPipe = command[2];
+        this.inPipe = command[1];
+        this.outPipe = command[2];
     }
 
     public RemovedExecutorPipeCommand(PipePair pp) {
-        inPipe = pp.getInboundPipe();
-        outPipe = pp.getOutboundPipe();
+        this.inPipe = pp.getInboundPipe();
+        this.outPipe = pp.getOutboundPipe();
     }
 
     @Override
     public String getAsString() {
-        return super.getAsString() + " " + inPipe + " " + outPipe;
+        return super.getAsString() + " " + inPipe + " " + this.outPipe;
     }
 
     @Override
     public int compareTo(PipeCommand t) {
         int value = Integer.compare(this.getType().ordinal(), t.getType().ordinal());
         if (value == 0) {
-            value = inPipe.compareTo(((RemovedExecutorPipeCommand) t).inPipe);
+            RemovedExecutorPipeCommand rt = (RemovedExecutorPipeCommand) t;
+            value = this.inPipe.compareTo(rt.inPipe);
         }
         if (value == 0) {
-            value = outPipe.compareTo(((RemovedExecutorPipeCommand) t).outPipe);
+            RemovedExecutorPipeCommand rt = (RemovedExecutorPipeCommand) t;
+            value = this.outPipe.compareTo(rt.outPipe);
         }
         return value;
     }

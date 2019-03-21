@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,10 +34,11 @@ public class MOConfiguration {
         ENERGY // Energy param
     }
 
+
     public static final long DATA_TRANSFER_DELAY = 10;
     public static final double DEFAULT_IDLE_POWER = 1;
     public static final double DEFAULT_IDLE_PRICE = 0;
-    
+
     // Optimization Parameter
     private static OptimizationParameter OP_PARAMETER = OptimizationParameter.TIME;
 
@@ -60,8 +61,8 @@ public class MOConfiguration {
     public static void load() {
         String configFile = System.getProperty(COMPSsConstants.SCHEDULER_CONFIG_FILE);
         if (configFile != null && !configFile.isEmpty()) {
-            if (IS_DEBUG){
-            	LOGGER.debug(LOG_PREFIX + "Reading Multi-objective from file " + configFile);
+            if (IS_DEBUG) {
+                LOGGER.debug(LOG_PREFIX + "Reading Multi-objective from file " + configFile);
             }
             try {
                 readConfiguration(configFile);
@@ -73,15 +74,17 @@ public class MOConfiguration {
 
     private static void readConfiguration(String configFile) throws ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration(configFile);
-        OP_PARAMETER = OptimizationParameter.valueOf(config.getString("optimization.parameter", OptimizationParameter.TIME.toString()));
+        OP_PARAMETER = OptimizationParameter
+                .valueOf(config.getString("optimization.parameter", OptimizationParameter.TIME.toString()));
         TIME_BOUNDARY = config.getLong("time.boundary", Long.MAX_VALUE);
         POWER_BOUNDARY = config.getLong("power.boundary", Long.MAX_VALUE);
         PRICE_BOUNDARY = config.getLong("price.boundary", Long.MAX_VALUE);
         ENERGY_BOUNDARY = config.getLong("energy.boundary", Long.MAX_VALUE);
         MONETARY_BOUNDARY = config.getLong("monetary.boundary", Long.MAX_VALUE);
-        if (IS_DEBUG){
-        	LOGGER.debug(LOG_PREFIX+" LOADED OPTIMIZATION_PARAMETER: " + OP_PARAMETER);
-        	LOGGER.debug(LOG_PREFIX+" LOADED BOUNDARIES: [" + TIME_BOUNDARY+ ", "+ POWER_BOUNDARY + ", "+ PRICE_BOUNDARY +", "+ ENERGY_BOUNDARY +", " + MONETARY_BOUNDARY+"]");
+        if (IS_DEBUG) {
+            LOGGER.debug(LOG_PREFIX + " LOADED OPTIMIZATION_PARAMETER: " + OP_PARAMETER);
+            LOGGER.debug(LOG_PREFIX + " LOADED BOUNDARIES: [" + TIME_BOUNDARY + ", " + POWER_BOUNDARY + ", "
+                    + PRICE_BOUNDARY + ", " + ENERGY_BOUNDARY + ", " + MONETARY_BOUNDARY + "]");
         }
     }
 
@@ -108,7 +111,5 @@ public class MOConfiguration {
     public static OptimizationParameter getSchedulerOptimization() {
         return OP_PARAMETER;
     }
-    
-    
-    
+
 }

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ public class ExecutionManager {
      * @param fpgaMap
      * @param limitOfTasks
      */
-    public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU, String gpuMap,
-            int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
+    public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU,
+            String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
 
         ResourceManager rm = null;
         try {
@@ -81,7 +81,6 @@ public class ExecutionManager {
 
     /**
      * Stops the Execution Manager and its pool of threads
-     *
      */
     public void stop() {
         LOGGER.info("Stopping Threads...");

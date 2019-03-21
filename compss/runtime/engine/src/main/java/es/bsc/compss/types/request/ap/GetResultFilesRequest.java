@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,12 +27,14 @@ import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.operation.ResultListener;
 import java.util.TreeSet;
 
+
 public class GetResultFilesRequest extends APRequest {
 
     private Long appId;
     private Semaphore sem;
 
     private LinkedList<ResultFile> blockedData;
+
 
     public GetResultFilesRequest(Long appId, Semaphore sem) {
         this.appId = appId;

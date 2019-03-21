@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -152,8 +152,8 @@ public class MOSchedulingInformation extends SchedulingInformation {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(
-                "\tlastUpdate: " + lastUpdate + "\n" + "\texpectedStart: " + expectedStart + "\n" + "\texpectedEnd:" + expectedEnd + "\n");
+        StringBuilder sb = new StringBuilder("\tlastUpdate: " + lastUpdate + "\n" + "\texpectedStart: " + expectedStart
+                + "\n" + "\texpectedEnd:" + expectedEnd + "\n");
         sb.append("\t").append("schedPredecessors: ");
         for (Gap g : getPredecessors()) {
             sb.append(" ").append(g.getOrigin());

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import java.util.LinkedList;
 
 import es.bsc.compss.comm.Comm;
 
+
 public class ObjectInfo extends DataInfo {
 
     // Hash code of the object
-
     private int code;
+
 
     public ObjectInfo(int code) {
         super();
@@ -34,7 +35,7 @@ public class ObjectInfo extends DataInfo {
     public int getCode() {
         return code;
     }
-    
+
     @Override
     public boolean delete() {
         if (deletionBlocks > 0) {
@@ -42,13 +43,13 @@ public class ObjectInfo extends DataInfo {
         } else {
             LinkedList<Integer> removedVersions = new LinkedList<>();
             for (DataVersion version : versions.values()) {
-            	String sourceName = version.getDataInstanceId().getRenaming();
+                String sourceName = version.getDataInstanceId().getRenaming();
                 if (version.delete()) {
-                	LogicalData ld = Comm.getData(sourceName);
-                	if (ld != null)
-                		ld.removeValue();
-                	
-                	Comm.removeData(sourceName);
+                    LogicalData ld = Comm.getData(sourceName);
+                    if (ld != null)
+                        ld.removeValue();
+
+                    Comm.removeData(sourceName);
                     removedVersions.add(version.getDataInstanceId().getVersionId());
                 }
             }
@@ -61,5 +62,5 @@ public class ObjectInfo extends DataInfo {
         }
         return false;
     }
-    
+
 }

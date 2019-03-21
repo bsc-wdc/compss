@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ public class ErrorPipeCommand extends ErrorExternalCommand implements PipeComman
 
     private final PipeCommand expected;
 
+
     public ErrorPipeCommand(PipeCommand expected) {
         this.expected = expected;
     }
@@ -44,7 +45,8 @@ public class ErrorPipeCommand extends ErrorExternalCommand implements PipeComman
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
 }

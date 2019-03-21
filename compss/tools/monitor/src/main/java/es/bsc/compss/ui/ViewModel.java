@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -133,8 +133,8 @@ public class ViewModel {
     }
 
     @Command
-    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel", "loadChartViewModel",
-            "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })
+    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
+            "loadChartViewModel", "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })
     public void select(@BindingParam("selectedTab") String selectedTab) {
         if (!this.selectedTab.equals(selectedTab)) {
             this.selectedTab = selectedTab;
@@ -165,8 +165,8 @@ public class ViewModel {
     }
 
     @Command
-    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel", "loadChartViewModel",
-            "statisticsViewModel", "runtimeLogViewModel" })
+    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
+            "loadChartViewModel", "statisticsViewModel", "runtimeLogViewModel" })
     public void update() {
         logger.debug("Loading Monitored Application...");
         Application monitoredApp = new Application();
@@ -333,8 +333,8 @@ public class ViewModel {
     }
 
     @GlobalCommand
-    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel", "loadChartViewModel",
-            "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })
+    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
+            "loadChartViewModel", "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })
     public void refresh() {
         this.update();
         this.updateRuntimeLog();

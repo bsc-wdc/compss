@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,8 +68,8 @@ public class ExecutorTest {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setLang(Lang.JAVA);
-        invBr = invBr
-                .setImpl(new MethodImplementation(this.getClass().getCanonicalName(), "javaTest", 0, 0, new MethodResourceDescription()));
+        invBr = invBr.setImpl(new MethodImplementation(this.getClass().getCanonicalName(), "javaTest", 0, 0,
+                new MethodResourceDescription()));
         Invocation invocation1 = invBr.build();
         Execution exec = new Execution(invocation1, null);
         p.execute(exec);

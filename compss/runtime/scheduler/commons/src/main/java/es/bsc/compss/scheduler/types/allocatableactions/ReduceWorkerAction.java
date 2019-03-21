@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -51,13 +51,14 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
-    public ReduceWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker, TaskScheduler ts,
-            ResourceUpdate<T> modification) {
+    public ReduceWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
+            TaskScheduler ts, ResourceUpdate<T> modification) {
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         this.ru = (PendingReduction<T>) modification;
         if (modification.getModification() instanceof MethodResourceDescription) {
-            impl = new MethodImplementation("", "", null, null, (MethodResourceDescription) modification.getModification());
+            impl = new MethodImplementation("", "", null, null,
+                    (MethodResourceDescription) modification.getModification());
         } else {
             impl = new ServiceImplementation(null, "", "", "", "");
         }
@@ -151,7 +152,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
-    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<R> r) {
+    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
+            ResourceScheduler<R> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == worker) {
             impls.add(impl);
@@ -160,7 +162,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
-    public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker, Score actionScore) {
+    public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker,
+            Score actionScore) {
         return null;
     }
 

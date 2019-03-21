@@ -9,7 +9,6 @@ import java.io.IOException;
 
 /**
  * Three tasks without dependencies that are scheduled one after the other because of the barrier call.
- * 
  */
 public class Main {
 
@@ -41,8 +40,7 @@ public class Main {
     /**
      * API Test.
      * 
-     * @param initialValue
-     *            Initial test value
+     * @param initialValue Initial test value
      */
     public static void testBarrier(int initialValue) {
         // Initialize independent counters
@@ -76,8 +74,7 @@ public class Main {
     /**
      * Test main method.
      * 
-     * @param args
-     *            System arguments
+     * @param args System arguments
      */
     public static void main(String[] args) {
         // Check and get parameters

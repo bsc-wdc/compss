@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -310,7 +310,7 @@ public class LogicalData {
         if (isBindingData) {
             String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
             String id;
-            //decide the id where the object is stored in the binding
+            // decide the id where the object is stored in the binding
             if (this.bindingId != null) {
                 id = this.bindingId;
             } else if (this.value != null) {
@@ -380,7 +380,6 @@ public class LogicalData {
      * @throws ClassNotFoundException
      * @throws StorageException
      * @throws UnstartedNodeException
-     *
      * @throws Exception
      */
     public synchronized void loadFromStorage() throws CannotLoadException {
@@ -470,7 +469,8 @@ public class LogicalData {
      * @param sharedMountPoints
      * @return a valid location if the file is unique
      */
-    public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, Map<String, String> sharedMountPoints) {
+    public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host,
+            Map<String, String> sharedMountPoints) {
         // If the file is being saved means that this function has already been
         // executed
         // for the same LogicalData. Thus, all the host locations are already
@@ -629,7 +629,6 @@ public class LogicalData {
 
     /**
      * Sets the LogicalData as obsolete
-     *
      */
     public synchronized void isObsolete() {
         for (Resource res : this.getAllHosts()) {
@@ -683,6 +682,7 @@ public class LogicalData {
 
         private final Copy c;
         private final DataLocation loc;
+
 
         public CopyInProgress(Copy c, DataLocation loc) {
             this.c = c;

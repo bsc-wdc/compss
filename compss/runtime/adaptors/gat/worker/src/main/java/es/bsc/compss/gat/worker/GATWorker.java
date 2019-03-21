@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ import storage.StorageItf;
 
 /**
  * The worker class is executed on the remote resources in order to execute the tasks.
- *
  */
 public class GATWorker implements InvocationContext {
 
@@ -110,14 +109,15 @@ public class GATWorker implements InvocationContext {
         // Retrieve arguments
         ImplementationDefinition implDef = parseArguments(args);
 
-        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, implDef.getComputingUnits());
+        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf,
+                implDef.getComputingUnits());
         if (!worker.runTask(implDef)) {
             System.exit(7);
         }
     }
 
-    public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir, String storageConf,
-            int computingUnitsCPU) {
+    public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir,
+            String storageConf, int computingUnitsCPU) {
 
         this.hostName = workerName;
         this.debug = debug;
@@ -127,8 +127,8 @@ public class GATWorker implements InvocationContext {
         this.storageConf = storageConf;
 
         // Prepare execution Manager
-        this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED,
-                0, ThreadBinder.BINDER_DISABLED, 1);
+        this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0,
+                ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 1);
 
         if (this.debug) {
             System.out.println("Initializing ExecutionManager");
@@ -143,12 +143,10 @@ public class GATWorker implements InvocationContext {
     /**
      * Parses the all the arguments except the application parameters
      *
-     * @param args
-     *            args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration arg[2]:
-     *            Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]:
-     *            Number of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant
-     *            parameters Others
-     *
+     * @param args args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration
+     *            arg[2]: Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames
+     *            arg[3+N+1]: Number of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method
+     *            dependant parameters Others
      */
     private static ImplementationDefinition parseArguments(String args[]) {
         // Default flags

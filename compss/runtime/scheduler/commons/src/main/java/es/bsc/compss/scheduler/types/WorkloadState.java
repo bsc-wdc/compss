@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,24 +18,26 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.util.CoreManager;
 
+
 public class WorkloadState {
 
-    //Core Information
+    // Core Information
     private int coreCount;
     private long[] coreMinTime;
     private long[] coreMeanTime;
     private long[] coreMaxTime;
 
-    //Action counters
+    // Action counters
     private int noResourceCount;
     private int[] noResourceCounts;
     private int readyCount;
     private int[] readyCounts;
 
-    //Running Tasks
+    // Running Tasks
     private int[] runningCounts;
     private int runningCount;
     private long[] runningCoreMeanTime;
+
 
     public WorkloadState() {
         coreCount = CoreManager.getCoreCount();
@@ -131,10 +133,10 @@ public class WorkloadState {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        //Time Stamp
+        // Time Stamp
         sb.append("TIMESTAMP = ").append(String.valueOf(System.currentTimeMillis())).append("\n");
 
-        //Load Information
+        // Load Information
         sb.append("LOAD_INFO = [").append("\n");
         for (int coreId = 0; coreId < coreCount; coreId++) {
             sb.append("\t").append("CORE_INFO = [").append("\n");

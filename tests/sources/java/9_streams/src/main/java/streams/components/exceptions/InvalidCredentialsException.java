@@ -12,7 +12,6 @@ public class InvalidCredentialsException extends Exception {
 
     /**
      * Creates a new exception for invalid credentials
-     * 
      */
     public InvalidCredentialsException() {
         super(ERROR_MSG);

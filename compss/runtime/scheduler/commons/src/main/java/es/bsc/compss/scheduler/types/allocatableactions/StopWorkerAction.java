@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -54,8 +54,9 @@ public class StopWorkerAction extends AllocatableAction {
      * ***************************************************************************************************************
      */
     @SuppressWarnings("unchecked")
-    public StopWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<? extends WorkerResourceDescription> worker,
-            TaskScheduler ts, PerformedReduction<? extends WorkerResourceDescription> modification) {
+    public StopWorkerAction(SchedulingInformation schedulingInformation,
+            ResourceScheduler<? extends WorkerResourceDescription> worker, TaskScheduler ts,
+            PerformedReduction<? extends WorkerResourceDescription> modification) {
 
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
@@ -174,7 +175,8 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == worker) {
             impls.add(impl);
@@ -183,7 +185,8 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore) {
         return null;
     }
 

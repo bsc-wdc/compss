@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private int[] coreSimultaneousTasks;
     // Number of tasks that can be run simultaneously per core id (maxTaskCount not considered)
     private int[] idealSimultaneousTasks;
+
 
     @SuppressWarnings("unchecked")
     public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, Map<String, String> sharedDisks) {
@@ -238,7 +239,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         for (int i = 0; i < coreSimultaneousTasks.length; ++i) {
             sb.append(prefix).append("\t").append("CORE = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("COREID = ").append(i).append("\n");
-            sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(coreSimultaneousTasks[i]).append("\n");
+            sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(coreSimultaneousTasks[i])
+                    .append("\n");
             sb.append(prefix).append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("]").append("\n");
@@ -248,7 +250,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 sb.append(prefix).append("\t").append("IMPLEMENTATION = [").append("\n");
                 sb.append(prefix).append("\t").append("\t").append("COREID = ").append(i).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("IMPLID = ").append(j).append("\n");
-                sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(implSimultaneousTasks[i][j]).append("\n");
+                sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(implSimultaneousTasks[i][j])
+                        .append("\n");
                 sb.append(prefix).append("\t").append("]").append("\n");
             }
         }

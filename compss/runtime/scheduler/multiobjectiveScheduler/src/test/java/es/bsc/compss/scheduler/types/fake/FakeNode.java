@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -48,15 +48,18 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public void sendData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
+    public void sendData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t,
+            EventListener el) {
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
+    public void obtainData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t,
+            EventListener el) {
     }
 
     @Override
-    public Job<?> newJob(int i, TaskDescription tp, Implementation i1, Resource rsrc, List<String> slaveWorkersNodeNames, JobListener jl) {
+    public Job<?> newJob(int i, TaskDescription tp, Implementation i1, Resource rsrc,
+            List<String> slaveWorkersNodeNames, JobListener jl) {
 
         return null;
     }

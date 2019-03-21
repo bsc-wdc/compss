@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ public class ResourceManager {
     private final ThreadBinder binderFPGAs;
 
 
-    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap) throws InvalidMapException {
+    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap)
+            throws InvalidMapException {
         // Instantiate CPU binders
         LOGGER.debug("Instantiate CPU Binder with " + cusCPU + " CUs");
 
@@ -58,8 +59,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
-                    + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER.warn(
+                    "Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
+                            + ThreadBinder.BINDER_AUTOMATIC + ")");
             String resourceMap = BindToMap.getResourceCpuDescription();
             binderCPUsTmp = new BindToMap(cusCPU, resourceMap);
         }
@@ -82,8 +84,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not load the desidered mapping policy for the GPU computing units. Using default policy ("
-                    + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER.warn(
+                    "Could not load the desidered mapping policy for the GPU computing units. Using default policy ("
+                            + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderGPUsTmp = new BindToResource(cusGPU);
         }
         binderGPUs = binderGPUsTmp;
@@ -105,8 +108,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not load the desidered mapping policy for the FPGA computing units. Using default policy ("
-                    + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER.warn(
+                    "Could not load the desidered mapping policy for the FPGA computing units. Using default policy ("
+                            + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderFPGAsTmp = new BindToResource(cusFPGA);
         }
         binderFPGAs = binderFPGAsTmp;

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -42,7 +42,8 @@ public class AddOrchestration {
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
 
 
-    public static void main(String[] args) throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
+    public static void main(String[] args)
+            throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
         if (args.length < 2) {
             ErrorManager.fatal("Error: missing arguments for loader");
         }
@@ -89,7 +90,8 @@ public class AddOrchestration {
          */
     }
 
-    private static CtClass[] getParamClasses(String label, ClassPool pool) throws NotFoundException, NameNotFoundException {
+    private static CtClass[] getParamClasses(String label, ClassPool pool)
+            throws NotFoundException, NameNotFoundException {
         List<CtClass> classes = new LinkedList<>();
         List<String> params = getParametersTypeFromLabel(label);
         if (params != null && params.size() > 0) {

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -111,7 +111,8 @@ public class TraceMerger {
         final String traceNamePrefix = appName + masterTraceSuffix;
 
         File f = new File(workingDir + File.separator + traceSubDir);
-        File[] matchingFiles = f.listFiles((File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
+        File[] matchingFiles = f.listFiles(
+                (File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
 
         if (matchingFiles == null) {
             throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + traceExtension + " not found.");
@@ -149,7 +150,8 @@ public class TraceMerger {
         logger.debug("Parsing master sync events");
         HashMap<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(masterTracePath, -1);
 
-        logger.debug("Proceeding to merge task traces into master which contains " + masterSyncEvents.size() + " lines.");
+        logger.debug(
+                "Proceeding to merge task traces into master which contains " + masterSyncEvents.size() + " lines.");
         for (File workerFile : workersTraces) {
             logger.debug("Merging worker " + workerFile);
             String workerFileName = workerFile.getName();
@@ -166,18 +168,17 @@ public class TraceMerger {
             HashMap<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
-            
+
         }
         masterWriter.close();
 
         logger.debug("Merging finished.");
 
         if (!debug) {
-            logger.debug("Removing folder " + workingDir + File.separator + traceSubDir + File
-                .separator + workerSubDir);
-            try{
-                removeFolder(workingDir + File.separator + traceSubDir + File.separator +
-                        workerSubDir);
+            logger.debug(
+                    "Removing folder " + workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
+            try {
+                removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
             } catch (Exception e) {
                 logger.warn("Could not remove python temporal tracing folder.\n" + e.toString());
             }
@@ -247,8 +248,8 @@ public class TraceMerger {
         return lines.subList(startIndex, endIndex);
     }
 
-    private void writeWorkerEvents(HashMap<Integer, List<LineInfo>> masterSyncEvents, HashMap<Integer, List<LineInfo>> workerSyncEvents,
-            List<String> eventsLine, Integer workerID) {
+    private void writeWorkerEvents(HashMap<Integer, List<LineInfo>> masterSyncEvents,
+            HashMap<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) {
 
         logger.debug("Writing " + eventsLine.size() + " lines from worker " + workerID);
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));

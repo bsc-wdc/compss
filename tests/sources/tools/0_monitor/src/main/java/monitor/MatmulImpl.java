@@ -4,8 +4,9 @@ import java.io.FileOutputStream;
 
 
 public class MatmulImpl {
-    
+
     private static final int SLEEP_MONITOR_CHECKS = 1_000; // ms
+
 
     public static void multiplyAccumulative(double[] a, double[] b, double[] c) {
         int M = (int) Math.sqrt(a.length);
@@ -16,7 +17,7 @@ public class MatmulImpl {
                 }
             }
         }
-        
+
         // Sleep for monitor checks
         try {
             Thread.sleep(SLEEP_MONITOR_CHECKS);
@@ -31,7 +32,7 @@ public class MatmulImpl {
             double value = (double) (Math.random() * 10.0);
             block[k] = value;
         }
-        
+
         return block;
     }
 

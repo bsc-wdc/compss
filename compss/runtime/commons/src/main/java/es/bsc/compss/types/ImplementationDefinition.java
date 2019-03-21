@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,7 +68,8 @@ public abstract class ImplementationDefinition {
                     String declaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String methodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (declaringClass == null || declaringClass.isEmpty()) {
-                        throw new IllegalArgumentException("Empty declaringClass annotation for method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty declaringClass annotation for method " + implSignature);
                     }
                     if (methodName == null || methodName.isEmpty()) {
                         throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
@@ -83,7 +84,8 @@ public abstract class ImplementationDefinition {
                     String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (binary == null || binary.isEmpty()) {
-                        throw new IllegalArgumentException("Empty binary annotation for BINARY method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty binary annotation for BINARY method " + implSignature);
                     }
                     id = new BinaryDefinition(implSignature, binary, binaryWorkingDir, implConstraints);
                     break;
@@ -96,7 +98,8 @@ public abstract class ImplementationDefinition {
                     String mpiWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     String mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     if (mpiRunner == null || mpiRunner.isEmpty()) {
-                        throw new IllegalArgumentException("Empty mpiRunner annotation for MPI method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty mpiRunner annotation for MPI method " + implSignature);
                     }
                     if (mpiBinary == null || mpiBinary.isEmpty()) {
                         throw new IllegalArgumentException("Empty binary annotation for MPI method " + implSignature);
@@ -114,9 +117,11 @@ public abstract class ImplementationDefinition {
                     String workerInMaster = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     String compssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
                     if (appName == null || appName.isEmpty()) {
-                        throw new IllegalArgumentException("Empty appName annotation for COMPSs method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty appName annotation for COMPSs method " + implSignature);
                     }
-                    id = new COMPSsDefinition(implSignature, runcompss, flags, appName, workerInMaster, compssWorkingDir, implConstraints);
+                    id = new COMPSsDefinition(implSignature, runcompss, flags, appName, workerInMaster,
+                            compssWorkingDir, implConstraints);
                     break;
 
                 case DECAF:
@@ -129,12 +134,15 @@ public abstract class ImplementationDefinition {
                     String decafWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     String decafRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
                     if (decafRunner == null || decafRunner.isEmpty()) {
-                        throw new IllegalArgumentException("Empty mpiRunner annotation for DECAF method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty mpiRunner annotation for DECAF method " + implSignature);
                     }
                     if (dfScript == null || dfScript.isEmpty()) {
-                        throw new IllegalArgumentException("Empty dfScript annotation for DECAF method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty dfScript annotation for DECAF method " + implSignature);
                     }
-                    id = new DecafDefinition(implSignature, dfScript, dfExecutor, dfLib, decafWorkingDir, decafRunner, implConstraints);
+                    id = new DecafDefinition(implSignature, dfScript, dfExecutor, dfLib, decafWorkingDir, decafRunner,
+                            implConstraints);
                     break;
 
                 case OMPSS:
@@ -155,18 +163,21 @@ public abstract class ImplementationDefinition {
                     String openclKernel = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String openclWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (openclKernel == null || openclKernel.isEmpty()) {
-                        throw new IllegalArgumentException("Empty kernel annotation for OpenCL method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty kernel annotation for OpenCL method " + implSignature);
                     }
                     id = new OpenCLDefinition(implSignature, openclKernel, openclWorkingDir, implConstraints);
                     break;
                 case MULTI_NODE:
                     if (implTypeArgs.length != MultiNodeImplementation.NUM_PARAMS) {
-                        throw new IllegalArgumentException("Incorrect parameters for type MultiNode on " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Incorrect parameters for type MultiNode on " + implSignature);
                     }
                     String multiNodeClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String multiNodeName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (multiNodeClass == null || multiNodeClass.isEmpty()) {
-                        throw new IllegalArgumentException("Empty declaringClass annotation for method " + implSignature);
+                        throw new IllegalArgumentException(
+                                "Empty declaringClass annotation for method " + implSignature);
                     }
                     if (multiNodeName == null || multiNodeName.isEmpty()) {
                         throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
@@ -231,7 +242,8 @@ public abstract class ImplementationDefinition {
         private final String port;
 
 
-        private ServiceDefinition(String signature, String namespace, String serviceName, String operation, String port) {
+        private ServiceDefinition(String signature, String namespace, String serviceName, String operation,
+                String port) {
             super(signature);
             this.namespace = namespace;
             this.serviceName = serviceName;
@@ -302,8 +314,8 @@ public abstract class ImplementationDefinition {
         private final MethodResourceDescription implConstraints;
 
 
-        private DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
-                MethodResourceDescription implConstraints) {
+        private DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir,
+                String mpiRunner, MethodResourceDescription implConstraints) {
             super(signature);
             this.dfScript = dfScript;
             this.dfExecutor = dfExecutor;
@@ -315,7 +327,8 @@ public abstract class ImplementationDefinition {
 
         @Override
         public Implementation getImpl(int coreId, int implId) {
-            return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, coreId, implId, implConstraints);
+            return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, coreId, implId,
+                    implConstraints);
         }
 
         @Override
@@ -343,8 +356,8 @@ public abstract class ImplementationDefinition {
         private final MethodResourceDescription implConstraints;
 
 
-        private COMPSsDefinition(String signature, String runcompss, String flags, String appName, String workerInMaster, String workingDir,
-                MethodResourceDescription implConstraints) {
+        private COMPSsDefinition(String signature, String runcompss, String flags, String appName,
+                String workerInMaster, String workingDir, MethodResourceDescription implConstraints) {
             super(signature);
             this.runcompss = runcompss;
             this.flags = flags;
@@ -356,7 +369,8 @@ public abstract class ImplementationDefinition {
 
         @Override
         public Implementation getImpl(int coreId, int implId) {
-            return new COMPSsImplementation(runcompss, flags, appName, workerInMaster, workingDir, coreId, implId, implConstraints);
+            return new COMPSsImplementation(runcompss, flags, appName, workerInMaster, workingDir, coreId, implId,
+                    implConstraints);
         }
 
         @Override
@@ -380,7 +394,8 @@ public abstract class ImplementationDefinition {
         private final MethodResourceDescription implConstraints;
 
 
-        private OmpSsDefinition(String signature, String binary, String workingDir, MethodResourceDescription implConstraints) {
+        private OmpSsDefinition(String signature, String binary, String workingDir,
+                MethodResourceDescription implConstraints) {
             super(signature);
             this.binary = binary;
             this.workingDir = workingDir;
@@ -411,7 +426,8 @@ public abstract class ImplementationDefinition {
         private final MethodResourceDescription implConstraints;
 
 
-        private OpenCLDefinition(String signature, String kernel, String workingDir, MethodResourceDescription implConstraints) {
+        private OpenCLDefinition(String signature, String kernel, String workingDir,
+                MethodResourceDescription implConstraints) {
             super(signature);
             this.kernel = kernel;
             this.workingDir = workingDir;
@@ -442,7 +458,8 @@ public abstract class ImplementationDefinition {
         private final MethodResourceDescription implConstraints;
 
 
-        private BinaryDefinition(String signature, String binary, String workingDir, MethodResourceDescription implConstraints) {
+        private BinaryDefinition(String signature, String binary, String workingDir,
+                MethodResourceDescription implConstraints) {
             super(signature);
             this.binary = binary;
             this.workingDir = workingDir;

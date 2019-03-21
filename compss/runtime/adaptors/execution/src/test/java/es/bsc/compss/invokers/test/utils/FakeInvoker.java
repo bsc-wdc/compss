@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ public class FakeInvoker extends Invoker {
     private final InvokerListener listener;
 
 
-    public FakeInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources,
-            InvokerListener listener) throws JobExecutionException {
+    public FakeInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources, InvokerListener listener) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
         this.listener = listener;
     }

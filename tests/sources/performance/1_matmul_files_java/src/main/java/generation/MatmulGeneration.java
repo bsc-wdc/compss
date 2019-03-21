@@ -73,7 +73,8 @@ public class MatmulGeneration {
                     for (int iblock = 0; iblock < BSIZE; iblock++) {
                         for (int jblock = 0; jblock < BSIZE; jblock++) {
                             for (int kblock = 0; kblock < BSIZE; kblock++) {
-                                C[i][j][iblock * BSIZE + jblock] += A[i][k][iblock * BSIZE + kblock] * B[k][j][kblock * BSIZE + jblock];
+                                C[i][j][iblock * BSIZE + jblock] += A[i][k][iblock * BSIZE + kblock]
+                                        * B[k][j][kblock * BSIZE + jblock];
                             }
                         }
                     }

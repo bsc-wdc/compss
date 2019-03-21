@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -67,10 +67,11 @@ public class DataResourceScheduler<T extends WorkerResourceDescription> extends 
 
     @SuppressWarnings("unchecked")
     @Override
-    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
+            Score resourceScore) {
         // LOGGER.debug("[DataResourceScheduler] Generate implementation score for action " + action);
-        if (this.hasBlockedActions()){
-            // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 
+        if (this.hasBlockedActions()) {
+            // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks?
             return null;
         }
         if (this.myWorker.canRunNow((T) impl.getRequirements())) {

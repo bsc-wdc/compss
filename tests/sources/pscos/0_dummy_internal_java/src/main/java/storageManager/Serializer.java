@@ -29,12 +29,9 @@ public class Serializer {
     /**
      * Serializes an objects and leaves it in a file
      *
-     * @param o
-     *            object to be serialized
-     * @param file
-     *            file where the serialized object will be stored
-     * @throws IOException
-     *             Error writing the file
+     * @param o object to be serialized
+     * @param file file where the serialized object will be stored
+     * @throws IOException Error writing the file
      */
     public static void serialize(Object o, String file) throws IOException {
         try {
@@ -47,10 +44,8 @@ public class Serializer {
     /**
      * Serializes an objects
      *
-     * @param o
-     *            object to be serialized
-     * @throws IOException
-     *             Error writing the file
+     * @param o object to be serialized
+     * @throws IOException Error writing the file
      */
     public static byte[] serialize(Object o) throws IOException {
         try {
@@ -63,11 +58,9 @@ public class Serializer {
     /**
      * Reads an object from a file
      *
-     * @param file
-     *            containing the serialized object
+     * @param file containing the serialized object
      * @return the object read from the file
-     * @throws IOException
-     *             Error reading the file
+     * @throws IOException Error reading the file
      */
     public static Object deserialize(String file) throws IOException, ClassNotFoundException {
         try {
@@ -80,11 +73,9 @@ public class Serializer {
     /**
      * Reads an object from a byte array
      *
-     * @param b
-     *            containing the serialized object
+     * @param b containing the serialized object
      * @return the object read from the file
-     * @throws IOException
-     *             Error reading the file
+     * @throws IOException Error reading the file
      */
     public static Object deserialize(byte[] b) throws IOException, ClassNotFoundException {
         try {
@@ -97,12 +88,9 @@ public class Serializer {
     /**
      * Serializes an objects using the default java serializer and leaves it in a file
      *
-     * @param o
-     *            object to be serialized
-     * @param file
-     *            file where to store the serialized object
-     * @throws IOException
-     *             Error writing the file
+     * @param o object to be serialized
+     * @param file file where to store the serialized object
+     * @throws IOException Error writing the file
      */
     private static void serializeBinary(Object o, String file) throws IOException {
         FileOutputStream fout = new FileOutputStream(file);
@@ -114,10 +102,8 @@ public class Serializer {
     /**
      * Serializes an objects using the default java serializer
      *
-     * @param o
-     *            object to be serialized
-     * @throws IOException
-     *             Error writing the byte stream
+     * @param o object to be serialized
+     * @throws IOException Error writing the byte stream
      */
     private static byte[] serializeBinary(Object o) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -145,11 +131,9 @@ public class Serializer {
     /**
      * Reads a binary-serialized object from a file
      *
-     * @param file
-     *            containing the serialized object
+     * @param file containing the serialized object
      * @return the object read from the file
-     * @throws IOException
-     *             Error reading the file
+     * @throws IOException Error reading the file
      */
     private static Object deserializeBinary(String file) throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(file);
@@ -162,10 +146,8 @@ public class Serializer {
     /**
      * Reads a binary-serialized object from a byte array
      *
-     * @param data
-     *            containing the serialized object
+     * @param data containing the serialized object
      * @return the object read from the data
-     *
      */
     private static Object deserializeBinary(byte[] data) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
@@ -193,12 +175,9 @@ public class Serializer {
     /**
      * Serializes an objects usign the XML Encoder and leaves it in a file
      *
-     * @param o
-     *            object to be serialized
-     * @param file
-     *            file where to store the serialized object
-     * @throws IOException
-     *             Error writting the file
+     * @param o object to be serialized
+     * @param file file where to store the serialized object
+     * @throws IOException Error writting the file
      */
     private static void serializeXML(Object o, String file) throws IOException {
         FileOutputStream fout = new FileOutputStream(file);
@@ -210,10 +189,8 @@ public class Serializer {
     /**
      * Serializes an objects using the XML Encoder
      *
-     * @param o
-     *            object to be serialized
-     * @throws IOException
-     *             Error writing the byte stream
+     * @param o object to be serialized
+     * @throws IOException Error writing the byte stream
      */
     private static byte[] serializeXML(Object o) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -237,11 +214,9 @@ public class Serializer {
     /**
      * Reads an XML-serialized object from a file
      *
-     * @param file
-     *            containing the serialized object
+     * @param file containing the serialized object
      * @return the object read from the file
-     * @throws IOException
-     *             Error reading the file
+     * @throws IOException Error reading the file
      */
     private static Object deserializeXML(String file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
@@ -254,10 +229,8 @@ public class Serializer {
     /**
      * Reads a XML-serialized object from a byte array
      *
-     * @param data
-     *            containing the serialized object
+     * @param data containing the serialized object
      * @return the object read from the data
-     *
      */
     private static Object deserializeXML(byte[] data) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);

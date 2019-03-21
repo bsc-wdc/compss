@@ -6,7 +6,9 @@ import java.io.IOException;
 
 
 public class Simple {
+
     public static String COUNTER_NAME = "counter";
+
 
     public static void main(String[] args) {
         // Check and get parameters
@@ -53,7 +55,7 @@ public class Simple {
         try {
             // Execute increment
             SimpleImpl.increment(COUNTER_NAME);
-        
+
             // Read from private method
             checkResult(COUNTER_NAME);
 

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class ExternalAdaptationManager extends Thread {
     private boolean running = false;
     private boolean canBeStarted = false;
 
+
     public ExternalAdaptationManager() {
         MasterResource master = Comm.getAppHost();
         if (master == null) {
@@ -106,7 +107,6 @@ public class ExternalAdaptationManager extends Thread {
 
     /**
      * Shutdown the adaptation manager
-     *
      */
     public void shutdown() {
         if (this.canBeStarted) {
@@ -119,7 +119,7 @@ public class ExternalAdaptationManager extends Thread {
         if (!new File(this.adaptationDir).mkdir()) {
             ErrorManager.error("ERROR: Error creating adaptation dir");
         }
-        String[] command = new String[]{"mkfifo", commandPipe, resultPipe};
+        String[] command = new String[] { "mkfifo", commandPipe, resultPipe };
         try {
             Process process = new ProcessBuilder(command).inheritIO().start();
             int result = process.waitFor();
@@ -212,7 +212,8 @@ public class ExternalAdaptationManager extends Thread {
                 CloudMethodWorker cmw = cp.getHostedWorker(name);
                 if (cmw != null) {
                     ResourceManager.reduceDynamicWorker(cmw, cmw.getDescription());
-                    RUNTIME_LOGGER.info(LOG_PREFIX + "Submited external request for removing " + name + " in " + providerName);
+                    RUNTIME_LOGGER.info(
+                            LOG_PREFIX + "Submited external request for removing " + name + " in " + providerName);
                     writePipe(resultPipe, ACK);
                 } else {
                     RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: resource " + name + " not found in " + providerName);
@@ -224,7 +225,8 @@ public class ExternalAdaptationManager extends Thread {
 
             }
         } else {
-            RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: One of the parameters is incorrect (" + name + "," + providerName + ")");
+            RUNTIME_LOGGER.error(
+                    LOG_PREFIX + "ERROR: One of the parameters is incorrect (" + name + "," + providerName + ")");
             writePipe(resultPipe, "ERROR: One of the parameters is incorrect (" + name + "," + providerName + ")");
         }
 
@@ -242,16 +244,19 @@ public class ExternalAdaptationManager extends Thread {
             if (cp != null) {
                 CloudImageDescription imageDescription = cp.getImage(imageName);
                 CloudInstanceTypeDescription typeDescription = cp.getInstanceType(typeName);
-                CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(typeDescription, imageDescription);
+                CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(typeDescription,
+                        imageDescription);
                 ResourceCreationRequest rcr = cp.requestResourceCreation(cmrd);
                 if (rcr != null) {
-                    RUNTIME_LOGGER.info(
-                            LOG_PREFIX + "Submited external request for creating (" + typeName + ", " + imageName + ") in " + providerName);
+                    RUNTIME_LOGGER.info(LOG_PREFIX + "Submited external request for creating (" + typeName + ", "
+                            + imageName + ") in " + providerName);
                     rcr.print(RESOURCES_LOGGER, DEBUG);
                     writePipe(resultPipe, ACK + " " + rcr.getRequestID());
                 } else {
-                    RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: Creating resource (" + typeName + ", " + imageName + ") in " + providerName);
-                    writePipe(resultPipe, "ERROR: Error creating resource(" + typeName + ", " + imageName + ") in " + providerName);
+                    RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: Creating resource (" + typeName + ", " + imageName
+                            + ") in " + providerName);
+                    writePipe(resultPipe,
+                            "ERROR: Error creating resource(" + typeName + ", " + imageName + ") in " + providerName);
                 }
             } else {
                 RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: Provider " + providerName + " not found.");
@@ -259,9 +264,10 @@ public class ExternalAdaptationManager extends Thread {
 
             }
         } else {
-            RUNTIME_LOGGER.error(
-                    LOG_PREFIX + "ERROR: One of the parameters is incorrect (" + typeName + ", " + imageName + "," + providerName + ")");
-            writePipe(resultPipe, "ERROR: One of the parameters is incorrect (" + typeName + ", " + imageName + "," + providerName + ")");
+            RUNTIME_LOGGER.error(LOG_PREFIX + "ERROR: One of the parameters is incorrect (" + typeName + ", "
+                    + imageName + "," + providerName + ")");
+            writePipe(resultPipe, "ERROR: One of the parameters is incorrect (" + typeName + ", " + imageName + ","
+                    + providerName + ")");
         }
 
     }
@@ -278,7 +284,8 @@ public class ExternalAdaptationManager extends Thread {
     }
 
     private String[] readPipe(String pipe) {
-        try (FileInputStream input = new FileInputStream(pipe); BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
+        try (FileInputStream input = new FileInputStream(pipe);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
             String line = reader.readLine();
             if (line != null) {
                 String[] result = line.split(" ");

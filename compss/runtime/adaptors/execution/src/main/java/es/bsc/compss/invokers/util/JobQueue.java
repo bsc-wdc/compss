@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,8 +32,7 @@ import es.bsc.compss.log.Loggers;
  * the execution a thread can dequeue a Request from the queue to treat it, if there are no requests on the queue it
  * falls asleep until a new request is enqueued.
  * 
- * @param <T>
- *            Type of the Requests
+ * @param <T> Type of the Requests
  */
 public class JobQueue {
 
@@ -57,8 +56,7 @@ public class JobQueue {
     /**
      * Adds a request at the tail of the queue
      * 
-     * @param request
-     *            Request to be added
+     * @param request Request to be added
      */
     public void enqueue(Execution request) {
         // Add new job to queue

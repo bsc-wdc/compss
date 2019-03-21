@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class StreamRegistry {
         this.fileToStreams = new TreeMap<>();
         this.taskFiles = new HashSet<String>();
         this.onWindows = (File.separatorChar == '\\');
-        
+
         this.itApi.setStreamRegistry(this);
     }
 
@@ -101,7 +101,8 @@ public class StreamRegistry {
             list.addFD(fis.getFD());
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
-            throw new FileNotFoundException("Loader - Error creating FileInputStream for file " + file + LINE_SEP + e.getMessage());
+            throw new FileNotFoundException(
+                    "Loader - Error creating FileInputStream for file " + file + LINE_SEP + e.getMessage());
         }
 
         return fis;
@@ -133,7 +134,8 @@ public class StreamRegistry {
             list.addFD(fos.getFD());
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
-            throw new FileNotFoundException("Loader - Error creating FileOutputStream for file " + file + LINE_SEP + e.getMessage());
+            throw new FileNotFoundException(
+                    "Loader - Error creating FileOutputStream for file " + file + LINE_SEP + e.getMessage());
         }
 
         return fos;
@@ -189,7 +191,8 @@ public class StreamRegistry {
             list.addFD(raf.getFD());
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
-            throw new FileNotFoundException("Loader - Error creating RandomAccessFile for file " + file + LINE_SEP + e.getMessage());
+            throw new FileNotFoundException(
+                    "Loader - Error creating RandomAccessFile for file " + file + LINE_SEP + e.getMessage());
         }
 
         return raf;
@@ -252,7 +255,8 @@ public class StreamRegistry {
         return isr;
     }
 
-    public InputStreamReader newInputStreamReader(InputStream is, String charsetName) throws UnsupportedEncodingException {
+    public InputStreamReader newInputStreamReader(InputStream is, String charsetName)
+            throws UnsupportedEncodingException {
         InputStreamReader isr = new InputStreamReader(is, charsetName);
         replaceStream(is, isr);
 
@@ -284,7 +288,7 @@ public class StreamRegistry {
     public FileWriter newFileWriter(File file, boolean append) throws IOException {
         Direction direction = append ? Direction.INOUT : Direction.OUT;
         StreamList list = obtainList(file, direction);
-        
+
         FileWriter fw = new FileWriter(list.getRenaming(), append);
         list.addStream(fw);
 
@@ -341,7 +345,8 @@ public class StreamRegistry {
         return osw;
     }
 
-    public OutputStreamWriter newOutputStreamWriter(OutputStream os, String charsetName) throws UnsupportedEncodingException {
+    public OutputStreamWriter newOutputStreamWriter(OutputStream os, String charsetName)
+            throws UnsupportedEncodingException {
         OutputStreamWriter osw = new OutputStreamWriter(os, charsetName);
         replaceStream(os, osw);
 
@@ -380,7 +385,8 @@ public class StreamRegistry {
         return ps;
     }
 
-    public PrintStream newPrintStream(File file, String csn) throws FileNotFoundException, UnsupportedEncodingException {
+    public PrintStream newPrintStream(File file, String csn)
+            throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(file, direction);
 
@@ -394,7 +400,8 @@ public class StreamRegistry {
         return newPrintStream(new File(fileName));
     }
 
-    public PrintStream newPrintStream(String fileName, String csn) throws FileNotFoundException, UnsupportedEncodingException {
+    public PrintStream newPrintStream(String fileName, String csn)
+            throws FileNotFoundException, UnsupportedEncodingException {
         return newPrintStream(new File(fileName), csn);
     }
 
@@ -412,7 +419,8 @@ public class StreamRegistry {
         return ps;
     }
 
-    public PrintStream newPrintStream(OutputStream os, boolean autoFlush, String encoding) throws UnsupportedEncodingException {
+    public PrintStream newPrintStream(OutputStream os, boolean autoFlush, String encoding)
+            throws UnsupportedEncodingException {
         PrintStream ps = new PrintStream(os, autoFlush, encoding);
         replaceStream(os, ps);
 
@@ -430,7 +438,8 @@ public class StreamRegistry {
         return pw;
     }
 
-    public PrintWriter newPrintWriter(File file, String csn) throws FileNotFoundException, UnsupportedEncodingException {
+    public PrintWriter newPrintWriter(File file, String csn)
+            throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(file, direction);
 
@@ -444,7 +453,8 @@ public class StreamRegistry {
         return newPrintWriter(new File(fileName));
     }
 
-    public PrintWriter newPrintWriter(String fileName, String csn) throws FileNotFoundException, UnsupportedEncodingException {
+    public PrintWriter newPrintWriter(String fileName, String csn)
+            throws FileNotFoundException, UnsupportedEncodingException {
         return newPrintWriter(new File(fileName), csn);
     }
 
@@ -475,36 +485,34 @@ public class StreamRegistry {
 
         return pw;
     }
-    
-    public File newCOMPSsFile(String filename){
+
+    public File newCOMPSsFile(String filename) {
         File f = new File(filename);
         return checkAndGetNewFile(f);
     }
-    
-    public File newCOMPSsFile(String parent, String child){
+
+    public File newCOMPSsFile(String parent, String child) {
         File f = new File(parent, child);
         return checkAndGetNewFile(f);
     }
-    
-    public File newCOMPSsFile(File parent, String child){
+
+    public File newCOMPSsFile(File parent, String child) {
         File f = new File(parent, child);
         return checkAndGetNewFile(f);
     }
-    
-    public File newCOMPSsFile(URI uri){
+
+    public File newCOMPSsFile(URI uri) {
         File f = new File(uri);
         return checkAndGetNewFile(f);
     }
-    
-    private File checkAndGetNewFile(File f){
+
+    private File checkAndGetNewFile(File f) {
         if (taskFiles.contains(f.getAbsolutePath())) {
             return new COMPSsFile(itApi, f);
-        }else{
+        } else {
             return f;
         }
     }
-    
-    
 
     // Returns the list of streams to which the newly created stream belongs (creating it if necessary)
     private StreamList obtainList(File file, Direction direction) {
@@ -514,7 +522,8 @@ public class StreamRegistry {
             path = file.getCanonicalPath();
         } catch (IOException e) {
             // The Integrated Toolkit must finish
-            ErrorManager.fatal("Cannot create stream for file " + file.getAbsolutePath() + " with direction " + direction, e);
+            ErrorManager.fatal(
+                    "Cannot create stream for file " + file.getAbsolutePath() + " with direction " + direction, e);
             return null;
         }
 
@@ -554,12 +563,13 @@ public class StreamRegistry {
 
             // Create the list of streams
             list = new StreamList(renaming, direction);
-            synchronized(fileToStreams){
+            synchronized (fileToStreams) {
                 fileToStreams.put(path, list);
             }
-        }else{
-            if (direction != Direction.IN || list.written){
-                ErrorManager.error("ERROR: File " + path + " is going to be accessed more than once and one of these accesses is for writting. This can produce and inconsistency");
+        } else {
+            if (direction != Direction.IN || list.written) {
+                ErrorManager.error("ERROR: File " + path
+                        + " is going to be accessed more than once and one of these accesses is for writting. This can produce and inconsistency");
             }
         }
 
@@ -567,13 +577,14 @@ public class StreamRegistry {
         if (direction != Direction.IN) {
             list.setWritten(true);
         }
-        
-        if (direction == Direction.INOUT){
+
+        if (direction == Direction.INOUT) {
             list.setAppend(true);
         }
 
         if (DEBUG) {
-            LOGGER.debug("New stream for file " + path + " with renaming " + list.getRenaming() + " and direction " + direction);
+            LOGGER.debug("New stream for file " + path + " with renaming " + list.getRenaming() + " and direction "
+                    + direction);
         }
 
         return list;
@@ -581,7 +592,7 @@ public class StreamRegistry {
 
     // Returns the list of streams to which the newly created stream belongs
     private StreamList obtainList(FileDescriptor fd) {
-        synchronized (fileToStreams){
+        synchronized (fileToStreams) {
             for (StreamList list : fileToStreams.values()) {
                 if (list.containsFD(fd)) {
                     if (DEBUG) {
@@ -597,25 +608,26 @@ public class StreamRegistry {
 
     // Replace a given stream by another in its list (if present)
     private void replaceStream(Object oldStream, Object newStream) {
-        synchronized(fileToStreams){
-        Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
-        while (entryIt.hasNext()) {
-            Entry<String, StreamList> e = entryIt.next();
-            StreamList list = e.getValue();
-            ListIterator<Object> listIt = list.getIterator();
-            while (listIt.hasNext()) {
-                Object listStream = listIt.next();
-                if (listStream.equals(oldStream)) {
-                    listIt.set(newStream);
+        synchronized (fileToStreams) {
+            Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
+            while (entryIt.hasNext()) {
+                Entry<String, StreamList> e = entryIt.next();
+                StreamList list = e.getValue();
+                ListIterator<Object> listIt = list.getIterator();
+                while (listIt.hasNext()) {
+                    Object listStream = listIt.next();
+                    if (listStream.equals(oldStream)) {
+                        listIt.set(newStream);
 
-                    if (DEBUG) {
-                        LOGGER.debug("Replaced stream of " + oldStream.getClass() + " by another of " + newStream.getClass());
+                        if (DEBUG) {
+                            LOGGER.debug("Replaced stream of " + oldStream.getClass() + " by another of "
+                                    + newStream.getClass());
+                        }
+
+                        continue;
                     }
-
-                    continue;
                 }
             }
-        }
         }
     }
 
@@ -624,8 +636,8 @@ public class StreamRegistry {
         String filePath = null;
         StreamList list = null;
         boolean found = false;
-        
-        synchronized(fileToStreams){    
+
+        synchronized (fileToStreams) {
             Iterator<Entry<String, StreamList>> entryIt = fileToStreams.entrySet().iterator();
             while (!found && entryIt.hasNext()) {
                 Entry<String, StreamList> e = entryIt.next();
@@ -688,15 +700,15 @@ public class StreamRegistry {
     }
 
     public void addTaskFile(String fileName) {
-        if (DEBUG){
+        if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
         }
         File f = new File(fileName);
         taskFiles.add(f.getAbsolutePath());
     }
-    
+
     public void deleteTaskFile(String fileName) {
-        if (DEBUG){
+        if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
         }
         File f = new File(fileName);
@@ -742,8 +754,8 @@ public class StreamRegistry {
         public boolean getWritten() {
             return written;
         }
-        
-        public boolean getAppend(){
+
+        public boolean getAppend() {
             return append;
         }
 
@@ -762,8 +774,8 @@ public class StreamRegistry {
         public void setWritten(boolean b) {
             written = b;
         }
-        
-        public void setAppend(boolean b){
+
+        public void setAppend(boolean b) {
             append = b;
         }
     }

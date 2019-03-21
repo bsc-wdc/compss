@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 
 /**
  * Represents the different URIs associated to the same path in the same host
- *
  */
 public class MultiURI implements Comparable<MultiURI> {
 
@@ -43,7 +42,7 @@ public class MultiURI implements Comparable<MultiURI> {
         this.path = path;
 
         this.internal = new HashMap<>();
-        
+
         // Try to register the URI now
         try {
             host.setInternalURI(this);
@@ -58,8 +57,8 @@ public class MultiURI implements Comparable<MultiURI> {
     }
 
     public Object getInternalURI(String adaptor) throws UnstartedNodeException {
-        Object o = internal.get(adaptor);  
-        
+        Object o = internal.get(adaptor);
+
         if (o == null) {
             // Try to register the URI now
             host.setInternalURI(this);
@@ -90,7 +89,8 @@ public class MultiURI implements Comparable<MultiURI> {
     }
 
     public String debugString() {
-        StringBuilder sb = new StringBuilder(this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");
+        StringBuilder sb = new StringBuilder(
+                this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");
         for (Entry<String, Object> e : internal.entrySet()) {
             sb.append("\t * ").append(e.getKey()).append(" -> ").append(e.getValue()).append("\n");
         }

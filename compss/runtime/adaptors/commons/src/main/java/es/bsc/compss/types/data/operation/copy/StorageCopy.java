@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 
 /**
  * Representation of a Storage Copy
- *
  */
 public class StorageCopy extends DataOperation {
 
@@ -41,6 +40,7 @@ public class StorageCopy extends DataOperation {
     private Transferable reason;
     private final boolean preserveSourceData;
 
+
     /**
      * Create a new Storage Copy
      *
@@ -51,8 +51,8 @@ public class StorageCopy extends DataOperation {
      * @param reason
      * @param listener
      */
-    public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         super(srcData, listener);
 
@@ -152,6 +152,6 @@ public class StorageCopy extends DataOperation {
 
     @Override
     public void perform() {
-        //No need to do anything. Will be performed later on.
+        // No need to do anything. Will be performed later on.
     }
 }

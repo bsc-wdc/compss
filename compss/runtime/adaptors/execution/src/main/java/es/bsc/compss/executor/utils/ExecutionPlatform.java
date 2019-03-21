@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -69,7 +69,8 @@ public class ExecutionPlatform implements ExecutorContext {
      * @param initialSize
      * @param resManager
      */
-    public ExecutionPlatform(String platformName, InvocationContext context, int initialSize, ResourceManager resManager) {
+    public ExecutionPlatform(String platformName, InvocationContext context, int initialSize,
+            ResourceManager resManager) {
         LOGGER.info("Initializing execution platform " + platformName);
         this.platformName = platformName;
 
@@ -109,8 +110,6 @@ public class ExecutionPlatform implements ExecutorContext {
 
     /**
      * Creates and starts the threads of the pool and waits until they are created
-     *
-     *
      */
     public final synchronized void start() {
         LOGGER.info("Starting execution platform " + this.platformName);

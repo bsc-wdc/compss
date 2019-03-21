@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class NIOTracer extends Tracer {
      * @param level
      */
     public static void init(int level) {
-        LOGGER.debug("Initializing NIO tracing level [" + level +  "]");
+        LOGGER.debug("Initializing NIO tracing level [" + level + "]");
         tracingLevel = level;
     }
 
@@ -71,8 +71,8 @@ public class NIOTracer extends Tracer {
         }
 
         if (DEBUG) {
-            LOGGER.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", " + NIOTracer.workingDir + ", "
-                    + NIOTracer.nodeName);
+            LOGGER.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", "
+                    + NIOTracer.workingDir + ", " + NIOTracer.nodeName);
         }
     }
 
@@ -93,10 +93,10 @@ public class NIOTracer extends Tracer {
         }
 
         if (DEBUG) {
-            LOGGER.debug("NIO uri File: " + Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR)
+            LOGGER.debug("NIO uri File: " + Protocol.ANY_URI.getSchema() + File.separator
+                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
+            LOGGER.debug(Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR)
                     + traceOutRelativePath);
-            LOGGER.debug(
-                    Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
         }
     }
 
@@ -124,8 +124,8 @@ public class NIOTracer extends Tracer {
         }
 
         if (DEBUG) {
-            LOGGER.debug((dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = [" + data + " , "
-                    + transferID + "]");
+            LOGGER.debug((dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = ["
+                    + data + " , " + transferID + "]");
         }
     }
 
@@ -154,14 +154,13 @@ public class NIOTracer extends Tracer {
         }
 
         if (DEBUG) {
-            LOGGER.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", " + partnerID + ", "
-                    + ID + "]");
+            LOGGER.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", "
+                    + partnerID + ", " + ID + "]");
         }
     }
 
     /**
      * Generates the tracing package on the worker side
-     * 
      */
     public static void generatePackage() {
         emitEvent(Event.STOP.getId(), Event.STOP.getType());
@@ -188,8 +187,8 @@ public class NIOTracer extends Tracer {
 
         // Generate package
         if (DEBUG) {
-            LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " package " + workingDir + " " + nodeName + " "
-                    + hostID);
+            LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " package " + workingDir
+                    + " " + nodeName + " " + hostID);
         }
 
         ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, "package", workingDir, nodeName, hostID);

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ public abstract class Copy extends DataOperation {
     protected final Transferable reason;
 
 
-    public Copy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public Copy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
 
         super(srcData, listener);
         this.srcData = srcData;
@@ -90,7 +90,7 @@ public abstract class Copy extends DataOperation {
     public DataType getType() {
         return reason.getType();
     }
-    
+
     public static void waitForCopyTofinish(Copy copy, COMPSsNode resource) {
         Semaphore sem = new Semaphore(0);
         SafeCopyListener currentCopylistener = new SafeCopyListener(sem);

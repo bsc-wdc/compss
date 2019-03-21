@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,11 +35,12 @@ public class CPersistentInvoker extends PersistentInvoker {
     }
 
     @Override
-    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation, String sandBox,
-            InvocationResources assignedResources) {
+    protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
+            String sandBox, InvocationResources assignedResources) {
 
         ExecuteTaskExternalCommand command = new ExecuteTaskExternalCommand();
-        command.appendAllArguments(CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
+        command.appendAllArguments(
+                CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
         return command;
     }
 

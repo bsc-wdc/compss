@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -72,6 +72,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
 
+
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
         this.node = Comm.initWorker(name, conf);
@@ -96,7 +97,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     /**
      * Starts a resource execution
-     *
      */
     @Override
     public void start() throws InitNodeException {
@@ -231,8 +231,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      * @param listener
      * @return
      */
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, List<String> slaveWorkersNodeNames,
-            JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
     }
@@ -290,7 +290,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      * @param reason
      * @param listener
      */
-    public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
         LogicalData ld = Comm.getData(dataId);
         this.getData(ld, newName, tgtData, reason, listener);
     }
@@ -304,7 +305,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      * @param reason
      * @param listener
      */
-    public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
         if (reason.getType() == DataType.BINDING_OBJECT_T) {
             if (ld.getValue() == null) {
                 LOGGER.warn("[Resource] Getting data: " + newName
@@ -340,7 +342,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         getData(srcData, target, srcData, reason, listener);
     }
 
-    public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason, EventListener listener) {
+    public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason,
+            EventListener listener) {
         LogicalData srcData = Comm.getData(dataId);
         LogicalData tgtData = Comm.getData(tgtDataId);
         getData(srcData, target, tgtData, reason, listener);
@@ -355,7 +358,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      * @param reason
      * @param listener
      */
-    public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
         LogicalData ld = Comm.getData(dataId);
         getData(ld, target, tgtData, reason, listener);
     }
@@ -369,7 +373,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      * @param reason
      * @param listener
      */
-    public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
         node.obtainData(srcData, null, target, tgtData, reason, listener);
     }
 
@@ -406,11 +411,11 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
                 DataLocation safeLoc = null;
                 String safePath = null;
-                boolean isBindingData=false;
+                boolean isBindingData = false;
                 if (lastLoc.getType().equals(DataLocation.Type.BINDING)) {
                     BindingObject bo = BindingObject.generate(lastLoc.getPath());
-                    safePath = Protocol.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName() + "#" + bo.getType()
-                            + "#" + bo.getElements();
+                    safePath = Protocol.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName()
+                            + "#" + bo.getType() + "#" + bo.getElements();
                 } else {
                     safePath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
                 }
@@ -420,10 +425,11 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + safePath, e);
                 }
-                
-                if (isBindingData){
-                    masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(DataType.BINDING_OBJECT_T), listener);
-                }else{
+
+                if (isBindingData) {
+                    masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(DataType.BINDING_OBJECT_T),
+                            listener);
+                } else {
                     masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(), listener);
                 }
             }
@@ -466,7 +472,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     /**
      * Deletes the intermediate data
-     *
      */
     public void deleteIntermediate() {
         node.deleteTemporary();
@@ -485,7 +490,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     /**
      * Stops the Execution Manager of the resource
-     *
      */
     private void shutdownExecutionManager() {
         if (DEBUG) {
@@ -518,8 +522,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         SimpleURI fileOriginURI = node.getCompletePath(DataType.FILE_T, fileName);
 
         if (DEBUG) {
-            LOGGER.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : " + Comm.getAppHost().getAppLogDirPath()
-                    + "trace" + File.separator + fileName);
+            LOGGER.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : "
+                    + Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator + fileName);
         }
 
         TracingCopyListener tracingListener = new TracingCopyListener(sem);
@@ -537,7 +541,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
         // Target data location
         DataLocation tgt;
-        String targetPath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator + fileName;
+        String targetPath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getAppLogDirPath() + "trace"
+                + File.separator + fileName;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             tgt = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -547,8 +552,8 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         }
 
         // Ask for data
-        masterNode.obtainData(new LogicalData("tracing" + this.getName()), source, tgt, new LogicalData("tracing" + this.getName()),
-                new TracingCopyTransferable(), tracingListener);
+        masterNode.obtainData(new LogicalData("tracing" + this.getName()), source, tgt,
+                new LogicalData("tracing" + this.getName()), new TracingCopyTransferable(), tracingListener);
 
         tracingListener.enable();
         try {
@@ -583,8 +588,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         // Get Worker output
         wdil.addOperation();
         String outFileName = "worker_" + getName() + ".out";
-        SimpleURI outFileOrigin = node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + outFileName);
-        String outFileTarget = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + outFileName;
+        SimpleURI outFileOrigin = node.getCompletePath(DataType.FILE_T,
+                "log" + File.separator + "static_" + outFileName);
+        String outFileTarget = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator
+                + outFileName;
 
         DataLocation outSource = null;
         try {
@@ -609,8 +616,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         // Get Worker error
         wdil.addOperation();
         String errFileName = "worker_" + getName() + ".err";
-        SimpleURI errFileOrigin = node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + errFileName);
-        String errFileTarget = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + errFileName;
+        SimpleURI errFileOrigin = node.getCompletePath(DataType.FILE_T,
+                "log" + File.separator + "static_" + errFileName);
+        String errFileTarget = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator
+                + errFileName;
 
         DataLocation errSource = null;
         try {

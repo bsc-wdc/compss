@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,20 +18,18 @@ package es.bsc.compss.types.job;
 
 /**
  * Abstract Representation of a listener for the job execution
- * 
  */
 public interface JobListener {
 
     /**
      * Job status types
-     *
      */
     public enum JobEndStatus {
-        OK, // Success status
-        TO_RESCHEDULE, // Task must be rescheduled
-        TRANSFERS_FAILED, // Task transfers failed
-        SUBMISSION_FAILED, // Task submission failed
-        EXECUTION_FAILED; // Task execution failed
+    OK, // Success status
+    TO_RESCHEDULE, // Task must be rescheduled
+    TRANSFERS_FAILED, // Task transfers failed
+    SUBMISSION_FAILED, // Task submission failed
+    EXECUTION_FAILED; // Task execution failed
     }
 
 

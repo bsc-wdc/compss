@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -89,10 +89,12 @@ public class JSONStateManager {
             byte[] bytes = Files.readAllBytes(f.toPath());
             return new String(bytes, "UTF-8");
         } catch (FileNotFoundException e) {
-            ErrorManager.warn("Error loading profile. File " + f.getAbsolutePath() + " not found. Using default values");
+            ErrorManager
+                    .warn("Error loading profile. File " + f.getAbsolutePath() + " not found. Using default values");
             return "{}";
         } catch (IOException e) {
-            ErrorManager.warn("Error loading profile. Exception reading " + f.getAbsolutePath() + ". Using default values", e);
+            ErrorManager.warn(
+                    "Error loading profile. Exception reading " + f.getAbsolutePath() + ". Using default values", e);
             return "{}";
         }
 
@@ -161,21 +163,22 @@ public class JSONStateManager {
     }
 
     public <T extends WorkerResourceDescription> JSONObject getJSONForResource(Worker<T> resource) {
-    	
-            JSONObject resourcesJSON = getJSONForResources();
-            if (resourcesJSON != null) {
-            	try {
-            		return resourcesJSON.getJSONObject(resource.getName());
-            	} catch (JSONException je) {
-            		if (resource instanceof CloudMethodWorker){
-            			CloudMethodWorker cmw = (CloudMethodWorker)resource;
-            			if (!cmw.getDescription().getTypeComposition().isEmpty()){
-            				return getJSONForCloudInstanceTypeDescription(cmw.getProvider(), cmw.getDescription().getTypeComposition().keySet().iterator().next());
-            			}
-            		}
-            	}
+
+        JSONObject resourcesJSON = getJSONForResources();
+        if (resourcesJSON != null) {
+            try {
+                return resourcesJSON.getJSONObject(resource.getName());
+            } catch (JSONException je) {
+                if (resource instanceof CloudMethodWorker) {
+                    CloudMethodWorker cmw = (CloudMethodWorker) resource;
+                    if (!cmw.getDescription().getTypeComposition().isEmpty()) {
+                        return getJSONForCloudInstanceTypeDescription(cmw.getProvider(),
+                                cmw.getDescription().getTypeComposition().keySet().iterator().next());
+                    }
+                }
             }
-        
+        }
+
         return null;
     }
 
@@ -212,7 +215,8 @@ public class JSONStateManager {
         return null;
     }
 
-    public JSONObject getJSONForImplementation(CloudProvider cp, CloudInstanceTypeDescription citd, int coreId, int implId) {
+    public JSONObject getJSONForImplementation(CloudProvider cp, CloudInstanceTypeDescription citd, int coreId,
+            int implId) {
         try {
             JSONObject citdJSON = getJSONForCloudInstanceTypeDescription(cp, citd);
             if (citdJSON != null) {

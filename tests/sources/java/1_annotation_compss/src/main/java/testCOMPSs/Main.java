@@ -49,7 +49,7 @@ public class Main {
         System.out.println("[LOG] Test multiple concurrent nested COMPSs");
         COMPSsNoWorkerInMasterFit();
         COMPSs.barrier();
-        
+
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test multiple concurrent nested COMPSs");
         COMPSsNoWorkerInMasterNoFit();
@@ -116,7 +116,7 @@ public class Main {
             System.exit(1);
         }
     }
-    
+
     private static void COMPSsNoWorkerInMasterNoFit() {
         Integer ev = NESTED.taskNoWorkerInMasterNoFit(1);
 

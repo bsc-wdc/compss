@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public class GATAdaptor implements CommAdaptor {
     @Override
     public Configuration constructConfiguration(Object project_properties, Object resources_properties)
             throws ConstructConfigurationException {
-        
+
         String brokerAdaptorName = System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR);
         String project_brokerAdaptor = (String) project_properties;
         String resources_brokerAdaptor = (String) resources_properties;
@@ -128,8 +128,8 @@ public class GATAdaptor implements CommAdaptor {
                     brokerAdaptorName = project_brokerAdaptor;
                 } else {
                     // Specified Broker adaptors don't match
-                    throw new ConstructConfigurationException("GATAdaptor: BrokerAdaptor defined in resources.xml and"
-                            + " project.xml donesn't match");
+                    throw new ConstructConfigurationException(
+                            "GATAdaptor: BrokerAdaptor defined in resources.xml and" + " project.xml donesn't match");
                 }
             } else {
                 // Only project

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  *
  */
 package es.bsc.compss.types.data;
-
 
 public class DataVersion {
 
@@ -37,43 +36,43 @@ public class DataVersion {
     }
 
     public void willBeRead() {
-        readers++;
+        this.readers++;
     }
 
     public void willBeWritten() {
-        writters++;
+        this.writters++;
     }
 
     public boolean hasPendingLectures() {
-        return readers > 0;
+        return this.readers > 0;
     }
-    
+
     public boolean isOnlyReader() {
-    	return readers > 1;
+        return readers > 1;
     }
 
     public boolean hasBeenRead() {
-        readers--;
+        this.readers--;
         return checkDeletion();
     }
 
     public boolean hasBeenWritten() {
-        writters--;
+        this.writters--;
         return checkDeletion();
     }
 
     public boolean delete() {
-        toDelete = true;
-        if (readers == 0 && writters == 0) {
+        this.toDelete = true;
+        if (this.readers == 0 && this.writters == 0) {
             return true;
         }
         return false;
     }
 
     private boolean checkDeletion() {
-        if (toDelete // deletion requested
-                && writters == 0 // version has been generated
-                && readers == 0 // version has been read
+        if (this.toDelete // deletion requested
+                && this.writters == 0 // version has been generated
+                && this.readers == 0 // version has been read
         ) {
             return true;
         }
@@ -81,7 +80,7 @@ public class DataVersion {
     }
 
     public boolean isToDelete() {
-        return toDelete;
+        return this.toDelete;
     }
 
 }

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -63,7 +63,8 @@ public class NIOMessageHandler implements MessageHandler {
             }
         }
 
-        String errorText = "NIO Error: " + ce.getMessage() + " processing " + ((t == null) ? "null" : t.hashCode()) + "\n";
+        String errorText = "NIO Error: " + ce.getMessage() + " processing " + ((t == null) ? "null" : t.hashCode())
+                + "\n";
         LOGGER.error(errorText, ce);
 
         agent.receivedRequestedDataNotAvailableError(c, t);
@@ -77,10 +78,11 @@ public class NIOMessageHandler implements MessageHandler {
 
     @Override
     public void dataReceived(Connection c, Transfer t) {
-        LOGGER.debug("Received data " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection " + c.hashCode());   
-        if (t.isArray()){
+        LOGGER.debug("Received data " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection "
+                + c.hashCode());
+        if (t.isArray()) {
             agent.receivedPartialBindingObjects(c, t);
-        }else{
+        } else {
             agent.receivedData(c, t);
         }
     }
@@ -100,7 +102,8 @@ public class NIOMessageHandler implements MessageHandler {
 
     @Override
     public void writeFinished(Connection c, Transfer t) {
-        LOGGER.debug("Finished sending " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection " + c.hashCode());
+        LOGGER.debug("Finished sending " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection "
+                + c.hashCode());
         agent.releaseSendSlot(c);
     }
 

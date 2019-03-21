@@ -10,7 +10,6 @@ public class AnnounceException extends Exception {
 
     /**
      * Creates a new exception for publication
-     * 
      */
     public AnnounceException() {
         super();

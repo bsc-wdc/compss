@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,16 +24,7 @@ import es.bsc.compss.types.annotations.parameter.Stream;
 public class BasicTypeParameter extends Parameter {
 
     /*
-     * Basic type parameter can be: 
-     * - boolean 
-     * - char 
-     * - String 
-     * - byte 
-     * - short 
-     * - int 
-     * - long 
-     * - float 
-     * - double
+     * Basic type parameter can be: - boolean - char - String - byte - short - int - long - float - double
      */
 
     /**
@@ -44,7 +35,8 @@ public class BasicTypeParameter extends Parameter {
     private Object value;
 
 
-    public BasicTypeParameter(DataType type, Direction direction, Stream stream, String prefix, String name, Object value) {
+    public BasicTypeParameter(DataType type, Direction direction, Stream stream, String prefix, String name,
+            Object value) {
         super(type, direction, stream, prefix, name);
         this.value = value;
     }

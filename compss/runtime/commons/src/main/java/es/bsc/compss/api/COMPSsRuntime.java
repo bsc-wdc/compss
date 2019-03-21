@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ public interface COMPSsRuntime {
      * @param implType
      * @param implTypeArgs
      */
-    public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints, String implType,
-            String... implTypeArgs);
+    public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
+            String implType, String... implTypeArgs);
 
     /**
      * New Method task for C Binding
@@ -78,8 +78,8 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget, Integer numReturns,
-            int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget,
+            Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding
@@ -96,8 +96,8 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method Task for Loader
@@ -116,8 +116,9 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName, boolean isPrioritary,
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
+            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+            int parameterCount, Object... parameters);
 
     /**
      * New service task
@@ -137,9 +138,9 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
-            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount,
-            Object... parameters);
+    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
+            String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId
@@ -190,7 +191,6 @@ public interface COMPSsRuntime {
      *
      * @param fileName
      * @param mode
-     *
      */
     public void closeFile(String fileName, Direction mode);
 
@@ -209,7 +209,7 @@ public interface COMPSsRuntime {
      * @return
      */
     public void getFile(Long appId, String fileName);
-    
+
     /**
      * Returns the renaming of the binding object version opened
      *

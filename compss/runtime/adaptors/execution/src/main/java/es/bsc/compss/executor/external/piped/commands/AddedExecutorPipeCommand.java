@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand imple
     private final String inPipe;
     private final String outPipe;
     private int pid;
+
 
     public AddedExecutorPipeCommand(String[] line) {
         inPipe = line[1];

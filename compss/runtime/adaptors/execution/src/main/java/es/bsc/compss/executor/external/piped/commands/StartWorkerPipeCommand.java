@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,14 +20,11 @@ import es.bsc.compss.executor.external.commands.StartWorkerExternalCommand;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
 
 
-/**
- *
- * @author flordan
- */
 public class StartWorkerPipeCommand extends StartWorkerExternalCommand implements PipeCommand {
 
     private final ControlPipePair pipe;
     private final String launchWorkerCommand;
+
 
     public StartWorkerPipeCommand(String launchWorkerCommand, ControlPipePair pipe) {
         this.pipe = pipe;
@@ -55,6 +52,6 @@ public class StartWorkerPipeCommand extends StartWorkerExternalCommand implement
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        //Do nothing
+        // Do nothing
     }
 }

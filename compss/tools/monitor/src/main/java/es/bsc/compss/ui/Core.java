@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,7 +33,8 @@ public class Core {
 
     public Core() {
         // Empty Image
-        this.setColor(File.separator + "images" + File.separator + "colors" + File.separator + Constants.CORE_COLOR_DEFAULT + ".png");
+        this.setColor(File.separator + "images" + File.separator + "colors" + File.separator
+                + Constants.CORE_COLOR_DEFAULT + ".png");
 
         this.setCoreId("0");
         this.setImplId("0");

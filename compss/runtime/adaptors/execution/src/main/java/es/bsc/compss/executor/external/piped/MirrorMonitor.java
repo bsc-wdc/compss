@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class MirrorMonitor {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
-    private static final long MONITORING_PERIOD = 5_000;
+    private final static long MONITORING_PERIOD = 5_000;
     private final Thread monitorThread;
 
     private Process mainProcess;
@@ -43,10 +43,12 @@ public class MirrorMonitor {
     private boolean keepAlive = false;
     private Map<String, PipeWorkerInfo> workers = new TreeMap<>();
     private Map<String, PipeExecutorInfo> executors = new TreeMap<>();
-    private final List<String> unremovedElements = new LinkedList();
+    private final List<String> unremovedElements = new LinkedList<>();
+
 
     public MirrorMonitor() {
         monitorThread = new Thread() {
+
             @Override
             public void run() {
                 try {
@@ -100,7 +102,7 @@ public class MirrorMonitor {
                 unremovedElements.clear();
             }
 
-            LinkedList<PipeElementInfo> elementsInfo = new LinkedList();
+            LinkedList<PipeElementInfo> elementsInfo = new LinkedList<>();
             List<Integer> aliveProcesses;
             elementsInfo.addAll(workers.values());
             elementsInfo.addAll(executors.values());
@@ -108,7 +110,8 @@ public class MirrorMonitor {
 
                 AliveGetPipeCommand aliveRequest = new AliveGetPipeCommand(elementsInfo);
                 if (LOGGER.isDebugEnabled()) {
-                    StringBuilder aliveQuery = new StringBuilder("Piped mirrors monitor obtaining alive processes. Checking processes ");
+                    StringBuilder aliveQuery = new StringBuilder(
+                            "Piped mirrors monitor obtaining alive processes. Checking processes ");
                     for (PipeElementInfo info : elementsInfo) {
                         aliveQuery.append(" ").append(info.getPID());
                     }
@@ -123,7 +126,8 @@ public class MirrorMonitor {
                     }
                     aliveProcesses = reply.getAliveProcesses();
                 } else {
-                    LOGGER.debug("Piped mirrors monitor could not obtain the alive processes - Message couldn't be sent");
+                    LOGGER.debug(
+                            "Piped mirrors monitor could not obtain the alive processes - Message couldn't be sent");
                     continue;
                 }
 
@@ -143,7 +147,8 @@ public class MirrorMonitor {
                             removed = this.unremovedElements.remove(id);
                         }
                         if (!removed) {
-                            LOGGER.debug("Piped mirrors monitor has detected that worker process " + info.getPID() + " has died.");
+                            LOGGER.debug("Piped mirrors monitor has detected that worker process " + info.getPID()
+                                    + " has died.");
                             ControlPipePair workerPipe = info.getPipe();
                             workerPipe.noLongerExists();
                             workerPipe.delete();
@@ -167,11 +172,12 @@ public class MirrorMonitor {
                             removed = this.unremovedElements.remove(id);
                         }
                         if (!removed) {
-                            //If it was not removed yet 
+                            // If it was not removed yet
                             PipedMirror mirror = info.getMirror();
                             String executorId = info.getExecutorId();
                             PipePair workerPipe = info.getPipe();
-                            LOGGER.debug("Piped mirrors monitor has detected that executor process " + info.getPID() + " has died.");
+                            LOGGER.debug("Piped mirrors monitor has detected that executor process " + info.getPID()
+                                    + " has died.");
                             workerPipe.noLongerExists();
                             workerPipe.delete();
                             mirror.unregisterExecutor(executorId);
@@ -200,7 +206,7 @@ public class MirrorMonitor {
             try {
                 this.wait();
             } catch (InterruptedException ie) {
-                //Do nothing
+                // Do nothing
             }
         }
     }
@@ -248,6 +254,7 @@ public class MirrorMonitor {
 
         private final ControlPipePair pipe;
 
+
         public PipeWorkerInfo(Integer pid, ControlPipePair pipe) {
             super(pid);
             this.pipe = pipe;
@@ -259,12 +266,12 @@ public class MirrorMonitor {
 
     }
 
-
     private static class PipeExecutorInfo extends PipeElementInfo {
 
         private final PipedMirror mirror;
         private final String executorId;
         private final PipePair pipe;
+
 
         public PipeExecutorInfo(PipedMirror mirror, String executorId, Integer pid, PipePair pipe) {
             super(pid);

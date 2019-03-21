@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -74,7 +74,8 @@ public class StorageInvoker extends JavaInvoker {
 
         String descriptor;
         try {
-            descriptor = method.getName() + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
+            descriptor = method.getName()
+                    + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
         } catch (NotFoundException e) {
             throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + method.getReturnType().getName(), e);
         }
@@ -92,7 +93,8 @@ public class StorageInvoker extends JavaInvoker {
 
         // Call Storage executeTask
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in " + context.getHostName());
+            LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in "
+                    + context.getHostName());
         } else {
             LOGGER.info("External ExecuteTask " + method.getName());
         }
@@ -150,7 +152,6 @@ public class StorageInvoker extends JavaInvoker {
 
     /**
      * Class to get the Storage Callback
-     *
      */
     private class PSCOCallbackHandler extends CallbackHandler {
 

@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ public class TransferOpenFileRequest extends APRequest {
      * Semaphore where to synchronize until the operation is done
      */
     private Semaphore sem;
+
 
     /**
      * Constructs a new TransferOpenFileRequest
@@ -208,6 +209,7 @@ public class TransferOpenFileRequest extends APRequest {
     private class CopyListener extends OneOpWithSemListener {
 
         private final FileTransferable reason;
+
 
         public CopyListener(FileTransferable reason, Semaphore sem) {
             super(sem);

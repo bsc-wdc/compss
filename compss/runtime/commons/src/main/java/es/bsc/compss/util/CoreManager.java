@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -57,9 +57,9 @@ public class CoreManager {
     // Structure counters
     private static int coreCount = 0;
 
+
     /**
      * Private constructor to avoid instantiation
-     *
      */
     private CoreManager() {
         throw new NonInstantiableException("CoreManager");
@@ -78,7 +78,6 @@ public class CoreManager {
      * Registers or updates a Core Element according to the description passed in as a {@code ced} parameter.
      *
      * @param ced Core Element Definition with its implementations
-     *
      * @return coreId assigned to the registered Core Element
      */
     public static Integer registerNewCoreElement(CoreElementDefinition ced) {
@@ -104,10 +103,10 @@ public class CoreManager {
             String implSignature = implDef.getSignature();
             if (implSignature != null && !implSignature.isEmpty()) {
 
-                //Check whether the implementation is already registered
+                // Check whether the implementation is already registered
                 boolean alreadyExisting = false;
                 Iterator<String> it = coreSignatures.iterator();
-                it.next();//Skip method signature with no implementation
+                it.next();// Skip method signature with no implementation
                 while (it.hasNext()) {
                     String registeredImplSign = it.next();
                     if (implSignature.compareTo(registeredImplSign) == 0) {
@@ -117,7 +116,7 @@ public class CoreManager {
                 }
 
                 if (!alreadyExisting) {
-                    //Register Implementation
+                    // Register Implementation
                     int implId = coreImplementations.size();
                     Implementation impl = implDef.getImpl(coreId, implId);
                     coreImplementations.add(impl);
@@ -133,7 +132,6 @@ public class CoreManager {
      * Registers a new Method as Core Element if it doesn't exist
      *
      * @param signature
-     *
      * @return the methodId assigned to the new Core Element
      */
     public static Integer registerNewCoreElement(String signature) {
@@ -321,7 +319,6 @@ public class CoreManager {
      * description passed as a parameter
      *
      * @param rd ResourceDescription to find cores compatible to
-     *
      * @return the list of cores which constraints are fulfilled by th described resource
      */
     public static List<Integer> findExecutableCores(ResourceDescription rd) {

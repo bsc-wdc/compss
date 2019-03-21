@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ public class ExternalPSCOParameter extends DependencyParameter {
     private final int hashCode;
     private String pscoId;
 
-    public ExternalPSCOParameter(Direction direction, Stream stream, String prefix, String name, String pscoId, int hashCode) {
+
+    public ExternalPSCOParameter(Direction direction, Stream stream, String prefix, String name, String pscoId,
+            int hashCode) {
         super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name);
         this.pscoId = pscoId;
         this.hashCode = hashCode;

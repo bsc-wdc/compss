@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -43,12 +43,13 @@ public abstract class DataOperation {
 
 
     public enum OpEndState {
-        OP_OK,
-        OP_IN_PROGRESS,
-        OP_FAILED,
-        OP_PREPARATION_FAILED,
-        OP_WAITING_SOURCES;
+        OP_OK, // Success
+        OP_IN_PROGRESS, // In progress
+        OP_FAILED, // Failed
+        OP_PREPARATION_FAILED, // Preparation failed
+        OP_WAITING_SOURCES; // Waiting for resources
     }
+
 
     public DataOperation(LogicalData ld, EventListener listener) {
         try {

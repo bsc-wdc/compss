@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,23 +23,25 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.AccessParams.FileAccessParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
+
 public class FinishFileAccessRequest extends APRequest {
 
-	FileAccessParams fap;
-	
-	public FinishFileAccessRequest(FileAccessParams fap) {
-		this.fap = fap;
-	}
+    private FileAccessParams fap;
 
-	@Override
-	public APRequestType getRequestType() {
-		return APRequestType.FINISH_ACCESS_FILE;
-	}
 
-	@Override
-	public void process(AccessProcessor ap, TaskAnalyser ta,
-			DataInfoProvider dip, TaskDispatcher td) throws ShutdownException {
-		dip.finishFileAccess(fap.getMode(), fap.getLocation());
-	}
+    public FinishFileAccessRequest(FileAccessParams fap) {
+        this.fap = fap;
+    }
+
+    @Override
+    public APRequestType getRequestType() {
+        return APRequestType.FINISH_ACCESS_FILE;
+    }
+
+    @Override
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
+            throws ShutdownException {
+        dip.finishFileAccess(fap.getMode(), fap.getLocation());
+    }
 
 }

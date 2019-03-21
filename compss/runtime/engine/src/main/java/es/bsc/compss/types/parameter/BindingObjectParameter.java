@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,8 +32,10 @@ public class BindingObjectParameter extends DependencyParameter {
 
     private final int hashCode;
     private final BindingObject bo;
- 	
-    public BindingObjectParameter(Direction direction, Stream stream, String prefix, String name, BindingObject bo, int hashCode) {
+
+
+    public BindingObjectParameter(Direction direction, Stream stream, String prefix, String name, BindingObject bo,
+            int hashCode) {
         super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name);
         this.bo = bo;
         this.hashCode = hashCode;
@@ -46,34 +48,34 @@ public class BindingObjectParameter extends DependencyParameter {
     public int getCode() {
         return this.hashCode;
     }
-    
+
     @Override
     public String toString() {
-        return "BindingObjectParameter with Id " + this.bo.getId() + ", type " + this.bo.getType() + 
-        		", elements "+this.bo.getElements()+" and HashCode " + this.hashCode;
+        return "BindingObjectParameter with Id " + this.bo.getId() + ", type " + this.bo.getType() + ", elements "
+                + this.bo.getElements() + " and HashCode " + this.hashCode;
     }
+
     @Override
-    public String getOriginalName(){
-    	return this.bo.getId();
+    public String getOriginalName() {
+        return this.bo.getId();
     }
-	
-	@Override
-	public String getDataTarget(){
-	    String dataTarget = super.getDataTarget();
-	    if (dataTarget!=null){
-	        if (dataTarget.contains("#")){
-	            return dataTarget;
-	        }else{
-	            return dataTarget+"#"+bo.getType()+"#"+bo.getElements();
-	        }
-	    }else{
-	        return "null#"+bo.getType()+"#"+bo.getElements();
-	    }
-	}
+
+    @Override
+    public String getDataTarget() {
+        String dataTarget = super.getDataTarget();
+        if (dataTarget != null) {
+            if (dataTarget.contains("#")) {
+                return dataTarget;
+            } else {
+                return dataTarget + "#" + bo.getType() + "#" + bo.getElements();
+            }
+        } else {
+            return "null#" + bo.getType() + "#" + bo.getElements();
+        }
+    }
 
     public BindingObject getBindingObject() {
         return bo;
     }
-		
 
 }

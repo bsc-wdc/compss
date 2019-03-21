@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -38,11 +38,11 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Default SSH Connector implementation to use specific SSH connectors' interface
- *
  */
 public class DefaultSSHConnector extends AbstractSSHConnector {
 
-    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn" + File.separator;
+    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn"
+            + File.separator;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
@@ -124,7 +124,8 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     }
 
     @Override
-    public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested) throws ConnectorException {
+    public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested)
+            throws ConnectorException {
         LOGGER.debug("Waiting for " + id);
         VirtualResource vr = connector.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);

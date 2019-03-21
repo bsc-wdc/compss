@@ -11,7 +11,7 @@ public class BINARY {
     public static int simpleTask2(String message) {
         return -1;
     }
-    
+
     public static Integer simpleTask3(String message) {
         return -1;
     }

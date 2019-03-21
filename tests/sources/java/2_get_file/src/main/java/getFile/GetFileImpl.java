@@ -13,7 +13,7 @@ public class GetFileImpl {
             String str = "New writter";
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
             writer.write(str + " " + String.valueOf(i) + "\n");
-             
+
             writer.close();
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();

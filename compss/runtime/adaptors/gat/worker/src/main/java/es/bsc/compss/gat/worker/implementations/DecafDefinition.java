@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class DecafDefinition extends ImplementationDefinition {
     private final String dfLib;
     private final String mpiRunner;
     private final String workingDir;
-    
+
     private final DecafImplementation impl;
 
 
@@ -48,8 +48,9 @@ public class DecafDefinition extends ImplementationDefinition {
         } else {
             this.workingDir = wDir;
         }
-        
-        this.impl = new DecafImplementation(this.dfScript, this.dfExecutor, this.dfLib, this.workingDir, this.mpiRunner, null, null, null);
+
+        this.impl = new DecafImplementation(this.dfScript, this.dfExecutor, this.dfLib, this.workingDir, this.mpiRunner,
+                null, null, null);
     }
 
     @Override

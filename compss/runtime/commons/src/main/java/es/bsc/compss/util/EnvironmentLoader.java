@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.io.File;
 
 /**
  * Support class to load environment variables
- *
  */
 public class EnvironmentLoader {
 
@@ -68,11 +67,12 @@ public class EnvironmentLoader {
                 if (variableValue != null) {
                     expressionValue = expressionValue.replace(variableFullName, variableValue);
                 } else {
-                    ErrorManager.warn("[WARNING] Null value obtained while loading " + variableFullName + " from environment");
+                    ErrorManager.warn(
+                            "[WARNING] Null value obtained while loading " + variableFullName + " from environment");
                     expressionValue = expressionValue.replace(variableFullName, "");
                 }
             }
-            
+
             // Process next token
             beginIndex = findNextValidToken(expressionValue, beginIndex);
         }

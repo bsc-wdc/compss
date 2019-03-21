@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -57,8 +57,7 @@ public class CloudImageManager {
     /**
      * Adds a new image which can be used by the Cloud Provider
      *
-     * @param cid
-     *            Description of the image
+     * @param cid Description of the image
      */
     public void add(CloudImageDescription cid) {
         logger.debug("Add new Image description " + cid.getImageName());
@@ -68,8 +67,7 @@ public class CloudImageManager {
     /**
      * Finds all the images provided by the Cloud Provider which fulfill the resource description.
      *
-     * @param requested
-     *            description of the features that the image must provide
+     * @param requested description of the features that the image must provide
      * @return The best image provided by the Cloud Provider which fulfills the resource description
      */
     public List<CloudImageDescription> getCompatibleImages(MethodResourceDescription requested) {
@@ -82,21 +80,24 @@ public class CloudImageManager {
             String imageOSType = cid.getOperatingSystemType();
             String reqOSType = requested.getOperatingSystemType();
             if (!imageOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-                    && !reqOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR) && !imageOSType.equals(reqOSType)) {
+                    && !reqOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+                    && !imageOSType.equals(reqOSType)) {
                 continue;
             }
 
             String imageOSDistr = cid.getOperatingSystemDistribution();
             String reqOSDistr = requested.getOperatingSystemDistribution();
             if (!imageOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-                    && !reqOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR) && !imageOSDistr.equals(reqOSDistr)) {
+                    && !reqOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+                    && !imageOSDistr.equals(reqOSDistr)) {
                 continue;
             }
 
             String imageOSVersion = cid.getOperatingSystemVersion();
             String reqOSVersion = requested.getOperatingSystemVersion();
             if (!imageOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-                    && !reqOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR) && !imageOSVersion.equals(reqOSVersion)) {
+                    && !reqOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+                    && !imageOSVersion.equals(reqOSVersion)) {
                 continue;
             }
 
@@ -119,7 +120,6 @@ public class CloudImageManager {
     }
 
     /**
-     *
      * @param name
      * @return Returns the Image associated to that name
      */

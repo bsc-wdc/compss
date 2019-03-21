@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public interface LoaderAPI {
      * @return
      */
     public String openFile(String fileName, Direction mode);
-    
+
     /**
      * Close the file version opened
      *
@@ -40,7 +40,7 @@ public interface LoaderAPI {
      * @return
      */
     public void closeFile(String fileName, Direction mode);
-    
+
     /**
      * Deletes the specified version of a file
      *
@@ -48,7 +48,7 @@ public interface LoaderAPI {
      * @return
      */
     public boolean deleteFile(String fileName);
-    
+
     /**
      * Returns last version of file with its original name
      *
@@ -112,7 +112,6 @@ public interface LoaderAPI {
     public String getTempDir();
 
     /**
-     *
      * Removes the
      *
      * @param o

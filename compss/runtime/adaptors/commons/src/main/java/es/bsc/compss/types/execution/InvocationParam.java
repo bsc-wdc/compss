@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ public interface InvocationParam {
     public String getOriginalName();
 
     public void setOriginalName(String originalName);
-    
+
     public String getRenamedName();
-    
+
     public void setRenamedName(String renamedName);
 
     public Object getValue();

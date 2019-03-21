@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,9 +49,9 @@ public class CommandCheckWorker extends Command implements Externalizable {
     @Override
     public void handle(Connection c) {
         if (agent.isMyUuid(this.uuid, this.nodeName)) {
-        	if (agent.getMaster() == null) {
-        		agent.setMaster((NIONode) c.getNode());
-        	}
+            if (agent.getMaster() == null) {
+                agent.setMaster((NIONode) c.getNode());
+            }
             CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(uuid, nodeName);
             c.sendCommand(cmd);
         }

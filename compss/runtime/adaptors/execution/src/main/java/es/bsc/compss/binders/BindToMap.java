@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Class to bind the threads to an specific resource map (obtained by lscpu or given by the user).
- *
  */
 public class BindToMap implements ThreadBinder {
 
@@ -45,15 +44,13 @@ public class BindToMap implements ThreadBinder {
     private ArrayList<ArrayList<Integer>> idList = new ArrayList<>();
     private ArrayList<ArrayList<Integer>> bindedCpus = new ArrayList<>();
 
+
     /**
-     * Constructor for thread binder.
+     * Constructor for thread binder. The format is the one followed by lscpu ("," to separate groups, "-" to separate
+     * bounds of groups). In addition, "/" is used to separate sockets For example: "1,2,3,6-8/1,3-5" =
+     * "1-3,6,7,8/1,3,4,5"
      *
-     * <p>
-     * The format is the one followed by lscpu ("," to separate groups, "-" to separate bounds of groups) In addition,
-     * "/" is used to separate sockets For example: "1,2,3,6-8/1,3-5" = "1-3,6,7,8/1,3,4,5"
-     * </p>
-     *
-     * @param numThreads   number of threads to be managed by the Binders
+     * @param numThreads number of threads to be managed by the Binders
      * @param socketString Description of the avialablesocket
      */
     public BindToMap(int numThreads, String socketString) {
@@ -88,7 +85,6 @@ public class BindToMap implements ThreadBinder {
      * summary.
      *
      * @return summary description of the cpu resources of the node
-     *
      * @throws InvalidMapException Cannot retrieve the CPU description using the lscpu command
      */
     public static String getResourceCpuDescription() throws InvalidMapException {
@@ -142,9 +138,7 @@ public class BindToMap implements ThreadBinder {
      * Parses the output of the lscpu command and returns a summary description of the node sockets.
      *
      * @param cmdOutput lscpu-like description of the worker
-     *
      * @return summary description of the cpu resources of the node
-     *
      */
     public static String processLsCpuOutput(String cmdOutput) {
         if (DEBUG) {
@@ -256,8 +250,7 @@ public class BindToMap implements ThreadBinder {
             // Raise exception
             if (usedSockets == null) {
                 throw new UnsufficientAvailableComputingUnitsException(
-                        "Not enough available computing units for task execution " + jobId
-                );
+                        "Not enough available computing units for task execution " + jobId);
             }
 
             // Handle assignedCoreUnits
@@ -305,11 +298,9 @@ public class BindToMap implements ThreadBinder {
         }
     }
 
-    private void auxiliarConstructor(
-            int numThreads,
-            ArrayList<ArrayList<Integer>> computingUnitsIds,
-            int totalAmountThreads
-    ) {
+    private void auxiliarConstructor(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds,
+            int totalAmountThreads) {
+
         this.idList = computingUnitsIds;
         // Initialize de binds ArrayList
         for (ArrayList<Integer> currentSocket : this.idList) {
@@ -356,6 +347,12 @@ public class BindToMap implements ThreadBinder {
         return counter;
     }
 
+    /**
+     * @param jobId : job associated to the threads to locate
+     * @param amount : amount of threads that needs to be allocated
+     * @param index : lower socket allowed to hosts the threads
+     * @return : True if succeeded, False if failed
+     */
     private ArrayList<Integer> recursiveBindingComputingUnits(int jobId, int amount, int index) {
         // With the current index, we can fulfill the thread requirements
         int availableSlots = getAvailableSlots(this.bindedCpus.get(index));

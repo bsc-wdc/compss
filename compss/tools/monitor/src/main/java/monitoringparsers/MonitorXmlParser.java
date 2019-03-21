@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -273,7 +273,7 @@ public class MonitorXmlParser {
                     data[10] = parseActions(field);
                     break;
                 case "#text":
-                    //Nothing to do
+                    // Nothing to do
                     break;
                 default:
                     logger.error("Unrecognised field on ResourceNode " + field.getNodeName());
@@ -289,9 +289,8 @@ public class MonitorXmlParser {
             Node n = nl.item(i);
             if (n.getNodeName().equals("Action")) {
                 /*
-                 * An action is of the form:
-                 *      - "ExecutionAction ( Task tid, CE name ceName)"
-                 *      - "StartWorkerAction ( Worker workerName)"
+                 * An action is of the form: - "ExecutionAction ( Task tid, CE name ceName)" -
+                 * "StartWorkerAction ( Worker workerName)"
                  */
                 String[] actionInfo = n.getTextContent().split(" ");
                 String actionType = actionInfo[2];
@@ -389,7 +388,7 @@ public class MonitorXmlParser {
                     data[6] = String.valueOf(execCount);
                     break;
                 case "#text":
-                    //Nothing to do
+                    // Nothing to do
                     break;
                 default:
                     logger.error("Unrecognised field on ImplNode " + field.getNodeName());
@@ -398,7 +397,7 @@ public class MonitorXmlParser {
 
         return data;
     }
-    
+
     private static HashMap<String, String> parseStatisticsNode(Node statistics) throws Exception {
         logger.debug("  - Parsing statistics");
 
@@ -414,10 +413,10 @@ public class MonitorXmlParser {
 
         return data;
     }
-    
+
     private static String[] parseStatisticNode(Node statistic) {
         final int maxParams = 2;
-        String[] entry = new String[maxParams];    // key,value
+        String[] entry = new String[maxParams]; // key,value
         NodeList nl = statistic.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node field = nl.item(i);
@@ -429,13 +428,13 @@ public class MonitorXmlParser {
                     entry[1] = field.getTextContent();
                     break;
                 case "#text":
-                    //Nothing to do
+                    // Nothing to do
                     break;
                 default:
                     logger.error("Unrecognised field on StatisticNode " + field.getNodeName());
             }
         }
-        
+
         return entry;
     }
 

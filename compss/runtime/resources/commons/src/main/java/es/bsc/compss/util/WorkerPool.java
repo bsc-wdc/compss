@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -133,7 +133,6 @@ public class WorkerPool {
     }
 
     /**
-     *
      * @param res
      * @return list with all coreIds that can be executed by the resource res
      */
@@ -197,7 +196,6 @@ public class WorkerPool {
     }
 
     /**
-     *
      * @return a list with all the resources available
      */
     @SuppressWarnings("unchecked")

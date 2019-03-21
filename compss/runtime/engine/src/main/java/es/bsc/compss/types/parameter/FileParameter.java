@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ public class FileParameter extends DependencyParameter {
     private final String originalName;
 
 
-    public FileParameter(Direction direction, Stream stream, String prefix, String name, DataLocation location, String originalName) {
+    public FileParameter(Direction direction, Stream stream, String prefix, String name, DataLocation location,
+            String originalName) {
         super(DataType.FILE_T, direction, stream, prefix, name);
         this.location = location;
         this.originalName = originalName;

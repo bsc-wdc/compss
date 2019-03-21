@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -36,15 +36,16 @@ import java.util.PriorityQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 public class LocalOptimizationState {
 
     private final long updateId;
     private final ResourceScheduler<WorkerResourceDescription> worker;
-    
+
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean IS_DEBUG = LOGGER.isDebugEnabled();
     protected static final String LOG_PREFIX = "[MOLocalOptimizationState] ";
-    
+
     private final LinkedList<Gap> gaps = new LinkedList<>();
     private double runningCost;
     private double totalCost;
@@ -120,7 +121,8 @@ public class LocalOptimizationState {
         return previousGaps;
     }
 
-    private boolean checkGapForReserve(Gap g, ResourceDescription requirements, long reserveStart, List<Gap> previousGaps) {
+    private boolean checkGapForReserve(Gap g, ResourceDescription requirements, long reserveStart,
+            List<Gap> previousGaps) {
         boolean remove = false;
         AllocatableAction gapAction = g.getOrigin();
         ResourceDescription rd = g.getResources();
@@ -151,7 +153,8 @@ public class LocalOptimizationState {
     public void releaseResources(long expectedStart, AllocatableAction action) {
         if (action.getAssignedImplementation() != null) {
             Gap gap;
-            gap = new Gap(expectedStart, Long.MAX_VALUE, action, action.getAssignedImplementation().getRequirements().copy(), 0);
+            gap = new Gap(expectedStart, Long.MAX_VALUE, action,
+                    action.getAssignedImplementation().getRequirements().copy(), 0);
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
             dsi.addGap();
             gaps.add(gap);
@@ -161,7 +164,7 @@ public class LocalOptimizationState {
                 ResourceDescription.reduceCommonDynamics(empty, missingResources);
             }
         } else {
-        	LOGGER.debug(LOG_PREFIX + "Action has null implementation. Nothing done at release resources *** ");
+            LOGGER.debug(LOG_PREFIX + "Action has null implementation. Nothing done at release resources *** ");
         }
     }
 
@@ -322,7 +325,8 @@ public class LocalOptimizationState {
         MOSchedulingInformation rbaDSI = (MOSchedulingInformation) resourceBlockingAction.getSchedulingInfo();
         rbaDSI.lock();
         rbaDSI.addSuccessor(action);
-        Gap opActionGap = new Gap(0, 0, resourceBlockingAction, action.getAssignedImplementation().getRequirements().copy(), 0);
+        Gap opActionGap = new Gap(0, 0, resourceBlockingAction,
+                action.getAssignedImplementation().getRequirements().copy(), 0);
         aDSI.addPredecessor(opActionGap);
         rbaDSI.unlock();
         updateConsumptions(action);
@@ -333,7 +337,8 @@ public class LocalOptimizationState {
         MOSchedulingInformation dbaDSI = (MOSchedulingInformation) dataBlockingAction.getSchedulingInfo();
         dbaDSI.lock();
         dbaDSI.addSuccessor(action);
-        Gap opActionGap = new Gap(0, 0, dataBlockingAction, action.getAssignedImplementation().getRequirements().copy(), 0);
+        Gap opActionGap = new Gap(0, 0, dataBlockingAction, action.getAssignedImplementation().getRequirements().copy(),
+                0);
         aDSI.addPredecessor(opActionGap);
         dbaDSI.unlock();
         updateConsumptions(action);
@@ -347,32 +352,32 @@ public class LocalOptimizationState {
         return dataBlockingAction;
     }
 
-    public void classifyAction(AllocatableAction action, boolean hasInternal, boolean hasExternal, boolean hasResourcePredecessors,
-            long startTime) {
+    public void classifyAction(AllocatableAction action, boolean hasInternal, boolean hasExternal,
+            boolean hasResourcePredecessors, long startTime) {
         if (!hasInternal) { // Not needs to wait for some blocked action to end
             if (hasExternal) {
                 if (startTime == 0) {
-                	//System.out.println("Action added to selectable");
+                    // System.out.println("Action added to selectable");
                     selectableActions.offer(action);
                 } else if (startTime == Long.MAX_VALUE) {
-                	//System.out.println("Action added to blocked");
+                    // System.out.println("Action added to blocked");
                     dataBlockedAction(action);
                 } else {
-                	//System.out.println("Action added to ready");
+                    // System.out.println("Action added to ready");
                     readyActions.add(action);
                 }
             } else // has no dependencies
             {
                 if (hasResourcePredecessors) {
-                	//System.out.println("Action added to selectable");
+                    // System.out.println("Action added to selectable");
                     selectableActions.offer(action);
                 } else {
-                	//System.out.println("Action added to running");
+                    // System.out.println("Action added to running");
                     runningActions.add(action);
                 }
             }
-        }else{
-        	//System.out.println("Action not classified.");
+        } else {
+            // System.out.println("Action not classified.");
         }
     }
 
@@ -482,7 +487,7 @@ public class LocalOptimizationState {
             long length = dsi.getExpectedEnd() - (dsi.getExpectedStart() < 0 ? 0 : dsi.getExpectedStart());
             implementationCount[impl.getCoreId()][impl.getImplementationId()]++;
             totalEnergy += p.getPower() * length;
-            totalCost += p.getPrice()* length;
+            totalCost += p.getPrice() * length;
         }
     }
 

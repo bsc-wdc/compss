@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,8 +49,8 @@ public class FakeInvocationContext implements InvocationContext {
         listener = null;
     }
 
-    private FakeInvocationContext(String hostName, String appDir, String installDir, String wDir, PrintStream out, PrintStream err,
-            InvocationContextListener listener) {
+    private FakeInvocationContext(String hostName, String appDir, String installDir, String wDir, PrintStream out,
+            PrintStream err, InvocationContextListener listener) {
 
         this.hostName = hostName;
         this.appDir = appDir;
@@ -209,8 +209,8 @@ public class FakeInvocationContext implements InvocationContext {
         }
 
         public Builder setListener(InvocationContextListener listener) {
-            return new Builder(new FakeInvocationContext(context.hostName, context.appDir, context.installDir, context.workingDir,
-                    context.out, context.err, listener));
+            return new Builder(new FakeInvocationContext(context.hostName, context.appDir, context.installDir,
+                    context.workingDir, context.out, context.err, listener));
         }
 
         public FakeInvocationContext build() {

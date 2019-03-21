@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -103,7 +103,8 @@ public abstract class ImplementationDefinition implements Invocation {
         }
     }
 
-    private LinkedList<Param> parseArguments(String[] args, int appArgsIdx, int numParams, int numReturns) throws Exception {
+    private LinkedList<Param> parseArguments(String[] args, int appArgsIdx, int numParams, int numReturns)
+            throws Exception {
         LinkedList<Param> paramsList = new LinkedList<>();
         DataType[] dataTypesEnum = DataType.values();
         Stream[] dataStream = Stream.values();
@@ -325,7 +326,8 @@ public abstract class ImplementationDefinition implements Invocation {
         private final boolean writeFinalValue;
 
 
-        public Param(DataType type, String prefix, String name, Stream stream, String originalName, boolean writeFinalValue) {
+        public Param(DataType type, String prefix, String name, Stream stream, String originalName,
+                boolean writeFinalValue) {
             this.type = type;
             this.prefix = prefix;
             this.name = name;
@@ -388,7 +390,7 @@ public abstract class ImplementationDefinition implements Invocation {
         public void setRenamedName(String renamedName) {
             this.renamedName = renamedName;
         }
-        
+
         @Override
         public Object getValue() {
             return this.value;

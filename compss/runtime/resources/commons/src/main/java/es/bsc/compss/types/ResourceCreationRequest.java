@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,15 +22,18 @@ import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
 
+
 public class ResourceCreationRequest {
 
     private final CloudProvider provider;
     private final CloudMethodResourceDescription requested;
     private int[][] requestedSimultaneousTaskCount;
     private final long requestedTime;
-    private String requestID; //It will be the same as the VM name
+    private String requestID; // It will be the same as the VM name
 
-    public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks, CloudProvider cp, String requestID) {
+
+    public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks,
+            CloudProvider cp, String requestID) {
         requested = requestedResource;
         this.provider = cp;
         requestedSimultaneousTaskCount = simultaneousTasks;
@@ -39,10 +42,10 @@ public class ResourceCreationRequest {
     }
 
     public long getRequestedTime() {
-		return requestedTime;
-	}
+        return requestedTime;
+    }
 
-	public int[][] requestedSimultaneousTaskCount() {
+    public int[][] requestedSimultaneousTaskCount() {
         return requestedSimultaneousTaskCount;
     }
 
@@ -57,15 +60,16 @@ public class ResourceCreationRequest {
     public CloudProvider getProvider() {
         return provider;
     }
-    
-    public void print(Logger resourcesLogger, boolean debug){
-    	StringBuilder compositionString = new StringBuilder();
-        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : this.getRequested().getTypeComposition().entrySet()) {
+
+    public void print(Logger resourcesLogger, boolean debug) {
+        StringBuilder compositionString = new StringBuilder();
+        for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : this.getRequested().getTypeComposition()
+                .entrySet()) {
             compositionString.append(" \t\tTYPE = [\n").append("\t\t\tNAME = ").append(entry.getKey().getName())
                     .append("\t\t\tCOUNT= ").append(entry.getValue()[0]).append("\t\t]\n");
         }
-        
-		resourcesLogger.info("ORDER_CREATION = [\n" + "\tTYPE_COMPOSITION = [" + compositionString.toString() + "]\n"
+
+        resourcesLogger.info("ORDER_CREATION = [\n" + "\tTYPE_COMPOSITION = [" + compositionString.toString() + "]\n"
                 + "\tPROVIDER = " + this.getProvider() + "\n" + "]");
         if (debug) {
             StringBuilder sb = new StringBuilder();
@@ -75,7 +79,8 @@ public class ResourceCreationRequest {
                     sb.append("\t").append("IMPLEMENTATION_INFO = [").append("\n");
                     sb.append("\t\t").append("COREID = ").append(i).append("\n");
                     sb.append("\t\t").append("IMPLID = ").append(j).append("\n");
-                    sb.append("\t\t").append("SIM_TASKS = ").append(this.requestedSimultaneousTaskCount()[i][j]).append("\n");
+                    sb.append("\t\t").append("SIM_TASKS = ").append(this.requestedSimultaneousTaskCount()[i][j])
+                            .append("\n");
                     sb.append("\t").append("]").append("\n");
                 }
             }
@@ -85,7 +90,7 @@ public class ResourceCreationRequest {
     }
 
     public String getRequestID() {
-        return requestID;   
+        return requestID;
     }
 
 }

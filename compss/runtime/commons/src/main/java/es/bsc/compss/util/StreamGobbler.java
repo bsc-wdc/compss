@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Support class to retrieve external processes output
- *
  */
 public class StreamGobbler extends Thread {
 
@@ -34,6 +33,7 @@ public class StreamGobbler extends Thread {
     private final InputStream in;
     private final PrintStream out;
     private final Logger logger;
+
 
     /**
      * Creates a new StreamGobbler for is @in and prints information to os @out
@@ -80,7 +80,7 @@ public class StreamGobbler extends Thread {
 
             if (out != null) {
                 out.flush();
-                //out.close();
+                // out.close();
             }
         }
     }

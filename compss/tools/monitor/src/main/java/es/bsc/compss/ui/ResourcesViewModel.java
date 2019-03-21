@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -54,20 +54,10 @@ public class ResourcesViewModel {
         // Import new resources
         for (String[] dr : newResourcesData) {
             /*
-             * Each entry in the new Resource data is of the form:
-             *      workerName
-             *      totalCPUu
-             *      totalGPUu
-             *      totalFPGAu
-             *      totalOTHERu
-             *      memory
-             *      disk
-             *      status
-             *      provider
-             *      image
-             *      actions
+             * Each entry in the new Resource data is of the form: workerName totalCPUu totalGPUu totalFPGAu totalOTHERu
+             * memory disk status provider image actions
              */
-            
+
             // Change format of some fields
 
             // Check memSize

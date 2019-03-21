@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -101,7 +101,6 @@ public class Executor implements Runnable {
 
     /**
      * Starts the executor execution
-     *
      */
     public void start() {
         // Nothing to do since everything is deleted in each task execution
@@ -124,7 +123,6 @@ public class Executor implements Runnable {
 
     /**
      * Stop executor
-     *
      */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
@@ -171,8 +169,9 @@ public class Executor implements Runnable {
     }
 
     private boolean executeTask(Invocation invocation) {
-        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD && invocation.getLang() != Lang.JAVA
-                && invocation.getLang() != Lang.PYTHON && invocation.getLang() != Lang.C) {
+        if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
+                && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
+                && invocation.getLang() != Lang.C) {
 
             LOGGER.error("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
             // Print to the job.err file
@@ -203,7 +202,8 @@ public class Executor implements Runnable {
 
             // Bind Computing units
             long startCUB = System.currentTimeMillis();
-            InvocationResources assignedResources = platform.acquireResources(invocation.getJobId(), invocation.getRequirements());
+            InvocationResources assignedResources = platform.acquireResources(invocation.getJobId(),
+                    invocation.getRequirements());
             long cubDuration = System.currentTimeMillis() - startCUB;
 
             // Execute task
@@ -224,8 +224,9 @@ public class Executor implements Runnable {
             checkJobFiles(invocation);
             long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
 
-            LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration + " bindCU: " + cubDuration
-                    + " execution" + execDuration + " restoreSimLinks: " + origFileDuration + " checkResults: " + checkResultsDuration);
+            LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration + " bindCU: "
+                    + cubDuration + " execution" + execDuration + " restoreSimLinks: " + origFileDuration
+                    + " checkResults: " + checkResultsDuration);
 
             // Return
             return true;
@@ -251,11 +252,8 @@ public class Executor implements Runnable {
     /**
      * Creates a sandbox for a task
      *
-     * @param invocation
-     *                   task description
-     *
+     * @param invocation task description
      * @return Sandbox dir
-     *
      * @throws IOException
      * @throws Exception
      */
@@ -306,7 +304,8 @@ public class Executor implements Runnable {
             Files.createDirectories(workingDir.toPath());
         } else {
             // No specific working dir provided, set default sandbox
-            String completePath = this.context.getWorkingDir() + "sandBox" + File.separator + "job_" + invocation.getJobId();
+            String completePath = this.context.getWorkingDir() + "sandBox" + File.separator + "job_"
+                    + invocation.getJobId();
             File workingDir = new File(completePath);
             taskWD = new TaskWorkingDir(workingDir, false);
 
@@ -342,11 +341,8 @@ public class Executor implements Runnable {
     /**
      * Check whether file1 corresponds to a file with a higher version than file2
      *
-     * @param file1
-     *              first file name
-     * @param file2
-     *              second file name
-     *
+     * @param file1 first file name
+     * @param file2 second file name
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
      *         is not correct)
      */
@@ -374,14 +370,10 @@ public class Executor implements Runnable {
     /**
      * Create symbolic links from files with the original name in task sandbox to the renamed file
      *
-     * @param invocation
-     *                   task description
-     * @param sandbox
-     *                   created sandbox
-     *
+     * @param invocation task description
+     * @param sandbox created sandbox
      * @throws IOException
-     * @throws Exception
-     *                     returns exception is a problem occurs during creation
+     * @throws Exception returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -414,11 +406,13 @@ public class Executor implements Runnable {
                     LOGGER.debug("File exists");
                     // IN or INOUT File creating a symbolic link
                     if (!inSandboxFile.exists()) {
-                        LOGGER.debug("Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
+                        LOGGER.debug(
+                                "Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
                         Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
                     } else if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                         Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
-                        LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to " + oldRenamed.getFileName().toString());
+                        LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to "
+                                + oldRenamed.getFileName().toString());
                         if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
                             Files.delete(inSandboxFile.toPath());
                             Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
@@ -432,13 +426,10 @@ public class Executor implements Runnable {
     /**
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file
      *
-     * @param invocation
-     *                   task description
-     *
+     * @param invocation task description
      * @throws IOException
      * @throws JobExecutionException
-     * @throws Exception
-     *                               returns exception is an unexpected case is found.
+     * @throws Exception returns exception is an unexpected case is found.
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
         for (InvocationParam param : invocation.getParams()) {
@@ -452,7 +443,8 @@ public class Executor implements Runnable {
         }
     }
 
-    private void unbindOriginalFilenameToRename(InvocationParam param, Lang lang) throws IOException, JobExecutionException {
+    private void unbindOriginalFilenameToRename(InvocationParam param, Lang lang)
+            throws IOException, JobExecutionException {
         if (param.getType().equals(DataType.FILE_T)) {
             String inSandboxPath = param.getOriginalName();
             String renamedFilePath = param.getRenamedName();
@@ -541,7 +533,8 @@ public class Executor implements Runnable {
             }
         }
         if (!allOutFilesCreated) {
-            throw new JobExecutionException(ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
+            throw new JobExecutionException(
+                    ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
         }
 
     }
@@ -600,8 +593,8 @@ public class Executor implements Runnable {
         }
     }
 
-    private Invoker selectNativeMethodInvoker(Invocation invocation, File taskSandboxWorkingDir, InvocationResources assignedResources)
-            throws JobExecutionException {
+    private Invoker selectNativeMethodInvoker(Invocation invocation, File taskSandboxWorkingDir,
+            InvocationResources assignedResources) throws JobExecutionException {
         switch (invocation.getLang()) {
             case JAVA:
                 Invoker javaInvoker = null;
@@ -668,6 +661,7 @@ public class Executor implements Runnable {
 
         private final File workingDir;
         private final boolean isSpecific;
+
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

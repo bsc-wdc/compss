@@ -1,5 +1,5 @@
-/*         
- *  Copyright 2002-2018 Barcelona Supercomputing Center (www.bsc.es)
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUn
 /**
  * Class to bind the threads to the resource (which is supposed to have as many cores as the given computing Units of
  * the resource).
- *
  */
 public class BindToResource implements ThreadBinder {
 
     private static final String UNSUFFICIENT_CUS = "Not enough available computing units for task execution";
-    
+
     private final int[] bindedComputingUnits;
+
 
     /**
      * Creates a new thread binder for unaware binds.
@@ -67,9 +67,7 @@ public class BindToResource implements ThreadBinder {
                 // Raise exception
                 if (numAssignedCores != numCUs) {
                     releaseComputingUnits(jobId);
-                    throw new UnsufficientAvailableComputingUnitsException(
-                            UNSUFFICIENT_CUS
-                    );
+                    throw new UnsufficientAvailableComputingUnitsException(UNSUFFICIENT_CUS);
                 }
             }
         }

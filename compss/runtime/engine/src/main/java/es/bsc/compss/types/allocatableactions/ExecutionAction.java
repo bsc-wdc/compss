@@ -448,8 +448,13 @@ public class ExecutionAction extends AllocatableAction {
     @Override
     protected void doError() throws FailedActionException {
         if (this.getExecutingResources().size() >= SCHEDULING_CHANCES || task.getOnFail() == OnFailure.FAIL || task.getOnFail() == OnFailure.CANCEL_SUCCESSORS || task.getOnFail() == OnFailure.IGNORE ) {
-            LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
-            ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
+            if (task.getOnFail() == OnFailure.RETRY) {
+                LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
+                ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
+            } else {
+                LOGGER.warn("Notifying task " + task.getId() + " failure");
+                ErrorManager.warn("Notifying task " + task.getId() + " failure");
+            }
             throw new FailedActionException();
         } else {
             ErrorManager.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()

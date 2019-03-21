@@ -1180,8 +1180,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return true;
     }
 
-    private void addParameter(Object content, DataType type, Direction direction, Stream stream, String prefix,
-            String name, ArrayList<Parameter> pars) {
+    private int addParameter(Object content, DataType type, Direction direction, Stream stream, String prefix,
+            String name, ArrayList< Parameter > pars, int offset, String[] vals) {
         switch (type) {
             case FILE_T:
                 try {
@@ -1226,31 +1226,28 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             case COLLECTION_T:
                 // A collection value contains the file of the collection object and the collection
                 // elements, separated by spaces
-                String[] values = ((String) content).split(" ");
-                String collectionId = values[0];
-                int numOfElements = Integer.parseInt(values[1]);
+                String[] values = vals == null ? ((String) content).split(" ") : vals;
+                String collectionId = values[offset];
+                int numOfElements = Integer.parseInt(values[offset + 1]);
                 // The elements of the collection are all the elements of the list except for the first one
                 // Each element is defined by a pair TYPE VALUE
                 // Also note the +2 offset!
-                List<String> collectionElements = new ArrayList<>(Arrays.asList(values)).subList(2,
-                        2 * numOfElements + 2);
-
-                int n = collectionElements.size() / 2;
-
-                List<DataType> contentTypes = new ArrayList<>();
-                List<String> contentIds = new ArrayList<>();
-                ArrayList<Parameter> collectionParameters = new ArrayList<>();
-                for (int j = 0; j < n; ++j) {
-                    // First element is the type, translate it to the corresponding DataType field by direct indexing
-                    int idx = Integer.parseInt(collectionElements.get(2 * j));
+                List< DataType > contentTypes = new ArrayList<>();
+                List< String > contentIds = new ArrayList<>();
+                ArrayList< Parameter> collectionParameters = new ArrayList<>();
+                // Ret = number of read elements by this recursive step (atm 2: id + numOfElements)
+                int ret = 2;
+                for(int j = 0; j < numOfElements; ++j) {
+                    // First element is the type, translate it to the  corresponding DataType field by direct indexing
+                    int idx = Integer.parseInt(values[offset + ret]);
                     DataType dataType = DataType.values()[idx];
                     contentTypes.add(dataType);
                     // Second element is the content
-                    contentIds.add(collectionElements.get(2 * j + 1));
-                    // Prepare stuff for recursive call
-                    Object elemContent = contentIds.get(j);
-                    DataType elemType = contentTypes.get(j);
+                    contentIds.add(values[offset + ret + 1]);
+                    DataType  elemType = contentTypes.get(j);
                     Direction elemDir = direction;
+                    // Prepare stuff for recursive call
+                    Object    elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
                     // N/A to non-direct parameters
                     Stream elemStream = Stream.UNSPECIFIED;
                     String elemPrefix = Constants.PREFIX_EMPTY;
@@ -1258,21 +1255,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     // Add @ only for the first time
                     // This names elements as @collection.0, @collection.1, etc
                     // Easily extended in the case of nested collections
-                    // @collection1.0.1.2
+                    // @collection.1.0.1.2
                     // Means that this is the third element of the second element of the first element
                     // of the named collection "collection1"
                     if (!elemName.startsWith("@")) {
                         elemName = "@" + elemName;
                     }
-                    addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
-                            collectionParameters);
+                    ret += addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
+                               collectionParameters, offset + ret + 1, values) + 1;
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
                         prefix, name);
                 LOGGER.debug("Add COLLECTION_T with " + cp.getParameters().size() + " parameters");
                 LOGGER.debug(cp.toString());
                 pars.add(cp);
-                break;
+                return ret;
             default:
                 /*
                  * Basic types (including String). The only possible direction is IN, warn otherwise
@@ -1284,6 +1281,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content));
                 break;
         }
+        return 1;
     }
 
     /*
@@ -1307,7 +1305,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + (NUM_FIELDS_PER_PARAM * i + 1) + " has type " + type.name());
             }
-            addParameter(content, type, direction, stream, prefix, name, pars);
+            addParameter(content, type, direction, stream, prefix, name, pars, 0, null);
         }
         // Method returned ARRAY, not ArrayList
         // Convert it before returning

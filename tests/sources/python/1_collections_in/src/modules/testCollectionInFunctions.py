@@ -19,10 +19,17 @@ import numpy as np
 def select_element(c, i):
     return c[i]
 
+@task(c = {Type: COLLECTION_IN, Depth: 4}, returns = 1)
+def select_element_from_matrix(c, i, j, k, l):
+    return c[i][j][k][l]
+
 @task(returns = 1)
 def generate_object(seed):
     np.random.seed(seed)
     return np.random.rand(5)
+
+
+
 
 class testCollectionInFunctions(unittest.TestCase):
 
@@ -51,5 +58,30 @@ class testCollectionInFunctions(unittest.TestCase):
             np.allclose(
                 compss_wait_on(matrix[4]),
                 fifth_row
+            )
+        )
+
+    def testDepthWorkerGeneration(self):
+        two_two_two_two_matrix = \
+            [
+                [
+                    [
+                        [
+                            generate_object(8 * i + 4 * j + 2 * k + l) for l in range(2)
+                        ] for k in range(2)
+                    ] for j in range(2)
+                ] for i in range(2)
+            ]
+        zero_one_zero_one = select_element_from_matrix(two_two_two_two_matrix, 0, 1, 0, 1)
+
+        import numpy as np
+        np.random.seed(4 + 1)
+
+        should = np.random.rand(5)
+
+        self.assertTrue(
+            np.allclose(
+                compss_wait_on(zero_one_zero_one),
+                should
             )
         )

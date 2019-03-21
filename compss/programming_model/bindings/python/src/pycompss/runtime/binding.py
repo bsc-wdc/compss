@@ -34,6 +34,7 @@ from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 from pycompss.util.persistent_storage import is_psco, get_id, get_by_id
+from pycompss.util.object_properties import is_basic_iterable
 
 import types
 import os
@@ -849,7 +850,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 
-def _extract_parameter(param, code_strings):
+def _extract_parameter(param, code_strings, collection_depth = 0):
     """Extract the information of a single parameter
 
     :param param: Parameter object
@@ -870,7 +871,10 @@ def _extract_parameter(param, code_strings):
     if param.type == TYPE.FILE or param.type == TYPE.OBJECT or param.is_future:
         value = param.file_name
         typ = TYPE.FILE
-    elif param.type == TYPE.COLLECTION:
+    # An object will be considered a collection if at least one of the following is true:
+    # 1) We said it is a collection in the task decorator
+    # 2) It is part of some collection object, it is iterable and we are inside the specified depth radius
+    elif param.type == TYPE.COLLECTION or (collection_depth > 0 and is_basic_iterable(param.obj)):
         # The content of a collection is sent via JNI to the master, and the format is the following
         # collectionId numberOfElements
         # type1 Id1
@@ -881,7 +885,8 @@ def _extract_parameter(param, code_strings):
         for (i, x) in enumerate(param.object):
             x_value, x_type, _, _, _ = _extract_parameter(
                 x,
-                code_strings
+                code_strings,
+                param.depth - 1
             )
             value += ' %s %s' % (x_type, x_value)
     else:
@@ -1052,7 +1057,6 @@ def _serialize_object_into_file(name, p):
     :param p: Object wrapper
     :return: p (whose type and value might be modified)
     """
-
     if p.type == TYPE.OBJECT or p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a future (object)
         try:
@@ -1101,9 +1105,10 @@ def _serialize_object_into_file(name, p):
             _serialize_object_into_file(
                 name,
                 Parameter(
-                    p_type = get_compss_type(x),
+                    p_type = get_compss_type(x, p.depth),
                     p_direction = p.direction,
-                    p_object = x
+                    p_object = x,
+                    depth = p.depth - 1
                 )
             )
             for x in p.object

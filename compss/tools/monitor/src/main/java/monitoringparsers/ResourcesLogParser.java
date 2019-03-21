@@ -42,9 +42,10 @@ public class ResourcesLogParser {
 
     private static final Logger logger = LogManager.getLogger(Loggers.RESOURCES_LOG_PARSER);
 
+
     /**
-     * Format: Each entry separated by " ". Entry = "time:totalLoad:numResources" (int:float:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:totalLoad:numResources" (int:float:int) TODO: javadoc.
+     * 
      * @return String
      */
     public static String getTotalLoad() {
@@ -63,8 +64,9 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:loadC0:...:loadCN:numResources" (int:float:...:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:loadC0:...:loadCN:numResources" (int:float:...:int) TODO:
+     * javadoc.
+     * 
      * @return String
      */
     public static String getLoadPerCore() {
@@ -105,8 +107,8 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:totalRunningCores:numResources" (int:int:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:totalRunningCores:numResources" (int:int:int) TODO: javadoc.
+     * 
      * @return
      */
     public static String getTotalRunningCores() {
@@ -127,8 +129,9 @@ public class ResourcesLogParser {
     //
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:#runningCore0:...:numResources" (int:int:...:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:#runningCore0:...:numResources" (int:int:...:int) TODO:
+     * javadoc.
+     * 
      * @return String
      */
     public static String getRunningCoresPerCore() {
@@ -169,8 +172,8 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:totalPendingCores:numResources" (int:int:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:totalPendingCores:numResources" (int:int:int) TODO: javadoc.
+     * 
      * @return String
      */
     public static String getTotalPendingCores() {
@@ -189,8 +192,9 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Each entry separated by " ". Entry = "time:#pendingCore0:...:numResources" (int:int:...:int)
-     * TODO: javadoc.
+     * Format: Each entry separated by " ". Entry = "time:#pendingCore0:...:numResources" (int:int:...:int) TODO:
+     * javadoc.
+     * 
      * @return String
      */
     public static String getPendingCoresPerCore() {
@@ -231,8 +235,8 @@ public class ResourcesLogParser {
     }
 
     /**
-     * Format: Last entry only. Entry = "time:CPU:MEM" (int:int:int)
-     * TODO: javadoc.
+     * Format: Last entry only. Entry = "time:CPU:MEM" (int:int:int) TODO: javadoc.
+     * 
      * @return String
      */
     public static String getResourcesStatus() {

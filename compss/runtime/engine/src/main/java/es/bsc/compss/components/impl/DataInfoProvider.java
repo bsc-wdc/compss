@@ -772,7 +772,8 @@ public class DataInfoProvider {
                 if (loc instanceof PersistentLocation) {
                     String pscoId = ((PersistentLocation) loc).getId();
                     if (Tracer.extraeEnabled()) {
-                        Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(), Tracer.Event.STORAGE_CONSOLIDATE.getType());
+                        Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(),
+                                Tracer.Event.STORAGE_CONSOLIDATE.getType());
                     }
                     try {
                         StorageItf.consolidateVersion(pscoId);

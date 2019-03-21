@@ -44,12 +44,13 @@ public class BindToMap implements ThreadBinder {
     private ArrayList<ArrayList<Integer>> idList = new ArrayList<>();
     private ArrayList<ArrayList<Integer>> bindedCpus = new ArrayList<>();
 
+
     /**
-     * Constructor for thread binder.
-     * The format is the one followed by lscpu ("," to separate groups, "-" to separate bounds of groups). In addition,
-     * "/" is used to separate sockets For example: "1,2,3,6-8/1,3-5" = "1-3,6,7,8/1,3,4,5"
+     * Constructor for thread binder. The format is the one followed by lscpu ("," to separate groups, "-" to separate
+     * bounds of groups). In addition, "/" is used to separate sockets For example: "1,2,3,6-8/1,3-5" =
+     * "1-3,6,7,8/1,3,4,5"
      *
-     * @param numThreads   number of threads to be managed by the Binders
+     * @param numThreads number of threads to be managed by the Binders
      * @param socketString Description of the avialablesocket
      */
     public BindToMap(int numThreads, String socketString) {
@@ -84,7 +85,6 @@ public class BindToMap implements ThreadBinder {
      * summary.
      *
      * @return summary description of the cpu resources of the node
-     *
      * @throws InvalidMapException Cannot retrieve the CPU description using the lscpu command
      */
     public static String getResourceCpuDescription() throws InvalidMapException {
@@ -138,9 +138,7 @@ public class BindToMap implements ThreadBinder {
      * Parses the output of the lscpu command and returns a summary description of the node sockets.
      *
      * @param cmdOutput lscpu-like description of the worker
-     *
      * @return summary description of the cpu resources of the node
-     *
      */
     public static String processLsCpuOutput(String cmdOutput) {
         if (DEBUG) {

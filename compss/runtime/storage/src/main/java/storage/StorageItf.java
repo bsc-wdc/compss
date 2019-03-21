@@ -21,7 +21,6 @@ import java.util.List;
 
 /**
  * Representation of the Storage ITF
- *
  */
 public final class StorageItf {
 
@@ -31,7 +30,6 @@ public final class StorageItf {
 
     /**
      * Constructor
-     * 
      */
     public StorageItf() {
 
@@ -114,8 +112,8 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
-            throws StorageException {
+    public static String executeTask(String id, String descriptor, Object[] values, String hostName,
+            CallbackHandler callback) throws StorageException {
         throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
     }
 

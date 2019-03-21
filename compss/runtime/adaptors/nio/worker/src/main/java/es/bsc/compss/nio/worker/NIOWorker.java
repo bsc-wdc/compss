@@ -247,7 +247,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
         }
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.WORKER_RECEIVED_NEW_TASK.getId(), Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
+            Tracer.emitEvent(Tracer.Event.WORKER_RECEIVED_NEW_TASK.getId(),
+                    Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
         long obsolSt = System.currentTimeMillis();
         // Remove obsolete

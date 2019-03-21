@@ -205,7 +205,7 @@ public abstract class Tracer {
 
         tracingLevel = level;
 
-        if (Tracer.extraeEnabled()){
+        if (Tracer.extraeEnabled()) {
             if (DEBUG) {
                 LOGGER.debug("Initializing extrae Wrapper.");
             }

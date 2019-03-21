@@ -28,8 +28,9 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUn
 public class BindToResource implements ThreadBinder {
 
     private static final String UNSUFFICIENT_CUS = "Not enough available computing units for task execution";
-    
+
     private final int[] bindedComputingUnits;
+
 
     /**
      * Creates a new thread binder for unaware binds.

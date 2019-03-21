@@ -104,7 +104,8 @@ public class Comm {
         /*
          * Initializes the Tracer activation value to enable querying Tracer.isActivated()
          */
-        if (System.getProperty(COMPSsConstants.TRACING) != null && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
+        if (System.getProperty(COMPSsConstants.TRACING) != null
+                && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracing_level = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
             LOGGER.debug("Tracing is activated [" + tracing_level + ']');
             Tracer.init(tracing_level);

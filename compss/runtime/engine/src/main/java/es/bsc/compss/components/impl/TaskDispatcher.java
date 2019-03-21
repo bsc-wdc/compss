@@ -133,7 +133,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 TDRequest request = requestQueue.take();
                 requestType = request.getType().toString();
                 if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
+                    Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(),
+                            Tracer.getRuntimeEventsType());
                 }
                 request.process(scheduler);
                 if (Tracer.extraeEnabled()) {

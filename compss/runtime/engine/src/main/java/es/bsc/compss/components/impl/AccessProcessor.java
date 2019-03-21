@@ -148,7 +148,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 request = requestQueue.take();
 
                 if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.getAPRequestEvent(request.getRequestType().name()).getId(), Tracer.getRuntimeEventsType());
+                    Tracer.emitEvent(Tracer.getAPRequestEvent(request.getRequestType().name()).getId(),
+                            Tracer.getRuntimeEventsType());
                 }
                 request.process(this, taskAnalyser, dataInfoProvider, taskDispatcher);
                 if (Tracer.extraeEnabled()) {

@@ -32,10 +32,11 @@ public class ThreadedPrintStream extends PrintStream {
     private final String end;
     private final PrintStream defaultStream;
 
+
     /**
      * Constructs a new ThreadedPrint stream.
      *
-     * @param end           extension of the file where the stream will print on
+     * @param end extension of the file where the stream will print on
      * @param defaultStream PrintStream used by those threads that have not been registered
      */
     public ThreadedPrintStream(String end, PrintStream defaultStream) {

@@ -416,7 +416,7 @@ public class MonitorXmlParser {
 
     private static String[] parseStatisticNode(Node statistic) {
         final int maxParams = 2;
-        String[] entry = new String[maxParams];    // key,value
+        String[] entry = new String[maxParams]; // key,value
         NodeList nl = statistic.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node field = nl.item(i);

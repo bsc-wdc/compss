@@ -126,7 +126,8 @@ public class MirrorMonitor {
                     }
                     aliveProcesses = reply.getAliveProcesses();
                 } else {
-                    LOGGER.debug("Piped mirrors monitor could not obtain the alive processes - Message couldn't be sent");
+                    LOGGER.debug(
+                            "Piped mirrors monitor could not obtain the alive processes - Message couldn't be sent");
                     continue;
                 }
 
@@ -264,7 +265,6 @@ public class MirrorMonitor {
         }
 
     }
-
 
     private static class PipeExecutorInfo extends PipeElementInfo {
 

@@ -59,8 +59,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn("Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
-                    + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER.warn(
+                    "Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
+                            + ThreadBinder.BINDER_AUTOMATIC + ")");
             String resourceMap = BindToMap.getResourceCpuDescription();
             binderCPUsTmp = new BindToMap(cusCPU, resourceMap);
         }

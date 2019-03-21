@@ -20,5 +20,32 @@ package es.bsc.compss.types.annotations.parameter;
  * Parameter types (for bindings and internal java)
  */
 public enum DataType {
-    BOOLEAN_T, CHAR_T, BYTE_T, SHORT_T, INT_T, LONG_T, FLOAT_T, DOUBLE_T, STRING_T, FILE_T, OBJECT_T, PSCO_T, EXTERNAL_PSCO_T, BINDING_OBJECT_T, WCHAR_T, WSTRING_T, LONGLONG_T, VOID_T, ANY_T, ARRAY_CHAR_T, ARRAY_BYTE_T, ARRAY_SHORT_T, ARRAY_INT_T, ARRAY_LONG_T, ARRAY_FLOAT_T, ARRAY_DOUBLE_T, COLLECTION_T, NULL_T
+    BOOLEAN_T, // Boolean
+    CHAR_T, // Char
+    BYTE_T, // Byte
+    SHORT_T, // Short
+    INT_T, // Int
+    LONG_T, // Long
+    FLOAT_T, // Float
+    DOUBLE_T, // Double
+    STRING_T, // String
+    FILE_T, // File
+    OBJECT_T, // Java Object
+    PSCO_T, // Java PSCO
+    EXTERNAL_PSCO_T, // Bindings PSCO
+    BINDING_OBJECT_T, // Binding Object
+    WCHAR_T, // Wchar
+    WSTRING_T, // Wstring
+    LONGLONG_T, // Long long
+    VOID_T, // Void
+    ANY_T, // Any
+    ARRAY_CHAR_T, // Array Char
+    ARRAY_BYTE_T, // Array byte
+    ARRAY_SHORT_T, // Array short
+    ARRAY_INT_T, // Array int
+    ARRAY_LONG_T, // Array long
+    ARRAY_FLOAT_T, // Array float
+    ARRAY_DOUBLE_T, // Array double
+    COLLECTION_T, // Collection
+    NULL_T; // Null
 }

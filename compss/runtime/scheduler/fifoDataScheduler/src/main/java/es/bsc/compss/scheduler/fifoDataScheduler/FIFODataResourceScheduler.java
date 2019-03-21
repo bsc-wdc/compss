@@ -60,7 +60,7 @@ public class FIFODataResourceScheduler<T extends WorkerResourceDescription> exte
         // LOGGER.debug("[FIFODataResourceScheduler] Generate resource score for action " + action);
 
         long actionPriority = actionScore.getActionScore();
-        long resourceScore = -action.getId();
+        long resourceScore = actionScore.getResourceScore();
         long waitingScore = 0;
         // double resourceScore = Math.min(1.5, 1.0 / (double) myWorker.getUsedTaskCount());
         long implementationScore = 0;
@@ -73,14 +73,14 @@ public class FIFODataResourceScheduler<T extends WorkerResourceDescription> exte
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
 
         // LOGGER.debug("[FIFODataResourceScheduler] Generate implementation score for action " + action);
-        if (this.hasBlockedActions()){
+        if (this.hasBlockedActions()) {
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 
             return null;
-        }     
-        
+        }
+
         if (myWorker.canRunNow((T) impl.getRequirements())) {
             long actionPriority = resourceScore.getActionScore();
-            long resourcePriority = -action.getId();
+            long resourcePriority = resourceScore.getResourceScore();
             long waitingScore = 0;
             long implScore = 0;
 

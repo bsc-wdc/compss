@@ -60,7 +60,7 @@ public class LIFOResourceScheduler<T extends WorkerResourceDescription> extends 
         // LOGGER.debug("[LIFOScheduler] Generate resource score for action " + action);
 
         long actionPriority = actionScore.getActionScore();
-        long resourceScore = action.getId();
+        long resourceScore = actionScore.getResourceScore();
         long waitingScore = 0;
         long implementationScore = 0;
 

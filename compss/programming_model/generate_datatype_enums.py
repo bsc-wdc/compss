@@ -31,7 +31,7 @@ for line in open(java_path, 'r'):
     if already:
         already = not line.startswith('}')
     if already:
-        cur_type = line.split()[0].replace(',', '')
+        cur_type = line.split()[0].replace(',', '').replace(';', '').strip()
         datatypes.append(cur_type)
         already = not line.startswith('}')
 

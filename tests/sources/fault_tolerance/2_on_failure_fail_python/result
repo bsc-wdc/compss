@@ -9,18 +9,11 @@
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
 
-  # Default checker (application ends with : Error running application)
-  if [ -f "${output_file}" ]; then
-     result_expected="Error running application"
-     test_result=$(tail -n 2 < "${output_file}" | head -n 1)
-     if [ "${result_expected}" != "${test_result}" ]; then
-        echo "[ERROR] SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
-        exit 1
-     fi
-  else
-     echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
-  fi
+  #----------------------------------------------------------------------------------
+  # Do not check standard out/err status since test must fail
+  # Do not check unit tests status since test must fail
+
+  #----------------------------------------------------------------------------------
 
   # Check that ErrorManager has raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
@@ -34,8 +27,8 @@
     echo "[ERROR] ErrorManager did not raise any error" | tee -a "${output_file}"
     exit 1
   fi
-  
-  #----------------------------------------------------------------------------------
+
+ #----------------------------------------------------------------------------------
   # Compute result status
   FILES=1
   resultN=1
@@ -55,9 +48,9 @@
   fi
 
   # Checks if the file has been written as many times as expected
-  result=$(cat /tmp/sharedDisk/file1.txt)
+  result=$(cat /tmp/sharedDisk/onFailure1.txt)
   if [ ${result} -ne $resultN ]; then
-    echo "ERROR: The number of writing tasks is not correct. ${result} "
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
     exit 1
   fi
 
@@ -78,6 +71,7 @@
   	echo "ERROR: The task has not failed."
   	exit 1
   fi
-  #---------------------------------------------------------------------------------- 
+  #----------------------------------------------------------------------------------
   # ALL OK. Report result status
   exit 0
+

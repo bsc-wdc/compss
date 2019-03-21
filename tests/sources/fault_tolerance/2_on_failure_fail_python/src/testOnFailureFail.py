@@ -31,7 +31,7 @@ class ServiceExit(Exception):
         pass
 
 
-@task(file_path=FILE_INOUT, onFailure='RETRY')
+@task(file_path=FILE_INOUT, onFailure='FAIL')
 def write_file(file_path):
     print('Start processing')
     with open(file_path) as f:

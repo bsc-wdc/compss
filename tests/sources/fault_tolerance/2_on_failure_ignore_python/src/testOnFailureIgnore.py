@@ -31,7 +31,7 @@ class ServiceExit(Exception):
         pass
 
 
-@task(file_path=FILE_INOUT, onFailure='RETRY')
+@task(file_path=FILE_INOUT, onFailure='IGNORE')
 def write_file(file_path):
     print('Start processing')
     with open(file_path) as f:
@@ -46,7 +46,7 @@ def write_file(file_path):
         new_value = str(write_value)
         fos.write(new_value)
 
-    if int(read_value) < 3:
+    if int(read_value) < 2:
         print("EXCEPTION")
         #raise TooSmallException('The computed number is too low')
         raise ServiceExit()
@@ -84,7 +84,7 @@ def test_on_failure_retry(file_name):
 def main():
     file_name1 = STORAGE_PATH + "file1.txt"
 
-    print ("[LOG] Test RETRY")
+    print ("[LOG] Test IGNORE")
     test_on_failure_retry(file_name1)
 
 

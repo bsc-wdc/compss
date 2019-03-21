@@ -31,7 +31,7 @@ class ServiceExit(Exception):
         pass
 
 
-@task(file_path=FILE_INOUT, onFailure='RETRY')
+@task(file_path=FILE_INOUT, onFailure='CANCEL_SUCCESSORS')
 def write_file(file_path):
     print('Start processing')
     with open(file_path) as f:
@@ -84,7 +84,7 @@ def test_on_failure_retry(file_name):
 def main():
     file_name1 = STORAGE_PATH + "file1.txt"
 
-    print ("[LOG] Test RETRY")
+    print ("[LOG] Test CANCEL SUCCESSORS")
     test_on_failure_retry(file_name1)
 
 

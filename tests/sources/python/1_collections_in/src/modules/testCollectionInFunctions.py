@@ -20,7 +20,7 @@ def select_element(c, i):
     return c[i]
 
 @task(c = {Type: COLLECTION_IN, Depth: 4}, returns = 1)
-def select_element_from_matrix(c, i, j, k):
+def select_element_from_matrix(c, i, j, k, l):
     return c[i][j][k][l]
 
 @task(returns = 1)

@@ -19,7 +19,7 @@ DEFAULT_GRAPH=false
 DEFAULT_GRAPH_ARGUMENT=true
 
 DEFAULT_TRACING=false
-DEFAULT_TRACING_ARGUMENT=true # 0: activated, 1: basic, 2:advanced
+DEFAULT_TRACING_ARGUMENT=true #-3:arm-ddt, -2:arm-map, -1:scorep, 0:deactivated, 1:basic, 2:advanced
 
 DEFAULT_MONITORING_INTERVAL=0
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
@@ -82,8 +82,7 @@ JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME.
 JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
 RUNTIME_ERROR="Error running application"
 TMP_FILE_JVM_ERROR="Error: Can't create temporary file for JVM options."
-TRACING_ERROR="Value of option --tracing must be: false, true, basic or advanced"
-
+TRACING_ERROR="Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -94,7 +93,7 @@ show_opts() {
     --graph=<bool>, --graph, -g             Generation of the complete graph (true/false)
                                             When no value is provided it is set to ${DEFAULT_GRAPH_ARGUMENT}
                                             Default: ${DEFAULT_GRAPH}
-    --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | false)
+    --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | scorep | arm-map | arm-ddt | false)
                                             True and basic levels will produce the same traces.
                                             When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
                                             Default: ${DEFAULT_TRACING}
@@ -738,6 +737,12 @@ check_args() {
     tracing=1
   elif [ $tracing == "advanced" ]; then
     tracing=2
+  elif [ $tracing == "scorep" ]; then
+    tracing=-1
+  elif [ $tracing == "arm-map" ]; then
+    tracing=-2
+  elif [ $tracing == "arm-ddt" ]; then
+    tracing=-3
   else
     display_error "${TRACING_ERROR}"
   fi

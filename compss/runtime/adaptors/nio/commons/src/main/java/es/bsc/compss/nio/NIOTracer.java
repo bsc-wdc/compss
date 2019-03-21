@@ -47,7 +47,7 @@ public class NIOTracer extends Tracer {
      * @param level
      */
     public static void init(int level) {
-        LOGGER.debug("Initializing NIO tracing");
+        LOGGER.debug("Initializing NIO tracing level [" + level +  "]");
         tracingLevel = level;
     }
 

@@ -107,7 +107,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             throw e;
         }
 
-        if (NIOTracer.isActivated()) {
+        if (NIOTracer.extraeEnabled()) {
             LOGGER.debug("Initializing NIO tracer " + this.getName());
             NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
         }
@@ -355,14 +355,14 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (!currentLocations.contains(targetHostname)) {
             // Perform replica
             LOGGER.debug("Performing new replica for PSCO " + pscoId);
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
             }
             try {
                 // TODO: WARN New replica is NOT necessary because we can't prefetch data
                 // StorageItf.newReplica(pscoId, targetHostname);
             } finally {
-                if (Tracer.isActivated()) {
+                if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWREPLICA.getType());
                 }
             }
@@ -399,7 +399,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
         }
         try {
@@ -416,7 +416,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             sc.end(OpEndState.OP_FAILED, e);
             return;
         } finally {
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
             }
         }

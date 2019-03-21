@@ -125,7 +125,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
 
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 long tracingHostId = context.getTracingHostID();
                 Tracer.emitEvent(tracingHostId, Tracer.getSyncType());
             }
@@ -204,7 +204,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             LOGGER.debug("READ DATA PIPE: " + pipeBuilderPipe + ".inbound");
         }
 
-        cmd.append(Tracer.isActivated()).append(TOKEN_SEP);
+        cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
 
         cmd.append(getPipeBuilderContext());
 
@@ -299,7 +299,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         try {
             LOGGER.info("Waiting for finishing piper process");
             int exitCode = pipeBuilderProcess.waitFor();
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
             }
             pipeBuildeOutGobbler.join();

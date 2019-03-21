@@ -104,11 +104,13 @@ public class Comm {
         /*
          * Initializes the Tracer activation value to enable querying Tracer.isActivated()
          */
-        if (System.getProperty(COMPSsConstants.TRACING) != null && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0) {
-            LOGGER.debug("Tracing is activated");
+        if (System.getProperty(COMPSsConstants.TRACING) != null && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracing_level = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
+            LOGGER.debug("Tracing is activated [" + tracing_level + ']');
             Tracer.init(tracing_level);
-            Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
+            }
         }
 
     }
@@ -193,7 +195,7 @@ public class Comm {
             }
         }
         // Stop tracing system
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.fini();
         }

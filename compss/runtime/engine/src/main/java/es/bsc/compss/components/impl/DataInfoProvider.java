@@ -770,7 +770,7 @@ public class DataInfoProvider {
             for (DataLocation loc : Comm.getData(renaming).getLocations()) {
                 if (loc instanceof PersistentLocation) {
                     String pscoId = ((PersistentLocation) loc).getId();
-                    if (Tracer.isActivated()) {
+                    if (Tracer.extraeEnabled()) {
                         Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(), Tracer.Event.STORAGE_CONSOLIDATE.getType());
                     }
                     try {
@@ -778,7 +778,7 @@ public class DataInfoProvider {
                     } catch (StorageException e) {
                         LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
                     } finally {
-                        if (Tracer.isActivated()) {
+                        if (Tracer.extraeEnabled()) {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
                         }
                     }

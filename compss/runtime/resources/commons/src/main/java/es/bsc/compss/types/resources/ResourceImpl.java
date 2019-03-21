@@ -446,7 +446,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         if (this.getType() != Type.SERVICE) {
             shutdownExecutionManager();
 
-            if (Tracer.isActivated()) {
+            if (Tracer.extraeEnabled()) {
                 if (node.generatePackage()) {
                     getTracingPackageToMaster();
                     if (DEBUG) {

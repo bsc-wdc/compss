@@ -35,7 +35,8 @@ from pycompss.worker.piper_executor import ExecutorConf
 from pycompss.worker.piper_executor import executor
 
 # Persistent worker global variables
-PROCESSES = {} # IN_PIPE -> PROCES
+PROCESSES = {}  # IN_PIPE -> PROCES
+
 
 class PiperWorkerConfiguration(object):
     """
@@ -88,9 +89,10 @@ class PiperWorkerConfiguration(object):
         logger.debug("[PYTHON WORKER] Tasks per node : " + str(self.tasks_x_node))
         logger.debug("[PYTHON WORKER] Pipe Pairs     : ")
         for pipe in self.pipes:
-            logger.debug("[PYTHON WORKER]                  * "+str(pipe))
+            logger.debug("[PYTHON WORKER]                  * " + str(pipe))
         logger.debug("[PYTHON WORKER] Storage conf.  : " + str(self.storage_conf))
         logger.debug("[PYTHON WORKER] -----------------------------")
+
 
 def shutdown_handler(signal, frame):
     """
@@ -104,13 +106,13 @@ def shutdown_handler(signal, frame):
         if proc.is_alive():
             proc.terminate()
 
+
 def load_loggers(debug, persistent_storage):
     """
     Loads all the loggers
 
     :param debug: is Debug enabled
     :param persistent_storage: is persistent storage enabled
-
     :return logger: main logger of the application
     :return storage_loggers: loggers for the persistent data engine
     """
@@ -132,6 +134,7 @@ def load_loggers(debug, persistent_storage):
         storage_loggers.append(logging.getLogger('redis'))
         storage_loggers.append(logging.getLogger('storage'))
     return logger, storage_loggers
+
 
 ######################
 # Main method
@@ -159,7 +162,7 @@ def compss_persistent_worker(config):
             user_paths = os.environ['PYTHONPATH']
         except KeyError:
             user_paths = ""
-        print("PYTHON PATH = "+user_paths)
+        print("PYTHON PATH = " + user_paths)
         import pyextrae.multiprocessing as pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, 1)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING_EVENT)
@@ -221,14 +224,16 @@ def compss_persistent_worker(config):
                 out_pipe = line[2]
                 pipe = Pipe(in_pipe, out_pipe)
                 pid = create_threads(process_name, pipe)
-                control_pipe.write(ADDED_EXECUTOR_TAG+" "+out_pipe+" "+in_pipe+" "+str(pid))
+                control_pipe.write(
+                    ADDED_EXECUTOR_TAG + " " + out_pipe + " " + in_pipe + " " + str(pid))
 
             elif line[0] == QUERY_EXECUTOR_ID_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 proc = PROCESSES.get(in_pipe)
                 pid = proc.pid
-                control_pipe.write(REPLY_EXECUTOR_ID_TAG+" "+out_pipe+" "+in_pipe+" "+str(pid))
+                control_pipe.write(
+                    REPLY_EXECUTOR_ID_TAG + " " + out_pipe + " " + in_pipe + " " + str(pid))
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
 
@@ -242,7 +247,7 @@ def compss_persistent_worker(config):
                         logger.warn("[PYTHON WORKER] Forcing terminate on : " + proc.name)
                         proc.terminate()
                     proc.join()
-                control_pipe.write(REMOVED_EXECUTOR_TAG +" "+out_pipe+" "+in_pipe)
+                control_pipe.write(REMOVED_EXECUTOR_TAG + " " + out_pipe + " " + in_pipe)
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
 
@@ -277,19 +282,20 @@ def compss_persistent_worker(config):
     control_pipe.write(QUIT_TAG)
     control_pipe.close()
 
+
 ############################
 # Main -> Calls main method
 ############################
 
 if __name__ == '__main__':
     import sys
+
     # Get args
     print(str(sys.argv))
     global TRACING
-    TRACING = (sys.argv[2] == 'true')
-    print("Tracing:"+str(TRACING))
+    TRACING = (int(sys.argv[2]) > 0)
+    print("Tracing:" + str(TRACING))
     WORKER_CONF = PiperWorkerConfiguration()
     WORKER_CONF.update_params(sys.argv)
 
     compss_persistent_worker(WORKER_CONF)
-

@@ -243,7 +243,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         for (InvocationParam param : task.getResults()) {
             WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
         }
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.WORKER_RECEIVED_NEW_TASK.getId(), Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
         long obsolSt = System.currentTimeMillis();
@@ -278,11 +278,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         // Request the transfers
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(tt.getTask().getTaskId(), Tracer.getTaskTransfersType());
         }
         requestTransfers();
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType());
         }
         long paramsEnd = System.currentTimeMillis();
@@ -294,7 +294,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             executeTask(tt.getTask());
         }
 
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
     }
@@ -362,7 +362,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         for (DataRequest dr : achievedRequests) {
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
             wdr.getTransferringTask().fetchedValue();
-            if (NIOTracer.isActivated()) {
+            if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
             WORKER_LOGGER.debug("Pending parameters: " + wdr.getTransferringTask().getParams());
@@ -724,8 +724,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Configure tracing
         System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFile);
         tracing_level = Integer.parseInt(trace);
-        if (tracing_level > 0) {
-            NIOTracer.init(tracing_level);
+        NIOTracer.init(tracing_level);
+        if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
 
             try {
@@ -768,7 +768,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             return;
         }
 
-        if (NIOTracer.isActivated()) {
+        if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.START.getType());
         }
 

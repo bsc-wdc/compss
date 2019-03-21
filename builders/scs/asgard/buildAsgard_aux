@@ -28,8 +28,7 @@
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-  modules=""
-  py2_modules="ignore"
+  modules="GASNet/1.30.0_17.11.2 OpenMPI/3.1.2_18.08.2 SLURM/18.08 PrgEnv-gcc/1.0.0 OpenSHMEM/1.3 pmix/2.1.4 cmake/3.8.2_gcc UCX/1.2.1 likwid/4.2.0 Eva/1.0.1"  py2_modules="ignore"
   py3_modules="ignore"
   #additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"
   additionalExports="$PATH"

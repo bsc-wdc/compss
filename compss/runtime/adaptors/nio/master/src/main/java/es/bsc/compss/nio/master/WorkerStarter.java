@@ -492,7 +492,7 @@ public class WorkerStarter {
         // Tracing parameters
         cmd[nextPosition++] = String.valueOf(NIOTracer.getLevel());
         cmd[nextPosition++] = NIOTracer.getExtraeFile();
-        if (Tracer.isActivated()) {
+        if (Tracer.extraeEnabled()) {
             // NumSlots per host is ignored --> 0
             Integer hostId = NIOTracer.registerHost(this.nw.getName(), 0);
             cmd[nextPosition++] = String.valueOf(hostId.toString());

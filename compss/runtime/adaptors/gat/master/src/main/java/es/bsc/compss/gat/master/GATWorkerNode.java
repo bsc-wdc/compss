@@ -83,7 +83,7 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public void start() throws InitNodeException {
         initWorkingDir();
-        if (GATTracer.isActivated()) {
+        if (GATTracer.extraeEnabled()) {
             LOGGER.debug("Starting GAT tracer " + this.getName());
             tracingJob = GATTracer.startTracing(this);
             waitForTracingReady();
@@ -125,7 +125,7 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     private void waitForTracingReady() {
-        if (!GATTracer.isActivated()) {
+        if (!GATTracer.extraeEnabled()) {
             return;
         }
         GATTracer.waitForTracing(tracingJob);
@@ -306,7 +306,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void updateTaskCount(int processorCoreCount) {
-        if (GATTracer.isActivated()) {
+        if (GATTracer.extraeEnabled()) {
             LOGGER.error("Tracing system and Cloud do not work together");
         }
     }

@@ -426,7 +426,7 @@ public class LogicalData {
                 case PERSISTENT:
                     PersistentLocation pLoc = (PersistentLocation) loc;
 
-                    if (Tracer.isActivated()) {
+                    if (Tracer.extraeEnabled()) {
                         Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
                     }
                     try {
@@ -436,7 +436,7 @@ public class LogicalData {
                         // Check next location since cannot retrieve the object from the storage Back-end
                         continue;
                     } finally {
-                        if (Tracer.isActivated()) {
+                        if (Tracer.extraeEnabled()) {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
                         }
                     }

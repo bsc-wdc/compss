@@ -19,7 +19,6 @@ package es.bsc.compss.executor.external.piped;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.external.ExternalExecutorException;
-import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.executor.external.commands.ExternalCommand.CommandType;
 import es.bsc.compss.executor.external.piped.commands.AddExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
@@ -41,14 +40,12 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

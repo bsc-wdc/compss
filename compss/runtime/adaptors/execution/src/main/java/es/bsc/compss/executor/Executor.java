@@ -14,25 +14,15 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.executor;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-
-import es.bsc.compss.executor.external.persistent.PersistentMirror;
-import es.bsc.compss.executor.external.ExecutionPlatformMirror;
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.external.piped.PipedMirror;
+import es.bsc.compss.executor.external.ExecutionPlatformMirror;
+import es.bsc.compss.executor.external.persistent.PersistentMirror;
 import es.bsc.compss.executor.external.piped.PipePair;
+import es.bsc.compss.executor.external.piped.PipedMirror;
+import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
@@ -43,16 +33,16 @@ import es.bsc.compss.invokers.binary.COMPSsInvoker;
 import es.bsc.compss.invokers.binary.DecafInvoker;
 import es.bsc.compss.invokers.binary.MPIInvoker;
 import es.bsc.compss.invokers.binary.OmpSsInvoker;
-import es.bsc.compss.invokers.external.piped.CInvoker;
 import es.bsc.compss.invokers.external.persistent.CPersistentInvoker;
+import es.bsc.compss.invokers.external.piped.CInvoker;
 import es.bsc.compss.invokers.external.piped.PythonInvoker;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
@@ -61,8 +51,17 @@ import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.Tracer;
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class Executor implements Runnable {

@@ -14,12 +14,25 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.executor.external.piped;
 
-import es.bsc.compss.executor.external.piped.commands.PipeCommand;
-import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
+import es.bsc.compss.executor.external.ExternalExecutor;
+import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.commands.ExternalCommand;
+import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.QuitPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.RemovedExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.WorkerStartedPipeCommand;
+import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
+import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.util.ErrorManager;
 import java.io.BufferedReader;
@@ -30,23 +43,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import es.bsc.compss.executor.external.ExternalExecutor;
-import es.bsc.compss.executor.external.ExternalExecutorException;
-import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.PongPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.RemovedExecutorPipeCommand;
-import es.bsc.compss.executor.external.piped.commands.WorkerStartedPipeCommand;
-import es.bsc.compss.executor.external.piped.exceptions.ClosedPipeException;
-import es.bsc.compss.executor.external.piped.exceptions.UnknownCommandException;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class PipePair implements ExternalExecutor<PipeCommand> {
@@ -290,12 +291,21 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         }
         String readPipe = pipePath + ".outbound";
         while (senders > 0) {
+            FileInputStream input = null;
             try {
-                FileInputStream input = new FileInputStream(readPipe);
+                input = new FileInputStream(readPipe);
                 input.read();
             } catch (FileNotFoundException ex) {
                 ErrorManager.fatal(WRITE_PIPE_CLOSING_NOT_EXISTS);
             } catch (IOException ioe) {
+            } finally {
+                if (input != null) {
+                    try {
+                        input.close();
+                    } catch (IOException ioe) {
+                        ErrorManager.error(ERROR_PIPE_CLOSE + readPipe, ioe);
+                    }
+                }
             }
             try {
                 Thread.sleep(50);

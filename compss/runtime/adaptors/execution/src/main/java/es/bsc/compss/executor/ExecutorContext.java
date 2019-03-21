@@ -14,14 +14,14 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.executor;
 
-import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
+import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
-
 import java.util.Collection;
 
 

@@ -14,6 +14,7 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.binders;
 
 import es.bsc.compss.types.execution.ThreadBinder;
@@ -22,18 +23,19 @@ import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUn
 
 /**
  * Class to bind the threads to the resource (which is supposed to have as many cores as the given computing Units of
- * the resource)
+ * the resource).
  *
  */
 public class BindToResource implements ThreadBinder {
 
+    private static final String UNSUFFICIENT_CUS = "Not enough available computing units for task execution";
+    
     private final int[] bindedComputingUnits;
 
-
     /**
-     * Creates a new thread binder for unaware binds
+     * Creates a new thread binder for unaware binds.
      *
-     * @param numThreads
+     * @param numThreads number of managed threads
      */
     public BindToResource(int numThreads) {
         this.bindedComputingUnits = new int[numThreads];
@@ -44,7 +46,7 @@ public class BindToResource implements ThreadBinder {
 
     @Override
     public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
-        int assignedCoreUnits[] = new int[numCUs];
+        int[] assignedCoreUnits = new int[numCUs];
         int numAssignedCores = 0;
 
         // Assign free CUs to the job
@@ -65,7 +67,9 @@ public class BindToResource implements ThreadBinder {
                 // Raise exception
                 if (numAssignedCores != numCUs) {
                     releaseComputingUnits(jobId);
-                    throw new UnsufficientAvailableComputingUnitsException("Not enough available computing units for task execution");
+                    throw new UnsufficientAvailableComputingUnitsException(
+                            UNSUFFICIENT_CUS
+                    );
                 }
             }
         }

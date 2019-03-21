@@ -14,16 +14,18 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.executor.utils;
 
 import java.util.Properties;
 
 
+/**
+ * Utility to allow different properties for each thread.
+ */
 public class ThreadedProperties extends Properties {
 
-    /**
-     * Custom Serial ID
-     */
+    // Custom Serial ID.
     private static final long serialVersionUID = 3L;
 
     private final ThreadLocal<Properties> localProperties = new ThreadLocal<Properties>() {
@@ -34,7 +36,11 @@ public class ThreadedProperties extends Properties {
         }
     };
 
-
+    /**
+     * Constructs a new ThreadedProperties using the properties passed in as parameter as parameter.
+     *
+     * @param properties Properties shared by all threads
+     */
     public ThreadedProperties(Properties properties) {
         super(properties);
     }

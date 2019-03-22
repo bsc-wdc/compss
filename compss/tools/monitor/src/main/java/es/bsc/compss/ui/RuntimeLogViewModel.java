@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -28,25 +30,26 @@ import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 
-import es.bsc.compss.commons.Loggers;
-
 
 public class RuntimeLogViewModel {
+
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_VM_RUNTIME_LOG);
+    private static final String RUNTIME_LOG_NOT_SELECTED = "Application's runtime.log file not selected";
 
     private String runtimeLogPath;
     private int lastParsedLine;
     private String content;
     private String filter;
 
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_RUNTIME_LOG);
-    private static final String itLogNotSelected = "Application's runtime.log file not selected";
 
-
+    /**
+     * Initializes a new runtime.log view model.
+     */
     @Init
     public void init() {
         this.runtimeLogPath = new String("");
         this.lastParsedLine = 0;
-        this.content = new String(itLogNotSelected);
+        this.content = new String(RUNTIME_LOG_NOT_SELECTED);
         this.filter = new String("");
     }
 
@@ -58,6 +61,11 @@ public class RuntimeLogViewModel {
         return this.filter;
     }
 
+    /**
+     * Sets a new filter for the runtime.log content and updates the UI view.
+     * 
+     * @param filter Filter expression.
+     */
     @Command
     @NotifyChange({ "runtimeLog", "filter" })
     public void setFilter(@BindingParam("filter") String filter) {
@@ -66,6 +74,9 @@ public class RuntimeLogViewModel {
         this.content = "";
     }
 
+    /**
+     * Updates the UI view.
+     */
     @Command
     @NotifyChange({ "runtimeLog", "filter" })
     public void update() {
@@ -80,7 +91,7 @@ public class RuntimeLogViewModel {
                 this.filter = "";
             }
             // Parse
-            logger.debug("Parsing runtime.log file...");
+            LOGGER.debug("Parsing runtime.log file...");
 
             try (BufferedReader br = new BufferedReader(new FileReader(this.runtimeLogPath))) {
                 StringBuilder sb = new StringBuilder("");
@@ -98,7 +109,7 @@ public class RuntimeLogViewModel {
                 this.content += sb.toString();
                 this.lastParsedLine = i - 1;
             } catch (IOException ioe) {
-                logger.error("Cannot parse runtime.log file: " + this.runtimeLogPath, ioe);
+                LOGGER.error("Cannot parse runtime.log file: " + this.runtimeLogPath, ioe);
             }
         } else {
             // Load default value
@@ -106,13 +117,16 @@ public class RuntimeLogViewModel {
         }
     }
 
+    /**
+     * Clears the UI view.
+     */
     @Command
     @NotifyChange("runtimeLog")
     public void clear() {
         // Load default value
         this.runtimeLogPath = "";
         this.lastParsedLine = 0;
-        this.content = itLogNotSelected;
+        this.content = RUNTIME_LOG_NOT_SELECTED;
         this.filter = "";
     }
 

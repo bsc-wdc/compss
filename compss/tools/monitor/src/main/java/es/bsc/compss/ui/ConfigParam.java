@@ -23,18 +23,33 @@ public class ConfigParam {
     private boolean editingStatus;
 
 
+    /**
+     * Creates a new configuration empty parameter.
+     */
     public ConfigParam() {
         this.setName(""); // Any
         this.setValue(""); // Any
         this.setEditingStatus(false);
     }
 
+    /**
+     * Creates a new configuration with the given {@code name}, {@code value}, and editable value {@code editingStatus}.
+     * 
+     * @param name Configuration parameter display name.
+     * @param value Default value for the configuration parameter.
+     * @param editingStatus Whether the parameter value can be edited by the user in the UI or not.
+     */
     public ConfigParam(String name, String value, boolean editingStatus) {
         this.setName(name);
         this.setValue(value);
         this.setEditingStatus(editingStatus);
     }
 
+    /**
+     * Creates a copy of the given configuration parameter {@code cp}.
+     * 
+     * @param cp Configuration parameter to copy.
+     */
     public ConfigParam(ConfigParam cp) {
         this.setName(cp.name);
         this.setValue(cp.value);
@@ -66,6 +81,6 @@ public class ConfigParam {
     }
 
     public void update() {
-
+        // Nothing to do
     }
 }

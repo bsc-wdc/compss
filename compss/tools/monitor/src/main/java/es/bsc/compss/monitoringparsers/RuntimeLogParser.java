@@ -15,7 +15,7 @@
  *
  */
 
-package monitoringparsers;
+package es.bsc.compss.monitoringparsers;
 
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.Constants;
@@ -31,6 +31,8 @@ import org.apache.logging.log4j.Logger;
 
 public class RuntimeLogParser {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.RUNTIME_LOG_PARSER);
+
     private static Vector<ExecutionInformationTask> tasks = new Vector<>();
     private static Vector<ExecutionInformationTask> tasksCurrent = new Vector<>();
     private static Vector<ExecutionInformationTask> tasksFailed = new Vector<>();
@@ -41,8 +43,6 @@ public class RuntimeLogParser {
 
     private static String runtimeLogPath = "";
     private static int lastParsedLine = -1;
-
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.RUNTIME_LOG_PARSER);
 
 
     public static Vector<ExecutionInformationTask> getTasks() {

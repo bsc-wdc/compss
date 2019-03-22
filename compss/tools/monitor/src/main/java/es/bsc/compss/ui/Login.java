@@ -16,12 +16,13 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.ui.Constants;
+import es.bsc.compss.ui.auth.AuthenticationService;
+
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zk.ui.Executions;
-import es.bsc.compss.ui.Constants;
-import es.bsc.compss.ui.auth.AuthenticationService;
 
 
 public class Login {
@@ -29,6 +30,11 @@ public class Login {
     private String message = "";
 
 
+    /**
+     * Performs the UI authentication of the given user {@code username}.
+     * 
+     * @param username Username to authenticate.
+     */
     @Command
     @NotifyChange("message")
     public void authenticate(@BindingParam("username") String username) {

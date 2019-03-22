@@ -15,7 +15,7 @@
  *
  */
 
-package monitoringparsers;
+package es.bsc.compss.monitoringparsers;
 
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.Constants;
@@ -31,6 +31,8 @@ import org.apache.logging.log4j.Logger;
 
 public class ResourcesLogParser {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.RESOURCES_LOG_PARSER);
+
     private static Vector<StateData> states = new Vector<>();
     private static String resourcesLogPath = "";
 
@@ -39,8 +41,6 @@ public class ResourcesLogParser {
     private static long lastSeenTimestamp = 0L;
     private static int scaleTimeStamp = 0; // To scale X-axe for long applications
     private static boolean processInformation = false;
-
-    private static final Logger logger = LogManager.getLogger(Loggers.RESOURCES_LOG_PARSER);
 
 
     /**
@@ -59,7 +59,7 @@ public class ResourcesLogParser {
         }
         result.append("'");
 
-        logger.debug("TotalLoadPoints: " + result.toString());
+        LOGGER.debug("TotalLoadPoints: " + result.toString());
         return result.toString();
     }
 
@@ -101,8 +101,8 @@ public class ResourcesLogParser {
         }
         coreData.append("'");
 
-        logger.debug("LoadPerCorePoints: " + coreData.toString());
-        logger.debug("LoadPerCorePointsMAXCORES: " + maxCores);
+        LOGGER.debug("LoadPerCorePoints: " + coreData.toString());
+        LOGGER.debug("LoadPerCorePointsMAXCORES: " + maxCores);
         return "'" + String.valueOf(maxCores) + "'," + coreData.toString();
     }
 
@@ -122,7 +122,7 @@ public class ResourcesLogParser {
         }
         result.append("'");
 
-        logger.debug("TotalRunningCoresPoints: " + result.toString());
+        LOGGER.debug("TotalRunningCoresPoints: " + result.toString());
         return result.toString();
     }
 
@@ -166,8 +166,8 @@ public class ResourcesLogParser {
         }
         coreData.append("'");
 
-        logger.debug("RunningCoresPerCorePoints: " + coreData.toString());
-        logger.debug("RunningCoresPerCorePointsMAXCORES: " + maxCores);
+        LOGGER.debug("RunningCoresPerCorePoints: " + coreData.toString());
+        LOGGER.debug("RunningCoresPerCorePointsMAXCORES: " + maxCores);
         return "'" + String.valueOf(maxCores) + "'," + coreData.toString();
     }
 
@@ -187,7 +187,7 @@ public class ResourcesLogParser {
         }
         result.append("'");
 
-        logger.debug("TotalPendingCoresPoints: " + result.toString());
+        LOGGER.debug("TotalPendingCoresPoints: " + result.toString());
         return result.toString();
     }
 
@@ -229,8 +229,8 @@ public class ResourcesLogParser {
         }
         coreData.append("'");
 
-        logger.debug("PendingCoresPerCorePoints: " + coreData.toString());
-        logger.debug("PendingCoresPerCorePointsMAXCORES: " + maxCores);
+        LOGGER.debug("PendingCoresPerCorePoints: " + coreData.toString());
+        LOGGER.debug("PendingCoresPerCorePointsMAXCORES: " + maxCores);
         return "'" + String.valueOf(maxCores) + "'," + coreData.toString();
     }
 
@@ -246,8 +246,8 @@ public class ResourcesLogParser {
         result.append(states.lastElement().getTotalMemoryConsumption());
         result.append("'");
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("ResourcesStatusPoints: " + result.toString());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("ResourcesStatusPoints: " + result.toString());
         }
         return result.toString();
     }
@@ -256,7 +256,7 @@ public class ResourcesLogParser {
      * TODO: javadoc.
      */
     public static void parse() {
-        logger.debug("Parsing resources.log file...");
+        LOGGER.debug("Parsing resources.log file...");
         if (!Properties.getBasePath().equals("")) {
             // Check if applicaction has changed
             String newPath = Properties.getBasePath() + File.separator + Constants.RESOURCES_LOG;
@@ -275,7 +275,7 @@ public class ResourcesLogParser {
                     if (i > lastParsedLine) {
                         // Check first for the TIMESTAMP flag
                         if (line.contains("TIMESTAMP = ")) {
-                            logger.debug("* Timestamp flag");
+                            LOGGER.debug("* Timestamp flag");
                             scaleTimeStamp++;
                             if (scaleTimeStamp >= Properties.getxScaleForLoadGraph()) {
                                 // Received information needs to be processed
@@ -290,8 +290,9 @@ public class ResourcesLogParser {
                                 } else {
                                     // Generic entry. Set values as the before entry
                                     states.add(new StateData(states.lastElement()));
+                                    // Timestamp in seconds
                                     states.lastElement()
-                                            .setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp)) / 1000); // seconds
+                                            .setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp)) / 1_000);
                                 }
                             } else {
                                 processInformation = false;
@@ -302,24 +303,24 @@ public class ResourcesLogParser {
                             if (line.contains("INFO_MSG = [New resource available in the pool")) {
                                 // !!! We do not parse this message anymore because the RESOURCES_INFO contains full
                                 // information
-                                logger.debug("* New resource available flag");
+                                LOGGER.debug("* New resource available flag");
                                 // String resourceName = line.substring(line.lastIndexOf("=") + 2);
                                 // Add resource information
                                 // states.lastElement().addResource(resourceName, "WORKER");
                             } else if (line.contains("INFO_MSG = [New service available")) {
-                                logger.debug("* New service available flag");
+                                LOGGER.debug("* New service available flag");
                                 // String resourceName = line.substring(line.lastIndexOf("=") + 2);
                                 // Add resource information
                                 // TODO: Runtime doesn't register services as resources (tab Resources) so we don't
                                 // register services
                                 // states.lastElement().addResource(resourceName, "SERVICE");
                             } else if (line.contains("INFO_MSG = [Resource removed from the pool")) {
-                                logger.debug("* Resource removed flag");
+                                LOGGER.debug("* Resource removed flag");
                                 String resourceName = line.substring(line.lastIndexOf("=") + 2);
                                 // Remove resource information
                                 states.lastElement().removeResource(resourceName);
                             } else if (line.contains("LOAD_INFO = [")) {
-                                logger.debug("* Load Information flag");
+                                LOGGER.debug("* Load Information flag");
                                 states.lastElement().purgeLoadValues();
                                 line = br.readLine();
                                 i = i + 1;
@@ -366,7 +367,7 @@ public class ResourcesLogParser {
                                     i = i + 1;
                                 }
                             } else if (line.contains("RESOURCES_INFO = [")) {
-                                logger.debug("* Resources Information flag");
+                                LOGGER.debug("* Resources Information flag");
                                 states.lastElement().purgeResourcesValues();
                                 line = br.readLine();
                                 i = i + 1;
@@ -417,10 +418,10 @@ public class ResourcesLogParser {
                                     i = i + 1;
                                 }
                             } else if (line.contains("CLOUD_INFO = [")) {
-                                logger.debug("* Cloud info flag");
+                                LOGGER.debug("* Cloud info flag");
                                 // TODO: Display cloud information
                             } else if (line.contains("INFO_MSG = [Stopping all workers]")) {
-                                logger.debug("* Stop all workers flag");
+                                LOGGER.debug("* Stop all workers flag");
                                 // No more workers. End point
                                 states.lastElement().purgeValues();
                             }
@@ -432,13 +433,13 @@ public class ResourcesLogParser {
                 lastParsedLine = i - 1;
             } catch (Exception e) {
                 clear();
-                logger.error("Cannot parse resrouces.log file: " + resourcesLogPath);
+                LOGGER.error("Cannot parse resrouces.log file: " + resourcesLogPath);
             }
         } else {
             // Load default value
             clear();
         }
-        logger.debug("resources.log file parsed");
+        LOGGER.debug("resources.log file parsed");
     }
 
     /**

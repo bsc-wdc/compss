@@ -16,17 +16,17 @@
  */
 package es.bsc.compss.ui.auth;
 
+import es.bsc.compss.commons.Loggers;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 
-import es.bsc.compss.commons.Loggers;
-
 
 public class AuthenticationService {
 
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_AUTHENTICATION);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_AUTHENTICATION);
 
 
     public static UserCredential getUserCredential() {
@@ -34,8 +34,14 @@ public class AuthenticationService {
         return (UserCredential) session.getAttribute("userCredential");
     }
 
+    /**
+     * Authenticate the given username {@code username}.
+     * 
+     * @param username Username.
+     * @return Whether it has been authenticated or not.
+     */
     public static boolean login(String username) {
-        logger.info("Login");
+        LOGGER.info("Login");
         // Create user credential
         UserCredential cred = new UserCredential(username);
 
@@ -52,8 +58,11 @@ public class AuthenticationService {
         return false;
     }
 
+    /**
+     * Logout the currently logged user.
+     */
     public static void logout() {
-        logger.info("Logout");
+        LOGGER.info("Logout");
         Session session = Sessions.getCurrent();
         session.removeAttribute("userCredential");
     }

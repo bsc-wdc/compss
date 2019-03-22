@@ -36,6 +36,9 @@ public class Resource {
     private String runningActions;
 
 
+    /**
+     * Creates a new empty Resource.
+     */
     public Resource() {
         this.setName(""); // Any
         this.setTotalCPUComputingUnits("0");
@@ -50,6 +53,12 @@ public class Resource {
         this.setRunningActions(""); // Any
     }
 
+    /**
+     * Creates a new resource with the given data {@code data}.
+     * 
+     * @param data Data describing the resource: workerName, totalCPUu, totalGPUu, totalFPGAu, totalOTHERu, memory disk,
+     *            status, provider, image, actions
+     */
     public Resource(String[] data) {
         /*
          * Each entry in the new Resource data is of the form: workerName totalCPUu totalGPUu totalFPGAu totalOTHERu
@@ -72,6 +81,11 @@ public class Resource {
         return status;
     }
 
+    /**
+     * Sets a new status for the resource.
+     * 
+     * @param status New status.
+     */
     public void setStatus(String status) {
         if (status.equals(Constants.STATUS_RUNNING)) {
             this.status = status;
@@ -102,19 +116,19 @@ public class Resource {
     }
 
     public String getTotalCPUComputingUnits() {
-        return totalCPUComputingUnits;
+        return this.totalCPUComputingUnits;
     }
 
     public String getTotalGPUComputingUnits() {
-        return totalGPUComputingUnits;
+        return this.totalGPUComputingUnits;
     }
 
     public String getTotalFPGAComputingUnits() {
-        return totalFPGAComputingUnits;
+        return this.totalFPGAComputingUnits;
     }
 
     public String getTotalOTHERComputingUnits() {
-        return totalOTHERComputingUnits;
+        return this.totalOTHERComputingUnits;
     }
 
     public void setTotalCPUComputingUnits(String totalCPUComputingUnits) {
@@ -134,7 +148,7 @@ public class Resource {
     }
 
     public String getMemorySize() {
-        return memorySize;
+        return this.memorySize;
     }
 
     public void setMemorySize(String memorySize) {
@@ -142,7 +156,7 @@ public class Resource {
     }
 
     public String getDiskSize() {
-        return diskSize;
+        return this.diskSize;
     }
 
     public void setDiskSize(String diskSize) {
@@ -166,7 +180,7 @@ public class Resource {
     }
 
     public String getRunningActions() {
-        return runningActions;
+        return this.runningActions;
     }
 
     public void setRunningActions(String runningActions) {
@@ -174,7 +188,7 @@ public class Resource {
     }
 
     public String getColor() {
-        return color;
+        return this.color;
     }
 
     public void setColor(String color) {

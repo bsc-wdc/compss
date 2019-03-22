@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+import es.bsc.compss.monitoringparsers.RuntimeLogParser;
+
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -25,22 +28,24 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.ListModelList;
 
-import es.bsc.compss.commons.Loggers;
-
-import monitoringparsers.RuntimeLogParser;
-
 
 public class ExecutionInformationViewModel {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_VM_EXEC_INFO);
+
     private String displayType;
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_EXEC_INFO);
 
 
     @Init
     public void init() {
-        displayType = new String(Constants.EIL_TASKS_WITH_FAILED_JOBS);
+        this.displayType = new String(Constants.EIL_TASKS_WITH_FAILED_JOBS);
     }
 
+    /**
+     * Returns the registered tasks.
+     * 
+     * @return The registered tasks.
+     */
     public List<ExecutionInformationTask> getTasks() {
         if (this.displayType.equals(Constants.EIL_ALL)) {
             // First entry is always empty. TaskId >= 1, JobId >= 1
@@ -68,12 +73,15 @@ public class ExecutionInformationViewModel {
         this.displayType = displayType;
     }
 
+    /**
+     * Updates the execution information view model.
+     */
     @Command
     @NotifyChange("tasks")
     public void update() {
-        logger.debug("Updating Execution Information ViewModel...");
+        LOGGER.debug("Updating Execution Information ViewModel...");
         RuntimeLogParser.parse();
-        logger.debug("Execution Information ViewModel updated");
+        LOGGER.debug("Execution Information ViewModel updated");
     }
 
     @Command

@@ -31,6 +31,9 @@ public class Core {
     private String executedCount;
 
 
+    /**
+     * Creates a new empty CoreElement.
+     */
     public Core() {
         // Empty Image
         this.setColor(File.separator + "images" + File.separator + "colors" + File.separator
@@ -45,6 +48,13 @@ public class Core {
         this.setExecutedCount("0"); // Int
     }
 
+    /**
+     * Creates a new CoreElement with the given {@code color} and information {@code info}.
+     * 
+     * @param color Display color of the core element.
+     * @param info Internal information of the core element: coreId, implId, signature, mean/min/max times, and number
+     *            of executions.
+     */
     public Core(String color, String[] info) {
         /*
          * Each entry on the info array is of the form: coreId, implId, signature, meanET, minET, maxET, execCount
@@ -60,7 +70,7 @@ public class Core {
     }
 
     public String getColor() {
-        return color;
+        return this.color;
     }
 
     public void setColor(String color) {
@@ -68,27 +78,27 @@ public class Core {
     }
 
     public String getCoreId() {
-        return coreId;
+        return this.coreId;
     }
 
     public String getImplId() {
-        return implId;
+        return this.implId;
     }
 
     public String getSignature() {
-        return signature;
+        return this.signature;
     }
 
     public String getMeanExecTime() {
-        return meanExecTime;
+        return this.meanExecTime;
     }
 
     public String getMinExecTime() {
-        return minExecTime;
+        return this.minExecTime;
     }
 
     public String getMaxExecTime() {
-        return maxExecTime;
+        return this.maxExecTime;
     }
 
     public void setCoreId(String coreId) {
@@ -116,7 +126,7 @@ public class Core {
     }
 
     public String getExecutedCount() {
-        return executedCount;
+        return this.executedCount;
     }
 
     public void setExecutedCount(String executedCount) {

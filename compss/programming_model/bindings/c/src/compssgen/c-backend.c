@@ -584,6 +584,104 @@ static void generate_prototype(FILE *outFile, function *current_function) {
     fprintf(outFile, ")");
 }
 
+/*
+ * Return the string "type name" of the argument
+ */
+static char* construct_type_and_name(argument* arg) {
+   
+    char* ret;
+    int printed_chars = -1;
+
+    if (arg->dir == in_dir) {
+        switch (arg->type) {
+            case char_dt:
+            case wchar_dt:
+            case boolean_dt:
+            case short_dt:
+            case long_dt:
+            case longlong_dt:
+            case int_dt:
+            case float_dt:
+            case double_dt:
+            printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
+            break;
+            case object_dt:
+            printed_chars = asprintf(&ret, "%s *%s", arg->classname, arg->name);
+            break;
+            case string_dt:
+            case wstring_dt:
+            printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
+            break;
+            case file_dt:
+            printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
+            break;
+            case array_char_dt:
+            case array_byte_dt:
+            case array_short_dt:
+            case array_int_dt:
+            case array_long_dt:
+            case array_float_dt:
+            case array_double_dt:
+            //TODO Check if * or & is needed
+            printed_chars = asprintf(&ret, "%s *%s", c_out_types[arg->type], arg->name);
+            break;
+            case void_dt:
+            case any_dt:
+            case null_dt:
+            default:
+            ;
+        }
+    } 
+    else {
+        switch (arg->type) {
+            case char_dt:
+            case wchar_dt:
+            case boolean_dt:
+            case short_dt:
+            case long_dt:
+            case longlong_dt:
+            case int_dt:
+            case float_dt:
+            case double_dt:
+                printed_chars = asprintf(&ret, "%s *%s", c_out_types[arg->type], arg->name);
+                break;
+            case object_dt:
+                printed_chars = asprintf(&ret, "%s* %s", arg->classname, arg->name);
+                break;
+            case string_dt:
+            case wstring_dt:
+                printed_chars = asprintf(&ret, "%s *%s", c_out_types[arg->type], arg->name);
+                break;
+            case file_dt:
+                printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
+                break;
+            case array_char_dt:
+            case array_byte_dt:
+            case array_short_dt:
+            case array_int_dt:
+            case array_long_dt:
+            case array_float_dt:
+            case array_double_dt:
+                printed_chars = asprintf(&ret, "%s* %s", c_out_types[arg->type], arg->name);
+                break;
+            case void_dt:
+            case any_dt:
+            case null_dt:
+            default:
+                ;
+        }
+    }
+
+    if (printed_chars < 0) {
+        printf("ERROR: Not possible to generate type and name string for argument.\n");
+        free(ret);
+        exit(1);
+    } 
+
+    return ret;
+    
+}
+
 
 //TODO: Maybe not needed
 /*static void serialize_array(FILE *outFile, argument *arg){
@@ -1816,7 +1914,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     }
 
     char* nanos6_spawner; 
-    printed_chars = asprintf(nanos6_spawner, "nanos6_spawn_function("); 
+    printed_chars = asprintf(&nanos6_spawner, "nanos6_spawn_function("); 
 
 
     is_first_arg = 1;
@@ -1912,8 +2010,8 @@ static void generate_struct_nanos6_wrapper(FILE *outFile, Types current_types, f
     fprintf(outFile, "typedef struct {\n");
     arg = func->first_argument;
     while (arg != NULL) {
-        treat_worker_argument(outFile, arg, current_types, false);
-//        fprintf(outFile, "%s %s;\n", c_out_types[arg->type], arg->name);
+//        treat_worker_argument(outFile, arg, current_types, false);
+        fprintf(outFile, "\t%s;\n", construct_type_and_name(arg));
         arg = arg->next_argument;
     }
     fprintf(outFile, "} %s_struct_t;\n", func->methodname);

@@ -36,10 +36,14 @@
         <module>0_error_manager_no_in_file</module>
         <module>0_error_manager_reschedule_fail</module>
         <module>2_no_empty_constructor</module>
-	<module>2_on_failure_retry</module>
-	<module>2_on_failure_cancel_successors</module>
-	<module>2_on_failure_ignore</module>
-	<module>2_on_failure_fail</module>
-	<!-- Add new modules below -->
+		<module>2_on_failure_retry</module>
+		<!-- 2_on_failure_retry_python -->
+		<module>2_on_failure_cancel_successors</module>
+		<!-- 2_on_failure_cancel_successors -->
+		<module>2_on_failure_ignore</module>
+		<!-- 2_on_failure_ignore_python -->
+		<module>2_on_failure_fail</module>
+		<!-- 2_on_failure_fail_python -->
+		<!-- Add new modules below -->
 	</modules>
 </project>

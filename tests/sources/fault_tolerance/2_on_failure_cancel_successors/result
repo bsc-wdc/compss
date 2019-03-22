@@ -50,7 +50,7 @@
 
   # Checks if the file has been writen as many times as expected
   result=$(cat /tmp/sharedDisk/onFailure1.txt)
-  if [ ${result} -ne $resultN ]; then
+  if [ "${result}" -ne $resultN ]; then
     echo "ERROR: The number of writing tasks is not correct. ${#result} "
     exit 1
   fi
@@ -68,11 +68,13 @@
 
   # Check if all successors have been canceled
   output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
-  if [ ${output1} -ne $(($tasks-$FILES)) ]; then
+  if [ "${output1}" -ne $((tasks-FILES)) ]; then
   	echo "ERROR: All tasks have not been canceled."
   	exit 1
   fi
- 
+
+  rm /tmp/sharedDisk/onFailure1.txt
+
   #---------------------------------------------------------------------------------- 
   # ALL OK. Report result status
   exit 0

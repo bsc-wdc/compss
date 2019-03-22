@@ -12,7 +12,7 @@
 
   # Global variables
   exit_value=1
-  app_name="testOnFailureIgnore.py"
+  app_name="testOnFailureFail.py"
 
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system

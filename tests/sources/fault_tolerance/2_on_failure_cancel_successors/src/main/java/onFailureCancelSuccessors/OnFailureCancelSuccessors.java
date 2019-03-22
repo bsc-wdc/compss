@@ -13,31 +13,31 @@ public class OnFailureCancelSuccessors {
     private static final int M = 5; // number of tasks to be executed
 
 
-    public static void main(String[] args){
-        
+    public static void main(String[] args) {
+
         // Successors cancellation behavior
         System.out.println("Init on failure : CANCEL SUCCESSORS");
         try {
             onCancelation();
-        } catch (numberException e){
-            catchException (e);
+        } catch (numberException e) {
+            catchException(e);
         }
 
     }
-    
+
     // Cancel successor tasks
     private static void onCancelation() throws numberException {
-        
+
         // Create and write first number to file
         initFiles();
         writeFile();
-        
-        //Process file contents and cancel successors if execution fails
-        int i=0;
-        for (i=0;i<M;i++) {
+
+        // Process file contents and cancel successors if execution fails
+        int i = 0;
+        for (i = 0; i < M; i++) {
             OnFailureCancelSuccessorsImpl.processParamCancelSuccessors(FILE_NAME);
         }
-        
+
         // Wait for all tasks to finish
         COMPSs.barrier();
     }
@@ -50,7 +50,7 @@ public class OnFailureCancelSuccessors {
             e.printStackTrace();
         }
     }
-    
+
     private static void writeFile() throws numberException {
         // Write first number to file
         BufferedWriter writer;
@@ -62,8 +62,8 @@ public class OnFailureCancelSuccessors {
             e.printStackTrace();
         }
     }
-    
-    //Function that creates a new empty file
+
+    // Function that creates a new empty file
     private static void newFile(String fileName) throws IOException {
         File file = new File(fileName);
         // Delete previous occurrences of the file
@@ -76,9 +76,9 @@ public class OnFailureCancelSuccessors {
             throw new IOException("[ERROR] Cannot create test file");
         }
     }
-    
-      private static void catchException(numberException e){
-      System.out.println("exception caught!");
+
+    private static void catchException(numberException e) {
+        System.out.println("exception caught!");
     }
 
 }

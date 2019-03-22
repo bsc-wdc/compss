@@ -13,35 +13,35 @@ public class OnFailureIgnore {
     private static final int M = 5; // number of tasks to be executed
 
 
-    public static void main(String[] args){
-        
+    public static void main(String[] args) {
+
         // Failure ignored behavior
         System.out.println("Init on failure : IGNORE FAILURE");
         try {
             onIgnoreFailure();
-        } catch (numberException e){
-            catchException (e);
+        } catch (numberException e) {
+            catchException(e);
         }
-        
+
     }
-    
+
     // Ignore the task failure and continue with other tasks execution
     private static void onIgnoreFailure() throws numberException {
-        
+
         // Create and write first number to file
         initFiles();
         writeFile();
-        
-        //Process file contents and if failed continue executing other tasks
-        int i=0;
-        for (i=0;i<M;i++) {
+
+        // Process file contents and if failed continue executing other tasks
+        int i = 0;
+        for (i = 0; i < M; i++) {
             OnFailureIgnoreImpl.processParamIgnoreFailure(FILE_NAME);
         }
-        
+
         // Wait for all tasks to finish
         COMPSs.barrier();
     }
-    
+
     private static void initFiles() {
         // Initialize the test file
         try {
@@ -50,7 +50,7 @@ public class OnFailureIgnore {
             e.printStackTrace();
         }
     }
-    
+
     private static void writeFile() throws numberException {
         // Write first number to file
         BufferedWriter writer;
@@ -62,8 +62,8 @@ public class OnFailureIgnore {
             e.printStackTrace();
         }
     }
-    
-    //Function that creates a new empty file
+
+    // Function that creates a new empty file
     private static void newFile(String fileName) throws IOException {
         File file = new File(fileName);
         // Delete previous occurrences of the file
@@ -76,9 +76,9 @@ public class OnFailureIgnore {
             throw new IOException("[ERROR] Cannot create test file");
         }
     }
-    
-      private static void catchException(numberException e){
-      System.out.println("exception caught!");
+
+    private static void catchException(numberException e) {
+        System.out.println("exception caught!");
     }
 
 }

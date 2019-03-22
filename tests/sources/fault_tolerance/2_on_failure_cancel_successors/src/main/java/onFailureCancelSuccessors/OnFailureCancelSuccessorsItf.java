@@ -8,10 +8,8 @@ import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface OnFailureCancelSuccessorsItf {
-    
-    @Method(declaringClass = "onFailureCancelSuccessors.OnFailureCancelSuccessorsImpl", onFailure=OnFailure.CANCEL_SUCCESSORS)
-    void processParamCancelSuccessors(
-            @Parameter(type = Type.FILE, direction = Direction.INOUT) String filename
-   );
-    
+
+    @Method(declaringClass = "onFailureCancelSuccessors.OnFailureCancelSuccessorsImpl", onFailure = OnFailure.CANCEL_SUCCESSORS)
+    void processParamCancelSuccessors(@Parameter(type = Type.FILE, direction = Direction.INOUT) String filename);
+
 }

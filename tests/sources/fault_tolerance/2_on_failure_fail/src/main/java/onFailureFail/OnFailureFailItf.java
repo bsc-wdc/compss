@@ -8,9 +8,7 @@ import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface OnFailureFailItf {
-     
-    @Method(declaringClass = "onFailureFail.OnFailureFailImpl", onFailure=OnFailure.FAIL)
-    void processParamDirectFail(
-            @Parameter(type = Type.FILE, direction = Direction.INOUT) String filename
-   );
+
+    @Method(declaringClass = "onFailureFail.OnFailureFailImpl", onFailure = OnFailure.FAIL)
+    void processParamDirectFail(@Parameter(type = Type.FILE, direction = Direction.INOUT) String filename);
 }

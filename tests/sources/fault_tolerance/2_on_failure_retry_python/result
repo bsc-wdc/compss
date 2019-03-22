@@ -61,7 +61,7 @@
   # Checks if the file has been written as many times as expected
   result=$(cat /tmp/sharedDisk/file1.txt)
   if [ ${result} -ne $resultN ]; then
-    echo "ERROR: The number of writing tasks is not correct. ${#result} "
+    echo "ERROR: The number of writing tasks is not correct. ${result} "
     exit 1
   fi
 
@@ -82,6 +82,9 @@
   	echo "ERROR: The first task has not failed."
   	exit 1
   fi
+
+  rm /tmp/sharedDisk/file1.txt
+
   #----------------------------------------------------------------------------------
   # ALL OK. Report result status
   exit 0

@@ -17,16 +17,17 @@ from pycompss.api.task import task
 from pycompss.api.api import compss_open
 import sys
 
-
 NUM_TASKS = 4
 TASK_SLEEP_TIME = 2
 STORAGE_PATH = "/tmp/sharedDisk/"
+
 
 class ServiceExit(Exception):
     """
     Custom exception which is used to trigger the clean exit
     of all running threads and the main program.
     """
+
     def __init__(self):
         pass
 
@@ -39,7 +40,7 @@ def write_file(file_path):
     print('Read value is : ' + read_value)
     write_value = int(read_value) + 1
 
-    print ('Write value is : ' + str(write_value))
+    print('Write value is : ' + str(write_value))
 
     # Write value
     with open(file_path, 'w') as fos:
@@ -48,9 +49,7 @@ def write_file(file_path):
 
     if int(read_value) < 3:
         print("EXCEPTION")
-        #raise TooSmallException('The computed number is too low')
         raise ServiceExit()
-  #  time.sleep(TASK_SLEEP_TIME)
 
 
 def test_on_failure_retry(file_name):
@@ -81,10 +80,11 @@ def test_on_failure_retry(file_name):
         final_value = f.read()
     print("File has been written " + str(final_value) + " times ")
 
+
 def main():
     file_name1 = STORAGE_PATH + "file1.txt"
 
-    print ("[LOG] Test RETRY")
+    print("[LOG] Test FAIL")
     test_on_failure_retry(file_name1)
 
 

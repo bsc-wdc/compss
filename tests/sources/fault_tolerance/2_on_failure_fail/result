@@ -55,8 +55,8 @@
   fi
 
   # Checks if the file has been written as many times as expected
-  result=$(cat /tmp/sharedDisk/file1.txt)
-  if [ ${result} -ne $resultN ]; then
+  result=$(cat /tmp/sharedDisk/onFailure1.txt)
+  if [ "${result}" -ne $resultN ]; then
     echo "ERROR: The number of writing tasks is not correct. ${result} "
     exit 1
   fi
@@ -74,10 +74,13 @@
 
   # Check if the task has failed
   output1=$(cat "${runtime_log}" | grep "TOTALLY FAILED" | wc -l)
-  if [ ${output1} -ne ${FILES} ]; then
+  if [ "${output1}" -ne "${FILES}" ]; then
   	echo "ERROR: The task has not failed."
   	exit 1
   fi
+
+  rm /tmp/sharedDisk/onFailure1.txt
+
   #---------------------------------------------------------------------------------- 
   # ALL OK. Report result status
   exit 0

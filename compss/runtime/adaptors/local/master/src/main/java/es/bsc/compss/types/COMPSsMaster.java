@@ -139,7 +139,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
         if (!new File(COMPSsLogBaseDirPath).exists()) {
             if (!new File(COMPSsLogBaseDirPath).mkdir()) {
-                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR);
+                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR + " at " + COMPSsLogBaseDirPath);
             }
         }
 

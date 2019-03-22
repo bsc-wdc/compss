@@ -39,6 +39,7 @@ extern "C" void GS_RegisterCE(char *CESignature,
                              );
 extern "C" void GS_ExecuteTask(long appId,
                                char *class_name,
+                               char *on_failure,
                                char *method_name,
                                int priority,
                                int has_target,

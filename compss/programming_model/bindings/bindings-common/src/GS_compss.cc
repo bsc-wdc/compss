@@ -810,7 +810,7 @@ void GS_Get_AppDir(char **buf) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  directory name: %s\n", *buf);
 }
 
-void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priority, int has_target, int num_returns, int num_params, void **params) {
+void GS_ExecuteTask(long _appId, char *class_name, char *on_failure, char *method_name, int priority, int has_target, int num_returns, int num_params, void **params) {
 
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
@@ -840,7 +840,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
         process_param(params, i, jobjOBJArr);
     }
 
-    m_env->CallVoidMethod(jobjIT, midExecute, appId, m_env->NewStringUTF(class_name), m_env->NewStringUTF(method_name), _priority, _has_target, num_returns_integer, num_params, jobjOBJArr);
+    m_env->CallVoidMethod(jobjIT, midExecute, appId, m_env->NewStringUTF(class_name), m_env->NewStringUTF(on_failure), m_env->NewStringUTF(method_name), _priority, _has_target, num_returns_integer, num_params, jobjOBJArr);
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling executeTask.\n");
         m_env->ExceptionDescribe();

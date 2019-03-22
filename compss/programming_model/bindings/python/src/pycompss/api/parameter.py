@@ -516,7 +516,7 @@ FILE = _param_('FILE')
 FILE_IN = _param_('FILE_IN')
 FILE_OUT = _param_('FILE_OUT')
 FILE_INOUT = _param_('FILE_INOUT')
-FILE_CONCURRENT =_param_('FILE_CONCURRENT')
+FILE_CONCURRENT = _param_('FILE_CONCURRENT')
 
 # Aliases for files with stream
 FILE_STDIN = _param_('FILE_STDIN')

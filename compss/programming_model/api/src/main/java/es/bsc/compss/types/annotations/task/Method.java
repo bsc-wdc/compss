@@ -86,7 +86,7 @@ public @interface Method {
      * @return the method specific constraints
      */
     Constraints constraints() default @Constraints();
-    
+
     /**
      * Returns the method behavior on failure
      * 

@@ -12,7 +12,7 @@
 
   # Global variables
   exit_value=1
-  app_name="testOnFailureFail.py"
+  app_name="testOnFailureIgnore.py"
 
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -21,13 +21,11 @@
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
-  mkdir -p /tmp/COMPSsWorker02/
-  mkdir -p /tmp/sharedDisk/
 
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING PYTHON APPLICATION BARRIER"
+  echo "*** RUNNING PYTHON APPLICATION EXCEPTION IN WORKER"
 
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
@@ -36,13 +34,23 @@
     specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
-    expectedTime=10s
+    expectedTime=180s
+
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
 
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
       --resources="${base_app_dir}"/resources.xml \
-      --graph\
+      \
       --comm="$comm" \
       \
       --debug \
@@ -50,11 +58,9 @@
       \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
+      ${python_mpi_worker} \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
-      \
-      --classpath=${storageImplPath} \
-      --storage_conf=${storageConf} \
       \
       "${base_app_dir}/src/${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 

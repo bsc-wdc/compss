@@ -150,6 +150,7 @@ public class TaskAnalyser {
                            // ->
                            // access
                            // mode
+
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
             case IN:
@@ -344,19 +345,20 @@ public class TaskAnalyser {
             registeredMonitor.onFailure();
             return;
         } else {
-            if  (taskState == TaskState.FAILED && (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS)) {
-                //Show warning
+            if (taskState == TaskState.FAILED
+                    && (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS)) {
+                // Show warning
                 ErrorManager.warn(TASK_FAILED + task);
             } else {
-                if  (taskState == TaskState.CANCELED) {
-                    //Show warning
+                if (taskState == TaskState.CANCELED) {
+                    // Show warning
                     ErrorManager.warn(TASK_CANCELED + task);
                 }
             }
-          //RegisteredMonitor failure ignore
+            // RegisteredMonitor failure ignore
             TaskMonitor registeredMonitor = task.getTaskMonitor();
             registeredMonitor.onFailure();
-            
+
         }
 
         /*

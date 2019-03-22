@@ -2,7 +2,6 @@ package es.bsc.compss.types.annotations.parameter;
 
 /**
  * On failure behavior
- *
  */
 public enum OnFailure {
     RETRY, // Task will be resubmitted when failed

@@ -31,13 +31,15 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.util.Tracer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.UUID;
-
 import java.io.File;
 import java.io.IOException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 
 public class COMPSsInvoker extends Invoker {
@@ -47,7 +49,7 @@ public class COMPSsInvoker extends Invoker {
     private static final String GENERATE_PROJECT_SCRIPT = "generate_project.sh";
     private static final String GENERATE_RESOURCES_SCRIPT = "generate_resources.sh";
 
-    private static final int NUM_BASE_COMPSS_ARGS = 3;
+    private static final int NUM_BASE_COMPSS_ARGS = 5;
 
     private static final String ERROR_RUNCOMPSS = "ERROR: Invalid runcompss";
     private static final String ERROR_APP_NAME = "ERROR: Invalid appName";
@@ -119,9 +121,14 @@ public class COMPSsInvoker extends Invoker {
         System.out.println("[COMPSs INVOKER] Begin COMPSs call to " + appName);
         System.out.println("[COMPSs INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
 
-        // Command similar to
-        // export OMP_NUM_THREADS=1 ; runcompss --project=tmp_proj.xml --resources=tmp_res.xml [-extra_flags] appName
-        // appArgs
+        // Command similar to:
+        // export OMP_NUM_THREADS=1
+        // runcompss
+        // --project=tmp_proj.xml
+        // --resources=tmp_res.xml
+        // --specific_log_dir=nestedLogDir
+        // [-extra_flags]
+        // appName appArgs
 
         // Retrieve workers information
         HashMap<String, Integer> hostnames2cus = new HashMap<>();
@@ -208,22 +215,55 @@ public class COMPSsInvoker extends Invoker {
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
                 invocation.getTarget(), streamValues);
 
-        // Prepare command
-        String[] extraFlags_array = (extraFlags != null && !extraFlags.isEmpty()) ? extraFlags.split(" ")
-                : new String[0];
+        // Prepare and purge runcompss extra flags
+        String nestedLogDir = this.taskSandboxWorkingDir.getAbsolutePath() + File.separator + "nestedCOMPSsLog";
+        JavaParams javaParams = (JavaParams) this.context.getLanguageParams(Lang.JAVA);
+        String classpathFlag = "--classpath=" + javaParams.getClasspath();
+        List<String> extraFlagsList = new ArrayList<>();
+        if (this.extraFlags != null && !this.extraFlags.isEmpty()) {
+            // Covert STR to partial list and add only the purged values to the final argument list
+            List<String> partialExtraFlagsList = Arrays.asList(this.extraFlags.split(" "));
+            for (String flag : partialExtraFlagsList) {
+                if (flag.startsWith("--base_log_dir=")) {
+                    // Capturing base log dir and creating UUID random entry
+                    // This avoids collisions when running multiple nested
+                    System.out.println("[COMPSs INVOKER] Capturing flag " + flag);
+                    System.out
+                            .println("[COMPSs INVOKER] Generating random UUID as specific_log_dir inside base_log_dir");
+                    int beginPos = "--base_log_dir=".length();
+                    nestedLogDir = flag.substring(beginPos) + File.separator + UUID.randomUUID();
+                } else if (flag.startsWith("--specific_log_dir=")) {
+                    // Purged flag
+                    System.out.println("[COMPSs INVOKER] Ommitting flag " + flag + " on nested runcompss command");
+                } else if (flag.startsWith("--classpath=")) {
+                    // Append user classpath to worker classpath
+                    int beginPos = "--classpath=".length();
+                    classpathFlag = classpathFlag + ":" + flag.substring(beginPos);
+                } else {
+                    // Add regular flag to final list
+                    extraFlagsList.add(flag);
+                }
+            }
+        }
 
-        String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlags_array.length + 2 + binaryParams.size()];
+        // Create a directory to store the nested COMPSs logs
+        System.out.println("[COMPSs INVOKER] Creating nested log dir in: " + nestedLogDir);
+        if (!new File(nestedLogDir).mkdir()) {
+            throw new InvokeExecutionException("Error creating COMPSs nested log directory " + nestedLogDir);
+        }
+        String nestedLogDirFlag = "--specific_log_dir=" + nestedLogDir;
+
+        // Prepare command (the +1 is for the appName)
+        String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + binaryParams.size()];
         cmd[0] = runcompss;
         cmd[1] = "--project=" + projectXml;
         cmd[2] = "--resources=" + resourcesXml;
+        cmd[3] = nestedLogDirFlag;
+        cmd[4] = classpathFlag;
         int i = NUM_BASE_COMPSS_ARGS;
-        for (String flag : extraFlags_array) {
+        for (String flag : extraFlagsList) {
             cmd[i++] = flag;
         }
-        // TODO: Infer --classpath from worker configuration or user flag
-        // WARN: Overriding --classpath variable added by user (setting to application jar file)
-        JavaParams javaParams = (JavaParams) this.context.getLanguageParams(Lang.JAVA);
-        cmd[i++] = "--classpath=" + javaParams.getClasspath();
         cmd[i++] = appName;
         for (String param : binaryParams) {
             cmd[i++] = param;

@@ -25,7 +25,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -1181,7 +1180,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     private int addParameter(Object content, DataType type, Direction direction, Stream stream, String prefix,
-            String name, ArrayList< Parameter > pars, int offset, String[] vals) {
+            String name, ArrayList<Parameter> pars, int offset, String[] vals) {
         switch (type) {
             case FILE_T:
                 try {
@@ -1232,22 +1231,22 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 // The elements of the collection are all the elements of the list except for the first one
                 // Each element is defined by a pair TYPE VALUE
                 // Also note the +2 offset!
-                List< DataType > contentTypes = new ArrayList<>();
-                List< String > contentIds = new ArrayList<>();
-                ArrayList< Parameter> collectionParameters = new ArrayList<>();
+                List<DataType> contentTypes = new ArrayList<>();
+                List<String> contentIds = new ArrayList<>();
+                ArrayList<Parameter> collectionParameters = new ArrayList<>();
                 // Ret = number of read elements by this recursive step (atm 2: id + numOfElements)
                 int ret = 2;
-                for(int j = 0; j < numOfElements; ++j) {
-                    // First element is the type, translate it to the  corresponding DataType field by direct indexing
+                for (int j = 0; j < numOfElements; ++j) {
+                    // First element is the type, translate it to the corresponding DataType field by direct indexing
                     int idx = Integer.parseInt(values[offset + ret]);
                     DataType dataType = DataType.values()[idx];
                     contentTypes.add(dataType);
                     // Second element is the content
                     contentIds.add(values[offset + ret + 1]);
-                    DataType  elemType = contentTypes.get(j);
+                    DataType elemType = contentTypes.get(j);
                     Direction elemDir = direction;
                     // Prepare stuff for recursive call
-                    Object    elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
+                    Object elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
                     // N/A to non-direct parameters
                     Stream elemStream = Stream.UNSPECIFIED;
                     String elemPrefix = Constants.PREFIX_EMPTY;
@@ -1262,7 +1261,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                         elemName = "@" + elemName;
                     }
                     ret += addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
-                               collectionParameters, offset + ret + 1, values) + 1;
+                            collectionParameters, offset + ret + 1, values) + 1;
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
                         prefix, name);

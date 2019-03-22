@@ -56,6 +56,11 @@ public class Main {
         COMPSs.barrier();
 
         // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test nested log dir");
+        COMPSsNestedLogDir();
+        COMPSs.barrier();
+
+        // ------------------------------------------------------------------------
         System.out.println("[LOG] COMPSs Test finished");
     }
 
@@ -119,6 +124,15 @@ public class Main {
 
     private static void COMPSsNoWorkerInMasterNoFit() {
         Integer ev = NESTED.taskNoWorkerInMasterNoFit(1);
+
+        if (ev != 0) {
+            System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
+            System.exit(1);
+        }
+    }
+
+    private static void COMPSsNestedLogDir() {
+        Integer ev = NESTED.taskBaseLogDir(1);
 
         if (ev != 0) {
             System.err.println("[ERROR] Process returned non-zero exit value: " + ev);

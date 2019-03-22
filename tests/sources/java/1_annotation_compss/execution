@@ -34,7 +34,10 @@
   expectedTime=180s
   
   export RUNCOMPSS=${COMPSs_exec}
-  export TEST_WD=${base_app_dir}
+  export TEST_WORKING_DIR=${base_app_dir}/wd
+  mkdir -p "${TEST_WORKING_DIR}"
+  export TEST_LOG_DIR=${base_app_dir}/ld
+  mkdir -p "${TEST_LOG_DIR}"
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

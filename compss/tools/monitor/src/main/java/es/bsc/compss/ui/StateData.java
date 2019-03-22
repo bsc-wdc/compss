@@ -42,6 +42,9 @@ public class StateData {
     private Vector<ResourceInfo> resourcesInformation;
 
 
+    /**
+     * Creates a new empty state data.
+     */
     public StateData() {
         this.timestamp = 0;
 
@@ -59,6 +62,11 @@ public class StateData {
         this.resourcesInformation = new Vector<>();
     }
 
+    /**
+     * Creates a new state data with the given timestamp {@code timestamp}.
+     * 
+     * @param timestamp State data timestamp.
+     */
     public StateData(int timestamp) {
         this.timestamp = timestamp;
 
@@ -76,6 +84,11 @@ public class StateData {
         this.resourcesInformation = new Vector<>();
     }
 
+    /**
+     * Copies the given state data {@code d}.
+     * 
+     * @param d State data object to copy.
+     */
     public StateData(StateData d) {
         this.timestamp = d.getTimestamp();
 
@@ -96,6 +109,9 @@ public class StateData {
     // ---------------------------
     // PURGE FUNCTIONS
     // ---------------------------
+    /**
+     * Removes all the loaded values from the current state data except its timestamp.
+     */
     public void purgeValues() {
         // Purges all values except timestamp
         this.totalLoad = Float.valueOf(0);
@@ -112,6 +128,10 @@ public class StateData {
         this.resourcesInformation = new Vector<>();
     }
 
+    /**
+     * Removes all the load related values from the current state data (total load, running cores, pending cores, and
+     * mean time).
+     */
     public void purgeLoadValues() {
         // Purges all values related to core load
         this.totalLoad = Float.valueOf(0);
@@ -123,6 +143,10 @@ public class StateData {
         this.pendingCores = new Vector<>();
     }
 
+    /**
+     * Removes all the resource related values from the current state data (total cpus, total memory, resource
+     * information).
+     */
     public void purgeResourcesValues() {
         // Purges all values related to resources state
         this.totalCPU = 0;
@@ -178,6 +202,11 @@ public class StateData {
         return this.resourcesInformation;
     }
 
+    /**
+     * Returns the total CPU consumption.
+     * 
+     * @return The total CPU consumption.
+     */
     public int getTotalCPUConsumption() {
         float op1 = new Random().nextFloat() * Float.valueOf(this.totalCPU); // TODO
         float op2 = Float.valueOf(this.totalCPU);
@@ -192,6 +221,11 @@ public class StateData {
         return (int) result;
     }
 
+    /**
+     * Returns the total memory consumption.
+     * 
+     * @return The total memory consumption.
+     */
     public float getTotalMemoryConsumption() {
         float op1 = new Random().nextFloat() * this.totalMemory; // TODO
 
@@ -205,6 +239,11 @@ public class StateData {
         return result;
     }
 
+    /**
+     * Returns the CPU consumption per resource.
+     * 
+     * @return The CPU consumption per resource.
+     */
     public Vector<String> getCPUConsumption() {
         Vector<String> result = new Vector<String>();
 
@@ -215,6 +254,11 @@ public class StateData {
         return result;
     }
 
+    /**
+     * Returns the memory consumption per resource.
+     * 
+     * @return The memory consumption per resource.
+     */
     public Vector<String> getMemoryConsumption() {
         Vector<String> result = new Vector<String>();
 
@@ -232,6 +276,12 @@ public class StateData {
         this.timestamp = timestamp;
     }
 
+    /**
+     * Adds some load {@code load} to the core {@code id}.
+     * 
+     * @param id Core id.
+     * @param load Load increase.
+     */
     public void addCoreLoad(int id, float load) {
         // Resize if needed
         if (id >= this.meanTime.size()) {
@@ -246,6 +296,14 @@ public class StateData {
         addResource(resourceName, type, 0, (float) 0.0);
     }
 
+    /**
+     * Adds a new resource to the current state data with the given information.
+     * 
+     * @param resourceName New resource name.
+     * @param type New resource type.
+     * @param cpus Amount of CPUs of the new resource.
+     * @param memory Amount of memory of the new resource.
+     */
     public void addResource(String resourceName, String type, int cpus, float memory) {
         this.resourcesInformation.add(new ResourceInfo(resourceName, type, cpus, memory));
 
@@ -254,6 +312,11 @@ public class StateData {
         this.totalMemory += memory;
     }
 
+    /**
+     * Removes the resource with the given name {@code resourceName} if it exists.
+     * 
+     * @param resourceName Resource name.
+     */
     public void removeResource(String resourceName) {
         boolean found = false;
         for (int i = 0; i < this.resourcesInformation.size() && !found; ++i) {
@@ -264,6 +327,12 @@ public class StateData {
         }
     }
 
+    /**
+     * Adds {@code running} running cores associated with the coreId {@code coreId}.
+     * 
+     * @param coreId CoreElementId.
+     * @param running Number of running cores.
+     */
     public void addCoreRunning(int coreId, int running) {
         // Update global variable
         this.totalCoresRunning = this.totalCoresRunning + running;
@@ -276,6 +345,12 @@ public class StateData {
         this.runningCores.set(coreId, running);
     }
 
+    /**
+     * Adds {@code newPending} pending cores associated with the coreId {@code coreId}.
+     * 
+     * @param coreId CoreElementId.
+     * @param newPending Number of pending cores.
+     */
     public void addCorePending(int coreId, int newPending) {
         // Update global variable
         this.totalCoresPending = this.totalCoresPending + newPending;

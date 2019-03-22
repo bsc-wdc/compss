@@ -16,8 +16,13 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+import es.bsc.compss.monitoringparsers.MonitorXmlParser;
+import es.bsc.compss.ui.auth.UserCredential;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.GlobalCommand;
@@ -28,11 +33,6 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zul.Messagebox;
-
-import es.bsc.compss.commons.Loggers;
-import es.bsc.compss.ui.auth.UserCredential;
-
-import monitoringparsers.*;
 
 
 public class ViewModel {
@@ -53,6 +53,9 @@ public class ViewModel {
     private static final Logger logger = LogManager.getLogger(Loggers.UI_VMS);
 
 
+    /**
+     * Initializes the global view model.
+     */
     @Init
     public void init() {
         logger.debug("Initializing Resources ViewModel Structure...");
@@ -132,6 +135,11 @@ public class ViewModel {
         return Properties.getRefreshTime();
     }
 
+    /**
+     * Selects a new tab to render in the UI.
+     * 
+     * @param selectedTab New selected tab.
+     */
     @Command
     @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
             "loadChartViewModel", "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })
@@ -144,7 +152,8 @@ public class ViewModel {
                 logger.debug("Trying to load runtime.log, displaying messagebox");
                 runtimeLogConfirmation = -1;
                 Messagebox.show(
-                        "The runtime.log can be huge and you may experience slowness loading this tab. Do you really want to load it?",
+                        "The runtime.log can be huge and you may experience slowness loading this tab."
+                                + " Do you really want to load it?",
                         "Warning", Messagebox.OK | Messagebox.CANCEL, Messagebox.QUESTION, new EventListener<Event>() {
 
                             public void onEvent(Event e) {
@@ -164,6 +173,9 @@ public class ViewModel {
         }
     }
 
+    /**
+     * Updates the current view in the UI.
+     */
     @Command
     @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
             "loadChartViewModel", "statisticsViewModel", "runtimeLogViewModel" })
@@ -262,6 +274,9 @@ public class ViewModel {
         }
     }
 
+    /**
+     * Update the runtime.log view model.
+     */
     @Command
     @NotifyChange("runtimeLogViewModel")
     public void updateRuntimeLog() {
@@ -290,6 +305,9 @@ public class ViewModel {
         logger.info("Runtime.log updated");
     }
 
+    /**
+     * Updates the execution information view model.
+     */
     @Command
     @NotifyChange("executionInformationViewModel")
     public void updateExecutionInformation() {
@@ -316,10 +334,15 @@ public class ViewModel {
         logger.info("Execution Information updated");
     }
 
+    /**
+     * Sets the zul UUID.
+     * 
+     * @param divuuid The new zul UUID.
+     */
     @Command
     @NotifyChange("loadChartViewModel")
-    public void setDivUUID(@BindingParam("divuuid") String divuuid) {
-        loadChartViewModel.setDivUUID(divuuid);
+    public void setDivUuid(@BindingParam("divuuid") String divuuid) {
+        loadChartViewModel.setDivUuid(divuuid);
     }
 
     @Command
@@ -332,6 +355,9 @@ public class ViewModel {
         currentGraphViewModel.download();
     }
 
+    /**
+     * Refresh the complete UI.
+     */
     @GlobalCommand
     @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
             "loadChartViewModel", "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })

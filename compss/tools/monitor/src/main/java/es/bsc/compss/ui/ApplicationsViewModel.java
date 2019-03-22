@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+import es.bsc.compss.ui.auth.UserCredential;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,19 +34,16 @@ import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.ListModelList;
 
-import es.bsc.compss.commons.Loggers;
-import es.bsc.compss.ui.auth.UserCredential;
-
 
 public class ApplicationsViewModel {
 
     private List<Application> applications;
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_APPLICATIONS);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_VM_APPLICATIONS);
 
 
     @Init
     public void init() {
-        applications = new LinkedList<>();
+        this.applications = new LinkedList<>();
         update();
     }
 
@@ -51,38 +51,46 @@ public class ApplicationsViewModel {
         return new ListModelList<Application>(this.applications);
     }
 
+    /**
+     * Update applications view model.
+     */
     @Command
     @NotifyChange("applications")
     public void update() {
-        logger.debug("Updating Applications ViewModel...");
+        LOGGER.debug("Updating Applications ViewModel...");
         // Erase all current applications
-        applications.clear();
+        this.applications.clear();
         setSelectedApp("");
 
         // Import new resources
         String appsLocation = ((UserCredential) Sessions.getCurrent().getAttribute("userCredential"))
-                .getCOMPSs_BASE_LOG();
-        File COMPSs_LOG_DIR = new File(appsLocation);
-        if (COMPSs_LOG_DIR.exists()) {
-            for (File f : COMPSs_LOG_DIR.listFiles()) {
-                logger.debug("Adding application " + f.getName());
+                .getCompssBaseLog();
+        File compssLogDir = new File(appsLocation);
+        if (compssLogDir.exists()) {
+            for (File f : compssLogDir.listFiles()) {
+                LOGGER.debug("Adding application " + f.getName());
                 Application app = new Application(f.getName(), appsLocation + File.separator + f.getName());
-                applications.add(app);
+                this.applications.add(app);
             }
         }
 
         if (Properties.isSortApplications()) {
-            Collections.sort(applications, new ApplicationComparator());
+            Collections.sort(this.applications, new ApplicationComparator());
         }
 
-        logger.debug("Applications ViewModel updated");
+        LOGGER.debug("Applications ViewModel updated");
     }
 
+    /**
+     * Updates the view model with the selected application.
+     * 
+     * @param appName Application name loaded from UI
+     */
     @Command
     public void setSelectedApp(@BindingParam("appName") String appName) {
-        logger.debug("Updating Selected Application...");
+        LOGGER.debug("Updating Selected Application...");
         Application selectedApp = new Application();
-        for (Application app : applications) {
+        for (Application app : this.applications) {
             if (app.getName().equals(appName)) {
                 selectedApp = new Application(app);
                 break;
@@ -91,7 +99,7 @@ public class ApplicationsViewModel {
         // Set global variables to selected app
         Properties.setBasePath(selectedApp.getPath());
         ((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).setMonitoredApp(selectedApp);
-        logger.debug("Selected application updated");
+        LOGGER.debug("Selected application updated");
     }
 
 

@@ -15,7 +15,7 @@
  *
  */
 
-package monitoringparsers;
+package es.bsc.compss.monitoringparsers;
 
 import es.bsc.compss.commons.Loggers;
 import es.bsc.compss.ui.Constants;
@@ -33,20 +33,20 @@ import org.w3c.dom.NodeList;
 
 public class MonitorXmlParser {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMPSS_STATE_XML_PARSER);
+
     private static List<String[]> workersDataArray;
     private static List<String[]> coresDataArray;
     private static HashMap<String, String> statisticParameters;
 
-    private static final Logger logger = LogManager.getLogger(Loggers.COMPSS_STATE_XML_PARSER);
-
 
     public static List<String[]> getWorkersDataArray() {
-        logger.debug("Granting access to resources data");
+        LOGGER.debug("Granting access to resources data");
         return workersDataArray;
     }
 
     public static List<String[]> getCoresDataArray() {
-        logger.debug("Granting access to cores data");
+        LOGGER.debug("Granting access to cores data");
         return coresDataArray;
     }
 
@@ -59,12 +59,12 @@ public class MonitorXmlParser {
      */
     public static void parseResources() {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
-        logger.debug("Parsing XML file...");
+        LOGGER.debug("Parsing XML file...");
         // Reset attribute
         workersDataArray = new ArrayList<>();
 
         // Show monitor location
-        logger.debug("Monitor Location : " + monitorLocation);
+        LOGGER.debug("Monitor Location : " + monitorLocation);
 
         // Compute attribute
         try {
@@ -93,12 +93,12 @@ public class MonitorXmlParser {
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot load monitor xml files", e);
+            LOGGER.error("Cannot load monitor xml files", e);
             // e.printStackTrace();
             return;
         }
 
-        logger.debug("Success: Parse finished");
+        LOGGER.debug("Success: Parse finished");
     }
 
     /**
@@ -106,12 +106,12 @@ public class MonitorXmlParser {
      */
     public static void parseCores() {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
-        logger.debug("Parsing XML file...");
+        LOGGER.debug("Parsing XML file...");
         // Reset attribute
         coresDataArray = new ArrayList<>();
 
         // Show monitor location
-        logger.debug("Monitor Location : " + monitorLocation);
+        LOGGER.debug("Monitor Location : " + monitorLocation);
 
         // Compute attributes
         try {
@@ -140,11 +140,11 @@ public class MonitorXmlParser {
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot load monitor xml files", e);
+            LOGGER.error("Cannot load monitor xml files", e);
             return;
         }
 
-        logger.debug("Success: Parse finished");
+        LOGGER.debug("Success: Parse finished");
     }
 
     /**
@@ -152,12 +152,12 @@ public class MonitorXmlParser {
      */
     public static void parseStatistics() {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
-        logger.debug("Parsing XML file for statistics...");
+        LOGGER.debug("Parsing XML file for statistics...");
         // Reset attribute
         statisticParameters = new HashMap<>();
 
         // Show monitor location
-        logger.debug("Monitor Location : " + monitorLocation);
+        LOGGER.debug("Monitor Location : " + monitorLocation);
 
         // Compute attribute
         try {
@@ -186,15 +186,15 @@ public class MonitorXmlParser {
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot load monitor xml files", e);
+            LOGGER.error("Cannot load monitor xml files", e);
             return;
         }
 
-        logger.debug("Success: Parse finished");
+        LOGGER.debug("Success: Parse finished");
     }
 
     private static List<String[]> parseResourceInfoNode(Node resourceInfo) throws Exception {
-        logger.debug("Parsing resources nodes...");
+        LOGGER.debug("Parsing resources nodes...");
         List<String[]> datas = new ArrayList<>();
         NodeList nl = resourceInfo.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
@@ -208,7 +208,7 @@ public class MonitorXmlParser {
 
     private static String[] parseResourceNode(Node resource) throws Exception {
         String workerName = resource.getAttributes().getNamedItem("id").getTextContent();
-        logger.debug("Parse ResourceNode " + workerName);
+        LOGGER.debug("Parse ResourceNode " + workerName);
 
         final int maxParams = 11;
         String[] data = new String[maxParams];
@@ -222,7 +222,7 @@ public class MonitorXmlParser {
         NodeList nl = resource.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node field = nl.item(i);
-            logger.debug("Parsing item: " + field.getNodeName());
+            LOGGER.debug("Parsing item: " + field.getNodeName());
             switch (field.getNodeName()) {
                 case "TotalCPUComputingUnits":
                     String content = field.getTextContent();
@@ -276,7 +276,7 @@ public class MonitorXmlParser {
                     // Nothing to do
                     break;
                 default:
-                    logger.error("Unrecognised field on ResourceNode " + field.getNodeName());
+                    LOGGER.error("Unrecognised field on ResourceNode " + field.getNodeName());
             }
         }
         return data;
@@ -317,7 +317,7 @@ public class MonitorXmlParser {
     }
 
     private static List<String[]> parseCoresInfoNode(Node coresInfo) throws Exception {
-        logger.debug("Parsing cores nodes...");
+        LOGGER.debug("Parsing cores nodes...");
         List<String[]> datas = new ArrayList<>();
         NodeList nl = coresInfo.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
@@ -331,7 +331,7 @@ public class MonitorXmlParser {
 
     private static List<String[]> parseCoreNode(Node cores) throws Exception {
         String coreId = cores.getAttributes().getNamedItem("id").getTextContent();
-        logger.debug("  - Parsing coreId " + coreId);
+        LOGGER.debug("  - Parsing coreId " + coreId);
 
         NodeList impls = cores.getChildNodes();
         List<String[]> data = new ArrayList<>();
@@ -347,7 +347,7 @@ public class MonitorXmlParser {
 
     private static String[] parseImplNode(Node impl, String coreId) {
         String implId = impl.getAttributes().getNamedItem("id").getTextContent();
-        logger.debug("     - Parsing implId " + implId);
+        LOGGER.debug("     - Parsing implId " + implId);
 
         final int maxParams = 7;
         String[] data = new String[maxParams];
@@ -391,7 +391,7 @@ public class MonitorXmlParser {
                     // Nothing to do
                     break;
                 default:
-                    logger.error("Unrecognised field on ImplNode " + field.getNodeName());
+                    LOGGER.error("Unrecognised field on ImplNode " + field.getNodeName());
             }
         }
 
@@ -399,7 +399,7 @@ public class MonitorXmlParser {
     }
 
     private static HashMap<String, String> parseStatisticsNode(Node statistics) throws Exception {
-        logger.debug("  - Parsing statistics");
+        LOGGER.debug("  - Parsing statistics");
 
         NodeList statisticValues = statistics.getChildNodes();
         HashMap<String, String> data = new HashMap<>();
@@ -431,7 +431,7 @@ public class MonitorXmlParser {
                     // Nothing to do
                     break;
                 default:
-                    logger.error("Unrecognised field on StatisticNode " + field.getNodeName());
+                    LOGGER.error("Unrecognised field on StatisticNode " + field.getNodeName());
             }
         }
 

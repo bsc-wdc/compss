@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.ui.auth;
 
+import es.bsc.compss.commons.Loggers;
+import es.bsc.compss.ui.Application;
+import es.bsc.compss.ui.Constants;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -24,66 +28,75 @@ import java.io.InputStreamReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.compss.ui.Constants;
-import es.bsc.compss.commons.Loggers;
-import es.bsc.compss.ui.Application;
-
 
 public class UserCredential {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_AUTHENTICATION);
+    private static final String RELATIVE_LOG_LOCATION = File.separator + ".COMPSs" + File.separator;
+
     private String username;
-    private String COMPSs_BASE_LOG;
+    private String compssBaseLog;
     private Application monitoredApp;
     private boolean authenticated = false;
 
-    private static final String RELATIVE_LOG_LOCATION = File.separator + ".COMPSs" + File.separator;
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_AUTHENTICATION);
 
-
+    /**
+     * Creates a new empty user credential.
+     */
     public UserCredential() {
         this.username = "";
-        this.COMPSs_BASE_LOG = "";
+        this.compssBaseLog = "";
         this.monitoredApp = new Application();
     }
 
+    /**
+     * Creates a new user credential for user {@code username}.
+     * 
+     * @param username Username.
+     */
     public UserCredential(String username) {
-        logger.debug("Creating user credentials...");
+        LOGGER.debug("Creating user credentials...");
         if (username != null) {
             if (!username.isEmpty()) {
                 this.username = username;
             } else {
                 loadDefaultOrEnvironmentUser();
-                this.COMPSs_BASE_LOG = "";
+                this.compssBaseLog = "";
                 this.monitoredApp = new Application();
             }
         } else {
             loadDefaultOrEnvironmentUser();
-            this.COMPSs_BASE_LOG = "";
+            this.compssBaseLog = "";
             this.monitoredApp = new Application();
         }
-        logger.info("User credentails loaded: " + this.username);
+        LOGGER.info("User credentails loaded: " + this.username);
     }
 
+    /**
+     * Sets whether the current user has been authenticated or not.
+     * 
+     * @return Whether the current user has been authenticated or not.
+     */
     public boolean setAuthenticated() {
-        logger.debug("Verifying user credentials...");
+        LOGGER.debug("Verifying user credentials...");
         if (this.username.equals(Constants.USER_DEFAULT)) {
             loadDefaultOrEnvironmentLogFolder();
             this.authenticated = true;
-            logger.debug(Constants.USER_DEFAULT + "user credentials loaded");
+            LOGGER.debug(Constants.USER_DEFAULT + "user credentials loaded");
         } else if (this.username.equals(Constants.USER_ENVIRONMENT)) {
             loadDefaultOrEnvironmentLogFolder();
             this.authenticated = true;
-            logger.debug(Constants.USER_ENVIRONMENT + "user credentials loaded");
+            LOGGER.debug(Constants.USER_ENVIRONMENT + "user credentials loaded");
         } else if (this.username.startsWith(File.separator)) {
             // Loading direct folder without user
             if (this.username.endsWith(".COMPSs") || this.username.endsWith(".COMPSs" + File.separator)) {
-                this.COMPSs_BASE_LOG = this.username;
+                this.compssBaseLog = this.username;
             } else {
-                this.COMPSs_BASE_LOG = this.username + RELATIVE_LOG_LOCATION;
+                this.compssBaseLog = this.username + RELATIVE_LOG_LOCATION;
             }
             this.username = Constants.USER_DIRECT_PATH;
             this.authenticated = true;
-            logger.debug("Direct location detected. Path loaded.");
+            LOGGER.debug("Direct location detected. Path loaded.");
         } else {
             // Loading username
             String[] cmd = { File.separator + "bin" + File.separator + "sh", "-c", "echo ~" + username };
@@ -94,29 +107,29 @@ public class UserCredential {
                 if (userHome != null) {
                     if (!userHome.isEmpty()) {
                         if (userHome.startsWith(File.separator)) {
-                            this.COMPSs_BASE_LOG = userHome + RELATIVE_LOG_LOCATION;
+                            this.compssBaseLog = userHome + RELATIVE_LOG_LOCATION;
                             this.authenticated = true;
-                            logger.debug(this.username + "user credentials loaded");
+                            LOGGER.debug(this.username + "user credentials loaded");
                         } else {
-                            logger.error("Defined user " + this.username + "is not available.");
+                            LOGGER.error("Defined user " + this.username + "is not available.");
                             return false;
                         }
                     } else {
-                        logger.error("Defined user " + this.username + "is not available.");
+                        LOGGER.error("Defined user " + this.username + "is not available.");
                         return false;
                     }
                 } else {
-                    logger.error("Defined user " + this.username + "is not available.");
+                    LOGGER.error("Defined user " + this.username + "is not available.");
                     return false;
                 }
             } catch (IOException e) {
                 // The specified user is not available
-                logger.error("Defined user " + this.username + "is not available.");
+                LOGGER.error("Defined user " + this.username + "is not available.");
                 return false;
             }
         }
 
-        logger.info("User credentails loaded: " + this.username + " " + this.COMPSs_BASE_LOG);
+        LOGGER.info("User credentails loaded: " + this.username + " " + this.compssBaseLog);
         return true;
     }
 
@@ -132,12 +145,22 @@ public class UserCredential {
         this.username = username;
     }
 
-    public String getCOMPSs_BASE_LOG() {
-        return this.COMPSs_BASE_LOG;
+    /**
+     * Returns the COMPSs base log directory.
+     * 
+     * @return The COMPSs base log directory.
+     */
+    public String getCompssBaseLog() {
+        return this.compssBaseLog;
     }
 
-    public void setCOMPSs_BASE_LOG(String compss_base_log) {
-        this.COMPSs_BASE_LOG = compss_base_log;
+    /**
+     * Sets a new COMPSs base log directory.
+     * 
+     * @param compssBaseLog The new COMPSs base log directory.
+     */
+    public void setCompssBaseLog(String compssBaseLog) {
+        this.compssBaseLog = compssBaseLog;
     }
 
     public Application getMonitoredApp() {
@@ -150,21 +173,21 @@ public class UserCredential {
 
     private void loadDefaultOrEnvironmentUser() {
         if (System.getenv("COMPSS_MONITOR") == null) {
-            logger.debug("Loading default user");
+            LOGGER.debug("Loading default user");
             this.username = Constants.USER_DEFAULT;
         } else {
-            logger.debug("Loading environment user");
+            LOGGER.debug("Loading environment user");
             this.username = Constants.USER_ENVIRONMENT;
         }
     }
 
     private void loadDefaultOrEnvironmentLogFolder() {
         if (System.getenv("COMPSS_MONITOR") == null) {
-            logger.debug("Loading default user");
-            this.COMPSs_BASE_LOG = System.getProperty("user.home") + RELATIVE_LOG_LOCATION;
+            LOGGER.debug("Loading default user");
+            this.compssBaseLog = System.getProperty("user.home") + RELATIVE_LOG_LOCATION;
         } else {
-            logger.debug("Loading environment user");
-            this.COMPSs_BASE_LOG = System.getenv("COMPSS_MONITOR");
+            LOGGER.debug("Loading environment user");
+            this.compssBaseLog = System.getenv("COMPSS_MONITOR");
         }
     }
 

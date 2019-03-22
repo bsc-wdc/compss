@@ -41,6 +41,13 @@ public class ExecutionInformationTask {
     private ArrayList<Job> jobs;
 
 
+    /**
+     * Creates a new execution information task with the given {@code name} and associated to the given task id
+     * {@code taskId}.
+     * 
+     * @param name Execution information name.
+     * @param taskId Associated task id.
+     */
     public ExecutionInformationTask(String name, String taskId) {
         this.setName(name); // Any
         this.setTaskId(taskId); // Any
@@ -52,6 +59,11 @@ public class ExecutionInformationTask {
         return status;
     }
 
+    /**
+     * Sets a new status {@code status}.
+     * 
+     * @param status New task status.
+     */
     public void setTaskStatus(String status) {
         if (status.equals(Constants.STATUS_TASK_CREATING)) {
             this.status = status;
@@ -100,6 +112,12 @@ public class ExecutionInformationTask {
         return new ListModelList<>(this.jobs);
     }
 
+    /**
+     * Adds a new job to the current task execution information.
+     * 
+     * @param jobId JobId of the associated job.
+     * @param resubmited Whether it is a re-submission job or not.
+     */
     public void addJob(String jobId, boolean resubmited) {
         Job job;
 
@@ -139,6 +157,13 @@ public class ExecutionInformationTask {
         this.jobs.get(this.jobs.size() - 1).setStatus(status);
     }
 
+    /**
+     * Sets the execution host to an associated job of the current execution information task.
+     * 
+     * @param jobId Associated jobId (must have been previously added to the ExecutionInformationTask).
+     * @param resubmited Whether the job was a re-submission or not.
+     * @param host The target host of the job execution.
+     */
     public void setJobHost(String jobId, boolean resubmited, String host) {
         if (resubmited) {
             jobId = jobId + "R";
@@ -162,6 +187,11 @@ public class ExecutionInformationTask {
         private String color;
 
 
+        /**
+         * Creates a new job with id {@code id}.
+         * 
+         * @param id Job id.
+         */
         public Job(String id) {
             this.id = id;
             this.resubmited = false;
@@ -173,6 +203,15 @@ public class ExecutionInformationTask {
             this.arguments = new String("");
         }
 
+        /**
+         * Creates a new job with the given parameters.
+         * 
+         * @param id Job id.
+         * @param resubmited Whether the job was a re-submission or not.
+         * @param host The target execution host.
+         * @param executable The executable command.
+         * @param args The executable arguments.
+         */
         public Job(String id, boolean resubmited, String host, String executable, String args) {
             this.id = id;
             this.resubmited = resubmited;
@@ -215,6 +254,11 @@ public class ExecutionInformationTask {
             return this.status;
         }
 
+        /**
+         * Sets a new job status.
+         * 
+         * @param status New job status.
+         */
         public void setStatus(String status) {
             if (status.equals(Constants.STATUS_TASK_CREATING)) {
                 this.status = status;
@@ -243,6 +287,11 @@ public class ExecutionInformationTask {
             this.color = color;
         }
 
+        /**
+         * Returns the executable command.
+         * 
+         * @return The executable command.
+         */
         public String getExecutable() {
             executable = new String("Not Available");
             if (!Properties.getBasePath().isEmpty()) {
@@ -272,6 +321,11 @@ public class ExecutionInformationTask {
             return executable;
         }
 
+        /**
+         * Returns the arguments of the executable command.
+         * 
+         * @return The arguments of the executable command.
+         */
         public String getArguments() {
             arguments = new String("Not Available");
             if (!Properties.getBasePath().isEmpty()) {
@@ -302,6 +356,11 @@ public class ExecutionInformationTask {
             return arguments;
         }
 
+        /**
+         * Returns the standard output of the job.
+         * 
+         * @return The standard output of the job.
+         */
         public String getOutFileContent() {
             if (!Properties.getBasePath().isEmpty()) {
                 String jobOutPath;
@@ -329,6 +388,11 @@ public class ExecutionInformationTask {
             return new String("");
         }
 
+        /**
+         * Returns the standard error of the job.
+         * 
+         * @return The standard error of the job.
+         */
         public String getErrFileContent() {
             if (!Properties.getBasePath().isEmpty()) {
                 String jobErrPath;

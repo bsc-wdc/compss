@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+import es.bsc.compss.monitoringparsers.ResourcesLogParser;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -27,33 +30,37 @@ import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.zk.ui.util.Clients;
 
-import es.bsc.compss.commons.Loggers;
-
-import monitoringparsers.ResourcesLogParser;
-
 
 public class LoadChartViewModel {
 
-    private String divUUID; // ZUL div UUID's
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_VM_LOAD_CHART);
+    private static final int TIMEOUT = 3_000; // ms - for internet connection check
+
+    private String divUuid; // ZUL div UUID's
     private String chartType;
-
-    private boolean noConnection_drawn;
-    private boolean chart_drawn;
-    private final int TIMEOUT = 3000; // ms - for internet connection check
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_LOAD_CHART);
+    private boolean drawnNoConnection;
+    private boolean dranChart;
 
 
+    /**
+     * Initializes the load chart view model.
+     */
     @Init
     public void init() {
-        this.divUUID = new String("");
+        this.divUuid = new String("");
         this.chartType = new String(Constants.TOTAL_LOAD_CHART);
-        this.noConnection_drawn = false;
-        this.chart_drawn = false;
+        this.drawnNoConnection = false;
+        this.dranChart = false;
     }
 
+    /**
+     * Sets the zul UUID for the chart plot.
+     * 
+     * @param divuuid New zul UUID.
+     */
     @Command
-    public void setDivUUID(@BindingParam("divuuid") String divuuid) {
-        this.divUUID = divuuid;
+    public void setDivUuid(@BindingParam("divuuid") String divuuid) {
+        this.divUuid = divuuid;
     }
 
     public String getChartType() {
@@ -65,14 +72,20 @@ public class LoadChartViewModel {
         draw();
     }
 
+    /**
+     * Updates the load chart view model.
+     */
     @Command
     public void update() {
-        logger.debug("Updating Load Chart View Model...");
+        LOGGER.debug("Updating Load Chart View Model...");
         ResourcesLogParser.parse();
         draw();
-        logger.debug("Load Chart View Model updated");
+        LOGGER.debug("Load Chart View Model updated");
     }
 
+    /**
+     * Clears the load chart view model.
+     */
     @Command
     public void clear() {
         this.chartType = Constants.TOTAL_LOAD_CHART;
@@ -81,61 +94,61 @@ public class LoadChartViewModel {
     }
 
     private void draw() {
-        if (!this.divUUID.equals("")) {
+        if (!this.divUuid.equals("")) {
             // Check internet connection
             if (testInet()) {
-                logger.debug("Internet connection available. Generating google-chart");
-                if (noConnection_drawn) {
+                LOGGER.debug("Internet connection available. Generating google-chart");
+                if (drawnNoConnection) {
                     // In some moment we didn't had connection. Erase warning
-                    Clients.evalJavaScript("eraseNoConnection('" + this.divUUID + "');");
-                    noConnection_drawn = false;
+                    Clients.evalJavaScript("eraseNoConnection('" + this.divUuid + "');");
+                    drawnNoConnection = false;
                 }
-                chart_drawn = true;
+                dranChart = true;
                 if (this.chartType.equals(Constants.TOTAL_LOAD_CHART)) {
                     Clients.evalJavaScript(
-                            "drawTotalLoadChart('" + this.divUUID + "'," + ResourcesLogParser.getTotalLoad() + ");");
+                            "drawTotalLoadChart('" + this.divUuid + "'," + ResourcesLogParser.getTotalLoad() + ");");
                 } else if (this.chartType.equals(Constants.LOAD_PER_CORE_CHART)) {
-                    Clients.evalJavaScript("drawLoadPerCoreChart('" + this.divUUID + "',"
+                    Clients.evalJavaScript("drawLoadPerCoreChart('" + this.divUuid + "',"
                             + ResourcesLogParser.getLoadPerCore() + ");");
                 } else if (this.chartType.equals(Constants.TOTAL_RUNNING_CHART)) {
-                    Clients.evalJavaScript("drawTotalCores('" + this.divUUID + "',"
+                    Clients.evalJavaScript("drawTotalCores('" + this.divUuid + "',"
                             + ResourcesLogParser.getTotalRunningCores() + ");");
                 } else if (this.chartType.equals(Constants.RUNNING_PER_CORE_CHART)) {
-                    Clients.evalJavaScript("drawCoresPerCoreChart('" + this.divUUID + "',"
+                    Clients.evalJavaScript("drawCoresPerCoreChart('" + this.divUuid + "',"
                             + ResourcesLogParser.getRunningCoresPerCore() + ");");
                 } else if (this.chartType.equals(Constants.TOTAL_PENDING_CHART)) {
-                    Clients.evalJavaScript("drawTotalCores('" + this.divUUID + "',"
+                    Clients.evalJavaScript("drawTotalCores('" + this.divUuid + "',"
                             + ResourcesLogParser.getTotalPendingCores() + ");");
                 } else if (this.chartType.equals(Constants.PENDING_PER_CORE_CHART)) {
-                    Clients.evalJavaScript("drawCoresPerCoreChart('" + this.divUUID + "',"
+                    Clients.evalJavaScript("drawCoresPerCoreChart('" + this.divUuid + "',"
                             + ResourcesLogParser.getPendingCoresPerCore() + ");");
                 } else if (this.chartType.equals(Constants.RESOURCES_STATUS_CHART)) {
-                    Clients.evalJavaScript("drawTotalResourcesStatusChart('" + this.divUUID + "',"
+                    Clients.evalJavaScript("drawTotalResourcesStatusChart('" + this.divUuid + "',"
                             + ResourcesLogParser.getResourcesStatus() + ");");
                 } else {
-                    logger.warn("WARNING: Invalid chart type. Rendering empty graph");
-                    Clients.evalJavaScript("drawEmpty('" + this.divUUID + "');");
+                    LOGGER.warn("WARNING: Invalid chart type. Rendering empty graph");
+                    Clients.evalJavaScript("drawEmpty('" + this.divUuid + "');");
                 }
             } else {
-                logger.info("No internet connection. Rendering warning image");
-                if (chart_drawn) {
+                LOGGER.info("No internet connection. Rendering warning image");
+                if (dranChart) {
                     // In some moment we had connection. Erase chart
-                    Clients.evalJavaScript("eraseChart('" + this.divUUID + "');");
-                    chart_drawn = false;
+                    Clients.evalJavaScript("eraseChart('" + this.divUuid + "');");
+                    dranChart = false;
                 }
 
                 // If last step we already didn't had connection, we do nothing. Otherwise we paint the
                 // "unable to connect" image
-                if (!noConnection_drawn) {
+                if (!drawnNoConnection) {
                     Clients.evalJavaScript(
-                            "drawNoConnection('" + this.divUUID + "','" + Constants.NO_CONNECTION_IMG_PATH + "');");
-                    noConnection_drawn = true;
+                            "drawNoConnection('" + this.divUuid + "','" + Constants.NO_CONNECTION_IMG_PATH + "');");
+                    drawnNoConnection = true;
                 }
             }
         } else {
-            logger.debug("DivUUID not found. Cannot render chart.");
-            noConnection_drawn = false;
-            chart_drawn = false;
+            LOGGER.debug("DivUUID not found. Cannot render chart.");
+            drawnNoConnection = false;
+            dranChart = false;
         }
     }
 
@@ -151,7 +164,7 @@ public class LoadChartViewModel {
             try {
                 sock.close();
             } catch (IOException e) {
-                logger.warn("WARNING: Cannot close Inet connection");
+                LOGGER.warn("WARNING: Cannot close Inet connection");
             }
         }
     }

@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -27,45 +29,48 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.Filedownload;
 
-import es.bsc.compss.commons.Loggers;
-
 
 public class CurrentGraphViewModel {
 
     private String graph;
     private String graphLastUpdateTime;
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_GRAPH);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_VM_GRAPH);
 
 
     @Init
     public void init() {
-        graph = new String();
-        graphLastUpdateTime = new String();
+        this.graph = new String();
+        this.graphLastUpdateTime = new String();
     }
 
     public String getGraph() {
         return this.graph;
     }
 
+    /**
+     * Downloads the displayed current graph.
+     */
     @Command
     public void download() {
         try {
-            if ((graph.equals(Constants.GRAPH_NOT_FOUND_PATH)) || (graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
-                    || (graph.equals(Constants.UNSELECTED_GRAPH_PATH)) || (graph.equals(Constants.EMPTY_GRAPH_PATH))) {
-                Filedownload.save(graph, null);
+            if ((this.graph.equals(Constants.GRAPH_NOT_FOUND_PATH))
+                    || (this.graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
+                    || (this.graph.equals(Constants.UNSELECTED_GRAPH_PATH))
+                    || (this.graph.equals(Constants.EMPTY_GRAPH_PATH))) {
+                Filedownload.save(this.graph, null);
             } else {
-                Filedownload.save(graph.substring(0, graph.lastIndexOf("?")), null);
+                Filedownload.save(this.graph.substring(0, this.graph.lastIndexOf("?")), null);
             }
         } catch (Exception e) {
             // Cannot download file. Nothing to do
-            logger.error("Cannot download current graph");
+            LOGGER.error("Cannot download current graph");
         }
     }
 
     @Command
     @NotifyChange("graph")
     void update(Application monitoredApp) {
-        logger.debug("Updating Graph...");
+        LOGGER.debug("Updating Graph...");
         String monitorLocation = monitoredApp.getPath() + Constants.MONITOR_CURRENT_DOT_FILE;
 
         File monitorFile = new File(monitorLocation);
@@ -73,44 +78,44 @@ public class CurrentGraphViewModel {
             if (monitorFile.length() > 45) {
                 SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                 String modifiedTime = sdf.format(monitorFile.lastModified());
-                if (!modifiedTime.equals(graphLastUpdateTime)) {
+                if (!modifiedTime.equals(this.graphLastUpdateTime)) {
                     try {
                         String graphSVG = File.separator + "svg" + File.separator + monitoredApp.getName() + "_"
                                 + Constants.GRAPH_FILE_NAME;
-                        graph = loadGraph(monitorLocation, graphSVG);
-                        graphLastUpdateTime = modifiedTime;
+                        this.graph = loadGraph(monitorLocation, graphSVG);
+                        this.graphLastUpdateTime = modifiedTime;
                     } catch (Exception e) {
-                        graph = Constants.GRAPH_NOT_FOUND_PATH;
-                        graphLastUpdateTime = "";
-                        logger.error("Graph generation error");
+                        this.graph = Constants.GRAPH_NOT_FOUND_PATH;
+                        this.graphLastUpdateTime = "";
+                        LOGGER.error("Graph generation error");
                     }
                 } else {
-                    logger.debug("Graph is already loaded");
+                    LOGGER.debug("Graph is already loaded");
                 }
             } else {
                 // The empty graph has length = 45
-                graph = Constants.GRAPH_EXECUTION_DONE_PATH;
-                graphLastUpdateTime = "";
+                this.graph = Constants.GRAPH_EXECUTION_DONE_PATH;
+                this.graphLastUpdateTime = "";
             }
         } else {
-            graph = Constants.GRAPH_NOT_FOUND_PATH;
-            graphLastUpdateTime = "";
-            logger.debug("Graph file not found");
+            this.graph = Constants.GRAPH_NOT_FOUND_PATH;
+            this.graphLastUpdateTime = "";
+            LOGGER.debug("Graph file not found");
         }
     }
 
     @Command
     @NotifyChange("graph")
     public void clear() {
-        graph = Constants.UNSELECTED_GRAPH_PATH;
-        graphLastUpdateTime = "";
+        this.graph = Constants.UNSELECTED_GRAPH_PATH;
+        this.graphLastUpdateTime = "";
     }
 
     private String loadGraph(String location, String target) throws IOException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Loading Graph...");
-            logger.debug("   - Monitoring source: " + location);
-            logger.debug("   - Monitoring target: " + target);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Loading Graph...");
+            LOGGER.debug("   - Monitoring source: " + location);
+            LOGGER.debug("   - Monitoring target: " + target);
         }
         // Create SVG
         String[] createSVG = { "/bin/sh", "-c", "dot -T svg " + location + " > " + System.getProperty("catalina.base")
@@ -142,7 +147,7 @@ public class CurrentGraphViewModel {
         // p3.waitFor();
 
         // Load graph image
-        logger.debug("Graph loaded");
+        LOGGER.debug("Graph loaded");
         return target + "?t=" + System.currentTimeMillis();
     }
 

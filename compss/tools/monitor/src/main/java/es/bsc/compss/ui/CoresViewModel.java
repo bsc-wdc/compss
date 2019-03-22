@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,30 +29,33 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.ListModelList;
 
-import es.bsc.compss.commons.Loggers;
-
 
 public class CoresViewModel {
 
     private List<Core> cores;
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_TASKS);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_VM_TASKS);
 
 
     @Init
     public void init() {
-        cores = new LinkedList<>();
+        this.cores = new LinkedList<>();
     }
 
     public List<Core> getCores() {
         return new ListModelList<Core>(this.cores);
     }
 
+    /**
+     * Updates the cores view model.
+     * 
+     * @param newCoreData New parsed data from the monitoring parsers.
+     */
     @Command
     @NotifyChange("cores")
     public void update(List<String[]> newCoreData) {
-        logger.debug("Updating Tasks ViewModel...");
+        LOGGER.debug("Updating Tasks ViewModel...");
         // Erase all current resources
-        cores.clear();
+        this.cores.clear();
 
         // Import new resources
         for (String[] dc : newCoreData) {
@@ -58,13 +63,13 @@ public class CoresViewModel {
              * Each entry on the newCoreData array is of the form: coreId, implId, signature, meanET, minET, maxET,
              * execCount
              */
-            if (logger.isDebugEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("   - CoreElement: ");
                 for (String elem : dc) {
                     sb.append(elem).append(" ");
                 }
-                logger.debug(sb.toString());
+                LOGGER.debug(sb.toString());
             }
 
             // Check color
@@ -74,15 +79,15 @@ public class CoresViewModel {
 
             // color, dc
             Core c = new Core(color, dc);
-            cores.add(c);
+            this.cores.add(c);
         }
-        logger.debug("Tasks ViewModel updated");
+        LOGGER.debug("Tasks ViewModel updated");
     }
 
     @Command
     @NotifyChange("cores")
     public void clear() {
-        cores.clear();
+        this.cores.clear();
     }
 
 }

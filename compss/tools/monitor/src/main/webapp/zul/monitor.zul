@@ -161,7 +161,7 @@
 	                            <listitem label="Pending CoreElements per CoreElement" value="pendingPerCoreChart" />
 	                            <!-- TODO <listitem label="Total CPU/Memory load" value="totalResourcesStatusChart" /> -->
 	                    	</listbox>
-	                    	<timer delay="0" onTimer="@command('setDivUUID', divuuid=chartDIV.uuid)" />
+	                    	<timer delay="0" onTimer="@command('setDivUuid', divuuid=chartDIV.uuid)" />
 	                    </hbox>
 			         </tabpanel>
 			         

@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.ui;
 
+import es.bsc.compss.commons.Loggers;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,30 +28,34 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.ListModelList;
 
-import es.bsc.compss.commons.Loggers;
-
 
 public class ResourcesViewModel {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.UI_VM_RESOURCES);
+
     private List<Resource> resources;
-    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_RESOURCES);
 
 
     @Init
     public void init() {
-        resources = new LinkedList<>();
+        this.resources = new LinkedList<>();
     }
 
     public List<Resource> getResources() {
         return new ListModelList<Resource>(this.resources);
     }
 
+    /**
+     * Updates the resources view model with the new parsed data {@code newResourcesData}.
+     * 
+     * @param newResourcesData New data parsed by the monitoring parsers.
+     */
     @Command
     @NotifyChange("resources")
     public void update(List<String[]> newResourcesData) {
-        logger.debug("Updating Resources ViewModel...");
+        LOGGER.debug("Updating Resources ViewModel...");
         // Erase all current resources
-        resources.clear();
+        this.resources.clear();
 
         // Import new resources
         for (String[] dr : newResourcesData) {
@@ -89,15 +95,15 @@ public class ResourcesViewModel {
             }
 
             Resource r = new Resource(dr);
-            resources.add(r);
+            this.resources.add(r);
         }
-        logger.debug("Resources ViewModel updated");
+        LOGGER.debug("Resources ViewModel updated");
     }
 
     @Command
     @NotifyChange("resources")
     public void clear() {
-        resources.clear();
+        this.resources.clear();
     }
 
 }

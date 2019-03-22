@@ -128,6 +128,16 @@
     echo "[ERROR] Incorrect cn/cus for noWorkerInMaster task" | tee -a "${output_file}"
     exit 1
   fi
+
+  # Job 9 -> cn=1, cus=2
+  expected_cn=1
+  expected_cus=2
+  cn=$(grep -c "Slave hostname" "${target_log_folder}"/jobs/job9_NEW.out)
+  cus=$(grep "Slave hostname" "${target_log_folder}"/jobs/job9_NEW.out | awk '{ print $(NF-1) }')
+  if [ "${cn}" -ne "${expected_cn}" ] || [ "${cus}" -ne "${expected_cus}" ]; then
+    echo "[ERROR] Incorrect cn/cus for base_log_dir task" | tee -a "${output_file}"
+    exit 1
+  fi
   
   # Check that job2 has correctly setup the working dir
   wd=$(grep "WORKING_DIR" "${target_log_folder}"/jobs/job2_NEW.out | tr "," "\\t" | tr "]" "\\t" | awk '{ print $NF }')
@@ -140,6 +150,12 @@
   # Check that flags are correctly setup
   if ! grep -q "FLAGS=-d" "${target_log_folder}"/jobs/job3_NEW.out; then
     echo "[ERROR] Flags are not correctly setup" | tee -a "${output_file}"
+    exit 1
+  fi
+  
+  # Check that job9 has correctly captured base_log_dir
+  if ! grep "\\-\\-specific_log_dir" "${target_log_folder}"/jobs/job9_NEW.out | awk '{ print $8 }'; then
+    echo "[ERROR] Base log dir is not captured properly" | tee -a "${output_file}"
     exit 1
   fi
   

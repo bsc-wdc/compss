@@ -30,4 +30,8 @@ public class NESTED {
         return -1;
     }
 
+    public static Integer taskBaseLogDir(int counter) {
+        return -1;
+    }
+
 }

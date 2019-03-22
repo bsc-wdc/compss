@@ -14,7 +14,7 @@ public interface MainItf {
         @Parameter() int counter
     );
 
-    @COMPSs(runcompss = "$RUNCOMPSS", appName = "compssSimple.Simple", workingDir = "$TEST_WD", computingNodes = "1")
+    @COMPSs(runcompss = "$RUNCOMPSS", appName = "compssSimple.Simple", workingDir = "$TEST_WORKING_DIR", computingNodes = "1")
     @Constraints(computingUnits = "4")
     int taskSingleNodeComplete(
         @Parameter() int counter
@@ -47,6 +47,12 @@ public interface MainItf {
     @COMPSs(runcompss = "$RUNCOMPSS", appName = "compssSimple.Simple", workerInMaster=Constants.WORKER_NOT_IN_MASTER, computingNodes = "2")
     @Constraints(computingUnits = "4")
     Integer taskNoWorkerInMasterNoFit(
+        @Parameter() int counter
+    );
+    
+    @COMPSs(runcompss = "$RUNCOMPSS", flags="--base_log_dir=${TEST_LOG_DIR}", appName = "compssSimple.Simple", computingNodes = "1")
+    @Constraints(computingUnits = "2")
+    Integer taskBaseLogDir(
         @Parameter() int counter
     );
 

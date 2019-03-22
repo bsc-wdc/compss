@@ -203,6 +203,14 @@ def _argument_parser():
                                type=str,
                                nargs='+',
                                help='Job identifier')
+    # Information
+    parser_template = subparsers.add_parser('template',
+                                            help='Shows an example of the requested template.',
+                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_template.add_argument(dest='template',
+                                 type=str,
+                                 choices=['project', 'credential'],
+                                 help='Template file.')
 
     # Check if the user does not include any argument
     if len(sys.argv) < 2:
@@ -254,6 +262,22 @@ def _argument_checks(arguments):
     :param arguments: Parsed arguments
     :return: Updated arguments.
     """
+    # Check if user wants a template
+    if arguments.action == 'template':
+        path, _ = os.path.split(os.path.abspath(__file__))
+        base_path = os.path.join(path, '..')
+        if arguments.template == 'project':
+            # Display project template.
+            project_path = os.path.join(base_path, 'project.example')
+            with open(project_path, 'r') as f:
+                print(f.read())
+        if arguments.template == 'credential':
+            # Display credential template.
+            credential_path = os.path.join(base_path, 'credential.example')
+            with open(credential_path, 'r') as f:
+                print(f.read())
+        exit(0)
+
     # Load job and credential files, and check which ones to keep (flags override their content)
     # Also perform the necessary checks to the arguments
     args = vars(arguments)  # This gives the namespace as dict for direct access.

@@ -1,0 +1,17 @@
+###################
+# My project file #
+###################
+
+# Job parameters
+exec_time=10
+job_name=my_job
+num_nodes=1
+qos=debug
+log_level=off
+tracing=False
+classpath=.
+pythonpath=.
+
+storage=None
+# storage_home=TBD
+# storage_props=TBD

@@ -34,6 +34,7 @@ LOG_LEVEL_DEBUG = 'debug'
 LOG_LEVEL_INFO = 'info'
 LOG_LEVEL_OFF = 'off'
 DEFAULT_VERBOSE = False
+DEFAULT_CONNECTIVITY_CHECK = True
 
 DEFAULT_USER_NAME = str(getpass.getuser())
 
@@ -68,6 +69,7 @@ DEFAULT_SSHPASS = 'sshpass -e ' + DEFAULT_SSH
 # --------------------------------------------------
 WARNING_USER_NAME_NOT_PROVIDED = "Username not provided. Using: " + DEFAULT_USER_NAME
 WARNING_NOTEBOOK_NOT_RUNNING = "The notebook is not running!"
+WARNING_NO_BROWSER = "Unexpected no_web_broser value found.\nPlease use True or False. Now using False."
 
 # --------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -86,4 +88,5 @@ ERROR_INFO_JOB = "Could not get the information of the job."
 ERROR_STORAGE_PROPS = "--storage_props flag not defined."
 ERROR_UNSUPPORTED_STORAGE_SHORTCUT = "Non supported external storage shortcut."
 ERROR_BROWSER = "Could not open the browser. Please check that you have defined properly the browser to use."
+ERROR_NO_BROWSER = "Wrong no_web_browser flag type!"
 ERROR_CANCELLING_JOB = "Could not cancel the job. Please, cancel it manually."

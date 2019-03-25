@@ -24,6 +24,7 @@ from pycompss_interactive_sc.defaults import LOG_LEVEL_DEBUG
 from pycompss_interactive_sc.defaults import LOG_LEVEL_INFO
 from pycompss_interactive_sc.defaults import LOG_LEVEL_OFF
 from pycompss_interactive_sc.defaults import DEFAULT_VERBOSE
+from pycompss_interactive_sc.defaults import DEFAULT_CONNECTIVITY_CHECK
 
 from pycompss_interactive_sc.defaults import DEFAULT_PROJECT
 from pycompss_interactive_sc.defaults import DEFAULT_CREDENTIALS
@@ -33,6 +34,7 @@ from pycompss_interactive_sc.defaults import DEFAULT_SSHPASS
 
 from pycompss_interactive_sc.defaults import WARNING_USER_NAME_NOT_PROVIDED
 from pycompss_interactive_sc.defaults import WARNING_NOTEBOOK_NOT_RUNNING
+from pycompss_interactive_sc.defaults import WARNING_NO_BROWSER
 
 from pycompss_interactive_sc.defaults import ERROR_UNEXPECTED_PARAMETER
 from pycompss_interactive_sc.defaults import ERROR_UNRECOGNIZED_ACTION
@@ -44,6 +46,7 @@ from pycompss_interactive_sc.defaults import ERROR_INFO_JOB
 from pycompss_interactive_sc.defaults import ERROR_STORAGE_PROPS
 from pycompss_interactive_sc.defaults import ERROR_UNSUPPORTED_STORAGE_SHORTCUT
 from pycompss_interactive_sc.defaults import ERROR_BROWSER
+from pycompss_interactive_sc.defaults import ERROR_NO_BROWSER
 from pycompss_interactive_sc.defaults import ERROR_CANCELLING_JOB
 
 
@@ -91,6 +94,11 @@ def _argument_parser():
                                type=str,
                                default=DEFAULT_CREDENTIALS['port_forward'],
                                help='Port to establish the port forwarding')
+    parent_parser.add_argument('-dcc', '--disable_connectivity_check',
+                               action='store_false',
+                               dest='connectivity_check',
+                               default=DEFAULT_CONNECTIVITY_CHECK,
+                               help='Do not perform connectivity checks.')
     parent_parser.add_argument('-v', '--verbose',
                                action='store_true',
                                dest='verbose',
@@ -646,7 +654,20 @@ def _connect_job(user_name, supercomputer, scripts_path, arguments):
         print("Port forwarding ready.")
 
     # Fourth, check if using the specified web browser or simply show the url
-    if arguments.no_web_browser:
+    if type(arguments.no_web_browser) is str:
+        # It can be a str if overridden in the credential file
+        if arguments.no_web_browser == 'True':
+            no_web_browser = True
+        elif arguments.no_web_browser == 'False':
+            no_web_browser = False
+        else:
+            display_warning(WARNING_NO_BROWSER)
+            no_web_browser = False
+    elif type(arguments.no_web_browser) is bool:
+        no_web_browser = arguments.no_web_browser
+    else:
+        display_error(ERROR_NO_BROWSER)
+    if no_web_browser:
         if VERBOSE:
             print("Disabled web browser opening")
         print("Connection established. Please use the following URL to connect to the job.")
@@ -750,8 +771,9 @@ def main():
     supercomputer = arguments.supercomputer
     VERBOSE = arguments.verbose
 
-    # Check connectivity
-    _check_connectivity(user_name, supercomputer)
+    if arguments.connectivity_check:
+        # Check connectivity - default=True
+        _check_connectivity(user_name, supercomputer)
 
     # Check remote COMPSs
     compss_path = _check_remote_compss(user_name, supercomputer)

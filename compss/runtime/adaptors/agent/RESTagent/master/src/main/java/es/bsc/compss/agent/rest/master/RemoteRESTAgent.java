@@ -331,12 +331,12 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        // Do nothing its managed internally by the remote agent
     }
 
     @Override
     public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        // Do nothing its managed internally by the remote agent
     }
     
 }

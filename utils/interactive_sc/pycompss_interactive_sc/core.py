@@ -290,7 +290,7 @@ def _argument_checks(arguments):
     # Check if user wants a template
     if arguments.action == 'template':
         path, _ = os.path.split(os.path.abspath(__file__))
-        base_path = os.path.join(path, '..')
+        base_path = os.path.join(path, '..', 'templates')
         if arguments.template == 'project':
             # Display project template.
             project_path = os.path.join(base_path, 'project.example')

@@ -16,6 +16,7 @@ setuptools.setup(
     # Build
     # packages=setuptools.find_packages(),
     packages=['pycompss_interactive_sc'],
+    package_data={'': ['../templates/project.example', '../templates/credential.example']},
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Environment :: Console',
                  'Intended Audience :: Developers',
@@ -32,10 +33,8 @@ setuptools.setup(
                  'Topic :: Software Development',
                  'Topic :: Scientific/Engineering',
                  'Topic :: System :: Distributed Computing',
-                 'Topic :: Utilities'
-    ],
-    install_requires=[
-    ],
+                 'Topic :: Utilities'],
+    install_requires=[],
 
     # Executable
     entry_points={

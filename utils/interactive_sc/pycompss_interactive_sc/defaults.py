@@ -1,3 +1,4 @@
+import os
 import getpass
 
 # --------------------------------------------------
@@ -54,6 +55,7 @@ DEFAULT_PROJECT = {'exec_time': '5',  # 5 minute
 DEFAULT_CREDENTIALS = {'user_name': DEFAULT_USER_NAME,
                        'password': False,
                        'supercomputer': 'mn2.bsc.es',
+                       'session': DISABLED_VALUE,
                        'port_forward': '3333',
                        'web_browser': 'firefox',
                        'no_web_browser': False}
@@ -63,6 +65,7 @@ DEFAULT_CREDENTIALS = {'user_name': DEFAULT_USER_NAME,
 # --------------------------------------------------
 DEFAULT_SSH = 'ssh'  # When password provided, use sshpass -e before ssh
 DEFAULT_SSHPASS = 'sshpass -e ' + DEFAULT_SSH
+DEFAULT_SSH_WINDOWS = 'plink -batch'
 
 # --------------------------------------------------
 # WARNING CONSTANTS DECLARATION
@@ -76,6 +79,7 @@ WARNING_NO_BROWSER = "Unexpected no_web_broser value found.\nPlease use True or 
 # --------------------------------------------------
 ERROR_UNEXPECTED_PARAMETER = "Unexpected parameter in project file: "
 ERROR_UNRECOGNIZED_ACTION = "Unrecognized action: "
+ERROR_SESSION_NOT_PROVIDED = "Session not provided. Please provide one to connect."
 ERROR_CONNECTING = "Could not connect to the supercomputer.\n" \
                    "Please check the connectivity, user name and password."
 ERROR_COMPSS_NOT_DEFINED = "COMPSs is not available in the supercomputer.\n" \
@@ -84,9 +88,17 @@ ERROR_SUBMITTING_JOB = "Could not submit the job to the supercomputer.\n" \
                        "Please check that you are able to submit jobs to the supercomputer."
 ERROR_STATUS_JOB = "Could not check the status of the job."
 ERROR_INFO_JOB = "Could not get the information of the job."
-
 ERROR_STORAGE_PROPS = "--storage_props flag not defined."
 ERROR_UNSUPPORTED_STORAGE_SHORTCUT = "Non supported external storage shortcut."
 ERROR_BROWSER = "Could not open the browser. Please check that you have defined properly the browser to use."
 ERROR_NO_BROWSER = "Wrong no_web_browser flag type!"
 ERROR_CANCELLING_JOB = "Could not cancel the job. Please, cancel it manually."
+
+
+# --------------------------------------------------
+# FUNCTIONS
+# --------------------------------------------------
+
+def is_windows():
+    """ Checks if running in windows """
+    return os.name == 'nt'

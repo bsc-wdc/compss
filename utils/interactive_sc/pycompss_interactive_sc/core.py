@@ -31,6 +31,7 @@ from pycompss_interactive_sc.defaults import DEFAULT_CREDENTIALS
 
 from pycompss_interactive_sc.defaults import DEFAULT_SSH
 from pycompss_interactive_sc.defaults import DEFAULT_SSHPASS
+from pycompss_interactive_sc.defaults import DEFAULT_SSH_WINDOWS
 
 from pycompss_interactive_sc.defaults import WARNING_USER_NAME_NOT_PROVIDED
 from pycompss_interactive_sc.defaults import WARNING_NOTEBOOK_NOT_RUNNING
@@ -38,6 +39,7 @@ from pycompss_interactive_sc.defaults import WARNING_NO_BROWSER
 
 from pycompss_interactive_sc.defaults import ERROR_UNEXPECTED_PARAMETER
 from pycompss_interactive_sc.defaults import ERROR_UNRECOGNIZED_ACTION
+from pycompss_interactive_sc.defaults import ERROR_SESSION_NOT_PROVIDED
 from pycompss_interactive_sc.defaults import ERROR_CONNECTING
 from pycompss_interactive_sc.defaults import ERROR_COMPSS_NOT_DEFINED
 from pycompss_interactive_sc.defaults import ERROR_SUBMITTING_JOB
@@ -49,11 +51,16 @@ from pycompss_interactive_sc.defaults import ERROR_BROWSER
 from pycompss_interactive_sc.defaults import ERROR_NO_BROWSER
 from pycompss_interactive_sc.defaults import ERROR_CANCELLING_JOB
 
+from pycompss_interactive_sc.defaults import is_windows
+
 
 # Globals
 SSH = DEFAULT_SSH
 ALIVE_PROCESSES = []  # Needed for proper cleanup
 VERBOSE = False
+USER_NAME = None
+SUPERCOMPUTER = None
+SESSION = None
 
 
 def _argument_parser():
@@ -89,6 +96,11 @@ def _argument_parser():
                                type=str,
                                default=DEFAULT_CREDENTIALS['supercomputer'],
                                help='Supercomputer to connect')
+    parent_parser.add_argument('-s', '--session',
+                               dest='session',
+                               type=str,
+                               default=DEFAULT_CREDENTIALS['session'],
+                               help='Session to use to connect')
     parent_parser.add_argument('-pf', '--port_forward',
                                dest='port_forward',
                                type=str,
@@ -156,17 +168,17 @@ def _argument_parser():
                                type=str,
                                default=DEFAULT_PROJECT['pythonpath'],
                                help='Additional folders or paths to add to the PYTHONPATH')
-    parser_submit.add_argument('-sh', '--storage_home',
+    parser_submit.add_argument('-sth', '--storage_home',
                                dest='storage_home',
                                type=str,
                                default=DEFAULT_PROJECT['storage_home'],
                                help='Absolute path at supercomputer of the storage implementation')
-    parser_submit.add_argument('-sp', '--storage_props',
+    parser_submit.add_argument('-stp', '--storage_props',
                                dest='storage_props',
                                type=str,
                                default=DEFAULT_PROJECT['storage_props'],
                                help='Absolute path at supercomputer of the storage properties file')
-    parser_submit.add_argument('-s', '--storage',
+    parser_submit.add_argument('-st', '--storage',
                                dest='storage',
                                type=str,
                                default=DEFAULT_PROJECT['storage'],
@@ -353,16 +365,24 @@ def _generic_argument_checks(arguments):
     :param arguments: Command line arguments parsed
     :return: None
     """
-    # Check if the user has defined the user name
-    if arguments.user_name == DEFAULT_CREDENTIALS['user_name']:
-        display_warning(WARNING_USER_NAME_NOT_PROVIDED)
-
-    # Check if the password has to be introduced manually
     global SSH
-    if arguments.password:
-        password = getpass.getpass(prompt='Password:')
-        os.environ['SSHPASS'] = password
-        SSH = DEFAULT_SSHPASS
+    if is_windows():
+        # Check that the user has provided a session since it is mandatory.
+        if arguments.session == DEFAULT_CREDENTIALS['session']:
+            display_error(ERROR_SESSION_NOT_PROVIDED)
+
+        # Set the default SSH with DEFAULT_SSH_WINDOWS
+        SSH = DEFAULT_SSH_WINDOWS
+    else:
+        # Check if the user has defined the user name
+        if arguments.user_name == DEFAULT_CREDENTIALS['user_name']:
+            display_warning(WARNING_USER_NAME_NOT_PROVIDED)
+
+        # Check if the password has to be introduced manually
+        if arguments.password:
+            password = getpass.getpass(prompt='Password:')
+            os.environ['SSHPASS'] = password
+            SSH = DEFAULT_SSHPASS
 
 
 def signal_handler(sig, frame):
@@ -377,7 +397,7 @@ def signal_handler(sig, frame):
         print("\n* Quit!!!")
     if ALIVE_PROCESSES:
         if VERBOSE:
-            print("\t - Killing all alive processes...")
+            print(" - Killing all alive processes...")
         for p in ALIVE_PROCESSES:
             p.kill()
     # # Cancel # Not cancelling here... wait for the user to cancel it explicitly.
@@ -423,39 +443,38 @@ def display_warning(message):
     print("WARNING: " + message)
 
 
-def _check_connectivity(user_name, supercomputer):
+def _check_connectivity():
     """
     Check the connectivity with the supercomputer.
-    :param user_name: User name
-    :param supercomputer: Supercomputer to check
     :return: None
     """
     if VERBOSE:
-        print("Checking connectivity with " + supercomputer)
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         '-o', 'PasswordAuthentication=no',
-                         '-o', 'BatchMode=yes',
-                         'exit']
+        print("Checking connectivity...")
+
+    if is_windows():
+        cmd = ['exit']
+    else:
+        cmd = ['-o', 'PasswordAuthentication=no',
+               '-o', 'BatchMode=yes',
+               'exit']
     return_code, stdout, stderr = _command_runner(cmd)
+
     if return_code != 0:
         display_error(ERROR_CONNECTING, return_code, stdout, stderr)
     if VERBOSE:
         print("Connectivity - OK")
 
 
-def _check_remote_compss(user_name, supercomputer):
+def _check_remote_compss():
     """
     Check if COMPSs is available in the remote supercomputer and retrieve the
     its installation path.
     This path is used to infer the submit_jupyter_job.sh path.
-    :param user_name: User name
-    :param supercomputer: Supercomputer to check
     :return: Remote COMPSs installation path.
     """
     if VERBOSE:
         print("Checking remote COMPSs installation...")
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         'which', 'enqueue_compss']
+    cmd = ['which', 'enqueue_compss']
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:
         display_error(ERROR_CONNECTING, return_code, stdout, stderr)
@@ -463,7 +482,7 @@ def _check_remote_compss(user_name, supercomputer):
         display_error(ERROR_COMPSS_NOT_DEFINED)
     user_scripts_path = os.path.dirname(stdout.strip())
     # Remove the last 3 folders: Runtime/scripts/user to get the real path
-    compss_path = os.path.sep + os.path.join(*(user_scripts_path.split(os.path.sep)[:-3]))
+    compss_path = '/'.join(user_scripts_path.split('/')[:-3])
     if VERBOSE:
         print("COMPSs found in: " + str(compss_path))
     return compss_path
@@ -478,36 +497,32 @@ def _infer_scripts_path(compss_path):
     :return: Remote helper scripts path.
     """
     # Append the folders to reach teh helper scripts
-    scripts_path = os.path.join(compss_path, 'Runtime', 'scripts', 'system', 'jupyter')
+    scripts_path = compss_path + '/Runtime/scripts/system/jupyter'
     if VERBOSE:
         print("Using scripts located in: " + str(scripts_path))
     return scripts_path
 
 
-def _submit_job(user_name, supercomputer, scripts_path, arguments):
+def _submit_job(scripts_path, arguments):
     """
     Submit a new notebook request to the supercomputer.
-    :param user_name: User name
-    :param supercomputer: Supercomputer to submit
     :param scripts_path: Remote helper scripts path
     :param arguments: Arguments received from command line.
     :return: None
     """
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         INTERPRETER,
-                         str(os.path.join(scripts_path, SUBMIT_SCRIPT)),   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
-                         arguments.job_name,
-                         str(arguments.exec_time),
-                         str(arguments.num_nodes),
-                         arguments.qos,
-                         arguments.log_level,
-                         str(arguments.tracing).lower(),
-                         arguments.classpath,
-                         arguments.pythonpath,
-                         arguments.storage_home,
-                         arguments.storage_props,
-                         arguments.storage
-    ]
+    cmd = [INTERPRETER,
+           str(scripts_path + '/' + SUBMIT_SCRIPT),
+           arguments.job_name,
+           str(arguments.exec_time),
+           str(arguments.num_nodes),
+           arguments.qos,
+           arguments.log_level,
+           str(arguments.tracing).lower(),
+           arguments.classpath,
+           arguments.pythonpath,
+           arguments.storage_home,
+           arguments.storage_props,
+           arguments.storage]
     if VERBOSE:
         print("Submitting a new notebook:")
         print("\t - Job name: " + str(arguments.job_name))
@@ -529,21 +544,18 @@ def _submit_job(user_name, supercomputer, scripts_path, arguments):
         print("Successfully submitted.")
 
 
-def _job_status(user_name, supercomputer, scripts_path, job_id):
+def _job_status(scripts_path, job_id):
     """
     Checks the status of a job in the supercomputer.
-    :param user_name: User name
-    :param supercomputer: Supercomputer to submit
     :param scripts_path: Remote helper scripts path
     :param job_id: Job identifier
     :return: None
     """
     if VERBOSE:
         print("Checking status of job: " + job_id)
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         INTERPRETER,
-                         str(os.path.join(scripts_path, STATUS_SCRIPT)),   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
-                         job_id]
+    cmd = [INTERPRETER,
+           str(scripts_path + '/' + STATUS_SCRIPT),
+           job_id]
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:
         display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
@@ -560,19 +572,16 @@ def _job_status(user_name, supercomputer, scripts_path, job_id):
         print("Job status finished.")
 
 
-def _job_list(user_name, supercomputer, scripts_path):
+def _job_list(scripts_path):
     """
     Checks the list of available jobs in the supercomputer.
-    :param user_name: User name
-    :param supercomputer: Supercomputer to find the available notebooks
     :param scripts_path: Remote helper scripts path
     :return: None
     """
     if VERBOSE:
         print("Getting the list of jobs")
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         INTERPRETER,
-                         str(os.path.join(scripts_path, FIND_SCRIPT))]   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
+    cmd = [INTERPRETER,
+           str(scripts_path + '/' + FIND_SCRIPT)]
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:
         display_error(ERROR_STATUS_JOB, return_code, stdout, stderr)
@@ -590,11 +599,9 @@ def _job_list(user_name, supercomputer, scripts_path):
         print("Job list finished.")
 
 
-def _connect_job(user_name, supercomputer, scripts_path, arguments):
+def _connect_job(scripts_path, arguments):
     """
     Establish the connection with an existing notebook.
-    :param user_name: User name
-    :param supercomputer: Supercomputer to connect
     :param scripts_path: Remote helper scripts path
     :param arguments: Arguments received from command line.
     :return: None
@@ -607,10 +614,9 @@ def _connect_job(user_name, supercomputer, scripts_path, arguments):
     token = None
     if VERBOSE:
         print("Getting information of job: " + arguments.job_id)
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         INTERPRETER,
-                         str(os.path.join(scripts_path, INFO_SCRIPT)),   # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
-                         arguments.job_id]
+    cmd = [INTERPRETER,
+           str(scripts_path + '/' + INFO_SCRIPT),
+           arguments.job_id]
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:
         display_error(ERROR_INFO_JOB, return_code, stdout, stderr)
@@ -642,10 +648,9 @@ def _connect_job(user_name, supercomputer, scripts_path, arguments):
     # Third, establish port forward
     if VERBOSE:
         print("Establishing port forwarding using port: " + arguments.port_forward)
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         '-L', '8888:localhost:' + arguments.port_forward,
-                         'ssh',  node,
-                         '-L', arguments.port_forward + ':localhost:8888']
+    cmd = ['-L', '8888:localhost:' + arguments.port_forward,
+           'ssh', node,
+           '-L', arguments.port_forward + ':localhost:8888']
     _command_runner(cmd, blocking=False)
     if VERBOSE:
         print("Waiting 5 seconds...")
@@ -675,9 +680,12 @@ def _connect_job(user_name, supercomputer, scripts_path, arguments):
     else:
         if VERBOSE:
             print("Opening the browser: " + arguments.web_browser)
-        cmd = [arguments.web_browser,
-               "http://localhost:8888/?token=" + token]
-        return_code, stdout, stderr = _command_runner(cmd)
+        if is_windows():
+            cmd = ['cmd', '/c', 'start', arguments.web_browser]
+        else:
+            cmd = [arguments.web_browser]
+        cmd = cmd + ["http://localhost:8888/?token=" + token]
+        return_code, stdout, stderr = _command_runner(cmd, remote=False)
         if return_code != 0:
             message = ERROR_BROWSER + '\n\n' \
                       + "Alternatively, please use the following URL to connect to the job.\n" \
@@ -689,15 +697,21 @@ def _connect_job(user_name, supercomputer, scripts_path, arguments):
     # Finally, wait for the CTRL+C signal
     print("Ready to work!")
     print("To force quit: CTRL + C")
-    signal.pause()
+    if is_windows():
+        while True:
+            # Waiting for signal
+            try:
+                time.sleep(5)
+            except IOError:
+                pass
+    else:
+        signal.pause()
     # The signal is captured and everything cleaned and canceled (if needed)
 
 
-def _cancel_job(user_name, supercomputer, scripts_path, job_ids):
+def _cancel_job(scripts_path, job_ids):
     """
     Cancel a list of notebook jobs running in the supercomputer.
-    :param user_name: User name
-    :param supercomputer: Supercomputer where to cancel the job
     :param scripts_path: Path where the remote helper scripts are
     :param job_ids: List of job identifiers
     :return: None
@@ -706,9 +720,8 @@ def _cancel_job(user_name, supercomputer, scripts_path, job_ids):
         print("Cancelling jobs:")
         for job in job_ids:
             print(" - " + str(job))
-    cmd = SSH.split() + [user_name + '@' + supercomputer,
-                         INTERPRETER,
-                         str(os.path.join(scripts_path, CANCEL_SCRIPT))] + job_ids  # TODO: THIS CAN BE A SOURCE OF ERROR IN WINDOWS IF USES THE SEPARATOR FROM WINDOWS INSTEAD OF THE REMOTE SEPARATOR
+    cmd = [INTERPRETER,
+           str(scripts_path + '/' + CANCEL_SCRIPT)] + job_ids
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:
         display_error(ERROR_CANCELLING_JOB, return_code, stdout, stderr)
@@ -724,7 +737,7 @@ def _cancel_job(user_name, supercomputer, scripts_path, job_ids):
         print("Finished cancelling.")
 
 
-def _command_runner(cmd, blocking=True):
+def _command_runner(cmd, blocking=True, remote=True):
     """
     Run the command defined in the cmd list.
     Decodes the stdout and stderr following the DECODING_FORMAT.
@@ -732,9 +745,23 @@ def _command_runner(cmd, blocking=True):
     :param blocking: blocks until the subprocess finishes. Otherwise,
                      does not wait and appends the process to the global
                      alive processes list
+    :param remote: Enable/Disable the execution in the remote supercomputer.
+                   By default, prepend the needed SSH command.
+                   (Uses the globals SSH, SESSION, USER_NAME and SUPERCOMPUTER).
     :return: return code, stdout, stderr | None if non blocking
     """
     global ALIVE_PROCESSES
+
+    if remote:
+        # Prepend the needed ssh command
+        if is_windows():
+            cmd = SSH.split() + [SESSION] + cmd
+        else:
+            cmd = SSH.split() + [USER_NAME + '@' + SUPERCOMPUTER] + cmd
+    else:
+        # Execute the command as requested
+        pass
+
     if VERBOSE:
         print("Executing command: ")
         print(' '.join(cmd))
@@ -759,6 +786,9 @@ def main():
     """
     # Globals
     global VERBOSE
+    global USER_NAME
+    global SUPERCOMPUTER
+    global SESSION
 
     # Parse command line arguments
     arguments = _argument_parser()
@@ -767,16 +797,17 @@ def main():
     arguments = _argument_checks(arguments)
 
     # Extract the most used arguments
-    user_name = arguments.user_name
-    supercomputer = arguments.supercomputer
+    USER_NAME = arguments.user_name
+    SUPERCOMPUTER = arguments.supercomputer
+    SESSION = arguments.session
     VERBOSE = arguments.verbose
 
     if arguments.connectivity_check:
         # Check connectivity - default=True
-        _check_connectivity(user_name, supercomputer)
+        _check_connectivity()
 
     # Check remote COMPSs
-    compss_path = _check_remote_compss(user_name, supercomputer)
+    compss_path = _check_remote_compss()
 
     # Infer remote scripts directory
     scripts_path = _infer_scripts_path(compss_path)
@@ -785,23 +816,23 @@ def main():
     if arguments.action == 'submit':
         # Submit a new job to the supercomputer.
         print("Submitting a new job...")
-        _submit_job(user_name, supercomputer, scripts_path, arguments)
+        _submit_job(scripts_path, arguments)
     elif arguments.action == 'status':
         # Check the status of a notebook.
         print("Checking the status...")
-        _job_status(user_name, supercomputer, scripts_path, arguments.job_id)
+        _job_status(scripts_path, arguments.job_id)
     elif arguments.action == 'list':
         # Check the notebooks submitted to the supercomputer and their status.
         print("Looking for available jobs...")
-        _job_list(user_name, supercomputer, scripts_path)
+        _job_list(scripts_path)
     elif arguments.action == 'connect':
         # Connect to a running notebook.
         print("Connecting...")
-        _connect_job(user_name, supercomputer, scripts_path, arguments)
+        _connect_job(scripts_path, arguments)
     elif arguments.action == 'cancel':
         # Cancel a notebook.
         print("Cancelling jobs...")
-        _cancel_job(user_name, supercomputer, scripts_path, arguments.job_id)
+        _cancel_job(scripts_path, arguments.job_id)
     else:
         # Unreachable code since it is checked with argparse
         # but kept for completion.

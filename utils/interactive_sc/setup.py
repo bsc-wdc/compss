@@ -40,7 +40,7 @@ setuptools.setup(
     # Executable
     entry_points={
         'console_scripts': [
-            'pycisc = pycompss_interactive_sc.core:main',
+            'pycompss_isc = pycompss_interactive_sc.core:main',
         ],
         'gui_scripts': [
         ]

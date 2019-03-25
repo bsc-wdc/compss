@@ -659,6 +659,7 @@ def _connect_job(scripts_path, arguments):
         print("Port forwarding ready.")
 
     # Fourth, check if using the specified web browser or simply show the url
+    no_web_browser = False
     if type(arguments.no_web_browser) is str:
         # It can be a str if overridden in the credential file
         if arguments.no_web_browser == 'True':

@@ -89,16 +89,38 @@ def is_notebook_job(job_id):
     :param job_id: Job id to check
     :return: True if is a notebook. False on the contrary
     """
-    raw_job_name_command = os.environ['QUEUE_JOB_NAME']
-    job_name_command = raw_job_name_command.replace('JOBID', str(job_id)).split()
-    _, name, _ = command_runner(job_name_command)
-    if JOB_NAME_KEYWORD in name.strip():
+    name = get_job_name(job_id)
+    if verify_job_name(name.strip()):
         if VERBOSE:
             print("Found notebook id: " + job_id)
         return True
     else:
         if VERBOSE:
             print("Job " + job_id + " is not a PyCOMPSs notebook job.")
+        return False
+
+
+def get_job_name(job_id):
+    """
+    Get the job name of a given job identifier.
+    :param job_id: Job identifier
+    :return: Job name
+    """
+    raw_job_name_command = os.environ['QUEUE_JOB_NAME']
+    job_name_command = raw_job_name_command.replace('JOBID', str(job_id)).split()
+    _, name, _ = command_runner(job_name_command)
+    return name
+
+
+def verify_job_name(name):
+    """
+    Verifies if the name provided includes the keyword
+    :param name: Name to check
+    :return: Boolean
+    """
+    if JOB_NAME_KEYWORD in name:
+        return True
+    else:
         return False
 
 

@@ -8,7 +8,8 @@ from commons import VERBOSE
 from commons import SUCCESS_KEYWORD
 from commons import command_runner
 from commons import setup_supercomputer_configuration
-from commons import is_notebook_job
+from commons import get_job_name
+from commons import verify_job_name
 
 
 def find():
@@ -28,18 +29,19 @@ def find():
     job_ids = raw_job_ids.splitlines()
 
     # Filter the jobs (keep only the notebook related ones)
-    notebook_ids = []
+    notebook_jobs = []
     for job_id in job_ids:
-        if is_notebook_job(job_id):
-            notebook_ids.append(job_id)
+        name = get_job_name(job_id).strip()
+        if verify_job_name(name):
+            notebook_jobs.append((job_id, name))
 
     if VERBOSE:
         print("Finished looking for jobs.")
 
     # Print to provide the list of jobs to the client
     print(SUCCESS_KEYWORD)  # Success message
-    for notebook_id in notebook_ids:
-        print(notebook_id)
+    for job_id, name in notebook_jobs:
+        print(str(job_id) + ' - ' + str(name))
 
 
 if __name__ == '__main__':

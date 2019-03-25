@@ -54,7 +54,8 @@ DEFAULT_CREDENTIALS = {'user_name': DEFAULT_USER_NAME,
                        'password': False,
                        'supercomputer': 'mn2.bsc.es',
                        'port_forward': '3333',
-                       'web_browser': 'firefox'}
+                       'web_browser': 'firefox',
+                       'no_web_browser': False}
 
 # --------------------------------------------------
 # SCRIPT TOOLS

@@ -189,6 +189,11 @@ def _argument_parser():
                                 type=str,
                                 default=DEFAULT_CREDENTIALS['web_browser'],
                                 help='Web browser')
+    parser_connect.add_argument('-nwb', '--no_web_browser',
+                                dest='no_web_browser',
+                                action='store_true',
+                                default=DEFAULT_CREDENTIALS['no_web_browser'],
+                                help='Disable web browser starting. Shows the connection url instead.')
     # List sub-parser - does not have specific arguments
     subparsers.add_parser('list',
                           help='Show all existing jobs.',
@@ -296,11 +301,11 @@ def _argument_checks(arguments):
         arguments = _submit_argument_checks(arguments)
     # Arguments credential is always needed
     if arguments.credential is not None:
-        # The user has specified a file where the credentials are defined
+        # The user has specified a file where the credential parameters are defined
         credential_params = _parse_file(arguments.credential)
         for k, v in args.items():
             # If what is defined in the arguments is default and exist in
-            # the credentials file, take the value from the project file
+            # the credential file, take the value from the project file
             if k in DEFAULT_CREDENTIALS.keys() and \
                     v == DEFAULT_CREDENTIALS[k] and \
                     k in credential_params.keys():
@@ -640,14 +645,23 @@ def _connect_job(user_name, supercomputer, scripts_path, arguments):
     if VERBOSE:
         print("Port forwarding ready.")
 
-    # Fourth, open the browser
-    if VERBOSE:
-        print("Opening the browser: " + arguments.web_browser)
-    cmd = [arguments.web_browser,
-           'http://localhost:8888/?token=' + token]
-    return_code, stdout, stderr = _command_runner(cmd)
-    if return_code != 0:
-        display_error(ERROR_BROWSER, return_code, stdout, stderr)
+    # Fourth, check if using the specified web browser or simply show the url
+    if arguments.no_web_browser:
+        if VERBOSE:
+            print("Disabled web browser opening")
+        print("Connection established. Please use the following URL to connect to the job.")
+        print("\t http://localhost:8888/?token=" + token)
+    else:
+        if VERBOSE:
+            print("Opening the browser: " + arguments.web_browser)
+        cmd = [arguments.web_browser,
+               "http://localhost:8888/?token=" + token]
+        return_code, stdout, stderr = _command_runner(cmd)
+        if return_code != 0:
+            message = ERROR_BROWSER + '\n\n' \
+                      + "Alternatively, please use the following URL to connect to the job.\n" \
+                      + "\t http://localhost:8888/?token=" + token
+            display_error(message, return_code, stdout, stderr)
     if VERBOSE:
         print("Connected to job")
 

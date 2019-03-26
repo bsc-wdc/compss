@@ -16,6 +16,8 @@ from commons import not_a_notebook
 def status():
     """
     Main status function.
+    Gets the status of the requested job identifier and prints it
+    through stdout.
     :return: None
     """
     if VERBOSE:
@@ -43,6 +45,7 @@ def status():
     # Print to notify the status result
     if return_code != 0:
         print(ERROR_KEYWORD)
+        exit(1)
     else:
         print(SUCCESS_KEYWORD)
         print("STATUS:" + job_status)

@@ -1,13 +1,13 @@
 """
-This file contains all common functions for all PyCOMPSs for interactive in
-Supercomputer related scripts.
+This file contains all common functions that the backend scripts that provide
+support for PyCOMPSs and Jupyter within Supercomputers.
 """
 
 import os
 import shlex
 import subprocess
 
-VERBOSE = False   # Boolean to print detailed information through stdout - For debugging purposes.
+VERBOSE = False   # General Boolean to print detailed information through stdout - For debugging purposes.
 DECODING_FORMAT = 'utf-8'
 SUCCESS_KEYWORD = 'SUCCESS'
 NOT_RUNNING_KEYWORD = 'NOT_RUNING'
@@ -159,7 +159,7 @@ def get_job_status(job_id):
 
 def not_a_notebook(job_id):
     """
-    Prints the not a notebook job message and exit(1)
+    Prints the not a notebook job message and exit(1).
     :param job_id: Job id
     :return: None
     """

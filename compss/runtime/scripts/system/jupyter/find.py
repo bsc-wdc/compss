@@ -17,6 +17,9 @@ from commons import verify_job_name
 def find():
     """
     Main find function.
+    Gets the jobs list command from the environment variable (defined in supercomputer cfgs)
+    and runs it. It also gets each job identifier name and status to provide more information
+    to the users.
     :return: None
     """
     if VERBOSE:
@@ -44,6 +47,7 @@ def find():
     # Print to notify the find result
     if return_code != 0:
         print(ERROR_KEYWORD)
+        exit(1)
     else:
         # Print to provide the list of jobs to the client
         print(SUCCESS_KEYWORD)

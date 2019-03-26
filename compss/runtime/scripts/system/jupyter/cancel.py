@@ -17,6 +17,8 @@ from commons import not_a_notebook
 def cancel():
     """
     Main cancel function.
+    Gets the cancel command from the environment variable (defined in supercomputer cfgs)
+    and includes the job identifiers to be cancelled.
     :return: None
     """
     if VERBOSE:
@@ -56,6 +58,7 @@ def cancel():
         print(SUCCESS_KEYWORD)
     else:
         print(ERROR_KEYWORD)
+        exit(1)
 
 
 if __name__ == '__main__':

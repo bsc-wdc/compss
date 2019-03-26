@@ -94,7 +94,7 @@ ERROR_SESSION_NOT_PROVIDED = "Session not provided. Please provide one to connec
 ERROR_CONNECTING = "Could not connect to the supercomputer.\n" \
                    "Please check the connectivity, user name and password."
 ERROR_COMPSS_NOT_DEFINED = "COMPSs is not available in the supercomputer.\n" \
-                           "Please check that you have propperly configured the module load in your .bashrc."
+                           "Please check that you have properly configured the module load in your .bashrc."
 ERROR_SUBMITTING_JOB = "Could not submit the job to the supercomputer.\n" \
                        "Please check that you are able to submit jobs to the supercomputer."
 ERROR_STATUS_JOB = "Could not check the status of the job."

@@ -18,7 +18,10 @@ from commons import not_a_notebook
 
 def info():
     """
-    Main status function.
+    Main info function.
+    Gets the information command from the jupyter server (master node and url)
+    and prints it through stdout. So that the client can get it, parse and
+    connect to the running notebook.
     :return: None
     """
     if VERBOSE:
@@ -66,6 +69,7 @@ def info():
         # Print to notify the info result
         if return_code != 0:
             print(ERROR_KEYWORD)
+            exit(1)
         else:
             print(SUCCESS_KEYWORD)
             print("MASTER:" + str(master))
@@ -73,6 +77,7 @@ def info():
     else:
         # Print to provide information to the client
         print(NOT_RUNNING_KEYWORD)  # The notebook is not ready yet
+        exit(1)
 
 
 if __name__ == '__main__':

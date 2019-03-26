@@ -17,6 +17,13 @@ from commons import get_installation_path
 def submit():
     """
     Main submit function.
+    Gets the arguments and builds the enqueue_compss command.
+    It uses the --jupyter_notebook flag to indicate that compss has to start the
+    server into the master node. The start function from the api will start
+    the COMPSs master later.
+    It also takes into account the notebook path, so that the execution
+    is done in this folder (keep out and err files from the queuing system in
+    the same folder and showing the tree in jupyter from that folder onwards).
     :return: None
     """
     if VERBOSE:
@@ -133,6 +140,7 @@ def submit():
     # Print to notify the submission result
     if return_code != 0:
         print(ERROR_KEYWORD)
+        exit(1)
     else:
         print(SUCCESS_KEYWORD)
 

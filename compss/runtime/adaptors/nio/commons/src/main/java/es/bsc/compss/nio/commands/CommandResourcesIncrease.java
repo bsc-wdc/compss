@@ -24,20 +24,20 @@ import java.io.ObjectOutput;
 import es.bsc.comm.Connection;
 
 
-public class CommandReduceResources extends Command implements Externalizable {
+public class CommandResourcesIncrease extends Command implements Externalizable {
 
-    public CommandReduceResources() {
+    public CommandResourcesIncrease() {
         super();
     }
 
     @Override
     public CommandType getType() {
-        return CommandType.REDUCE_RESOURCES;
+        return CommandType.INCREASE_RESOURCES;
     }
 
     @Override
     public void handle(Connection c) {
-        agent.reduceResources();
+        agent.increaseResources();
         c.finishConnection();
     }
 
@@ -53,7 +53,7 @@ public class CommandReduceResources extends Command implements Externalizable {
 
     @Override
     public String toString() {
-        return "CommandReduceResources";
+        return "CommandIncreaseResources";
     }
 
 }

@@ -27,9 +27,9 @@ import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOURI;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
-import es.bsc.compss.nio.commands.CommandIncreaseResources;
+import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandNewTask;
-import es.bsc.compss.nio.commands.CommandReduceResources;
+import es.bsc.compss.nio.commands.CommandResourcesReduce;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
@@ -570,7 +570,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        CommandIncreaseResources cmd = new CommandIncreaseResources();
+        CommandResourcesIncrease cmd = new CommandResourcesIncrease();
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
@@ -578,7 +578,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        CommandReduceResources cmd = new CommandReduceResources();
+        CommandResourcesReduce cmd = new CommandResourcesReduce();
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();

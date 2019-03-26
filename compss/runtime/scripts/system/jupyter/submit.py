@@ -22,30 +22,32 @@ def submit():
         print("Submitting PyCOMPSs interactive job...")
 
     # Get command line arguments
-    job_name = sys.argv[1]        # Not supported yet
-    exec_time = sys.argv[2]       # Walltime in minutes
-    num_nodes = sys.argv[3]       # Number of nodes
-    qos = sys.argv[4]             # Quality of service
-    log_level = sys.argv[5]       # Log level
-    tracing = sys.argv[6]         # Tracing
-    classpath = sys.argv[7]       # Classpath
-    pythonpath = sys.argv[8]      # Pythonpath
-    storage_home = sys.argv[9]    # Storage home path
-    storage_props = sys.argv[10]  # Storage properties file
-    storage = sys.argv[11]        # Storage shortcut to use
+    job_name = sys.argv[1]        # Job name
+    notebook_path = sys.argv[2]   # Path where the notebook is
+    exec_time = sys.argv[3]       # Walltime in minutes
+    num_nodes = sys.argv[4]       # Number of nodes
+    qos = sys.argv[5]             # Quality of service
+    log_level = sys.argv[6]       # Log level
+    tracing = sys.argv[7]         # Tracing
+    classpath = sys.argv[8]       # Classpath
+    pythonpath = sys.argv[9]      # Pythonpath
+    storage_home = sys.argv[10]    # Storage home path
+    storage_props = sys.argv[11]  # Storage properties file
+    storage = sys.argv[12]        # Storage shortcut to use
     if VERBOSE:
         print("Submission arguments:")
-        print("Job name     : " + str(job_name))
-        print("Exec time    : " + str(exec_time))
-        print("Num nodes    : " + str(num_nodes))
-        print("QoS          : " + str(qos))
-        print("Log level    : " + str(log_level))
-        print("Tracing      : " + str(tracing))
-        print("Classpath    : " + str(classpath))
-        print("Pythonpath   : " + str(pythonpath))
-        print("Storage home : " + str(storage_home))
-        print("Storage props: " + str(storage_props))
-        print("Storage      : " + str(storage))
+        print(" - Job name     : " + str(job_name))
+        print(" - Notebook path: " + str(notebook_path))
+        print(" - Exec time    : " + str(exec_time))
+        print(" - Num nodes    : " + str(num_nodes))
+        print(" - QoS          : " + str(qos))
+        print(" - Log level    : " + str(log_level))
+        print(" - Tracing      : " + str(tracing))
+        print(" - Classpath    : " + str(classpath))
+        print(" - Pythonpath   : " + str(pythonpath))
+        print(" - Storage home : " + str(storage_home))
+        print(" - Storage props: " + str(storage_props))
+        print(" - Storage      : " + str(storage))
 
     # Check storage shortcut
     if storage == 'None':
@@ -69,7 +71,12 @@ def submit():
 
     # Extend classpath and pythonpath
     classpath = classpath + ':' + os.environ['CLASSPATH']
-    pythonpath = pythonpath + ':' + os.path.expanduser('~') + ':' + os.environ['PYTHONPATH']
+    if notebook_path != DISABLED_VALUE:
+        # Include notebook_path into pythonpath for the workers
+        pythonpath = notebook_path + ':' + pythonpath + ':' + os.environ['PYTHONPATH']
+    else:
+        # Include home
+        pythonpath = os.path.expanduser('~') + ':' + pythonpath + ':' + os.environ['PYTHONPATH']
 
     # Append keyword to the job name
     job_name = job_name + JOB_NAME_KEYWORD

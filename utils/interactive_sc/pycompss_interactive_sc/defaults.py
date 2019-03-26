@@ -48,6 +48,7 @@ DEFAULT_PROJECT = {'exec_time': '5',  # 5 minute
                    'tracing': False,
                    'classpath': '.',
                    'pythonpath': '.',
+                   'notebook_path': DISABLED_VALUE,  # if not defined, use remote HOME
                    'storage_home': DISABLED_VALUE,
                    'storage_props': DISABLED_VALUE,
                    'storage': 'None'}

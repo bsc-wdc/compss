@@ -141,6 +141,11 @@ def _argument_parser():
                                type=str,
                                default=DEFAULT_PROJECT['job_name'],
                                help='Job name')
+    parser_submit.add_argument('-np', '--notebook_path',
+                               dest='notebook_path',
+                               type=str,
+                               default=DEFAULT_PROJECT['notebook_path'],
+                               help='Remote folder where the notebook is')
     parser_submit.add_argument('-n', '--num_nodes',
                                dest='num_nodes',
                                type=int,
@@ -517,6 +522,7 @@ def _submit_job(scripts_path, arguments):
     cmd = [INTERPRETER,
            str(scripts_path + '/' + SUBMIT_SCRIPT),
            arguments.job_name,
+           arguments.notebook_path,
            str(arguments.exec_time),
            str(arguments.num_nodes),
            arguments.qos,
@@ -529,17 +535,18 @@ def _submit_job(scripts_path, arguments):
            arguments.storage]
     if VERBOSE:
         print("Submitting a new notebook:")
-        print("\t - Job name: " + str(arguments.job_name))
-        print("\t - Execution time: " + str(arguments.exec_time))
+        print("\t - Job name       : " + str(arguments.job_name))
+        print("\t - Notebook path  : " + str(arguments.notebook_path))
+        print("\t - Execution time : " + str(arguments.exec_time))
         print("\t - Number of nodes: " + str(arguments.num_nodes))
-        print("\t - QoS: " + str(arguments.qos))
-        print("\t - Log level: " + str(arguments.log_level))
-        print("\t - Tracing: " + str(arguments.tracing))
-        print("\t - Classpath: " + str(arguments.classpath))
-        print("\t - Pythonpath: " + str(arguments.pythonpath))
-        print("\t - Storage home: " + str(arguments.storage_home))
-        print("\t - Storage props: " + str(arguments.storage_props))
-        print("\t - Storage: " + str(arguments.storage))
+        print("\t - QoS            : " + str(arguments.qos))
+        print("\t - Log level      : " + str(arguments.log_level))
+        print("\t - Tracing        : " + str(arguments.tracing))
+        print("\t - Classpath      : " + str(arguments.classpath))
+        print("\t - Pythonpath     : " + str(arguments.pythonpath))
+        print("\t - Storage home   : " + str(arguments.storage_home))
+        print("\t - Storage props  : " + str(arguments.storage_props))
+        print("\t - Storage        : " + str(arguments.storage))
     # Launch the submission
     return_code, stdout, stderr = _command_runner(cmd)
     if return_code != 0:

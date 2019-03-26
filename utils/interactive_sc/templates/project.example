@@ -2,6 +2,9 @@
 # My project file #
 ###################
 
+# Notebook
+# notebook_path=/remote/path/to/notebook/  # If undefined, uses HOME
+
 # Job parameters
 exec_time=10
 job_name=my_job

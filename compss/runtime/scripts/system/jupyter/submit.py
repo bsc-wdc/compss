@@ -69,7 +69,7 @@ def submit():
 
     # Extend classpath and pythonpath
     classpath = classpath + ':' + os.environ['CLASSPATH']
-    pythonpath = pythonpath + ':' + os.path.expanduser('~') + os.environ['PYTHONPATH']
+    pythonpath = pythonpath + ':' + os.path.expanduser('~') + ':' + os.environ['PYTHONPATH']
 
     # Append keyword to the job name
     job_name = job_name + JOB_NAME_KEYWORD

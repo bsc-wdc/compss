@@ -60,7 +60,7 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
     os.environ['COMPSS_HOME'] = compss_home
 
     # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment variables values
-    pythonpath = os.environ['PYTHONPATH']
+    pythonpath = '.:' + os.getcwd() + ':' + os.environ['PYTHONPATH']
     classpath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
 

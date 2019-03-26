@@ -24,7 +24,7 @@ def find():
     setup_supercomputer_configuration()
 
     # Get the list of running job ids
-    job_list_command = os.environ['QUEUE_JOB_LIST']
+    job_list_command = os.environ['QUEUE_JOB_LIST_CMD']
     _, raw_job_ids, _ = command_runner(job_list_command.split())
     job_ids = raw_job_ids.splitlines()
 

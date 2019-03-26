@@ -56,7 +56,7 @@ def setup_supercomputer_configuration(include=None):
     relying on the COMPSs configuration.
     Alternatively, it is possible to include a keyword in the command for
     the later substitution from the python code before using it (e.g.
-    QUEUE_JOB_NAME - which is used multiple times).
+    QUEUE_JOB_NAME_CMD - which is used multiple times).
     :param include: Dictionary with environment variables to consider in the
                     environment so that the cfgs can complete their contents
                     (e.g. job_id is needed for the command building variables).
@@ -106,7 +106,7 @@ def get_job_name(job_id):
     :param job_id: Job identifier
     :return: Job name
     """
-    raw_job_name_command = os.environ['QUEUE_JOB_NAME']
+    raw_job_name_command = os.environ['QUEUE_JOB_NAME_CMD']
     job_name_command = raw_job_name_command.replace('JOBID', str(job_id)).split()
     _, name, _ = command_runner(job_name_command)
     return name

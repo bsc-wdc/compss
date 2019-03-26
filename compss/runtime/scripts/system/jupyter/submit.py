@@ -73,11 +73,18 @@ def submit():
     # Extend classpath and pythonpath
     classpath = classpath + ':' + os.environ['CLASSPATH']
     if notebook_path != DISABLED_VALUE:
+        # Check the notebook path
+        if not os.path.isdir(notebook_path):
+            print(ERROR_KEYWORD)
+            print("The notebook path defined does not exist!")
+            exit(1)
         # Include notebook_path into pythonpath for the workers
         pythonpath = notebook_path + ':' + pythonpath + ':' + os.environ['PYTHONPATH']
     else:
         # Include home
-        pythonpath = os.path.expanduser('~') + ':' + pythonpath + ':' + os.environ['PYTHONPATH']
+        home = os.path.expanduser('~')
+        pythonpath = home + ':' + pythonpath + ':' + os.environ['PYTHONPATH']
+        notebook_path = home
 
     # Append keyword to the job name
     job_name = job_name + JOB_NAME_KEYWORD
@@ -97,7 +104,7 @@ def submit():
                '--classpath=' + classpath,
                '--pythonpath=' + pythonpath,
                '--lang=python',
-               '--jupyter_notebook']
+               '--jupyter_notebook=' + notebook_path]
     else:
         # Storage enabled
         cmd = ['enqueue_compss',
@@ -112,8 +119,8 @@ def submit():
                '--storage_home=' + storage_home,
                '--storage_props=' + storage_props,
                '--lang=python',
-               '--jupyter_notebook']
-    return_code, stdout, stderr = command_runner(cmd)
+               '--jupyter_notebook=' + notebook_path]
+    return_code, stdout, stderr = command_runner(cmd, cwd=notebook_path)
 
     if VERBOSE:
         print("Return code:" + str(return_code))

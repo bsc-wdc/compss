@@ -17,6 +17,7 @@ from pycompss_interactive_sc.defaults import CANCEL_SCRIPT
 from pycompss_interactive_sc.defaults import VERSION
 from pycompss_interactive_sc.defaults import DECODING_FORMAT
 from pycompss_interactive_sc.defaults import SUCCESS_KEYWORD
+from pycompss_interactive_sc.defaults import ERROR_KEYWORD
 from pycompss_interactive_sc.defaults import NOT_RUNNING_KEYWORD
 from pycompss_interactive_sc.defaults import DISABLED_VALUE
 
@@ -51,6 +52,7 @@ from pycompss_interactive_sc.defaults import ERROR_STATUS_JOB
 from pycompss_interactive_sc.defaults import ERROR_INFO_JOB
 from pycompss_interactive_sc.defaults import ERROR_STORAGE_PROPS
 from pycompss_interactive_sc.defaults import ERROR_UNSUPPORTED_STORAGE_SHORTCUT
+from pycompss_interactive_sc.defaults import ERROR_JUPYTER_SERVER
 from pycompss_interactive_sc.defaults import ERROR_BROWSER
 from pycompss_interactive_sc.defaults import ERROR_NO_BROWSER
 from pycompss_interactive_sc.defaults import ERROR_CANCELLING_JOB
@@ -549,7 +551,7 @@ def _submit_job(scripts_path, arguments):
         print("\t - Storage        : " + str(arguments.storage))
     # Launch the submission
     return_code, stdout, stderr = _command_runner(cmd)
-    if return_code != 0:
+    if return_code != 0 and stdout.strip() != ERROR_KEYWORD:
         display_error(ERROR_SUBMITTING_JOB, return_code, stdout, stderr)
     else:
         print("Successfully submitted.")
@@ -643,9 +645,12 @@ def _connect_job(scripts_path, arguments):
             if line[0] == 'MASTER':
                 node = line[1]
             elif line[0] == 'SERVER':
-                server_out = ' '.join(line[1:])
-                raw_token = re.search("token=\w*", server_out).group(0)
-                token = raw_token.split('=')[1]
+                try:
+                    server_out = ' '.join(line[1:])
+                    raw_token = re.search("token=\w*", server_out).group(0)
+                    token = raw_token.split('=')[1]
+                except AttributeError:
+                    display_error(ERROR_JUPYTER_SERVER)
         if VERBOSE:
             print("Job info:")
             print(" - Node: " + str(node))

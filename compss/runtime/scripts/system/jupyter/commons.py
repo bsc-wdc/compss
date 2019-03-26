@@ -16,17 +16,18 @@ DISABLED_VALUE = 'undefined'
 JOB_NAME_KEYWORD = '-PyCOMPSsInteractive'
 
 
-def command_runner(cmd, exception=True):
+def command_runner(cmd, exception=True, cwd=None):
     """
     Run the command defined in the cmd list.
     Decodes the stdout and stderr following the DECODING_FORMAT.
     :param cmd: Command to execute as list.
     :param exception: Throw exception if failed. Otherwise, the caller will handle the error.
+    :param cwd: Directory where to execute the command
     :return: return code, stdout, stderr
     """
     if VERBOSE:
         print("Executing command: " + ' '.join(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
     stdout, stderr = p.communicate()   # blocks until cmd is done
     return_code = p.returncode
     stdout = stdout.decode(DECODING_FORMAT)

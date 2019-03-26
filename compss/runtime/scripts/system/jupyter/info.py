@@ -43,7 +43,7 @@ def info():
     return_code, nodes, _ = command_runner(nodes_command)
     if return_code != 0:
         print(ERROR_KEYWORD)
-        return
+        exit(1)
 
     # Look for the master node
     if nodes.strip():

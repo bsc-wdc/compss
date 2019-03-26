@@ -68,19 +68,55 @@ cp -r compss/runtime/scripts/* COMPSs/Runtime/scripts/
 #Adaptors
 find compss/runtime/adaptors -name pom.xml | xargs rm -rf
 rm -r compss/runtime/adaptors/commons
+rm -r compss/runtime/adaptors/execution
+
 path_source="compss/runtime/adaptors"
 path_target="COMPSs/Runtime/adaptors"
 adaptors=$(ls ${path_source})
 for adaptor in $adaptors; do
-  mkdir ${path_target}/$adaptor
-  mkdir ${path_target}/$adaptor/master
-  cp ${path_source}/$adaptor/master/*.jar ${path_target}/$adaptor/master
-  if [ -f ${path_source}/$adaptor/master/properties ]; then
-    cp ${path_source}/$adaptor/master/properties ${path_target}/$adaptor/master
-  fi
-  if [ -d "${path_source}/$adaptor/scripts/" ]; then
-    mkdir -p COMPSs/Runtime/scripts/system/adaptors/$adaptor/
-    cp -r ${path_source}/$adaptor/scripts/* COMPSs/Runtime/scripts/system/adaptors/$adaptor/
+  if [ "$adaptor" != "agent" ]; then
+    #Regular adaptor: Copying only master part
+    mkdir ${path_target}/$adaptor
+    mkdir ${path_target}/$adaptor/master
+    #Installing master jars and properties
+    cp ${path_source}/$adaptor/master/*.jar ${path_target}/$adaptor/master
+    if [ -f ${path_source}/$adaptor/master/properties ]; then
+      cp ${path_source}/$adaptor/master/properties ${path_target}/$adaptor/master
+    fi
+    #Installing scripts
+    if [ -d "${path_source}/$adaptor/scripts/" ]; then
+      mkdir -p ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
+      cp -r ${path_source}/$adaptor/scripts/* ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
+    fi
+  else
+    # Agents adaptors
+    agent_path_source=${path_source}/${adaptor}
+    agents=$(ls ${agent_path_source})
+    for agent in $agents; do
+      #Agent: Copying
+      #   - master (necessary to use other agents)
+      #   - worker (necessary for being published as an agent)
+      mkdir ${path_target}/$agent
+      mkdir ${path_target}/$agent/master
+      #Installing master jars and properties
+      cp ${agent_path_source}/$agent/master/*.jar ${path_target}/$agent/master
+      if [ -f ${agent_path_source}/$agent/master/properties ]; then
+        cp ${agent_path_source}/$agent/master/properties ${path_target}/$agent/master
+      fi
+      #Installing worker jars and properties
+      if [ -d "${agent_path_source}/$agent/worker/" ]; then
+        mkdir ${path_target}/$agent/worker
+        cp ${agent_path_source}/$agent/worker/*.jar ${path_target}/$agent/worker
+        if [ -f ${agent_path_source}/$agent/worker/properties ]; then
+          cp ${agent_path_source}/$agent/worker/properties ${path_target}/$agent/worker
+        fi
+      fi
+      #Installing scripts
+      if [ -d "${agent_path_source}/$agent/scripts/" ]; then
+        mkdir -p ${COMPSs_target}/Runtime/scripts/system/adaptors/$agent/
+        cp -r ${agent_path_source}/$agent/scripts/* ${COMPSs_target}/Runtime/scripts/system/adaptors/$agent/
+      fi
+    done
   fi
 done
 

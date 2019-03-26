@@ -14,25 +14,26 @@
  *  limitations under the License.
  *
  */
+
 package es.bsc.compss.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.HashMap;
-import java.util.concurrent.Semaphore;
-
 import es.bsc.cepbatools.extrae.Wrapper;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.TracingCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.transferable.TracingCopyTransferable;
 import es.bsc.compss.types.uri.SimpleURI;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -190,6 +191,14 @@ public abstract class Tracer {
     private static AtomicInteger hostId;
 
 
+    /**
+     * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then
+     * the current node (master) sets its nodeID (taskID in extrae) to 0, and its number of tasks
+     * to 1 (a single program).
+     *
+     * @param level type of tracing: -3: arm-ddt, -2: arm-map, -1: scorep, 0: off, 1: extrae-basic,
+     *              2: extrae-advanced
+     */
     public static void init(int level) {
         if (DEBUG) {
             LOGGER.debug("Initializing tracing with level " + level);
@@ -214,38 +223,80 @@ public abstract class Tracer {
         }
     }
 
+    /**
+     * Returns if the current execution is being instrumented by extrae.
+     *
+     * @return true if currently instrumented by extrae
+     */
     public static boolean extraeEnabled() {
         return tracingLevel > 0;
     }
 
+    /**
+     * Returns if any kind of tracing is activated including ddt, map, scorep, or extrae).
+     *
+     * @return true if any kind of tracing is activated
+     */
     public static boolean isActivated() {
         return tracingLevel != 0;
     }
 
+    /**
+     * Returns whether extrae is working and is activated in basic mode.
+     *
+     * @return true if extrae is enabled in basic mode
+     */
     public static boolean basicModeEnabled() {
         return tracingLevel == Tracer.BASIC_MODE;
     }
 
+    /**
+     * Returns with which tracing level the Tracer has been initialized (0 if it's not active).
+     *
+     * @return int with tracing level (in [-3, -2, -1, 0, 1, 2])
+     */
     public static int getLevel() {
         return tracingLevel;
     }
 
+    /**
+     * Returns the config file used for extrae.
+     *
+     * @return path of extrae config file
+     */
     public static String getExtraeFile() {
         return extraeFile;
     }
 
+    /**
+     * When using extrae's tracing, this call enables the instrumentation of ALL created threads
+     * from here onwards. To deactivate it use disablePThreads().
+     */
     public static void enablePThreads() {
         synchronized (Tracer.class) {
             Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS);
         }
     }
 
+    /**
+     * When using extrae's tracing, this call disables the instrumentation of any created threads
+     * from here onwards. To reactivate it use enablePThreads()
+     */
     public static void disablePThreads() {
         synchronized (Tracer.class) {
             Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
         }
     }
 
+    /**
+     * Adds a host name and its number of slots to a hashmap required to later merge the traces from
+     * each host into a single one.
+     *
+     * @param name  of the host
+     * @param slots number of threads the host is expected to have (used in GAT, in NIO is 0,
+     *              because they will be computed automatically
+     * @return the next ID to be used during the initialization of the tracing in the given host.
+     */
     public static int registerHost(String name, int slots) {
         if (DEBUG) {
             LOGGER.debug("Tracing: Registering host " + name + " in the tracing system");
@@ -264,6 +315,12 @@ public abstract class Tracer {
         return id;
     }
 
+    /**
+     * Returns the next slot ID (thread) that will run a task (GAT only).
+     *
+     * @param host that is going to execute a task
+     * @return the next thread ID available to execute task (don't care about real order)
+     */
     public static int getNextSlot(String host) {
         int slot = hostToSlots.get(host).getNextSlot();
         if (DEBUG) {
@@ -272,6 +329,12 @@ public abstract class Tracer {
         return slot;
     }
 
+    /**
+     * Signals that a slot ID (thread) of a host is free again.
+     *
+     * @param host that is going to have a slot freed
+     * @param slot to be freed
+     */
     public static void freeSlot(String host, int slot) {
         if (DEBUG) {
             LOGGER.debug("Tracing: Freeing slot " + slot + " of host " + host);
@@ -307,11 +370,17 @@ public abstract class Tracer {
         return INSIDE_TASKS_TYPE;
     }
 
-    public static Event getAPRequestEvent(String eventType) {
+    public static Event getAcessProcessorRequestEvent(String eventType) {
         return Event.valueOf(eventType);
     }
 
-    public static Event getTDRequestEvent(String eventType) {
+    /**
+     * Returns the corresponding event ID for a TD request event type.
+     *
+     * @param eventType of the TD
+     * @return the tracing event ID associated with eventType
+     */
+    public static Event getTaskDispatcherRequestEvent(String eventType) {
         Event event = null;
         try {
             event = Event.valueOf(eventType);
@@ -321,6 +390,12 @@ public abstract class Tracer {
         return event;
     }
 
+    /**
+     * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
+     *
+     * @param eventID   ID of the event
+     * @param eventType type of the event.
+     */
     public static void emitEvent(long eventID, int eventType) {
         synchronized (Tracer.class) {
             Wrapper.Event(eventType, eventID);
@@ -331,6 +406,13 @@ public abstract class Tracer {
         }
     }
 
+    /**
+     * Emits an event and the current PAPI counters activated using extrae's Wrapper. Requires
+     * that Tracer has been initialized with lvl >0.
+     *
+     * @param taskId    ID of the event
+     * @param eventType type of the event.
+     */
     public static void emitEventAndCounters(int taskId, int eventType) {
         synchronized (Tracer.class) {
             Wrapper.Eventandcounters(eventType, taskId);
@@ -343,6 +425,10 @@ public abstract class Tracer {
 
     }
 
+    /**
+     * End the extrae tracing system. Finishes master's tracing, generates both master and worker's
+     * packages, merges the packages, and clean the intermediate traces.
+     */
     public static void fini() {
         if (DEBUG) {
             LOGGER.debug("Tracing: finalizing");
@@ -363,6 +449,11 @@ public abstract class Tracer {
 
     }
 
+    /**
+     * Returns how many events of a given type exist.
+     * @param type of the events
+     * @return how many events does that type of event contains.
+     */
     private static int getSizeByEventType(int type) {
         int size = 0;
         for (Event task : Event.values()) {
@@ -373,6 +464,10 @@ public abstract class Tracer {
         return size;
     }
 
+    /**
+     * Iterates over all the tracing events and sets them in the Wrapper to generate the config.
+     * for the tracefile.
+     */
     private static void defineEvents() {
         Map<String, Integer> signatureToId = CoreManager.getSignaturesToId();
         if (DEBUG) {
@@ -510,6 +605,9 @@ public abstract class Tracer {
         Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
     }
 
+    /**
+     * Generate the tracing package for the master.
+     */
     private static void generateMasterPackage() {
         if (DEBUG) {
             LOGGER.debug("Tracing: generating master package");
@@ -543,6 +641,10 @@ public abstract class Tracer {
         }
     }
 
+    /**
+     * Copy the tracing master package from the working directory. Node packages are transferred
+     * on NIOTracer of GATTracer.
+     */
     private static void transferMasterPackage() {
         if (DEBUG) {
             LOGGER.debug("Tracing: Transferring master package");
@@ -584,6 +686,9 @@ public abstract class Tracer {
         }
     }
 
+    /**
+     * Generate the final extrae tracefile with all transferred packages.
+     */
     private static void generateTrace() {
         if (DEBUG) {
             LOGGER.debug("Tracing: Generating trace");
@@ -626,6 +731,9 @@ public abstract class Tracer {
         }
     }
 
+    /**
+     * Removing the tracing temporal packages.
+     */
     private static void cleanMasterPackage() {
         String filename = DataLocation.Protocol.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
 

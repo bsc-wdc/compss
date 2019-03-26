@@ -40,7 +40,7 @@ DEFAULT_CONNECTIVITY_CHECK = True
 DEFAULT_USER_NAME = str(getpass.getuser())
 
 # Matches the same key as dest in arguments parsers
-DEFAULT_PROJECT = {'exec_time': '5',  # 5 minute
+DEFAULT_PROJECT = {'exec_time': 5,  # 5 minute
                    'job_name': 'Jupyter',
                    'num_nodes': 2,
                    'qos': 'debug',

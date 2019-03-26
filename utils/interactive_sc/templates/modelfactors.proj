@@ -6,7 +6,7 @@
 notebook_path=/home/bsc19/bsc19234/JUPYTER/modelfactors
 
 # Job parameters
-exec_time=10
+exec_time=30
 job_name=model_factors
 num_nodes=1
 qos=debug

@@ -7,9 +7,11 @@ import os
 import sys
 from commons import VERBOSE
 from commons import SUCCESS_KEYWORD
+from commons import ERROR_KEYWORD
 from commons import NOT_RUNNING_KEYWORD
-from commons import command_runner
 from commons import setup_supercomputer_configuration
+from commons import update_command
+from commons import command_runner
 from commons import is_notebook_job
 from commons import not_a_notebook
 
@@ -28,22 +30,22 @@ def info():
     if VERBOSE:
         print(" - Job: " + str(job_id))
 
-    # Since we need to export the job_id in the environment before loading the
-    # supercomputer configuration (so that it can take it to build properly the
-    # commands), we build the include dictionary:
-    include = dict()
-    include['job_id'] = str(job_id)
-
     # Load the Supercomputer configuration to get the appropriate status command
-    setup_supercomputer_configuration(include)
+    setup_supercomputer_configuration()
 
     # Check if the job_id belongs to a notebook before continuing
     if not is_notebook_job(job_id):
         not_a_notebook(job_id)
 
-    # Get the master node:
-    nodes_command = os.environ['QUEUE_JOB_NODES_CMD'].split()
-    _, nodes, _ = command_runner(nodes_command)
+    # Get the list of nodes
+    raw_nodes_command = os.environ['QUEUE_JOB_NODES_CMD']
+    nodes_command = update_command(raw_nodes_command, job_id)
+    return_code, nodes, _ = command_runner(nodes_command)
+    if return_code != 0:
+        print(ERROR_KEYWORD)
+        return
+
+    # Look for the master node
     if nodes.strip():
         nodes_expansor = os.environ['HOSTLIST_CMD'] + ' ' + nodes
         _, expanded_nodes, _ = command_runner(nodes_expansor.split())
@@ -56,15 +58,18 @@ def info():
 
         # Get the command to contact with the node where the job is running
         server_list = os.environ['CONTACT_CMD'] + ' ' + master + " jupyter-notebook list"
-        _, jupyter_server_list, _ = command_runner(server_list.split())
+        return_code, jupyter_server_list, _ = command_runner(server_list.split())
 
         if VERBOSE:
             print("Finished checking the information.")
 
-        # Print to provide information to the client
-        print(SUCCESS_KEYWORD)  # Success message
-        print("MASTER:" + str(master))
-        print("SERVER: " + str(jupyter_server_list.replace('\n', ' ')))
+        # Print to notify the info result
+        if return_code != 0:
+            print(ERROR_KEYWORD)
+        else:
+            print(SUCCESS_KEYWORD)
+            print("MASTER:" + str(master))
+            print("SERVER: " + str(jupyter_server_list.replace('\n', ' ')))
     else:
         # Print to provide information to the client
         print(NOT_RUNNING_KEYWORD)  # The notebook is not ready yet

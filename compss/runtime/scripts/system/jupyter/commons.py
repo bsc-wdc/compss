@@ -59,7 +59,6 @@ def setup_supercomputer_configuration(include=None):
     QUEUE_JOB_NAME_CMD - which is used multiple times).
     :param include: Dictionary with environment variables to consider in the
                     environment so that the cfgs can complete their contents
-                    (e.g. job_id is needed for the command building variables).
     :return: None
     """
     if VERBOSE:
@@ -84,20 +83,30 @@ def is_notebook_job(job_id):
     """
     Checks if the given job id is running a PyCOMPSs notebook.
     To this end, checks the job name to see if it matches the JOB_NAME_KEYWORD.
-    CAUTION: To use this function, the setup_supercomputer_configuration must have
-             been performed.
     :param job_id: Job id to check
     :return: True if is a notebook. False on the contrary
     """
     name = get_job_name(job_id)
-    if verify_job_name(name.strip()):
+    if verify_job_name(name):
         if VERBOSE:
-            print("Found notebook id: " + job_id)
+            print("Found notebook id: " + str(job_id))
         return True
     else:
         if VERBOSE:
-            print("Job " + job_id + " is not a PyCOMPSs notebook job.")
+            print("Job " + str(job_id) + " is not a PyCOMPSs notebook job.")
         return False
+
+
+def update_command(command, job_id):
+    """
+    Updates the given command with the necessary job_id.
+    Does the replacement of %JOBID% with the job identifier
+    :param command: Command to update
+    :param job_id: Job identifier
+    :return: The updated command as list splitter by spaces
+    """
+    updated_command = command.replace('%JOBID%', str(job_id)).split()
+    return updated_command
 
 
 def get_job_name(job_id):
@@ -107,9 +116,9 @@ def get_job_name(job_id):
     :return: Job name
     """
     raw_job_name_command = os.environ['QUEUE_JOB_NAME_CMD']
-    job_name_command = raw_job_name_command.replace('JOBID', str(job_id)).split()
+    job_name_command = update_command(raw_job_name_command, str(job_id))
     _, name, _ = command_runner(job_name_command)
-    return name
+    return name.strip()
 
 
 def verify_job_name(name):
@@ -122,6 +131,29 @@ def verify_job_name(name):
         return True
     else:
         return False
+
+
+def get_job_status(job_id):
+    """
+    Retrieves the status for the given job identifier
+    :param job_id: Job identifier
+    :return: The status as string, the return code
+    """
+    # Get the command to check the status the job
+    raw_job_status_command = os.environ['QUEUE_JOB_STATUS_CMD']
+    job_status_command = update_command(raw_job_status_command, job_id)
+    # Check the status of the job
+    return_code, stdout, stderr = command_runner(job_status_command, exception=False)
+    # Get the Running tag and check if matches
+    running_tag = os.environ['QUEUE_JOB_RUNNING_TAG']
+    # Print to provide status to the client
+    if return_code != 0:
+        job_status = "CHECK FAILED"
+    elif stdout.strip() == running_tag:
+        job_status = "RUNNING"
+    else:
+        job_status = str(stdout).strip()
+    return job_status, return_code
 
 
 def not_a_notebook(job_id):
@@ -144,8 +176,7 @@ def _export_environment_variables(env_file, include=None):
     the sourced configuration files can take them as inputs (e.g. job_id).
     :param env_file: File with the environment variables
     :param include: Dictionary with environment variables to consider in the
-                    environment so that the cfgs can complete their contents
-                    (e.g. job_id is needed for the command building variables).
+                    environment so that the cfgs can complete their contents.
     :return: None
     """
     if include:

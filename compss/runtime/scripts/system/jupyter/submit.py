@@ -7,6 +7,7 @@ import os
 import sys
 from commons import VERBOSE
 from commons import SUCCESS_KEYWORD
+from commons import ERROR_KEYWORD
 from commons import JOB_NAME_KEYWORD
 from commons import DISABLED_VALUE
 from commons import command_runner
@@ -122,8 +123,11 @@ def submit():
         print(stderr)
         print("Finished submitting job.")
 
-    # Print to notify that the submission has finished without errors
-    print(SUCCESS_KEYWORD)  # Success message
+    # Print to notify the submission result
+    if return_code != 0:
+        print(ERROR_KEYWORD)
+    else:
+        print(SUCCESS_KEYWORD)
 
 
 if __name__ == '__main__':

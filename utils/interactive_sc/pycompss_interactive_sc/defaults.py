@@ -68,6 +68,16 @@ DEFAULT_SSHPASS = 'sshpass -e ' + DEFAULT_SSH
 DEFAULT_SSH_WINDOWS = 'plink -batch'
 
 # --------------------------------------------------
+# SCRIPT VARIABLES
+# --------------------------------------------------
+CONNECTION_URL = "http://localhost:8888/?token="
+
+# --------------------------------------------------
+# INFO CONSTANTS DECLARATION
+# --------------------------------------------------
+INFO_CONNECTION_ESTABLISHED = "Connection established. Please use the following URL to connect to the job."
+
+# --------------------------------------------------
 # WARNING CONSTANTS DECLARATION
 # --------------------------------------------------
 WARNING_USER_NAME_NOT_PROVIDED = "Username not provided. Using: " + DEFAULT_USER_NAME

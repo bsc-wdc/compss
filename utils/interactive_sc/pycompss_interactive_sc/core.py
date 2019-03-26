@@ -33,6 +33,10 @@ from pycompss_interactive_sc.defaults import DEFAULT_SSH
 from pycompss_interactive_sc.defaults import DEFAULT_SSHPASS
 from pycompss_interactive_sc.defaults import DEFAULT_SSH_WINDOWS
 
+from pycompss_interactive_sc.defaults import CONNECTION_URL
+
+from pycompss_interactive_sc.defaults import INFO_CONNECTION_ESTABLISHED
+
 from pycompss_interactive_sc.defaults import WARNING_USER_NAME_NOT_PROVIDED
 from pycompss_interactive_sc.defaults import WARNING_NOTEBOOK_NOT_RUNNING
 from pycompss_interactive_sc.defaults import WARNING_NO_BROWSER
@@ -676,22 +680,24 @@ def _connect_job(scripts_path, arguments):
     if no_web_browser:
         if VERBOSE:
             print("Disabled web browser opening")
-        print("Connection established. Please use the following URL to connect to the job.")
-        print("\t http://localhost:8888/?token=" + token)
+        print(INFO_CONNECTION_ESTABLISHED)
+        print(CONNECTION_URL + token)
     else:
-        if VERBOSE:
-            print("Opening the browser: " + arguments.web_browser)
+        print("Opening the " + arguments.web_browser + " browser with the connection URL.")
         if is_windows():
             cmd = ['cmd', '/c', 'start', arguments.web_browser]
         else:
             cmd = [arguments.web_browser]
-        cmd = cmd + ["http://localhost:8888/?token=" + token]
+        cmd = cmd + [CONNECTION_URL + token]
         return_code, stdout, stderr = _command_runner(cmd, remote=False)
         if return_code != 0:
             message = ERROR_BROWSER + '\n\n' \
                       + "Alternatively, please use the following URL to connect to the job.\n" \
-                      + "\t http://localhost:8888/?token=" + token
+                      + CONNECTION_URL + token
             display_error(message, return_code, stdout, stderr)
+        else:
+            print(INFO_CONNECTION_ESTABLISHED)
+            print(CONNECTION_URL + token)
     if VERBOSE:
         print("Connected to job")
 

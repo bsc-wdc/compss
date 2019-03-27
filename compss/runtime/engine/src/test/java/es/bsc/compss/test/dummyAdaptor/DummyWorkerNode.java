@@ -33,6 +33,7 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
@@ -45,7 +46,6 @@ import es.bsc.compss.types.uri.SimpleURI;
 public class DummyWorkerNode extends COMPSsWorker {
 
     private final String name;
-
 
     /**
      * New DummyWorker node with name @name and configuration @config
@@ -143,10 +143,10 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void increaseComputingCapabilities(ResourceDescription description) {
     }
 
     @Override
-    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void reduceComputingCapabilities(ResourceDescription description) {
     }
 }

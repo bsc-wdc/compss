@@ -41,8 +41,10 @@ public abstract class Command implements Externalizable {
         GEN_WORKERS_INFO_DONE, // Notification of the end of worker debug log files generation
         STOP_EXECUTOR, // Tell the worker to stop the execution manager
         STOP_EXECUTOR_ACK, // Notify that the execution manager is stopped
-        INCREASE_RESOURCES, // Notifies the worker that new resources are available
-        REDUCE_RESOURCES // Notifies the worker that some resources are no longer available
+        RESOURCES_INCREASE, // Notifies the worker that new resources are available
+        RESOURCES_INCREASED, // Notifies the master that new resources are ready
+        RESOURCES_REDUCE, // Notifies the worker that some resources are no longer available
+        RESOURCES_REDUCED // Notifies the master that the resources have been released
     }
 
 

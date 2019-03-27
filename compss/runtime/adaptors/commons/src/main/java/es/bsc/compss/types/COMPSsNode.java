@@ -30,6 +30,7 @@ import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 
@@ -50,7 +51,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     protected static final String DELETE_ERR = "Error deleting intermediate files";
     protected static final String URI_CREATION_ERR = "Error creating new URI";
-
 
     /**
      * Creates a new node
@@ -77,6 +77,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * Sets the internal URI of the given URIs
      *
      * @param u
+     *
      * @throws UnstartedNodeException
      */
     public abstract void setInternalURI(MultiURI u) throws UnstartedNodeException;
@@ -90,6 +91,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @param res
      * @param slaveWorkersNodeNames
      * @param listener
+     *
      * @return
      */
     public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res,
@@ -133,6 +135,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      *
      * @param type
      * @param name
+     *
      * @return
      */
     public abstract SimpleURI getCompletePath(DataType type, String name);
@@ -170,12 +173,11 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof COMPSsNode) || obj == null) {
-            return false;
+        if (obj != null && (obj instanceof COMPSsNode)) {
+            COMPSsNode host = (COMPSsNode) obj;
+            return getName().equals(host.getName());
         }
-
-        COMPSsNode host = (COMPSsNode) obj;
-        return getName().equals(host.getName());
+        return false;
     }
 
     @Override
@@ -183,8 +185,8 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
         return getName().hashCode();
     }
 
-    public abstract void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount);
+    public abstract void increaseComputingCapabilities(ResourceDescription description);
 
-    public abstract void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount);
+    public abstract void reduceComputingCapabilities(ResourceDescription description);
 
 }

@@ -41,6 +41,7 @@ import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.utils.NIOBindingDataManager;
 import es.bsc.compss.nio.utils.NIOBindingObjectStream;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
@@ -105,7 +106,6 @@ public abstract class NIOAgent {
     protected static int tracingID = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected static HashMap<Connection, Integer> connection2Partner;
 
-
     /**
      * Constructor
      *
@@ -156,6 +156,7 @@ public abstract class NIOAgent {
      * Returns DataRequests of a given dataId
      *
      * @param dataId
+     *
      * @return
      */
     protected List<DataRequest> getDataRequests(String dataId) {
@@ -451,12 +452,14 @@ public abstract class NIOAgent {
                             + " because error serializing binding object.");
                     handleDataToSendNotAvailable(c, d);
                 }
-            } else if (f.exists()) {
-                sendFile(c, bo.getId(), d);
             } else {
-                ErrorManager.warn("Can't send binding data '" + bo.getId() + "' via connection " + c.hashCode()
-                        + " because file doesn't exists.");
-                handleDataToSendNotAvailable(c, d);
+                if (f.exists()) {
+                    sendFile(c, bo.getId(), d);
+                } else {
+                    ErrorManager.warn("Can't send binding data '" + bo.getId() + "' via connection " + c.hashCode()
+                            + " because file doesn't exists.");
+                    handleDataToSendNotAvailable(c, d);
+                }
             }
 
         } else {
@@ -524,16 +527,18 @@ public abstract class NIOAgent {
                 }
                 receivedValue(t.getDestination(), targetName, t.getObject(), requests);
 
-            } else if (t.isByteBuffer()) {
-                BindingObject bo = getTargetBindingObject(targetName,
-                        requests.get(0).getSource().getFirstURI().getPath());
-                NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
-                receivedValue(t.getDestination(), targetName, bo.toString(), requests);
             } else {
-                // Object already store in the cache
-                BindingObject bo = getTargetBindingObject(targetName,
-                        requests.get(0).getSource().getFirstURI().getPath());
-                receivedValue(t.getDestination(), targetName, bo.toString(), requests);
+                if (t.isByteBuffer()) {
+                    BindingObject bo = getTargetBindingObject(targetName,
+                            requests.get(0).getSource().getFirstURI().getPath());
+                    NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
+                    receivedValue(t.getDestination(), targetName, bo.toString(), requests);
+                } else {
+                    // Object already store in the cache
+                    BindingObject bo = getTargetBindingObject(targetName,
+                            requests.get(0).getSource().getFirstURI().getPath());
+                    receivedValue(t.getDestination(), targetName, bo.toString(), requests);
+                }
             }
         } else {
             String workingDir = getWorkingDir();
@@ -558,27 +563,31 @@ public abstract class NIOAgent {
                     reqs = byTarget.remove(t.getFileName());
                 }
                 receivedValue(t.getDestination(), t.getFileName(), t.getObject(), reqs);
-            } else if (t.isObject()) {
-                if (DEBUG) {
-                    LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + dataId);
-                }
-                receivedValue(t.getDestination(), dataId, t.getObject(), byTarget.remove(dataId));
-            } else if (t.isByteBuffer()) {
-                BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
-                if (DEBUG) {
-                    LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
-                            + " will be saved as name " + dataId);
-                }
-                NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
-                receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
             } else {
-                BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
-                if (DEBUG) {
-                    LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
-                            + "will be saved as name " + dataId);
-                }
+                if (t.isObject()) {
+                    if (DEBUG) {
+                        LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + dataId);
+                    }
+                    receivedValue(t.getDestination(), dataId, t.getObject(), byTarget.remove(dataId));
+                } else {
+                    if (t.isByteBuffer()) {
+                        BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
+                        if (DEBUG) {
+                            LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
+                                    + " will be saved as name " + dataId);
+                        }
+                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
+                        receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
+                    } else {
+                        BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
+                        if (DEBUG) {
+                            LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
+                                    + "will be saved as name " + dataId);
+                        }
 
-                receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
+                        receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
+                    }
+                }
             }
             // Then, replicate value with target data_id/filename (INOUT case) and notify reception with target
             // data_id/filename
@@ -602,13 +611,15 @@ public abstract class NIOAgent {
                             receivedValue(t.getDestination(), targetName, t.getObject(), byTarget.remove(targetName));
                         }
 
-                    } else if (t.isObject()) {
-                        Object o = Serializer.deserialize(t.getArray());
-                        receivedValue(t.getDestination(), targetName, o, reqs);
                     } else {
-                        BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
-                        NIOBindingDataManager.copyCachedData(dataId, bo.getName());
-                        receivedValue(t.getDestination(), bo.getName(), bo.toString(), byTarget.remove(targetName));
+                        if (t.isObject()) {
+                            Object o = Serializer.deserialize(t.getArray());
+                            receivedValue(t.getDestination(), targetName, o, reqs);
+                        } else {
+                            BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
+                            NIOBindingDataManager.copyCachedData(dataId, bo.getName());
+                            receivedValue(t.getDestination(), bo.getName(), bo.toString(), byTarget.remove(targetName));
+                        }
                     }
                 } catch (IOException | ClassNotFoundException e) {
                     LOGGER.warn("Can not replicate received Data", e);
@@ -689,6 +700,7 @@ public abstract class NIOAgent {
      * Check if there is a transfer slot available
      *
      * @param c
+     *
      * @return
      */
     public boolean tryAcquireSendSlot(Connection c) {
@@ -831,8 +843,10 @@ public abstract class NIOAgent {
 
     }
 
-    public abstract void increaseResources();
+    public abstract void increaseResources(MethodResourceDescription description);
 
-    public abstract void reduceResources();
+    public abstract void reduceResources(MethodResourceDescription description);
+
+    public abstract void performedResourceUpdate(Connection c);
 
 }

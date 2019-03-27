@@ -34,6 +34,7 @@ import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -44,7 +45,6 @@ import es.bsc.compss.ws.master.configuration.WSConfiguration;
 public class ServiceInstance extends COMPSsWorker {
 
     private WSConfiguration config;
-
 
     public ServiceInstance(String name, WSConfiguration config) {
         super(name, config);
@@ -208,13 +208,13 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void increaseComputingCapabilities(ResourceDescription description) {
         // Does not apply.
         // The computing capabilities of a service is not controlled by the service user
     }
 
     @Override
-    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void reduceComputingCapabilities(ResourceDescription description) {
         // Does not apply.
         // The computing capabilities of a service is not controlled by the service user
     }

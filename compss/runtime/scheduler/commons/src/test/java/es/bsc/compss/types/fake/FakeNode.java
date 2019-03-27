@@ -33,6 +33,7 @@ import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.resources.ResourceDescription;
 
 
 public class FakeNode extends COMPSsNode {
@@ -98,11 +99,11 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void increaseComputingCapabilities(ResourceDescription description) {
     }
 
     @Override
-    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void reduceComputingCapabilities(ResourceDescription description) {
     }
 
 }

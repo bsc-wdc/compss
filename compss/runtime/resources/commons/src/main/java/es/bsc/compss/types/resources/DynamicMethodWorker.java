@@ -32,7 +32,6 @@ public class DynamicMethodWorker extends MethodWorker {
     private final LinkedList<PendingReduction<MethodResourceDescription>> pendingReductions;
     private final MethodResourceDescription toRemove;
 
-
     public DynamicMethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker,
             int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
             Map<String, String> sharedDisks) {
@@ -80,7 +79,7 @@ public class DynamicMethodWorker extends MethodWorker {
         int GPUCount = increment.getTotalGPUComputingUnits();
         int FPGACount = increment.getTotalFPGAComputingUnits();
         int otherCount = increment.getTotalOTHERComputingUnits();
-        this.getNode().increaseComputingCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
+        this.getNode().increaseComputingCapabilities(increment);
         synchronized (available) {
             available.increase(increment);
         }
@@ -145,7 +144,7 @@ public class DynamicMethodWorker extends MethodWorker {
         int GPUCount = reduction.getTotalGPUComputingUnits();
         int FPGACount = reduction.getTotalFPGAComputingUnits();
         int otherCount = reduction.getTotalOTHERComputingUnits();
-        this.getNode().reduceComputingCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
+        this.getNode().reduceComputingCapabilities(reduction);
 
         synchronized (description) {
             this.getDescription().reduce(reduction);

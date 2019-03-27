@@ -38,6 +38,8 @@ import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 
 import org.gridlab.gat.GATContext;
 import org.gridlab.gat.URI;
@@ -62,7 +64,6 @@ public class GATWorkerNode extends COMPSsWorker {
 
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
-
 
     /**
      * New GAT Worker Node with name @name and configuration @config
@@ -410,13 +411,13 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void increaseComputingCapabilities(ResourceDescription description) {
         // Does not apply.
         // Workers are created with all the resources to run a task. After that the worker dies
     }
 
     @Override
-    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void reduceComputingCapabilities(ResourceDescription description) {
         // Does not apply.
         // Workers are created with all the resources to run a task. After that the worker dies
     }

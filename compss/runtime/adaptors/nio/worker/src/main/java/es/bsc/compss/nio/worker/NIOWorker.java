@@ -64,6 +64,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.data.DataManager.FetchDataListener;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class NIOWorker extends NIOAgent implements InvocationContext, DataProvider {
@@ -117,7 +118,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         boolean removeWDFlagDefined = removeWDFlag != null && !removeWDFlag.isEmpty();
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
     }
-
 
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
             int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap,
@@ -907,13 +907,26 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void increaseResources() {
-        executionManager.increaseCapabilities(0, 0, 0, 0);
+    public void increaseResources(MethodResourceDescription description) {
+        int cpuCount = description.getTotalCPUComputingUnits();
+        int GPUCount = description.getTotalGPUComputingUnits();
+        int FPGACount = description.getTotalFPGAComputingUnits();
+        int otherCount = description.getTotalOTHERComputingUnits();
+        executionManager.increaseCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
     }
 
     @Override
-    public void reduceResources() {
-        executionManager.reduceCapabilities(0, 0, 0, 0);
+    public void reduceResources(MethodResourceDescription description) {
+        int cpuCount = description.getTotalCPUComputingUnits();
+        int GPUCount = description.getTotalGPUComputingUnits();
+        int FPGACount = description.getTotalFPGAComputingUnits();
+        int otherCount = description.getTotalOTHERComputingUnits();
+        executionManager.reduceCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
+    }
+
+    @Override
+    public void performedResourceUpdate(Connection c) {
+        // Should never request a resourceModification
     }
 
 }

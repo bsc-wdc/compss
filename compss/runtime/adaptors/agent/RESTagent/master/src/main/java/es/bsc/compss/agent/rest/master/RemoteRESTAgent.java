@@ -35,6 +35,7 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -46,7 +47,6 @@ import org.glassfish.jersey.client.ClientConfig;
 import storage.StorageException;
 import storage.StorageItf;
 import storage.StubItf;
-
 
 
 /**
@@ -166,15 +166,17 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
         if (ld.getPscoId() != null) {
             orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
-        } else if (ld.isInMemory() && ld.getValue() instanceof StubItf) {
-            StubItf stub = (StubItf) ld.getValue();
-            stub.makePersistent(ld.getName());
-            String pscoId = stub.getID();
-            System.out.println("Object " + ld.getName() + " registered as " + pscoId);
-            ld.setPscoId(pscoId);
-            orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
-         } else {
-            listener.notifyFailure(new DeferredCopy(ld, source, target, tgtData, reason, listener), new Exception("Regular objects are not supported yet"));
+        } else {
+            if (ld.isInMemory() && ld.getValue() instanceof StubItf) {
+                StubItf stub = (StubItf) ld.getValue();
+                stub.makePersistent(ld.getName());
+                String pscoId = stub.getID();
+                System.out.println("Object " + ld.getName() + " registered as " + pscoId);
+                ld.setPscoId(pscoId);
+                orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
+            } else {
+                listener.notifyFailure(new DeferredCopy(ld, source, target, tgtData, reason, listener), new Exception("Regular objects are not supported yet"));
+            }
         }
     }
 
@@ -330,13 +332,13 @@ public class RemoteRESTAgent extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void increaseComputingCapabilities(ResourceDescription description) {
         // Do nothing its managed internally by the remote agent
     }
 
     @Override
-    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    public void reduceComputingCapabilities(ResourceDescription description) {
         // Do nothing its managed internally by the remote agent
     }
-    
+
 }

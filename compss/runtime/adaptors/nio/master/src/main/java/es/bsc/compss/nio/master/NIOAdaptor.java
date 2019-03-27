@@ -52,6 +52,7 @@ import es.bsc.compss.types.job.Job.JobHistory;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
@@ -93,8 +94,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final int MASTER_PORT_CALCULATED = BASE_MASTER_PORT + RANDOM_VALUE;
     private static final String MASTER_PORT_PROPERTY = System.getProperty(COMPSsConstants.MASTER_PORT);
     public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty())
-            ? Integer.valueOf(MASTER_PORT_PROPERTY)
-            : MASTER_PORT_CALCULATED;
+                                          ? Integer.valueOf(MASTER_PORT_PROPERTY)
+                                          : MASTER_PORT_CALCULATED;
 
     // Final jobs log directory
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + File.separator;
@@ -113,9 +114,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final Map<Connection, ClosingExecutor> STOPPING_EXECUTORS = new HashMap<>();
 
+    private static final Map<Connection, Semaphore> PENDING_MODIFICATIONS = new HashMap<>();
+
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
-
 
     /**
      * New NIOAdaptor instance
@@ -195,11 +197,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         int min_final = -1;
         if (min_project < 0) {
             min_final = min_resources;
-        } else if (min_project < min_resources) {
-            LOGGER.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
-            min_final = min_resources;
         } else {
-            min_final = min_project;
+            if (min_project < min_resources) {
+                LOGGER.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
+                min_final = min_resources;
+            } else {
+                min_final = min_project;
+            }
         }
 
         int max_final = -1;
@@ -211,13 +215,17 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
                 max_final = max_resources;
             }
-        } else if (max_resources < 0) {
-            max_final = max_project;
-        } else if (max_project < max_resources) {
-            max_final = max_project;
         } else {
-            LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
-            max_final = max_resources;
+            if (max_resources < 0) {
+                max_final = max_project;
+            } else {
+                if (max_project < max_resources) {
+                    max_final = max_project;
+                } else {
+                    LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+                    max_final = max_resources;
+                }
+            }
         }
 
         LOGGER.info("NIO Min Port: " + min_final);
@@ -679,13 +687,26 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void increaseResources() {
+    public void increaseResources(MethodResourceDescription description) {
         // Should never receive this message. Ignore
     }
 
     @Override
-    public void reduceResources() {
+    public void reduceResources(MethodResourceDescription description) {
         // Should never receive this message. Ignore
+    }
+
+    @Override
+    public void performedResourceUpdate(Connection c) {
+        c.finishConnection();
+        Semaphore sem = PENDING_MODIFICATIONS.get(c);
+        if (sem != null) {
+            sem.release();
+        }
+    }
+
+    public void registerPendingResourceUpdateConfirmation(Connection c, Semaphore sem) {
+        PENDING_MODIFICATIONS.put(c, sem);
     }
 
 
@@ -694,23 +715,21 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
-
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             worker = w;
             listener = l;
         }
     }
 
+
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
-
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
         }
     }
-
 
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {

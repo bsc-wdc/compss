@@ -27,8 +27,8 @@ import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOURI;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
-import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandResourcesReduce;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.NIOData;
@@ -58,11 +58,14 @@ import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,7 +83,6 @@ public class NIOWorkerNode extends COMPSsWorker {
     private final NIOAdaptor commManager;
     private boolean started = false;
     private WorkerStarter workerStarter;
-
 
     @Override
     public String getName() {
@@ -569,18 +571,32 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        CommandResourcesIncrease cmd = new CommandResourcesIncrease();
+    public void increaseComputingCapabilities(ResourceDescription description) {
+        Semaphore sem = new Semaphore(0);
+        CommandResourcesIncrease cmd = new CommandResourcesIncrease((MethodResourceDescription) description);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
+        commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);
-        c.finishConnection();
+        c.receive();
+        try {
+            sem.acquire();
+        } catch (InterruptedException ie) {
+            //Do nothing
+        }
     }
 
     @Override
-    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        CommandResourcesReduce cmd = new CommandResourcesReduce();
+    public void reduceComputingCapabilities(ResourceDescription description) {
+        Semaphore sem = new Semaphore(0);
+        CommandResourcesReduce cmd = new CommandResourcesReduce((MethodResourceDescription) description);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
+        commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);
-        c.finishConnection();
+        c.receive();
+        try {
+            sem.acquire();
+        } catch (InterruptedException ie) {
+            //Do nothing
+        }
     }
 }

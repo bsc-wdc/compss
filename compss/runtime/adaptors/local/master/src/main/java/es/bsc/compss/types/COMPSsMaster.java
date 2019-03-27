@@ -50,6 +50,8 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.BindingDataManager;
@@ -103,7 +105,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream out;
     private final ThreadedPrintStream err;
     private boolean started = false;
-
 
     /**
      * New COMPSs Master
@@ -309,8 +310,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             for (File f : files) {
                 if (f.isDirectory()) {
                     deleteDirectory(f);
-                } else if (!f.delete()) {
-                    return false;
+                } else {
+                    if (!f.delete()) {
+                        return false;
+                    }
                 }
             }
         }
@@ -389,7 +392,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                         if (ld.getName().equals(tgtBO.getName())) {
                             LOGGER.debug(
                                     "Current transfer is the same as expected. Nothing to do setting data target to "
-                                            + copy.getFinalTarget());
+                                    + copy.getFinalTarget());
                             reason.setDataTarget(copy.getFinalTarget());
                         } else {
                             LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
@@ -404,38 +407,42 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                         ld.releaseHostRemoval();
                         return;
 
-                    } else if (copy.getTargetData() != null
-                            && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
-                        Copy.waitForCopyTofinish(copy, this);
-                        // try {
-                        if (DEBUG) {
-                            LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
-                                    + tgtBO.getName());
-                        }
-                        BindingObject bo = BindingObject.generate(copy.getFinalTarget());
-                        if (ld.getName().equals(tgtBO.getName())) {
-
-                            LOGGER.debug(
-                                    "Current transfer is the same as expected. Nothing to do setting data target to "
-                                            + bo.getName());
-                            reason.setDataTarget(copy.getFinalTarget());
-                        } else {
-                            LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
-                            BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                            if (tgtData != null) {
-                                tgtData.addLocation(target);
+                    } else {
+                        if (copy.getTargetData() != null
+                                && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
+                            Copy.waitForCopyTofinish(copy, this);
+                            // try {
+                            if (DEBUG) {
+                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
+                                        + tgtBO.getName());
                             }
-                            LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
-                            reason.setDataTarget(copy.getFinalTarget());
+                            BindingObject bo = BindingObject.generate(copy.getFinalTarget());
+                            if (ld.getName().equals(tgtBO.getName())) {
+
+                                LOGGER.debug(
+                                        "Current transfer is the same as expected. Nothing to do setting data target to "
+                                        + bo.getName());
+                                reason.setDataTarget(copy.getFinalTarget());
+                            } else {
+                                LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
+                                BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
+                                if (tgtData != null) {
+                                    tgtData.addLocation(target);
+                                }
+                                LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
+                                reason.setDataTarget(copy.getFinalTarget());
+                            }
+
+                            listener.notifyEnd(null);
+                            ld.releaseHostRemoval();
+                            return;
+
+                        } else {
+                            if (DEBUG) {
+                                LOGGER.debug("Current copies are not transfering " + ld.getName()
+                                        + " to master. Ignoring at this moment");
+                            }
                         }
-
-                        listener.notifyEnd(null);
-                        ld.releaseHostRemoval();
-                        return;
-
-                    } else if (DEBUG) {
-                        LOGGER.debug("Current copies are not transfering " + ld.getName()
-                                + " to master. Ignoring at this moment");
                     }
                 }
             }
@@ -474,9 +481,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 listener.notifyEnd(null);
                 ld.releaseHostRemoval();
                 return;
-            } else if (DEBUG) {
-                String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
-                LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
+            } else {
+                if (DEBUG) {
+                    String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                    LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
+                }
             }
 
         }
@@ -539,9 +548,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 LOGGER.debug("Data " + ld.getName() + " sent.");
                 ld.releaseHostRemoval();
                 return;
-            } else if (DEBUG) {
-                LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
-                        + " not evaluated now. Should have been evaluated before");
+            } else {
+                if (DEBUG) {
+                    LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
+                            + " not evaluated now. Should have been evaluated before");
+                }
             }
         }
     }
@@ -587,32 +598,36 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                     + " from master to " + targetPath + " with replacing", ex);
                         }
 
-                    } else if (copy.getTargetData() != null
-                            && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
-                        Copy.waitForCopyTofinish(copy, this);
-                        try {
-                            if (DEBUG) {
-                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
-                                        + " to " + targetPath);
-                            }
-                            Files.copy((new File(copy.getFinalTarget())).toPath(), new File(targetPath).toPath(),
-                                    StandardCopyOption.REPLACE_EXISTING);
-                            if (tgtData != null) {
-                                tgtData.addLocation(target);
-                            }
-                            LOGGER.debug("File copied. Set data target to " + targetPath);
-                            reason.setDataTarget(targetPath);
+                    } else {
+                        if (copy.getTargetData() != null
+                                && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
+                            Copy.waitForCopyTofinish(copy, this);
+                            try {
+                                if (DEBUG) {
+                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
+                                            + " to " + targetPath);
+                                }
+                                Files.copy((new File(copy.getFinalTarget())).toPath(), new File(targetPath).toPath(),
+                                        StandardCopyOption.REPLACE_EXISTING);
+                                if (tgtData != null) {
+                                    tgtData.addLocation(target);
+                                }
+                                LOGGER.debug("File copied. Set data target to " + targetPath);
+                                reason.setDataTarget(targetPath);
 
-                            listener.notifyEnd(null);
-                            ld.releaseHostRemoval();
-                            return;
-                        } catch (IOException ex) {
-                            ErrorManager.warn("Error master local copy from " + copy.getFinalTarget() + " to "
-                                    + targetPath + " with replacing", ex);
+                                listener.notifyEnd(null);
+                                ld.releaseHostRemoval();
+                                return;
+                            } catch (IOException ex) {
+                                ErrorManager.warn("Error master local copy from " + copy.getFinalTarget() + " to "
+                                        + targetPath + " with replacing", ex);
+                            }
+                        } else {
+                            if (DEBUG) {
+                                LOGGER.debug("Current copies are not transfering " + ld.getName()
+                                        + " to master. Ignoring at this moment");
+                            }
                         }
-                    } else if (DEBUG) {
-                        LOGGER.debug("Current copies are not transfering " + ld.getName()
-                                + " to master. Ignoring at this moment");
                     }
                 }
             }
@@ -656,9 +671,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     ErrorManager.warn("Error master local copy file from " + u.getPath() + " to " + targetPath
                             + " with replacing", ex);
                 }
-            } else if (DEBUG) {
-                String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
-                LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
+            } else {
+                if (DEBUG) {
+                    String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                    LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
+                }
             }
 
         }
@@ -717,9 +734,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 LOGGER.debug("Data " + ld.getName() + " sent.");
                 ld.releaseHostRemoval();
                 return;
-            } else if (DEBUG) {
-                LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
-                        + " not evaluated now. Should have been evaluated before");
+            } else {
+                if (DEBUG) {
+                    LOGGER.debug("Data " + ld.getName() + " copy in " + sourceRes.getName()
+                            + " not evaluated now. Should have been evaluated before");
+                }
             }
         }
 
@@ -1011,18 +1030,18 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     invParam.setValue(o);
                 }
             }
-                break;
+            break;
             case PSCO_T: {
                 String pscoId = (String) localParam.getValue();
                 Object o = StorageItf.getByID(pscoId);
                 invParam.setValue(o);
             }
-                break;
+            break;
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
                 throw new UnsupportedOperationException("Not supported yet.");
             default:
-                // Already contains the proper value on the param
+            // Already contains the proper value on the param
         }
     }
 
@@ -1073,12 +1092,22 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public void increaseComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        this.executionManager.increaseCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
+    public void increaseComputingCapabilities(ResourceDescription descr) {
+        MethodResourceDescription description = (MethodResourceDescription) descr;
+        int cpuCount = description.getTotalCPUComputingUnits();
+        int GPUCount = description.getTotalGPUComputingUnits();
+        int FPGACount = description.getTotalFPGAComputingUnits();
+        int otherCount = description.getTotalOTHERComputingUnits();
+        executionManager.increaseCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
     }
 
     @Override
-    public void reduceComputingCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
-        this.executionManager.reduceCapabilities(CPUCount, GPUCount, FPGACount, otherCount);
+    public void reduceComputingCapabilities(ResourceDescription descr) {
+        MethodResourceDescription description = (MethodResourceDescription) descr;
+        int cpuCount = description.getTotalCPUComputingUnits();
+        int GPUCount = description.getTotalGPUComputingUnits();
+        int FPGACount = description.getTotalFPGAComputingUnits();
+        int otherCount = description.getTotalOTHERComputingUnits();
+        executionManager.reduceCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
     }
 }

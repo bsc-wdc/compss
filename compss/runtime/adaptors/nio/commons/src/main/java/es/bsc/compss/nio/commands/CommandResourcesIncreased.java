@@ -16,53 +16,43 @@
  */
 package es.bsc.compss.nio.commands;
 
-import es.bsc.comm.Connection;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import es.bsc.comm.Connection;
 
-public class CommandResourcesReduce extends Command implements Externalizable {
 
-    private MethodResourceDescription description;
+public class CommandResourcesIncreased extends Command implements Externalizable {
 
-    public CommandResourcesReduce() {
+    public CommandResourcesIncreased() {
         super();
-    }
-
-    public CommandResourcesReduce(MethodResourceDescription description) {
-        super();
-        this.description = description;
     }
 
     @Override
     public CommandType getType() {
-        return CommandType.RESOURCES_REDUCE;
+        return CommandType.RESOURCES_INCREASED;
     }
 
     @Override
     public void handle(Connection c) {
-        agent.reduceResources(description);
-        c.sendCommand(new CommandResourcesReduced());
-        c.finishConnection();
+        agent.performedResourceUpdate(c);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        description = (MethodResourceDescription) in.readObject();
+
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(description);
+
     }
 
     @Override
     public String toString() {
-        return "CommandResourcesReduce " + description;
+        return "CommandResourcesIncreased";
     }
 
 }

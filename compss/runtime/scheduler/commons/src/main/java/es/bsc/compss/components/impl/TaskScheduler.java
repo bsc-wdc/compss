@@ -437,10 +437,11 @@ public class TaskScheduler {
         List<AllocatableAction> resourceFree = new LinkedList<>();
 
         List<AllocatableAction> dataFreeActions = new LinkedList<>();
-        ResourceScheduler<WorkerResourceDescription> resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
 
+        ResourceScheduler<WorkerResourceDescription> resource = (ResourceScheduler<WorkerResourceDescription>) action
+                .getAssignedResource();
         boolean failed = false;
-        
+
         // Process the action error (removes the assigned resource)
         try {
             action.error();
@@ -463,21 +464,21 @@ public class TaskScheduler {
             } else {
                 // Get the data free actions and mark them as ready
                 dataFreeActions = action.failed();
-                for (AllocatableAction dataFreeAction: dataFreeActions) {
+                for (AllocatableAction dataFreeAction : dataFreeActions) {
                     addToReady(dataFreeAction);
                 }
             }
         }
-        
+
         // We free the current task and get the free actions from the resource
         try {
             resourceFree.addAll(resource.unscheduleAction(action));
         } catch (ActionNotFoundException anfe) {
             // Once the action starts running should cannot be moved from the resource
         }
-        
+
         workerLoadUpdate(resource);
-        
+
         if (action.getOnFailure() == OnFailure.RETRY) {
             if (!failed) {
                 dataFreeActions.add(action);
@@ -489,9 +490,9 @@ public class TaskScheduler {
                  */
             }
         }
-        
+
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
-        
+
         if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS) {
             handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
             for (AllocatableAction aa : blockedCandidates) {

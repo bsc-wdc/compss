@@ -208,7 +208,7 @@ public class ExecutionAction extends AllocatableAction {
                 transferJobData(dp, listener);
             }
         }
-        
+
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof WAccessId) {
@@ -252,9 +252,9 @@ public class ExecutionAction extends AllocatableAction {
     public final void failedTransfers(int failedtransfers) {
         JOB_LOGGER.debug("Received a notification for the transfers for task " + task.getId() + " with state FAILED");
         ++transferErrors;
-        if (transferErrors < TRANSFER_CHANCES && task.getOnFail() == OnFailure.RETRY) {
-            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host " + getAssignedResource().getName() + " since "
-                    + failedtransfers + " transfers failed.");
+        if (transferErrors < TRANSFER_CHANCES && task.getOnFailure() == OnFailure.RETRY) {
+            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host "
+                    + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
             doInputTransfers();
         } else {
             ErrorManager.warn("Transfers for running task " + task.getId() + " on worker "
@@ -270,7 +270,7 @@ public class ExecutionAction extends AllocatableAction {
      */
     public final void doSubmit(int transferGroupId) {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + task.getId() + " with state DONE");
-        
+
         JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = submitJob(transferGroupId, listener);
 
@@ -311,9 +311,9 @@ public class ExecutionAction extends AllocatableAction {
 
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
-        
+
         ++executionErrors;
-        if (transferErrors + executionErrors < SUBMISSION_CHANCES && task.getOnFail() == OnFailure.RETRY) {
+        if (transferErrors + executionErrors < SUBMISSION_CHANCES && task.getOnFailure() == OnFailure.RETRY) {
             JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
@@ -322,8 +322,8 @@ public class ExecutionAction extends AllocatableAction {
             profile.start();
             JobDispatcher.dispatch(job);
         } else {
-            if (task.getOnFail() != OnFailure.RETRY) {
-                //Delete versions that can not be sent
+            if (task.getOnFailure() != OnFailure.RETRY) {
+                // Delete versions that can not be sent
                 doOutputTransfers(job);
             }
             notifyError();
@@ -447,8 +447,8 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doError() throws FailedActionException {
-        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES || task.getOnFail() == OnFailure.FAIL || task.getOnFail() == OnFailure.CANCEL_SUCCESSORS || task.getOnFail() == OnFailure.IGNORE ) {
-            if (task.getOnFail() == OnFailure.RETRY) {
+        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES || task.getOnFailure() != OnFailure.RETRY) {
+            if (task.getOnFailure() == OnFailure.RETRY) {
                 LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
                 ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             } else {
@@ -499,7 +499,7 @@ public class ExecutionAction extends AllocatableAction {
         task.setStatus(TaskState.FAILED);
         producer.notifyTaskEnd(task);
     }
-    
+
     @Override
     protected void doCanceled() {
         // Failed message
@@ -511,7 +511,7 @@ public class ExecutionAction extends AllocatableAction {
         task.setStatus(TaskState.CANCELED);
         producer.notifyTaskEnd(task);
     }
-    
+
     @Override
     protected void doFailIgnored() {
         // Failed message
@@ -528,10 +528,10 @@ public class ExecutionAction extends AllocatableAction {
         task.setStatus(TaskState.FINISHED);
         producer.notifyTaskEnd(task);
     }
-    
+
     @Override
     protected void doDirectFail() {
-        
+
         TaskMonitor monitor = task.getTaskMonitor();
         monitor.onFailedExecution();
 
@@ -583,12 +583,12 @@ public class ExecutionAction extends AllocatableAction {
     public final int getPriority() {
         return task.getTaskDescription().hasPriority() ? 1 : 0;
     }
-    
+
     @Override
     public OnFailure getOnFailure() {
-        return task.getOnFail();
+        return task.getOnFailure();
     }
-    
+
     @Override
     public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {

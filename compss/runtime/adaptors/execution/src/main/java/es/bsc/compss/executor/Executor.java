@@ -205,31 +205,44 @@ public class Executor implements Runnable {
             InvocationResources assignedResources = platform.acquireResources(invocation.getJobId(),
                     invocation.getRequirements());
             long cubDuration = System.currentTimeMillis() - startCUB;
+            
+            long execDuration = 0;
+            
+            try {
+                // Execute task
+                LOGGER.debug("Executing Task of Job " + invocation.getJobId());
+                long startExec = System.currentTimeMillis();
+                executeTask(assignedResources, invocation, twd.getWorkingDir());
+                execDuration = System.currentTimeMillis() - startExec;
 
-            // Execute task
-            LOGGER.debug("Executing Task of Job " + invocation.getJobId());
-            long startExec = System.currentTimeMillis();
-            executeTask(assignedResources, invocation, twd.getWorkingDir());
-            long execDuration = System.currentTimeMillis() - startExec;
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+                // Writing in the task .err/.out
+                context.getThreadOutStream().println("Exception executing task " + e.getMessage());
+                e.printStackTrace(context.getThreadErrStream());
+                
+                createEmptyFile(invocation);
+                throw e;
+            } finally {
+                // Unbind files from task sandbox working dir
+                LOGGER.debug("Removing renamed files to sandboxed original names for Job " + invocation.getJobId());
+                long startOrig = System.currentTimeMillis();
+                unbindOriginalFileNamesToRenames(invocation);
+                long origFileDuration = System.currentTimeMillis() - startOrig;
+    
+                // Check job output files
+                LOGGER.debug("Checking generated files for Job " + invocation.getJobId());
+                long startCheckResults = System.currentTimeMillis();
+                checkJobFiles(invocation);
+                long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
 
-            // Unbind files from task sandbox working dir
-            LOGGER.debug("Removing renamed files to sandboxed original names for Job " + invocation.getJobId());
-            long startOrig = System.currentTimeMillis();
-            unbindOriginalFileNamesToRenames(invocation);
-            long origFileDuration = System.currentTimeMillis() - startOrig;
+                LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration + " bindCU: " + cubDuration
+                        + " execution" + execDuration + " restoreSimLinks: " + origFileDuration + " checkResults: " + checkResultsDuration);
 
-            // Check job output files
-            LOGGER.debug("Checking generated files for Job " + invocation.getJobId());
-            long startCheckResults = System.currentTimeMillis();
-            checkJobFiles(invocation);
-            long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
-
-            LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration + " bindCU: "
-                    + cubDuration + " execution" + execDuration + " restoreSimLinks: " + origFileDuration
-                    + " checkResults: " + checkResultsDuration);
-
-            // Return
+               
+            }
             return true;
+
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             // Writing in the task .err/.out
@@ -528,11 +541,6 @@ public class Executor implements Runnable {
                             .append(invocation.getMethodImplementation().getMethodDefinition());
                     System.out.println(errMsg.toString());
                     System.err.println(errMsg.toString());
-                    try {
-                        f.createNewFile();
-                    } catch (IOException e) {
-                        System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
-                    }
                     allOutFilesCreated = false;
                 }
             }
@@ -595,6 +603,25 @@ public class Executor implements Runnable {
                 out.println("[EXECUTOR] executeTask - End task execution");
             }
             context.unregisterOutputs();
+        }
+    }
+    
+    private void createEmptyFile(Invocation invocation) {
+        PrintStream out = context.getThreadOutStream();
+        for (InvocationParam param : invocation.getParams()) {
+            if (param.getType().equals(DataType.FILE_T)) {
+                String filepath = (String) param.getValue();
+                File f = new File(filepath);
+                // If using C binding we ignore potential errors
+                if (!f.exists()) {
+                    out.println("[EXECUTOR] executeTask - Creating a new blank file");
+                    try {
+                        f.createNewFile();
+                    } catch (IOException e) {
+                        System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
+                    }
+                }
+            }
         }
     }
 

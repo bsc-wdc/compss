@@ -331,7 +331,7 @@ public class TaskAnalyser {
         int taskId = task.getId();
         boolean isFree = task.isFree();
         TaskState taskState = task.getStatus();
-        OnFailure onFailure = task.getOnFail();
+        OnFailure onFailure = task.getOnFailure();
         LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
 
         // Check status
@@ -398,7 +398,7 @@ public class TaskAnalyser {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                if (task.getOnFail() == OnFailure.CANCEL_SUCCESSORS || task.getOnFail() == OnFailure.FAIL) {
+                if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
                     this.DIP.dataAccessHasBeenCanceled(dAccId);
                 } else {
                     this.DIP.dataHasBeenAccessed(dAccId);

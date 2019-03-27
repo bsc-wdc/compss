@@ -44,9 +44,11 @@ public abstract class DataInfo {
 
     protected int deletionBlocks;
     protected final LinkedList<DataVersion> pendingDeletions;
-    protected final  TreeMap<Integer, Boolean> canceledVersions;
-    
+    protected final LinkedList<Integer> canceledVersions;
+   
     protected Boolean canceled;
+
+
     public DataInfo() {
         this.dataId = nextDataId++;
         this.versions = new TreeMap<>();
@@ -56,7 +58,7 @@ public abstract class DataInfo {
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
-        this.canceledVersions = new TreeMap<>();
+        this.canceledVersions = new LinkedList<>();
         this.canceled = false;
     }
 
@@ -84,12 +86,16 @@ public abstract class DataInfo {
     }
 
     public void willBeRead() {
+        currentVersion.versionUsed();
         currentVersion.willBeRead();
-        canceledVersions.put(currentVersionId, false);
     }
 
     public boolean isToBeRead() {
         return currentVersion.hasPendingLectures();
+    }
+
+    public boolean hasBeenCanceled() {
+        return currentVersion.hasBeenUsed();
     }
 
     public boolean versionHasBeenRead(int versionId) {
@@ -109,8 +115,8 @@ public abstract class DataInfo {
         Comm.registerData(newVersion.getDataInstanceId().getRenaming());
         newVersion.willBeWritten();
         versions.put(currentVersionId, newVersion);
-        canceledVersions.put(currentVersionId, false);
         currentVersion = newVersion;
+        currentVersion.versionUsed();
     }
 
     public boolean versionHasBeenWritten(int versionId) {
@@ -165,29 +171,12 @@ public abstract class DataInfo {
         return false;
     }
 
-    public boolean isCurrentVersionToDelete(){
-        if (canceled) return getLastVersion(this.currentVersionId).isToDelete();
-    	return currentVersion.isToDelete();
+    public boolean isCurrentVersionToDelete() {
+        return currentVersion.isToDelete();
     }
 
     public DataVersion getFirstVersion() {
         return versions.get(1);
-    }
-    
-    public DataVersion getLastVersion(Integer versionId){
-        Boolean canceled = true;
-        while (canceled == true && versionId > 0) {
-            canceled = canceledVersions.get(versionId);
-            if (canceled) {
-                tryRemoveVersion(versionId);
-                canceledVersions.remove(versionId);
-                versionId = versionId - 1;
-            }
-        }
-        
-        currentVersionId = versionId;
-        currentVersion = versions.get(currentVersionId);
-        return versions.get(versionId);
     }
 
     public void tryRemoveVersion(Integer versionId) {
@@ -199,8 +188,17 @@ public abstract class DataInfo {
         }
 
     }
+
     public void canceledVersion(Integer versionId) {
-        canceledVersions.put(versionId, true);
-        canceled = true;
+        canceledVersions.add(versionId);
+        if (versionId == currentVersionId) {
+            Integer lastVersion = currentVersionId;
+            while (canceledVersions.contains(lastVersion)) {
+                tryRemoveVersion(lastVersion);
+                lastVersion = lastVersion - 1;
+            }
+            currentVersionId = lastVersion;
+            currentVersion = versions.get(currentVersionId);
+        } 
     }
 }

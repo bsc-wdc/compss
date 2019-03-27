@@ -391,7 +391,7 @@ public class Task implements Comparable<Task> {
         return taskMonitor;
     }
     
-    public OnFailure getOnFail() {
+    public OnFailure getOnFailure() {
         return onFailure;
     }
 

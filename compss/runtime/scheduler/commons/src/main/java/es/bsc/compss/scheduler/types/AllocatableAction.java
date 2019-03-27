@@ -29,6 +29,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -611,44 +612,57 @@ public abstract class AllocatableAction {
         // Triggering failure on Data Successors
         List<AllocatableAction> failed = new LinkedList<>();
 
-        switch(this.getOnFailure()) {
-            
+        switch (this.getOnFailure()) {
+
             case RETRY:
                 for (AllocatableAction succ : dataSuccessors) {
                     failed.addAll(succ.failed());
                 }
                 failed.add(this);
+
+                // Failure notification
+                doFailed();
+
                 break;
             case FAIL:
                 for (AllocatableAction succ : dataSuccessors) {
                     failed.addAll(succ.directFail());
                 }
-                failed.add(this);
+
+                // Failure notification
+                doFailed();
+
                 break;
             case CANCEL_SUCCESSORS:
-                for (AllocatableAction succ : dataSuccessors) {
+                List<AllocatableAction> successors = new LinkedList<>();
+                successors = ((List<AllocatableAction>) ((LinkedList) dataSuccessors).clone());
+                Collections.copy(successors, dataSuccessors);
+
+                // Failure notification
+                doFailed();
+
+                for (AllocatableAction succ : successors) {
                     failed.addAll(succ.canceled());
                 }
-                failed.add(this);
                 break;
             case IGNORE:
-             // Release data dependencies of the task
+                // Release data dependencies of the task of all the successors that need to be executed
                 for (AllocatableAction aa : dataSuccessors) {
                     aa.dataPredecessorDone(this);
                     if (!aa.hasDataPredecessors()) {
                         failed.add(aa);
                     }
-                } 
+                }
+
+                // Failure notification
+                doFailed();
+
                 break;
-            
         }
-        
+
         dataPredecessors.clear();
         dataSuccessors.clear();
-        
-        // Failure notification
-        doFailed();
-        
+
         return failed;
     }
 
@@ -660,33 +674,36 @@ public abstract class AllocatableAction {
     public final List<AllocatableAction> canceled() {
         // Mark as canceled
         this.state = State.CANCELED;
-        
+
         cancelAction();
 
+        List<AllocatableAction> actions = dataSuccessors;
+        actions = ((List) ((LinkedList) dataSuccessors).clone());
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
-        for (AllocatableAction succ : dataSuccessors) {
+
+        // Action notification
+        doCanceled();
+
+        for (AllocatableAction succ : actions) {
             cancel.addAll(succ.canceled());
         }
 
         dataPredecessors.clear();
         dataSuccessors.clear();
 
-        // Action notification
-        doCanceled();
-
         return cancel;
     }
-    
+
     /**
      * Operations to perform when a task has to fail without any resubmission
      *
      * @return
      */
     public final List<AllocatableAction> directFail() {
-     // Mark as canceled
+        // Mark as canceled
         this.state = State.FAILED;
-        
+
         cancelAction();
 
         // Triggering cancellation on Data Successors
@@ -728,7 +745,6 @@ public abstract class AllocatableAction {
         }
     }
 
-
     /**
      * Triggers the successful job completion notification
      */
@@ -749,24 +765,20 @@ public abstract class AllocatableAction {
     /**
 
      * Triggers the cancellation action notification
-     *
      */
     protected abstract void doCanceled();
-    
 
     /**
      * Triggers the ignored unsuccessful action
-     *
      */
 
     protected abstract void doFailIgnored();
-    
+
     /**
      * Triggers the unsuccessful action at first chance
-     *
      */
     protected abstract void doDirectFail();
-    
+
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT

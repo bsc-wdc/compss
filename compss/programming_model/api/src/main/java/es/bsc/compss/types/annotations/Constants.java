@@ -97,12 +97,6 @@ public class Constants {
      */
     public static final String PREFIX_SKIP = "#";
 
-    /**
-     * Retry on failure
-     */
-    public static final String FAILURE_RETRY = "RETRY";
-
-
     // Private constructor to avoid instantiation
     private Constants() {
         throw new UnsupportedOperationException();

@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class BinaryImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -32,11 +32,23 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
     private String workingDir;
 
 
+    /**
+     * Creates a new BinaryImplementation instance for serialization.
+     */
     public BinaryImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new BinaryImplementation from the given parameters.
+     * 
+     * @param binary Binary path.
+     * @param workingDir Working directory.
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param annot Method annotations.
+     */
     public BinaryImplementation(String binary, String workingDir, Integer coreId, Integer implementationId,
             MethodResourceDescription annot) {
 
@@ -46,10 +58,20 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
         this.workingDir = workingDir;
     }
 
+    /**
+     * Returns the binary path.
+     * 
+     * @return The binary path.
+     */
     public String getBinary() {
         return this.binary;
     }
 
+    /**
+     * Returns the binary working directory.
+     * 
+     * @return The binary working directory.
+     */
     public String getWorkingDir() {
         return this.workingDir;
     }

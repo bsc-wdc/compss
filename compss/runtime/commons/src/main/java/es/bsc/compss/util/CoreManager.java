@@ -42,7 +42,8 @@ public class CoreManager {
     // Constants definition
     private static final String ERROR_INVALID_SIGNATURE = "Invalid signature. Skipping addition";
     private static final String ERROR_UNREGISTERED_CORE_ELEMENT = "Unregistered CoreElement. Skipping addition of ";
-    private static final String ERROR_INVALID_IMPLS_SIGNS = "Attempting to register a different number of implementations and signatures. Skipping addition";
+    private static final String ERROR_INVALID_IMPLS_SIGNS = "Attempting to register a different number of "
+            + "implementations and signatures. Skipping addition";
     private static final String WARN_REGISTERED_CORE_ELEMENT = "Already registered CoreElement. Skipping addition of ";
     private static final String WARN_UNREGISTERED_IMPL = "Unregistered implementation. Skipping addition";
 
@@ -59,16 +60,16 @@ public class CoreManager {
 
 
     /**
-     * Private constructor to avoid instantiation
+     * Private constructor to avoid instantiation.
      */
     private CoreManager() {
         throw new NonInstantiableException("CoreManager");
     }
 
     /**
-     * Returns the number of registered CoreElements
+     * Returns the number of registered CoreElements.
      *
-     * @return
+     * @return The number of registered CoreElements.
      */
     public static int getCoreCount() {
         return coreCount;
@@ -77,8 +78,8 @@ public class CoreManager {
     /**
      * Registers or updates a Core Element according to the description passed in as a {@code ced} parameter.
      *
-     * @param ced Core Element Definition with its implementations
-     * @return coreId assigned to the registered Core Element
+     * @param ced Core Element Definition with its implementations.
+     * @return coreId Assigned to the registered Core Element.
      */
     public static Integer registerNewCoreElement(CoreElementDefinition ced) {
         String ceSignature = ced.getCeSignature();
@@ -129,10 +130,10 @@ public class CoreManager {
     }
 
     /**
-     * Registers a new Method as Core Element if it doesn't exist
+     * Registers a new Method as Core Element if it doesn't exist.
      *
-     * @param signature
-     * @return the methodId assigned to the new Core Element
+     * @param signature Method signature for the new Core Element.
+     * @return The methodId assigned to the new Core Element.
      */
     public static Integer registerNewCoreElement(String signature) {
         // Check that the signature is valid
@@ -159,6 +160,8 @@ public class CoreManager {
         Integer methodId = coreCount;
         // Increase the coreCount counter
         ++coreCount;
+        // Register the cross-reference
+        SIGNATURE_TO_CORE_ID.put(signature, methodId);
         // Register the coreElement
         List<Implementation> impls = new LinkedList<>();
         IMPLEMENTATIONS.add(impls);
@@ -166,19 +169,17 @@ public class CoreManager {
         List<String> signs = new LinkedList<>();
         signs.add(signature);
         SIGNATURES.add(signs);
-        // Register the cross-reference
-        SIGNATURE_TO_CORE_ID.put(signature, methodId);
 
         return methodId;
     }
 
     /**
-     * Registers a new Implementation for a given CoreElement The coreElement MUST have been previously registered The
-     * impls and signs must have the same size and are sorted
+     * Registers a new Implementation for a given CoreElement. The CoreElement MUST have been previously registered. The
+     * implementations {@code impls} and signatures {@code signs} must have the same size and must be equally sorted.
      *
-     * @param coreId
-     * @param impls
-     * @param signs
+     * @param coreId Core Id.
+     * @param impls List of implementations.
+     * @param signs List of signatures of each implementation.
      */
     public static void registerNewImplementations(int coreId, List<Implementation> impls, List<String> signs) {
         if (coreId < 0 || coreId >= coreCount) {
@@ -213,10 +214,11 @@ public class CoreManager {
     }
 
     /**
-     * Returns the CoreId associated to a registered signature The coreId MUST have been previously registered
+     * Returns the CoreId associated to a registered signature. If the requested signature has not been previously
+     * registered raises an ErrorManager ERROR and stops the execution.
      *
-     * @param signature
-     * @return
+     * @param signature Method signature.
+     * @return CoreId value.
      */
     public static Integer getCoreId(String signature) {
         // Check that the signature is valid
@@ -236,12 +238,12 @@ public class CoreManager {
     }
 
     /**
-     * Returns the signature of a given implementationId of a give coreElementId The coreId MUST have been previously
-     * registered The implId MUST have been previously registered
+     * Returns the signature of a given implementationId of a give coreElementId. If there is no {@code coreId} -
+     * {@code implId} registered, raises an ErrorManager WARN.
      *
-     * @param coreId
-     * @param implId
-     * @return
+     * @param coreId Core Id.
+     * @param implId Implementation Id.
+     * @return The signature of the requested CoreElement.
      */
     public static String getSignature(int coreId, int implId) {
         if (coreId < 0 || coreId >= coreCount) {
@@ -259,16 +261,16 @@ public class CoreManager {
     }
 
     /**
-     * Gets the map of registered signatures and coreIds
+     * Gets the map of registered signatures and coreIds.
      *
-     * @return the map of registered signatures and coreIds
+     * @return The map of registered signatures and coreIds.
      */
     public static Map<String, Integer> getSignaturesToId() {
         return SIGNATURE_TO_CORE_ID;
     }
 
     /**
-     * Clears the internal structures
+     * Clears the internal structures.
      */
     public static void clear() {
         IMPLEMENTATIONS.clear();
@@ -285,10 +287,10 @@ public class CoreManager {
      * *****************************************************************************************************
      */
     /**
-     * Returns all the implementations of a core Element
+     * Returns all the implementations of a CoreElement.
      *
-     * @param coreId
-     * @return the implementations for a Core Element
+     * @param coreId Core Id.
+     * @return The implementations for a CoreElement.
      */
     public static List<Implementation> getCoreImplementations(int coreId) {
         if (coreId < 0 || coreId >= coreCount) {
@@ -300,10 +302,10 @@ public class CoreManager {
     }
 
     /**
-     * Returns the number of implementations of a Core Element
+     * Returns the number of implementations of a CoreElement.
      *
-     * @param coreId
-     * @return the number of implementations of a Core Element
+     * @param coreId Core Id.
+     * @return the number of implementations of a CoreElement.
      */
     public static int getNumberCoreImplementations(int coreId) {
         if (coreId < 0 || coreId >= coreCount) {
@@ -315,11 +317,11 @@ public class CoreManager {
     }
 
     /**
-     * Looks for all the cores from in the annotated Interface which constraint are fullfilled by the resource
-     * description passed as a parameter
+     * Looks for all the cores in the annotated Interface whose constraints are fulfilled by the resource description
+     * {@code rd}.
      *
-     * @param rd ResourceDescription to find cores compatible to
-     * @return the list of cores which constraints are fulfilled by th described resource
+     * @param rd ResourceDescription to find cores compatible with.
+     * @return List of cores whose constraints are compatible with the given resource.
      */
     public static List<Integer> findExecutableCores(ResourceDescription rd) {
         List<Integer> executableList = new LinkedList<>();
@@ -345,6 +347,11 @@ public class CoreManager {
      * *****************************************************************************************************
      * *****************************************************************************************************
      */
+    /**
+     * Returns a debug string describing the currently registered cores.
+     * 
+     * @return A string containing all the information about the registered cores.
+     */
     public static String debugString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Core Count: ").append(coreCount).append("\n");
@@ -357,6 +364,11 @@ public class CoreManager {
         return sb.toString();
     }
 
+    /**
+     * Returns a debug string describing the signatures of the currently registered cores.
+     * 
+     * @return A string containing all the signatures of the registered cores.
+     */
     public static String debugSignaturesString() {
         StringBuilder sb = new StringBuilder();
         sb.append("REGISTERED SIGNATURES: \n");

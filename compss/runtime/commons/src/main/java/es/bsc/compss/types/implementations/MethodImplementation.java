@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class MethodImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -33,11 +33,23 @@ public class MethodImplementation extends AbstractMethodImplementation implement
     private String alternativeMethod;
 
 
+    /**
+     * Creates a new MethodImplementation for serialization.
+     */
     public MethodImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new MethodImplementation instance from the given parameters.
+     * 
+     * @param methodClass Method class.
+     * @param altMethodName Method name.
+     * @param coreId Core Id.
+     * @param implementationId Implementation id.
+     * @param requirements Method annotations.
+     */
     public MethodImplementation(String methodClass, String altMethodName, Integer coreId, Integer implementationId,
             MethodResourceDescription requirements) {
 
@@ -47,18 +59,29 @@ public class MethodImplementation extends AbstractMethodImplementation implement
         this.alternativeMethod = altMethodName;
     }
 
+    /**
+     * Returns the method declaring class.
+     * 
+     * @return The method declaring class.
+     */
     public String getDeclaringClass() {
-        return declaringClass;
+        return this.declaringClass;
     }
 
-    public void setDeclaringClass(String declaringClass) {
-        this.declaringClass = declaringClass;
-    }
-
+    /**
+     * Returns the alternative method name.
+     * 
+     * @return The alternative method name.
+     */
     public String getAlternativeMethodName() {
-        return alternativeMethod;
+        return this.alternativeMethod;
     }
 
+    /**
+     * Sets a new alternative method name.
+     * 
+     * @param alternativeMethod The new alternative method name.
+     */
     public void setAlternativeMethodName(String alternativeMethod) {
         this.alternativeMethod = alternativeMethod;
     }

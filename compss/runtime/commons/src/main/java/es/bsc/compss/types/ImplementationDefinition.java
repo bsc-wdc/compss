@@ -38,6 +38,17 @@ public abstract class ImplementationDefinition {
     private final String signature;
 
 
+    /**
+     * Creates a new implementation from the given parameters.
+     * 
+     * @param implType Implementation type.
+     * @param implSignature Implementation signature.
+     * @param implConstraints Implementation constraints.
+     * @param implTypeArgs Implementation specific arguments.
+     * @return A new implementation definition from the given parameters.
+     * @throws IllegalArgumentException If the number of specific parameters does not match the required number of
+     *             parameters by the implementation type.
+     */
     public static final ImplementationDefinition defineImplementation(String implType, String implSignature,
             MethodResourceDescription implConstraints, String... implTypeArgs) throws IllegalArgumentException {
         ImplementationDefinition id = null;
@@ -156,6 +167,7 @@ public abstract class ImplementationDefinition {
                     }
                     id = new OmpSsDefinition(implSignature, ompssBinary, ompssWorkingDir, implConstraints);
                     break;
+
                 case OPENCL:
                     if (implTypeArgs.length != OpenCLImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type OPENCL on " + implSignature);
@@ -168,6 +180,7 @@ public abstract class ImplementationDefinition {
                     }
                     id = new OpenCLDefinition(implSignature, openclKernel, openclWorkingDir, implConstraints);
                     break;
+
                 case MULTI_NODE:
                     if (implTypeArgs.length != MultiNodeImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException(
@@ -190,14 +203,31 @@ public abstract class ImplementationDefinition {
         return id;
     }
 
+    /**
+     * Sets a new signature to the implementation definition.
+     * 
+     * @param signature The new signature.
+     */
     private ImplementationDefinition(String signature) {
         this.signature = signature;
     }
 
+    /**
+     * Returns the implementation signature.
+     * 
+     * @return The implementation signature.
+     */
     public String getSignature() {
         return signature;
     }
 
+    /**
+     * Returns the associated implementation with core Id {@code coreId} and implementation Id {@code implId}.
+     * 
+     * @param coreId Core Id.
+     * @param implId Implementation Id.
+     * @return The associated implementation.
+     */
     public abstract Implementation getImpl(int coreId, int implId);
 
 

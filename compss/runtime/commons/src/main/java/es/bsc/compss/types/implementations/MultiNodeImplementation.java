@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class MultiNodeImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -32,11 +32,23 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
     private String methodName;
 
 
+    /**
+     * Creates a new MultiNodeImplementation for serialization.
+     */
     public MultiNodeImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new MultiNodeImplementation instance from the given parameters.
+     * 
+     * @param methodClass Class name.
+     * @param methodName Method name.
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param requirements Method annotations.
+     */
     public MultiNodeImplementation(String methodClass, String methodName, Integer coreId, Integer implementationId,
             MethodResourceDescription requirements) {
 
@@ -45,18 +57,29 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
         this.methodName = methodName;
     }
 
+    /**
+     * Returns the method declaring class.
+     * 
+     * @return The method declaring class.
+     */
     public String getDeclaringClass() {
         return declaringClass;
     }
 
-    public void setDeclaringClass(String declaringClass) {
-        this.declaringClass = declaringClass;
-    }
-
+    /**
+     * Returns the method name.
+     * 
+     * @return The method name.
+     */
     public String getMethodName() {
         return this.methodName;
     }
 
+    /**
+     * Sets a new method name.
+     * 
+     * @param methodName New method name.
+     */
     public void setMethodName(String methodName) {
         this.methodName = methodName;
     }

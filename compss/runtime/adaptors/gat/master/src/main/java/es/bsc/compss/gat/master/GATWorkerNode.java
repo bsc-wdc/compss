@@ -38,7 +38,6 @@ import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 
 import org.gridlab.gat.GATContext;
@@ -64,6 +63,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
+
 
     /**
      * New GAT Worker Node with name @name and configuration @config

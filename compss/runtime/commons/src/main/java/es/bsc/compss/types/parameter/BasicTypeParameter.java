@@ -28,23 +28,43 @@ public class BasicTypeParameter extends Parameter {
      */
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
     private Object value;
 
 
+    /**
+     * Creates a new BasicTypeParameter instance with the given information.
+     * 
+     * @param type Parameter type.
+     * @param direction Parameter direction.
+     * @param stream Parameter IO stream mode.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     * @param value Parameter value.
+     */
     public BasicTypeParameter(DataType type, Direction direction, Stream stream, String prefix, String name,
             Object value) {
         super(type, direction, stream, prefix, name);
         this.value = value;
     }
 
+    /**
+     * Returns the parameter value.
+     * 
+     * @return The parameter value.
+     */
     public Object getValue() {
         return value;
     }
 
+    /**
+     * Sets a new value to the current parameter.
+     * 
+     * @param value The new value.
+     */
     public void setValue(Object value) {
         this.value = value;
     }

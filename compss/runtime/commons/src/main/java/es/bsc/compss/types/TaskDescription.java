@@ -30,7 +30,7 @@ import java.io.Serializable;
 public class TaskDescription implements Serializable {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -50,17 +50,17 @@ public class TaskDescription implements Serializable {
 
 
     /**
-     * Task description creation for METHODS
+     * Task description creation for METHODS.
      *
-     * @param lang
-     * @param signature
-     * @param isPrioritary
-     * @param numNodes
-     * @param isReplicated
-     * @param isDistributed
-     * @param hasTarget
-     * @param numReturns
-     * @param parameters
+     * @param lang Method language.
+     * @param signature Method signature.
+     * @param isPrioritary Whether the method is prioritary or not.
+     * @param numNodes Number of nodes required for the method execution.
+     * @param isReplicated Whether the method is replicated or not.
+     * @param isDistributed Whether the method is distributed or not.
+     * @param hasTarget Whether the method has a target parameter or not.
+     * @param numReturns Number of return values.
+     * @param parameters Number of parameters.
      */
     public TaskDescription(Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters) {
@@ -85,16 +85,16 @@ public class TaskDescription implements Serializable {
     }
 
     /**
-     * Task description creation for SERVICES
+     * Task description creation for SERVICES.
      *
-     * @param namespace
-     * @param service
-     * @param port
-     * @param operation
-     * @param isPrioritary
-     * @param hasTarget
-     * @param numReturns
-     * @param parameters
+     * @param namespace Service namespace.
+     * @param service Service name.
+     * @param port Service port.
+     * @param operation Service operation.
+     * @param isPrioritary Whether the service is prioritary or not.
+     * @param hasTarget Whether the service has a target parameter or not.
+     * @param numReturns Number of return values of the service.
+     * @param parameters Number of parameters.
      */
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary,
             boolean hasTarget, int numReturns, Parameter[] parameters) {
@@ -116,18 +116,18 @@ public class TaskDescription implements Serializable {
     }
 
     /**
-     * Returns the id of the task
+     * Returns the task id.
      *
-     * @return
+     * @return The task Id.
      */
     public Integer getId() {
         return this.coreId;
     }
 
     /**
-     * Returns the language to execute the task
+     * Returns the task language.
      *
-     * @return
+     * @return The task language.
      */
 
     public Lang getLang() {
@@ -135,9 +135,9 @@ public class TaskDescription implements Serializable {
     }
 
     /**
-     * Returns the method name
+     * Returns the method name.
      *
-     * @return
+     * @return The method name.
      */
     public String getName() {
         String methodName = this.signature;
@@ -151,81 +151,81 @@ public class TaskDescription implements Serializable {
     }
 
     /**
-     * Returns whether the task has the priority flag enabled or not
+     * Returns whether the task has the priority flag enabled or not.
      *
-     * @return
+     * @return {@code true} if the priority flag is enabled, {@code false} otherwise.
      */
     public boolean hasPriority() {
         return this.priority;
     }
 
     /**
-     * Returns the number of required nodes to execute the task
+     * Returns the number of required nodes to execute the task.
      *
-     * @return
+     * @return Number of nodes required by the task execution.
      */
     public int getNumNodes() {
         return this.numNodes;
     }
 
     /**
-     * Returns if the task can be executed in a single task or not
+     * Returns if the task can be executed in a single node or not.
      *
-     * @return
+     * @return {@code true} if the task can be executed in a single node, {@code false} otherwise.
      */
     public boolean isSingleNode() {
         return this.numNodes == Constants.SINGLE_NODE;
     }
 
     /**
-     * Returns whether the replication flag is enabled or not
+     * Returns whether the replication flag is enabled or not.
      *
-     * @return
+     * @return {@code true} if the replication flag is enabled, {@code false} otherwise.
      */
     public boolean isReplicated() {
         return this.mustReplicate;
     }
 
     /**
-     * Returns whether the distributed flag is enabled or not
+     * Returns whether the distributed flag is enabled or not.
      *
-     * @return
+     * @return {@code true} if the distributed flag is enabled, {@code false} otherwise.
      */
     public boolean isDistributed() {
         return this.mustDistribute;
     }
 
     /**
-     * Returns the task parameters
+     * Returns the task parameters.
      *
-     * @return
+     * @return The task parameters.
      */
     public Parameter[] getParameters() {
         return this.parameters;
     }
 
     /**
-     * Returns whether the task has a target object or not
+     * Returns whether the task has a target object or not.
      *
-     * @return
+     * @return {@code true} if the task has a target object, {@code false} otherwise.
      */
     public boolean hasTargetObject() {
         return this.hasTarget;
     }
 
     /**
-     * /** Returns the number of return values of the task
+     * Returns the number of return values of the task.
      *
-     * @return
+     * @return The number of return values of the task.
      */
     public int getNumReturns() {
         return this.numReturns;
     }
 
     /**
-     * Returns the task type
+     * Returns the task type.
      *
-     * @return
+     * @return The task type.
      */
     public TaskType getType() {
         return this.type;

@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class OmpSsImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -32,11 +32,23 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
     private String workingDir;
 
 
+    /**
+     * Creates a new OmpSsImplementation for serialization.
+     */
     public OmpSsImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new OmpSsImplementation instance from the given parameters.
+     * 
+     * @param binary Path to the OmpSs binary.
+     * @param workingDir Binary working directory.
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param annot Method annotations.
+     */
     public OmpSsImplementation(String binary, String workingDir, Integer coreId, Integer implementationId,
             MethodResourceDescription annot) {
         super(coreId, implementationId, annot);
@@ -45,10 +57,20 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
         this.workingDir = workingDir;
     }
 
+    /**
+     * Returns the path to the OmpSs binary.
+     * 
+     * @return The path to the OmpSs binary.
+     */
     public String getBinary() {
         return this.binary;
     }
 
+    /**
+     * Returns the binary working directory.
+     * 
+     * @return The binary working directory.
+     */
     public String getWorkingDir() {
         return this.workingDir;
     }

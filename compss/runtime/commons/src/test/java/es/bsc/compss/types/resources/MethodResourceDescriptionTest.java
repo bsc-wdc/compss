@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.types.resources;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+import es.bsc.compss.types.resources.components.Processor;
 
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-
-import es.bsc.compss.types.resources.components.Processor;
 
 
 public class MethodResourceDescriptionTest {
@@ -42,6 +42,11 @@ public class MethodResourceDescriptionTest {
     public static final EnvironmentVariables ENVIRONMENT_VARIABLES = new EnvironmentVariables();
 
 
+    /**
+     * Setup environment before tests execution.
+     * 
+     * @throws Exception Error when environment cannot be setup.
+     */
     @Before
     public void setUp() throws Exception {
         ENVIRONMENT_VARIABLES.set("processorArchitecture", "x86_64");
@@ -76,8 +81,10 @@ public class MethodResourceDescriptionTest {
                     break;
                 case FPGA:
                     assertEquals(p.getComputingUnits(), 4);
+                    break;
                 default:
                     // Do nothing
+                    break;
             }
         }
     }

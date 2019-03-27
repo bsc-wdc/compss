@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class COMPSsImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -39,11 +39,26 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
     private String workingDir;
 
 
+    /**
+     * Creates a new COMPSsImplementation for serialization.
+     */
     public COMPSsImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new COMPSsImplementation from the given parameters.
+     * 
+     * @param runcompss Runcompss binary path.
+     * @param flags Runcompss user flags.
+     * @param appName Application name.
+     * @param workerInMaster Whether the nested COMPSs execution should spawn a worker in the master node or not.
+     * @param workingDir The nested COMPSs working directory.
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param annot Method annotations.
+     */
     public COMPSsImplementation(String runcompss, String flags, String appName, String workerInMaster,
             String workingDir, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
 
@@ -64,22 +79,47 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         this.workingDir = workingDir;
     }
 
+    /**
+     * Returns the runcompss binary path.
+     * 
+     * @return The runcompss binary path.
+     */
     public String getRuncompss() {
         return this.runcompss;
     }
 
+    /**
+     * Returns the runcompss user flags.
+     * 
+     * @return The runcompss user flags.
+     */
     public String getFlags() {
         return this.flags;
     }
 
+    /**
+     * Returns the nested application name.
+     * 
+     * @return The nested application name.
+     */
     public String getAppName() {
         return this.appName;
     }
 
+    /**
+     * Returns whether the nested COMPSs execution should spawn a worker in the master node or not.
+     * 
+     * @return A string containing the expression to spawn a worker in the master node or not.
+     */
     public String getWorkerInMaster() {
         return this.workerInMaster;
     }
 
+    /**
+     * Returns the nested COMPSs working directory.
+     * 
+     * @return The nested COMPSs working directory.
+     */
     public String getWorkingDir() {
         return this.workingDir;
     }

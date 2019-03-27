@@ -16,27 +16,27 @@
  */
 package es.bsc.compss;
 
+import es.bsc.compss.types.exceptions.NonInstantiableException;
+
 import java.io.File;
 import java.util.UUID;
 
-import es.bsc.compss.types.exceptions.NonInstantiableException;
-
 
 /**
- * COMPSS Runtime Constants
+ * COMPSS Runtime Constants.
  */
 public class COMPSsConstants {
 
     /**
-     * Accepted Execution modes
+     * Accepted Execution modes.
      */
     public static enum TaskExecution {
-    COMPSS, // Internal Execution
-    STORAGE // External execution
+        COMPSS, // Internal Execution
+        STORAGE // External execution
     }
 
     /**
-     * Languages
+     * Languages.
      */
     public static enum Lang {
         JAVA, // For Java applications
@@ -46,7 +46,7 @@ public class COMPSsConstants {
     }
 
     /**
-     * Python Interpreters
+     * Python Interpreters.
      */
     public static enum Pythons {
         python, // For systemwide python interpreter

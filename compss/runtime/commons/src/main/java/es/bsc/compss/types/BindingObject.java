@@ -26,33 +26,66 @@ public class BindingObject {
     private int elements;
 
 
+    /**
+     * Creates a new BindingObject instance.
+     * 
+     * @param id Binding object id.
+     * @param type Binding object type.
+     * @param elements Number of elements.
+     */
     public BindingObject(String id, int type, int elements) {
         this.id = id;
         this.type = type;
         this.elements = elements;
     }
 
+    /**
+     * Returns the binding object id.
+     * 
+     * @return The binding object id.
+     */
     public String getId() {
-        return id;
+        return this.id;
     }
 
+    /**
+     * Returns the binding object name.
+     * 
+     * @return The binding object name.
+     */
     public String getName() {
-        int index = id.lastIndexOf(File.separator);
+        int index = this.id.lastIndexOf(File.separator);
         if (index > 0) {
-            return id.substring(index + 1);
+            return this.id.substring(index + 1);
         } else {
-            return id;
+            return this.id;
         }
     }
 
+    /**
+     * Returns the binding object type.
+     * 
+     * @return The binding object type.
+     */
     public int getType() {
-        return type;
+        return this.type;
     }
 
+    /**
+     * Returns the binding object number of elements.
+     * 
+     * @return The binding object number of elements.
+     */
     public int getElements() {
-        return elements;
+        return this.elements;
     }
 
+    /**
+     * Generates a new BindingObject instance from the given {@code path}.
+     * 
+     * @param path BindingObject path.
+     * @return The BindingObject representing the given {@code path}.
+     */
     public static BindingObject generate(String path) {
         String[] extObjVals = path.split("#");
         // id = extObjVals[0].substring(extObjVals[0].lastIndexOf(File.pathSeparator)+1);
@@ -64,7 +97,7 @@ public class BindingObject {
 
     @Override
     public String toString() {
-        return id + "#" + type + "#" + elements;
+        return this.id + "#" + this.type + "#" + this.elements;
     }
 
 }

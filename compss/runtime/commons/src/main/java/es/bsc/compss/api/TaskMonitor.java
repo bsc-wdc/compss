@@ -21,23 +21,59 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 
 public interface TaskMonitor {
 
+    /**
+     * Actions to be performed by monitor on task creation.
+     */
     public void onCreation();
 
+    /**
+     * Actions to be performed by monitor on data access.
+     */
     public void onAccessesProcessed();
 
+    /**
+     * Actions to be performed by monitor on task schedule.
+     */
     public void onSchedule();
 
+    /**
+     * Actions to be performed by monitor on task submission.
+     */
     public void onSubmission();
 
+    /**
+     * Actions to be performed by monitor when a new value for parameter {@code paramId}, type {@code type} and name
+     * {@code name} has been generated at location {@code location}.
+     * 
+     * @param paramId Parameter id.
+     * @param type Parameter type.
+     * @param name Parameter name.
+     * @param location Parameter location.
+     */
     public void valueGenerated(int paramId, DataType type, String name, Object location);
 
+    /**
+     * Actions to be performed by monitor on task execution error.
+     */
     public void onErrorExecution();
 
+    /**
+     * Actions to be performed by monitor on task execution failure.
+     */
     public void onFailedExecution();
 
+    /**
+     * Actions to be performed by monitor on task execution success.
+     */
     public void onSuccesfulExecution();
 
+    /**
+     * Actions to be performed by monitor on task completion.
+     */
     public void onCompletion();
 
+    /**
+     * Actions to be performed by monitor on task failure.
+     */
     public void onFailure();
 }

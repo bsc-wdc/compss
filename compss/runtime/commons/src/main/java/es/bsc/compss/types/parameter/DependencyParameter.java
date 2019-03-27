@@ -27,7 +27,7 @@ import es.bsc.compss.types.data.Transferable;
 public class DependencyParameter extends Parameter implements Transferable {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -38,21 +38,40 @@ public class DependencyParameter extends Parameter implements Transferable {
     private String dataTarget; // Full path with PROTOCOL
 
 
+    /**
+     * Creates a new DependencyParameter instance from the given parameters.
+     * 
+     * @param type Parameter type.
+     * @param direction Parameter direction.
+     * @param stream Parameter IO stream mode.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     */
     public DependencyParameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
         super(type, direction, stream, prefix, name);
     }
 
+    /**
+     * Returns the data access id.
+     * 
+     * @return The data access id.
+     */
     public DataAccessId getDataAccessId() {
-        return daId;
+        return this.daId;
     }
 
+    /**
+     * Sets a new data access id.
+     * 
+     * @param daId New data access id.
+     */
     public void setDataAccessId(DataAccessId daId) {
         this.daId = daId;
     }
 
     @Override
     public Object getDataSource() {
-        return dataSource;
+        return this.dataSource;
     }
 
     @Override
@@ -70,13 +89,18 @@ public class DependencyParameter extends Parameter implements Transferable {
         this.dataTarget = target;
     }
 
-    public String getOriginalName() {
-        return NO_NAME;
-    }
-
     @Override
     public String toString() {
         return "DependencyParameter";
+    }
+
+    /**
+     * Returns the parameter's original name.
+     * 
+     * @return The parameter's original name.
+     */
+    public String getOriginalName() {
+        return NO_NAME;
     }
 
 }

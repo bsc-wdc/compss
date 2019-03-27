@@ -36,6 +36,9 @@ import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.operation.JobTransfersListener;
 import es.bsc.compss.types.implementations.Implementation;
@@ -207,8 +210,8 @@ public class ExecutionAction extends AllocatableAction {
 
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
-        if (access instanceof DataAccessId.WAccessId) {
-            String tgtName = ((DataAccessId.WAccessId) access).getWrittenDataInstance().getRenaming();
+        if (access instanceof WAccessId) {
+            String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
             // Workaround for return objects in bindings converted to PSCOs inside tasks
             if (param instanceof ExternalPSCOParameter) {
                 ExternalPSCOParameter epp = (ExternalPSCOParameter) param;
@@ -224,13 +227,13 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         listener.addOperation();
-        if (access instanceof DataAccessId.RAccessId) {
-            String srcName = ((DataAccessId.RAccessId) access).getReadDataInstance().getRenaming();
+        if (access instanceof RAccessId) {
+            String srcName = ((RAccessId) access).getReadDataInstance().getRenaming();
             w.getData(srcName, srcName, param, listener);
         } else {
             // Is RWAccess
-            String srcName = ((DataAccessId.RWAccessId) access).getReadDataInstance().getRenaming();
-            String tgtName = ((DataAccessId.RWAccessId) access).getWrittenDataInstance().getRenaming();
+            String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
+            String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
             w.getData(srcName, tgtName, (LogicalData) null, param, listener);
         }
     }
@@ -356,10 +359,10 @@ public class ExecutionAction extends AllocatableAction {
                         // FTM already knows about this datum
                         continue;
                     case OUT:
-                        dId = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                        dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                         break;
                     case INOUT:
-                        dId = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                        dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                         if (job.getType() == TaskType.SERVICE) {
                             continue;
                         }

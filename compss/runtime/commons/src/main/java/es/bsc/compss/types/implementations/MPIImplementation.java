@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class MPIImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -33,11 +33,24 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
     private String workingDir;
 
 
+    /**
+     * Creates a new MPIImplementation for serialization.
+     */
     public MPIImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new MPIImplementation instance from the given parameters.
+     * 
+     * @param binary MPI binary path.
+     * @param workingDir Binary working directory.
+     * @param mpiRunner Path to the MPI command.
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param annot Method annotations.
+     */
     public MPIImplementation(String binary, String workingDir, String mpiRunner, Integer coreId,
             Integer implementationId, MethodResourceDescription annot) {
 
@@ -48,14 +61,29 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         this.binary = binary;
     }
 
+    /**
+     * Returns the binary path.
+     * 
+     * @return The binary path.
+     */
     public String getBinary() {
         return this.binary;
     }
 
+    /**
+     * Returns the binary working directory.
+     * 
+     * @return The binary working directory.
+     */
     public String getWorkingDir() {
         return this.workingDir;
     }
 
+    /**
+     * Returns the path to the MPI command.
+     * 
+     * @return The path to the MPI command.
+     */
     public String getMpiRunner() {
         return this.mpiRunner;
     }

@@ -25,6 +25,9 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
@@ -37,6 +40,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.SimpleURI;
+
 import java.io.IOException;
 
 import javax.ws.rs.client.Entity;
@@ -47,9 +51,12 @@ import javax.ws.rs.core.Response;
 
 public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
-    private static final String REST_AGENT_URL = "http://" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_NAME) + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
+    private static final String REST_AGENT_URL = "http://" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_NAME)
+            + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
 
-    public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
+
+    public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl,
+            Resource res, JobListener listener) {
         super(taskId, task, impl, res, listener);
     }
 
@@ -74,7 +81,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         }
         sar.setClassName(className);
         sar.setMethodName(methodName);
-        sar.setCeiClass(null); //It is a task and we are not supporting Nested parallelism yet
+        sar.setCeiClass(null); // It is a task and we are not supporting Nested parallelism yet
 
         Parameter[] params = taskParams.getParameters();
         int numParams = params.length;
@@ -95,17 +102,17 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             DependencyParameter dPar = (DependencyParameter) param;
             DataAccessId faId = dPar.getDataAccessId();
             String renaming;
-            if (faId instanceof DataAccessId.WAccessId) {
+            if (faId instanceof WAccessId) {
                 // Write mode
-                DataAccessId.WAccessId waId = (DataAccessId.WAccessId) faId;
+                WAccessId waId = (WAccessId) faId;
                 renaming = waId.getWrittenDataInstance().getRenaming();
-            } else if (faId instanceof DataAccessId.RWAccessId) {
+            } else if (faId instanceof RWAccessId) {
                 // Read write mode
-                DataAccessId.RWAccessId rwaId = (DataAccessId.RWAccessId) faId;
+                RWAccessId rwaId = (RWAccessId) faId;
                 renaming = rwaId.getWrittenDataInstance().getRenaming();
             } else {
                 // Read only mode
-                DataAccessId.RAccessId raId = (DataAccessId.RAccessId) faId;
+                RAccessId raId = (RAccessId) faId;
                 renaming = raId.getReadDataInstance().getRenaming();
             }
             target = Comm.getData(renaming).getValue();
@@ -128,16 +135,16 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     DataAccessId dAccId = dPar.getDataAccessId();
                     String inRenaming;
                     String renaming;
-                    if (dAccId instanceof DataAccessId.WAccessId) {
+                    if (dAccId instanceof WAccessId) {
                         throw new JobExecutionException("Target parameter is a Write access", null);
-                    } else if (dAccId instanceof DataAccessId.RWAccessId) {
+                    } else if (dAccId instanceof RWAccessId) {
                         // Read write mode
-                        DataAccessId.RWAccessId rwaId = (DataAccessId.RWAccessId) dAccId;
+                        RWAccessId rwaId = (RWAccessId) dAccId;
                         inRenaming = rwaId.getReadDataInstance().getRenaming();
                         renaming = rwaId.getWrittenDataInstance().getRenaming();
                     } else {
                         // Read only mode
-                        DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dAccId;
+                        RAccessId raId = (RAccessId) dAccId;
                         inRenaming = raId.getReadDataInstance().getRenaming();
                         renaming = inRenaming;
                     }
@@ -162,7 +169,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                         System.out.println("SUBMISSION[" + this.getJobId() + "]         ID " + value);
                         sar.addPersistedParameter((String) value, param.getDirection());
                     } else {
-                        throw new UnsupportedOperationException("Non-persisted DependencyParameters are not supported yet");
+                        throw new UnsupportedOperationException(
+                                "Non-persisted DependencyParameters are not supported yet");
                     }
                     break;
                 default:
@@ -175,9 +183,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         System.out.println("SUBMISSION[" + this.getJobId() + "] Stage in completed.");
         sar.setOrchestrator(REST_AGENT_URL, Orchestrator.HttpMethod.PUT, "COMPSs/endApplication/");
 
-        Response response = wt
-                .request(MediaType.APPLICATION_JSON)
-                .put(Entity.xml(sar), Response.class);
+        Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(sar), Response.class);
 
         if (response.getStatusInfo().getStatusCode() != 200) {
             System.out.println(response.readEntity(String.class));
@@ -186,8 +192,10 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             System.out.println("SUBMISSION[" + this.getJobId() + "] Job submitted.");
             String jobId = response.readEntity(String.class);
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
+
                 @Override
-                public void finishedExecution(JobListener.JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations) {
+                public void finishedExecution(JobListener.JobEndStatus endStatus, DataType[] paramTypes,
+                        String[] paramLocations) {
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
                     stageout(paramTypes, paramLocations);
                     if (endStatus == JobEndStatus.OK) {
@@ -217,7 +225,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             DependencyParameter returnParameter = (DependencyParameter) taskParams.getParameters()[numParams];
             DataType type = paramTypes[numParams];
             String locString = paramLocations[numParams];
-            System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return type: " + type + " Value: " + locString);
+            System.out.println(
+                    "STAGE OUT[" + this.getJobId() + "]         * Return type: " + type + " Value: " + locString);
 
             if (locString != null) {
                 SimpleURI uri = new SimpleURI(locString);
@@ -307,7 +316,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                                 }
                                 dp.setType(type);
                                 dp.setDataTarget(pscoId);
-                                System.out.println("STAGE OUT[" + this.getJobId() + "]         * Parameter " + parIdx + ": ");
+                                System.out.println(
+                                        "STAGE OUT[" + this.getJobId() + "]         * Parameter " + parIdx + ": ");
                                 System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
                                 System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
                             } else {
@@ -321,12 +331,15 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                                     default:
                                 }
                                 dp.setType(type);
-                                System.out.println("STAGE OUT[" + this.getJobId() + "]          * Parameter " + parIdx + ": ");
+                                System.out.println(
+                                        "STAGE OUT[" + this.getJobId() + "]          * Parameter " + parIdx + ": ");
                                 System.out.println("STAGE OUT[" + this.getJobId() + "]              Type: " + type);
-                                System.out.println("STAGE OUT[" + this.getJobId() + "]              Value location: " + loc);
+                                System.out.println(
+                                        "STAGE OUT[" + this.getJobId() + "]              Value location: " + loc);
                             }
                         } catch (IOException ioe) {
-                            System.err.println("STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK PARAMETER " + parIdx);
+                            System.err.println(
+                                    "STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK PARAMETER " + parIdx);
                         }
                         break;
                     }
@@ -348,6 +361,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
     @Override
     public String toString() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 }

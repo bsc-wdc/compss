@@ -30,15 +30,19 @@ import java.util.List;
  */
 public class RequestQueue<T> {
 
-    /** Queue of requests **/
+    /**
+     * Queue of requests.
+     **/
     private final LinkedList<T> queue;
 
-    /** Number of threads waiting for requests */
+    /**
+     * Number of threads waiting for requests.
+     */
     private int waiting;
 
 
     /**
-     * Constructs a new RequestQueue without any pending request nor asleep threads waiting for requests
+     * Constructs a new RequestQueue without any pending request nor asleep threads waiting for requests.
      */
     public RequestQueue() {
         this.queue = new LinkedList<>();
@@ -46,7 +50,7 @@ public class RequestQueue<T> {
     }
 
     /**
-     * Adds a request at the tail of the queue
+     * Adds a request at the tail of the queue.
      * 
      * @param request Request to be added
      */
@@ -59,7 +63,7 @@ public class RequestQueue<T> {
      * Dequeues a request from the queue. If there are no pending requests, the current Thread falls asleep until a new
      * Request is added. This request will be return value of the method.
      * 
-     * @return the first request from the queue
+     * @return The first request from the queue.
      */
     public synchronized T dequeue() {
         while (this.queue.isEmpty()) {
@@ -77,18 +81,18 @@ public class RequestQueue<T> {
     }
 
     /**
-     * Removes a request from the queue
+     * Removes a request from the queue.
      * 
-     * @param request Request to be removed from the queue
+     * @param request Request to be removed from the queue.
      */
     public synchronized void remove(T request) {
         this.queue.remove(request);
     }
 
     /**
-     * Adds a new request on the head of the queue
+     * Adds a new request on the head of the queue.
      * 
-     * @param request Request to be added
+     * @param request Request to be added.
      */
     public synchronized void addToFront(T request) {
         this.queue.addFirst(request);
@@ -96,43 +100,43 @@ public class RequestQueue<T> {
     }
 
     /**
-     * Returns the number of pending requests
+     * Returns the number of pending requests.
      * 
-     * @return number of pending requests in the queue
+     * @return Number of pending requests in the queue.
      */
     public synchronized int getNumRequests() {
         return this.queue.size();
     }
 
     /**
-     * Returns the whole queue of pending requests
+     * Returns the whole queue of pending requests.
      * 
-     * @return the queue of pending requests
+     * @return The queue of pending requests.
      */
     public synchronized List<T> getQueue() {
         return this.queue;
     }
 
     /**
-     * Checks if there are pending requests on the queue
+     * Checks if there are pending requests on the queue.
      * 
-     * @return true if there are no requests waiting on the queue
+     * @return {@code true} if there are no requests waiting on the queue, {@code false} otherwise.
      */
     public synchronized boolean isEmpty() {
         return this.queue.isEmpty();
     }
 
     /**
-     * Returns the number of threads waiting for a request to be added
+     * Returns the number of threads waiting for a request to be added.
      * 
-     * @return number of threads waiting for a request
+     * @return Number of threads waiting for a request.
      */
     public synchronized int getWaiting() {
         return this.waiting;
     }
 
     /**
-     * Removes all the requests from the queue
+     * Removes all the requests from the queue.
      */
     public synchronized void clear() {
         this.queue.clear();

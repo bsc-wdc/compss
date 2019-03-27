@@ -25,21 +25,44 @@ public class CoreElementDefinition {
     private final LinkedList<ImplementationDefinition> implementations = new LinkedList<>();
 
 
+    /**
+     * Creates a new CoreElementDefinition instance.
+     */
     public CoreElementDefinition() {
     }
 
+    /**
+     * Sets a new signature.
+     * 
+     * @param ceSignature CoreElement signature.
+     */
     public void setCeSignature(String ceSignature) {
         this.ceSignature = ceSignature;
     }
 
+    /**
+     * Returns the CoreElement signature.
+     * 
+     * @return The CoreElement signature.
+     */
     public String getCeSignature() {
         return ceSignature;
     }
 
+    /**
+     * Adds a new implementation to the current CoreElement definition.
+     * 
+     * @param impl The new CoreElement implementation.
+     */
     public void addImplementation(ImplementationDefinition impl) {
         implementations.add(impl);
     }
 
+    /**
+     * Returns the registered implementations for the CoreElement.
+     * 
+     * @return The registered implementations for the CoreElement.
+     */
     public LinkedList<ImplementationDefinition> getImplementations() {
         return implementations;
     }

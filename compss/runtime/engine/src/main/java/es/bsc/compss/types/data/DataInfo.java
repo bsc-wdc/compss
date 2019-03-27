@@ -127,7 +127,7 @@ public abstract class DataInfo {
         deletionBlocks--;
         if (deletionBlocks == 0) {
             for (DataVersion version : pendingDeletions) {
-                if (version.delete()) {
+                if (version.markToDelete()) {
                     Comm.removeData(version.getDataInstanceId().getRenaming());
                     versions.remove(version.getDataInstanceId().getVersionId());
                 }
@@ -145,7 +145,7 @@ public abstract class DataInfo {
         } else {
             LinkedList<Integer> removedVersions = new LinkedList<>();
             for (DataVersion version : versions.values()) {
-                if (version.delete()) {
+                if (version.markToDelete()) {
                     Comm.removeData(version.getDataInstanceId().getRenaming());
                     removedVersions.add(version.getDataInstanceId().getVersionId());
                 }
@@ -171,7 +171,7 @@ public abstract class DataInfo {
     public void tryRemoveVersion(Integer versionId) {
         DataVersion readVersion = versions.get(versionId);
 
-        if (readVersion != null && readVersion.delete()) {
+        if (readVersion != null && readVersion.markToDelete()) {
             Comm.removeData(readVersion.getDataInstanceId().getRenaming());
             versions.remove(versionId);
         }

@@ -26,24 +26,25 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Support class to load jar files to the classpath
+ * Support class to load jar files to the classpath.
  */
 public class Classpath {
 
     /**
-     * Loads all the jars existing in the given path @jarPath
+     * Loads all the jars existing in the given path {@code jarPath}.
      * 
-     * @param jarPath
-     * @param logger
-     * @throws FileNotFoundException
+     * @param jarPath Path where to look for jar files.
+     * @param logger Logger instance to print debug/info/error information.
+     * @throws FileNotFoundException Raised when the provided {@code jarPath} does not exist.
      */
     public static void loadPath(String jarPath, Logger logger) throws FileNotFoundException {
+        // Check if jarPath exists
         File directory = new File(jarPath);
         if (!directory.exists()) {
             throw new FileNotFoundException();
         }
 
-        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+        // Load the addURL method
         Class<?> sysclass = URLClassLoader.class;
         Method method = null;
         try {
@@ -54,8 +55,12 @@ public class Classpath {
         if (method == null) {
             throw new FileNotFoundException();
         }
-
         method.setAccessible(true);
+
+        // Create the sysloader
+        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+
+        // Scan folder for jar files
         scanFolder(sysloader, method, directory, logger);
     }
 

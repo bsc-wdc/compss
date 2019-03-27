@@ -20,7 +20,7 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- * The threadpool is an utility to manage a set of threads
+ * The threadpool is an utility to manage a set of threads.
  */
 public class ThreadPool {
 
@@ -35,9 +35,9 @@ public class ThreadPool {
     /**
      * Constructs a new thread pool but not the threads inside it.
      *
-     * @param size number of threads that will be in the pool
-     * @param name name of the thread pool inherited by the threads
-     * @param runObject Request Dispatcher associated to the pool which implements the function executed by the threads
+     * @param size Number of threads that will be in the pool.
+     * @param name Name of the thread pool inherited by the threads.
+     * @param runObject Request Dispatcher associated to the pool which implements the function executed by the threads.
      */
     public ThreadPool(int size, String name, RequestDispatcher<?> runObject) {
         this.size = size;
@@ -54,7 +54,7 @@ public class ThreadPool {
     }
 
     /**
-     * Creates and starts the threads of the pool and waits until they are created
+     * Creates and starts the threads of the pool and waits until they are created.
      */
     public void startThreads() {
         int i = 0;
@@ -87,16 +87,16 @@ public class ThreadPool {
     }
 
     /**
-     * Notifies that one of the threads as completed an action required by the Threadpool (start or stop)
+     * Notifies that one of the threads as completed an action required by the Threadpool (start or stop).
      */
     public void threadEnd() {
         sem.release();
     }
 
     /**
-     * Returns the number of Threads in the pool
+     * Returns the number of Threads in the pool.
      *
-     * @return number of Threads in the pool
+     * @return The number of Threads in the pool.
      */
     public int getNumThreads() {
         return this.size;

@@ -16,6 +16,36 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.components.monitor.impl.GraphGenerator;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.Task;
+import es.bsc.compss.types.Task.TaskState;
+import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.AccessParams.*;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.*;
+import es.bsc.compss.types.data.operation.ResultListener;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.parameter.BindingObjectParameter;
+import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.FileParameter;
+import es.bsc.compss.types.parameter.ObjectParameter;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.request.ap.EndOfAppRequest;
+import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
+import es.bsc.compss.types.request.ap.BarrierRequest;
+import es.bsc.compss.types.request.ap.WaitForTaskRequest;
+import es.bsc.compss.util.ErrorManager;
+
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,30 +56,8 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
-import es.bsc.compss.types.parameter.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.components.monitor.impl.GraphGenerator;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.Task;
-import es.bsc.compss.types.Task.TaskState;
-import es.bsc.compss.types.data.DataAccessId.RWAccessId;
-import es.bsc.compss.types.data.DataInfo;
-import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.AccessParams.*;
-import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.*;
-import es.bsc.compss.types.data.operation.ResultListener;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
-import es.bsc.compss.types.request.ap.EndOfAppRequest;
-import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
-import es.bsc.compss.types.request.ap.BarrierRequest;
-import es.bsc.compss.types.request.ap.WaitForTaskRequest;
-import es.bsc.compss.util.ErrorManager;
 
 import storage.StubItf;
 
@@ -217,7 +225,7 @@ public class TaskAnalyser {
                     checkDependencyForConcurrent(currentTask, dp);
                 }
                 if (isConstraining) {
-                    DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
+                    RAccessId raId = (RAccessId) dp.getDataAccessId();
                     DataInstanceId dependingDataId = raId.getReadDataInstance();
                     if (dependingDataId != null) {
                         if (dependingDataId.getVersionId() > 1) {
@@ -234,7 +242,7 @@ public class TaskAnalyser {
                     removeFromConcurrentAccess(dp.getDataAccessId().getDataId());
                 }
                 if (isConstraining) {
-                    DataAccessId.RWAccessId raId = (DataAccessId.RWAccessId) dp.getDataAccessId();
+                    RWAccessId raId = (RWAccessId) dp.getDataAccessId();
                     DataInstanceId dependingDataId = raId.getReadDataInstance();
                     if (dependingDataId != null) {
                         if (dependingDataId.getVersionId() > 1) {
@@ -704,13 +712,13 @@ public class TaskAnalyser {
         switch (d) {
             case C:
             case R:
-                dataVersion = ((DataAccessId.RAccessId) dp.getDataAccessId()).getRVersionId();
+                dataVersion = ((RAccessId) dp.getDataAccessId()).getRVersionId();
                 break;
             case W:
-                dataVersion = ((DataAccessId.WAccessId) dp.getDataAccessId()).getWVersionId();
+                dataVersion = ((WAccessId) dp.getDataAccessId()).getWVersionId();
                 break;
             default:
-                dataVersion = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getRVersionId();
+                dataVersion = ((RWAccessId) dp.getDataAccessId()).getRVersionId();
                 break;
         }
         if (lastWriter != null && lastWriter != currentTask) {

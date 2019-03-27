@@ -22,12 +22,12 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.location.DataLocation;
-import java.util.concurrent.Semaphore;
-
-import es.bsc.compss.types.data.DataAccessId.RAccessId;
+import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
+
+import java.util.concurrent.Semaphore;
 
 
 /**

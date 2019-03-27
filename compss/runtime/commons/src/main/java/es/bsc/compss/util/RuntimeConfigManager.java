@@ -27,7 +27,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 
 
 /**
- * Loads the runtime configuration
+ * Loads the runtime configuration.
  */
 public class RuntimeConfigManager {
 
@@ -35,30 +35,30 @@ public class RuntimeConfigManager {
 
 
     /**
-     * Loads the runtime configuration found in path @pathToConfigFile
+     * Loads the runtime configuration found in path {@code pathToConfigFile}.
      * 
-     * @param pathToConfigFile
-     * @throws ConfigurationException
+     * @param pathToConfigFile Path to configuration file.
+     * @throws ConfigurationException Exception when parsing the configuration file.
      */
     public RuntimeConfigManager(String pathToConfigFile) throws ConfigurationException {
-        config = new PropertiesConfiguration(pathToConfigFile);
+        this.config = new PropertiesConfiguration(pathToConfigFile);
     }
 
     /**
-     * Loads the runtime configuration found in URL @pathToConfigFile
+     * Loads the runtime configuration found in URL {@code pathToConfigFile}.
      * 
-     * @param pathToConfigFile
-     * @throws ConfigurationException
+     * @param pathToConfigFile URL path to configuration file.
+     * @throws ConfigurationException Exception when parsing the configuration file.
      */
     public RuntimeConfigManager(URL pathToConfigFile) throws ConfigurationException {
-        config = new PropertiesConfiguration(pathToConfigFile);
+        this.config = new PropertiesConfiguration(pathToConfigFile);
     }
 
     /**
-     * Loads the runtime configuration from an input stream @stream
+     * Loads the runtime configuration from an input stream {@code stream}.
      * 
-     * @param stream
-     * @throws ConfigurationException
+     * @param stream Stream to configuration file.
+     * @throws ConfigurationException Exception when parsing the configuration file.
      */
     public RuntimeConfigManager(InputStream stream) throws ConfigurationException {
         config = new PropertiesConfiguration();
@@ -66,567 +66,568 @@ public class RuntimeConfigManager {
     }
 
     /**
-     * Loads the runtime configuration from a file @file
+     * Loads the runtime configuration from a file {@code file}.
      * 
-     * @param file
-     * @throws ConfigurationException
+     * @param file File object pointing to the configuration file.
+     * @throws ConfigurationException Exception when parsing the configuration file.
      */
     public RuntimeConfigManager(File file) throws ConfigurationException {
         config = new PropertiesConfiguration(file);
     }
 
     /**
-     * Returns the deployment id
+     * Returns the deployment id.
      * 
-     * @return
+     * @return The deployment id.
      */
     public String getDeploymentId() {
         return config.getString(COMPSsConstants.DEPLOYMENT_ID, COMPSsConstants.DEFAULT_DEPLOYMENT_ID);
     }
 
     /**
-     * Sets a new value for the deployment id
+     * Sets a new value for the deployment id.
      * 
-     * @param uuid
+     * @param uuid New deployment id value.
      */
     public void setDeploymentId(String uuid) {
         config.setProperty(COMPSsConstants.DEPLOYMENT_ID, uuid);
     }
 
     /**
-     * Returns the master node name
+     * Returns the master node name.
      * 
-     * @return
+     * @return The master node name.
      */
     public String getMasterName() {
         return config.getString(COMPSsConstants.MASTER_NAME);
     }
 
     /**
-     * Sets a new value for the master node name
+     * Sets a new value for the master node name.
      * 
-     * @param name
+     * @param name New value for the master node name.
      */
     public void setMasterName(String name) {
         config.setProperty(COMPSsConstants.MASTER_NAME, name);
     }
 
     /**
-     * Returns the master node port
+     * Returns the master node port.
      * 
-     * @return
+     * @return The master node port.
      */
     public String getMasterPort() {
         return config.getString(COMPSsConstants.MASTER_PORT);
     }
 
     /**
-     * Sets a new value for the master node port
+     * Sets a new value for the master node port.
      * 
-     * @param port
+     * @param port New value for the master node port.
      */
     public void setMasterPort(String port) {
         config.setProperty(COMPSsConstants.MASTER_PORT, port);
     }
 
     /**
-     * Returns the application name
+     * Returns the application name.
      * 
-     * @return
+     * @return The application name.
      */
     public String getAppName() {
         return config.getString(COMPSsConstants.APP_NAME);
     }
 
     /**
-     * Sets a new name for the application
+     * Sets a new name for the application.
      * 
-     * @param name
+     * @param name New application name.
      */
     public void setAppName(String name) {
         config.setProperty(COMPSsConstants.APP_NAME, name);
     }
 
     /**
-     * Returns the task summary flag value
+     * Returns the task summary flag value.
      * 
-     * @return
+     * @return The task summary flag value.
      */
     public String getTaskSummary() {
         return config.getString(COMPSsConstants.TASK_SUMMARY);
     }
 
     /**
-     * Sets a new value for the task summary flag
+     * Sets a new value for the task summary flag.
      * 
-     * @param value
+     * @param value New value for the task summary flag.
      */
     public void setTaskSummary(String value) {
         config.setProperty(COMPSsConstants.TASK_SUMMARY, value);
     }
 
     /**
-     * Returns the base log directory
+     * Returns the base log directory.
      * 
-     * @return
+     * @return The base log directory.
      */
     public String getCOMPSsBaseLogDir() {
         return config.getString(COMPSsConstants.BASE_LOG_DIR);
     }
 
     /**
-     * Returns the specific application log directory
+     * Returns the specific application log directory.
      * 
-     * @return
+     * @return The specific application log directory.
      */
     public String getSpecificLogDir() {
         return config.getString(COMPSsConstants.SPECIFIC_LOG_DIR);
     }
 
     /**
-     * Returns the project file
+     * Returns the project file.
      * 
-     * @return
+     * @return The project file.
      */
     public String getProjectFile() {
         return config.getString(COMPSsConstants.PROJ_FILE);
     }
 
     /**
-     * Sets a new value for the project file
+     * Sets a new value for the project file.
      * 
-     * @param location
+     * @param location New value for the project file.
      */
     public void setProjectFile(String location) {
         config.setProperty(COMPSsConstants.PROJ_FILE, location);
     }
 
     /**
-     * Returns the project schema
+     * Returns the project schema.
      * 
-     * @return
+     * @return The project schema.
      */
     public String getProjectSchema() {
         return config.getString(COMPSsConstants.PROJ_SCHEMA);
     }
 
     /**
-     * Sets a new value for the project schema
+     * Sets a new value for the project schema.
      * 
-     * @param location
+     * @param location New value for the project schema.
      */
     public void setProjectSchema(String location) {
         config.setProperty(COMPSsConstants.PROJ_SCHEMA, location);
     }
 
     /**
-     * Returns the resources file
+     * Returns the resources file.
      * 
-     * @return
+     * @return The resources file.
      */
     public String getResourcesFile() {
         return config.getString(COMPSsConstants.RES_FILE);
     }
 
     /**
-     * Sets a new value for the resources file
+     * Sets a new value for the resources file.
      * 
-     * @param location
+     * @param location New value for the resources file.
      */
     public void setResourcesFile(String location) {
         config.setProperty(COMPSsConstants.RES_FILE, location);
     }
 
     /**
-     * Returns the resources schema
+     * Returns the resources schema.
      * 
-     * @return
+     * @return The resources schema.
      */
     public String getResourcesSchema() {
         return config.getString(COMPSsConstants.RES_SCHEMA);
     }
 
     /**
-     * Sets a new location for the resources schema
+     * Sets a new location for the resources schema.
      * 
-     * @param location
+     * @param location New location for the resources schema.
      */
     public void setResourcesSchema(String location) {
         config.setProperty(COMPSsConstants.RES_SCHEMA, location);
     }
 
     /**
-     * Returns the scheduler to load
+     * Returns the scheduler to load.
      * 
-     * @return
+     * @return The scheduler to load.
      */
     public String getScheduler() {
         return config.getString(COMPSsConstants.SCHEDULER);
     }
 
     /**
-     * Sets a new implementing class for the scheduler
+     * Sets a new implementing class for the scheduler.
      * 
-     * @param implementingClass
+     * @param implementingClass New implementing class for the scheduler.
      */
     public void setScheduler(String implementingClass) {
         config.setProperty(COMPSsConstants.SCHEDULER, implementingClass);
     }
 
     /**
-     * Returns the log4j configuration file location
+     * Returns the log4j configuration file location.
      * 
-     * @return
+     * @return The log4j configuration file location.
      */
     public String getLog4jConfiguration() {
         return config.getString(COMPSsConstants.LOG4J);
     }
 
     /**
-     * Sets a new location for the log4j configuration file
+     * Sets a new location for the log4j configuration file.
      * 
-     * @param location
+     * @param location New location for the log4j configuration file.
      */
     public void setLog4jConfiguration(String location) {
         config.setProperty(COMPSsConstants.LOG4J, location);
     }
 
     /**
-     * Returns the COMM Adaptor implementing class
+     * Returns the COMM Adaptor implementing class.
      * 
-     * @return
+     * @return The COMM Adaptor implementing class.
      */
     public String getCommAdaptor() {
         return config.getString(COMPSsConstants.COMM_ADAPTOR);
     }
 
     /**
-     * Sets a new implementing class for the COMM adaptor
+     * Sets a new implementing class for the COMM adaptor.
      * 
-     * @param adaptor
+     * @param adaptor New implementing class for the COMM adaptor.
      */
     public void setCommAdaptor(String adaptor) {
         config.setProperty(COMPSsConstants.COMM_ADAPTOR, adaptor);
     }
 
     /**
-     * Returns the CONN implementing class
+     * Returns the CONN implementing class.
      * 
-     * @return
+     * @return The CONN implementing class.
      */
     public String getConn() {
         return config.getString(COMPSsConstants.CONN);
     }
 
     /**
-     * Sets a new implementing class for the CONN
+     * Sets a new implementing class for the CONN.
      * 
-     * @param connector
+     * @param connector New implementing class for the CONN.
      */
     public void setConn(String connector) {
         config.setProperty(COMPSsConstants.CONN, connector);
     }
 
     /**
-     * Returns the GAT context
+     * Returns the GAT context.
      * 
-     * @return
+     * @return The GAT context.
      */
     public String getContext() {
         return config.getString(COMPSsConstants.COMPSS_CONTEXT);
     }
 
     /**
-     * Sets a new GAT context
+     * Sets a new GAT context.
      * 
-     * @param context
+     * @param context New GAT context.
      */
     public void setContext(String context) {
         config.setProperty(COMPSsConstants.COMPSS_CONTEXT, context);
     }
 
     /**
-     * Returns the specific GAT adaptor path
+     * Returns the specific GAT adaptor path.
      * 
-     * @return
+     * @return The specific GAT adaptor path.
      */
     public String getGATAdaptor() {
         return config.getString(COMPSsConstants.GAT_ADAPTOR_PATH, COMPSsConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
     }
 
     /**
-     * Sets a new location for the GAT Adaptor
+     * Sets a new location for the GAT Adaptor.
      * 
-     * @param adaptorPath
+     * @param adaptorPath New location for the GAT Adaptor.
      */
     public void setGATAdaptor(String adaptorPath) {
         config.setProperty(COMPSsConstants.GAT_ADAPTOR_PATH, adaptorPath);
     }
 
     /**
-     * Returns if the GAT Adaptor is in debug mode or not
+     * Returns if the GAT Adaptor is in debug mode or not.
      * 
-     * @return
+     * @return {@code true} if the GAT Adaptor is in debug mode, {@code false} otherwise.
      */
     public boolean isGATDebug() {
         return config.getBoolean(COMPSsConstants.GAT_DEBUG, false);
     }
 
     /**
-     * Sets a new debug mode for the GAT Adaptor
+     * Sets a new debug mode for the GAT Adaptor.
      * 
-     * @param debug
+     * @param debug New debug mode for the GAT Adaptor.
      */
     public void setGATDebug(boolean debug) {
         config.setProperty(COMPSsConstants.GAT_DEBUG, debug);
     }
 
     /**
-     * Returns the GAT Broker Adaptor class
+     * Returns the GAT Broker Adaptor class.
      * 
-     * @return
+     * @return The GAT Broker Adaptor class.
      */
     public String getGATBrokerAdaptor() {
         return config.getString(COMPSsConstants.GAT_BROKER_ADAPTOR);
     }
 
     /**
-     * Sets a new GAT Broker Adaptor class
+     * Sets a new GAT Broker Adaptor class.
      * 
-     * @param adaptor
+     * @param adaptor New GAT Broker Adaptor class.
      */
     public void setGATBrokerAdaptor(String adaptor) {
         config.setProperty(COMPSsConstants.GAT_BROKER_ADAPTOR, adaptor);
     }
 
     /**
-     * Returns the GAT File Adaptor
+     * Returns the GAT File Adaptor.
      * 
-     * @return
+     * @return The GAT File Adaptor.
      */
     public String getGATFileAdaptor() {
         return config.getString(COMPSsConstants.GAT_FILE_ADAPTOR);
     }
 
     /**
-     * Sets a new GAT File Adaptor class
+     * Sets a new GAT File Adaptor class.
      * 
-     * @param adaptor
+     * @param adaptor New GAT File Adaptor class.
      */
     public void setGATFileAdaptor(String adaptor) {
         config.setProperty(COMPSsConstants.GAT_FILE_ADAPTOR, adaptor);
     }
 
     /**
-     * Sets the new CPU Affinity for the Workers
+     * Sets the new CPU Affinity for the Workers.
      * 
-     * @param isAffinityEnabled
+     * @param isAffinityEnabled New CPU Affinity for the Workers.
      */
     public void setWorkerCPUAffinity(boolean isAffinityEnabled) {
         config.setProperty(COMPSsConstants.WORKER_CPU_AFFINITY, isAffinityEnabled);
     }
 
     /**
-     * Returns the Workers CPU Affinity flag value
+     * Returns the Workers CPU Affinity flag value.
      * 
-     * @return
+     * @return The Workers CPU Affinity flag value.
      */
     public boolean isWorkerCPUAffinityEnabled() {
         return config.getBoolean(COMPSsConstants.WORKER_CPU_AFFINITY, false);
     }
 
     /**
-     * Sets the new GPU Affinity for the Workers
+     * Sets the new GPU Affinity for the Workers.
      * 
-     * @param isAffinityEnabled
+     * @param isAffinityEnabled New GPU Affinity for the Workers.
      */
     public void setWorkerGPUAffinity(boolean isAffinityEnabled) {
         config.setProperty(COMPSsConstants.WORKER_GPU_AFFINITY, isAffinityEnabled);
     }
 
     /**
-     * Returns the Workers GPU Affinity flag value
+     * Returns the Workers GPU Affinity flag value.
      * 
-     * @return
+     * @return The Workers GPU Affinity flag value.
      */
     public boolean isWorkerGPUAffinityEnabled() {
         return config.getBoolean(COMPSsConstants.WORKER_GPU_AFFINITY, false);
     }
 
     /**
-     * Returns the graph flag value
+     * Returns the graph flag value.
      * 
-     * @return
+     * @return The graph flag value.
      */
     public boolean isGraph() {
         return config.getBoolean(COMPSsConstants.GRAPH, false);
     }
 
     /**
-     * Sets a new graph value
+     * Sets a new graph value.
      * 
-     * @param graph
+     * @param graph New graph value.
      */
     public void setGraph(boolean graph) {
         config.setProperty(COMPSsConstants.GRAPH, graph);
     }
 
     /**
-     * Returns the tracing flag value
+     * Returns the tracing flag value.
      * 
-     * @return
+     * @return The tracing flag value.
      */
     public int getTracing() {
         return config.getInt(COMPSsConstants.TRACING, 0);
     }
 
     /**
-     * Sets a new tracing flag value
+     * Sets a new tracing flag value.
      * 
-     * @param tracing
+     * @param tracing New tracing flag value.
      */
     public void setTracing(int tracing) {
         config.setProperty(COMPSsConstants.TRACING, tracing);
     }
 
     /**
-     * Returns the custom Extrae configuration file path
+     * Returns the custom Extrae configuration file path.
      * 
-     * @return
+     * @return The custom Extrae configuration file path.
      */
     public String getCustomExtraeFile() {
         return config.getString(COMPSsConstants.EXTRAE_CONFIG_FILE, COMPSsConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
     }
 
     /**
-     * Sets a new custom Extrae configuration file path
+     * Sets a new custom Extrae configuration file path.
      * 
-     * @param extraeFilePath
+     * @param extraeFilePath New custom Extrae configuration file path.
      */
     public void setCustomExtraeFile(String extraeFilePath) {
         config.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFilePath);
     }
 
     /**
-     * Returns the monitor interval value
+     * Returns the monitor interval value.
      * 
-     * @return
+     * @return The monitor interval value.
      */
     public long getMonitorInterval() {
         return config.getLong(COMPSsConstants.MONITOR, COMPSsConstants.DEFAULT_MONITOR_INTERVAL);
     }
 
     /**
-     * Sets a new monitor interval
+     * Sets a new monitor interval.
      * 
-     * @param seconds
+     * @param seconds New monitor interval.
      */
     public void setMonitorInterval(long seconds) {
         config.setProperty(COMPSsConstants.MONITOR, seconds);
     }
 
     /**
-     * Returns the lang value
+     * Returns the lang value.
      * 
-     * @return
+     * @return The lang value.
      */
     public String getLang() {
         return config.getString(COMPSsConstants.LANG, COMPSsConstants.Lang.JAVA.name());
     }
 
     /**
-     * Sets a new lang value
+     * Sets a new language value.
      * 
-     * @param lang
+     * @param lang New language value.
      */
     public void setLang(String lang) {
         config.setProperty(COMPSsConstants.LANG, lang);
     }
 
     /**
-     * Returns the worker classpath
+     * Returns the worker classpath.
      * 
-     * @return
+     * @return The worker classpath.
      */
     public String getWorkerCP() {
         return config.getString(COMPSsConstants.WORKER_CP);
     }
 
     /**
-     * Sets a new worker classpath
+     * Sets a new worker classpath.
      * 
-     * @param classpath
+     * @param classpath New worker classpath.
      */
     public void setWorkerCP(String classpath) {
         config.setProperty(COMPSsConstants.WORKER_CP, classpath);
     }
 
     /**
-     * Returns the service name
+     * Returns the service name.
      * 
-     * @return
+     * @return The service name.
      */
     public String getServiceName() {
         return config.getString(COMPSsConstants.SERVICE_NAME);
     }
 
     /**
-     * Sets a new service name
+     * Sets a new service name.
      * 
-     * @param serviceName
+     * @param serviceName New service name.
      */
     public void setServiceName(String serviceName) {
         config.setProperty(COMPSsConstants.SERVICE_NAME, serviceName);
     }
 
     /**
-     * Returns the service name
+     * Returns the service name.
      * 
-     * @return
+     * @return The service name.
      */
     public String getWorkerJVMOpts() {
         return config.getString(COMPSsConstants.WORKER_JVM_OPTS);
     }
 
     /**
-     * Sets a new service name
+     * Sets new JVM Options for the workers.
      * 
-     * @param serviceName
+     * @param jvmOpts New JVM options for the workers.
      */
     public void setWorkerJVMOpts(String jvmOpts) {
         config.setProperty(COMPSsConstants.WORKER_JVM_OPTS, jvmOpts);
     }
 
     /**
-     * Saves the current configuration
+     * Saves the current configuration.
      * 
-     * @throws ConfigurationException
+     * @throws ConfigurationException Exception when configuration cannot be saved.
      */
     public void save() throws ConfigurationException {
-        config.save();
+        this.config.save();
     }
 
     /**
-     * Returns if the configuration is toFile or not
+     * Returns if the configuration must be stored to file or not.
      * 
-     * @return
+     * @return {@code true} if the configuration must be stored to file, {@code false} otherwise.
      */
     public boolean isToFile() {
         return config.getBoolean(COMPSsConstants.COMPSS_TO_FILE, false);
     }
 
     /**
-     * Returns the value of a generic property @propertyName from the configuration
+     * Returns the value of a generic property {@code propertyName} from the configuration.
      * 
-     * @param propertyName
-     * @return
+     * @param propertyName Name of a generic property.
+     * @return The value associated with the given property name {@code propertyName}.
      */
     public String getProperty(String propertyName) {
         Object prop = config.getProperty(propertyName);
         if (prop != null) {
             return prop.toString();
-        } else
-            return null;
+        }
+
+        return null;
     }
 
 }

@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
 
 
 public class ServiceResourceDescription extends WorkerResourceDescription {
@@ -33,6 +33,14 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     private int connections;
 
 
+    /**
+     * Creates a new ServiceResourceDescription instance with the given parameters.
+     * 
+     * @param serviceName Service name.
+     * @param namespace Service namespace.
+     * @param port Service port.
+     * @param connections Service connections.
+     */
     public ServiceResourceDescription(String serviceName, String namespace, String port, int connections) {
         this.serviceName = serviceName;
         this.namespace = namespace;
@@ -40,32 +48,47 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
         this.connections = connections;
     }
 
+    /**
+     * Returns the service name.
+     * 
+     * @return The service name.
+     */
     public String getServiceName() {
-        return serviceName;
+        return this.serviceName;
     }
 
+    /**
+     * Returns the service namespace.
+     * 
+     * @return The service namespace.
+     */
     public String getNamespace() {
-        return namespace;
+        return this.namespace;
     }
 
+    /**
+     * Returns the service port.
+     * 
+     * @return The service port.
+     */
     public String getPort() {
-        return port;
+        return this.port;
     }
 
     @Override
     public boolean canHost(Implementation impl) {
         if (impl.getTaskType() == TaskType.SERVICE) {
             ServiceResourceDescription s = (ServiceResourceDescription) impl.getRequirements();
-            return s.serviceName.compareTo(serviceName) == 0 && s.namespace.compareTo(namespace) == 0
-                    && s.port.compareTo(port) == 0 && s.connections < this.connections;
+            return s.serviceName.compareTo(this.serviceName) == 0 && s.namespace.compareTo(this.namespace) == 0
+                    && s.port.compareTo(this.port) == 0 && s.connections < this.connections;
         }
         return false;
     }
 
     @Override
     public boolean canHostDynamic(Implementation impl) {
-        int conRequired = ((ServiceResourceDescription) impl.getRequirements()).connections;
-        return conRequired <= connections;
+        ServiceResourceDescription srd = (ServiceResourceDescription) impl.getRequirements();
+        return srd.connections <= this.connections;
     }
 
     @Override

@@ -24,6 +24,12 @@ public class DataVersion {
     private boolean toDelete;
 
 
+    /**
+     * Creates a new DataVersion instance.
+     * 
+     * @param dataId Data Id.
+     * @param versionId Version Id.
+     */
     public DataVersion(int dataId, int versionId) {
         this.readers = 0;
         this.dataInstanceId = new DataInstanceId(dataId, versionId);
@@ -31,37 +37,73 @@ public class DataVersion {
         this.toDelete = false;
     }
 
+    /**
+     * Returns the associated data instance.
+     * 
+     * @return The associated data instance.
+     */
     public DataInstanceId getDataInstanceId() {
         return this.dataInstanceId;
     }
 
+    /**
+     * Marks a read access on the data version.
+     */
     public void willBeRead() {
         this.readers++;
     }
 
+    /**
+     * Marks a write access on the data version.
+     */
     public void willBeWritten() {
         this.writters++;
     }
 
+    /**
+     * Returns whether the data version has pending lectures or not.
+     * 
+     * @return {@code true} if the data version has pending lectures, {@code false} otherwise.
+     */
     public boolean hasPendingLectures() {
         return this.readers > 0;
     }
 
-    public boolean isOnlyReader() {
-        return readers > 1;
+    /**
+     * Returns whether the data version has more than one reader or not.
+     * 
+     * @return @{code true} if the data version has more than one reader, {@code false} otherwise.
+     */
+    public boolean hasMoreReaders() {
+        return this.readers > 1;
     }
 
+    /**
+     * Marks the data version as read and returns whether it can be deleted or not.
+     * 
+     * @return {@code true} if the data can be deleted, {@code false} otherwise.
+     */
     public boolean hasBeenRead() {
         this.readers--;
         return checkDeletion();
     }
 
+    /**
+     * Marks the data version as written and returns whether it can be deleted or not.
+     * 
+     * @return {@code true} if the data can be deleted, {@code false} otherwise.
+     */
     public boolean hasBeenWritten() {
         this.writters--;
         return checkDeletion();
     }
 
-    public boolean delete() {
+    /**
+     * Returns whether the data can be deleted or not.
+     * 
+     * @return {@code true} if the data can be deleted, {@code false} otherwise.
+     */
+    public boolean markToDelete() {
         this.toDelete = true;
         if (this.readers == 0 && this.writters == 0) {
             return true;
@@ -69,6 +111,20 @@ public class DataVersion {
         return false;
     }
 
+    /**
+     * Whether the data version is marked for deletion or not.
+     * 
+     * @return {@code true} if the data version is marked for deletion, {@code false} otherwise.
+     */
+    public boolean isToDelete() {
+        return this.toDelete;
+    }
+
+    /**
+     * Internally checks if the data version can be deleted and is marked for deletion.
+     * 
+     * @return {@code true} if the data version can be deleted and is marked for deletion, {@code false} otherwise.
+     */
     private boolean checkDeletion() {
         if (this.toDelete // deletion requested
                 && this.writters == 0 // version has been generated
@@ -77,10 +133,6 @@ public class DataVersion {
             return true;
         }
         return false;
-    }
-
-    public boolean isToDelete() {
-        return this.toDelete;
     }
 
 }

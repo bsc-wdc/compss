@@ -16,16 +16,19 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.WorkerResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import es.bsc.compss.types.resources.WorkerResourceDescription;
-
 
 public abstract class Implementation implements Externalizable {
 
+    /**
+     * Enum to match the implementation global type.
+     */
     public enum TaskType {
         METHOD, // Generic method type
         SERVICE // Services type
@@ -37,28 +40,58 @@ public abstract class Implementation implements Externalizable {
     protected WorkerResourceDescription requirements;
 
 
+    /**
+     * Creates a new Implementation instance for serialization.
+     */
     public Implementation() {
         // For externalizable
     }
 
+    /**
+     * Creates a new Implementation instance from the given parameters.
+     * 
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param annot Method annotations.
+     */
     public Implementation(Integer coreId, Integer implementationId, WorkerResourceDescription annot) {
         this.coreId = coreId;
         this.implementationId = implementationId;
         this.requirements = annot;
     }
 
+    /**
+     * Returns the core Id.
+     * 
+     * @return The core Id.
+     */
     public Integer getCoreId() {
         return this.coreId;
     }
 
+    /**
+     * Returns the implementation Id.
+     * 
+     * @return The implementation Id.
+     */
     public Integer getImplementationId() {
         return this.implementationId;
     }
 
+    /**
+     * Returns the implementation requirements.
+     * 
+     * @return The implementation requirements.
+     */
     public WorkerResourceDescription getRequirements() {
         return this.requirements;
     }
 
+    /**
+     * Returns the global task type.
+     * 
+     * @return The global task type.
+     */
     public abstract TaskType getTaskType();
 
     @Override

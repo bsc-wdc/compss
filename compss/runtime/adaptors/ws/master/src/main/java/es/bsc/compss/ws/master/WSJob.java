@@ -30,7 +30,7 @@ import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataAccessId.RAccessId;
+import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.ServiceImplementation;

@@ -44,7 +44,7 @@ public class ObjectInfo extends DataInfo {
             LinkedList<Integer> removedVersions = new LinkedList<>();
             for (DataVersion version : versions.values()) {
                 String sourceName = version.getDataInstanceId().getRenaming();
-                if (version.delete()) {
+                if (version.markToDelete()) {
                     LogicalData ld = Comm.getData(sourceName);
                     if (ld != null)
                         ld.removeValue();

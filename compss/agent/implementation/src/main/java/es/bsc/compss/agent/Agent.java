@@ -35,7 +35,6 @@ import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
-import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;

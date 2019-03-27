@@ -48,7 +48,6 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.RAccessId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
@@ -483,11 +482,11 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     DataAccessId dAccId = dPar.getDataAccessId();
                     sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
                     if (type == DataType.OBJECT_T || type == DataType.BINDING_OBJECT_T) {
-                        if (dAccId instanceof RAccessId) {
-                            sb.append("\t Direction: " + "R").append("\n");
-                        } else {
-                            // for the worker to know it must write the object to disk
+                        if (dAccId.isWrite()) {
+                            // For the worker to know it must write the object to disk
                             sb.append("\t Direction: " + "W").append("\n");
+                        } else {
+                            sb.append("\t Direction: " + "R").append("\n");
                         }
                     }
                 } else if (type == DataType.STRING_T) {
@@ -610,10 +609,10 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 paramDesc.add(dPar.getDataTarget());
-                if (dAccId instanceof RAccessId) {
-                    paramDesc.add("R");
-                } else {
+                if (dAccId.isWrite()) {
                     paramDesc.add("W"); // for the worker to know it must write the object to disk
+                } else {
+                    paramDesc.add("R");
                 }
                 break;
             case BINDING_OBJECT_T:
@@ -623,10 +622,6 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 paramDesc.add(bo.getId());
                 paramDesc.add(Integer.toString(bo.getType()));
                 paramDesc.add(Integer.toString(bo.getElements()));
-                /*
-                 * if (dExtObjAccId instanceof RAccessId) { lArgs.add("R"); } else { lArgs.add("W"); // for the worker
-                 * to know it must write the object to disk }
-                 */
                 break;
             case STRING_T:
                 BasicTypeParameter btParS = (BasicTypeParameter) param;

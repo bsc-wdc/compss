@@ -27,7 +27,7 @@ import java.io.Serializable;
 public abstract class Parameter implements Serializable {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -39,6 +39,15 @@ public abstract class Parameter implements Serializable {
     private final String name;
 
 
+    /**
+     * Creates a new Parameter instance from the given values.
+     * 
+     * @param type Parameter type.
+     * @param direction Parameter direction.
+     * @param stream Parameter IO stream mode.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     */
     public Parameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
         this.type = type;
         this.direction = direction;
@@ -51,26 +60,56 @@ public abstract class Parameter implements Serializable {
         this.name = name;
     }
 
+    /**
+     * Returns the parameter type.
+     * 
+     * @return The parameter type.
+     */
     public DataType getType() {
         return this.type;
     }
 
+    /**
+     * Sets a new parameter type.
+     * 
+     * @param type New parameter type.
+     */
     public void setType(DataType type) {
         this.type = type;
     }
 
+    /**
+     * Returns the parameter direction.
+     * 
+     * @return The parameter direction.
+     */
     public Direction getDirection() {
         return this.direction;
     }
 
+    /**
+     * Returns the parameter IO stream mode.
+     * 
+     * @return The parameter IO stream mode.
+     */
     public Stream getStream() {
         return this.stream;
     }
 
+    /**
+     * Returns the parameter prefix.
+     * 
+     * @return The parameter prefix.
+     */
     public String getPrefix() {
         return this.prefix;
     }
 
+    /**
+     * Returns the parameter name.
+     * 
+     * @return The parameter name.
+     */
     public String getName() {
         return this.name;
     }

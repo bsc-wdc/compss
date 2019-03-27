@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class DecafImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -39,11 +39,26 @@ public class DecafImplementation extends AbstractMethodImplementation implements
     private String workingDir;
 
 
+    /**
+     * Creates a new DecafImplementation instance for serialization.
+     */
     public DecafImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new DecafImplementation instance from the given parameters.
+     * 
+     * @param dfScript Path to df script.
+     * @param dfExecutor Path to df executor.
+     * @param dfLib Path to df library.
+     * @param workingDir Working directory.
+     * @param mpiRunner Path to MPI binary command.
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param annot Method annotations.
+     */
     public DecafImplementation(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
             Integer coreId, Integer implementationId, MethodResourceDescription annot) {
 
@@ -56,22 +71,47 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         this.dfLib = dfLib;
     }
 
+    /**
+     * Returns the df script.
+     * 
+     * @return The df script.
+     */
     public String getDfScript() {
         return this.dfScript;
     }
 
+    /**
+     * Returns the df executor.
+     * 
+     * @return The df executor.
+     */
     public String getDfExecutor() {
         return this.dfExecutor;
     }
 
+    /**
+     * Returns the df library.
+     * 
+     * @return The df library.
+     */
     public String getDfLib() {
         return this.dfLib;
     }
 
+    /**
+     * Returns the working directory.
+     * 
+     * @return The working directory.
+     */
     public String getWorkingDir() {
         return this.workingDir;
     }
 
+    /**
+     * Returns the path to the MPI binary command.
+     * 
+     * @return The path to the MPI binary command.
+     */
     public String getMpiRunner() {
         return this.mpiRunner;
     }

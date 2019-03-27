@@ -21,14 +21,6 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
-
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.BindingObject;
@@ -37,9 +29,9 @@ import es.bsc.compss.types.data.AccessParams;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
 import es.bsc.compss.types.data.AccessParams.FileAccessParams;
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.RAccessId;
-import es.bsc.compss.types.data.DataAccessId.RWAccessId;
-import es.bsc.compss.types.data.DataAccessId.WAccessId;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
@@ -75,6 +67,13 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -386,7 +385,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Tell the DIP that the application wants to access an object
         AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
-        DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
+        DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
 
         // Wait until the last writer task for the object has finished
@@ -432,7 +431,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Tell the DIP that the application wants to access an object
         AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
-        DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
+        DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
 
         // Wait until the last writer task for the object has finished
@@ -449,7 +448,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
 
         // TODO: Check if the object was already piggybacked in the task notification
-        String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
+        String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getPscoId();
 
         return Protocol.PERSISTENT_URI.getSchema() + newId;
@@ -511,7 +510,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
         // String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
         // return obtainBindingObject((DataAccessId.RWAccessId)oaId);
-        String bindingObjectID = obtainBindingObject((DataAccessId.RAccessId) oaId);
+        String bindingObjectID = obtainBindingObject((RAccessId) oaId);
 
         finishBindingObjectAccess(oap);
 
@@ -759,7 +758,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     private void transferFileRaw(DataAccessId faId, DataLocation location) {
         Semaphore sem = new Semaphore(0);
-        TransferRawFileRequest request = new TransferRawFileRequest((RAccessId) faId, location, sem);
+        RAccessId faRId = (RAccessId) faId;
+        TransferRawFileRequest request = new TransferRawFileRequest(faRId, location, sem);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file raw");
         }

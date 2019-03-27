@@ -18,16 +18,16 @@ package es.bsc.compss.util.test;
 
 import static org.junit.Assert.assertEquals;
 
+import es.bsc.compss.util.EnvironmentLoader;
+
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import es.bsc.compss.util.EnvironmentLoader;
-
 
 /**
- * Tests the different possibilities of loading a environment variable
+ * Tests the different possibilities of loading a environment variable.
  */
 public class EnvironmentLoaderTest {
 
@@ -40,6 +40,11 @@ public class EnvironmentLoaderTest {
     public static final EnvironmentVariables ENVIRONMENT_VARIABLES = new EnvironmentVariables();
 
 
+    /**
+     * Setup environment before tests execution.
+     * 
+     * @throws Exception Error when environment cannot be setup.
+     */
     @Before
     public void setUp() throws Exception {
         ENVIRONMENT_VARIABLES.set("var", VALUE1);

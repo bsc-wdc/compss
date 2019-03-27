@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.ServiceResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.resources.ServiceResourceDescription;
 
 
 public class ServiceImplementation extends Implementation implements Externalizable {
@@ -32,11 +32,23 @@ public class ServiceImplementation extends Implementation implements Externaliza
     private String operation;
 
 
+    /**
+     * Creates a new ServiceImplementation for serialization.
+     */
     public ServiceImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new ServiceImplementation instance from the given parameters.
+     * 
+     * @param coreId Core Id.
+     * @param namespace Service namespace.
+     * @param service Service name.
+     * @param port Service port.
+     * @param operation Service operation.
+     */
     public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation) {
         super(coreId, 0, null);
 
@@ -44,10 +56,27 @@ public class ServiceImplementation extends Implementation implements Externaliza
         this.operation = operation;
     }
 
+    /**
+     * Returns the service operation.
+     * 
+     * @return
+     */
     public String getOperation() {
         return this.operation;
     }
 
+    /**
+     * Builds a service signature from the given parameters.
+     * 
+     * @param namespace Service namespace.
+     * @param serviceName Service name.
+     * @param portName Service port.
+     * @param operation Service operation.
+     * @param hasTarget Whether the service has a target object or not.
+     * @param numReturns The number of return parameters of the service.
+     * @param parameters The number of parameters of the method.
+     * @return Signature built from the given parameters.
+     */
     public static String getSignature(String namespace, String serviceName, String portName, String operation,
             boolean hasTarget, int numReturns, Parameter[] parameters) {
         StringBuilder buffer = new StringBuilder();

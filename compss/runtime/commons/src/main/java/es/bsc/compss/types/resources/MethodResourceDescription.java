@@ -75,8 +75,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     protected int totalGPUs = ZERO_INT;
     protected int totalFPGAComputingUnits = ZERO_INT;
     protected int totalFPGAs = ZERO_INT;
-    protected int totalOTHERComputingUnits = ZERO_INT;
-    protected int totalOTHERs = ZERO_INT;
+    protected int totalOtherComputingUnits = ZERO_INT;
+    protected int totalOthers = ZERO_INT;
 
     // Memory
     protected float memorySize = UNASSIGNED_FLOAT;
@@ -103,12 +103,21 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
 
     /*
-     * ******************************************* CONSTRUCTORS
-     *******************************************/
+     * ********************************************************************************************************
+     * CONSTRUCTORS
+     *********************************************************************************************************/
+    /**
+     * Creates a new empty MethodResourceDescription instance.
+     */
     public MethodResourceDescription() {
         super();
     }
 
+    /**
+     * Internal creation of a MethodResourceDescription with an initial set of computing units {@code initialCUs}.
+     * 
+     * @param initialCUs Initial number of computing units.
+     */
     private MethodResourceDescription(int initialCUs) {
         super();
 
@@ -119,10 +128,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * Creates a MethodResourceDescription representing a set of constraints The constraints are validated and loaded
-     * through this process. If any error occurs an exception is raised to the user through the ErrorManager
+     * Creates a MethodResourceDescription representing a set of constraints. The constraints are validated and loaded
+     * through this process. If any error occurs an exception is raised to the user through the ErrorManager.
      *
-     * @param constraints
+     * @param constraints Java constraints.
      */
     public MethodResourceDescription(Constraints constraints) {
         super();
@@ -361,9 +370,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * For Python constraints
+     * Creates a new MethodResourceDescription from the given Python description.
      *
-     * @param description
+     * @param description Python description.
      */
     public MethodResourceDescription(String description) {
         super();
@@ -453,9 +462,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * For C constraints
+     * Creates a new MethodResourceDescription from the given C constraints.
      *
-     * @param constraints
+     * @param constraints C constraints.
+     * @param processorString C processor definition.
      */
     public MethodResourceDescription(String[] constraints, String processorString) {
         super();
@@ -504,11 +514,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * Adds a constraint from bindings (ignores letter case)
+     * Adds a processor constraint from bindings (ignores letter case).
      *
-     * @param key
-     * @param val
-     * @param proc
+     * @param key Constraint key.
+     * @param val Constraint value.
+     * @param proc Processor.
      */
     private void addConstraints(String key, String val, Processor proc) {
         val = EnvironmentLoader.loadFromEnvironment(val);
@@ -591,6 +601,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
     }
 
+    /**
+     * Copies the given MethodResourceDescription.
+     * 
+     * @param clone MethodResourceDescription to clone.
+     */
     public MethodResourceDescription(MethodResourceDescription clone) {
         super(clone);
 
@@ -633,8 +648,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.totalGPUs = 0;
         this.totalFPGAComputingUnits = 0;
         this.totalFPGAs = 0;
-        this.totalOTHERComputingUnits = 0;
-        this.totalOTHERs = 0;
+        this.totalOtherComputingUnits = 0;
+        this.totalOthers = 0;
     }
 
     @Override
@@ -643,12 +658,23 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /*
-     * ******************************************* GETTERS AND SETTERS
-     *******************************************/
+     * ************************************************************************************************************
+     * GETTERS AND SETTERS
+     *************************************************************************************************************/
+    /**
+     * Returns the registered processors.
+     * 
+     * @return A list containing the registered processors.
+     */
     public List<Processor> getProcessors() {
-        return processors;
+        return this.processors;
     }
 
+    /**
+     * Registers a new list of processors.
+     * 
+     * @param processors New list of processors.
+     */
     public void setProcessors(List<Processor> processors) {
         this.processors = processors;
 
@@ -658,55 +684,36 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
     }
 
+    /**
+     * Resets the registered processors.
+     */
     public void resetProcessors() {
         this.processors = new LinkedList<Processor>();
         initProcessorCounters();
     }
 
+    /**
+     * Adds a new processor {@code p}.
+     * 
+     * @param p New processor.
+     */
     public void addProcessor(Processor p) {
         this.processors.add(p);
         updateCounters(p);
     }
 
-    private void updateCounters(Processor p) {
-        int cu = p.getComputingUnits();
-        switch (p.getType()) {
-            case CPU:
-                if (cu > 0) {
-                    totalCPUComputingUnits += cu;
-
-                } else {
-                    totalCPUComputingUnits++;
-                }
-                totalCPUs++;
-                break;
-            case GPU:
-                if (cu > 0) {
-                    totalGPUComputingUnits += cu;
-
-                } else {
-                    totalGPUComputingUnits++;
-                }
-                totalGPUs++;
-                break;
-            case FPGA:
-                if (cu > 0) {
-                    totalFPGAComputingUnits += cu;
-                } else {
-                    totalFPGAComputingUnits++;
-                }
-                totalFPGAs++;
-                break;
-            default:
-                if (cu > 0) {
-                    totalOTHERComputingUnits += cu;
-                } else {
-                    totalOTHERComputingUnits++;
-                }
-                totalOTHERs++;
-        }
-    }
-
+    /**
+     * Adds a new Processor to the current resource with the given information.
+     * 
+     * @param procName Processor name.
+     * @param computingUnits Processor computing units.
+     * @param architecture Processor architecture.
+     * @param speed Processor speed.
+     * @param type Processor type.
+     * @param internalMemory Processor internal memory.
+     * @param propName Processor custom property name.
+     * @param propValue Processor custom property value.
+     */
     public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type,
             float internalMemory, String propName, String propValue) {
 
@@ -740,6 +747,55 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.addProcessor(p);
     }
 
+    /**
+     * Updates the resource global counters.
+     * 
+     * @param p Processor capabilities to be added in the global counters.
+     */
+    private void updateCounters(Processor p) {
+        int cu = p.getComputingUnits();
+        switch (p.getType()) {
+            case CPU:
+                if (cu > 0) {
+                    totalCPUComputingUnits += cu;
+
+                } else {
+                    totalCPUComputingUnits++;
+                }
+                totalCPUs++;
+                break;
+            case GPU:
+                if (cu > 0) {
+                    totalGPUComputingUnits += cu;
+
+                } else {
+                    totalGPUComputingUnits++;
+                }
+                totalGPUs++;
+                break;
+            case FPGA:
+                if (cu > 0) {
+                    totalFPGAComputingUnits += cu;
+                } else {
+                    totalFPGAComputingUnits++;
+                }
+                totalFPGAs++;
+                break;
+            default:
+                if (cu > 0) {
+                    totalOtherComputingUnits += cu;
+                } else {
+                    totalOtherComputingUnits++;
+                }
+                totalOthers++;
+        }
+    }
+
+    /**
+     * Returns the registered architectures.
+     * 
+     * @return A list containing the registered architectures.
+     */
     public List<String> getArchitectures() {
         LinkedList<String> architectures = new LinkedList<String>();
 
@@ -756,192 +812,382 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return architectures;
     }
 
+    /**
+     * Returns the total number of CPU computing units.
+     * 
+     * @return The total number of CPU computing units.
+     */
     public int getTotalCPUComputingUnits() {
         return this.totalCPUComputingUnits;
     }
 
+    /**
+     * Returns the total number of GPU computing units.
+     * 
+     * @return The total number of GPU computing units.
+     */
     public int getTotalGPUComputingUnits() {
         return this.totalGPUComputingUnits;
     }
 
+    /**
+     * Returns the total number of FPGA computing units.
+     * 
+     * @return The total number of FPGA computing units.
+     */
     public int getTotalFPGAComputingUnits() {
         return this.totalFPGAComputingUnits;
     }
 
+    /**
+     * Returns the total number of OTHER computing units.
+     * 
+     * @return The total number of OTHER computing units.
+     */
     public int getTotalOTHERComputingUnits() {
-        return this.totalOTHERComputingUnits;
+        return this.totalOtherComputingUnits;
     }
 
+    /**
+     * Returns the memory size.
+     * 
+     * @return The memory size.
+     */
     public float getMemorySize() {
         return memorySize;
     }
 
+    /**
+     * Sets a new memory size.
+     * 
+     * @param memorySize New memory size.
+     */
     public void setMemorySize(float memorySize) {
         if (memorySize > (float) 0.0) {
             this.memorySize = memorySize;
         }
     }
 
+    /**
+     * Returns the memory type.
+     * 
+     * @return The memory type.
+     */
     public String getMemoryType() {
         return memoryType;
     }
 
+    /**
+     * Sets a new memory type.
+     * 
+     * @param memoryType New memory type.
+     */
     public void setMemoryType(String memoryType) {
         if (memoryType != null && !memoryType.isEmpty()) {
             this.memoryType = memoryType;
         }
     }
 
+    /**
+     * Returns the storage size.
+     * 
+     * @return The storage size.
+     */
     public float getStorageSize() {
         return storageSize;
     }
 
+    /**
+     * Sets a new storage size.
+     * 
+     * @param storageSize New storage size.
+     */
     public void setStorageSize(float storageSize) {
         if (storageSize > 0) {
             this.storageSize = storageSize;
         }
     }
 
+    /**
+     * Returns the storage type.
+     * 
+     * @return The storage type.
+     */
     public String getStorageType() {
         return storageType;
     }
 
+    /**
+     * Sets a new storage type.
+     * 
+     * @param storageType New storage type.
+     */
     public void setStorageType(String storageType) {
         if (storageType != null && !storageType.isEmpty()) {
             this.storageType = storageType;
         }
     }
 
+    /**
+     * Returns the operating system type.
+     * 
+     * @return The operating system type.
+     */
     public String getOperatingSystemType() {
         return operatingSystemType;
     }
 
+    /**
+     * Sets a new operating system type.
+     * 
+     * @param operatingSystemType New operating system type.
+     */
     public void setOperatingSystemType(String operatingSystemType) {
         if (operatingSystemType != null && !operatingSystemType.isEmpty()) {
             this.operatingSystemType = operatingSystemType;
         }
     }
 
+    /**
+     * Returns the operating system distribution.
+     * 
+     * @return The operating system distribution.
+     */
     public String getOperatingSystemDistribution() {
         return operatingSystemDistribution;
     }
 
+    /**
+     * Sets a new operating system distribution.
+     * 
+     * @param operatingSystemDistribution New operating system distribution.
+     */
     public void setOperatingSystemDistribution(String operatingSystemDistribution) {
         if (operatingSystemDistribution != null && !operatingSystemDistribution.isEmpty()) {
             this.operatingSystemDistribution = operatingSystemDistribution;
         }
     }
 
+    /**
+     * Returns the operating system version.
+     * 
+     * @return The operating system version.
+     */
     public String getOperatingSystemVersion() {
         return operatingSystemVersion;
     }
 
+    /**
+     * Sets a new operating system version.
+     * 
+     * @param operatingSystemVersion New operating system version.
+     */
     public void setOperatingSystemVersion(String operatingSystemVersion) {
         if (operatingSystemVersion != null && !operatingSystemVersion.isEmpty()) {
             this.operatingSystemVersion = operatingSystemVersion;
         }
     }
 
+    /**
+     * Returns the registered application software.
+     * 
+     * @return List containing the registered application software.
+     */
     public List<String> getAppSoftware() {
         return appSoftware;
     }
 
+    /**
+     * Sets a new list of supported application software.
+     * 
+     * @param appSoftware New list of supported application software.
+     */
     public void setAppSoftware(List<String> appSoftware) {
         if (appSoftware != null) {
             this.appSoftware = appSoftware;
         }
     }
 
+    /**
+     * Resets the list of application software.
+     */
     public void resetAppSoftware() {
         appSoftware = new LinkedList<String>();
     }
 
+    /**
+     * Adds a new application to the supported application software list.
+     * 
+     * @param application New application name.
+     */
     public void addApplication(String application) {
         if (application != null && !application.isEmpty()) {
             appSoftware.add(application.toUpperCase());
         }
     }
 
+    /**
+     * Returns the registered host queues.
+     * 
+     * @return A list containing the registered host queues.
+     */
     public List<String> getHostQueues() {
         return hostQueues;
     }
 
+    /**
+     * Sets a new list of registered host queues.
+     * 
+     * @param hostQueues New list of registered host queues.
+     */
     public void setHostQueues(List<String> hostQueues) {
         if (hostQueues != null) {
             this.hostQueues = hostQueues;
         }
     }
 
+    /**
+     * Resets the list of registered host queues.
+     */
     public void resetHostQueues() {
         hostQueues = new LinkedList<String>();
     }
 
+    /**
+     * Adds a new host queue to the registered host queues.
+     * 
+     * @param queue New host queue.
+     */
     public void addHostQueue(String queue) {
         if (queue != null && !queue.isEmpty()) {
             hostQueues.add(queue.toUpperCase());
         }
     }
 
+    /**
+     * Returns the time unit of the price slot.
+     * 
+     * @return The time unit of the price slot.
+     */
     public int getPriceTimeUnit() {
         return priceTimeUnit;
     }
 
+    /**
+     * Sets a new time unit for the price slot.
+     * 
+     * @param priceTimeUnit New time unit for the price slot (in seconds).
+     */
     public void setPriceTimeUnit(int priceTimeUnit) {
         if (priceTimeUnit > 0) {
             this.priceTimeUnit = priceTimeUnit;
         }
     }
 
+    /**
+     * Returns the price per time unit.
+     * 
+     * @return The price per time unit.
+     */
     public float getPricePerUnit() {
         return pricePerUnit;
     }
 
+    /**
+     * Sets a new price per time unit.
+     * 
+     * @param pricePerUnit New price per time unit.
+     */
     public void setPricePerUnit(float pricePerUnit) {
         if (priceTimeUnit > (float) 0.0) {
             this.pricePerUnit = pricePerUnit;
         }
     }
 
+    /**
+     * Returns the wallclock time.
+     * 
+     * @return The wallclock time.
+     */
     public int getWallClockLimit() {
         return wallClockLimit;
     }
 
+    /**
+     * Sets a new wallclock time.
+     * 
+     * @param wallClockLimit The new wallclock time.
+     */
     public void setWallClockLimit(int wallClockLimit) {
         if (wallClockLimit > 0) {
             this.wallClockLimit = wallClockLimit;
         }
     }
 
+    /**
+     * Returns the internal value.
+     * 
+     * @return The internal value.
+     */
     public Float getValue() {
         return value;
     }
 
+    /**
+     * Sets the internal value.
+     * 
+     * @param value The new internal value.
+     */
     public void setValue(Float value) {
         this.value = value;
     }
 
+    /**
+     * Returns whether the resource contains CPU processors or not.
+     * 
+     * @return {@code true} if there are CPU computing units, {@code false} otherwise.
+     */
     public boolean containsCPU() {
         return getTotalCPUComputingUnits() > 0;
     }
 
+    /**
+     * Returns whether the resource contains GPU processors or not.
+     * 
+     * @return {@code true} if there are GPU computing units, {@code false} otherwise.
+     */
     public boolean containsGPU() {
         return getTotalGPUComputingUnits() > 0;
     }
 
+    /**
+     * Returns whether the resource contains FPGA processors or not.
+     * 
+     * @return {@code true} if there are FPGA computing units, {@code false} otherwise.
+     */
     public boolean containsFPGA() {
         return getTotalFPGAComputingUnits() > 0;
     }
 
+    /**
+     * Returns whether the resource contains OTHER processors or not.
+     * 
+     * @return {@code true} if there are OTHER computing units, {@code false} otherwise.
+     */
     public boolean containsOthers() {
         return getTotalOTHERComputingUnits() > 0;
     }
 
     /*
-     * ******************************************* METHOD-RESOURCE OPERATIONS
-     *******************************************/
-    // This method tries to substitute the implicit default values by defined mr2 values.
-    // Keeps the already defined values (do NOT overwrite)
-    // ONLY CALLED FROM CONSTRAINTS (1 processor always)
+     * ************************************************************************************************************
+     * METHOD-RESOURCE OPERATIONS
+     *************************************************************************************************************/
+    /**
+     * This method tries to substitute the implicit default values by defined mr2 values. Keeps the already defined
+     * values (does NOT overwrite). IT IS ONLY CALLED FROM CONSTRAINTS (1 processor always).
+     * 
+     * @param mr2 MethodResourceDescription to merge.
+     */
     public void mergeMultiConstraints(MethodResourceDescription mr2) {
         // Processor constraints
         for (Processor pmr2 : mr2.processors) {
@@ -963,7 +1209,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                             this.totalFPGAComputingUnits += (newCus - currentCUs);
                             break;
                         default:
-                            this.totalOTHERComputingUnits += (newCus - currentCUs);
+                            this.totalOtherComputingUnits += (newCus - currentCUs);
                     }
                 }
                 if (pthis.getSpeed() == UNASSIGNED_FLOAT) {
@@ -1060,6 +1306,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return null;
     }
 
+    /**
+     * Returns the difference in terms of computingUnits and memory with the given MethodResourceDescription
+     * {@code mr2}.
+     * 
+     * @param mr2 MethodResourceDescription to compare with.
+     * @return Difference value.
+     */
     public float difference(MethodResourceDescription mr2) {
         float processorDif = this.getTotalCPUComputingUnits() - mr2.getTotalCPUComputingUnits();
         float otherProcessorsDif = (this.getTotalGPUComputingUnits() + this.getTotalFPGAComputingUnits()
@@ -1071,6 +1324,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return (processorDif * DIFFERENCE_WEIGHT) + (otherProcessorsDif * OTHER_PROC_DIFFERENCE_WEIGHT) + memoryDif;
     }
 
+    /**
+     * Returns whether the current MethodResourceDescription contains the given MethodResourceDescription {@code rc2}.
+     * 
+     * @param rc2 MethodResourceDescription to compare with.
+     * @return {@code true} if the current MethodResourceDescription contains the given MethodResourceDescription
+     *         {@code rc2}, {@code false} otherwise.
+     */
     public boolean contains(MethodResourceDescription rc2) {
         boolean contained = checkCompatibility(this.operatingSystemType, rc2.operatingSystemType);
         contained = contained && checkCompatibility(this.operatingSystemDistribution, rc2.operatingSystemDistribution);
@@ -1084,6 +1344,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return contained;
     }
 
+    /**
+     * Returns whether the current MethodResourceDescription contains the DYNAMIC constraints of the given
+     * MethodResourceDescription {@code rc2}.
+     * 
+     * @param rc2 MethodResourceDescription to compare with.
+     * @return {@code true} if the current MethodResourceDescription contains the DYNAMIC constraints of the given
+     *         MethodResourceDescription {@code rc2}, {@code false} otherwise.
+     */
     public boolean containsDynamic(MethodResourceDescription rc2) {
         boolean contained = checkProcessors(rc2);
         contained = contained && checkMemory(rc2);
@@ -1156,6 +1424,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return value1 >= value2 || value1 == UNASSIGNED_FLOAT || value2 == UNASSIGNED_FLOAT;
     }
 
+    /**
+     * Returns the number of simultaneous executions of {@code rc2} that the current MethodResourceDescription can host.
+     * 
+     * @param rc2 MethodResourceDescription to host simultaneously.
+     * @return Maximum number of simultaneous executions.
+     */
     public Integer canHostSimultaneously(MethodResourceDescription rc2) {
         int min = Integer.MAX_VALUE;
 
@@ -1192,14 +1466,20 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return min;
     }
 
+    /**
+     * Scales the current MethodResourceDescription by the {@code amount} factor.
+     * 
+     * @param amount Scaling factor.
+     * @return New scaled MethodResourceDescription.
+     */
     public MethodResourceDescription multiply(int amount) {
         MethodResourceDescription rd = new MethodResourceDescription();
 
         // Processors
         for (Processor p : this.processors) {
-            Processor new_p = new Processor(p);
-            new_p.multiply(amount);
-            rd.addProcessor(new_p);
+            Processor newP = new Processor(p);
+            newP.multiply(amount);
+            rd.addProcessor(newP);
         }
 
         // Memory
@@ -1213,13 +1493,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     @Override
     public void mimic(ResourceDescription rd) {
-        MethodResourceDescription mrd2 = (MethodResourceDescription) rd;
         this.processors.clear();
         this.totalCPUComputingUnits = 0;
         this.totalGPUComputingUnits = 0;
         this.totalFPGAComputingUnits = 0;
-        this.totalOTHERComputingUnits = 0;
+        this.totalOtherComputingUnits = 0;
 
+        MethodResourceDescription mrd2 = (MethodResourceDescription) rd;
         for (Processor p2 : mrd2.getProcessors()) {
             this.addProcessor(new Processor(p2));
         }
@@ -1444,9 +1724,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     int cus = p.getComputingUnits();
 
                     // Copy the real decreased capabilities
-                    Processor p_reduced = new Processor(pThis);
-                    p_reduced.setComputingUnits(cus);
-                    reduced.addProcessor(p_reduced);
+                    Processor pReduced = new Processor(pThis);
+                    pReduced.setComputingUnits(cus);
+                    reduced.addProcessor(pReduced);
 
                     // Decrease current
                     pThis.removeComputingUnits(cus);
@@ -1493,7 +1773,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 this.totalFPGAComputingUnits += cus;
                 break;
             default:
-                this.totalOTHERComputingUnits += cus;
+                this.totalOtherComputingUnits += cus;
         }
     }
 
@@ -1509,7 +1789,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 this.totalFPGAComputingUnits -= cus;
                 break;
             default:
-                this.totalOTHERComputingUnits -= cus;
+                this.totalOtherComputingUnits -= cus;
         }
     }
 
@@ -1551,58 +1831,61 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /*
-     * ******************************************* EXTERNALIZATION
-     *******************************************/
+     * ************************************************************************************************************
+     * EXTERNALIZATION
+     *************************************************************************************************************/
     @SuppressWarnings("unchecked")
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        processors = (List<Processor>) in.readObject();
-        totalCPUComputingUnits = in.readInt();
-        totalCPUs = in.readInt();
-        totalGPUComputingUnits = in.readInt();
-        totalGPUs = in.readInt();
-        totalFPGAComputingUnits = in.readInt();
-        totalFPGAs = in.readInt();
-        totalOTHERComputingUnits = in.readInt();
-        totalOTHERs = in.readInt();
-        memorySize = in.readFloat();
-        memoryType = (String) in.readObject();
-        storageSize = in.readFloat();
-        storageType = (String) in.readObject();
-        operatingSystemType = (String) in.readObject();
-        operatingSystemDistribution = (String) in.readObject();
-        operatingSystemVersion = (String) in.readObject();
-        appSoftware = (List<String>) in.readObject();
-        hostQueues = (List<String>) in.readObject();
-        priceTimeUnit = in.readInt();
-        pricePerUnit = in.readFloat();
-        wallClockLimit = in.readInt();
-        value = in.readFloat();
+        this.processors = (List<Processor>) in.readObject();
+        this.totalCPUComputingUnits = in.readInt();
+        this.totalCPUs = in.readInt();
+        this.totalGPUComputingUnits = in.readInt();
+        this.totalGPUs = in.readInt();
+        this.totalFPGAComputingUnits = in.readInt();
+        this.totalFPGAs = in.readInt();
+        this.totalOtherComputingUnits = in.readInt();
+        this.totalOthers = in.readInt();
+        this.memorySize = in.readFloat();
+        this.memoryType = (String) in.readObject();
+        this.storageSize = in.readFloat();
+        this.storageType = (String) in.readObject();
+        this.operatingSystemType = (String) in.readObject();
+        this.operatingSystemDistribution = (String) in.readObject();
+        this.operatingSystemVersion = (String) in.readObject();
+        this.appSoftware = (List<String>) in.readObject();
+        this.hostQueues = (List<String>) in.readObject();
+        this.priceTimeUnit = in.readInt();
+        this.pricePerUnit = in.readFloat();
+        this.wallClockLimit = in.readInt();
+        this.value = in.readFloat();
 
     }
 
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(processors);
-        out.writeInt(totalCPUComputingUnits);
-        out.writeInt(totalCPUs);
-        out.writeInt(totalGPUComputingUnits);
-        out.writeInt(totalGPUs);
-        out.writeInt(totalFPGAComputingUnits);
-        out.writeInt(totalFPGAs);
-        out.writeInt(totalOTHERComputingUnits);
-        out.writeInt(totalOTHERs);
-        out.writeFloat(memorySize);
-        out.writeObject(memoryType);
-        out.writeFloat(storageSize);
-        out.writeObject(storageType);
-        out.writeObject(operatingSystemType);
-        out.writeObject(operatingSystemDistribution);
-        out.writeObject(operatingSystemVersion);
-        out.writeObject(appSoftware);
-        out.writeObject(hostQueues);
-        out.writeInt(priceTimeUnit);
-        out.writeFloat(pricePerUnit);
-        out.writeInt(wallClockLimit);
-        out.writeFloat(value);
+        out.writeObject(this.processors);
+        out.writeInt(this.totalCPUComputingUnits);
+        out.writeInt(this.totalCPUs);
+        out.writeInt(this.totalGPUComputingUnits);
+        out.writeInt(this.totalGPUs);
+        out.writeInt(this.totalFPGAComputingUnits);
+        out.writeInt(this.totalFPGAs);
+        out.writeInt(this.totalOtherComputingUnits);
+        out.writeInt(this.totalOthers);
+        out.writeFloat(this.memorySize);
+        out.writeObject(this.memoryType);
+        out.writeFloat(this.storageSize);
+        out.writeObject(this.storageType);
+        out.writeObject(this.operatingSystemType);
+        out.writeObject(this.operatingSystemDistribution);
+        out.writeObject(this.operatingSystemVersion);
+        out.writeObject(this.appSoftware);
+        out.writeObject(this.hostQueues);
+        out.writeInt(this.priceTimeUnit);
+        out.writeFloat(this.pricePerUnit);
+        out.writeInt(this.wallClockLimit);
+        out.writeFloat(this.value);
     }
 
     private Processor getDynamicCommonsProcessor(Processor pThis, Processor p) {
@@ -1646,8 +1929,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /*
-     * ******************************************* LOGGERS ******************************************
-     */
+     * ************************************************************************************************************
+     * LOGGERS
+     ************************************************************************************************************/
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[DESCRIPTION");
@@ -1671,8 +1956,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         sb.append(" TOTAL_GPU_CU=").append(this.totalGPUComputingUnits);
         sb.append(" TOTAL_FPGAs=").append(this.totalFPGAs);
         sb.append(" TOTAL_FPGA_CU=").append(this.totalFPGAComputingUnits);
-        sb.append(" TOTAL_OTHERs=").append(this.totalOTHERs);
-        sb.append(" TOTAL_OTHER_CU=").append(this.totalOTHERComputingUnits);
+        sb.append(" TOTAL_OTHERs=").append(this.totalOthers);
+        sb.append(" TOTAL_OTHER_CU=").append(this.totalOtherComputingUnits);
         sb.append("]");
 
         sb.append(" [MEMORY");

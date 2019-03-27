@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Support class to retrieve external processes output
+ * Support class to retrieve external processes output.
  */
 public class StreamGobbler extends Thread {
 
@@ -36,11 +36,11 @@ public class StreamGobbler extends Thread {
 
 
     /**
-     * Creates a new StreamGobbler for is @in and prints information to os @out
+     * Creates a new StreamGobbler for is {@code in} and prints information to os {@code out}.
      *
-     * @param in
-     * @param out
-     * @param logger
+     * @param in Input stream.
+     * @param out Output stream.
+     * @param logger Logger.
      */
     public StreamGobbler(InputStream in, PrintStream out, Logger logger) {
         this.setName("Stream Gobbler");

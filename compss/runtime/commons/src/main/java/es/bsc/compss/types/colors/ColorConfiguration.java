@@ -16,42 +16,51 @@
  */
 package es.bsc.compss.types.colors;
 
-import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.colors.Colors;
+import es.bsc.compss.types.exceptions.NonInstantiableException;
 
 
 public class ColorConfiguration {
 
+    /**
+     * Array containing the Paraver task colors.
+     */
     public static final ColorNode[] COLORS = new ColorNode[] { // Paraver colors
-            new ColorNode(Colors.COLOR_0, Colors.WHITE), // Paraver 0
-            new ColorNode(Colors.COLOR_1, Colors.WHITE), // Paraver 1
-            new ColorNode(Colors.COLOR_2, Colors.BLACK), // Paraver 2
-            new ColorNode(Colors.COLOR_3, Colors.BLACK), // Paraver 3
-            new ColorNode(Colors.COLOR_4, Colors.BLACK), // Paraver 4
-            new ColorNode(Colors.COLOR_5, Colors.WHITE), // Paraver 5
-            new ColorNode(Colors.COLOR_6, Colors.BLACK), // Paraver 6
-            new ColorNode(Colors.COLOR_7, Colors.BLACK), // Paraver 7
-            new ColorNode(Colors.COLOR_8, Colors.WHITE), // Paraver 8
-            new ColorNode(Colors.COLOR_9, Colors.WHITE), // Paraver 9
-            new ColorNode(Colors.COLOR_10, Colors.BLACK), // Paraver 10
-            new ColorNode(Colors.COLOR_11, Colors.BLACK), // Paraver 11
-            new ColorNode(Colors.COLOR_12, Colors.BLACK), // Paraver 12
-            new ColorNode(Colors.COLOR_13, Colors.WHITE), // Paraver 13
-            new ColorNode(Colors.COLOR_14, Colors.BLACK), // Paraver 14
-            new ColorNode(Colors.COLOR_15, Colors.BLACK), // Paraver 15
-            new ColorNode(Colors.COLOR_16, Colors.WHITE), // Paraver 16
-            new ColorNode(Colors.COLOR_17, Colors.WHITE), // Paraver 17
-            new ColorNode(Colors.COLOR_18, Colors.BLACK), // Paraver 18
-            new ColorNode(Colors.COLOR_19, Colors.WHITE), // Paraver 19
-            new ColorNode(Colors.COLOR_20, Colors.BLACK), // Paraver 20
-            new ColorNode(Colors.COLOR_21, Colors.WHITE), // Paraver 21
-            new ColorNode(Colors.COLOR_22, Colors.BLACK), // Paraver 22
-            new ColorNode(Colors.COLOR_23, Colors.WHITE) // Paraver 23
+        new ColorNode(Colors.COLOR_0, Colors.WHITE), // Paraver 0
+        new ColorNode(Colors.COLOR_1, Colors.WHITE), // Paraver 1
+        new ColorNode(Colors.COLOR_2, Colors.BLACK), // Paraver 2
+        new ColorNode(Colors.COLOR_3, Colors.BLACK), // Paraver 3
+        new ColorNode(Colors.COLOR_4, Colors.BLACK), // Paraver 4
+        new ColorNode(Colors.COLOR_5, Colors.WHITE), // Paraver 5
+        new ColorNode(Colors.COLOR_6, Colors.BLACK), // Paraver 6
+        new ColorNode(Colors.COLOR_7, Colors.BLACK), // Paraver 7
+        new ColorNode(Colors.COLOR_8, Colors.WHITE), // Paraver 8
+        new ColorNode(Colors.COLOR_9, Colors.WHITE), // Paraver 9
+        new ColorNode(Colors.COLOR_10, Colors.BLACK), // Paraver 10
+        new ColorNode(Colors.COLOR_11, Colors.BLACK), // Paraver 11
+        new ColorNode(Colors.COLOR_12, Colors.BLACK), // Paraver 12
+        new ColorNode(Colors.COLOR_13, Colors.WHITE), // Paraver 13
+        new ColorNode(Colors.COLOR_14, Colors.BLACK), // Paraver 14
+        new ColorNode(Colors.COLOR_15, Colors.BLACK), // Paraver 15
+        new ColorNode(Colors.COLOR_16, Colors.WHITE), // Paraver 16
+        new ColorNode(Colors.COLOR_17, Colors.WHITE), // Paraver 17
+        new ColorNode(Colors.COLOR_18, Colors.BLACK), // Paraver 18
+        new ColorNode(Colors.COLOR_19, Colors.WHITE), // Paraver 19
+        new ColorNode(Colors.COLOR_20, Colors.BLACK), // Paraver 20
+        new ColorNode(Colors.COLOR_21, Colors.WHITE), // Paraver 21
+        new ColorNode(Colors.COLOR_22, Colors.BLACK), // Paraver 22
+        new ColorNode(Colors.COLOR_23, Colors.WHITE) // Paraver 23
     };
 
+    /**
+     * Total number of colors.
+     */
     public static final int NUM_COLORS = COLORS.length;
 
 
+    /**
+     * Private constructor to avoid instantiation.
+     */
     private ColorConfiguration() {
         throw new NonInstantiableException("ColorConfiguration should not be instantiated");
     }

@@ -49,10 +49,6 @@ import storage.StorageItf;
 import storage.StubItf;
 
 
-/**
- *
- * @author flordan
- */
 public class RemoteRESTAgent extends COMPSsWorker {
 
     private final String name;

@@ -27,9 +27,9 @@ import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.RAccessId;
-import es.bsc.compss.types.data.DataAccessId.RWAccessId;
-import es.bsc.compss.types.data.DataAccessId.WAccessId;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.operation.DataOperation;

@@ -16,18 +16,17 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.exceptions.LangNotDefinedException;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
-
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.exceptions.LangNotDefinedException;
 
 
 public abstract class AbstractMethodImplementation extends Implementation implements Externalizable {
@@ -35,6 +34,9 @@ public abstract class AbstractMethodImplementation extends Implementation implem
     private static final Lang LANG;
 
 
+    /**
+     * Enum matching the different method types.
+     */
     public enum MethodType {
         METHOD, // For native methods
         BINARY, // For binary methods
@@ -64,15 +66,36 @@ public abstract class AbstractMethodImplementation extends Implementation implem
     }
 
 
+    /**
+     * New AbstractMethodImplementation instance for serialization.
+     */
     public AbstractMethodImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * New AbstractMethodImplementation instance for the given core Id {@code coreId} - implementation Id
+     * {@code implementationId}, and with the annotations {@code annot}.
+     * 
+     * @param coreId Associated core Id.
+     * @param implementationId Associated implementation Id.
+     * @param annot Associated annotations.
+     */
     public AbstractMethodImplementation(Integer coreId, Integer implementationId, MethodResourceDescription annot) {
         super(coreId, implementationId, annot);
     }
 
+    /**
+     * Builds the signature from the given parameters.
+     * 
+     * @param declaringClass Method declaring classs.
+     * @param methodName Method name.
+     * @param hasTarget Whether the method has target object or not.
+     * @param numReturns The number of return values of the method.
+     * @param parameters The number of parameters of the method.
+     * @return The signature built from the given parameters.
+     */
     public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns,
             Parameter[] parameters) {
 
@@ -109,14 +132,24 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         return buffer.toString();
     }
 
+    /**
+     * Returns the internal method type.
+     * 
+     * @return The internal method type.
+     */
+    public abstract MethodType getMethodType();
+
+    /**
+     * Returns the method definition.
+     * 
+     * @return The method definition.
+     */
+    public abstract String getMethodDefinition();
+
     @Override
     public TaskType getTaskType() {
         return TaskType.METHOD;
     }
-
-    public abstract MethodType getMethodType();
-
-    public abstract String getMethodDefinition();
 
     @Override
     public MethodResourceDescription getRequirements() {

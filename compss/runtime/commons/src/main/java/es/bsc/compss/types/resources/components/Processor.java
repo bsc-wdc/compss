@@ -16,13 +16,16 @@
  */
 package es.bsc.compss.types.resources.components;
 
-import java.io.Serializable;
-
 import es.bsc.compss.types.resources.MethodResourceDescription;
+
+import java.io.Serializable;
 
 
 public class Processor implements Serializable {
 
+    /**
+     * Enum to match the processor types.
+     */
     public static enum ProcessorType {
         CPU, // CPU
         GPU, // GPU
@@ -32,7 +35,7 @@ public class Processor implements Serializable {
 
 
     /**
-     * Runtime Objects have serialization ID 1L
+     * Runtime Objects have serialization ID 1L.
      */
     private static final long serialVersionUID = 1L;
 
@@ -49,44 +52,25 @@ public class Processor implements Serializable {
     private boolean modified = false;
 
 
+    /**
+     * Creates a new Processor instance for serialization.
+     */
     public Processor() {
-
+        // For serialization
     }
 
-    public Processor(String name) {
-        this.setName(name);
-    }
-
-    public Processor(String name, int cu) {
-        this.setName(name);
-        this.setComputingUnits(cu);
-    }
-
-    public Processor(String name, int cu, float speed) {
-        this.setName(name);
-        this.setComputingUnits(cu);
-        this.setSpeed(speed);
-    }
-
-    public Processor(String name, int cu, float speed, String arch) {
-        this.setName(name);
-        this.setComputingUnits(cu);
-        this.setSpeed(speed);
-        this.setArchitecture(arch);
-    }
-
-    public Processor(String name, int cu, float speed, String arch, ProcessorType type, float internalMem,
-            String propName, String propValue) {
-        this.setName(name);
-        this.setComputingUnits(cu);
-        this.setSpeed(speed);
-        this.setArchitecture(arch);
-        this.setType(type);
-        this.setInternalMemory(internalMem);
-        this.setPropName(propName);
-        this.setPropValue(propValue);
-    }
-
+    /**
+     * Creates a new Processor instance with the given information.
+     * 
+     * @param name Processor name.
+     * @param cu Processor computing units.
+     * @param speed Processor speed.
+     * @param arch Processor architecture.
+     * @param type Processor type.
+     * @param internalMem Processor memory.
+     * @param propName Processor custom property name.
+     * @param propValue Processor custom property value.
+     */
     public Processor(String name, int cu, float speed, String arch, String type, float internalMem, String propName,
             String propValue) {
         this.setName(name);
@@ -99,15 +83,11 @@ public class Processor implements Serializable {
         this.setPropValue(propValue);
     }
 
-    public Processor(String name, int cu, String type, float internalMem, String propName, String propValue) {
-        this.setName(name);
-        this.setComputingUnits(cu);
-        this.setType(type);
-        this.setInternalMemory(internalMem);
-        this.setPropName(propName);
-        this.setPropValue(propValue);
-    }
-
+    /**
+     * Creates a copy of the given Processor {@code p}.
+     * 
+     * @param p Processor to copy.
+     */
     public Processor(Processor p) {
         this.setName(p.getName());
         this.setComputingUnits(p.getComputingUnits());
@@ -119,115 +99,211 @@ public class Processor implements Serializable {
         this.setPropValue(p.getPropValue());
     }
 
+    /**
+     * Returns the processor name.
+     * 
+     * @return The processor name.
+     */
     public String getName() {
-        return name;
+        return this.name;
     }
 
+    /**
+     * Sets a new processor name.
+     * 
+     * @param name The new processor name.
+     */
     public void setName(String name) {
-        modified = true;
+        this.modified = true;
         this.name = name;
     }
 
+    /**
+     * Returns the number of computing units of the processor.
+     * 
+     * @return The number of computing units of the processor.
+     */
     public int getComputingUnits() {
-        return computingUnits;
+        return this.computingUnits;
     }
 
+    /**
+     * Sets a new number of computing units for the processor.
+     * 
+     * @param computingUnits The new number of computing units.
+     */
     public void setComputingUnits(int computingUnits) {
-        modified = true;
+        this.modified = true;
         this.computingUnits = computingUnits;
     }
 
+    /**
+     * Increases the current computing units of the processor by {@code cu} units.
+     * 
+     * @param cu Additional computing units.
+     */
     public void addComputingUnits(int cu) {
         this.computingUnits = this.computingUnits + cu;
     }
 
+    /**
+     * Removes {@code cu} units from the current computing units of the processor.
+     * 
+     * @param cu Number of computing units to remove.
+     */
     public void removeComputingUnits(int cu) {
-        modified = true;
+        this.modified = true;
         this.computingUnits = this.computingUnits - cu;
     }
 
+    /**
+     * Scales the current computing units by a factor of {@code amount}.
+     * 
+     * @param amount Computing units scaling factor.
+     */
     public void multiply(int amount) {
         this.computingUnits = this.computingUnits * amount;
     }
 
+    /**
+     * Returns the processor speed.
+     * 
+     * @return The processor speed.
+     */
     public float getSpeed() {
-        return speed;
+        return this.speed;
     }
 
+    /**
+     * Sets a new speed for the processor.
+     * 
+     * @param speed New processor speed.
+     */
     public void setSpeed(float speed) {
-        modified = true;
+        this.modified = true;
         this.speed = speed;
     }
 
+    /**
+     * Returns the processor architecture.
+     * 
+     * @return The processor architecture.
+     */
     public String getArchitecture() {
-        return architecture;
+        return this.architecture;
     }
 
+    /**
+     * Sets a new processor architecture.
+     * 
+     * @param architecture The new processor architecture.
+     */
     public void setArchitecture(String architecture) {
-        modified = true;
+        this.modified = true;
         this.architecture = architecture;
     }
 
     /**
-     * @return the type
+     * Returns the processor type.
+     * 
+     * @return The processor type.
      */
     public ProcessorType getType() {
-        return type;
+        return this.type;
     }
 
     /**
-     * @param type the type to set
+     * Sets a new processor type.
+     * 
+     * @param type The name of the new processor type.
      */
     public void setType(String type) {
-        modified = true;
+        this.modified = true;
         this.type = ProcessorType.valueOf(type.toUpperCase());
     }
 
     /**
-     * @param type the type to set
+     * Sets a new processor type.
+     * 
+     * @param type The new processor type.
      */
     public void setType(ProcessorType type) {
-        modified = true;
+        this.modified = true;
         this.type = type;
     }
 
     /**
-     * @return the internalMemory
+     * Returns the processor's internal memory.
+     * 
+     * @return The processor's internal memory.
      */
     public float getInternalMemory() {
-        return internalMemory;
+        return this.internalMemory;
     }
 
     /**
-     * @param internalMemory the internalMemory to set
+     * Sets a new amount of processor's internal memory.
+     * 
+     * @param internalMemory The new processor's internal memory.
      */
     public void setInternalMemory(float internalMemory) {
-        modified = true;
+        this.modified = true;
         this.internalMemory = internalMemory;
     }
 
+    /**
+     * Returns the custom processor's property name.
+     * 
+     * @return The custom processor's property name.
+     */
     public String getPropName() {
-        return propName;
+        return this.propName;
     }
 
+    /**
+     * Sets a new custom processor's property name.
+     * 
+     * @param propName The new custom processor's property name.
+     */
     public void setPropName(String propName) {
-        modified = true;
+        this.modified = true;
         this.propName = propName;
     }
 
+    /**
+     * Returns the custom processor's property value.
+     * 
+     * @return The custom processor's property value.
+     */
     public String getPropValue() {
-        return propValue;
+        return this.propValue;
     }
 
+    /**
+     * Sets a new custom processor's property value.
+     * 
+     * @param propValue The new custom processor's property value.
+     */
     public void setPropValue(String propValue) {
         this.propValue = propValue;
     }
 
+    /**
+     * Returns whether the processor is a CPU or not.
+     * 
+     * @return {@code true} if the processor has type CPU, {@code false} otherwise.
+     */
     public boolean isCPU() {
-        return type.equals(ProcessorType.CPU);
+        return this.type.equals(ProcessorType.CPU);
     }
 
+    /**
+     * Returns whether the original processor has been modified or not.
+     * 
+     * @return {@code true} if the original processor instance has been modified, {@code false} otherwise.
+     */
     public boolean isModified() {
-        return modified;
+        return this.modified;
     }
+
 }

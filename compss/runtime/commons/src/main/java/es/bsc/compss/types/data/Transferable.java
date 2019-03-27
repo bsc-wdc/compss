@@ -22,37 +22,37 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 public interface Transferable {
 
     /**
-     * Returns the source data
+     * Returns the source data.
      * 
-     * @return
+     * @return The source data.
      */
     public Object getDataSource();
 
     /**
-     * Sets the source data
+     * Sets the source data.
      * 
-     * @param dataSource
+     * @param dataSource New source data.
      */
     public void setDataSource(Object dataSource);
 
     /**
-     * Returns the target data
+     * Returns the target data.
      * 
-     * @return
+     * @return The target data.
      */
     public String getDataTarget();
 
     /**
-     * Sets the target data
+     * Sets the target data.
      * 
-     * @param target
+     * @param target New target data.
      */
     public void setDataTarget(String target);
 
     /**
-     * Returns the data Transfer type
+     * Returns the data Transfer type.
      * 
-     * @return
+     * @return The data Transfer type.
      */
     public DataType getType();
 

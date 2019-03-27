@@ -16,19 +16,20 @@
  */
 package es.bsc.compss.util;
 
+import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.log.Loggers;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.api.COMPSsRuntime;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
 /**
- * Manages warnings, errors and fatal errors. Stops the IT and does a System.exit(1) in errors and fatal errors cases.
+ * Manages warnings, errors and fatal errors. Stops the COMPSs Runtime and does a System.exit(1) in errors and fatal
+ * errors cases.
  */
 public final class ErrorManager {
 
@@ -52,7 +53,7 @@ public final class ErrorManager {
     private static boolean stopping = false;
 
     /**
-     * It handles ERROR and FATAL messages asynchronously
+     * It handles ERROR and FATAL messages asynchronously.
      */
     private static Runnable errorRunnable = new Runnable() {
 
@@ -71,19 +72,19 @@ public final class ErrorManager {
 
 
     /**
-     * Initializes the ErrorManager
+     * Initializes the ErrorManager.
      * 
-     * @param compssRuntime
+     * @param compssRuntime Attached COMPSs Runtime execution.
      */
     public static void init(COMPSsRuntime compssRuntime) {
         ErrorManager.compssRuntime = compssRuntime;
     }
 
     /**
-     * Warning handling (just print it)
+     * Handles a warning message and/or exception (prints it).
      * 
-     * @param msg
-     * @param e
+     * @param msg Warning message.
+     * @param e Warning exception.
      */
     public static void warn(String msg, Exception e) {
         if (!stopping) {
@@ -98,28 +99,28 @@ public final class ErrorManager {
     }
 
     /**
-     * Warning handling (just print it)
+     * Handles a warning exception (prints it).
      * 
-     * @param e
+     * @param e Warning exception.
      */
     public static void warn(Exception e) {
         warn("", e);
     }
 
     /**
-     * Warning handling (just print it)
+     * Handles a warning message (prints it).
      * 
-     * @param msg
+     * @param msg Warning message.
      */
     public static void warn(String msg) {
         warn(msg, null);
     }
 
     /**
-     * Error handling
+     * Handles an error message and/or exception (prints it and stops the Runtime).
      * 
-     * @param msg
-     * @param e
+     * @param msg Error message.
+     * @param e Error exception.
      */
     public static synchronized void error(String msg, Exception e) {
         if (!stopping) {
@@ -139,28 +140,28 @@ public final class ErrorManager {
     }
 
     /**
-     * Error handling
+     * Handles an error exception (prints it and stops the Runtime).
      * 
-     * @param e
+     * @param e Error exception.
      */
     public static void error(Exception e) {
         error("", e);
     }
 
     /**
-     * Error handling
+     * Handles an error message (prints it and stops the Runtime).
      * 
-     * @param msg
+     * @param msg Error message.
      */
     public static void error(String msg) {
         error(msg, null);
     }
 
     /**
-     * Fatal handling
+     * Handles an fatal message and/or exception (prints it and stops the Runtime).
      * 
-     * @param msg
-     * @param e
+     * @param msg Fatal message.
+     * @param e Fatal exception.
      */
     public static synchronized void fatal(String msg, Exception e) {
         if (!stopping) {
@@ -180,48 +181,49 @@ public final class ErrorManager {
     }
 
     /**
-     * Fatal handling
+     * Handles an fatal exception (prints it and stops the Runtime).
      * 
-     * @param e
+     * @param e Fatal exception.
      */
     public static void fatal(Exception e) {
         fatal("", e);
     }
 
     /**
-     * Fatal handling
+     * Handles an fatal message (prints it and stops the Runtime).
      * 
-     * @param msg
+     * @param msg Fatal message.
      */
     public static void fatal(String msg) {
         fatal(msg, null);
     }
 
     /*
-     * **************************************************** PRIVATE METHODS
-     ****************************************************/
+     * *************************************************************************************************************
+     * PRIVATE METHODS
+     **************************************************************************************************************/
 
     /**
      * Indents every line so that a single warning, error or fatal shows as a unique block, including exceptions and
-     * stack trace
+     * stack trace.
      * 
-     * @param prefix
-     * @param _msg
-     * @param e
-     * @param ps
+     * @param prefix Print prefix.
+     * @param msg Print message.
+     * @param e Print exception.
+     * @param ps Output PrintStream.
      */
-    private static void prettyPrint(String prefix, String _msg, Exception e, PrintStream ps) {
+    private static void prettyPrint(String prefix, String msg, Exception e, PrintStream ps) {
         // Append exception message and stackTrace
-        String msg = _msg;
+        String prettyMsg = msg;
 
         if (e != null) {
-            msg += NEWLINE;
+            prettyMsg += NEWLINE;
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            msg += "Stack trace:" + NEWLINE + sw.toString();
+            prettyMsg += "Stack trace:" + NEWLINE + sw.toString();
         }
 
-        String[] lines = msg.split(REGEX_NEWLINE);
+        String[] lines = prettyMsg.split(REGEX_NEWLINE);
         for (int i = 0; i < lines.length; ++i) {
             String l = lines[i];
             if (i == 0) { // Add prefix
@@ -234,11 +236,11 @@ public final class ErrorManager {
     }
 
     /**
-     * Adds indentation to a string
+     * Adds indentation to a string.
      * 
-     * @param str
-     * @param indentation
-     * @return
+     * @param str Input string.
+     * @param indentation Indentation value.
+     * @return The given string {@code str} prepended with {@code indentation} indentation spaces.
      */
     private static String indent(String str, int indentation) {
         for (int j = 0; j < indentation; ++j) {
@@ -248,7 +250,7 @@ public final class ErrorManager {
     }
 
     /**
-     * Private constructor to avoid instantiation
+     * Private constructor to avoid instantiation.
      */
     private ErrorManager() {
         // No possible instantiation of this class

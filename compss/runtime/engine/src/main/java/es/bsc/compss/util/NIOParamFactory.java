@@ -23,10 +23,14 @@ import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,12 +66,12 @@ public class NIOParamFactory {
                 DataAccessId dAccId = dPar.getDataAccessId();
                 Object value = dPar.getDataTarget();
                 boolean preserveSourceData;
-                if (dAccId instanceof DataAccessId.RAccessId) {
+                if (dAccId instanceof RAccessId) {
                     // Parameter is a R, has sources
-                    preserveSourceData = ((DataAccessId.RAccessId) dAccId).isPreserveSourceData();
-                } else if (dAccId instanceof DataAccessId.RWAccessId) {
+                    preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
+                } else if (dAccId instanceof RWAccessId) {
                     // Parameter is a RW, has sources
-                    preserveSourceData = ((DataAccessId.RWAccessId) dAccId).isPreserveSourceData();
+                    preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
                 } else {
                     // Parameter is a W, it has no sources
                     preserveSourceData = false;
@@ -78,18 +82,18 @@ public class NIOParamFactory {
                 String renaming = null;
                 String dataMgmtId;
                 DataAccessId faId = dPar.getDataAccessId();
-                if (faId instanceof DataAccessId.RWAccessId) {
+                if (faId instanceof RWAccessId) {
                     // Read write mode
-                    DataAccessId.RWAccessId rwaId = (DataAccessId.RWAccessId) faId;
+                    RWAccessId rwaId = (RWAccessId) faId;
                     renaming = rwaId.getReadDataInstance().getRenaming();
                     dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-                } else if (faId instanceof DataAccessId.RAccessId) {
+                } else if (faId instanceof RAccessId) {
                     // Read only mode
-                    DataAccessId.RAccessId raId = (DataAccessId.RAccessId) faId;
+                    RAccessId raId = (RAccessId) faId;
                     renaming = raId.getReadDataInstance().getRenaming();
                     dataMgmtId = renaming;
                 } else {
-                    DataAccessId.WAccessId waId = (DataAccessId.WAccessId) faId;
+                    WAccessId waId = (WAccessId) faId;
                     dataMgmtId = waId.getWrittenDataInstance().getRenaming();
                 }
                 if (renaming != null) {
@@ -107,7 +111,7 @@ public class NIOParamFactory {
                 }
 
                 // Create the NIO Param
-                boolean writeFinalValue = !(dAccId instanceof DataAccessId.RAccessId); // Only store W and RW
+                boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
                 np = new NIOParam(dataMgmtId, type, param.getStream(), param.getPrefix(), param.getName(),
                         preserveSourceData, writeFinalValue, value, (NIOData) dPar.getDataSource(),
                         dPar.getOriginalName());

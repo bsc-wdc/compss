@@ -17,7 +17,7 @@
 package es.bsc.compss.types.resources;
 
 /**
- * Abstract representation of a Worker Resource
+ * Abstract representation of a Worker Resource.
  */
 public abstract class WorkerResourceDescription extends ResourceDescription {
 
@@ -32,16 +32,16 @@ public abstract class WorkerResourceDescription extends ResourceDescription {
 
 
     /**
-     * Empty worker resource
+     * Empty worker resource.
      */
     public WorkerResourceDescription() {
         super();
     }
 
     /**
-     * Worker resource constructed by copy
+     * Worker resource constructed by copy.
      * 
-     * @param desc
+     * @param desc Worker resource to be copied.
      */
     public WorkerResourceDescription(WorkerResourceDescription desc) {
         super(desc);

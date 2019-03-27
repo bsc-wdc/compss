@@ -21,9 +21,10 @@ import java.util.Set;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
@@ -195,11 +196,11 @@ public class Score implements Comparable<Score> {
                     switch (dp.getDirection()) {
                         case CONCURRENT:
                         case IN:
-                            DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
+                            RAccessId raId = (RAccessId) dp.getDataAccessId();
                             dId = raId.getReadDataInstance();
                             break;
                         case INOUT:
-                            DataAccessId.RWAccessId rwaId = (DataAccessId.RWAccessId) dp.getDataAccessId();
+                            RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
                             dId = rwaId.getReadDataInstance();
                             break;
                         case OUT:

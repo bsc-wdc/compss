@@ -20,7 +20,7 @@ import java.io.File;
 
 
 /**
- * Support class to load environment variables
+ * Support class to load environment variables.
  */
 public class EnvironmentLoader {
 
@@ -34,11 +34,11 @@ public class EnvironmentLoader {
 
 
     /**
-     * Loads the environment value of the given variable @variable if it is a variable (start with $) Otherwise it
-     * returns the variable value
+     * Evaluates the given expression {@code expression}. If it is a variable (starts with $), loads its value from the
+     * environment. Otherwise, returns the original expression value.
      * 
-     * @param variable
-     * @return
+     * @param expression Variable expression.
+     * @return Value after resolving the variable expression.
      */
     public static String loadFromEnvironment(String expression) {
         String expressionValue = expression;
@@ -61,7 +61,7 @@ public class EnvironmentLoader {
                 String variableFullName = expressionValue.substring(beginIndex, endIndex);
 
                 // Retrieve env var value
-                String variableValue = loadEnvVariable(variableFullName, expressionValue);
+                String variableValue = loadEnvVariable(variableFullName);
 
                 // Substitute on varValue
                 if (variableValue != null) {
@@ -81,11 +81,11 @@ public class EnvironmentLoader {
     }
 
     /**
-     * Finds the position of the next valid token inside expressionValue that is bigger than beginIndex
+     * Finds the position of the next valid token inside expressionValue that is bigger than beginIndex.
      * 
-     * @param expressionValue
-     * @param beginIndex
-     * @return
+     * @param expressionValue Expression value.
+     * @param beginIndex Begin index.
+     * @return Index of the next valid token.
      */
     private static int findNextValidToken(String expressionValue, int beginIndex) {
         // Find next appearance
@@ -93,11 +93,11 @@ public class EnvironmentLoader {
     }
 
     /**
-     * Finds the end index from the token's start position
+     * Finds the end index from the token's start position.
      * 
-     * @param expressionValue
-     * @param beginIndex
-     * @return
+     * @param expressionValue Expression value.
+     * @param beginIndex Begin index.
+     * @return Index of the end of the token.
      */
     private static int findEndIndex(String expressionValue, int beginIndex) {
         int endIndex;
@@ -124,13 +124,12 @@ public class EnvironmentLoader {
     }
 
     /**
-     * Parses the variable name and loads its value from the environment
+     * Parses the variable name and loads its value from the environment.
      * 
-     * @param variableFullName
-     * @param expressionValue
-     * @return
+     * @param variableFullName Variable name.
+     * @return Environment value of the given variable.
      */
-    private static String loadEnvVariable(String variableFullName, String expressionValue) {
+    private static String loadEnvVariable(String variableFullName) {
         // Retrieve the env var name
         String variableLoadName = variableFullName.replaceAll(PREFIX_ENV_VAR_SCAPED, "");
         variableLoadName = variableLoadName.replaceAll(BEGIN_ENV_VAR_SCAPED, "");

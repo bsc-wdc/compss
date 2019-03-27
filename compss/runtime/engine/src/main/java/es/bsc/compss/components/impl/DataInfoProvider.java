@@ -17,23 +17,30 @@
 package es.bsc.compss.components.impl;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.Semaphore;
-import java.io.File;
-
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.*;
-import es.bsc.compss.types.data.AccessParams.*;
-import es.bsc.compss.types.data.DataAccessId.*;
+import es.bsc.compss.types.data.AccessParams;
+import es.bsc.compss.types.data.AccessParams.AccessMode;
+import es.bsc.compss.types.data.AccessParams.BindingObjectAccessParams;
+import es.bsc.compss.types.data.AccessParams.FileAccessParams;
+import es.bsc.compss.types.data.AccessParams.ObjectAccessParams;
+import es.bsc.compss.types.data.CollectionInfo;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInfo;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.DataVersion;
+import es.bsc.compss.types.data.FileInfo;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.ObjectInfo;
+import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.Transferable;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.operation.BindingObjectTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
@@ -47,7 +54,14 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.Tracer;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
+import java.io.File;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

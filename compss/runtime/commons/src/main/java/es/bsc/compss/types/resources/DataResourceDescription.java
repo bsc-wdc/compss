@@ -16,15 +16,15 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.types.implementations.Implementation;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import es.bsc.compss.types.implementations.Implementation;
-
 
 /**
- * Data Node representation
+ * Data Node representation.
  */
 public class DataResourceDescription extends ResourceDescription {
 
@@ -43,7 +43,7 @@ public class DataResourceDescription extends ResourceDescription {
 
 
     /**
-     * New empty data Resource Description
+     * New empty data Resource Description.
      */
     public DataResourceDescription() {
         // Only for externalization
@@ -53,10 +53,10 @@ public class DataResourceDescription extends ResourceDescription {
     }
 
     /**
-     * New Data Resource description with host @host and path @path
+     * New Data Resource description with host {@code host} and path {@code path}.
      *
-     * @param host
-     * @param path
+     * @param host Resource host.
+     * @param path Resource path.
      */
     public DataResourceDescription(String host, String path) {
         super();
@@ -65,9 +65,9 @@ public class DataResourceDescription extends ResourceDescription {
     }
 
     /**
-     * Clone method for Data Resource Description
+     * Clone method for Data Resource Description.
      *
-     * @param clone
+     * @param clone DataResourceDescription to clone.
      */
     public DataResourceDescription(DataResourceDescription clone) {
         super(clone);
@@ -84,36 +84,36 @@ public class DataResourceDescription extends ResourceDescription {
     }
 
     /**
-     * Returns the host
+     * Returns the host.
      *
-     * @return
+     * @return The host.
      */
     public String getHost() {
         return this.host;
     }
 
     /**
-     * Returns the path
+     * Returns the path.
      *
-     * @return
+     * @return The path.
      */
     public String getPath() {
         return this.path;
     }
 
     /**
-     * Returns the storage size
+     * Returns the storage size.
      *
-     * @return
+     * @return The storage size.
      */
     public float getStorageSize() {
-        return storageSize;
+        return this.storageSize;
     }
 
     /**
-     * Sets a new storage size
+     * Sets a new storage size.
      *
-     * @param storageSize
+     * @param storageSize New storage size.
      */
     public void setStorageSize(float storageSize) {
         if (storageSize > (float) 0.0) {
@@ -122,18 +122,18 @@ public class DataResourceDescription extends ResourceDescription {
     }
 
     /**
-     * Returns the storage type
+     * Returns the storage type.
      *
-     * @return
+     * @return The storage type.
      */
     public String getStorageType() {
-        return storageType;
+        return this.storageType;
     }
 
     /**
-     * Sets a new storage type
+     * Sets a new storage type.
      *
-     * @param storageType
+     * @param storageType New storage type.
      */
     public void setStorageType(String storageType) {
         if (storageType != null) {

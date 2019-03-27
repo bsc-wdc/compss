@@ -20,12 +20,12 @@ import java.io.Serializable;
 
 
 /**
- * A File Instance is identified by its file and version identifiers
+ * A File Instance is identified by its file and version identifiers.
  */
 public class DataInstanceId implements Serializable, Comparable<DataInstanceId> {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -40,28 +40,58 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
     private String renaming;
 
 
+    /**
+     * Creates a new DataInstanceId for serialization.
+     */
     public DataInstanceId() {
         // For serialization
     }
 
+    /**
+     * Creates a new DataInstanceId for data {@code dataId} and version {@code versionId}.
+     * 
+     * @param dataId Data Id.
+     * @param versionId Version Id.
+     */
     public DataInstanceId(int dataId, int versionId) {
         this.dataId = dataId;
         this.versionId = versionId;
         this.renaming = "d" + dataId + "v" + versionId + "_" + timeStamp + ".IT";
     }
 
+    /**
+     * Returns the associated dataId.
+     * 
+     * @return The associated dataId.
+     */
     public int getDataId() {
         return dataId;
     }
 
+    /**
+     * Returns the associated versionId.
+     * 
+     * @return The associated versionId.
+     */
     public int getVersionId() {
         return versionId;
     }
 
+    /**
+     * Returns the associated renaming.
+     * 
+     * @return The associated renaming.
+     */
     public String getRenaming() {
         return renaming;
     }
 
+    /**
+     * Returns the previous version renaming to the given {@code renaming}.
+     * 
+     * @param renaming Current version renaming.
+     * @return The previous version renaming of {@code renaming}.
+     */
     public static String previousVersionRenaming(String renaming) {
         int dIdx = renaming.indexOf('d');
         int vIdx = renaming.indexOf('v');

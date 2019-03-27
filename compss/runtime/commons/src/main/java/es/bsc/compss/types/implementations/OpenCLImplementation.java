@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
 public class OpenCLImplementation extends AbstractMethodImplementation implements Externalizable {
@@ -32,11 +32,23 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
     private String workingDir;
 
 
+    /**
+     * Creates a new OpenCLImplementation for serialization.
+     */
     public OpenCLImplementation() {
         // For externalizable
         super();
     }
 
+    /**
+     * Creates a new OpenCLImplementation instance from the given parameters.
+     * 
+     * @param kernel Path to the OpenCL kernel.
+     * @param workingDir Binary working directory.
+     * @param coreId Core Id.
+     * @param implementationId Implementation Id.
+     * @param annot Method annotations.
+     */
     public OpenCLImplementation(String kernel, String workingDir, Integer coreId, Integer implementationId,
             MethodResourceDescription annot) {
 
@@ -46,10 +58,20 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
         this.workingDir = workingDir;
     }
 
+    /**
+     * Returns the path to the OpenCL kernel.
+     * 
+     * @return The path to the OpenCL kernel.
+     */
     public String getKernel() {
         return this.kernel;
     }
 
+    /**
+     * Returns the binary working directory.
+     * 
+     * @return The binary working directory.
+     */
     public String getWorkingDir() {
         return this.workingDir;
     }

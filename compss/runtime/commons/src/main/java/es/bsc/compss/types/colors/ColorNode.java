@@ -22,15 +22,31 @@ public class ColorNode {
     private final String fontColor;
 
 
+    /**
+     * Creates a new ColorNode instance.
+     * 
+     * @param fillColor Fill color.
+     * @param fontColor Font color.
+     */
     public ColorNode(String fillColor, String fontColor) {
         this.fillColor = fillColor;
         this.fontColor = fontColor;
     }
 
+    /**
+     * Returns the fill color.
+     * 
+     * @return The fill color.
+     */
     public String getFillColor() {
         return this.fillColor;
     }
 
+    /**
+     * Returns the font color.
+     * 
+     * @return The font color.
+     */
     public String getFontColor() {
         return this.fontColor;
     }

@@ -14,6 +14,7 @@
  *  limitations under the License.
  *
  */
+
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
@@ -34,33 +35,33 @@ static FILE *includeFile = NULL;
 
 static char includeName[PATH_MAX];
 static char *c_types[] = {
-    "int",			// boolean_dt
-    "char",			// char_dt
-    "unsigned char",	// byte_dt
-    "short",			// short_dt
-    "int",			// int_dt
-    "long",			// long_dt
-    "float",			// float_dt
-    "double",			// double_dt
-    "char *",			// string_dt
-    "file",			// file_dt
-    "void *",			// object_dt
-    "void *",			// psco_dt
-    "void *",			// external_psco_dt
-    "void *",			// binding_object_dt
-    "char", 			// wchar_dt
-    "char *", 		// wstring_dt
-    "long long", 		// longlong_dt
-    "void", 			// void_dt
-    "void",			// any_dt
-    "char",	  	  	//array_char_dt,
-    "unsigned char",//array_byte_dt,
-    "short",		//array_short_dt,
-    "int",			//array_int_dt,
-    "long", 		//array_long_dt,
-    "float",		//array_float_dt,
-    "double", 		//array_double_dt,
-    "error"		// null_dt
+    "int",			        // boolean_dt
+    "char",			        // char_dt
+    "unsigned char",	    // byte_dt
+    "short",			    // short_dt
+    "int",			        // int_dt
+    "long",			        // long_dt
+    "float",			    // float_dt
+    "double",			    // double_dt
+    "char *",			    // string_dt
+    "file",			        // file_dt
+    "void *",			    // object_dt
+    "void *",			    // psco_dt
+    "void *",			    // external_psco_dt
+    "void *",			    // binding_object_dt
+    "char", 			    // wchar_dt
+    "char *", 		        // wstring_dt
+    "long long", 		    // longlong_dt
+    "void", 			    // void_dt
+    "void",			        // any_dt
+    "char",	  	  	        //array_char_dt,
+    "unsigned char",        //array_byte_dt,
+    "short",		        //array_short_dt,
+    "int",			        //array_int_dt,
+    "long", 		        //array_long_dt,
+    "float",		        //array_float_dt,
+    "double", 		        //array_double_dt,
+    "error"		            // null_dt
 };
 
 static char *c_out_types[] = {
@@ -83,15 +84,21 @@ static char *c_out_types[] = {
     "long long",            // longlong_dt
     "void",                 // void_dt
     "void",                 // any_dt
-    "char",	  	  	//array_char_dt,
-    "unsigned char",//array_byte_dt,
-    "short",		//array_short_dt,
-    "int",			//array_int_dt,
-    "long", 		//array_long_dt,
-    "float",		//array_float_dt,
-    "double", 		//array_double_dt,
+    "char",	  	  	        //array_char_dt,
+    "unsigned char",        //array_byte_dt,
+    "short",		        //array_short_dt,
+    "int",			        //array_int_dt,
+    "long", 		        //array_long_dt,
+    "float",		        //array_float_dt,
+    "double", 		        //array_double_dt,
     "error"                 // null_dt
 };
+
+void asprintf_error(char* pointer, char* error) {
+    free(pointer);
+    printf(error);
+    exit(1);
+}
 
 char* concat(const char *s1, const char *s2) {
     const size_t len1 = strlen(s1);
@@ -204,6 +211,61 @@ void generate_nanos_shutdown() {
 
 }
 
+/*
+ * This function takes a function and generates a code that assign the actual
+ * arguments and to the variables of the struct. This is useful for OmpSs-2
+ * integration in terms of copying the values to spawn the wrapper function.
+ *
+ * It assumes that the struct name is of the form %s_struct where %s is the
+ * name of the method to be called.
+ *
+ */
+static void assign_arguments_to_struct(FILE *outFile, function* func) {
+
+    char* struct_name;
+    int printed_chars = 0;
+
+    printed_chars = asprintf(&struct_name, "%s_struct", func->methodname);
+
+    if (printed_chars < 0) {
+        asprintf_error(struct_name, "Not possible to create the struct name.\n");
+    }
+
+    argument* args = func->first_argument;
+    while (args != NULL) {
+        fprintf(outFile, "\t\t\t%s.%s = %s;\n", struct_name, args->name, args->name);
+        args = args->next_argument;
+    }
+
+}
+
+/*
+ * This function takes a function and generates a code that assigns the
+ * values inside the struct (also the return?) to the arguments of the
+ * function. This is useful for OmpSs-2 integration, to get the values
+ * back to the variables
+ *
+ * It assumes that the struct name is of the form %s_struct where %s is the
+ * name of the method to be called.
+ */
+static void assign_struct_to_arguments(FILE *outFile, function* func) {
+
+    char* struct_name;
+    int printed_chars = 0;
+
+    printed_chars = asprintf(&struct_name, "%s_struct", func->methodname);
+
+    if (printed_chars < 0) {
+        asprintf_error(struct_name, "Not possible to create the struct name.\n");
+    }
+
+    argument* args = func->first_argument;
+    while (args != NULL) {
+        fprintf(outFile, "\t\t\t%s = %s.%s;\n", args->name, struct_name, args->name);
+        args = args->next_argument;
+    }
+
+}
 
 /*
  * Generate prototype for the initThread method at worker
@@ -247,6 +309,7 @@ void generate_executor_prototype(FILE *outFile) {
     fprintf(outFile, "int execute(int argc, char **argv, CBindingCache* cache, int serializeOuts) {\n");
     fprintf(outFile, "\n");
 }
+
 void generate_worker_executor() {
     generate_executor_prototype(workerFile);
     // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName,
@@ -482,113 +545,10 @@ static void generate_enum(FILE *outFile, function *first_function) {
 }
 
 /*
- * Generate task prototype
- */
-static void generate_prototype(FILE *outFile, function *current_function) {
-    argument *current_argument;
-
-    if (current_function->return_type != void_dt ) {
-        if(current_function->return_type == object_dt || (current_function->return_type >= array_char_dt && current_function->return_type <= array_double_dt)) {
-            fprintf(outFile, "%s* %s(", current_function->return_typename, current_function->name);
-        } else {
-            fprintf(outFile, "%s %s(", current_function->return_typename, current_function->name);
-        }
-    } else {
-        fprintf(outFile, "%s %s(", c_types[current_function->return_type], current_function->name);
-    }
-    current_argument = current_function->first_argument;
-    while (current_argument != NULL) {
-        if (current_argument->dir == in_dir) {
-            switch (current_argument->type) {
-            case char_dt:
-            case wchar_dt:
-            case boolean_dt:
-            case short_dt:
-            case long_dt:
-            case longlong_dt:
-            case int_dt:
-            case float_dt:
-            case double_dt:
-                fprintf(outFile, "%s %s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case object_dt:
-                fprintf(outFile, "%s *%s", current_argument->classname, current_argument->name);
-                break;
-            case string_dt:
-            case wstring_dt:
-                fprintf(outFile, "%s %s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case file_dt:
-                fprintf(outFile, "%s %s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case array_char_dt:
-            case array_byte_dt:
-            case array_short_dt:
-            case array_int_dt:
-            case array_long_dt:
-            case array_float_dt:
-            case array_double_dt:
-                //TODO Check if * or & is needed
-                fprintf(outFile, "%s *%s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case void_dt:
-            case any_dt:
-            case null_dt:
-            default:
-                ;
-            }
-        } else {
-            switch (current_argument->type) {
-            case char_dt:
-            case wchar_dt:
-            case boolean_dt:
-            case short_dt:
-            case long_dt:
-            case longlong_dt:
-            case int_dt:
-            case float_dt:
-            case double_dt:
-                fprintf(outFile, "%s *%s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case object_dt:
-                fprintf(outFile, "%s* %s", current_argument->classname, current_argument->name);
-                break;
-            case string_dt:
-            case wstring_dt:
-                fprintf(outFile, "%s *%s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case file_dt:
-                fprintf(outFile, "%s %s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case array_char_dt:
-            case array_byte_dt:
-            case array_short_dt:
-            case array_int_dt:
-            case array_long_dt:
-            case array_float_dt:
-            case array_double_dt:
-                fprintf(outFile, "%s* %s", c_out_types[current_argument->type], current_argument->name);
-                break;
-            case void_dt:
-            case any_dt:
-            case null_dt:
-            default:
-                ;
-            }
-        }
-        current_argument = current_argument->next_argument;
-        if (current_argument != NULL) {
-            fprintf(outFile, ", ");
-        }
-    }
-    fprintf(outFile, ")");
-}
-
-/*
  * Return the string "type name" of the argument
  */
 static char* construct_type_and_name(argument* arg) {
-   
+
     char* ret;
     int printed_chars = -1;
 
@@ -603,18 +563,18 @@ static char* construct_type_and_name(argument* arg) {
             case int_dt:
             case float_dt:
             case double_dt:
-            printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
-            break;
+                printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
+                break;
             case object_dt:
-            printed_chars = asprintf(&ret, "%s *%s", arg->classname, arg->name);
-            break;
+                printed_chars = asprintf(&ret, "%s *%s", arg->classname, arg->name);
+                break;
             case string_dt:
             case wstring_dt:
-            printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
-            break;
+                printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
+                break;
             case file_dt:
-            printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
-            break;
+                printed_chars = asprintf(&ret, "%s %s", c_out_types[arg->type], arg->name);
+                break;
             case array_char_dt:
             case array_byte_dt:
             case array_short_dt:
@@ -622,16 +582,16 @@ static char* construct_type_and_name(argument* arg) {
             case array_long_dt:
             case array_float_dt:
             case array_double_dt:
-            //TODO Check if * or & is needed
-            printed_chars = asprintf(&ret, "%s *%s", c_out_types[arg->type], arg->name);
-            break;
+                //TODO Check if * or & is needed
+                printed_chars = asprintf(&ret, "%s *%s", c_out_types[arg->type], arg->name);
+                break;
             case void_dt:
             case any_dt:
             case null_dt:
             default:
-            ;
+                ;
         }
-    } 
+    }
     else {
         switch (arg->type) {
             case char_dt:
@@ -676,14 +636,85 @@ static char* construct_type_and_name(argument* arg) {
         printf("ERROR: Not possible to generate type and name string for argument.\n");
         free(ret);
         exit(1);
-    } 
+    }
 
     return ret;
-    
+
 }
 
+/*
+ * Return the string "return type" of the function
+ */
+static char* construct_returntype(function* func) {
+
+    char* ret;
+    int printed_chars = -1;
+
+    if (func->return_type != void_dt) {
+
+        if(func->return_type == object_dt ||
+           (func->return_type >= array_char_dt && func->return_type <= array_double_dt)) {
+            printed_chars = asprintf(&ret, "%s*", func->return_typename);
+        } else {
+            printed_chars = asprintf(&ret, "%s", func->return_typename);
+        }
+
+    } else {
+        printed_chars = asprintf(&ret, "%s", c_types[func->return_type]);
+    }
+
+    if (printed_chars < 0) {
+        printf("WARNING: Not possible to generate return type for function.");
+        free(ret);
+
+        return NULL;
+    }
+
+    return ret;
+
+}
+
+/*
+ * Return the string "return type function name" of the function
+ */
+static char* construct_returntype_and_functionname(function* func) {
+
+    char* ret;
+    int printed_chars = -1;
+
+    printed_chars = asprintf(&ret, "%s %s", construct_returntype(func), func->name);
+
+    if (printed_chars < 0) {
+        printf("ERROR: Not possible to generate return type and function name for function.");
+        free(ret);
+        exit(1);
+    }
+
+    return ret;
+
+}
+
+/*
+ * Generate task prototype, composed of return type, function name and all the
+ * arguments of the function implementing the task.
+ */
+static void generate_prototype(FILE *outFile, function *current_function) {
+
+    argument *current_argument = current_function->first_argument;
+
+    fprintf(outFile, "%s(", construct_returntype_and_functionname(current_function));
+    while (current_argument != NULL) {
+        fprintf(outFile, "%s", construct_type_and_name(current_argument));
+        current_argument = current_argument->next_argument;
+        if (current_argument != NULL) {
+            fprintf(outFile, ", ");
+        }
+    }
+    fprintf(outFile, ")");
+}
 
 //TODO: Maybe not needed
+
 /*static void serialize_array(FILE *outFile, argument *arg){
 
     char* type;
@@ -810,7 +841,6 @@ static void add_arg_deserialization(FILE *outFile, argument *arg, char* object_s
     free(objectname);
     free(filename);
 }*/
-
 
 static void generate_execute_empty(FILE *outFile) {
     generate_executor_prototype(outFile);
@@ -1227,46 +1257,57 @@ static void generate_parameter_marshalling(FILE *outFile, function *func, Types 
     arg = func->first_argument;
     while (arg != NULL) {
         i = j*BUFF_ELEMENTS;
+
         fprintf(outFile, "\n");
-        treat_master_argument(outFile,arg,i, current_types);
+
+        treat_master_argument(outFile, arg, i, current_types);
+
         arg = arg->next_argument;
         j++;
     }
 
     fprintf(outFile, "\n");
 
-    if (( func->classname != NULL ) && (func->access_static == 0)) {
+    if ((func->classname != NULL) && (func->access_static == 0)) {
         i = j*BUFF_ELEMENTS;
-        argument *th = (argument *)malloc(sizeof(argument));
-        th->name="this";
-        th->type=object_dt;
-        th->dir=inout_dir;
-        th->classname=func->classname;
-        th->elements="0";
-        add_object_or_array_arg_master_treatment(outFile,th,i, current_types);
-        free(th);
+
+        argument th;
+        th.name="this";
+        th.type=object_dt;
+        th.dir=inout_dir;
+        th.classname=func->classname;
+        th.elements="0";
+
+        add_object_or_array_arg_master_treatment(outFile, &th, i, current_types);
+
         fprintf(outFile, "\n");
+
         j++;
     }
 
     fprintf(outFile, "\n");
 
-    if ( func->return_type != void_dt ) {
+    if (func->return_type != void_dt) {
         i = j*BUFF_ELEMENTS;
-        argument *ret = (argument *)malloc(sizeof(argument));
-        ret->name="return_obj";
-        ret->type=func->return_type;
-        ret->dir=out_dir;
-        ret->classname=func->return_typename;
-        if (func->return_elements !=NULL) {
-            ret->elements=func->return_elements;
+
+        argument ret;
+        ret.name="return_obj";
+        ret.type= func->return_type;
+        ret.dir=out_dir;
+        ret.classname=func->return_typename;
+
+        if (func->return_elements != NULL) {
+            ret.elements=func->return_elements;
         } else {
-            ret->elements="0";
+            ret.elements="0";
         }
-        fprintf(outFile, "\t %s *%s;\n", ret->classname, ret->name);
-        treat_master_argument(outFile,ret,i, current_types);
-        free(ret);
+
+        fprintf(outFile, "\t %s *%s;\n", ret.classname, ret.name);
+
+        treat_master_argument(outFile, &ret, i, current_types);
+
         fprintf(outFile, "\n");
+
         j++;
     }
 
@@ -1302,16 +1343,7 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     fprintf(outFile, "\n");
 
     if ( func->return_type != void_dt ) {
-        /*No need to synchronize for any parameter
-        if ( func->return_type != object_dt){
-            fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Implicit synchronization of return value\\n\", method_name);\n");
-            fprintf(outFile, "\t compss_wait_on(return_object);\n");
-        }*/
-        /*if ( func->return_type == object_dt){
-            fprintf(outFile, "\n\t return *return_obj;\n");
-        }else {//if( func->return_type >= array_char_dt && func->return_type <= array_double_dt){*/
         fprintf(outFile, "\n\t return return_obj;\n");
-        //}
         fprintf(outFile, "\n");
     }
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Free method name\\n\", method_name);\n");
@@ -1319,16 +1351,6 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  End of task submission.\\n\");\n");
 
 }
-
-/*static void add_arg_worker_cache_serialization(FILE *outFile, argument *arg, char* file_suffix, char* tabs){
-    fprintf(outFile, "%s %s *%s_o_data;\n", tabs, arg->classname, arg->name);
-    fprintf(outFile, "%s get_compss_worker_lock();\n", tabs);
-    fprintf(outFile, "%s %s_o_data = (%s)cache[%s_orig_id];\n", tabs, arg->name, dataType, arg->name);
-    fprintf(outFile, "%s release_compss_worker_lock();\n", tabs);
-    add_arg_serialization(outFile, arg, "_o_data", file_suffix, tabs);
-}*/
-
-
 
 static void add_checkinCache_and_management(FILE *outFile, const char* name, const char* dataType, const char * elements, int position, bool preserveData) {
     //Check if dest is in cache
@@ -1460,10 +1482,8 @@ static void add_object_or_array_arg_worker_treatment(FILE *outFile, argument *ar
     }
     switch (arg->dir) {
     case in_dir:
-
         //when argument is in
         add_checkinCache_and_management(outFile, arg->name, arg->classname, t.elements, position, false);
-
         break;
     case inout_dir:
         //when argument is inout
@@ -1753,6 +1773,7 @@ static void add_argument_serialization_worker(FILE *outFile, argument *arg, char
             add_serialization(outFile, arg->type, arg->name, filename, elements, tabs);
             free(filename);
             free(elements);
+            fprintf(outFile, "\n");
             break;
         }
         case file_dt:
@@ -1817,12 +1838,14 @@ static void add_return_object_store(FILE *outFile, argument *arg, Types current_
     t.name = arg->classname;
     t.elements = arg->elements;
     t.dt = arg->type;
+
     int position = getTypeNumber(t, current_types);
     if (position < 0) {
         printf("ERROR: Position for type (%s,%s,%d) not found", arg->classname, arg->elements, arg->type);
         printAllTypes(current_types);
         exit(1);
     }
+
     fprintf(outFile, "\t\t\t if (%s_dest_id != NULL){\n", arg->name);
     fprintf(outFile, "\t\t\t\t // Object have to be store in cache\n");
     fprintf(outFile, "\t\t\t\t compss_pointer %s_cp;\n", arg->name);
@@ -1837,7 +1860,7 @@ static void add_return_object_store(FILE *outFile, argument *arg, Types current_
 }
 
 static void generate_worker_case(FILE *outFile, Types current_types, function *func) {
-    argument *arg, *ret, *th;
+    argument *arg, ret, th;
     int j = 0;
     int is_first_arg = 1;
 
@@ -1848,6 +1871,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 
     printf("\t\t Adding parameter unmarshalling...\n");
     fflush(NULL);
+
     arg = func->first_argument;
     while (arg != NULL) {
         treat_worker_argument(outFile, arg, current_types, false);
@@ -1856,31 +1880,36 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fprintf(outFile, "\t\t\t \n");
 
     //Managing object callee
-    if (( func->classname != NULL ) && (func->access_static == 0)) {
-        th = (argument *)malloc(sizeof(argument));
-        th->name="target_obj";
-        th->type=object_dt;
-        th->dir=inout_dir;
-        th->classname=func->classname;
+    if ((func->classname != NULL) && (func->access_static == 0)) {
+        th.name="target_obj";
+        th.type=object_dt;
+        th.dir=inout_dir;
+        th.classname=func->classname;
+
         printf("\t\t Adding target object unmarshalling...\n");
         fflush(NULL);
-        fprintf(outFile, "\t\t\t %s* %s = new %s();\n", th->classname, th->name, th->classname);
-        add_object_or_array_arg_worker_treatment(outFile, th, ARGS_OFFSET, current_types, false);
+
+        fprintf(outFile, "\t\t\t%s* %s = new %s();\n", th.classname, th.name, th.classname);
+
+        add_object_or_array_arg_worker_treatment(outFile, &th, ARGS_OFFSET, current_types, false);
     }
     fprintf(outFile, "\t\t\t \n");
 
-    //Managing return type
-    if ( func->return_type != void_dt ) {
-        ret = (argument *)malloc(sizeof(argument));
-        ret->name="return_obj";
-        ret->type=func->return_type;
-        ret->dir=out_dir;
-        ret->classname=func->return_typename;
-        ret->elements=func->return_elements;
-        printf("\t\t Adding return object unmarshalling...\n");
-        treat_worker_argument(outFile, ret, current_types, true);
-    }
+    fprintf(outFile, "#ifndef OMPSS2_ENABLED\n"); //If OMPSS2_ENABLED not defined
 
+    //region Normal executor (without OmpSs-2) TODO
+    //Managing return type
+    if (func->return_type != void_dt) {
+        ret.name="return_obj";
+        ret.type=func->return_type;
+        ret.dir=out_dir;
+        ret.classname=func->return_typename;
+        ret.elements=func->return_elements;
+
+        printf("\t\t Adding return object unmarshalling...\n");
+
+        treat_worker_argument(outFile, &ret, current_types, true);
+    }
     fprintf(outFile, "\t\t\t \n");
 
     //Add function call
@@ -1888,21 +1917,19 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fflush(NULL);
     fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
 
-    fprintf(outFile, "\t\t\t#ifdef OMPSS2_ENABLED\n"); //OmpSs-2 spawn function
-
     int printed_chars = 0;    
     char* func_to_execute;
 
     if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type == void_dt)) {
-        printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s(", th->name, func->methodname);
+        printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s(", th.name, func->methodname);
     } else if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type != void_dt)) {
         if (func->return_type == object_dt) {
-            printed_chars = asprintf(&func_to_execute, "\t\t\t *%s = %s->%s(", ret->name, th->name, func->methodname);
+            printed_chars = asprintf(&func_to_execute, "\t\t\t *%s = %s->%s(", ret.name, th.name, func->methodname);
         } else {
-            printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s->%s(", ret->name, th->name, func->methodname);
+            printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s->%s(", ret.name, th.name, func->methodname);
         }
     } else if ( func->return_type != void_dt ) {
-        printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s(", ret->name, func->name);
+        printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s(", ret.name, func->name);
     } else {
         printed_chars = asprintf(&func_to_execute, "\t\t\t %s(", func->name);
     }
@@ -1913,9 +1940,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
         exit(1);
     }
 
-    char* nanos6_spawner; 
-    printed_chars = asprintf(&nanos6_spawner, "nanos6_spawn_function("); 
-
+    fprintf(outFile, "%s", func_to_execute);
 
     is_first_arg = 1;
     arg = func->first_argument;
@@ -1930,18 +1955,161 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     } 
     fprintf(outFile, ");\n");
 
-
-    fprintf(outFile, "\t\t\t#else\n");
-
-
-    fprintf(outFile, "\t\t\t#endif\n");
-
     fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Execution of function %s.%s finished.\" << endl << flush;\n", func->classname, func->methodname);
     fprintf(outFile, "\n");
 
+    //endregion
+
+    fprintf(outFile, "#else\n"); //Else spawn OmpSs-2 function with Nanos6
+
+    //region OmpSs-2 executor TODO
+
+    //Copy the function
+    /*function func_ompss2_wrapper;
+
+    func_ompss2_wrapper.access_static   = func->access_static;
+    func_ompss2_wrapper.return_type     = func->return_type;
+    func_ompss2_wrapper.argument_count  = func->argument_count;
+    func_ompss2_wrapper.exec_arg_count  = func->exec_arg_count;
+    func_ompss2_wrapper.first_constraint= func->first_constraint;
+    func_ompss2_wrapper.next_function   = NULL;
+
+   arg = func->first_argument;
+
+    //Copy arguments
+    argument* copy = malloc(sizeof(argument*));
+
+    copy->name      = strdup(arg->name);
+    copy->classname = strdup(arg->classname);
+
+    copy->type              = arg->type;
+    copy->dir               = arg->dir;
+    copy->stream            = arg->stream;
+    copy->passing_in_order  = arg->passing_in_order;
+    copy->passing_out_order = arg->passing_out_order;
+
+    copy->elements = strdup(arg->elements);
+
+    copy->next_argument = malloc(sizeof(argument*));
+    func_ompss2_wrapper.first_argument = copy;
+
+    arg = arg->next_argument;
+
+    argument* next = copy->next_argument;
+    while (arg != NULL) {
+        next->name      = strdup(arg->name);
+        next->classname = strdup(arg->classname);
+
+        next->type              = arg->type;
+        next->dir               = arg->dir;
+        next->stream            = arg->stream;
+        next->passing_in_order  = arg->passing_in_order;
+        next->passing_out_order = arg->passing_out_order;
+
+        next->elements = strdup(arg->elements);
+
+        next = next->next_argument;
+
+        if (next == NULL) {
+            next = malloc(sizeof(argument*));
+        }
+
+        arg = arg->next_argument;
+    }
+
+    char* func_ompss2_wrapper_name;
+    printed_chars = asprintf(&func_ompss2_wrapper_name, "\t\t\t%s_wrapper", func->methodname);
+
+    if (printed_chars < 0) {
+        asprintf_error(func_ompss2_wrapper_name, "Not possible to generate OmpSs-2 wrapper function name.\n");
+    }
+
+    func_ompss2_wrapper.name = func_ompss2_wrapper_name;
+    func_ompss2_wrapper.next_function = NULL;
+    */
+
+    //Declare the struct holding the arguments of the function
+    fprintf(outFile, "\t\t\t%s_struct_t %s_struct;\n", func->methodname, func->methodname);
+
+    assign_arguments_to_struct(outFile, func); //Assign parameters to the struct
+
+    fprintf(outFile, "\t\t\t \n");
+
+    /*//Managing object callee TODO
+    if ((func_ompss2_wrapper.classname != NULL) && (func_ompss2_wrapper.access_static == 0)) {
+        th.name="target_obj";
+        th.type=object_dt;
+        th.dir=inout_dir;
+        th.classname=func_ompss2_wrapper.classname;
+
+        printf("\t\t Adding target object unmarshalling...\n");
+        fflush(NULL);
+
+        fprintf(outFile, "\t\t\t %s* %s = new %s();\n", th.classname, th.name, th.classname);
+
+        add_object_or_array_arg_worker_treatment(outFile, &th, ARGS_OFFSET, current_types, false);
+    }
+    fprintf(outFile, "\t\t\t \n");*/
+
+    //Managing return type TODO
+    /*if (func_ompss2_wrapper.return_type != void_dt) {
+        ret.name=asprintf("%s_struct.ret", func_ompss2_wrapper.methodname);
+
+        if (printed_chars < 0) {
+            asprintf_error(ret.name, "Not possible to generate return value name inside struct.\n");
+        }
+
+        ret.type=func_ompss2_wrapper.return_type;
+        ret.dir=out_dir;
+        ret.classname=func_ompss2_wrapper.return_typename;
+        ret.elements=func_ompss2_wrapper.return_elements;
+
+        printf("\t\t Adding return object unmarshalling...\n");
+
+        treat_worker_argument(outFile, &ret, current_types, true);
+    }
+    fprintf(outFile, "\t\t\t \n");*/
+
+    //Add function call
+    printf("\t\t Adding function call unmarshalling...\n");
+    fflush(NULL);
+    fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Spawning function %s.%s as OmpSs-2 task\" << endl << flush;\n", func->classname, func->methodname);
+
+    printed_chars = 0;
+
+    /*
+     * The next if statements treat the case of :
+     *      - Function is member of a class and is not static and the return type is void                                   :       classE->methodA( .....
+     *      - Function is member of a class and is not static and the return type is not void                               : K =   classE->methodA( ....
+     *      - Function is member of a class and the acces is static or is not member of a class and the return is not void  : K =   methodA( ....
+     *      - Function is member of a class and the acces is static or is not member of a class and the return is void      :       methodA( ....
+     */
+
+    if (( func->classname != NULL ) && (func->access_static == 0)) {
+        printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s", th.name, func->methodname);
+    } else {
+        printed_chars = asprintf(&func_to_execute, "\t\t\t %s", func->name);
+    }
+
+    if (printed_chars < 0) {
+        printf("ERROR: Not possible to generate method execution.\n");
+        free(func_to_execute);
+        exit(1);
+    }
+
+    char* nanos6_spawner;
+    printed_chars = asprintf(&nanos6_spawner, "\t\t\tnanos6_spawn_function(%s, %s_struct, %s, %s, %s_spawned_task);\n",
+            func_to_execute, func->methodname, "cond var callback", "cond_var", func->methodname);
+
+    assign_struct_to_arguments(outFile, func); //Assign struct values to variables
+
+    //endregion
+
+    fprintf(outFile, "#endif\n");
+
     //Add return_type store in cache
-    if ( func->return_type != void_dt ) {
-        add_return_object_store(outFile, ret, current_types);
+    if (func->return_type != void_dt) {
+        add_return_object_store(outFile, &ret, current_types);
     }
     printf("\t\t Adding out parameter marshalling...\n");
     fflush(NULL);
@@ -1952,13 +2120,13 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Object will be serialized as output.\" << endl << flush;\n");
     if (( func->classname != NULL ) && (func->access_static == 0)) {
         fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Treating target object\" << endl << flush;\n");
-        add_argument_serialization_worker(outFile, th, "_dest_id", "_elements", "\t\t\t\t");
+        add_argument_serialization_worker(outFile, &th, "_dest_id", "_elements", "\t\t\t\t");
         j++;
     }
 
     if (func->return_type != void_dt) {
         fprintf(outFile, "\t\t\t\t if(is_debug()) cout << \"[C Binding] Treating return object\" << endl << flush;\n");
-        add_argument_serialization_worker(outFile, ret, "_dest_id", "_elements", "\t\t\t\t");
+        add_argument_serialization_worker(outFile, &ret, "_dest_id", "_elements", "\t\t\t\t");
         j++;
     }
 
@@ -1966,7 +2134,6 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     arg = func->first_argument;
     while (arg != NULL) {
         add_argument_serialization_worker(outFile, arg, "_dest_id", "_elements", "\t\t\t\t");
-        fprintf(outFile, "\n");
         arg = arg->next_argument;
         j++;
     }
@@ -1979,12 +2146,11 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fflush(NULL);
 
     if (( func->classname != NULL ) && (func->access_static == 0)) {
-        add_argument_free(outFile, th);
-        free(th);
+        add_argument_free(outFile, &th);
     }
+
     if ( func->return_type != void_dt ) {
-        add_argument_free(outFile, ret);
-        free(ret);
+        add_argument_free(outFile, &ret);
     }
     arg = func->first_argument;
     while (arg != NULL) {
@@ -2003,14 +2169,24 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     // Close enum case
     fprintf(outFile, "\t\t }\n");
     fprintf(outFile, "\t\t break;\n");
+
 }
 
+/*
+ * Generates a struct containing the return variable
+ */
 static void generate_struct_nanos6_wrapper(FILE *outFile, Types current_types, function *func) {
-    argument *arg, *ret;
+    argument *arg;
     fprintf(outFile, "typedef struct {\n");
+
+    char* return_type = construct_returntype(func);
+
+    if (func->return_type != void_dt && return_type != NULL) {
+        fprintf(outFile, "\t%s ret;\n", return_type);
+    }
+
     arg = func->first_argument;
     while (arg != NULL) {
-//        treat_worker_argument(outFile, arg, current_types, false);
         fprintf(outFile, "\t%s;\n", construct_type_and_name(arg));
         arg = arg->next_argument;
     }
@@ -2031,10 +2207,7 @@ static char* generate_struct_initialization_nanos6_wrapper(FILE *outFille, funct
         ret->classname=func->return_typename;
         ret->elements=func->return_elements;
     }
-
-    
 */
-
 } 
 
 static void generate_function_structs_nanos6(FILE *outFile, Types current_types, function *current_function) {
@@ -2072,7 +2245,7 @@ void generate_body(void) {
         generate_class_includes_and_check_types(includeFile, &current_types, current_function);
 
         // If the current function is not an object method
-        if ( strstr(current_function->name, "::") == NULL) {
+        if (strstr(current_function->name, "::") == NULL) {
             printf("\t Generating prototypes in includes files ...\n");
             fflush(NULL);
             generate_prototype(includeFile, current_function);
@@ -2105,7 +2278,7 @@ void generate_body(void) {
 
     current_function = get_first_function(); 
    
-    generate_function_structs_nanos6(includeFile, current_types, current_function); 
+    generate_function_structs_nanos6(includeFile, current_types, current_function);
     generate_executor_end();
     printf("\t Generating remove and serialize functions... \n");
     fflush(NULL);

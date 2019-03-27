@@ -24,7 +24,6 @@ typedef struct interface interface;
 typedef struct argument argument;
 typedef struct constraint constraint;
 
-
 struct argument {
     char *name;
     char *classname;

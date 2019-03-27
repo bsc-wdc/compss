@@ -44,6 +44,11 @@
 		<!-- 2_on_failure_ignore_python -->
 		<module>2_on_failure_fail</module>
 		<!-- 2_on_failure_fail_python -->
+		<module>2_on_failure_in_out</module>
+		<!-- 1_exceptions_after_sync -->
+		<!-- 1_exceptions_before_sync -->
+		<!-- 1_exceptions_before_tasks -->
+		<!-- 1_exceptions_in_worker -->
 		<!-- Add new modules below -->
 	</modules>
 </project>

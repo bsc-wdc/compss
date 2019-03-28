@@ -41,6 +41,7 @@ if __debug__:
 SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
                        'returns',
                        'priority',
+                       'on_failure',
                        'is_replicated',
                        'is_distributed',
                        'varargs_type',
@@ -90,7 +91,7 @@ class task(object):
             'target_direction': parameter.INOUT,
             'returns': False,
             'priority': False,
-            'onFailure': 'RETRY',
+            'on_failure': 'RETRY',
             'isReplicated': False,
             'isDistributed': False,
             'is_replicated': False,
@@ -715,7 +716,7 @@ class task(object):
             self.computing_nodes,
             self.decorator_arguments['isReplicated'],
             self.decorator_arguments['isDistributed'],
-            self.decorator_arguments['onFailure'],
+            self.decorator_arguments['on_failure'],
             self.decorator_arguments['is_replicated'],
             self.decorator_arguments['is_distributed']
         )

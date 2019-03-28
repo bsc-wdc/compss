@@ -20,7 +20,8 @@ import java.io.Serializable;
 
 
 /**
- * Exception representation for errors when calling the Storage ITF
+ * Exception representation for errors when calling the Storage ITF.
+ * TODO: complete javadoc
  */
 public class StorageException extends Exception implements Serializable {
 
@@ -28,35 +29,35 @@ public class StorageException extends Exception implements Serializable {
 
 
     /**
-     * New empty storage exception
+     * New empty storage exception.
      */
     public StorageException() {
 
     }
 
     /**
-     * New storage exception with message @message
+     * New storage exception with message @message.
      * 
-     * @param message
+     * @param message String
      */
     public StorageException(String message) {
         super(message);
     }
 
     /**
-     * New storage exception for nested exception @cause
+     * New storage exception for nested exception @cause.
      * 
-     * @param cause
+     * @param cause Exception
      */
     public StorageException(Exception cause) {
         super(cause);
     }
 
     /**
-     * New storage exception with message @message and nested exception @cause
+     * New storage exception with message @message and nested exception @cause.
      * 
-     * @param message
-     * @param cause
+     * @param message String
+     * @param cause Exception
      */
     public StorageException(String message, Exception cause) {
         super(message, cause);

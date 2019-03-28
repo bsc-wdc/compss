@@ -17,16 +17,17 @@
 package storage;
 
 /**
- * Implementation of CallBacks for Storage ITF calls
+ * Implementation of CallBacks for Storage ITF calls.
+ * TODO: complete javadoc
  */
 public class CallbackEvent {
 
     /**
-     * Callback event type
+     * Callback event type.
      */
     public static enum EventType {
-    FAIL, // Call failed
-    SUCCESS; // Call success
+        FAIL, // Call failed
+        SUCCESS; // Call success
 
         private EventType() {
         }
@@ -39,18 +40,18 @@ public class CallbackEvent {
 
 
     /**
-     * Instantiate a new empty callback
+     * Instantiate a new empty callback.
      */
     public CallbackEvent() {
 
     }
 
     /**
-     * Instantiate a callback for task @executeTaskId, eventStatus @eventStatus and return object @returnObject
-     * 
-     * @param executeTaskId
-     * @param eventStatus
-     * @param returnObject
+     * Instantiate a callback for task @executeTaskId, eventStatus @eventStatus and return object @returnObject.
+     *
+     * @param executeTaskId String
+     * @param eventStatus   EventType
+     * @param returnObject  Object
      */
     public CallbackEvent(String executeTaskId, EventType eventStatus, Object returnObject) {
         setRequestID(executeTaskId);
@@ -59,8 +60,8 @@ public class CallbackEvent {
     }
 
     /**
-     * Returns the task ID
-     * 
+     * Returns the task ID.
+     *
      * @return
      */
     public String getRequestID() {
@@ -68,9 +69,9 @@ public class CallbackEvent {
     }
 
     /**
-     * Sets the task id
-     * 
-     * @param paramString
+     * Sets the task id.
+     *
+     * @param paramString String
      */
     public void setRequestID(String paramString) {
         if (paramString == null) {
@@ -80,8 +81,8 @@ public class CallbackEvent {
     }
 
     /**
-     * Returns the request event type
-     * 
+     * Returns the request event type.
+     *
      * @return
      */
     public EventType getType() {
@@ -89,9 +90,9 @@ public class CallbackEvent {
     }
 
     /**
-     * Sets the request event type
-     * 
-     * @param paramEventType
+     * Sets the request event type.
+     *
+     * @param paramEventType EventType
      */
     public void setType(EventType paramEventType) {
         if (paramEventType == null) {
@@ -101,8 +102,8 @@ public class CallbackEvent {
     }
 
     /**
-     * Returns the content
-     * 
+     * Returns the content.
+     *
      * @return
      */
     public Object getContent() {
@@ -110,9 +111,9 @@ public class CallbackEvent {
     }
 
     /**
-     * Sets the content
-     * 
-     * @param paramObject
+     * Sets the content.
+     *
+     * @param paramObject Object
      */
     public void setContent(Object paramObject) {
         this.content = paramObject;

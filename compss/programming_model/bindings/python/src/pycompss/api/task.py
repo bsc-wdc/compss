@@ -74,7 +74,7 @@ class task(object):
         :return: A dictionary with the default values of the non-parameter decorator fields
         """
         return {
-            'targetDirection': parameter.INOUT,
+            'target_direction': parameter.INOUT,
             'returns': False,
             'priority': False,
             'onFailure': 'RETRY',
@@ -729,9 +729,9 @@ class task(object):
         # We are the 'self' or 'cls' in an instance or classmethod that modifies the given class
         # so we are an INOUT or CONCURRENT
         self_dirs = [parameter.DIRECTION.INOUT, parameter.DIRECTION.CONCURRENT]
-        if self.decorator_arguments['targetDirection'].direction in self_dirs and var_name in ['self', 'cls'] and \
+        if self.decorator_arguments['target_direction'].direction in self_dirs and var_name in ['self', 'cls'] and \
                 self.param_args and self.param_args[0] == var_name:
-            return self.decorator_arguments['targetDirection']
+            return self.decorator_arguments['target_direction']
         return parameter.get_new_parameter('IN')
 
     def process_master_parameters(self, *args, **kwargs):
@@ -1070,7 +1070,7 @@ class task(object):
 
         # Add self type and value if exist
         if has_self:
-            if self.decorator_arguments['targetDirection'].direction == parameter.DIRECTION.INOUT:
+            if self.decorator_arguments['target_direction'].direction == parameter.DIRECTION.INOUT:
                 # Check if self is a PSCO that has been persisted inside the task and isModifier
                 # Update self type and value
                 self_type = parameter.get_compss_type(args[0])
@@ -1099,7 +1099,7 @@ class task(object):
                 new_types.append(ret_type)
                 new_values.append(ret_value)
 
-        return new_types, new_values, self.decorator_arguments['targetDirection']
+        return new_types, new_values, self.decorator_arguments['target_direction']
 
     def sequential_call(self, *args, **kwargs):
         """

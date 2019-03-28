@@ -113,8 +113,8 @@ class Binary(object):
                     # Update the core element information with the mpi information
                     core_element.set_impl_type("BINARY")
                     _binary = self.kwargs['binary']
-                    if 'workingDir' in self.kwargs:
-                        working_dir = self.kwargs['workingDir']
+                    if 'working_dir' in self.kwargs:
+                        working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'BINARY.' + _binary

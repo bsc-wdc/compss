@@ -60,21 +60,21 @@ class Decaf(object):
 
             # Get the computing nodes: This parameter will have to go down
             # until execution when invoked.
-            if 'computingNodes' not in self.kwargs:
-                self.kwargs['computingNodes'] = 1
+            if 'computing_nodes' not in self.kwargs:
+                self.kwargs['computing_nodes'] = 1
             else:
-                computing_nodes = kwargs['computingNodes']
+                computing_nodes = kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
-                    self.kwargs['computingNodes'] = kwargs['computingNodes']
+                    self.kwargs['computing_nodes'] = kwargs['computing_nodes']
                 elif isinstance(computing_nodes, str) and computing_nodes.strip().startswith('$'):
                     env_var = computing_nodes.strip()[1:]  # Remove $
                     if env_var.startswith('{'):
                         env_var = env_var[1:-1]  # remove brackets
-                    self.kwargs['computingNodes'] = int(os.environ[env_var])
+                    self.kwargs['computing_nodes'] = int(os.environ[env_var])
                 else:
                     raise Exception("Wrong Computing Nodes value at DECAF decorator.")
             if __debug__:
-                logger.debug("This DECAF task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+                logger.debug("This DECAF task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
         else:
             pass
 
@@ -134,21 +134,21 @@ class Decaf(object):
                     self.registered = True
                     # Update the core element information with the mpi information
                     core_element.set_impl_type("DECAF")
-                    if 'workingDir' in self.kwargs:
-                        working_dir = self.kwargs['workingDir']
+                    if 'working_dir' in self.kwargs:
+                        working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
-                    if 'mpiRunner' in self.kwargs:
-                        runner = self.kwargs['mpiRunner']
+                    if 'mpi_runner' in self.kwargs:
+                        runner = self.kwargs['mpi_runner']
                     else:
                         runner = 'mpirun'
-                    df_script = self.kwargs['dfScript']
-                    if 'dfExecutor' in self.kwargs:
-                        df_executor = self.kwargs['dfExecutor']
+                    df_script = self.kwargs['df_script']
+                    if 'df_executor' in self.kwargs:
+                        df_executor = self.kwargs['df_executor']
                     else:
                         df_executor = '[unassigned]'  # Empty or '[unassigned]'
-                    if 'dfLib' in self.kwargs:
-                        df_lib = self.kwargs['dfLib']
+                    if 'df_lib' in self.kwargs:
+                        df_lib = self.kwargs['df_lib']
                     else:
                         df_lib = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'DECAF.' + df_script
@@ -163,8 +163,8 @@ class Decaf(object):
             if __debug__:
                 logger.debug("Executing decaf_f wrapper.")
 
-            # Set the computingNodes variable in kwargs for its usage in @task decorator
-            kwargs['computingNodes'] = self.kwargs['computingNodes']
+            # Set the computing_nodes variable in kwargs for its usage in @task decorator
+            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

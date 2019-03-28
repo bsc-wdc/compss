@@ -60,10 +60,10 @@ class MultiNode(object):
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
-            if 'computingNodes' not in self.kwargs:
-                self.kwargs['computingNodes'] = 1
+            if 'computing_nodes' not in self.kwargs:
+                self.kwargs['computing_nodes'] = 1
             else:
-                computing_nodes = self.kwargs['computingNodes']
+                computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do
                     pass
@@ -75,20 +75,20 @@ class MultiNode(object):
                         if env_var.startswith('{'):
                             env_var = env_var[1:-1]  # remove brackets
                         try:
-                            self.kwargs['computingNodes'] = int(os.environ[env_var])
+                            self.kwargs['computing_nodes'] = int(os.environ[env_var])
                         except ValueError:
                             raise Exception("ERROR: ComputingNodes value cannot be cast from ENV variable to int")
                     else:
                         # ComputingNodes is in string form, cast it
                         try:
-                            self.kwargs['computingNodes'] = int(computing_nodes)
+                            self.kwargs['computing_nodes'] = int(computing_nodes)
                         except ValueError:
                             raise Exception("ERROR: ComputingNodes value cannot be cast from string to int")
                 else:
                     raise Exception("ERROR: Wrong Computing Nodes value at MultiNode decorator.")
             if __debug__:
                 logger.debug(
-                    "This MultiNode task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+                    "This MultiNode task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
         else:
             pass
 
@@ -151,9 +151,9 @@ class MultiNode(object):
             if __debug__:
                 logger.debug("Executing multinode_f wrapper.")
 
-            # Set the computingNodes variable in kwargs for its usage
+            # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computingNodes'] = self.kwargs['computingNodes']
+            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

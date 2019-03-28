@@ -60,10 +60,10 @@ class Mpi(object):
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
-            if 'computingNodes' not in self.kwargs:
-                self.kwargs['computingNodes'] = 1
+            if 'computing_nodes' not in self.kwargs:
+                self.kwargs['computing_nodes'] = 1
             else:
-                computing_nodes = self.kwargs['computingNodes']
+                computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do
                     pass
@@ -75,19 +75,19 @@ class Mpi(object):
                         if env_var.startswith('{'):
                             env_var = env_var[1:-1]  # remove brackets
                         try:
-                            self.kwargs['computingNodes'] = int(os.environ[env_var])
+                            self.kwargs['computing_nodes'] = int(os.environ[env_var])
                         except ValueError:
                             raise Exception("ERROR: ComputingNodes value cannot be cast from ENV variable to int")
                     else:
                         # ComputingNodes is in string form, cast it
                         try:
-                            self.kwargs['computingNodes'] = int(computing_nodes)
+                            self.kwargs['computing_nodes'] = int(computing_nodes)
                         except ValueError:
                             raise Exception("ERROR: ComputingNodes value cannot be cast from string to int")
                 else:
                     raise Exception("ERROR: Wrong Computing Nodes value at MultiNode decorator.")
             if __debug__:
-                logger.debug("This MPI task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+                logger.debug("This MPI task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
         else:
             pass
 
@@ -148,8 +148,8 @@ class Mpi(object):
                     # Update the core element information with the mpi information
                     core_element.set_impl_type("MPI")
                     binary = self.kwargs['binary']
-                    if 'workingDir' in self.kwargs:
-                        working_dir = self.kwargs['workingDir']
+                    if 'working_dir' in self.kwargs:
+                        working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     runner = self.kwargs['runner']
@@ -165,9 +165,9 @@ class Mpi(object):
             if __debug__:
                 logger.debug("Executing mpi_f wrapper.")
 
-            # Set the computingNodes variable in kwargs for its usage
+            # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computingNodes'] = self.kwargs['computingNodes']
+            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

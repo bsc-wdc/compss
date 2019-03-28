@@ -80,7 +80,7 @@ class task(object):
             'onFailure': 'RETRY',
             'isReplicated': False,
             'isDistributed': False,
-            'computingNodes': 1,
+            'computing_nodes': 1,
             'tracingHook': False,
             'varargsType': parameter.IN  # Here for legacy purposes
         }
@@ -740,9 +740,9 @@ class task(object):
         """
         from collections import OrderedDict
         parameter_values = OrderedDict()
-        # If we have an MPI, COMPSs or MultiNode decorator above us we should have computingNodes
+        # If we have an MPI, COMPSs or MultiNode decorator above us we should have computing_nodes
         # as a kwarg, we should detect it and remove it. Otherwise we set it to 1
-        self.computing_nodes = kwargs.pop('computingNodes', 1)
+        self.computing_nodes = kwargs.pop('computing_nodes', 1)
         # It is important to know the name of the first argument to determine if we
         # are dealing with a class or instance method (i.e: first argument is named self)
         self.first_arg_name = None

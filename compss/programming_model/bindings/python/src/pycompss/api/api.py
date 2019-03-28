@@ -212,7 +212,7 @@ else:
     from pycompss.api.dummy.api import compss_stop as __dummy_compss_stop__
     from pycompss.api.dummy.api import compss_open as __dummy_compss_open__
     from pycompss.api.dummy.api import compss_delete_file as __dummy_compss_delete_file__
-    from pycompss.api.dummy.api import compss_get_file as __dummy_compss_get_file__
+    from pycompss.api.dummy.api import compss_wait_on_file as __dummy_compss_wait_on_file__
     from pycompss.api.dummy.api import compss_delete_object as __dummy_compss_delete_object__
     from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
     from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
@@ -233,8 +233,8 @@ else:
     def compss_delete_file(file_name):
         return __dummy_compss_delete_file__(file_name)
 
-    def compss_get_file(file_name):
-        return __dummy_compss_get_file__(file_name)
+    def compss_wait_on_file(file_name):
+        return __dummy_compss_wait_on_file__(file_name)
 
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)

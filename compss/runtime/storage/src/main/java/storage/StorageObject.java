@@ -17,29 +17,30 @@
 package storage;
 
 /**
- * Abstract implementation of an Storage Object
+ * Abstract implementation of an Storage Object.
+ * TODO complete javadoc
  */
 public class StorageObject implements StubItf {
 
     /**
-     * Constructor
+     * Constructor.
      */
     public StorageObject() {
 
     }
 
     /**
-     * Constructor by alias
-     * 
-     * @param alias
+     * Constructor by alias.
+     *
+     * @param alias description
      */
     public StorageObject(String alias) {
 
     }
 
     /**
-     * Returns the persistent object ID
-     * 
+     * Returns the persistent object ID.
+     *
      * @return
      */
     @Override
@@ -48,9 +49,9 @@ public class StorageObject implements StubItf {
     }
 
     /**
-     * Persist the object
-     * 
-     * @param id
+     * Persist the object.
+     *
+     * @param id description
      */
     @Override
     public void makePersistent(String id) {
@@ -58,7 +59,7 @@ public class StorageObject implements StubItf {
     }
 
     /**
-     * Deletes the persistent object occurrences
+     * Deletes the persistent object occurrences.
      */
     @Override
     public void deletePersistent() {

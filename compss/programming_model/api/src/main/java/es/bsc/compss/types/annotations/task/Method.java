@@ -25,6 +25,7 @@ import java.lang.annotation.Target;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
 
 
@@ -85,5 +86,12 @@ public @interface Method {
      * @return the method specific constraints
      */
     Constraints constraints() default @Constraints();
+
+    /**
+     * Returns the method behavior on failure
+     * 
+     * @return if the method has priority or not
+     */
+    OnFailure onFailure() default OnFailure.RETRY;
 
 }

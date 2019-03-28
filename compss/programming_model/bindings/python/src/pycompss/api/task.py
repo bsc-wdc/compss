@@ -77,6 +77,7 @@ class task(object):
             'targetDirection': parameter.INOUT,
             'returns': False,
             'priority': False,
+            'onFailure': 'RETRY',
             'isReplicated': False,
             'isDistributed': False,
             'computingNodes': 1,
@@ -698,7 +699,8 @@ class task(object):
             self.decorator_arguments,
             self.computing_nodes,
             self.decorator_arguments['isReplicated'],
-            self.decorator_arguments['isDistributed']
+            self.decorator_arguments['isDistributed'],
+            self.decorator_arguments['onFailure']
         )
         master_lock.release()
         return ret

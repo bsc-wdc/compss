@@ -18,6 +18,7 @@ package es.bsc.compss.api;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 
 
 public interface COMPSsRuntime {
@@ -78,8 +79,8 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, boolean hasTarget,
-            Integer numReturns, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String methodClass,  String onFailure, String methodName, boolean isPrioritary, boolean hasTarget, Integer numReturns,
+            int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding.
@@ -96,8 +97,8 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String signature,  String onFailure, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method Task for Loader.
@@ -118,7 +119,7 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-            int parameterCount, Object... parameters);
+            int parameterCount, OnFailure onFailure, Object... parameters);
 
     /**
      * New service task.
@@ -140,7 +141,7 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
             String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, Object... parameters);
+            boolean hasTarget, int parameterCount, OnFailure onFailure, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId.

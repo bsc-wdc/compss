@@ -150,7 +150,8 @@
         <module>java</module>
         <module>performance</module>
         <module>python</module>
-        <module>tools</module>
+	<module>tools</module>
+	<module>fault_tolerance</module>
     </modules>
 </project>
 

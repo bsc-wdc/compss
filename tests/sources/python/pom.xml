@@ -55,10 +55,6 @@
         <!-- 1_environment_vars -->
         <!-- 2_advanced -->
         <!-- 2_argparse -->
-        <!-- 2_exceptions_after_sync -->
-        <!-- 2_exceptions_before_sync -->
-        <!-- 2_exceptions_before_tasks -->
-        <!-- 2_exceptions_in_worker -->
         <!-- 2_inheritance -->
         <!-- 2_kill_processes -->
         <!-- 3_module_basic -->

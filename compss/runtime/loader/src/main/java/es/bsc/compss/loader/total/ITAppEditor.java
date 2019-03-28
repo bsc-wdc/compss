@@ -43,6 +43,7 @@ import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.Constants;
@@ -342,6 +343,7 @@ public class ITAppEditor extends ExprEditor {
         executeTask.append("null").append(','); // TaskMonitor set to null
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
+        OnFailure onFailure = OnFailure.RETRY;
         int numNodes = Constants.SINGLE_NODE;
 
         // Scheduler hints values
@@ -364,6 +366,7 @@ public class ITAppEditor extends ExprEditor {
                 es.bsc.compss.types.annotations.task.Method methodAnnot = declaredMethod
                         .getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.priority()));
+                onFailure = methodAnnot.onFailure();
             } else if (declaredMethod.isAnnotationPresent(Binary.class)) {
                 Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
@@ -427,9 +430,13 @@ public class ITAppEditor extends ExprEditor {
 
         // Add if call has target object or not
         executeTask.append(!isStatic).append(',');
-
+        
         // Add parameters
-        executeTask.append(numParams);
+        executeTask.append(numParams).append(',');
+
+        // Add the onFailure behavior
+        executeTask.append(OnFailure.class.getCanonicalName() + "." + onFailure);
+        
         if (numParams == 0) {
             executeTask.append(",null);");
         } else {

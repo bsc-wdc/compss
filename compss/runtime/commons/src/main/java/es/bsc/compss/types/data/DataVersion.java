@@ -22,6 +22,7 @@ public class DataVersion {
     private int readers;
     private int writters;
     private boolean toDelete;
+    private boolean used; // The version has been read or written
 
 
     /**
@@ -35,6 +36,7 @@ public class DataVersion {
         this.dataInstanceId = new DataInstanceId(dataId, versionId);
         this.writters = 0;
         this.toDelete = false;
+        this.used = false;
     }
 
     /**
@@ -135,4 +137,19 @@ public class DataVersion {
         return false;
     }
 
+    /**
+     * Marks the version as used.
+     */
+    public void versionUsed() {
+        this.used = true;
+    }
+
+    /**
+     * Returns whether the version has been used or not.
+     * 
+     * @return {@code true} if the version has been used, {@code false} otherwise.
+     */
+    public boolean hasBeenUsed() {
+        return this.used;
+    }
 }

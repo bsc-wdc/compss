@@ -24,6 +24,7 @@ import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
@@ -127,6 +128,21 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     protected void doFailed() {
         LOGGER.error("Error waiting for tasks to end");
     }
+    
+    @Override
+    protected void doCanceled() {
+        
+    }
+    
+    @Override
+    protected void doDirectFail() {
+        
+    }
+    
+    @Override
+    protected void doFailIgnored() {
+        
+    }
 
     @Override
     public Integer getCoreId() {
@@ -202,6 +218,11 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     @Override
     public int getPriority() {
         return Integer.MAX_VALUE;
+    }
+    
+    @Override
+    public OnFailure getOnFailure() {
+        return OnFailure.RETRY;
     }
 
 }

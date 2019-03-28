@@ -3,19 +3,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
-    <artifactId>0_error_manager_no_in_file</artifactId>
+    <artifactId>2_on_failure_in_out_retry</artifactId>
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
-        <artifactId>compss-tests-java</artifactId>
+        <artifactId>compss-tests-fault_tolerance</artifactId>
         <version>2.4.rc1903</version>
         <relativePath>..</relativePath>
     </parent>
 
     <!-- PROJECT INFORMATION -->
-    <name>Test - Java - Error Manager - No In File</name>
-    <description>Error Management application</description>
-    <url>http://compss.bsc.es/projects/bar/wiki/errorManagement</url>
+    <name>Test - Java - On Failure Behavior For IN and OUT data Retry</name>
+    <description>On Failure retry IN OUT behavior </description>
+    <url>http://compss.bsc.es/projects/bar/wiki/on_failure_retry</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
         <license>

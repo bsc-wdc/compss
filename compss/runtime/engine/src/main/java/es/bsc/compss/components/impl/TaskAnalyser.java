@@ -20,6 +20,7 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.Task.TaskState;
@@ -96,6 +97,7 @@ public class TaskAnalyser {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
     private static final String TASK_FAILED = "Task failed: ";
+    private static final String TASK_CANCELED = "Task canceled: ";
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -148,6 +150,7 @@ public class TaskAnalyser {
                            // ->
                            // access
                            // mode
+
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
             case IN:
@@ -328,7 +331,7 @@ public class TaskAnalyser {
         int taskId = task.getId();
         boolean isFree = task.isFree();
         TaskState taskState = task.getStatus();
-
+        OnFailure onFailure = task.getOnFailure();
         LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
 
         // Check status
@@ -336,11 +339,26 @@ public class TaskAnalyser {
             LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
             return;
         }
-        if (taskState == TaskState.FAILED) {
+        if (taskState == TaskState.FAILED && (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL)) {
             ErrorManager.error(TASK_FAILED + task);
             TaskMonitor registeredMonitor = task.getTaskMonitor();
             registeredMonitor.onFailure();
             return;
+        } else {
+            if (taskState == TaskState.FAILED
+                    && (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS)) {
+                // Show warning
+                ErrorManager.warn(TASK_FAILED + task);
+            } else {
+                if (taskState == TaskState.CANCELED) {
+                    // Show warning
+                    ErrorManager.warn(TASK_CANCELED + task);
+                }
+            }
+            // RegisteredMonitor failure ignore
+            TaskMonitor registeredMonitor = task.getTaskMonitor();
+            registeredMonitor.onFailure();
+
         }
 
         /*
@@ -380,10 +398,13 @@ public class TaskAnalyser {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                this.DIP.dataHasBeenAccessed(dAccId);
+                if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
+                    this.DIP.dataAccessHasBeenCanceled(dAccId);
+                } else {
+                    this.DIP.dataHasBeenAccessed(dAccId);
+                }
             }
         }
-
         // Check if the finished task was the last writer of a file, but only if task generation has finished
         // Task generation is finished if we are on noMoreTasks but we are not on a barrier
         if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {

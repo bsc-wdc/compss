@@ -7,7 +7,7 @@
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
-        <artifactId>compss-tests-java</artifactId>
+        <artifactId>compss-tests-fault_tolerance</artifactId>
         <version>2.4.rc1903</version>
         <relativePath>..</relativePath>
     </parent>

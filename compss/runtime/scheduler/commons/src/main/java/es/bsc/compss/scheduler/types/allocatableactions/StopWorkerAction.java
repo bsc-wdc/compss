@@ -22,6 +22,7 @@ import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
@@ -144,6 +145,21 @@ public class StopWorkerAction extends AllocatableAction {
     protected void doFailed() {
         removeResource();
     }
+    
+    @Override
+    protected void doCanceled() {
+        removeResource();
+    }
+    
+    @Override
+    protected void doFailIgnored() {
+        
+    }
+    
+    @Override
+    protected void doDirectFail() {
+        
+    }
 
     /*
      * ***************************************************************************************************************
@@ -223,5 +239,10 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public int getPriority() {
         return Integer.MAX_VALUE;
+    }
+    
+    @Override
+    public OnFailure getOnFailure() {
+        return OnFailure.RETRY;
     }
 }

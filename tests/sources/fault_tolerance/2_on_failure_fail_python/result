@@ -1,0 +1,79 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Do not check standard out/err status since test must fail
+  # Do not check unit tests status since test must fail
+
+  #----------------------------------------------------------------------------------
+
+  # Check that ErrorManager has raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+       echo "[RESULT_CHECKER] ErrorManager raised and ERROR as expected" | tee -a "${output_file}"
+    else
+      echo "[ERROR] ErrorManager did not raise any error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] ErrorManager did not raise any error" | tee -a "${output_file}"
+    exit 1
+  fi
+
+ #----------------------------------------------------------------------------------
+  # Compute result status
+  FILES=1
+  resultN=1
+  tasks=4
+
+  # Check that the Runtime has registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "[RESULT_CHECKER] ErrorManager registered an ERROR as expected" | tee -a "${output_file}"
+    else
+      echo "[ERROR] ErrorManager did not register any error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # Checks if the file has been written as many times as expected
+  result=$(cat /tmp/sharedDisk/file1.txt)
+  if [ "${result}" -ne $resultN ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${result} "
+    exit 1
+  fi
+
+  # Checks if the failed task has been executed through the creation of a job for each
+  if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
+    echo "ERROR: All tasks have not completed succesfully."
+    exit 1
+  fi
+
+  if [ -f "${target_log_folder}/jobs/job$((FILES+1))_NEW.out" ]; then
+    echo "ERROR: More tasks than expected have been executed."
+    exit 1
+  fi
+
+  # Check if the task has failed
+  output1=$(cat "${runtime_log}" | grep "TOTALLY FAILED" | wc -l)
+  if [ "${output1}" -ne "${FILES}" ]; then
+  	echo "ERROR: The task has not failed."
+  	exit 1
+  fi
+
+  rm /tmp/sharedDisk/file1.txt
+  #----------------------------------------------------------------------------------
+  # ALL OK. Report result status
+  exit 0
+

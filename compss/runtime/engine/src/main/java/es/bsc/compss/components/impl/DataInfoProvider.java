@@ -422,6 +422,42 @@ public class DataInfoProvider {
     }
 
     /**
+     * Removes versions to check if task was canceled
+     *
+     * @param dAccId
+     */
+    public void dataAccessHasBeenCanceled(DataAccessId dAccId) {
+        Integer dataId = dAccId.getDataId();
+        DataInfo di = idToData.get(dataId);
+        Integer rVersionId;
+        Integer wVersionId;
+        boolean deleted = false;
+        switch (dAccId.getDirection()) {
+            case C:
+            case R:
+                rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
+                deleted = di.versionHasBeenRead(rVersionId);
+                break;
+            case RW:
+                rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
+                di.versionHasBeenRead(rVersionId);
+                // read and write data version can be removed
+                // di.canceledVersion(rVersionId);
+                wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                di.canceledVersion(wVersionId);
+                break;
+            default:// case W:
+                wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                di.canceledVersion(wVersionId);
+                break;
+        }
+
+        if (deleted) {
+            // idToData.remove(dataId);
+        }
+    }
+
+    /**
      * Returns if a given data has been accessed or not
      *
      * @param dAccId
@@ -752,83 +788,85 @@ public class DataInfoProvider {
     public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
-        if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
-            // transfer
-            String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
-            String origName = splitPath[splitPath.length - 1];
-            if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the bindings
-                if (DEBUG) {
-                    LOGGER.debug("Discarding file " + origName + " as a result");
-                }
-                return null;
-            }
-            fileInfo.blockDeletions();
-
-            lastVersion = fileInfo.getCurrentDataVersion().getDataInstanceId();
-
-            ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
-
-            DataInstanceId fId = rf.getFileInstanceId();
-            String renaming = fId.getRenaming();
-
-            // Look for the last available version
-            while (renaming != null && !Comm.existsData(renaming)) {
-                renaming = DataInstanceId.previousVersionRenaming(renaming);
-            }
-            if (renaming == null) {
-                LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming()
-                        + " nor any of its previous versions");
-                return null;
-            }
-
-            // Check if data is a PSCO and must be consolidated
-            for (DataLocation loc : Comm.getData(renaming).getLocations()) {
-                if (loc instanceof PersistentLocation) {
-                    String pscoId = ((PersistentLocation) loc).getId();
-                    if (Tracer.extraeEnabled()) {
-                        Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(),
-                                Tracer.Event.STORAGE_CONSOLIDATE.getType());
-                    }
-                    try {
-                        StorageItf.consolidateVersion(pscoId);
-                    } catch (StorageException e) {
-                        LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
-                    } finally {
-                        if (Tracer.extraeEnabled()) {
-                            Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
-                        }
-                    }
-                    LOGGER.debug("Returned because persistent object");
-                    return rf;
-                }
-
-            }
-
-            // If no PSCO location is found, perform normal getData
-
-            if (rf.getOriginalLocation().getProtocol() == Protocol.BINDING_URI) {
-                // Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new BindingObjectTransferable(),
-                // listener);
-                if (DEBUG) {
-                    LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
-                }
-            } else {
-                listener.addOperation();
-                Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
-            }
-
-            return rf;
-        } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
-            if (DEBUG) {
+        if (fileInfo.hasBeenCanceled()) {
+            if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
+                // transfer
                 String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
                 String origName = splitPath[splitPath.length - 1];
-                LOGGER.debug("Trying to delete file " + origName);
-            }
-            if (fileInfo.delete()) {
-                // idToData.remove(dataId);
+                if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the
+                                                                     // bindings
+                    if (DEBUG) {
+                        LOGGER.debug("Discarding file " + origName + " as a result");
+                    }
+                    return null;
+                }
+                fileInfo.blockDeletions();
+
+                lastVersion = fileInfo.getCurrentDataVersion().getDataInstanceId();
+
+                ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
+
+                DataInstanceId fId = rf.getFileInstanceId();
+                String renaming = fId.getRenaming();
+
+                // Look for the last available version
+                while (renaming != null && !Comm.existsData(renaming)) {
+                    renaming = DataInstanceId.previousVersionRenaming(renaming);
+                }
+                if (renaming == null) {
+                    LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming()
+                            + " nor any of its previous versions");
+                    return null;
+                }
+
+                // Check if data is a PSCO and must be consolidated
+                for (DataLocation loc : Comm.getData(renaming).getLocations()) {
+                    if (loc instanceof PersistentLocation) {
+                        String pscoId = ((PersistentLocation) loc).getId();
+                        if (Tracer.extraeEnabled()) {
+                            Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(),
+                                    Tracer.Event.STORAGE_CONSOLIDATE.getType());
+                        }
+                        try {
+                            StorageItf.consolidateVersion(pscoId);
+                        } catch (StorageException e) {
+                            LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
+                        } finally {
+                            if (Tracer.extraeEnabled()) {
+                                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
+                            }
+                        }
+                        LOGGER.debug("Returned because persistent object");
+                        return rf;
+                    }
+
+                }
+
+                // If no PSCO location is found, perform normal getData
+
+                if (rf.getOriginalLocation().getProtocol() == Protocol.BINDING_URI) {
+                    // Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new BindingObjectTransferable(),
+                    // listener);
+                    if (DEBUG) {
+                        LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
+                    }
+                } else {
+                    listener.addOperation();
+                    Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
+                }
+
+                return rf;
+            } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
+                if (DEBUG) {
+                    String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
+                    String origName = splitPath[splitPath.length - 1];
+                    LOGGER.debug("Trying to delete file " + origName);
+                }
+                if (fileInfo.delete()) {
+                    // idToData.remove(dataId);
+                }
             }
         }
-
         return null;
     }
 

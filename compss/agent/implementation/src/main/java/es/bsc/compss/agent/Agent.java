@@ -30,6 +30,7 @@ import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -64,6 +65,7 @@ public class Agent {
                 System.err.println("Continuing...");
             }
             Runtime.getRuntime().addShutdownHook(new Thread() {
+
                 public void run() {
                     try {
                         StorageItf.finish();
@@ -86,11 +88,9 @@ public class Agent {
         for (Processor p : mrd.getProcessors()) {
             p.setName("LocalProcessor");
         }
-        ImplementationDefinition implDef = ImplementationDefinition.defineImplementation(
-                "METHOD",
+        ImplementationDefinition implDef = ImplementationDefinition.defineImplementation("METHOD",
                 "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)es.bsc.compss.agent.loader.Loader",
-                new MethodResourceDescription(""),
-                "es.bsc.compss.agent.loader.Loader", "load");
+                new MethodResourceDescription(""), "es.bsc.compss.agent.loader.Loader", "load");
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
 
@@ -105,7 +105,9 @@ public class Agent {
         System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
     }
 
-    public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params, AppMonitor monitor) throws AgentException {
+
+    public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params,
+            AppMonitor monitor) throws AgentException {
 
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
@@ -121,30 +123,23 @@ public class Agent {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
 
-        RUNTIME.executeTask(
-                mainAppId,
-                monitor,
-                lang, "es.bsc.compss.agent.loader.Loader", "load",
-                false, 1, false, false,
-                false, 7,
-                new Object[]{
-                    RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime",
-                    RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api",
-                    ceiClass, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "ceiClass",
-                    appId, DataType.LONG_T, Direction.IN, Stream.UNSPECIFIED, "", "appId",
-                    className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "className",
-                    methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "methodName",
-                    params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params"
-                }
-        );
+        RUNTIME.executeTask(mainAppId, monitor, lang, "es.bsc.compss.agent.loader.Loader", "load", false, 1, false,
+                false, false, 7, OnFailure.RETRY,
+                new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime", RUNTIME,
+                        DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", ceiClass, DataType.STRING_T,
+                        Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", appId, DataType.LONG_T, Direction.IN,
+                        Stream.UNSPECIFIED, "", "appId", className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED,
+                        "", "className", methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "",
+                        "methodName", params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params" });
         return mainAppId;
     }
 
-    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams, ApplicationParameter target, boolean hasResult, AppMonitor monitor) throws AgentException {
+    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams,
+            ApplicationParameter target, boolean hasResult, AppMonitor monitor) throws AgentException {
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         monitor.setAppId(appId);
         try {
-            //PREPARING PARAMETERS
+            // PREPARING PARAMETERS
             StringBuilder typesSB = new StringBuilder();
 
             int paramsCount = sarParams.length;
@@ -201,21 +196,13 @@ public class Agent {
             String implSignature = methodName + "(" + paramsTypes + ")" + className;
             CoreElementDefinition ced = new CoreElementDefinition();
             ced.setCeSignature(ceSignature);
-            ImplementationDefinition implDef = ImplementationDefinition.defineImplementation(
-                    "METHOD",
-                    implSignature,
-                    new MethodResourceDescription(""),
-                    className, methodName);
+            ImplementationDefinition implDef = ImplementationDefinition.defineImplementation("METHOD", implSignature,
+                    new MethodResourceDescription(""), className, methodName);
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
 
-            RUNTIME.executeTask(
-                    appId,
-                    monitor,
-                    lang, className, methodName,
-                    false, 1, false, false,
-                    target != null, paramsCount, params
-            );
+            RUNTIME.executeTask(appId, monitor, lang, className, methodName, false, 1, false, false, target != null,
+                    paramsCount, OnFailure.RETRY, params);
 
         } catch (Exception e) {
             throw new AgentException(e);
@@ -299,6 +286,7 @@ public class Agent {
     public static abstract class AppMonitor implements TaskMonitor {
 
         private long appId;
+
 
         public AppMonitor() {
         }

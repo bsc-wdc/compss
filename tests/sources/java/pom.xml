@@ -35,9 +35,6 @@
         <module>0_api_calls</module>
         <module>0_basic_tasks</module>
         <module>0_basic_types</module>
-        <module>0_error_manager_all_blocked</module>
-        <module>0_error_manager_no_in_file</module>
-        <module>0_error_manager_reschedule_fail</module>
         <module>0_no_task</module>
         <module>0_objects</module>
         <module>0_priority_tasks</module>
@@ -62,7 +59,6 @@
         <module>2_environment_variables</module>
         <module>2_get_file</module>
         <module>2_limit_of_tasks</module>
-        <module>2_no_empty_constructor</module>
         <module>2_shared_disks</module>
         <module>3_object_deregister</module>
         <module>3_remote_file</module>

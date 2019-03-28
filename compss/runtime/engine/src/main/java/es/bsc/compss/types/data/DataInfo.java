@@ -44,6 +44,9 @@ public abstract class DataInfo {
 
     protected int deletionBlocks;
     protected final LinkedList<DataVersion> pendingDeletions;
+    protected final LinkedList<Integer> canceledVersions;
+   
+    protected Boolean canceled;
 
 
     public DataInfo() {
@@ -55,6 +58,8 @@ public abstract class DataInfo {
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
+        this.canceledVersions = new LinkedList<>();
+        this.canceled = false;
     }
 
     public int getDataId() {
@@ -81,11 +86,16 @@ public abstract class DataInfo {
     }
 
     public void willBeRead() {
+        currentVersion.versionUsed();
         currentVersion.willBeRead();
     }
 
     public boolean isToBeRead() {
         return currentVersion.hasPendingLectures();
+    }
+
+    public boolean hasBeenCanceled() {
+        return currentVersion.hasBeenUsed();
     }
 
     public boolean versionHasBeenRead(int versionId) {
@@ -106,6 +116,7 @@ public abstract class DataInfo {
         newVersion.willBeWritten();
         versions.put(currentVersionId, newVersion);
         currentVersion = newVersion;
+        currentVersion.versionUsed();
     }
 
     public boolean versionHasBeenWritten(int versionId) {
@@ -178,4 +189,16 @@ public abstract class DataInfo {
 
     }
 
+    public void canceledVersion(Integer versionId) {
+        canceledVersions.add(versionId);
+        if (versionId == currentVersionId) {
+            Integer lastVersion = currentVersionId;
+            while (canceledVersions.contains(lastVersion)) {
+                tryRemoveVersion(lastVersion);
+                lastVersion = lastVersion - 1;
+            }
+            currentVersionId = lastVersion;
+            currentVersion = versions.get(currentVersionId);
+        } 
+    }
 }

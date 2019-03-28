@@ -25,6 +25,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.AccessParams;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
 import es.bsc.compss.types.data.AccessParams.FileAccessParams;
@@ -189,10 +190,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters) {
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters, OnFailure onFailure) {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, parameters, monitor);
+                hasTarget, numReturns, parameters, monitor, onFailure);
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -216,11 +217,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param parameters
      * @return
      */
+
     public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
-            boolean priority, boolean hasTarget, int numReturns, Parameter[] parameters) {
+            boolean priority, boolean hasTarget, int numReturns, Parameter[] parameters, OnFailure onFailure) {
 
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
-                parameters, monitor);
+                parameters, monitor, onFailure);
+
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {

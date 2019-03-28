@@ -97,7 +97,6 @@ public class Constants {
      */
     public static final String PREFIX_SKIP = "#";
 
-
     // Private constructor to avoid instantiation
     private Constants() {
         throw new UnsupportedOperationException();

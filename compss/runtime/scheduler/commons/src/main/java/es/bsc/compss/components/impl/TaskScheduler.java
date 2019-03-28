@@ -34,6 +34,7 @@ import es.bsc.compss.scheduler.types.allocatableactions.ReduceWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StartWorkerAction;
 import es.bsc.compss.scheduler.types.allocatableactions.StopWorkerAction;
 import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.Worker;
@@ -434,28 +435,37 @@ public class TaskScheduler {
         LOGGER.warn("[TaskScheduler] Error on action " + action);
 
         List<AllocatableAction> resourceFree = new LinkedList<>();
+
+        List<AllocatableAction> dataFreeActions = new LinkedList<>();
+
         ResourceScheduler<WorkerResourceDescription> resource = (ResourceScheduler<WorkerResourceDescription>) action
                 .getAssignedResource();
-
         boolean failed = false;
+
         // Process the action error (removes the assigned resource)
         try {
             action.error();
         } catch (FailedActionException fae) {
             // Action has completely failed
             failed = true;
-            LOGGER.warn("[TaskScheduler] Action completely failed " + action);
             removeFromReady(action);
-
-            // Free all the dependent tasks
-            for (AllocatableAction failedAction : action.failed()) {
-                try {
-                    ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
-                    if (failedResource != null) {
-                        resourceFree.addAll(failedResource.unscheduleAction(failedAction));
+            if (action.getOnFailure() != OnFailure.IGNORE) {
+                // Free all the dependent tasks
+                for (AllocatableAction failedAction : action.failed()) {
+                    try {
+                        ResourceScheduler<?> failedResource = failedAction.getAssignedResource();
+                        if (failedResource != null) {
+                            resourceFree.addAll(failedResource.unscheduleAction(failedAction));
+                        }
+                    } catch (ActionNotFoundException anfe) {
+                        // Once the action starts running should cannot be moved from the resource
                     }
-                } catch (ActionNotFoundException anfe) {
-                    // Once the action starts running should cannot be moved from the resource
+                }
+            } else {
+                // Get the data free actions and mark them as ready
+                dataFreeActions = action.failed();
+                for (AllocatableAction dataFreeAction : dataFreeActions) {
+                    addToReady(dataFreeAction);
                 }
             }
         }
@@ -466,23 +476,29 @@ public class TaskScheduler {
         } catch (ActionNotFoundException anfe) {
             // Once the action starts running should cannot be moved from the resource
         }
+
         workerLoadUpdate(resource);
-        List<AllocatableAction> list = new LinkedList<>();
-        if (!failed) {
-            list.add(action);
-            // Try to re-schedule the action
-            /*
-             * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
-             * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
-             * addToBlocked(action); }
-             */
+
+        if (action.getOnFailure() == OnFailure.RETRY) {
+            if (!failed) {
+                dataFreeActions.add(action);
+                // Try to re-schedule the action
+                /*
+                 * Score actionScore = generateActionScore(action); try { scheduleAction(action, actionScore);
+                 * tryToLaunch(action); } catch (BlockedActionException bae) { removeFromReady(action);
+                 * addToBlocked(action); }
+                 */
+            }
         }
 
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
-        handleDependencyFreeActions(list, resourceFree, blockedCandidates, resource);
-        for (AllocatableAction aa : blockedCandidates) {
-            removeFromReady(aa);
-            addToBlocked(aa);
+
+        if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS) {
+            handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
+            for (AllocatableAction aa : blockedCandidates) {
+                removeFromReady(aa);
+                addToBlocked(aa);
+            }
         }
     }
 
@@ -542,7 +558,6 @@ public class TaskScheduler {
         LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
-
         // Try to launch all the data free actions and the resource free actions
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction freeAction : dataFreeActions) {

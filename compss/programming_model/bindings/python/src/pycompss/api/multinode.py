@@ -28,9 +28,12 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import warn_if_unexpected_argument
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+SUPPORTED_ARGUMENTS = ('computing_nodes')
 
 
 class MultiNode(object):
@@ -57,6 +60,10 @@ class MultiNode(object):
         if self.scope:
             if __debug__:
                 logger.debug("Init @multinode decorator...")
+
+            # Look for unexpected arguments
+            warn_if_unexpected_argument(SUPPORTED_ARGUMENTS, list(kwargs.keys()),
+                                        "@multinode decorator")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.

@@ -28,9 +28,13 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import warn_if_unexpected_argument
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+SUPPORTED_ARGUMENTS = ('kernel',
+                       'working_dir')
 
 
 class Opencl(object):
@@ -54,8 +58,12 @@ class Opencl(object):
         self.kwargs = kwargs
         self.registered = False
         self.scope = context.in_pycompss()
-        if self.scope and __debug__:
-            logger.debug("Init @opencl decorator...")
+        if self.scope:
+            if __debug__:
+                logger.debug("Init @opencl decorator...")
+            # Look for unexpected arguments
+            warn_if_unexpected_argument(SUPPORTED_ARGUMENTS, list(kwargs.keys()),
+                                        "@opencl decorator")
 
     def __call__(self, func):
         """

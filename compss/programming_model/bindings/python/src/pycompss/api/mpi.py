@@ -28,9 +28,15 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import warn_if_unexpected_argument
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+SUPPORTED_ARGUMENTS = ('computing_nodes',
+                       'working_dir',
+                       'binary',
+                       'runner')
 
 
 class Mpi(object):
@@ -57,6 +63,9 @@ class Mpi(object):
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
+            # Look for unexpected arguments
+            warn_if_unexpected_argument(SUPPORTED_ARGUMENTS, list(kwargs.keys()),
+                                        "@mpi decorator")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.

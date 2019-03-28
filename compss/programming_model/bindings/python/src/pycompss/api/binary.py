@@ -28,9 +28,13 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import warn_if_unexpected_argument
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+SUPPORTED_ARGUMENTS = ('binary',
+                       'working_dir')
 
 
 class Binary(object):
@@ -54,8 +58,15 @@ class Binary(object):
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
         self.registered = False
-        if self.scope and __debug__:
-            logger.debug("Init @binary decorator...")
+        # This enables the decorator to get info from the caller
+        # (e.g. self.source_frame_info.filename or self.source_frame_info.lineno)
+        # self.source_frame_info = inspect.getframeinfo(inspect.stack()[1][0])
+        if self.scope:
+            if __debug__:
+                logger.debug("Init @binary decorator...")
+            # Look for unexpected arguments
+            warn_if_unexpected_argument(SUPPORTED_ARGUMENTS, list(kwargs.keys()),
+                                        "@binary decorator")
 
     def __call__(self, func):
         """
@@ -107,10 +118,11 @@ class Binary(object):
 
                 # Include the registering info related to @binary
                 if not self.registered:
+                    # Set as registered
                     self.registered = True
                     # Retrieve the base core_element established at @task decorator
                     from pycompss.api.task import current_core_element as core_element
-                    # Update the core element information with the mpi information
+                    # Update the core element information with the binary argument information
                     core_element.set_impl_type("BINARY")
                     _binary = self.kwargs['binary']
                     if 'working_dir' in self.kwargs:

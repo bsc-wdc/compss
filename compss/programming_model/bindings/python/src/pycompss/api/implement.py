@@ -28,9 +28,13 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import warn_if_unexpected_argument
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+SUPPORTED_ARGUMENTS = ('source_class',
+                       'method')
 
 
 class Implement(object):
@@ -55,8 +59,12 @@ class Implement(object):
         self.registered = False
         self.first_register = False
         self.scope = context.in_pycompss()
-        if self.scope and __debug__:
-            logger.debug("Init @implement decorator...")
+        if self.scope:
+            if __debug__:
+                logger.debug("Init @implement decorator...")
+            # Look for unexpected arguments
+            warn_if_unexpected_argument(SUPPORTED_ARGUMENTS, list(kwargs.keys()),
+                                        "@implement decorator")
 
     def __call__(self, func):
         """

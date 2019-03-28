@@ -30,10 +30,23 @@ import pycompss.api.parameter as parameter
 from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.util.context as context
+from pycompss.util.arguments import warn_if_unexpected_argument
 
 if __debug__:
     import logging
     logger = logging.getLogger(__name__)
+
+# List since the parameter names are included before checking for unexpected arguments
+# (the user can define a=INOUT in the task decorator and this is not an unexpected argument)
+SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
+                       'returns',
+                       'priority',
+                       'is_replicated',
+                       'is_distributed',
+                       'varargs_type',
+                       'target_direction',
+                       'computing_nodes',
+                       'tracing_hook']
 
 # This lock allows tasks to be launched with the Threading module while ensuring
 # that no attribute is overwritten
@@ -744,6 +757,7 @@ class task(object):
         """
         from collections import OrderedDict
         parameter_values = OrderedDict()
+        parameter_names = []
         # If we have an MPI, COMPSs or MultiNode decorator above us we should have computing_nodes
         # as a kwarg, we should detect it and remove it. Otherwise we set it to 1
         self.computing_nodes = kwargs.pop('computing_nodes', 1)
@@ -758,6 +772,7 @@ class task(object):
             if self.first_arg_name is None:
                 self.first_arg_name = var_name
             parameter_values[var_name] = var_value
+            parameter_names.append(var_name)
         num_defaults = len(self.param_defaults)
         # Give default values to all the parameters that have a
         # default value and are not already set
@@ -806,6 +821,11 @@ class task(object):
                 self.parameters[var_name].file_name = parameter_values[var_name]
             else:
                 self.parameters[var_name].object = parameter_values[var_name]
+
+        # Look for unexpected arguments
+        supported_args = SUPPORTED_ARGUMENTS + parameter_names
+        warn_if_unexpected_argument(supported_args, list(self.decorator_arguments.keys()),
+                                    "@task decorator")
 
     def get_parameter_direction(self, name):
         """

@@ -28,9 +28,17 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import warn_if_unexpected_argument
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+SUPPORTED_ARGUMENTS = ('computing_nodes',
+                       'runcompss',
+                       'flags',
+                       'worker_in_master',
+                       'app_name',
+                       'working_dir')
 
 
 class COMPSs(object):
@@ -57,6 +65,10 @@ class COMPSs(object):
         if self.scope:
             if __debug__:
                 logger.debug("Init @compss decorator...")
+
+            # Look for unexpected arguments
+            warn_if_unexpected_argument(SUPPORTED_ARGUMENTS, list(kwargs.keys()),
+                                        "@compss decorator")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.

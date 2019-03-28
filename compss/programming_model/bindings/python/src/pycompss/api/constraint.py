@@ -56,6 +56,8 @@ class Constraint(object):
         self.scope = context.in_pycompss()
         if self.scope and __debug__:
             logger.debug("Init @constraint decorator...")
+        # Since we only pass the constraint key to the runtime as the user defines it,
+        # let the runtime do the name check (throw a warning if unsupported)
 
     def __call__(self, func):
         """

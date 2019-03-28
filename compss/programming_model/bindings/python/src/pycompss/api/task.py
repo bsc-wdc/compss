@@ -80,6 +80,8 @@ class task(object):
             'onFailure': 'RETRY',
             'isReplicated': False,
             'isDistributed': False,
+            'is_replicated': False,
+            'is_distributed': False,
             'computing_nodes': 1,
             'tracingHook': False,
             'varargsType': parameter.IN  # Here for legacy purposes
@@ -700,7 +702,9 @@ class task(object):
             self.computing_nodes,
             self.decorator_arguments['isReplicated'],
             self.decorator_arguments['isDistributed'],
-            self.decorator_arguments['onFailure']
+            self.decorator_arguments['onFailure'],
+            self.decorator_arguments['is_replicated'],
+            self.decorator_arguments['is_distributed']
         )
         master_lock.release()
         return ret

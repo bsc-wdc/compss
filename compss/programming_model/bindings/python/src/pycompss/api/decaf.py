@@ -138,8 +138,8 @@ class Decaf(object):
                         working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
-                    if 'mpi_runner' in self.kwargs:
-                        runner = self.kwargs['mpi_runner']
+                    if 'runner' in self.kwargs:
+                        runner = self.kwargs['runner']
                     else:
                         runner = 'mpirun'
                     df_script = self.kwargs['df_script']

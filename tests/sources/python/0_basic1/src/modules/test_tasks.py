@@ -66,7 +66,7 @@ class MyClass(object):
         print("- Callee object:", self.field)
         self.field = self.field * 2
 
-    @task(targetDirection=IN)
+    @task(target_direction=IN)
     def instance_method_nonmodifier(self):
         print("TEST")
         print("- Instance method (nonmodifier)")

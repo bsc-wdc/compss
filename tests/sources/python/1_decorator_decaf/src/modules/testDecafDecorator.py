@@ -17,20 +17,20 @@ from pycompss.api.decaf import decaf
 from pycompss.api.constraint import constraint
 
 
-@decaf(dfScript="$PWD/decaf/test-auto.py")
+@decaf(df_script="$PWD/decaf/test-auto.py")
 @task(param=FILE_OUT)
 def myDecaf(param):
     pass
 
 
-@decaf(workingDir=".", runner="mpirun", dfScript="$PWD/decaf/test.py", dfExecutor="test.sh", dfLib="lib")
+@decaf(working_dir=".", runner="mpirun", df_script="$PWD/decaf/test.py", df_executor="test.sh", df_lib="lib")
 @task(param=FILE_OUT)
 def myDecafAll(param):
     pass
 
 
 @constraint(ComputingUnits="2")
-@decaf(runner="mpirun", computingNodes=2, dfScript="$PWD/decaf/test-2.py", dfExecutor="test-2.sh", dfLib="lib")
+@decaf(runner="mpirun", computing_nodes=2, df_script="$PWD/decaf/test-2.py", df_executor="test-2.sh", df_lib="lib")
 @task(param=FILE_OUT)
 def myDecafConstrained(param):
     pass

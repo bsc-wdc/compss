@@ -27,10 +27,10 @@ class PSCOWithTasks(StorageObject):
     def set_content(self, content):
         self.content = content
 
-    @task(targetDirection=INOUT)
+    @task(target_direction=INOUT)
     def persist_isModifier(self):
         self.make_persistent()
 
-    @task(targetDirection=IN)
+    @task(target_direction=IN)
     def persist_notIsModifier(self):
         self.make_persistent()

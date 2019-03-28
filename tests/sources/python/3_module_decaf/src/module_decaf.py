@@ -13,7 +13,7 @@ from pycompss.api.decaf import decaf
 from pycompss.api.parameter import FILE_OUT
 
 
-@decaf(workingDir=".", runner="mpirun", dfScript="$PWD/src/decaf/test.py", dfExecutor="test.sh", dfLib="lib")
+@decaf(working_dir=".", runner="mpirun", df_script="$PWD/src/decaf/test.py", df_executor="test.sh", df_lib="lib")
 @task(param=FILE_OUT)
 def myDecafAll(param):
     pass

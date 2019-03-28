@@ -17,50 +17,50 @@ from pycompss.api.api import compss_barrier, compss_open, compss_wait_on
 from pycompss.api.binary import binary
 from pycompss.api.constraint import constraint
 
-@binary(binary="date", workingDir="/tmp")
+@binary(binary="date", working_dir="/tmp")
 @task()
 def myDate(dprefix, param):
     pass
 
 @constraint(computingUnits="2")
-@binary(binary="date", workingDir="/tmp")
+@binary(binary="date", working_dir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
 
 @constraint(ComputingUnits="$CUS")
-@binary(binary="date", workingDir="/tmp")
+@binary(binary="date", working_dir="/tmp")
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):
     pass
 
 
-@binary(binary="sed", workingDir=".")
+@binary(binary="sed", working_dir=".")
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass
 
 
-@binary(binary="date", workingDir=".")
+@binary(binary="date", working_dir=".")
 @task(returns=int)
 def myReturn():
     pass
 
 
-@binary(binary="./private.sh", workingDir=os.getcwd() + '/src/scripts/')
+@binary(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/')
 @task(returns=int)
 def failedBinary(code):
     pass
 
 
-@binary(binary="sed", workingDir=".")
+@binary(binary="sed", working_dir=".")
 @task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
     pass
 
 
-@binary(binary="grep", workingDir=".")
+@binary(binary="grep", working_dir=".")
 # @task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
 # @task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
 @task(infile={Type: FILE_IN_STDIN}, result={Type: FILE_OUT_STDOUT})
@@ -79,7 +79,7 @@ def myLs(flag, hide, sort):
 def myLsWithoutType(flag, hide, sort):
     pass
 
-@binary(binary="./checkNames.sh", workingDir=os.getcwd() + '/src/scripts/')
+@binary(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/')
 @task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
 def checkFileNames(f, fp, name, fout):
     pass

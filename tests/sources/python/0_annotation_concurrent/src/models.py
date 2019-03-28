@@ -21,14 +21,14 @@ class MyFile(SCO):
     def __init__(self, path):
         self.path = path
 
-    @task(targetDirection=CONCURRENT)
+    @task(target_direction=CONCURRENT)
     def write_three(self):
         # Write value
         with open(self.path, 'a') as f:
             f.write("3")
         time.sleep(2)
 
-    @task(targetDirection=INOUT)
+    @task(target_direction=INOUT)
     def write_four(self):
         # Write value
         with open(self.path, 'a') as f:

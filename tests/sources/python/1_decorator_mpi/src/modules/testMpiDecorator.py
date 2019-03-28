@@ -18,51 +18,51 @@ from pycompss.api.mpi import mpi
 from pycompss.api.constraint import constraint
 
 
-@mpi(binary="date", workingDir="/tmp", runner="mpirun")
+@mpi(binary="date", working_dir="/tmp", runner="mpirun")
 @task()
 def myDate(dprefix, param):
     pass
 
 
 @constraint(ComputingUnits="2")
-@mpi(binary="date", workingDir="/tmp", runner="mpirun", computingNodes=2)
+@mpi(binary="date", working_dir="/tmp", runner="mpirun", computing_nodes=2)
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
 
 @constraint(ComputingUnits="$CUS")
-@mpi(binary="date", workingDir="/tmp", runner="mpirun", computingNodes="$CUS")
+@mpi(binary="date", working_dir="/tmp", runner="mpirun", computing_nodes="$CUS")
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):
     pass
 
 
-@mpi(binary="sed", workingDir=".", runner="mpirun", computingNodes="4")
+@mpi(binary="sed", working_dir=".", runner="mpirun", computing_nodes="4")
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass
 
 
-@mpi(binary="date", workingDir=".", runner="mpirun", computingNodes=1)
+@mpi(binary="date", working_dir=".", runner="mpirun", computing_nodes=1)
 @task(returns=int)
 def myReturn():
     pass
 
 
-@mpi(binary="./private.sh", workingDir=os.getcwd() + '/src/scripts/', runner="mpirun", computingNodes=1)
+@mpi(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", computing_nodes=1)
 @task(returns=int)
 def failedBinary(code):
     pass
 
 
-@mpi(binary="sed", workingDir=".", runner="mpirun")
+@mpi(binary="sed", working_dir=".", runner="mpirun")
 @task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
     pass
 
 
-@mpi(binary="grep", workingDir=".", runner="mpirun")
+@mpi(binary="grep", working_dir=".", runner="mpirun")
 # @task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
 # @task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
 @task(infile={Type: FILE_IN_STDIN}, result={Type: FILE_OUT_STDOUT})
@@ -70,18 +70,18 @@ def myGrepper(keyword, infile, result):
     pass
 
 
-@mpi(binary="ls", runner="mpirun", computingNodes=2)
+@mpi(binary="ls", runner="mpirun", computing_nodes=2)
 @task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Type: IN, Prefix: "--sort="})
 def myLs(flag, hide, sort):
     pass
 
 
-@mpi(binary="ls", runner="mpirun", computingNodes=2)
+@mpi(binary="ls", runner="mpirun", computing_nodes=2)
 @task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Prefix: "--sort="})
 def myLsWithoutType(flag, hide, sort):
     pass
 
-@mpi(binary="./checkNames.sh", workingDir=os.getcwd() + '/src/scripts/', runner="mpirun", computingNodes=1)
+@mpi(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", computing_nodes=1)
 @task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
 def checkFileNames(f, fp, name, fout):
     pass

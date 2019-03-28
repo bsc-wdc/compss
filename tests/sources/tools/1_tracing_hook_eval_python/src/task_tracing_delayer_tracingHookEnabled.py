@@ -4,7 +4,7 @@ from pycompss.api.api import compss_wait_on
 def one():
     return 1
 
-@task(returns=int, tracingHook=True)
+@task(returns=int, tracing_hook=True)
 def bad_to_hook(iterations):
     acum = 0
     for i in range(iterations):

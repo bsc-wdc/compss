@@ -42,7 +42,7 @@ def init_board_random(numV, dim):
     return [random.random(dim) for _ in range(numV)]
 
 
-@task(returns=dict, tracingHook=True)
+@task(returns=dict, tracing_hook=True)
 def cluster_points_partial(XP, mu, ind):
     import pyextrae.multiprocessing as pyextrae
     import numpy as np
@@ -60,7 +60,7 @@ def cluster_points_partial(XP, mu, ind):
     return dic
 
 
-@task(returns=dict, tracingHook=True)
+@task(returns=dict, tracing_hook=True)
 def partial_sum(XP, clusters, ind):
     import pyextrae.multiprocessing as pyextrae
     import numpy as np
@@ -74,7 +74,7 @@ def partial_sum(XP, clusters, ind):
     return dic
 
 
-@task(returns=dict, priority=True, tracingHook=True)
+@task(returns=dict, priority=True, tracing_hook=True)
 def reduceCentersTask(a, b):
     import pyextrae.multiprocessing as pyextrae
     for key in b:

@@ -150,6 +150,7 @@ void generate_worker_prolog() {
     fprintf(workerFile, "#include <sstream>\n");
 
     fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
+    fprintf(workerFile, "#include <pthread.h>\n");
     fprintf(workerFile, "#include <nanos6/bootstrap.h>\n");
     fprintf(workerFile, "#include <nanos6/library-mode.h>\n");
     fprintf(workerFile, "#endif\n");
@@ -212,6 +213,43 @@ void generate_nanos_shutdown() {
 }
 
 /*
+ * This function creates a struct with pthread_cond_var to
+ * ease the use of condition variables.
+ */
+static void generate_cond_var_struct(FILE *outFile) {
+
+    fprintf(outFile, "typedef struct {\n");
+    fprintf(outFile, "\tpthread_mutex_t mutex;\n");
+    fprintf(outFile, "\tpthread_cond_t cond;\n");
+    fprintf(outFile, "\tint signaled;\n");
+    fprintf(outFile, "} condition_variable_t;\n\n");
+
+}
+
+/*
+ * This function generates the code associated with the callback
+ * that Nanos6 will call to signal the worker because the OmpSs-2
+ * task has finished.
+ */
+static void generate_cond_var_auxiliar_functions(FILE *outFile) {
+    fprintf(outFile, "void condition_variable_callback(void *args) {\n");
+    fprintf(outFile, "\tcondition_variable_t *cond_var = (condition_variable_t *) args;\n");
+    fprintf(outFile, "\tpthread_mutex_lock(&cond_var->mutex);\n");
+    fprintf(outFile, "\tcond_var->signaled = 1;\n");
+    fprintf(outFile, "\tpthread_cond_signal(&cond_var->cond);\n");
+    fprintf(outFile, "\tpthread_mutex_unlock(&cond_var->mutex);\n");
+    fprintf(outFile, "}\n\n");
+
+    fprintf(outFile, "void wait_condition_variable(condition_variable_t *cond_var) {\n");
+    fprintf(outFile, "\tpthread_mutex_lock(&cond_var->mutex);\n");
+    fprintf(outFile, "\twhile (cond_var->signaled == 0) {\n");
+    fprintf(outFile, "\t\tpthread_cond_wait(&cond_var->cond, &cond_var->mutex);\n");
+    fprintf(outFile, "\t}\n");
+    fprintf(outFile, "pthread_mutex_unlock(&cond_var->mutex);\n");
+    fprintf(outFile, "}\n\n");
+}
+
+/*
  * This function takes a function and generates a code that assign the actual
  * arguments and to the variables of the struct. This is useful for OmpSs-2
  * integration in terms of copying the values to spawn the wrapper function.
@@ -253,7 +291,7 @@ static void assign_struct_to_arguments(FILE *outFile, function* func) {
     char* struct_name;
     int printed_chars = 0;
 
-    printed_chars = asprintf(&struct_name, "%s_struct", func->methodname);
+    printed_chars = asprintf(&struct_name, "struct_", func->methodname);
 
     if (printed_chars < 0) {
         asprintf_error(struct_name, "Not possible to create the struct name.\n");
@@ -261,10 +299,55 @@ static void assign_struct_to_arguments(FILE *outFile, function* func) {
 
     argument* args = func->first_argument;
     while (args != NULL) {
-        fprintf(outFile, "\t\t\t%s = %s.%s;\n", args->name, struct_name, args->name);
+        fprintf(outFile, "\t%s = %s.%s;\n", args->name, struct_name, args->name);
         args = args->next_argument;
     }
 
+}
+
+/*
+ * This function takes a function and generates a wrapper to be executed
+ * by Nanos6 as a task.
+ */
+static void generate_nanos6_wrapper(FILE *outFile, function* func) {
+    fprintf(outFile, "void %s_wrapper(void* args) {\n", func->methodname);
+
+    fprintf(outFile, "\t%s_struct_t* struct_ = (%s_struct_t*) args;\n", func->methodname, func->methodname);
+
+    char* func_to_execute;
+    int printed_chars = 0;
+
+    if (( func->classname != NULL ) && (func->access_static == 0)) {
+        printed_chars = asprintf(&func_to_execute, "\t%s->%s(", func->name, func->methodname);
+    } else {
+        printed_chars = asprintf(&func_to_execute, "\t%s(", func->name);
+    }
+
+    if (printed_chars < 0) {
+        asprintf_error(func_to_execute, "ERROR: Not possible to generate method execution.\n");
+    }
+
+    fprintf(outFile, "%s", func_to_execute);
+
+    argument* args = func->first_argument;
+
+    int first = 1;
+    while (args != NULL) {
+        if (first) {
+            first = 0;
+        }
+        else {
+            fprintf(outFile, ", ");
+        }
+        fprintf(outFile, "struct_->%s", args->name);
+
+        args = args->next_argument;
+    }
+    fprintf(outFile, ");\n");
+
+    //assign_struct_to_arguments(outFile, func); //Assign struct values to variables
+
+    fprintf(outFile, "}\n");
 }
 
 /*
@@ -1641,7 +1724,7 @@ static void treat_worker_argument(FILE *outFile, argument *arg, Types current_ty
         add_other_arg_worker_treatment(outFile, arg, current_types, is_return);
         break;
     case object_dt:
-        fprintf(outFile, "\t\t\t %s* %s;\n", arg->classname, arg->name, arg->classname);
+        fprintf(outFile, "\t\t\t %s* %s;\n", arg->classname, arg->name);
         add_object_or_array_arg_worker_treatment(outFile, arg, ARGS_OFFSET, current_types, is_return);
         break;
     case array_char_dt:
@@ -1920,6 +2003,13 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     int printed_chars = 0;    
     char* func_to_execute;
 
+    /*
+     * The next if statements treat the case of :
+     *      - Function is member of a class and is not static and the return type is void                                   :       classE->methodA( .....
+     *      - Function is member of a class and is not static and the return type is not void                               : K =   classE->methodA( ....
+     *      - Function is member of a class and the acces is static or is not member of a class and the return is not void  : K =   methodA( ....
+     *      - Function is member of a class and the acces is static or is not member of a class and the return is void      :       methodA( ....
+     */
     if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type == void_dt)) {
         printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s(", th.name, func->methodname);
     } else if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type != void_dt)) {
@@ -1964,70 +2054,6 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 
     //region OmpSs-2 executor TODO
 
-    //Copy the function
-    /*function func_ompss2_wrapper;
-
-    func_ompss2_wrapper.access_static   = func->access_static;
-    func_ompss2_wrapper.return_type     = func->return_type;
-    func_ompss2_wrapper.argument_count  = func->argument_count;
-    func_ompss2_wrapper.exec_arg_count  = func->exec_arg_count;
-    func_ompss2_wrapper.first_constraint= func->first_constraint;
-    func_ompss2_wrapper.next_function   = NULL;
-
-   arg = func->first_argument;
-
-    //Copy arguments
-    argument* copy = malloc(sizeof(argument*));
-
-    copy->name      = strdup(arg->name);
-    copy->classname = strdup(arg->classname);
-
-    copy->type              = arg->type;
-    copy->dir               = arg->dir;
-    copy->stream            = arg->stream;
-    copy->passing_in_order  = arg->passing_in_order;
-    copy->passing_out_order = arg->passing_out_order;
-
-    copy->elements = strdup(arg->elements);
-
-    copy->next_argument = malloc(sizeof(argument*));
-    func_ompss2_wrapper.first_argument = copy;
-
-    arg = arg->next_argument;
-
-    argument* next = copy->next_argument;
-    while (arg != NULL) {
-        next->name      = strdup(arg->name);
-        next->classname = strdup(arg->classname);
-
-        next->type              = arg->type;
-        next->dir               = arg->dir;
-        next->stream            = arg->stream;
-        next->passing_in_order  = arg->passing_in_order;
-        next->passing_out_order = arg->passing_out_order;
-
-        next->elements = strdup(arg->elements);
-
-        next = next->next_argument;
-
-        if (next == NULL) {
-            next = malloc(sizeof(argument*));
-        }
-
-        arg = arg->next_argument;
-    }
-
-    char* func_ompss2_wrapper_name;
-    printed_chars = asprintf(&func_ompss2_wrapper_name, "\t\t\t%s_wrapper", func->methodname);
-
-    if (printed_chars < 0) {
-        asprintf_error(func_ompss2_wrapper_name, "Not possible to generate OmpSs-2 wrapper function name.\n");
-    }
-
-    func_ompss2_wrapper.name = func_ompss2_wrapper_name;
-    func_ompss2_wrapper.next_function = NULL;
-    */
-
     //Declare the struct holding the arguments of the function
     fprintf(outFile, "\t\t\t%s_struct_t %s_struct;\n", func->methodname, func->methodname);
 
@@ -2035,12 +2061,12 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 
     fprintf(outFile, "\t\t\t \n");
 
-    /*//Managing object callee TODO
-    if ((func_ompss2_wrapper.classname != NULL) && (func_ompss2_wrapper.access_static == 0)) {
+    //Managing object callee TODO
+    /*if ((func.classname != NULL) && (func.access_static == 0)) {
         th.name="target_obj";
         th.type=object_dt;
         th.dir=inout_dir;
-        th.classname=func_ompss2_wrapper.classname;
+        th.classname=func.classname;
 
         printf("\t\t Adding target object unmarshalling...\n");
         fflush(NULL);
@@ -2075,33 +2101,15 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fflush(NULL);
     fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Spawning function %s.%s as OmpSs-2 task\" << endl << flush;\n", func->classname, func->methodname);
 
-    printed_chars = 0;
-
-    /*
-     * The next if statements treat the case of :
-     *      - Function is member of a class and is not static and the return type is void                                   :       classE->methodA( .....
-     *      - Function is member of a class and is not static and the return type is not void                               : K =   classE->methodA( ....
-     *      - Function is member of a class and the acces is static or is not member of a class and the return is not void  : K =   methodA( ....
-     *      - Function is member of a class and the acces is static or is not member of a class and the return is void      :       methodA( ....
-     */
-
-    if (( func->classname != NULL ) && (func->access_static == 0)) {
-        printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s", th.name, func->methodname);
-    } else {
-        printed_chars = asprintf(&func_to_execute, "\t\t\t %s", func->name);
-    }
-
-    if (printed_chars < 0) {
-        printf("ERROR: Not possible to generate method execution.\n");
-        free(func_to_execute);
-        exit(1);
-    }
+    fprintf(outFile, "\t\t\tcondition_variable_t cond_var = {PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, 0};\n");
 
     char* nanos6_spawner;
-    printed_chars = asprintf(&nanos6_spawner, "\t\t\tnanos6_spawn_function(%s, %s_struct, %s, %s, %s_spawned_task);\n",
-            func_to_execute, func->methodname, "cond var callback", "cond_var", func->methodname);
+    printed_chars = asprintf(&nanos6_spawner, "\t\t\tnanos6_spawn_function(%s_wrapper, &%s_struct, %s, %s, \"%s_spawned_task\");\n",
+            func->methodname, func->methodname, "condition_variable_callback", "&cond_var", func->methodname);
 
-    assign_struct_to_arguments(outFile, func); //Assign struct values to variables
+    fprintf(outFile, "%s\n", nanos6_spawner);
+
+    fprintf(outFile, "wait_condition_variable(&cond_var);\n");
 
     //endregion
 
@@ -2177,7 +2185,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
  */
 static void generate_struct_nanos6_wrapper(FILE *outFile, Types current_types, function *func) {
     argument *arg;
-    fprintf(outFile, "typedef struct {\n");
+    fprintf(outFile, "typedef struct {\n", func->methodname);
 
     char* return_type = construct_returntype(func);
 
@@ -2193,40 +2201,120 @@ static void generate_struct_nanos6_wrapper(FILE *outFile, Types current_types, f
     fprintf(outFile, "} %s_struct_t;\n", func->methodname);
 }
 
-static char* generate_struct_initialization_nanos6_wrapper(FILE *outFille, function *func) {
-/*    printf("\t\t Adding OmpSs-2 argument initialization...\n");
-    argument *arg, *ret;
-
-    arg = func->first_argument;
-   
-    if ( func->return_type != void_dt ) {
-        ret = (argument *)malloc(sizeof(argument));
-        ret->name="return_obj";
-        ret->type=func->return_type;
-        ret->dir=out_dir;
-        ret->classname=func->return_typename;
-        ret->elements=func->return_elements;
-    }
-*/
-} 
-
 static void generate_function_structs_nanos6(FILE *outFile, Types current_types, function *current_function) {
     /* Nanos6 structs in the application include file */
-    fprintf(includeFile, "\n#ifdef OMPSS2_ENABLED\n"); 
     while(current_function != NULL) {
 
-        generate_struct_nanos6_wrapper(includeFile, current_types, current_function);
+        generate_struct_nanos6_wrapper(outFile, current_types, current_function);
 
         current_function = current_function->next_function;
     }
-    fprintf(includeFile, "#endif\n");
 }
+
+
+void generate_worker_executor(Types current_types) {
+
+    fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
+
+    generate_cond_var_struct(workerFile);
+
+    generate_function_structs_nanos6(workerFile, current_types, get_first_function());
+
+    generate_cond_var_auxiliar_functions(workerFile);
+
+    fprintf(workerFile, "\n");
+
+    function *current_function;
+    current_function = get_first_function();
+
+    while (current_function != NULL) {
+        generate_nanos6_wrapper(workerFile, current_function);
+        current_function = current_function->next_function;
+    }
+    fprintf(workerFile, "#endif\n\n");
+
+    generate_executor_prototype(workerFile);
+    // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName,
+    //                                                      numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
+    fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug
+    fprintf(workerFile, "\t\t cout << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ----------------- C WORKER -----------------\" << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Total number of parameters: \" << argc << endl;\n");
+    fprintf(workerFile, "\t }\n"); //Close if debug
+
+    fprintf(workerFile, "\t if (argc < MIN_NUM_INTERNAL_ARGS) {\n"); //Open args check if
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ERROR: Incorrect number of COMPSs internal parameters\"<< endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Aborting...\" << endl;\n");
+    fprintf(workerFile, "\t\t return -1; \n");
+    fprintf(workerFile, "\t }\n"); //Close args check if
+    fprintf(workerFile, "\n");
+
+    // Log args
+    fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Executable: \" << argv[0] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Tracing: \" <<  argv[1] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Task Id: \" << argv[2] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Worker Debug: \" << argv[3] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] StorageConf: \" << argv[4] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodType: \" << argv[5] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ClassName: \" << argv[6] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodName: \" << argv[7] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[8] << endl;\n");
+    fprintf(workerFile, "\t }\n"); //Close if debug
+
+    fprintf(workerFile, "\t int numSlaves=atoi(argv[8]);\n");
+
+    fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
+    fprintf(workerFile, "\t\t for (int i = 0; i < numSlaves; ++i) {\n"); //Open for
+    fprintf(workerFile, "\t\t\t cout <<\"[C-BINDING] Slave \" << i << \" has name \" << argv[NUM_BASE_ARGS + i] << endl;\n");
+    fprintf(workerFile, "\t\t }\n"); //Close for
+    fprintf(workerFile, "\t }\n"); //Close if debug
+
+    fprintf(workerFile, "\t int NUM_INTERNAL_ARGS=NUM_BASE_ARGS + numSlaves;\n");
+
+    //fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumComputingUnits: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] HasTarget: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumReturns: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ReturnType: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Num App Params: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Application Arguments:\" << endl;\n");
+    fprintf(workerFile, "\t\t for(int i = NUM_INTERNAL_ARGS; i < argc; i++) { \n"); //Open for
+    fprintf(workerFile, "\t\t\t cout << \"\t\" << argv[i] << endl;\n");
+    fprintf(workerFile, "\t\t }\n"); //Close for clause
+    fprintf(workerFile, "\t\t cout << flush;\n");
+    fprintf(workerFile, "\n");
+    //fprintf(workerFile, "\t }\n"); //Close if debug clause
+
+    // Get OpName and OpCode
+    fprintf(workerFile, "\t enum operationCode opCod;\n");
+    fprintf(workerFile, "\t char *opName = strdup(argv[METHOD_NAME_POS]);\n");
+    fprintf(workerFile, "\t for(int i=0; i < N_OPS; i++) {\n");
+    fprintf(workerFile, "\t\t if(strcmp(operationName[i], opName) == 0) {\n");
+    fprintf(workerFile, "\t\t\t opCod=(enum operationCode)i;\n");
+    fprintf(workerFile, "\t\t\t break;\n");
+    fprintf(workerFile, "\t\t }\n");
+    fprintf(workerFile, "\t }\n");
+
+    fprintf(workerFile, "\t if(is_debug()){\n"); // Open if debug clause
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] OpName: \" << opName << \"OpCode: \" << (int)opCod << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] --------------------------------------------\"<< endl << endl << flush;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Data in cache before executing:\" << endl;\n");
+    fprintf(workerFile, "\t\t cache->printValues();\n");
+    fprintf(workerFile, "\t }\n");//Close if debug clause
+
+    // OpCode switch
+    fprintf(workerFile, "\t int arg_offset = NUM_INTERNAL_ARGS;\n");
+    fprintf(workerFile, "\t switch(opCod)\n");
+    fprintf(workerFile, "\t {\n"); //Open switch clause
+}
+
 
 void generate_body(void) {
     Types current_types;
     initTypes(&current_types);
     function *current_function;
-    generate_worker_executor();
+    generate_worker_executor(current_types);
 
     generate_enum(includeFile, get_first_function());
 
@@ -2238,6 +2326,7 @@ void generate_body(void) {
     current_function = get_first_function();
 
     while (current_function != NULL) {
+
         printf("Treating function: %s\n", current_function->name);
 
         printf("\t Generating class includes and types... \n");
@@ -2276,9 +2365,8 @@ void generate_body(void) {
         current_function = current_function->next_function;
     }
 
-    current_function = get_first_function(); 
-   
-    generate_function_structs_nanos6(includeFile, current_types, current_function);
+    current_function = get_first_function();
+
     generate_executor_end();
     printf("\t Generating remove and serialize functions... \n");
     fflush(NULL);

@@ -714,11 +714,9 @@ class task(object):
             self.returns,
             self.decorator_arguments,
             self.computing_nodes,
-            self.decorator_arguments['isReplicated'],
-            self.decorator_arguments['isDistributed'],
-            self.decorator_arguments['on_failure'],
             self.decorator_arguments['is_replicated'],
-            self.decorator_arguments['is_distributed']
+            self.decorator_arguments['is_distributed'],
+            self.decorator_arguments['on_failure']
         )
         master_lock.release()
         return ret

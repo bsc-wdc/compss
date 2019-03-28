@@ -83,8 +83,8 @@ class task(object):
             'is_replicated': False,
             'is_distributed': False,
             'computing_nodes': 1,
-            'tracingHook': False,
-            'varargsType': parameter.IN  # Here for legacy purposes
+            'tracing_hook': False,
+            'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
     def __init__(self, comment=None, **kwargs):
@@ -567,7 +567,7 @@ class task(object):
         # Also, the very nature of decorators are a huge hint about how we should treat user
         # functions, as most wrappers return a function f(*a, **k)
         if self.param_varargs is None:
-            self.param_varargs = 'varargsType'
+            self.param_varargs = 'varargs_type'
         if self.param_defaults is None:
             self.param_defaults = ()
 
@@ -714,10 +714,10 @@ class task(object):
         Returns the direction of the varargs arguments.
         Can be defined in the decorator in two ways:
         args = dir, where args is the name of the variadic args tuple, or
-        varargsType = dir (for legacy reasons)
+        varargs_type = dir (for legacy reasons)
         """
         if self.param_varargs not in self.decorator_arguments:
-            return self.decorator_arguments['varargsType']
+            return self.decorator_arguments['varargs_type']
         return self.decorator_arguments[self.param_varargs]
 
     def get_default_direction(self, var_name):
@@ -975,7 +975,7 @@ class task(object):
                 self_value = 'null'
 
         # Tracing hook is disabled by default during the user code of the task.
-        # The user can enable it with tracingHook=True in @task decorator for specific tasks or globally with the
+        # The user can enable it with tracing_hook=True in @task decorator for specific tasks or globally with the
         # COMPSS_TRACING_HOOK=true environment variable.
         restore_hook = False
         if kwargs['compss_tracing']:
@@ -983,7 +983,7 @@ class task(object):
             global_tracing_hook = False
             if TRACING_HOOK_ENV_VAR in os.environ:
                 global_tracing_hook = os.environ[TRACING_HOOK_ENV_VAR] == "true"
-            if self.decorator_arguments['tracingHook'] or global_tracing_hook:
+            if self.decorator_arguments['tracing_hook'] or global_tracing_hook:
                 # The user wants to keep the tracing hook
                 pass
             else:

@@ -17,36 +17,32 @@
 package es.bsc.compss.loader.exceptions;
 
 /**
- * Exception for null or not found method/class names
+ * Exception for null or not found method/class names.
  */
 public class NameNotFoundException extends Exception {
 
     /**
-     * Exceptions Version UID are 2L in all Runtime
+     * Exceptions Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
 
     /**
-     * New empty Name Not Found Exception
+     * New empty Name Not Found Exception.
      */
     public NameNotFoundException() {
         super();
     }
 
     /**
-     * New nested @e Name Not Found Exception
-     * 
-     * @param e
+     * New nested @e Name Not Found Exception.
      */
     public NameNotFoundException(Exception e) {
         super(e);
     }
 
     /**
-     * New Announce Name Not Found with message @msg
-     * 
-     * @param msg
+     * New Announce Name Not Found with message @msg.
      */
     public NameNotFoundException(String msg) {
         super(msg);

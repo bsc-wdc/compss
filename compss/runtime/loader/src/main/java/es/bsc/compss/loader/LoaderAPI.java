@@ -24,98 +24,62 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 public interface LoaderAPI {
 
     /**
-     * Returns the renaming of the file version opened
-     *
-     * @param fileName
-     * @param mode
-     * @return
+     * Returns the renaming of the file version opened.
      */
     public String openFile(String fileName, Direction mode);
 
     /**
-     * Close the file version opened
-     *
-     * @param fileName
-     * @param mode
-     * @return
+     * Close the file version opened.
      */
     public void closeFile(String fileName, Direction mode);
 
     /**
-     * Deletes the specified version of a file
-     *
-     * @param fileName
-     * @return
+     * Deletes the specified version of a file.
      */
     public boolean deleteFile(String fileName);
 
     /**
-     * Returns last version of file with its original name
-     *
-     * @param fileName
-     * @return
+     * Returns last version of file with its original name.
      */
     public void getFile(Long appId, String fileName);
 
     /**
-     * Returns a copy of the last object version
-     *
-     * @param o
-     * @param hashCode
-     * @param destDir
-     * @return
+     * Returns a copy of the last object version.
      */
     public Object getObject(Object o, int hashCode, String destDir);
 
     /**
-     * Serializes the given object
-     *
-     * @param o
-     * @param hashCode
-     * @param destDir
+     * Serializes the given object.
      */
     public void serializeObject(Object o, int hashCode, String destDir);
 
     /**
-     * Gets the object Registry instance
-     *
-     * @return
+     * Gets the object Registry instance.
      */
     public ObjectRegistry getObjectRegistry();
 
     /**
-     * Gets the stream Registry instance
-     *
-     * @return
+     * Gets the stream Registry instance.
      */
     public StreamRegistry getStreamRegistry();
 
     /**
-     * Sets the object Registry instance
-     *
-     * @param oReg
+     * Sets the object Registry instance.
      */
     public void setObjectRegistry(ObjectRegistry oReg);
 
     /**
-     * Sets the object Registry instance
-     *
-     * @param oReg
+     * Sets the object Registry instance.
      */
     public void setStreamRegistry(StreamRegistry oReg);
 
     /**
-     * Returns the directory where to store temporary files
-     *
-     * @return
+     * Returns the directory where to store temporary files.
      */
     public String getTempDir();
 
     /**
-     * Removes the
-     *
-     * @param o
-     * @param hashcode
+     * Removes the TODO.
      */
     public void removeObject(Object o, int hashcode);
 

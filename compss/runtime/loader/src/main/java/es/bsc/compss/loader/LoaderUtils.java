@@ -18,6 +18,7 @@ package es.bsc.compss.loader;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
@@ -36,21 +37,16 @@ import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 import es.bsc.compss.types.annotations.task.repeatables.MultiOmpSs;
 import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.util.ErrorManager;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.Random;
-
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.expr.MethodCall;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import storage.StubItf;
 
 
@@ -70,7 +66,9 @@ public class LoaderUtils {
         throw new NonInstantiableException("LoaderUtils");
     }
 
-    // Storage: Check object type
+    /**
+     * Storage: Check object type.
+     */
     public static DataType checkSCOType(Object o) {
         if (o instanceof StubItf && ((StubItf) o).getID() != null) {
             // Persisted Object
@@ -81,7 +79,9 @@ public class LoaderUtils {
         return DataType.OBJECT_T;
     }
 
-    // Return the called method if it is in the remote list
+    /**
+     * Return the called method if it is in the remote list.
+     */
     public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods)
             throws NotFoundException {
         LOGGER.info("Checking Method " + method.getName());
@@ -220,7 +220,7 @@ public class LoaderUtils {
     }
 
     private static boolean isSelectedMethod(CtMethod method, java.lang.reflect.Method remote, String remoteMethodClass,
-            String remoteMethodName) throws NotFoundException {
+                                            String remoteMethodName) throws NotFoundException {
         // Patch remote method name if required
         if (remoteMethodName == null || remoteMethodName.isEmpty() || remoteMethodName.equals(Constants.UNASSIGNED)) {
             remoteMethodName = remote.getName();
@@ -363,7 +363,9 @@ public class LoaderUtils {
         return "dummy." + namespace + '.' + service + '.' + port;
     }
 
-    // Check whether the method call is a close of a stream
+    /**
+     * Check whether the method call is a close of a stream.
+     */
     public static boolean isStreamClose(MethodCall mc) {
         if ("close".equals(mc.getMethodName())) {
             String fullName = mc.getClassName();
@@ -377,7 +379,9 @@ public class LoaderUtils {
         return false;
     }
 
-    // Return a random numeric string
+    /**
+     * Return a random numeric string.
+     */
     public static String randomName(int length, String prefix) {
         if (length < 1) {
             return prefix;
@@ -401,10 +405,16 @@ public class LoaderUtils {
                 && m.getParameterTypes()[0].getName().equals(String[].class.getCanonicalName()));
     }
 
+    /**
+     * TODO javadoc.
+     */
     public static boolean isOrchestration(CtMethod m) {
         return m.hasAnnotation(es.bsc.compss.types.annotations.Orchestration.class);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public static boolean contains(CtMethod[] methods, CtMethod method) {
         for (CtMethod m : methods) {
             if (m.equals(method) && method.getDeclaringClass().equals(m.getDeclaringClass())) {
@@ -414,7 +424,9 @@ public class LoaderUtils {
         return false;
     }
 
-    // Add WithUR to the method name parameter of the executeTask call
+    /**
+     * Add WithUR to the method name parameter of the executeTask call.
+     */
     public static StringBuilder replaceMethodName(StringBuilder executeTask, String methodName) {
         String patternStr = ",\"" + methodName + "\",";
         int start = executeTask.toString().indexOf(patternStr);
@@ -422,9 +434,12 @@ public class LoaderUtils {
         return executeTask.replace(start, end, ",\"" + methodName + "WithUR\",");
     }
 
-    // Add SLA params to the executeTask call
+    /**
+     * Add SLA params to the executeTask call.
+     */
     public static StringBuilder modifyString(StringBuilder executeTask, int numParams, String appNameParam,
-            String slaIdParam, String urNameParam, String primaryHostParam, String transferIdParam) {
+                                             String slaIdParam, String urNameParam, String primaryHostParam,
+                                             String transferIdParam) {
 
         // Number of new params we add
         int newParams = 5;
@@ -461,8 +476,11 @@ public class LoaderUtils {
         }
     }
 
+    /**
+     * TODO javadoc.
+     */
     public static Object runMethodOnObject(Object o, Class<?> methodClass, String methodName, Object[] values,
-            Class<?>[] types) throws Throwable {
+                                           Class<?>[] types) throws Throwable {
         // Use reflection to get the requested method
         java.lang.reflect.Method method = null;
         try {
@@ -495,6 +513,9 @@ public class LoaderUtils {
         return retValue;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public static boolean isFileDelete(MethodCall mc) {
         if ("delete".equals(mc.getMethodName())) {
             return mc.getClassName().compareTo("java.io.File") == 0;

@@ -16,11 +16,12 @@
  */
 package es.bsc.compss.loader.total;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.loader.LoaderConstants;
+import es.bsc.compss.loader.LoaderUtils;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.util.ErrorManager;
 import java.lang.reflect.Method;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CodeConverter;
@@ -30,11 +31,8 @@ import javassist.CtField;
 import javassist.CtMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.loader.LoaderConstants;
-import es.bsc.compss.loader.LoaderUtils;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.ErrorManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class ITAppModifier {
@@ -59,20 +57,9 @@ public class ITAppModifier {
 
 
     /**
-     * Modify method
-     * 
-     * @param appName
-     * @return
-     * @throws NotFoundException
-     * @throws CannotCompileException
-     * @throws ClassNotFoundException
+     * Modify method.
      */
     public Class<?> modify(String appName) throws NotFoundException, CannotCompileException, ClassNotFoundException {
-
-        Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
-        // Methods declared in the annotated interface
-        Method[] remoteMethods = annotItf.getMethods();
-
         /*
          * Use the application editor to include the COMPSs API calls on the application code
          */
@@ -82,28 +69,31 @@ public class ITAppModifier {
         CLASS_POOL.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER);
         CLASS_POOL.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_TOTAL);
 
-        CtClass appClass = CLASS_POOL.get(appName);
-        CtClass itApiClass = CLASS_POOL.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
-        CtClass itSRClass = CLASS_POOL.get(LoaderConstants.CLASS_STREAM_REGISTRY);
-        CtClass itORClass = CLASS_POOL.get(LoaderConstants.CLASS_OBJECT_REGISTRY);
-        CtClass appIdClass = CLASS_POOL.get(LoaderConstants.CLASS_APP_ID);
-
         String varName = LoaderUtils.randomName(5, LoaderConstants.STR_COMPSS_PREFIX);
+        CtClass appClass = CLASS_POOL.get(appName);
+
+        CtClass itApiClass = CLASS_POOL.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
         String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
-        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
-        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
-        String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
         CtField itApiField = new CtField(itApiClass, itApiVar, appClass);
-        CtField itSRField = new CtField(itSRClass, itSRVar, appClass);
-        CtField itORField = new CtField(itORClass, itORVar, appClass);
-        CtField appIdField = new CtField(appIdClass, itAppIdVar, appClass);
         itApiField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        itSRField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        itORField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        appIdField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(itApiField);
+
+        CtClass itSRClass = CLASS_POOL.get(LoaderConstants.CLASS_STREAM_REGISTRY);
+        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
+        CtField itSRField = new CtField(itSRClass, itSRVar, appClass);
+        itSRField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(itSRField);
+
+        CtClass itORClass = CLASS_POOL.get(LoaderConstants.CLASS_OBJECT_REGISTRY);
+        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
+        CtField itORField = new CtField(itORClass, itORVar, appClass);
+        itORField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(itORField);
+
+        CtClass appIdClass = CLASS_POOL.get(LoaderConstants.CLASS_APP_ID);
+        String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
+        CtField appIdField = new CtField(appIdClass, itAppIdVar, appClass);
+        appIdField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(appIdField);
 
         /*
@@ -115,8 +105,14 @@ public class ITAppModifier {
         /*
          * Create IT App Editor
          */
-        CtMethod[] instrCandidates = appClass.getDeclaredMethods(); // Candidates to be instrumented if they are not
-                                                                    // remote
+        Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
+
+        // Methods declared in the annotated interface
+        Method[] remoteMethods = annotItf.getMethods();
+
+        // Candidates to be instrumented if they are not remote
+        CtMethod[] instrCandidates = appClass.getDeclaredMethods();
+
         ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
                 itAppIdVar, appClass);
         // itAppEditor.setAppId(itAppIdVar);
@@ -127,7 +123,8 @@ public class ITAppModifier {
          */
         CodeConverter converter = new CodeConverter();
         CtClass arrayWatcher = CLASS_POOL.get(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
-        CodeConverter.DefaultArrayAccessReplacementMethodNames names = new CodeConverter.DefaultArrayAccessReplacementMethodNames();
+        CodeConverter.DefaultArrayAccessReplacementMethodNames names =
+                new CodeConverter.DefaultArrayAccessReplacementMethodNames();
         converter.replaceArrayAccess(arrayWatcher, (CodeConverter.ArrayAccessReplacementMethodNames) names);
 
         /*

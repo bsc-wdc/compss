@@ -33,10 +33,7 @@ public class ITAppLoader {
 
 
     /**
-     * Factored out loading function so that subclasses of ITAppLoader can re-use this code
-     *
-     * @param chosenLoader
-     * @param appName
+     * Factored out loading function so that subclasses of ITAppLoader can re-use this code.
      */
     protected static void load(String chosenLoader, String appName, String[] appArgs) throws Exception {
         /*
@@ -47,7 +44,7 @@ public class ITAppLoader {
         CustomLoader myLoader = null;
 
         try {
-            myLoader = new CustomLoader(new URL[] {});
+            myLoader = new CustomLoader(new URL[]{});
 
             // Add the jars that the custom class loader needs
             String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
@@ -64,12 +61,12 @@ public class ITAppLoader {
             Object modifier = modifierClass.newInstance();
             LOGGER.debug("Modifying application " + appName + " with loader " + chosenLoader);
 
-            Method method = modifierClass.getMethod("modify", new Class[] { String.class });
-            Class<?> modAppClass = (Class<?>) method.invoke(modifier, new Object[] { appName });
+            Method method = modifierClass.getMethod("modify", new Class[]{String.class});
+            Class<?> modAppClass = (Class<?>) method.invoke(modifier, new Object[]{appName});
             if (modAppClass != null) { // if null, the modified app has been written to a file, and thus we're done
                 LOGGER.debug("Application " + appName + " instrumented, executing...");
-                Method main = modAppClass.getDeclaredMethod("main", new Class[] { String[].class });
-                main.invoke(null, new Object[] { appArgs });
+                Method main = modAppClass.getDeclaredMethod("main", new Class[]{String[].class});
+                main.invoke(null, new Object[]{appArgs});
             }
         } catch (Exception e) {
             throw e;
@@ -81,6 +78,9 @@ public class ITAppLoader {
         }
     }
 
+    /**
+     * TODO javadoc.
+     */
     public static void main(String[] args) throws Exception {
         // Check args
         if (args.length < 2) {

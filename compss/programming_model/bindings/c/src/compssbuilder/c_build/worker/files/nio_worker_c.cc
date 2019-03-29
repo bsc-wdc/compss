@@ -19,6 +19,17 @@
 #include <compss_worker.h>
 
 int main(int argc, char **argv) {
+    
+#ifdef OMPSS2_ENABLED
+    char const *error = nanos6_library_mode_init();
+    if (error != NULL)
+    {
+        fprintf(stderr, "Error initializing Nanos6: %s\n", error);
+        return 1;
+    }
+    std::cout << "[C-BINDING] Nanos6 initialized" << std::endl; 
+#endif
+
     //Creating custom streams
     char* arg_nio[argc-1];
     int i;
@@ -28,7 +39,10 @@ int main(int argc, char **argv) {
     CBindingCache *cache = new CBindingCache();
     CBindingExecutor *executor = new CBindingExecutor(cache);
     worker_start(cache, executor, argc-1, arg_nio);
-    //delete(executor);
-    //delete(cache);
+
+#ifdef OMPSS2_ENABLED
+    nanos6_shutdown();
+    std::cout << "[C-BINDING] Nanos6 shutdown" << std::endl;
+#endif
 
 }

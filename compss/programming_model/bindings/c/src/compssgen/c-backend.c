@@ -173,14 +173,6 @@ void generate_nanos_initialization() {
     fprintf(workerFile, "\t\t#ifdef OMPSS_ENABLED\n");
     fprintf(workerFile, "\t\t\t#error Only one of both OmpSs2 and OmpSs can be enabled.\n");
     fprintf(workerFile, "\t\t#endif\n");
-    fprintf(workerFile, "\t\tchar const *error = nanos6_library_mode_init();\n");
-    fprintf(workerFile, "\t\tif (error != NULL) {\n");
-    fprintf(workerFile, "\t\t\t cout << \"Error while intializing Nanos6: \" << error << endl;\n");
-    fprintf(workerFile, "\t\t\t return;\n");
-    fprintf(workerFile, "\t\t}\n");
-
-    fprintf(workerFile, "\t\t cout << \"Nanos6 intialized...\" << endl;\n");
-
     fprintf(workerFile, "#endif\n\n");
 
     fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");
@@ -197,11 +189,6 @@ void generate_nanos_initialization() {
  * Generate the needed preprocessor conditions to shutdown Nanos++ or Nanos6
  */
 void generate_nanos_shutdown() {
-
-    //OmpSs-2 Nanos6 shutdown
-    fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
-    fprintf(workerFile, "\t\tnanos6_shutdown();\n");
-    fprintf(workerFile, "#endif\n\n");
 
     //OmpSs Nanos++ shutdown
     fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");

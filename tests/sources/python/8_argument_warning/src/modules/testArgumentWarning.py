@@ -23,9 +23,7 @@ from pycompss.api.implement import implement
 from pycompss.api.mpi import mpi
 from pycompss.api.multinode import multinode
 from pycompss.api.ompss import ompss
-from pycompss.api.opencl import opencl
-
-import numpy as np
+# from pycompss.api.opencl import opencl
 
 # All of the following tasks include an unexpected argument
 # So they must raise a WARNING message through stderr which is

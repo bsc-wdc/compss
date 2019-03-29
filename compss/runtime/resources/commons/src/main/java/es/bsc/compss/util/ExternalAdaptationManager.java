@@ -196,7 +196,7 @@ public class ExternalAdaptationManager extends Thread {
     private void normalRemove(String name) {
         MethodWorker w = (MethodWorker) ResourceManager.getWorker(name);
         if (w != null) {
-            // TODO: ResourceManager.reduceWholeWorker(w);
+            // TODO: ResourceManager.requestWholeWorkerReduction(w);
             RUNTIME_LOGGER.info(LOG_PREFIX + "TODO: Resource " + name + " removed.");
             writePipe(resultPipe, ACK);
         } else {
@@ -211,7 +211,7 @@ public class ExternalAdaptationManager extends Thread {
             if (cp != null) {
                 CloudMethodWorker cmw = cp.getHostedWorker(name);
                 if (cmw != null) {
-                    ResourceManager.reduceDynamicWorker(cmw, cmw.getDescription());
+                    ResourceManager.requestWorkerReduction(cmw, cmw.getDescription());
                     RUNTIME_LOGGER.info(
                             LOG_PREFIX + "Submited external request for removing " + name + " in " + providerName);
                     writePipe(resultPipe, ACK);

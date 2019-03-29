@@ -268,7 +268,7 @@ public class Agent {
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {
-            ResourceManager.reduceDynamicWorker(worker, reduction);
+            ResourceManager.requestWorkerReduction(worker, reduction);
         } else {
             throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
         }
@@ -276,7 +276,7 @@ public class Agent {
 
     public static void removeNode(String name) throws AgentException {
         try {
-            ResourceManager.reduceWholeWorker(name);
+            ResourceManager.requestWholeWorkerReduction(name);
         } catch (NullPointerException e) {
             throw new AgentException("Resource " + name + " was not set up for this agent. Ignoring request.");
         }

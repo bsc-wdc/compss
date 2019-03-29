@@ -41,5 +41,7 @@ def warn_if_unexpected_argument(supported_arguments, arguments, where):
         if argument not in supported_arguments:
             message = "WARNING: Unexpected argument: " + str(argument) + \
                       " Found in " + str(where)
-            print(message)                   # show the warn through stdout
+            # The print through stdout is disabled to prevent the message to appear
+            # twice in the console. So the warning message will only appear in STDERR.
+            # print(message)                   # show the warn through stdout
             print(message, file=sys.stderr)  # also show the warn through stderr

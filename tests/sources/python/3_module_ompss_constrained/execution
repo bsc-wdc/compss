@@ -56,7 +56,7 @@
     fi
 
     # shellcheck disable=SC2086
-    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+    timeout --signal=2 $expectedTime ${python_interpreter} -m pycompss \
       --project="${base_app_dir}"/project.xml \
       --resources="${base_app_dir}"/resources.xml \
       \

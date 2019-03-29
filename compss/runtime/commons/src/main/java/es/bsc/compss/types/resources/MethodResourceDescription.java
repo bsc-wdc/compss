@@ -387,7 +387,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     ErrorManager.error("ERROR: Unrecognised constraint " + c);
                     return;
                 }
-                String key = c.substring(0, sepIndex).trim();
+                String key = c.substring(0, sepIndex).trim().replaceAll("_", "");
                 String val = c.substring(sepIndex + 1, c.length()).trim();
                 if (key.equals(PROCESSORS)) {
                     treatProcessorsList(val);

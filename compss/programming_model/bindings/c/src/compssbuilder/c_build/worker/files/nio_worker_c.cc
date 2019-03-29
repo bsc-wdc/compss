@@ -18,6 +18,12 @@
 #include <CBindingCache.h>
 #include <compss_worker.h>
 
+#ifdef OMPSS2_ENABLED
+#include <pthread.h>
+#include <nanos6/bootstrap.h>
+#include <nanos6/library-mode.h>
+#endif
+
 int main(int argc, char **argv) {
     
 #ifdef OMPSS2_ENABLED

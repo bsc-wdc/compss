@@ -149,12 +149,6 @@ void generate_worker_prolog() {
     fprintf(workerFile, "#include <fstream>\n");
     fprintf(workerFile, "#include <sstream>\n");
 
-    fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
-    fprintf(workerFile, "#include <pthread.h>\n");
-    fprintf(workerFile, "#include <nanos6/bootstrap.h>\n");
-    fprintf(workerFile, "#include <nanos6/library-mode.h>\n");
-    fprintf(workerFile, "#endif\n");
-
     //fprintf(workerFile, "#include <compss_worker_lock.h>\n");
     fprintf(workerFile, "#include <c_compss_commons.h>\n");
     fprintf(workerFile, "#include \"%s\"\n", includeName);

@@ -974,7 +974,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             CloudMethodWorker worker = (CloudMethodWorker) this.res.getResource();
             CloudMethodResourceDescription reduction = new CloudMethodResourceDescription(this.citd,
                     worker.getDescription().getImage());
-            ResourceManager.reduceDynamicWorker(worker, reduction);
+            ResourceManager.requestWorkerReduction(worker, reduction);
         }
     }
 

@@ -1486,7 +1486,7 @@ public class ResourceOptimizer extends Thread {
         }
 
         public void apply() {
-            ResourceManager.reduceWholeWorker((DynamicMethodWorker) res);
+            ResourceManager.requestWholeWorkerReduction((DynamicMethodWorker) res);
         }
 
         public Resource getResource() {
@@ -1518,7 +1518,7 @@ public class ResourceOptimizer extends Thread {
 
             CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(type, cid);
             finalDescription.setName(res.getName());
-            ResourceManager.reduceDynamicWorker(res, finalDescription);
+            ResourceManager.requestWorkerReduction(res, finalDescription);
         }
     }
 

@@ -95,7 +95,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
                 Thread.currentThread().setName(worker.getName() + " stopper");
                 DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
                 PendingReduction<WorkerResourceDescription> crd = (PendingReduction<WorkerResourceDescription>) ru;
-                ResourceManager.reduceResource(w, crd);
+                ResourceManager.reduceDynamicWorker(w, crd);
                 w.endTask((MethodResourceDescription) getResourceConsumption());
                 try {
                     ru.waitForCompletion();

@@ -416,19 +416,19 @@ public class ResourceManager {
      * @param worker
      * @param reduction
      */
-    public static void reduceDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription reduction) {
+    public static void requestWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction);
         resourceUser.updatedResource(worker, modification);
     }
 
-    public static void reduceWholeWorker(String name) {
+    public static void requestWholeWorkerReduction(String name) {
         MethodWorker worker = (MethodWorker) pool.getResource(name);
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy());
         resourceUser.updatedResource(worker, modification);
 
     }
 
-    public static void reduceWholeWorker(MethodWorker worker) {
+    public static void requestWholeWorkerReduction(MethodWorker worker) {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy());
         resourceUser.updatedResource(worker, modification);
     }
@@ -441,7 +441,7 @@ public class ResourceManager {
      * @param reduction
      */
     @SuppressWarnings("unchecked")
-    public static <R extends WorkerResourceDescription> void reduceResource(DynamicMethodWorker worker,
+    public static <R extends WorkerResourceDescription> void reduceDynamicWorker(DynamicMethodWorker worker,
             PendingReduction<R> reduction) {
         synchronized (pool) {
             int[] maxTaskCount = worker.getSimultaneousTasks();

@@ -14,7 +14,7 @@ from pycompss.api.implement import implement
 
 
 @implement(source_class="module_7_implements", method="addtwovectors")
-@constraint(ComputingUnits="4")
+@constraint(computing_units="4")
 @task(returns=list)
 def myfunctionWithNumpy(list1, list2):
     print("myfunctionWithNumpy")
@@ -26,7 +26,7 @@ def myfunctionWithNumpy(list1, list2):
     return z.tolist()
 
 
-@constraint(ComputingUnits="1")
+@constraint(computing_units="1")
 @task(returns=list)
 def addtwovectors(list1, list2):
     print("addtwovectors")

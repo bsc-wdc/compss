@@ -14,7 +14,7 @@ from pycompss.api.constraint import constraint
 from pycompss.api.parameter import FILE_OUT
 
 
-@constraint(ComputingUnits="2")
+@constraint(computing_units="2")
 @decaf(runner="mpirun", computing_nodes=2, df_script="$PWD/src/decaf/test-2.py", df_executor="test-2.sh", df_lib="lib")
 @task(param=FILE_OUT)
 def myDecafConstrained(param):

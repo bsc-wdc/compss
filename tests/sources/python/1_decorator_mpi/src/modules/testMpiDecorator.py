@@ -24,14 +24,14 @@ def myDate(dprefix, param):
     pass
 
 
-@constraint(ComputingUnits="2")
+@constraint(computing_units="2")
 @mpi(binary="date", working_dir="/tmp", runner="mpirun", computing_nodes=2)
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
 
-@constraint(ComputingUnits="$CUS")
+@constraint(computing_units="$CUS")
 @mpi(binary="date", working_dir="/tmp", runner="mpirun", computing_nodes="$CUS")
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):

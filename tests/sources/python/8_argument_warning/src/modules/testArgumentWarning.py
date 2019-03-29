@@ -37,7 +37,7 @@ def binary_task(dprefix, param):
 
 # Unexpected argument included "bad_arg"
 @compss(runcompss="${RUNCOMPSS}", flags="-d", app_name="${APP_DIR}/src/simple_compss_nested.py", worker_in_master="false", computing_nodes="2", bad_arg=1234)
-@constraint(ComputingUnits="2")
+@constraint(computing_units="2")
 @task(returns=int)
 def compss_task(value):
     pass
@@ -54,7 +54,7 @@ def slow_task(value):
 
 # Unexpected argument included "bad_arg"
 @implement(source_class="modules.testArgumentWarning", method="slow_task", bad_arg="unexpected")
-@constraint(ComputingUnits="1")
+@constraint(computing_units="1")
 @task(returns=list)
 def better_task(value):
     return value ** 3
@@ -66,7 +66,7 @@ def mpi_task(dprefix, param):
     pass
 
 # Unexpected argument included "bad_arg"
-@constraint(computingUnits="2")
+@constraint(computing_units="2")
 @multinode(computing_nodes="2", bad_arg=1234)
 @task(returns=1)
 def multi_node_task():

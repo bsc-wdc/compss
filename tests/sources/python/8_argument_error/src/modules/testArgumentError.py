@@ -41,7 +41,7 @@ else:
 try:
     # Wrong app_name name (without underscore) - it should behave as if it is missing
     @compss(runcompss="${RUNCOMPSS}", flags="-d", appname="${APP_DIR}/src/simple_compss_nested.py", worker_in_master="false", computing_nodes="2")
-    @constraint(ComputingUnits="2")
+    @constraint(computing_units="2")
     @task(returns=int)
     def compss_task(value):
         pass
@@ -68,7 +68,7 @@ def slow_task(value):
 try:
     # Missing method argument
     @implement(source_class="modules.testArgumentError")
-    @constraint(ComputingUnits="1")
+    @constraint(computing_units="1")
     @task(returns=list)
     def better_task(value):
         return value ** 3

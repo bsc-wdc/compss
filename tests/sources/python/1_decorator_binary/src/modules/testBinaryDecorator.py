@@ -29,7 +29,7 @@ def myDateConstrained(dprefix, param):
     pass
 
 
-@constraint(ComputingUnits="$CUS")
+@constraint(computing_units="$CUS")
 @binary(binary="date", working_dir="/tmp")
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):

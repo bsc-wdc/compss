@@ -13,7 +13,7 @@ from pycompss.api.opencl import opencl
 from pycompss.api.constraint import constraint
 
 
-@constraint(ComputingUnits="2")
+@constraint(computing_units="2")
 @opencl(kernel="date")
 @task()
 def myDateConstrained(dprefix, param):

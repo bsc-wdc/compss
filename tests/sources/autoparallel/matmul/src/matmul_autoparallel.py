@@ -37,7 +37,7 @@ def create_matrix(m_size, b_size, is_random):
     return mat
 
 
-@constraint(ComputingUnits="${ComputingUnits}")
+@constraint(computing_units="${ComputingUnits}")
 @task(returns=list)
 def create_block(b_size, is_random):
     import numpy as np

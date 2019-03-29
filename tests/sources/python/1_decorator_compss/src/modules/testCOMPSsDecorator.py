@@ -17,7 +17,7 @@ from pycompss.api.api import compss_wait_on
 
 
 @compss(runcompss="${RUNCOMPSS}", flags="-d", app_name="${APP_DIR}/src/simple_compss_nested.py", worker_in_master="false", computing_nodes="2")
-@constraint(ComputingUnits="2")
+@constraint(computing_units="2")
 @task(returns=int)
 def simple(value):
     pass

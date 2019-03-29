@@ -29,7 +29,7 @@ def myDecafAll(param):
     pass
 
 
-@constraint(ComputingUnits="2")
+@constraint(computing_units="2")
 @decaf(runner="mpirun", computing_nodes=2, df_script="$PWD/decaf/test-2.py", df_executor="test-2.sh", df_lib="lib")
 @task(param=FILE_OUT)
 def myDecafConstrained(param):

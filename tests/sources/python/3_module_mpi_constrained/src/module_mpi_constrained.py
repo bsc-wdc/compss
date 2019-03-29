@@ -13,7 +13,7 @@ from pycompss.api.mpi import mpi
 from pycompss.api.constraint import constraint
 
 
-@constraint(ComputingUnits="2")
+@constraint(computing_units="2")
 @mpi(binary="date", runner="mpirun", computing_nodes=2)
 @task()
 def myDateConstrained(dprefix, param):

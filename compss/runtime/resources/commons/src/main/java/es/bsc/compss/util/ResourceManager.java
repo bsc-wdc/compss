@@ -81,8 +81,12 @@ public class ResourceManager {
 
 
     /*
-     * ******************************************************************** INITIALIZER METHOD
-     ********************************************************************/
+     ********************************************************************
+     ********************************************************************
+     ********************** INITIALIZER METHODS *************************
+     ********************************************************************
+     ********************************************************************
+     */
     /**
      * Constructs a new ResourceManager using the Resources xml file content. First of all, an empty resource pool is
      * created and the Cloud Manager is initialized without any providers. Secondly the resource file is validated and
@@ -100,10 +104,9 @@ public class ResourceManager {
      * provider are on a list on the resources file, where there are specified the name and the software description of
      * that image. On the project file there is a description of how the resources created with that image must be used:
      * username, working directory,... Only the images that have been described in both files are added to the
-     * cloudManager <<<<<<< a52e0b7921d3f16bf142361004aa0fb93e61caed
-     * 
-     * @param resUser object to notify resource changes =======
-     * @param resUser object to notify resource changes >>>>>>> Local Platform start + Dynamic Resource Mgmt
+     * cloudManager.
+     *
+     * @param resUser object to notify resource changes
      */
     public static void load(ResourceUser resUser) {
         // Store the ResourceUser
@@ -200,6 +203,7 @@ public class ResourceManager {
      * Returns a worker instance with the given name @name
      *
      * @param name
+     *
      * @return
      */
     public static Worker<? extends WorkerResourceDescription> getWorker(String name) {
@@ -291,14 +295,11 @@ public class ResourceManager {
      ********************************************************************
      */
     /**
-     * Sets the boundaries on the cloud elasticity <<<<<<< 27c837d13576cb632c6a3a55569638ed93e38e32
-     * 
-     * @param minVMs lower number of VMs allowed
+     * Sets the boundaries on the cloud elasticity
+     *
+     * @param minVMs     lower number of VMs allowed
      * @param initialVMs initial number of VMs
-     * @param maxVMs higher number of VMs allowed =======
-     * @param minVMs lower number of VMs allowed
-     * @param initialVMs initial number of VMs
-     * @param maxVMs higher number of VMs allowed >>>>>>> Local resource dynamicity implemented and published on agent
+     * @param maxVMs     higher number of VMs allowed
      */
     public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
         cloudManager.setInitialVMs(initialVMs);
@@ -315,7 +316,9 @@ public class ResourceManager {
      * @param connectorJarPath
      * @param connectorMainClass
      * @param connectorProperties
+     *
      * @return
+     *
      * @throws es.bsc.compss.connectors.ConnectorException
      */
     public static CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs,
@@ -433,6 +436,12 @@ public class ResourceManager {
         resourceUser.updatedResource(worker, modification);
     }
 
+    public static void notifyWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
+        MethodResourceDescription modification = reduction;
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
+        resourceUser.updatedResource(worker, ru);
+    }
+
     /**
      * Decreases the capabilities of a given cloud worker
      *
@@ -460,9 +469,6 @@ public class ResourceManager {
             RUNTIME_LOGGER.info("Resource modified. Name = " + worker.getName());
         }
 
-        MethodResourceDescription modification = (MethodResourceDescription) reduction.getModification();
-        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
-        resourceUser.updatedResource(worker, ru);
     }
 
     public static void terminateDynamicResource(DynamicMethodWorker worker, MethodResourceDescription reduction) {
@@ -493,6 +499,7 @@ public class ResourceManager {
      * Returns the mean creation time
      *
      * @return
+     *
      * @throws Exception
      */
     public static Long getCreationTime() throws Exception {
@@ -624,6 +631,7 @@ public class ResourceManager {
      * Returns the dynamic resource with name = @name
      *
      * @param name
+     *
      * @return
      */
     public static DynamicMethodWorker getDynamicResource(String name) {
@@ -653,6 +661,7 @@ public class ResourceManager {
      * Prints out the information about the pending requests
      *
      * @param prefix
+     *
      * @return
      */
     public static String getPendingRequestsMonitorData(String prefix) {
@@ -762,6 +771,7 @@ public class ResourceManager {
      * Returns the current state of the resources pool
      *
      * @param prefix
+     *
      * @return
      */
     public static String getCurrentState(String prefix) {

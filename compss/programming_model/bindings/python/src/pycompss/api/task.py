@@ -92,8 +92,6 @@ class task(object):
             'returns': False,
             'priority': False,
             'on_failure': 'RETRY',
-            'isReplicated': False,
-            'isDistributed': False,
             'is_replicated': False,
             'is_distributed': False,
             'computing_nodes': 1,

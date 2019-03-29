@@ -30,12 +30,13 @@ import pycompss.api.parameter as parameter
 from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.util.context as context
-from pycompss.util.arguments import warn_if_unexpected_argument
+from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
     logger = logging.getLogger(__name__)
 
+MANDATORY_ARGUMENTS = {}
 # List since the parameter names are included before checking for unexpected arguments
 # (the user can define a=INOUT in the task decorator and this is not an unexpected argument)
 SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
@@ -819,10 +820,9 @@ class task(object):
             else:
                 self.parameters[var_name].object = parameter_values[var_name]
 
-        # Look for unexpected arguments
+        # Check the arguments - Look for mandatory and unexpected arguments
         supported_args = SUPPORTED_ARGUMENTS + parameter_names
-        warn_if_unexpected_argument(supported_args, list(self.decorator_arguments.keys()),
-                                    "@task decorator")
+        check_arguments(MANDATORY_ARGUMENTS, supported_args, list(self.decorator_arguments.keys()), "@task")
 
     def get_parameter_direction(self, name):
         """

@@ -28,17 +28,18 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
-from pycompss.util.arguments import warn_if_unexpected_argument
+from pycompss.util.arguments import check_arguments
 
 if __debug__:
     logger = logging.getLogger(__name__)
 
-SUPPORTED_ARGUMENTS = ('computing_nodes',
+MANDATORY_ARGUMENTS = {'df_script'}
+SUPPORTED_ARGUMENTS = {'computing_nodes',
                        'working_dir',
                        'runner',
                        'df_executor',
                        'df_lib',
-                       'df_script')
+                       'df_script'}
 
 
 class Decaf(object):
@@ -66,9 +67,8 @@ class Decaf(object):
             if __debug__:
                 logger.debug("Init @decaf decorator...")
 
-            # Look for unexpected arguments
-            warn_if_unexpected_argument(SUPPORTED_ARGUMENTS, list(kwargs.keys()),
-                                        "@decaf decorator")
+            # Check the arguments
+            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@decaf")
 
             # Get the computing nodes: This parameter will have to go down
             # until execution when invoked.

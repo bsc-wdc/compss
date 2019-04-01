@@ -138,7 +138,7 @@ public class RESTAgent {
                     "Could not recover an input parameter value. " + cnfe.getLocalizedMessage()
             ).build();
         }
-        AppMainMonitor monitor = new AppMainMonitor(serviceInstanceId, methodName);
+        AppMainMonitor monitor = new AppMainMonitor();
         long appId;
         try {
             appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, monitor);

@@ -104,7 +104,6 @@ public class TaskAnalyser {
     private int synchronizationId;
     private boolean taskDetectedAfterSync;
 
-
     /**
      * Creates a new Task Analyser instance
      */
@@ -145,12 +144,9 @@ public class TaskAnalyser {
     }
 
     private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining,
-            Parameter p) { // Conversion:
-                           // direction
-                           // ->
-                           // access
-                           // mode
+            Parameter p) {
 
+        // Conversion: direction -> access mode
         AccessMode am = AccessMode.R;
         switch (p.getDirection()) {
             case IN:
@@ -339,26 +335,27 @@ public class TaskAnalyser {
             LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
             return;
         }
-        if (taskState == TaskState.FAILED && (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL)) {
-            ErrorManager.error(TASK_FAILED + task);
-            TaskMonitor registeredMonitor = task.getTaskMonitor();
-            registeredMonitor.onFailure();
-            return;
-        } else {
-            if (taskState == TaskState.FAILED
-                    && (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS)) {
-                // Show warning
-                ErrorManager.warn(TASK_FAILED + task);
-            } else {
-                if (taskState == TaskState.CANCELED) {
-                    // Show warning
-                    ErrorManager.warn(TASK_CANCELED + task);
-                }
-            }
-            // RegisteredMonitor failure ignore
-            TaskMonitor registeredMonitor = task.getTaskMonitor();
-            registeredMonitor.onFailure();
 
+        TaskMonitor registeredMonitor = task.getTaskMonitor();
+        switch (taskState) {
+            case FAILED:
+                registeredMonitor.onFailure();
+                if (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL) {
+                    ErrorManager.error(TASK_FAILED + task);
+                    return;
+                }
+                if (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS) {
+                    // Show warning
+                    ErrorManager.warn(TASK_FAILED + task);
+                }
+                break;
+            case CANCELED:
+                registeredMonitor.onCancellation();
+                // Show warning
+                ErrorManager.warn(TASK_CANCELED + task);
+                break;
+            default:
+                registeredMonitor.onCompletion();
         }
 
         /*
@@ -413,8 +410,6 @@ public class TaskAnalyser {
 
         // Release data dependent tasks
         task.releaseDataDependents();
-        TaskMonitor registeredMonitor = task.getTaskMonitor();
-        registeredMonitor.onCompletion();
     }
 
     /**
@@ -614,6 +609,7 @@ public class TaskAnalyser {
      * Returns the written files and deletes them
      *
      * @param appId
+     *
      * @return
      */
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {
@@ -710,8 +706,10 @@ public class TaskAnalyser {
             }
             // Add dependency
             currentTask.addDataDependency(lastWriter);
-        } else if (DEBUG) {
-            LOGGER.debug("There is no last writer for datum " + dp.getDataAccessId().getDataId());
+        } else {
+            if (DEBUG) {
+                LOGGER.debug("There is no last writer for datum " + dp.getDataAccessId().getDataId());
+            }
         }
         // Handle when -g enabled
         if (IS_DRAW_GRAPH) {
@@ -771,8 +769,10 @@ public class TaskAnalyser {
                     drawEdges(currentTask, dp, dataId, t);
                 }
             }
-        } else if (DEBUG) {
-            LOGGER.debug("There is no last writer for datum " + dataId);
+        } else {
+            if (DEBUG) {
+                LOGGER.debug("There is no last writer for datum " + dataId);
+            }
         }
     }
 

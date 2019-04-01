@@ -24,16 +24,9 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 public class AppMainMonitor extends AppMonitor {
 
     private final TaskProfile profile;
-    private final String serviceInstanceId;
-    private final String operation;
 
-    public AppMainMonitor(
-            String serviceInstanceId,
-            String operation
-    ) {
+    public AppMainMonitor() {
         super();
-        this.serviceInstanceId = serviceInstanceId;
-        this.operation = operation;
         this.profile = new TaskProfile();
     }
 
@@ -75,6 +68,12 @@ public class AppMainMonitor extends AppMonitor {
     @Override
     public void onSuccesfulExecution() {
         profile.finished();
+    }
+
+    @Override
+    public void onCancellation() {
+        profile.end();
+        System.out.println("Main Job cancelled after " + profile.getTotalTime());
     }
 
     @Override

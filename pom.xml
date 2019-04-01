@@ -7,7 +7,7 @@
     <!-- GENERAL INFORMATION -->
     <groupId>es.bsc.compss</groupId>
     <artifactId>compss-trunk</artifactId>
-    <version>2.4.rc1903</version>
+    <version>2.4.rc1904</version>
     <packaging>pom</packaging>
 
     <!-- PROJECT INFORMATION -->
@@ -28,7 +28,7 @@
 
     <!-- PROPERTIES -->
     <properties>
-        <compss.version>2.4.rc1903</compss.version>
+        <compss.version>2.4.rc1904</compss.version>
 
         <!-- Log4j version -->
         <log4j.version>2.9.1</log4j.version>

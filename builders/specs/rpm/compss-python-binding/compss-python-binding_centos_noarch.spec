@@ -1,5 +1,5 @@
 %define name	 	compss-python-binding
-%define version		2.4.rc1903
+%define version		2.4.rc1904
 %define release		1
 
 Requires: compss-bindings-common, python-devel

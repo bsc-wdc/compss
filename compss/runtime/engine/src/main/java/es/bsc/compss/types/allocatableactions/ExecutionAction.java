@@ -84,7 +84,6 @@ public class ExecutionAction extends AllocatableAction {
     private int transferErrors = 0;
     protected int executionErrors = 0;
 
-
     /**
      * Creates a new execution action
      *
@@ -447,23 +446,23 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doError() throws FailedActionException {
-        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES || task.getOnFailure() != OnFailure.RETRY) {
-            if (task.getOnFailure() == OnFailure.RETRY) {
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onErrorExecution();
+        if (task.getOnFailure() == OnFailure.RETRY) {
+            if (this.getExecutingResources().size() >= SCHEDULING_CHANCES) {
                 LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
                 ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
+                throw new FailedActionException();
             } else {
-                LOGGER.warn("Notifying task " + task.getId() + " failure");
-                ErrorManager.warn("Notifying task " + task.getId() + " failure");
+                ErrorManager.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
+                        + " has failed; rescheduling task execution. (changing worker)");
+                LOGGER.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
+                        + " has failed; rescheduling task execution. (changing worker)");
             }
-            throw new FailedActionException();
         } else {
-            ErrorManager.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
-                    + " has failed; rescheduling task execution. (changing worker)");
-            LOGGER.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
-                    + " has failed; rescheduling task execution. (changing worker)");
-            TaskMonitor monitor = task.getTaskMonitor();
-            monitor.onErrorExecution();
-
+            LOGGER.warn("Notifying task " + task.getId() + " failure");
+            ErrorManager.warn("Notifying task " + task.getId() + " failure");
+            throw new FailedActionException();
         }
     }
 
@@ -502,10 +501,6 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doCanceled() {
-        // Failed message
-        TaskMonitor monitor = task.getTaskMonitor();
-        monitor.onFailedExecution();
-
         // Notify task failure
         task.decreaseExecutionCount();
         task.setStatus(TaskState.CANCELED);
@@ -605,14 +600,16 @@ public class ExecutionAction extends AllocatableAction {
         if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
             candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
-        } else if (isSchedulingConstrained()) {
-            // The scheduling is constrained by dependencies
-            for (AllocatableAction a : this.getConstrainingPredecessors()) {
-                candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
-            }
         } else {
-            // Free scheduling
-            candidates = getCompatibleWorkers();
+            if (isSchedulingConstrained()) {
+                // The scheduling is constrained by dependencies
+                for (AllocatableAction a : this.getConstrainingPredecessors()) {
+                    candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
+                }
+            } else {
+                // Free scheduling
+                candidates = getCompatibleWorkers();
+            }
         }
         this.schedule(actionScore, candidates);
     }
@@ -720,7 +717,7 @@ public class ExecutionAction extends AllocatableAction {
         }
 
         if (// Resource is not compatible with the implementation
-        !targetWorker.getResource().canRun(impl)
+                !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || this.getExecutingResources().contains(targetWorker)) {
 

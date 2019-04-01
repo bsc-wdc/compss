@@ -107,6 +107,10 @@ public class AppTaskMonitor extends AppMonitor {
     }
 
     @Override
+    public void onCancellation() {
+    }
+
+    @Override
     public void onCompletion() {
         if (orchestrator != null) {
             String masterId = orchestrator.getHost();

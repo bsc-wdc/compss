@@ -55,6 +55,10 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
+    public void onCancellation() {
+    }
+
+    @Override
     public void onCompletion() {
     }
 

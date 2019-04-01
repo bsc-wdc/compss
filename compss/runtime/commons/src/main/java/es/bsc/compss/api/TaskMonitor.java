@@ -44,10 +44,10 @@ public interface TaskMonitor {
     /**
      * Actions to be performed by monitor when a new value for parameter {@code paramId}, type {@code type} and name
      * {@code name} has been generated at location {@code location}.
-     * 
-     * @param paramId Parameter id.
-     * @param type Parameter type.
-     * @param name Parameter name.
+     *
+     * @param paramId  Parameter id.
+     * @param type     Parameter type.
+     * @param name     Parameter name.
      * @param location Parameter location.
      */
     public void valueGenerated(int paramId, DataType type, String name, Object location);
@@ -66,6 +66,11 @@ public interface TaskMonitor {
      * Actions to be performed by monitor on task execution success.
      */
     public void onSuccesfulExecution();
+
+    /**
+     * Actions to be performed by monitor on task cancellation.
+     */
+    public void onCancellation();
 
     /**
      * Actions to be performed by monitor on task completion.

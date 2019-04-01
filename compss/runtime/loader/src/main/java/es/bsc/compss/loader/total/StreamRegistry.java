@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.loader.total;
 
+import es.bsc.compss.loader.LoaderAPI;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.util.ErrorManager;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -42,19 +46,13 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.loader.LoaderAPI;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.ErrorManager;
 
 
 public class StreamRegistry {
@@ -77,6 +75,9 @@ public class StreamRegistry {
     private static final String LINE_SEP = System.getProperty("line.separator");
 
 
+    /**
+     * TODO javadoc.
+     */
     public StreamRegistry(LoaderAPI api) {
         this.itApi = api;
         this.fileToStreams = new TreeMap<>();
@@ -86,7 +87,9 @@ public class StreamRegistry {
         this.itApi.setStreamRegistry(this);
     }
 
-    // FileInputStream
+    /**
+     * TODO javadoc.
+     */
     public FileInputStream newFileInputStream(File file) throws FileNotFoundException {
         Direction direction = Direction.IN;
         StreamList list = obtainList(file, direction);
@@ -112,18 +115,21 @@ public class StreamRegistry {
         return newFileInputStream(new File(fileName));
     }
 
+    /**
+     * TODO javadoc.
+     */
     public FileInputStream newFileInputStream(FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileInputStream fis = new FileInputStream(fd);
-        if (list != null) // Should always be not null
-        {
+        if (list != null) { // Should always be not null
             list.addStream(fis);
         }
-
         return fis;
     }
 
-    // FileOutputStream
+    /**
+     * TODO javadoc.
+     */
     public FileOutputStream newFileOutputStream(File file, boolean append) throws FileNotFoundException {
         Direction direction = (append ? Direction.INOUT : Direction.OUT);
         StreamList list = obtainList(file, direction);
@@ -153,6 +159,9 @@ public class StreamRegistry {
         return newFileOutputStream(new File(fileName), false);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public FileOutputStream newFileOutputStream(FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileOutputStream fos = new FileOutputStream(fd);
@@ -163,7 +172,7 @@ public class StreamRegistry {
         return fos;
     }
 
-    /*
+    /**
      * FilterInputStream (e.g. BufferedInputStream, DataInputStream) FilterOutputStream (e.g. BufferedOutputStream,
      * DataOutputStream; not PrintStream)
      */
@@ -174,7 +183,9 @@ public class StreamRegistry {
         replaceStream(stream, filter);
     }
 
-    // RandomAccessFile
+    /**
+     * TODO javadoc.
+     */
     public RandomAccessFile newRandomAccessFile(File file, String mode) throws FileNotFoundException {
         Direction direction;
         if (mode.length() == 1) { // mode == "r"
@@ -202,7 +213,9 @@ public class StreamRegistry {
         return newRandomAccessFile(new File(fileName), mode);
     }
 
-    // FileReader
+    /**
+     * TODO javadoc.
+     */
     public FileReader newFileReader(File file) throws FileNotFoundException {
         Direction direction = Direction.IN;
         StreamList list = obtainList(file, direction);
@@ -217,6 +230,9 @@ public class StreamRegistry {
         return newFileReader(new File(fileName));
     }
 
+    /**
+     * TODO javadoc.
+     */
     public FileReader newFileReader(FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileReader fr = new FileReader(fd);
@@ -227,7 +243,9 @@ public class StreamRegistry {
         return fr;
     }
 
-    // InputStreamReader
+    /**
+     * TODO javadoc.
+     */
     public InputStreamReader newInputStreamReader(InputStream is) {
         InputStreamReader isr = new InputStreamReader(is);
         /*
@@ -241,6 +259,9 @@ public class StreamRegistry {
         return isr;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public InputStreamReader newInputStreamReader(InputStream is, Charset cs) {
         InputStreamReader isr = new InputStreamReader(is, cs);
         replaceStream(is, isr);
@@ -248,6 +269,9 @@ public class StreamRegistry {
         return isr;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public InputStreamReader newInputStreamReader(InputStream is, CharsetDecoder dec) {
         InputStreamReader isr = new InputStreamReader(is, dec);
         replaceStream(is, isr);
@@ -255,6 +279,9 @@ public class StreamRegistry {
         return isr;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public InputStreamReader newInputStreamReader(InputStream is, String charsetName)
             throws UnsupportedEncodingException {
         InputStreamReader isr = new InputStreamReader(is, charsetName);
@@ -263,7 +290,9 @@ public class StreamRegistry {
         return isr;
     }
 
-    // BufferedReader
+    /**
+     * TODO javadoc.
+     */
     public BufferedReader newBufferedReader(Reader r) {
         BufferedReader br = new BufferedReader(r);
         /*
@@ -277,6 +306,9 @@ public class StreamRegistry {
         return br;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public BufferedReader newBufferedReader(Reader r, int size) {
         BufferedReader br = new BufferedReader(r, size);
         replaceStream(r, br);
@@ -284,7 +316,9 @@ public class StreamRegistry {
         return br;
     }
 
-    // FileWriter
+    /**
+     * TODO javadoc.
+     */
     public FileWriter newFileWriter(File file, boolean append) throws IOException {
         Direction direction = append ? Direction.INOUT : Direction.OUT;
         StreamList list = obtainList(file, direction);
@@ -307,6 +341,9 @@ public class StreamRegistry {
         return newFileWriter(new File(fileName), false);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public FileWriter newFileWriter(FileDescriptor fd) {
         StreamList list = obtainList(fd);
         FileWriter fw = new FileWriter(fd);
@@ -317,7 +354,9 @@ public class StreamRegistry {
         return fw;
     }
 
-    // OutputStreamWriter
+    /**
+     * TODO javadoc.
+     */
     public OutputStreamWriter newOutputStreamWriter(OutputStream os) {
         OutputStreamWriter osw = new OutputStreamWriter(os);
         /*
@@ -331,6 +370,9 @@ public class StreamRegistry {
         return osw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public OutputStreamWriter newOutputStreamWriter(OutputStream os, Charset cs) {
         OutputStreamWriter osw = new OutputStreamWriter(os, cs);
         replaceStream(os, osw);
@@ -338,6 +380,9 @@ public class StreamRegistry {
         return osw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public OutputStreamWriter newOutputStreamWriter(OutputStream os, CharsetEncoder dec) {
         OutputStreamWriter osw = new OutputStreamWriter(os, dec);
         replaceStream(os, osw);
@@ -345,6 +390,9 @@ public class StreamRegistry {
         return osw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public OutputStreamWriter newOutputStreamWriter(OutputStream os, String charsetName)
             throws UnsupportedEncodingException {
         OutputStreamWriter osw = new OutputStreamWriter(os, charsetName);
@@ -353,7 +401,9 @@ public class StreamRegistry {
         return osw;
     }
 
-    // BufferedWriter
+    /**
+     * TODO javadoc.
+     */
     public BufferedWriter newBufferedWriter(Writer w) {
         BufferedWriter bw = new BufferedWriter(w);
         /*
@@ -367,6 +417,9 @@ public class StreamRegistry {
         return bw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public BufferedWriter newBufferedWriter(Writer w, int size) {
         BufferedWriter bw = new BufferedWriter(w, size);
         replaceStream(w, bw);
@@ -374,7 +427,9 @@ public class StreamRegistry {
         return bw;
     }
 
-    // PrintStream
+    /**
+     * TODO javadoc.
+     */
     public PrintStream newPrintStream(File file) throws FileNotFoundException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(file, direction);
@@ -385,6 +440,9 @@ public class StreamRegistry {
         return ps;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintStream newPrintStream(File file, String csn)
             throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
@@ -396,6 +454,9 @@ public class StreamRegistry {
         return ps;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintStream newPrintStream(String fileName) throws FileNotFoundException {
         return newPrintStream(new File(fileName));
     }
@@ -405,6 +466,9 @@ public class StreamRegistry {
         return newPrintStream(new File(fileName), csn);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintStream newPrintStream(OutputStream os) {
         PrintStream ps = new PrintStream(os);
         replaceStream(os, ps);
@@ -412,6 +476,9 @@ public class StreamRegistry {
         return ps;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintStream newPrintStream(OutputStream os, boolean autoFlush) {
         PrintStream ps = new PrintStream(os, autoFlush);
         replaceStream(os, ps);
@@ -419,6 +486,9 @@ public class StreamRegistry {
         return ps;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintStream newPrintStream(OutputStream os, boolean autoFlush, String encoding)
             throws UnsupportedEncodingException {
         PrintStream ps = new PrintStream(os, autoFlush, encoding);
@@ -427,7 +497,9 @@ public class StreamRegistry {
         return ps;
     }
 
-    // PrintWriter
+    /**
+     * TODO javadoc.
+     */
     public PrintWriter newPrintWriter(File file) throws FileNotFoundException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(file, direction);
@@ -438,6 +510,9 @@ public class StreamRegistry {
         return pw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintWriter newPrintWriter(File file, String csn)
             throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
@@ -458,6 +533,9 @@ public class StreamRegistry {
         return newPrintWriter(new File(fileName), csn);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintWriter newPrintWriter(OutputStream os) {
         PrintWriter pw = new PrintWriter(os);
         replaceStream(os, pw);
@@ -465,6 +543,9 @@ public class StreamRegistry {
         return pw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintWriter newPrintWriter(OutputStream os, boolean autoFlush) {
         PrintWriter pw = new PrintWriter(os, autoFlush);
         replaceStream(os, pw);
@@ -472,6 +553,9 @@ public class StreamRegistry {
         return pw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintWriter newPrintWriter(Writer w) {
         PrintWriter pw = new PrintWriter(w);
         replaceStream(w, pw);
@@ -479,6 +563,9 @@ public class StreamRegistry {
         return pw;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public PrintWriter newPrintWriter(Writer w, boolean autoFlush) {
         PrintWriter pw = new PrintWriter(w, autoFlush);
         replaceStream(w, pw);
@@ -569,7 +656,8 @@ public class StreamRegistry {
         } else {
             if (direction != Direction.IN || list.written) {
                 ErrorManager.error("ERROR: File " + path
-                        + " is going to be accessed more than once and one of these accesses is for writting. This can produce and inconsistency");
+                        + " is going to be accessed more than once and one of these accesses is for writting. "
+                        + "This can produce and inconsistency");
             }
         }
 
@@ -631,6 +719,9 @@ public class StreamRegistry {
         }
     }
 
+    /**
+     * TODO javadoc.
+     */
     public void streamClosed(Object stream) {
         // Remove the stream from its list
         String filePath = null;
@@ -686,6 +777,9 @@ public class StreamRegistry {
         }
     }
 
+    /**
+     * TODO javadoc.
+     */
     public boolean isTaskFile(String fileName) {
         if (fileName != null) {
             File f = new File(fileName);
@@ -699,6 +793,9 @@ public class StreamRegistry {
         }
     }
 
+    /**
+     * TODO javadoc.
+     */
     public void addTaskFile(String fileName) {
         if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");
@@ -707,6 +804,9 @@ public class StreamRegistry {
         taskFiles.add(f.getAbsolutePath());
     }
 
+    /**
+     * TODO javadoc.
+     */
     public void deleteTaskFile(String fileName) {
         if (DEBUG) {
             LOGGER.debug("Adding File to the Stream Registry");

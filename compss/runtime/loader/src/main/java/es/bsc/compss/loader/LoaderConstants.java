@@ -16,10 +16,6 @@
  */
 package es.bsc.compss.loader;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSs;
 import es.bsc.compss.api.COMPSsRuntime;
@@ -27,6 +23,9 @@ import es.bsc.compss.loader.total.ArrayAccessWatcher;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.types.annotations.Orchestration;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class LoaderConstants {

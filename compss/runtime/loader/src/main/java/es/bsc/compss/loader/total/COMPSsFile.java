@@ -16,22 +16,26 @@
  */
 package es.bsc.compss.loader.total;
 
-import java.io.File;
-
 import es.bsc.compss.loader.LoaderAPI;
+import java.io.File;
 
 
 public class COMPSsFile extends File {
 
     /**
-     * Class which intercepts
+     * Class which intercepts.
      */
     private static final long serialVersionUID = 1L;
 
     private LoaderAPI api;
     private String pathname;
 
-
+    /**
+     * TODO javadoc.
+     *
+     * @param api description
+     * @param f   description
+     */
     public COMPSsFile(LoaderAPI api, File f) {
         super(f.getAbsolutePath());
         this.api = api;

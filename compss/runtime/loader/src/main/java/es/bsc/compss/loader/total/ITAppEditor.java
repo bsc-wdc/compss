@@ -17,38 +17,17 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-
-import java.io.File;
-import java.io.FilterInputStream;
-import java.io.FilterOutputStream;
-import java.io.PrintStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import javassist.CannotCompileException;
-import javassist.CtClass;
-import javassist.CtField;
-import javassist.CtMethod;
-import javassist.NotFoundException;
-import javassist.expr.ExprEditor;
-import javassist.expr.FieldAccess;
-import javassist.expr.MethodCall;
-import javassist.expr.NewExpr;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.Parameter;
+import es.bsc.compss.types.annotations.SchedulerHints;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.annotations.parameter.Type;
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.Parameter;
-import es.bsc.compss.types.annotations.SchedulerHints;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
@@ -59,6 +38,24 @@ import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.util.EnvironmentLoader;
+import java.io.File;
+import java.io.FilterInputStream;
+import java.io.FilterOutputStream;
+import java.io.PrintStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import javassist.CannotCompileException;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtMethod;
+import javassist.NotFoundException;
+import javassist.expr.ExprEditor;
+import javassist.expr.FieldAccess;
+import javassist.expr.MethodCall;
+import javassist.expr.NewExpr;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class ITAppEditor extends ExprEditor {
@@ -102,9 +99,11 @@ public class ITAppEditor extends ExprEditor {
 
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
-
+    /**
+     * TODO javadoc.
+     */
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
-            String itORVar, String itAppIdVar, CtClass appClass) {
+                       String itORVar, String itAppIdVar, CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
@@ -121,7 +120,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Instruments the creation of objects streams and stream wrappers
+     * Instruments the creation of objects streams and stream wrappers.
      *
      * @param ne New expression
      */
@@ -184,48 +183,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Class creation inspection
-     *
-     * @param className
-     * @param callPars
-     * @return
-     */
-    private String inspectCreation(String className, StringBuilder callPars) {
-        String modifiedExpr = "";
-
-        if (DEBUG) {
-            LOGGER.debug("Inspecting the creation of an object of class " + className);
-        }
-
-        // $$ = pars separated by commas, $args = pars in an array of objects
-        boolean found = false;
-        for (String streamClass : LoaderConstants.SUPPORTED_STREAM_TYPES) {
-            if (className.equals(streamClass)) {
-                modifiedExpr = "$_ = " + itSRVar + ".new" + streamClass + "(" + callPars + ");";
-                found = true;
-                break;
-            }
-        }
-        if (!found) { // Not a stream
-            if (className.equals(File.class.getCanonicalName())) {
-                modifiedExpr = "$_ = " + itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
-            } else {
-                String internalObject = itORVar + GET_INTERNAL_OBJECT + "$1)";
-                String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
-                modifiedExpr = PROCEED + callPars + "); " + "if ($_ instanceof "
-                        + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
-                        + FilterOutputStream.class.getCanonicalName() + ") {" + itSRVar + NEW_FILTER_STREAM + par1
-                        + ", (Object)$_); }";
-            }
-        }
-        if (DEBUG) {
-            LOGGER.debug("Modifiying creation of an object of class " + className + " with \"" + modifiedExpr + "\"");
-        }
-        return modifiedExpr;
-    }
-
-    /**
-     * Replaces calls to remote methods by calls to executeTask or black-boxes methods
+     * Replaces calls to remote methods by calls to executeTask or black-boxes methods.
      */
     public void edit(MethodCall mc) throws CannotCompileException {
         LOGGER.debug("---- BEGIN EDIT METHOD CALL " + mc.getMethodName() + " ----");
@@ -302,23 +260,106 @@ public class ITAppEditor extends ExprEditor {
 
             mc.replace(modifiedCall);
         } else // The method is an instrumented method
-        if (DEBUG) {
-            LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
-        } // Nothing to do
+            if (DEBUG) {
+                LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
+            } // Nothing to do
         LOGGER.debug("---- END EDIT METHOD CALL ----");
     }
 
     /**
-     * Replaces calls to local methods by executeTask
-     *
-     * @param methodName
-     * @param className
-     * @param declaredMethod
-     * @param calledMethod
-     * @return
+     * Check the access to fields of objects.
+     */
+    @Override
+    public void edit(FieldAccess fa) throws CannotCompileException {
+        CtField field = null;
+        try {
+            field = fa.getField();
+            if (Modifier.isStatic(field.getModifiers())) {
+                return;
+            }
+        } catch (NotFoundException e) {
+            throw new CannotCompileException(e);
+        }
+        String fieldName = field.getName();
+
+        if (DEBUG) {
+            LOGGER.debug("Keeping track of access to field " + fieldName + " of class "
+                    + field.getDeclaringClass().getName());
+        }
+
+        boolean isWriter = fa.isWriter();
+
+        // First check the object containing the field
+        StringBuilder toInclude = new StringBuilder();
+        toInclude.append(itORVar).append(NEW_OBJECT_ACCESS).append("$0,").append(isWriter).append(");");
+
+        // Execute the access on the internal object
+        String internalObject = itORVar + GET_INTERNAL_OBJECT + "$0)";
+        String objectClass = fa.getClassName();
+        toInclude.append("if (").append(internalObject).append(" != null) {");
+        if (isWriter) {
+            // store a new value in the field
+            toInclude.append("((").append(objectClass).append(')').append(internalObject).append(").").append(fieldName)
+                    .append(" = $1;");
+            toInclude.append("} else { " + PROCEED + "$$); }");
+            // Serialize the (internal) object locally after the access
+            toInclude.append(itORVar).append(SERIALIZE_LOCALLY + "$0);");
+        } else {
+            // read the field value
+            toInclude.append("$_ = ((").append(objectClass).append(')').append(internalObject).append(").")
+                    .append(fieldName).append(';'); // read
+            toInclude.append("} else { " + PROCEED + "$$); }");
+        }
+
+        fa.replace(toInclude.toString());
+
+        if (DEBUG) {
+            LOGGER.debug("Replaced regular field access by " + toInclude.toString());
+        }
+    }
+
+    /**
+     * Class creation inspection.
+     */
+    private String inspectCreation(String className, StringBuilder callPars) {
+        String modifiedExpr = "";
+
+        if (DEBUG) {
+            LOGGER.debug("Inspecting the creation of an object of class " + className);
+        }
+
+        // $$ = pars separated by commas, $args = pars in an array of objects
+        boolean found = false;
+        for (String streamClass : LoaderConstants.SUPPORTED_STREAM_TYPES) {
+            if (className.equals(streamClass)) {
+                modifiedExpr = "$_ = " + itSRVar + ".new" + streamClass + "(" + callPars + ");";
+                found = true;
+                break;
+            }
+        }
+        if (!found) { // Not a stream
+            if (className.equals(File.class.getCanonicalName())) {
+                modifiedExpr = "$_ = " + itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
+            } else {
+                String internalObject = itORVar + GET_INTERNAL_OBJECT + "$1)";
+                String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
+                modifiedExpr = PROCEED + callPars + "); " + "if ($_ instanceof "
+                        + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
+                        + FilterOutputStream.class.getCanonicalName() + ") {" + itSRVar + NEW_FILTER_STREAM + par1
+                        + ", (Object)$_); }";
+            }
+        }
+        if (DEBUG) {
+            LOGGER.debug("Modifiying creation of an object of class " + className + " with \"" + modifiedExpr + "\"");
+        }
+        return modifiedExpr;
+    }
+
+    /**
+     * Replaces calls to local methods by executeTask.
      */
     private String replaceTaskMethodCall(String methodName, String className, Method declaredMethod,
-            CtMethod calledMethod) throws CannotCompileException {
+                                         CtMethod calledMethod) throws CannotCompileException {
 
         if (DEBUG) {
             LOGGER.debug("Found call to remote method " + methodName);
@@ -327,7 +368,7 @@ public class ITAppEditor extends ExprEditor {
         Class<?> retType = declaredMethod.getReturnType();
         boolean isVoid = retType.equals(void.class);
         boolean isStatic = Modifier.isStatic(calledMethod.getModifiers());
-        Class<?> paramTypes[] = declaredMethod.getParameterTypes();
+        Class<?>[] paramTypes = declaredMethod.getParameterTypes();
         int numParams = paramTypes.length;
         if (!isStatic) {
             numParams++;
@@ -430,13 +471,13 @@ public class ITAppEditor extends ExprEditor {
 
         // Add if call has target object or not
         executeTask.append(!isStatic).append(',');
-        
+
         // Add parameters
         executeTask.append(numParams).append(',');
 
         // Add the onFailure behavior
         executeTask.append(OnFailure.class.getCanonicalName() + "." + onFailure);
-        
+
         if (numParams == 0) {
             executeTask.append(",null);");
         } else {
@@ -451,20 +492,11 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Process the parameters, the target object and the return value of a given method
-     *
-     * @param declaredMethod
-     * @param paramAnnot
-     * @param paramTypes
-     * @param isVoid
-     * @param isStatic
-     * @param isMethod
-     * @param numParams
-     * @param retType
-     * @return
+     * Process the parameters, the target object and the return value of a given method.
      */
     private CallInformation processParameters(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes,
-            boolean isVoid, boolean isStatic, boolean isMethod, int numParams, Class<?> retType)
+                                              boolean isVoid, boolean isStatic, boolean isMethod, int numParams,
+                                              Class<?> retType)
             throws CannotCompileException {
 
         StringBuilder toAppend = new StringBuilder("");
@@ -509,13 +541,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Process the parameter values of a method call
-     *
-     * @param paramIndex
-     * @param formalType
-     * @param annotType
-     * @param paramDirection
-     * @return
+     * Process the parameter values of a method call.
      */
     private ParameterInformation processParameterValue(int paramIndex, Parameter par, Class<?> formalType) {
         Type annotType = par.type();
@@ -576,17 +602,10 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Process the target object of a given method call
-     *
-     * @param declaredMethod
-     * @param isStatic
-     * @param numParams
-     * @param isVoid
-     * @param isMethod
-     * @return
+     * Process the target object of a given method call.
      */
     private String processTargetObject(Method declaredMethod, boolean isStatic, int numParams, boolean isVoid,
-            boolean isMethod) {
+                                       boolean isMethod) {
         StringBuilder targetObj = new StringBuilder("");
 
         if (!isStatic) {
@@ -631,12 +650,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Process the return parameter of a given method call
-     *
-     * @param isVoid
-     * @param numParams
-     * @param retType
-     * @return
+     * Process the return parameter of a given method call.
      */
     private ReturnInformation processReturnParameter(boolean isVoid, int numParams, Class<?> retType)
             throws CannotCompileException {
@@ -748,8 +762,7 @@ public class ITAppEditor extends ExprEditor {
                     infoToPrepend.insert(0, "$_ = new Float(Float.MIN_VALUE);");
                 } else if (retType.isAssignableFrom(Double.class)) {
                     infoToPrepend.insert(0, "$_ = new Double(Double.MIN_VALUE);");
-                } // Object (maybe String): use the no-args constructor
-                else {
+                } else { // Object (maybe String): use the no-args constructor
                     // Check that object class has empty constructor
                     String typeName = retType.getName();
                     try {
@@ -779,7 +792,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Replaces the close stream call
+     * Replaces the close stream call.
      *
      * @return
      */
@@ -789,7 +802,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Replaces the delete file call
+     * Replaces the delete file call.
      *
      * @return
      */
@@ -799,10 +812,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Replaces the API calls
-     *
-     * @return
-     * @throws NotFoundException
+     * Replaces the API calls.
      */
     private String replaceAPICall(String methodName, CtMethod method) throws CannotCompileException {
         boolean isVoid = false;
@@ -839,7 +849,7 @@ public class ITAppEditor extends ExprEditor {
     }
 
     /**
-     * Replaces the blackBox calls
+     * Replaces the blackBox calls.
      *
      * @return
      */
@@ -971,59 +981,6 @@ public class ITAppEditor extends ExprEditor {
         return modifiedCall.toString();
     }
 
-    /**
-     * Check the access to fields of objects
-     */
-    @Override
-    public void edit(FieldAccess fa) throws CannotCompileException {
-        CtField field = null;
-        try {
-            field = fa.getField();
-            if (Modifier.isStatic(field.getModifiers())) {
-                return;
-            }
-        } catch (NotFoundException e) {
-            throw new CannotCompileException(e);
-        }
-        String fieldName = field.getName();
-
-        if (DEBUG) {
-            LOGGER.debug("Keeping track of access to field " + fieldName + " of class "
-                    + field.getDeclaringClass().getName());
-        }
-
-        boolean isWriter = fa.isWriter();
-
-        // First check the object containing the field
-        StringBuilder toInclude = new StringBuilder();
-        toInclude.append(itORVar).append(NEW_OBJECT_ACCESS).append("$0,").append(isWriter).append(");");
-
-        // Execute the access on the internal object
-        String internalObject = itORVar + GET_INTERNAL_OBJECT + "$0)";
-        String objectClass = fa.getClassName();
-        toInclude.append("if (").append(internalObject).append(" != null) {");
-        if (isWriter) {
-            // store a new value in the field
-            toInclude.append("((").append(objectClass).append(')').append(internalObject).append(").").append(fieldName)
-                    .append(" = $1;");
-            toInclude.append("} else { " + PROCEED + "$$); }");
-            // Serialize the (internal) object locally after the access
-            toInclude.append(itORVar).append(SERIALIZE_LOCALLY + "$0);");
-        } else {
-            // read the field value
-            toInclude.append("$_ = ((").append(objectClass).append(')').append(internalObject).append(").")
-                    .append(fieldName).append(';'); // read
-            toInclude.append("} else { " + PROCEED + "$$); }");
-        }
-
-        fa.replace(toInclude.toString());
-
-        if (DEBUG) {
-            LOGGER.debug("Replaced regular field access by " + toInclude.toString());
-        }
-    }
-
-
     private class ParameterInformation {
 
         private final String toAppend;
@@ -1035,7 +992,7 @@ public class ITAppEditor extends ExprEditor {
 
 
         public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream,
-                String prefix) {
+                                    String prefix) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;

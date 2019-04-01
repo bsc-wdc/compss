@@ -37,7 +37,7 @@ public class CustomLoader extends URLClassLoader {
         addURL(new URL(urlPath));
     }
 
-    /*
+    /**
      * When requested to load a class, by default a class loader delegates the search for the class to its parent class
      * loader before attempting to find the class itself. Furthermore, if a class loader CL is requested to load a class
      * C (then, it is the initiator of C) and it delegates to its parent class loader PL, then CL is never requested to
@@ -45,7 +45,7 @@ public class CustomLoader extends URLClassLoader {
      * Instead, the parent class loader PL becomes their initiator and will be requested to load them. Notice, then, the
      * difference between the initiator of a class and its real loader. Therefore, we must override the loadClass method
      * to avoid delegation in certain cases.
-     * 
+     *
      * @see java.lang.ClassLoader#loadClass(java.lang.String)
      */
     public Class<?> loadClass(String name) throws ClassNotFoundException {
@@ -64,8 +64,9 @@ public class CustomLoader extends URLClassLoader {
                 // Let the rest of classes be loaded by the parent loader
                 return getParent().loadClass(name);
             }
-        } else
+        } else {
             return c;
+        }
     }
 
 }

@@ -43,6 +43,9 @@ public class ObjectRegistry {
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
+    /**
+     * TODO javadoc.
+     */
     public ObjectRegistry(LoaderAPI api) {
         this.itApi = api;
         this.serialDir = api.getTempDir();
@@ -52,6 +55,9 @@ public class ObjectRegistry {
         this.itApi.setObjectRegistry(this);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public int newObjectParameter(Object obj) {
         if (obj == null) {
             return Integer.MAX_VALUE;
@@ -93,19 +99,9 @@ public class ObjectRegistry {
         newObjectAccess(o, true);
     }
 
-    private Integer getObjectHashCode(Object o) {
-        int hashCode = o.hashCode();
-        Object oStored = this.appTaskObjects.get(hashCode);
-        while (oStored != o) {
-            if (oStored == null) {
-                return null; // Not a task parameter object
-            } else {
-                oStored = this.appTaskObjects.get(++hashCode);
-            }
-        }
-        return hashCode;
-    }
-
+    /**
+     * TODO javadoc.
+     */
     public void newObjectAccess(Object o, boolean isWriter) {
         if (o == null) {
             return;
@@ -130,6 +126,22 @@ public class ObjectRegistry {
         }
     }
 
+    private Integer getObjectHashCode(Object o) {
+        int hashCode = o.hashCode();
+        Object oStored = this.appTaskObjects.get(hashCode);
+        while (oStored != o) {
+            if (oStored == null) {
+                return null; // Not a task parameter object
+            } else {
+                oStored = this.appTaskObjects.get(++hashCode);
+            }
+        }
+        return hashCode;
+    }
+
+    /**
+     * TODO javadoc.
+     */
     public void serializeLocally(Object o) {
         if (o == null) {
             return;
@@ -151,6 +163,9 @@ public class ObjectRegistry {
         this.itApi.serializeObject(internalObjects.get(hashCode), hashCode, serialDir);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public Object getInternalObject(Object o) {
         if (o == null) {
             return null;
@@ -171,35 +186,45 @@ public class ObjectRegistry {
         return internal;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public boolean delete(Object o) {
-        if (o == null)
+        if (o == null) {
             return false;
+        }
         Integer hashCode = getObjectHashCode(o);
         if (hashCode == null) {
             return false; // Not a task parameter object
         }
 
-        if (DEBUG)
+        if (DEBUG) {
             LOGGER.debug("About to remove object with hash code " + hashCode + " from object registry.");
-
+        }
         this.itApi.removeObject(o, hashCode);
 
         return deleteFromInternal(hashCode) && deleteFromApps(hashCode);
     }
 
+    /**
+     * TODO javadoc.
+     */
     public boolean deleteFromInternal(int hashcode) {
 
-        Object to_delete = this.internalObjects.get(hashcode);
-        if (to_delete != null) {
+        Object toDelete = this.internalObjects.get(hashcode);
+        if (toDelete != null) {
             this.internalObjects.remove(hashcode);
             return true;
         }
         return false;
     }
 
+    /**
+     * TODO javadoc.
+     */
     public boolean deleteFromApps(int hashcode) {
-        Object to_delete = this.appTaskObjects.get(hashcode);
-        if (to_delete != null) {
+        Object toDelete = this.appTaskObjects.get(hashcode);
+        if (toDelete != null) {
             this.appTaskObjects.put(hashcode, EMPTY);
             return true;
         }

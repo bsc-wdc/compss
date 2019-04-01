@@ -16,10 +16,12 @@
  */
 package es.bsc.compss.loader;
 
+import es.bsc.compss.loader.exceptions.NameNotFoundException;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.util.ErrorManager;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -29,19 +31,23 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
-import es.bsc.compss.loader.exceptions.NameNotFoundException;
-import es.bsc.compss.log.Loggers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.util.ErrorManager;
 
 
 public class AddOrchestration {
 
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
 
-
+    /**
+     * TODO javadoc.
+     *
+     * @param args description
+     * @throws NotFoundException      description
+     * @throws NameNotFoundException  description
+     * @throws CannotCompileException description
+     * @throws IOException            description
+     */
     public static void main(String[] args)
             throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
         if (args.length < 2) {
@@ -80,9 +86,9 @@ public class AddOrchestration {
         // transform the ctClass to java class
         /*
          * Class<?> dynamiqueBeanClass = cc.toClass();
-         * 
+         *
          * //instantiating the updated class AddOrchestration ao = (AddOrchestration) dynamiqueBeanClass.newInstance();
-         * 
+         *
          * try{ Method fooMethod = ao.getClass().getDeclaredMethod(methodName, new Class<?>[] { int.class }); //getting
          * the annotation Orchestration o = (Orchestration) fooMethod.getAnnotation(Orchestration.class);
          * System.out.println("METHOD: " + fooMethod); System.out.println("ANNOTATION: " + o); } catch(Exception e){
@@ -108,6 +114,13 @@ public class AddOrchestration {
         }
     }
 
+    /**
+     * TODO javadoc.
+     *
+     * @param label description
+     * @return description
+     * @throws NameNotFoundException description
+     */
     public static List<String> getParametersTypeFromLabel(String label) throws NameNotFoundException {
         int begin = label.indexOf("(");
         int end = label.indexOf(")");

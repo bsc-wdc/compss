@@ -21,7 +21,7 @@ public class ArrayAccessWatcher {
     /*
      * For now, there is no need to do anything inside this methods but to return or modify the array position. The
      * black-box synchronization will get us the right array before we reach the code of these methods.
-     * 
+     *
      * TODO: Do not depend on the black-box, but deal directly with the object registry and distinguish between read and
      * write access
      */
@@ -35,6 +35,14 @@ public class ArrayAccessWatcher {
         ((int[]) array)[index] = value;
     }
 
+    /**
+     * TODO javadoc.
+     *
+     * @param array description
+     * @param index description
+     * @param value description
+     * @throws Throwable description
+     */
     public static void arrayWriteByteOrBoolean(Object array, int index, byte value) throws Throwable {
         if (array instanceof boolean[]) {
             boolean boolValue = value == 0 ? false : true;
@@ -74,13 +82,17 @@ public class ArrayAccessWatcher {
         return ((int[]) array)[index];
     }
 
+    /**
+     * TODO javadoc.
+     *
+     * @param array description
+     * @param index description
+     * @return description
+     * @throws Throwable description
+     */
     public static byte arrayReadByteOrBoolean(Object array, int index) throws Throwable {
         if (array instanceof boolean[]) {
-            boolean b = ((boolean[]) array)[index];
-            if (b)
-                return 1;
-            else
-                return 0;
+            return (byte) (((boolean[]) array)[index] ? 1 : 0);
         } else {
             return ((byte[]) array)[index];
         }

@@ -155,6 +155,14 @@ void generate_worker_prolog() {
     fprintf(workerFile, "\n");
     fprintf(workerFile, "using namespace std;\n");
     fprintf(workerFile, "\n");
+
+
+    fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
+    fprintf(workerFile, "#include <pthread.h>\n");
+    fprintf(workerFile, "#include <nanos6/bootstrap.h>\n");
+    fprintf(workerFile, "#include <nanos6/library-mode.h>\n");
+    fprintf(workerFile, "#endif\n");
+
 }
 
 /*
@@ -298,7 +306,11 @@ static void generate_nanos6_wrapper(FILE *outFile, function* func) {
     char* func_to_execute;
     int printed_chars = 0;
 
-    if (( func->classname != NULL ) && (func->access_static == 0)) {
+    if (func->return_type != void_dt && func->return_type != NULL) {
+        fprintf(outFile, "\tstruct_->ret = ", func->return_type);
+    }
+
+    if ((func->classname != NULL) && (func->access_static == 0)) {
         printed_chars = asprintf(&func_to_execute, "\t%s->%s(", func->name, func->methodname);
     } else {
         printed_chars = asprintf(&func_to_execute, "\t%s(", func->name);
@@ -1959,10 +1971,6 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     }
     fprintf(outFile, "\t\t\t \n");
 
-    fprintf(outFile, "#ifndef OMPSS2_ENABLED\n"); //If OMPSS2_ENABLED not defined
-
-    //region Normal executor (without OmpSs-2) TODO
-    //Managing return type
     if (func->return_type != void_dt) {
         ret.name="return_obj";
         ret.type=func->return_type;
@@ -1974,9 +1982,14 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 
         treat_worker_argument(outFile, &ret, current_types, true);
     }
+
     fprintf(outFile, "\t\t\t \n");
 
+    fprintf(outFile, "#ifndef OMPSS2_ENABLED\n"); //If OMPSS2_ENABLED not defined
+
+    //Managing return type
     //Add function call
+
     printf("\t\t Adding function call unmarshalling...\n");
     fflush(NULL);
     fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Calling function %s.%s\" << endl << flush;\n", func->classname, func->methodname);
@@ -2029,11 +2042,8 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fprintf(outFile, "\t\t\t if(is_debug()) cout << \"[C Binding] Execution of function %s.%s finished.\" << endl << flush;\n", func->classname, func->methodname);
     fprintf(outFile, "\n");
 
-    //endregion
-
     fprintf(outFile, "#else\n"); //Else spawn OmpSs-2 function with Nanos6
 
-    //region OmpSs-2 executor TODO
 
     //Declare the struct holding the arguments of the function
     fprintf(outFile, "\t\t\t%s_struct_t %s_struct;\n", func->methodname, func->methodname);
@@ -2041,41 +2051,6 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     assign_arguments_to_struct(outFile, func); //Assign parameters to the struct
 
     fprintf(outFile, "\t\t\t \n");
-
-    //Managing object callee TODO
-    /*if ((func.classname != NULL) && (func.access_static == 0)) {
-        th.name="target_obj";
-        th.type=object_dt;
-        th.dir=inout_dir;
-        th.classname=func.classname;
-
-        printf("\t\t Adding target object unmarshalling...\n");
-        fflush(NULL);
-
-        fprintf(outFile, "\t\t\t %s* %s = new %s();\n", th.classname, th.name, th.classname);
-
-        add_object_or_array_arg_worker_treatment(outFile, &th, ARGS_OFFSET, current_types, false);
-    }
-    fprintf(outFile, "\t\t\t \n");*/
-
-    //Managing return type TODO
-    /*if (func_ompss2_wrapper.return_type != void_dt) {
-        ret.name=asprintf("%s_struct.ret", func_ompss2_wrapper.methodname);
-
-        if (printed_chars < 0) {
-            asprintf_error(ret.name, "Not possible to generate return value name inside struct.\n");
-        }
-
-        ret.type=func_ompss2_wrapper.return_type;
-        ret.dir=out_dir;
-        ret.classname=func_ompss2_wrapper.return_typename;
-        ret.elements=func_ompss2_wrapper.return_elements;
-
-        printf("\t\t Adding return object unmarshalling...\n");
-
-        treat_worker_argument(outFile, &ret, current_types, true);
-    }
-    fprintf(outFile, "\t\t\t \n");*/
 
     //Add function call
     printf("\t\t Adding function call unmarshalling...\n");
@@ -2088,11 +2063,24 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     printed_chars = asprintf(&nanos6_spawner, "\t\t\tnanos6_spawn_function(%s_wrapper, &%s_struct, %s, %s, \"%s_spawned_task\");\n",
             func->methodname, func->methodname, "condition_variable_callback", "&cond_var", func->methodname);
 
+    if (printed_chars < 0) {
+        asprintf_error(nanos6_spawner, "Not possible to generate function spawn.\n");
+    }
+
     fprintf(outFile, "%s\n", nanos6_spawner);
 
-    fprintf(outFile, "wait_condition_variable(&cond_var);\n");
+    fprintf(outFile, "\t\t\twait_condition_variable(&cond_var);\n");
 
-    //endregion
+    if (func->return_type != void_dt && func->return_type != NULL) {
+        char* return_var;
+        printed_chars = asprintf(&return_var, "return_obj = %s_struct.ret;\n", func->methodname);
+
+        fprintf(outFile, "%s", return_var);
+
+        if (printed_chars < 0) {
+            asprintf_error(return_var, "Not possible to generate return variable.\n");
+        }
+    }
 
     fprintf(outFile, "#endif\n");
 

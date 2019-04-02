@@ -66,10 +66,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
 	@Override
 	public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
-		List<AllocatableAction> dataFreeActions = new LinkedList<AllocatableAction>();
-		List<AllocatableAction> resourceFreeActions = new LinkedList<AllocatableAction>();
-		List<AllocatableAction> blockedCandidates = new LinkedList<AllocatableAction>();
-		handleDependencyFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
+
 	}
 
 	@Override

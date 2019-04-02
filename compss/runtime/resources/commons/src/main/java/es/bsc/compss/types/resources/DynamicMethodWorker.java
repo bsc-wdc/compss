@@ -193,10 +193,8 @@ public class DynamicMethodWorker extends MethodWorker {
     }
 
     public boolean shouldBeStopped() {
-        synchronized (available) {
-            synchronized (toRemove) {
-                return ((available.getTotalCPUComputingUnits() == 0) && (toRemove.getTotalCPUComputingUnits() == 0));
-            }
+        synchronized (description) {
+            return this.getDescription().isDynamicUseless();
         }
     }
 

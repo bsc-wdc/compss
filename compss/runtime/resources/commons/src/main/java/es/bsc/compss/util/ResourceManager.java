@@ -428,7 +428,6 @@ public class ResourceManager {
         MethodWorker worker = (MethodWorker) pool.getResource(name);
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy());
         resourceUser.updatedResource(worker, modification);
-
     }
 
     public static void requestWholeWorkerReduction(MethodWorker worker) {
@@ -436,7 +435,30 @@ public class ResourceManager {
         resourceUser.updatedResource(worker, modification);
     }
 
+    public static <T extends WorkerResourceDescription> void confirmWorkerReduction(Worker<T> worker, PendingReduction<T> reduction) {
+        ResourceUpdate<T> ru = new PerformedReduction<>(reduction.getModification());
+        resourceUser.updatedResource(worker, ru);
+    }
+
     public static void notifyWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
+        worker.applyReduction(new PendingReduction(reduction));
+        MethodResourceDescription modification = reduction;
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
+        resourceUser.updatedResource(worker, ru);
+    }
+
+    public static void notifyWholeWorkerReduction(String name) {
+        DynamicMethodWorker worker = (DynamicMethodWorker) pool.getResource(name);
+        MethodResourceDescription reduction = worker.getDescription();
+        worker.applyReduction(new PendingReduction(reduction));
+        MethodResourceDescription modification = reduction;
+        ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
+        resourceUser.updatedResource(worker, ru);
+    }
+
+    public static void notifyWholeWorkerReduction(DynamicMethodWorker worker) {
+        MethodResourceDescription reduction = worker.getDescription();
+        worker.applyReduction(new PendingReduction(reduction));
         MethodResourceDescription modification = reduction;
         ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
         resourceUser.updatedResource(worker, ru);

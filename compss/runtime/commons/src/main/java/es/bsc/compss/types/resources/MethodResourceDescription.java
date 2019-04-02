@@ -115,7 +115,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Internal creation of a MethodResourceDescription with an initial set of computing units {@code initialCUs}.
-     * 
+     *
      * @param initialCUs Initial number of computing units.
      */
     private MethodResourceDescription(int initialCUs) {
@@ -172,14 +172,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
             // When loading from constraints, always use at least one computing unit
             int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR)
-                    : ONE_INT;
+                     : ONE_INT;
             p.setComputingUnits(cu);
 
             String speedSTR = constraints.processorSpeed();
             speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
             float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR))
-                    ? Float.valueOf(speedSTR)
-                    : UNASSIGNED_FLOAT;
+                          ? Float.valueOf(speedSTR)
+                          : UNASSIGNED_FLOAT;
             if (speed != UNASSIGNED_FLOAT) {
                 p.setSpeed(speed);
             }
@@ -246,8 +246,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String memorySizeSTR = constraints.memorySize();
         memorySizeSTR = EnvironmentLoader.loadFromEnvironment(memorySizeSTR);
         float memorySize = (memorySizeSTR != null && !memorySizeSTR.isEmpty() && !memorySizeSTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(memorySizeSTR)
-                : UNASSIGNED_FLOAT;
+                           ? Float.valueOf(memorySizeSTR)
+                           : UNASSIGNED_FLOAT;
         if (memorySize != UNASSIGNED_FLOAT) {
             this.memorySize = memorySize;
         }
@@ -322,14 +322,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         // When loading from constraints, always use at least one computing unit
         int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR)
-                : ONE_INT;
+                 : ONE_INT;
         p.setComputingUnits(cu);
 
         String speedSTR = processorConstraints.speed();
         speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
         float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR))
-                ? Float.valueOf(speedSTR)
-                : UNASSIGNED_FLOAT;
+                      ? Float.valueOf(speedSTR)
+                      : UNASSIGNED_FLOAT;
         if (speed != UNASSIGNED_FLOAT) {
             p.setSpeed(speed);
         }
@@ -403,11 +403,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     proc.setComputingUnits(ONE_INT);
                 }
                 this.addProcessor(proc);
-            } else if (this.totalCPUs == 0) {
-                // if processor has not been modified it must be added only if there are no CPU constraints already
-                // defined
-                proc.setComputingUnits(ONE_INT);
-                this.addProcessor(proc);
+            } else {
+                if (this.totalCPUs == 0) {
+                    // if processor has not been modified it must be added only if there are no CPU constraints already
+                    // defined
+                    proc.setComputingUnits(ONE_INT);
+                    this.addProcessor(proc);
+                }
             }
         } else {
             // If it is not CPU it must be added
@@ -464,7 +466,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * Creates a new MethodResourceDescription from the given C constraints.
      *
-     * @param constraints C constraints.
+     * @param constraints     C constraints.
      * @param processorString C processor definition.
      */
     public MethodResourceDescription(String[] constraints, String processorString) {
@@ -516,8 +518,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * Adds a processor constraint from bindings (ignores letter case).
      *
-     * @param key Constraint key.
-     * @param val Constraint value.
+     * @param key  Constraint key.
+     * @param val  Constraint value.
      * @param proc Processor.
      */
     private void addConstraints(String key, String val, Processor proc) {
@@ -603,7 +605,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Copies the given MethodResourceDescription.
-     * 
+     *
      * @param clone MethodResourceDescription to clone.
      */
     public MethodResourceDescription(MethodResourceDescription clone) {
@@ -663,7 +665,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      *************************************************************************************************************/
     /**
      * Returns the registered processors.
-     * 
+     *
      * @return A list containing the registered processors.
      */
     public List<Processor> getProcessors() {
@@ -672,7 +674,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Registers a new list of processors.
-     * 
+     *
      * @param processors New list of processors.
      */
     public void setProcessors(List<Processor> processors) {
@@ -688,13 +690,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * Resets the registered processors.
      */
     public void resetProcessors() {
-        this.processors = new LinkedList<Processor>();
+        this.processors = new LinkedList<>();
         initProcessorCounters();
     }
 
     /**
      * Adds a new processor {@code p}.
-     * 
+     *
      * @param p New processor.
      */
     public void addProcessor(Processor p) {
@@ -704,15 +706,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Adds a new Processor to the current resource with the given information.
-     * 
-     * @param procName Processor name.
+     *
+     * @param procName       Processor name.
      * @param computingUnits Processor computing units.
-     * @param architecture Processor architecture.
-     * @param speed Processor speed.
-     * @param type Processor type.
+     * @param architecture   Processor architecture.
+     * @param speed          Processor speed.
+     * @param type           Processor type.
      * @param internalMemory Processor internal memory.
-     * @param propName Processor custom property name.
-     * @param propValue Processor custom property value.
+     * @param propName       Processor custom property name.
+     * @param propValue      Processor custom property value.
      */
     public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type,
             float internalMemory, String propName, String propValue) {
@@ -749,7 +751,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Updates the resource global counters.
-     * 
+     *
      * @param p Processor capabilities to be added in the global counters.
      */
     private void updateCounters(Processor p) {
@@ -793,19 +795,21 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the registered architectures.
-     * 
+     *
      * @return A list containing the registered architectures.
      */
     public List<String> getArchitectures() {
-        LinkedList<String> architectures = new LinkedList<String>();
+        LinkedList<String> architectures = new LinkedList<>();
 
         for (Processor p : this.processors) {
             String arch = p.getArchitecture();
             if (!arch.equals(UNASSIGNED_STR)) {
                 architectures.add(arch);
-            } else if (!architectures.contains(UNASSIGNED_STR)) {
-                // Only add once
-                architectures.add(UNASSIGNED_STR);
+            } else {
+                if (!architectures.contains(UNASSIGNED_STR)) {
+                    // Only add once
+                    architectures.add(UNASSIGNED_STR);
+                }
             }
         }
 
@@ -814,7 +818,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the total number of CPU computing units.
-     * 
+     *
      * @return The total number of CPU computing units.
      */
     public int getTotalCPUComputingUnits() {
@@ -823,7 +827,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the total number of GPU computing units.
-     * 
+     *
      * @return The total number of GPU computing units.
      */
     public int getTotalGPUComputingUnits() {
@@ -832,7 +836,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the total number of FPGA computing units.
-     * 
+     *
      * @return The total number of FPGA computing units.
      */
     public int getTotalFPGAComputingUnits() {
@@ -841,7 +845,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the total number of OTHER computing units.
-     * 
+     *
      * @return The total number of OTHER computing units.
      */
     public int getTotalOTHERComputingUnits() {
@@ -850,7 +854,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the memory size.
-     * 
+     *
      * @return The memory size.
      */
     public float getMemorySize() {
@@ -859,7 +863,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new memory size.
-     * 
+     *
      * @param memorySize New memory size.
      */
     public void setMemorySize(float memorySize) {
@@ -870,7 +874,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the memory type.
-     * 
+     *
      * @return The memory type.
      */
     public String getMemoryType() {
@@ -879,7 +883,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new memory type.
-     * 
+     *
      * @param memoryType New memory type.
      */
     public void setMemoryType(String memoryType) {
@@ -890,7 +894,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the storage size.
-     * 
+     *
      * @return The storage size.
      */
     public float getStorageSize() {
@@ -899,7 +903,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new storage size.
-     * 
+     *
      * @param storageSize New storage size.
      */
     public void setStorageSize(float storageSize) {
@@ -910,7 +914,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the storage type.
-     * 
+     *
      * @return The storage type.
      */
     public String getStorageType() {
@@ -919,7 +923,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new storage type.
-     * 
+     *
      * @param storageType New storage type.
      */
     public void setStorageType(String storageType) {
@@ -930,7 +934,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the operating system type.
-     * 
+     *
      * @return The operating system type.
      */
     public String getOperatingSystemType() {
@@ -939,7 +943,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new operating system type.
-     * 
+     *
      * @param operatingSystemType New operating system type.
      */
     public void setOperatingSystemType(String operatingSystemType) {
@@ -950,7 +954,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the operating system distribution.
-     * 
+     *
      * @return The operating system distribution.
      */
     public String getOperatingSystemDistribution() {
@@ -959,7 +963,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new operating system distribution.
-     * 
+     *
      * @param operatingSystemDistribution New operating system distribution.
      */
     public void setOperatingSystemDistribution(String operatingSystemDistribution) {
@@ -970,7 +974,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the operating system version.
-     * 
+     *
      * @return The operating system version.
      */
     public String getOperatingSystemVersion() {
@@ -979,7 +983,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new operating system version.
-     * 
+     *
      * @param operatingSystemVersion New operating system version.
      */
     public void setOperatingSystemVersion(String operatingSystemVersion) {
@@ -990,7 +994,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the registered application software.
-     * 
+     *
      * @return List containing the registered application software.
      */
     public List<String> getAppSoftware() {
@@ -999,7 +1003,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new list of supported application software.
-     * 
+     *
      * @param appSoftware New list of supported application software.
      */
     public void setAppSoftware(List<String> appSoftware) {
@@ -1012,12 +1016,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * Resets the list of application software.
      */
     public void resetAppSoftware() {
-        appSoftware = new LinkedList<String>();
+        appSoftware = new LinkedList<>();
     }
 
     /**
      * Adds a new application to the supported application software list.
-     * 
+     *
      * @param application New application name.
      */
     public void addApplication(String application) {
@@ -1028,7 +1032,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the registered host queues.
-     * 
+     *
      * @return A list containing the registered host queues.
      */
     public List<String> getHostQueues() {
@@ -1037,7 +1041,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new list of registered host queues.
-     * 
+     *
      * @param hostQueues New list of registered host queues.
      */
     public void setHostQueues(List<String> hostQueues) {
@@ -1050,12 +1054,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * Resets the list of registered host queues.
      */
     public void resetHostQueues() {
-        hostQueues = new LinkedList<String>();
+        hostQueues = new LinkedList<>();
     }
 
     /**
      * Adds a new host queue to the registered host queues.
-     * 
+     *
      * @param queue New host queue.
      */
     public void addHostQueue(String queue) {
@@ -1066,7 +1070,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the time unit of the price slot.
-     * 
+     *
      * @return The time unit of the price slot.
      */
     public int getPriceTimeUnit() {
@@ -1075,7 +1079,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new time unit for the price slot.
-     * 
+     *
      * @param priceTimeUnit New time unit for the price slot (in seconds).
      */
     public void setPriceTimeUnit(int priceTimeUnit) {
@@ -1086,7 +1090,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the price per time unit.
-     * 
+     *
      * @return The price per time unit.
      */
     public float getPricePerUnit() {
@@ -1095,7 +1099,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new price per time unit.
-     * 
+     *
      * @param pricePerUnit New price per time unit.
      */
     public void setPricePerUnit(float pricePerUnit) {
@@ -1106,7 +1110,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the wallclock time.
-     * 
+     *
      * @return The wallclock time.
      */
     public int getWallClockLimit() {
@@ -1115,7 +1119,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets a new wallclock time.
-     * 
+     *
      * @param wallClockLimit The new wallclock time.
      */
     public void setWallClockLimit(int wallClockLimit) {
@@ -1126,7 +1130,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the internal value.
-     * 
+     *
      * @return The internal value.
      */
     public Float getValue() {
@@ -1135,7 +1139,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Sets the internal value.
-     * 
+     *
      * @param value The new internal value.
      */
     public void setValue(Float value) {
@@ -1144,7 +1148,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns whether the resource contains CPU processors or not.
-     * 
+     *
      * @return {@code true} if there are CPU computing units, {@code false} otherwise.
      */
     public boolean containsCPU() {
@@ -1153,7 +1157,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns whether the resource contains GPU processors or not.
-     * 
+     *
      * @return {@code true} if there are GPU computing units, {@code false} otherwise.
      */
     public boolean containsGPU() {
@@ -1162,7 +1166,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns whether the resource contains FPGA processors or not.
-     * 
+     *
      * @return {@code true} if there are FPGA computing units, {@code false} otherwise.
      */
     public boolean containsFPGA() {
@@ -1171,7 +1175,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns whether the resource contains OTHER processors or not.
-     * 
+     *
      * @return {@code true} if there are OTHER computing units, {@code false} otherwise.
      */
     public boolean containsOthers() {
@@ -1185,7 +1189,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * This method tries to substitute the implicit default values by defined mr2 values. Keeps the already defined
      * values (does NOT overwrite). IT IS ONLY CALLED FROM CONSTRAINTS (1 processor always).
-     * 
+     *
      * @param mr2 MethodResourceDescription to merge.
      */
     public void mergeMultiConstraints(MethodResourceDescription mr2) {
@@ -1309,8 +1313,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * Returns the difference in terms of computingUnits and memory with the given MethodResourceDescription
      * {@code mr2}.
-     * 
+     *
      * @param mr2 MethodResourceDescription to compare with.
+     *
      * @return Difference value.
      */
     public float difference(MethodResourceDescription mr2) {
@@ -1318,7 +1323,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         float otherProcessorsDif = (this.getTotalGPUComputingUnits() + this.getTotalFPGAComputingUnits()
                 + this.getTotalOTHERComputingUnits())
                 - (mr2.getTotalGPUComputingUnits() + mr2.getTotalFPGAComputingUnits()
-                        + mr2.getTotalOTHERComputingUnits());
+                + mr2.getTotalOTHERComputingUnits());
         float memoryDif = this.memorySize - mr2.memorySize;
 
         return (processorDif * DIFFERENCE_WEIGHT) + (otherProcessorsDif * OTHER_PROC_DIFFERENCE_WEIGHT) + memoryDif;
@@ -1326,8 +1331,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns whether the current MethodResourceDescription contains the given MethodResourceDescription {@code rc2}.
-     * 
+     *
      * @param rc2 MethodResourceDescription to compare with.
+     *
      * @return {@code true} if the current MethodResourceDescription contains the given MethodResourceDescription
      *         {@code rc2}, {@code false} otherwise.
      */
@@ -1347,8 +1353,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * Returns whether the current MethodResourceDescription contains the DYNAMIC constraints of the given
      * MethodResourceDescription {@code rc2}.
-     * 
+     *
      * @param rc2 MethodResourceDescription to compare with.
+     *
      * @return {@code true} if the current MethodResourceDescription contains the DYNAMIC constraints of the given
      *         MethodResourceDescription {@code rc2}, {@code false} otherwise.
      */
@@ -1426,8 +1433,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Returns the number of simultaneous executions of {@code rc2} that the current MethodResourceDescription can host.
-     * 
+     *
      * @param rc2 MethodResourceDescription to host simultaneously.
+     *
      * @return Maximum number of simultaneous executions.
      */
     public Integer canHostSimultaneously(MethodResourceDescription rc2) {
@@ -1468,8 +1476,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * Scales the current MethodResourceDescription by the {@code amount} factor.
-     * 
+     *
      * @param amount Scaling factor.
+     *
      * @return New scaled MethodResourceDescription.
      */
     public MethodResourceDescription multiply(int amount) {
@@ -1658,15 +1667,19 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             if (mrd2.pricePerUnit > (float) 0.0) {
                 this.pricePerUnit = mrd2.pricePerUnit;
             }
-        } else if ((mrd2.pricePerUnit > (float) 0.0) && (mrd2.pricePerUnit < this.pricePerUnit)) {
-            this.pricePerUnit = mrd2.pricePerUnit;
+        } else {
+            if ((mrd2.pricePerUnit > (float) 0.0) && (mrd2.pricePerUnit < this.pricePerUnit)) {
+                this.pricePerUnit = mrd2.pricePerUnit;
+            }
         }
         if (this.priceTimeUnit == UNASSIGNED_INT) {
             if (mrd2.priceTimeUnit > 0) {
                 this.priceTimeUnit = mrd2.priceTimeUnit;
             }
-        } else if ((mrd2.priceTimeUnit > 0) && (mrd2.priceTimeUnit < this.priceTimeUnit)) {
-            this.priceTimeUnit = mrd2.priceTimeUnit;
+        } else {
+            if ((mrd2.priceTimeUnit > 0) && (mrd2.priceTimeUnit < this.priceTimeUnit)) {
+                this.priceTimeUnit = mrd2.priceTimeUnit;
+            }
         }
 
         // WallClock limit

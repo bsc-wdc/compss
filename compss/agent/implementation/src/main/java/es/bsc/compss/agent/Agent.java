@@ -105,7 +105,6 @@ public class Agent {
         System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
     }
 
-
     public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params,
             AppMonitor monitor) throws AgentException {
 
@@ -125,12 +124,12 @@ public class Agent {
 
         RUNTIME.executeTask(mainAppId, monitor, lang, "es.bsc.compss.agent.loader.Loader", "load", false, 1, false,
                 false, false, 7, OnFailure.RETRY,
-                new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime", RUNTIME,
-                        DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", ceiClass, DataType.STRING_T,
-                        Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", appId, DataType.LONG_T, Direction.IN,
-                        Stream.UNSPECIFIED, "", "appId", className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED,
-                        "", "className", methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "",
-                        "methodName", params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params" });
+                new Object[]{RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime", RUNTIME,
+                    DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", ceiClass, DataType.STRING_T,
+                    Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", appId, DataType.LONG_T, Direction.IN,
+                    Stream.UNSPECIFIED, "", "appId", className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED,
+                    "", "className", methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "",
+                    "methodName", params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params"});
         return mainAppId;
     }
 
@@ -282,11 +281,18 @@ public class Agent {
         }
     }
 
+    public static void lostNode(String name) throws AgentException {
+        try {
+            ResourceManager.notifyWholeWorkerReduction(name);
+        } catch (NullPointerException e) {
+            throw new AgentException("Resource " + name + " was not set up for this agent. Ignoring request.");
+        }
+    }
+
 
     public static abstract class AppMonitor implements TaskMonitor {
 
         private long appId;
-
 
         public AppMonitor() {
         }

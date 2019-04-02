@@ -63,6 +63,7 @@ import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
+import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -733,11 +734,23 @@ public class AccessProcessor implements Runnable, TaskProducer {
     public void markForDeletion(DataLocation loc) {
         LOGGER.debug("Marking data " + loc + " for deletion");
         Semaphore sem = new Semaphore(0);
+        Semaphore semWait = new Semaphore(0);
+       
+        // Wait for data to be ready for deletion
+        if (!requestQueue.offer(new WaitForDataReadyToDeleteRequest(loc,sem,semWait))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
+        }
+        
+        // Wait for response
+        semWait.acquireUninterruptibly();
+        sem.acquireUninterruptibly();
+        
+        // Request to delete data
         if (!requestQueue.offer(new DeleteFileRequest(loc, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
+           
         // Wait for response
-
         sem.acquireUninterruptibly();
         LOGGER.debug("Sata " + loc + " deleted");
     }

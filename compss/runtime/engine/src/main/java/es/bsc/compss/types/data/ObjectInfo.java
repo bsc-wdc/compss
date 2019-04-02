@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data;
 
 import java.util.LinkedList;
+import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.comm.Comm;
 
@@ -61,6 +62,10 @@ public class ObjectInfo extends DataInfo {
             }
         }
         return false;
+    }
+    
+    @Override
+    public void waitForDataReadyToDelete(Semaphore semWait) {
     }
 
 }

@@ -18,6 +18,9 @@ from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
 
 
+marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
+
+
 @task(iterator=IN, returns=list)
 def get_next_partition(iterable, start, end):
     """
@@ -56,6 +59,20 @@ def task_read_files(file_paths):
         ret.append((file_path, content))
 
     return ret
+
+
+@task(returns=1)
+def task_map_partition(f, partition, *args, **kwargs):
+    """
+    Apply a function to a partition in a new task. The function should take an
+    iterable as a parameter and return a list.
+    :param f: A function that takes an iterable as a parameter
+    :param partition:
+    :return: future object of the list containing results
+    """
+    res = f(partition, *args, **kwargs)
+    del partition
+    return res
 
 
 @task(first=INOUT)

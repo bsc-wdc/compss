@@ -95,8 +95,8 @@ def example_1():
     print(dds.collect())
 
     print("Elements & Partitions of the DDS:")
-    dds = DDS().load(range(10), 5)
-    print(dds.collect(keep_partitions=True))
+    dds = DDS().load(range(10), 5).map(lambda x: x * 2)
+    print(dds.collect(keep_partitions=True, future_objects=True))
     print('______________END OF THE EXAMPLE________________\n')
 
 

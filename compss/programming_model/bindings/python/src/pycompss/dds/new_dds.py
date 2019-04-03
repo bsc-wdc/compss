@@ -89,6 +89,16 @@ class DDS(object):
 
         return self
 
+    def num_of_partitions(self):
+        """
+        Get the total amount of partitions
+        :return: int
+
+        >>> DDS(range(10), 5).num_of_partitions()
+        5
+        """
+        return len(self.partitions)
+
     def map(self, func):
 
         def _map(iterator):
@@ -277,20 +287,28 @@ class DDS(object):
         >>> DDS().load(range(10), 2).collect()
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        res = list()
+
+        processed = list()
+        if self.func:
+            for _p in self.partitions:
+                processed.append(task_map_partition(self.func, _p))
+        else:
+            processed = self.partitions
+
         # Future objects cannot be extended for now...
         if future_objects:
-            return self.partitions
+            return processed
 
-        self.partitions = compss_wait_on(self.partitions)
+        processed = compss_wait_on(processed)
+
+        ret = list()
         if not keep_partitions:
-            for p in self.partitions:
-                # p = compss_wait_on(p)
-                res.extend(p)
+            for _pp in processed:
+                ret.extend(_pp)
         else:
-            for p in self.partitions:
-                res.append(list(p))
-        return res
+            for _pp in processed:
+                ret.append(list(_pp))
+        return ret
 
 
     """

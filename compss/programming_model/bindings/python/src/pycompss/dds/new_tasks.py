@@ -13,9 +13,59 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
+
+
+@task(files=list, returns=list)
+def task_read_files(file_paths):
+    """
+
+    :param file_paths:
+    :return:
+    """
+    ret = list()
+    for file_path in file_paths:
+        content = open(file_path).read()
+        ret.append((file_path, content))
+
+    return ret
+
+
+@task(first=INOUT)
+def reduce_dicts(first, *args):
+    dicts = iter(args)
+
+    for _dict in dicts:
+        for k in _dict:
+            first[k] += _dict[k]
+
+
+@task(returns=list, iterator=IN)
+def task_dict_to_list(iterator, total_parts, partition_num):
+    """
+    Convert a dictionary to a list to be used as partitions later.
+    :param iterator:
+    :param total_parts:
+    :param partition_num:
+    :return:
+    """
+    ret = list()
+    sorted_keys = sorted(iterator.keys())
+    total = len(sorted_keys)
+    chunk_size = max(1, total / total_parts)
+    start = chunk_size * partition_num
+    is_last = (total_parts == partition_num + 1)
+
+    if is_last:
+        for i in sorted_keys[start:]:
+            ret.append((i, iterator[i]))
+    else:
+        for i in sorted_keys[start:start+chunk_size]:
+            ret.append((i, iterator[i]))
+
+    return ret
 
 
 @task(returns=1, first=INOUT)

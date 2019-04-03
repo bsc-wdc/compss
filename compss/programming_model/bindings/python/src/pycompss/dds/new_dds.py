@@ -13,12 +13,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import os
 from collections import deque, defaultdict
 from itertools import chain
 
 from pycompss.api.api import compss_wait_on, compss_barrier
 
-from new_tasks import *
+from pycompss.dds.new_tasks import *
 from tasks import get_next_partition, marker
 from operator import add
 
@@ -56,6 +57,35 @@ class DDS(object):
 
         return self
 
+    def load_files_from_dir(self, dir_path, num_of_parts=-1):
+        """
+        Read multiple files from a given directory. Each file and its content
+        is saved in a tuple in ('file_path', 'file_content') format.
+        :param dir_path: A directory that all files will be loaded from
+        :param num_of_parts: can be set to -1 to create one partition per file
+        :return:
+        """
+        files = os.listdir(dir_path)
+        total = len(files)
+        num_of_parts = total if num_of_parts < 0 else num_of_parts
+        partition_sizes = [(total // num_of_parts)] * num_of_parts
+        extras = total % num_of_parts
+        for i in range(extras):
+            partition_sizes[i] += 1
+
+        start = 0
+        for size in partition_sizes:
+            end = start + size
+            partition_files = list()
+            for file_name in files[start:end]:
+                file_path = os.path.join(dir_path, file_name)
+                partition_files.append(file_path)
+
+            self.partitions.append(task_read_files(partition_files))
+            start = end
+
+        return self
+
     def map(self, func):
 
         def _map(iterator):
@@ -66,7 +96,7 @@ class DDS(object):
     def map_partitions(self, func):
         return ChildDDS(self, func)
 
-    def map_and_flatten(self, f):
+    def map_and_flatten(self, f, *args, **kwargs):
         """
         Just because flat_map is an ugly name.
         Apply a function to each element and extend the derived element(s) if
@@ -79,12 +109,13 @@ class DDS(object):
         >>> sorted(dds.map_and_flatten(lambda x: range(1, x)).collect())
         [1, 1, 1, 2, 2, 3]
         """
-        from itertools import chain
+        def mapper(iterator):
+            res = list()
+            for item in iterator:
+                res.extend(f(item, *args, **kwargs))
+            return res
 
-        def dummy(partition):
-            return list(chain.from_iterable(map(f, partition)))
-
-        return self.map_partitions(dummy)
+        return self.map_partitions(mapper)
 
     def filter(self, f):
 
@@ -143,20 +174,51 @@ class DDS(object):
 
         return branch[0]
 
-    def count_by_value(self, collect=True):
+    def count_by_value(self, arity=2, as_dict=False):
         """
+        Amount of each element on this data set.
+        :return: list of tuples (element, number)
+
+        >>> first = DDS([0, 1, 2], 2)
+        >>> second = DDS([2, 3, 4], 3)
+        >>> first.union(second).count_by_value(as_dict=True)
+        {0: 1, 1: 1, 2: 2, 3: 1, 4: 1}
         """
 
-        def count_partition(partition):
+        def count_partition(iterator):
             counts = defaultdict(int)
-            for obj in partition:
+            for obj in iterator:
                 counts[obj] += 1
             return counts
 
-        local_results = self.map_partitions(count_partition).\
-            collect(future_objects=True)
+        # Count locally and create dictionary partitions
+        local_results = self.map_partitions(count_partition)
 
-        return tree_reduce_dicts(local_results, add, True)
+        # Create a deque from partitions and start reduce
+        future_objects = deque(local_results.collect(True))
+        ret = []
+        branch = list()
+        while future_objects:
+            branch = []
+            while future_objects and len(branch) < arity:
+                temp = future_objects.popleft()
+                branch.append(temp)
+
+            if len(branch) == 1:
+                break
+            reduce_dicts(*branch)
+            future_objects.append(branch[0])
+
+        if as_dict:
+            branch[0] = compss_wait_on(branch[0])
+            return dict(branch[0])
+
+        length = len(self.partitions)
+        for i in range(length):
+            ret.append(task_dict_to_list(branch[0], length, i))
+
+        self.partitions = ret
+        return self
 
     def key_by(self, f):
         """

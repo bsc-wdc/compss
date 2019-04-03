@@ -18,8 +18,9 @@
 import sys
 import time
 
-from pycompss.dds import DDS
+from pycompss.dds.new_dds import DDS
 from pycompss.dds.tasks import gen_fragment
+from pycompss.api.api import compss_wait_on as cwo
 
 
 def to_list(a): return [a]
@@ -60,12 +61,15 @@ def reduce_example():
 def word_count():
 
     path_file = sys.argv[1]
-
     start = time.time()
-    result = DDS().load_files_from_dir(path_file)\
-        .map_and_flatten(lambda x: x[1].split()).count_by_value(arity=4,
-                                                                as_dict=True)
 
+    bir = DDS().load_files_from_dir(path_file)
+
+    iki = bir.map_and_flatten(lambda x: x[1].split())
+
+    result = iki.count_by_value(arity=4, as_dict=True)
+
+    print(result)
     print("Elapsed Time: ", time.time()-start)
     return
 

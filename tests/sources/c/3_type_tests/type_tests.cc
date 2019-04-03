@@ -4,6 +4,13 @@
 
 using namespace std;
 
+/*  COMPSs C-Binding test : Type_tests
+ *
+ *  This test is highly related with the architecture of the machine.
+ *  It has been designed for a 64 bit processor with byte order Little Endian.
+ *  We also take for granted that the size of a byte is 8 bits.
+ */
+
 int main() {
 
     cout << "Encendemos el runtime... " << endl;
@@ -24,7 +31,6 @@ int main() {
             _long = _long | ( (initial + i) << ( ( (sizeof(long) - i)*8) ) );
         }
     }
-    cout << dec << _long << endl; 
 
     // Note that _long can be intepreted as an array of chars which is ABCDEFGH     
 
@@ -39,24 +45,6 @@ int main() {
 
     split_int(2, 2*2, int_pair, short_array);
 
-    compss_wait_on(short_array);
-
-    for (int i = 0; i < 4; ++i) {
-        cout << short_array[i] << endl;
-    }
-
-    if (not ((short)(int_pair[1]    >> (sizeof(short)*8)) == short_array[3] and
-             (short)(int_pair[1])   == short_array[2]                       and
-             (short)(int_pair[0]    >> (sizeof(short)*8)) == short_array[2] and
-             (short)(int_pair[0])   == short_array[0])) {
-
-        cout << "The 'short' splitted values does not match with the original values" << endl;
-        return -1;
-
-    }
-
-    return 0; //TODO exit here now..
-
     //Splitted the two ints into four shorts, now we will do the same
     //splitting four shorts into eight chars.
 
@@ -68,21 +56,73 @@ int main() {
 
     compss_wait_on(int_pair);
 
-    cout << "leftmost element : " << int_pair[1] << " rightmost element : " << int_pair[0] << endl;
-
     if (not (((int)(_long >> (sizeof(int)*8)) == int_pair[1]) and (((int)_long) == int_pair[0]))) {
-        cout << "The splitted values does not match the original value." << endl;
+        cout << "The 'int' splitted values does not match with the original value." << endl;
         return -1;
     }
     else {
-        cout << "split_long ... works" << endl;
+        cout << "split_long... works" << endl;
     }
+    
+    compss_wait_on(short_array);
 
-    return 0;
+    if (not ((short)(int_pair[1]    >> (sizeof(short)*8)) == short_array[3] and
+             (short)(int_pair[1])   == short_array[2]                       and
+             (short)(int_pair[0]    >> (sizeof(short)*8)) == short_array[1] and
+             (short)(int_pair[0])   == short_array[0])) {
+
+        cout << "The 'short' splitted values does not match with the original values" << endl;
+        return -1;
+
+    }
+    else {
+        cout << "split_short... works" << endl;
+    }
+    
+    compss_wait_on(char_array);
+
+    if (not (((char)(short_array[3]  >> (sizeof(char)*8)) == char_array[7])     and
+             ((((char)short_array[3]) == char_array[6]))                        and
+             (((char)(short_array[2]  >> (sizeof(char)*8))) == char_array[5])   and
+             ((((char)short_array[2]) == char_array[4]))                        and
+             (((char)(short_array[1]  >> (sizeof(char)*8))) == char_array[3])   and
+             ((((char)short_array[1]) == char_array[2]))                        and
+             (((char)(short_array[0]  >> (sizeof(char)*8))) == char_array[1])   and
+             ((((char)short_array[0]) == char_array[0])))) {
+
+        cout << "The 'char' splitted value does not match with the original value." << endl;
+        return -1;
+    }
+    else {
+        cout << "split_char... works" << endl;
+    }
 
     //----------------------------------------------------------------------
 
+    //Test with long and long*
+    //----------------------------------------------------------------------
+    
+    long long_a, long_b, long_c;
+    long_a = long_b = long_c = 1;
 
+    long result = long_a + long_b + long_c;
+
+    long* long_array;
+    long_array = make_long_array(long_a, long_b, long_c);
+
+    sum_long_array(long_array);
+    
+
+    if (long_array[0] != result) {
+       cout << "The expected result when executing task sum_long_array is: " << result <<
+               " and we got: " << long_array[0] << endl;
+        return -1; 
+    }
+    else {
+        cout << "make_long_array... works" << endl << "sum_long_array... works" << endl;
+    }
+
+    //----------------------------------------------------------------------
 
     //Test with char and char*
     //----------------------------------------------------------------------

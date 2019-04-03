@@ -2,7 +2,7 @@
 using namespace std;
 
 /*
- * I am assuming that a bytes is 8 bits... 
+ * I am assuming that a byte is 8 bits... 
  * I don't know when is not but seems like sometimes IS NOT
  */
 
@@ -68,6 +68,42 @@ void make_string(char a, char b, char c, char* str) {
     }
 
     cout << "[JOB] Generated string" << str << endl;
+
+}
+
+//Fixed length of 3 in the array...
+long* make_long_array(long a, long b, long c) {
+
+    long* arr = new long[3];
+    
+    #pragma oss task
+    {
+        arr[0] = a;
+        arr[1] = b;
+        arr[2] = c;
+    }
+
+    return arr;
+
+}
+
+void sum_long_array(long* array) {
+    array[0] = array[0] + array[1] + array[2];
+}
+
+int* make_int_array(int a, int b, int c) {
+    return NULL;
+}
+
+void sum_int_array(int* array) {
+
+}
+
+short* make_short_array(short a, short b, short c) {
+    return NULL;
+}
+
+void sum_short_array(short* array) {
 
 }
 

@@ -45,6 +45,8 @@
       \
       --classpath="${base_app_dir}/${jar_name}" \
       \
+      --specific_log_dir="${COMPSs_log_folder}/${app}_0${retry_num}" \
+      \
       $app > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
       
     # Check timeout

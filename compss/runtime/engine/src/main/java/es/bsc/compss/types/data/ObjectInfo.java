@@ -65,7 +65,9 @@ public class ObjectInfo extends DataInfo {
     }
     
     @Override
-    public void waitForDataReadyToDelete(Semaphore semWait) {
+    public int waitForDataReadyToDelete(Semaphore semWait) {
+        semWait.release();
+        return 1;
     }
 
 }

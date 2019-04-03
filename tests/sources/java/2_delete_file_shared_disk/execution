@@ -32,7 +32,7 @@
   echo "*** RUNNING JAVA APPLICATION SHARED DISKS"
   output_log="${target_log_folder}/deleteFileSharedDisk_0${retry_num}.outputlog"
   error_log="${target_log_folder}/deleteFileSharedDisk_0${retry_num}.errorlog"
-  expectedTime=10s
+  expectedTime=60s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

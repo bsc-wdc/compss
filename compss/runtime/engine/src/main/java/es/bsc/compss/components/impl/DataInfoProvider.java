@@ -619,7 +619,7 @@ public class DataInfoProvider {
      * @param semWait
      * @return
      */
-    public DataInfo waitForDataReadyToDelete(DataLocation loc, Semaphore semWait) {
+    public int waitForDataReadyToDelete(DataLocation loc, Semaphore semWait) {
         LOGGER.debug("Waiting for data to be ready for deletion: " + loc.getPath());
         String locationKey = loc.getLocationKey();
         
@@ -627,12 +627,12 @@ public class DataInfoProvider {
         if (dataId == null) {
             LOGGER.debug("No data id found for this data location" + loc.getPath());
             semWait.release();
-            return null;
+            return 0;
         }
 
         DataInfo dataInfo = idToData.get(dataId);
-        dataInfo.waitForDataReadyToDelete(semWait);
-        return dataInfo;
+        int nPermits = dataInfo.waitForDataReadyToDelete(semWait);
+        return nPermits;
     }
     
     /**

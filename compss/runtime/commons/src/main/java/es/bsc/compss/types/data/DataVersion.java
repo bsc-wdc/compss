@@ -95,8 +95,8 @@ public class DataVersion {
     public boolean hasBeenRead() {
         this.readers--;
         if (readers == 0 && this.semUsed == true) {
-            for (int i = 0; i < semReaders.size(); i++) {
-                this.semReaders.get(i).release();
+            for (Semaphore s : semReaders) {
+                s.release();
             }
         }
         return checkDeletion();

@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Type;
 import es.bsc.compss.types.data.operation.copy.Copy;
@@ -52,7 +53,8 @@ public class FileInfo extends DataInfo {
     }
     
     @Override
-    public void waitForDataReadyToDelete(Semaphore semWait) {
+    public int waitForDataReadyToDelete(Semaphore semWait) {
+        int nPermits=1;
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
         DataVersion firstVersion = this.getFirstVersion();
         if (firstVersion != null) {
@@ -63,7 +65,7 @@ public class FileInfo extends DataInfo {
                     if (uri != null) {
                         if (loc.equals(origLocation)) {
                             if (loc.getType() != Type.SHARED) {
-                                waitForEndingCopies(ld, loc, semWait);
+                                nPermits = waitForEndingCopies(ld, loc, semWait);
                             } else {
                                 waitForLecturers(firstVersion,ld,loc,semWait);
                             }
@@ -77,6 +79,7 @@ public class FileInfo extends DataInfo {
         }  else {
             semWait.release();  
         }
+        return nPermits;
     }
     
     private void waitForLecturers(DataVersion firstVersion, LogicalData ld, DataLocation loc, Semaphore semWait) {
@@ -114,18 +117,26 @@ public class FileInfo extends DataInfo {
         return super.delete();
     }
 
-    private void waitForEndingCopies(LogicalData ld, DataLocation loc, Semaphore semWait) {
+    private int waitForEndingCopies(LogicalData ld, DataLocation loc, Semaphore semWait) {
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
+        int nPermits = 1;
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
+            //length copiesInProgress son els permits
+            nPermits = copiesInProgress.size();
             for (Copy copy : copiesInProgress) {
                 if (copy.getSourceData().equals(ld)) {
                     LOGGER.debug("[FileInfo] Waiting for copy of data " + ld.getName() + " to finish...");
-                    Copy.waitForCopyTofinish(copy, Comm.getAppHost().getNode());
-                    //Afegir un listener per cada copia
+                    SafeCopyListener currentCopylistener = new SafeCopyListener(semWait);
+                    copy.addEventListener(currentCopylistener);
+                    currentCopylistener.addOperation();
+                    currentCopylistener.enable();
+//                    Copy.waitForCopyTofinish(copy, Comm.getAppHost().getNode());
                 }
             }
+        } else {
+            semWait.release();
         }
-        semWait.release();
+        return nPermits;
     }
 
 }

@@ -31,21 +31,28 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     private final DataLocation loc;
     private final Semaphore sem;
     private final Semaphore semWait;
+    private int nPermits;
 
     public WaitForDataReadyToDeleteRequest(DataLocation loc, Semaphore sem, Semaphore semWait) {
         this.loc = loc;
         this.sem = sem;
         this.semWait = semWait;
+        this.nPermits = 0;
     }
 
     public DataLocation getLocation() {
         return loc;
     }
     
+    public int getNumPermits() {
+        return nPermits;
+    }
+    
+    
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data to DIP...");
-        FileInfo fileInfo = (FileInfo) dip.waitForDataReadyToDelete(loc,semWait);
+        this.nPermits = dip.waitForDataReadyToDelete(loc,semWait);
         sem.release();
     }
 

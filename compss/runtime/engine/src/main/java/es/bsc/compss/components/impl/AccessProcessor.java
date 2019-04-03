@@ -736,14 +736,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
         Semaphore sem = new Semaphore(0);
         Semaphore semWait = new Semaphore(0);
        
+        WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc,sem,semWait);
         // Wait for data to be ready for deletion
-        if (!requestQueue.offer(new WaitForDataReadyToDeleteRequest(loc,sem,semWait))) {
+        if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
         }
         
         // Wait for response
-        semWait.acquireUninterruptibly();
         sem.acquireUninterruptibly();
+        int nPermits = request.getNumPermits(); 
+        if ( nPermits > 0 ) {
+            semWait.acquireUninterruptibly(nPermits);
+        }
         
         // Request to delete data
         if (!requestQueue.offer(new DeleteFileRequest(loc, sem))) {

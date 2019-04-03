@@ -18,6 +18,31 @@ from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
 
 
+@task(iterator=IN, returns=list)
+def get_next_partition(iterable, start, end):
+    """
+    Divide and retrieve the next partition.
+    :return:
+    """
+
+    # If it's a dict
+    if isinstance(iterable, dict):
+        sorted_keys = sorted(iterable.keys())
+        for key in sorted_keys[start:end]:
+            yield key, iterable[key]
+    elif isinstance(iterable, list):
+        for item in iter(iterable[start:end]):
+            yield item
+    else:
+        index = 0
+        for item in iter(iterable):
+            index += 1
+            if index > end:
+                break
+            elif index > start:
+                yield item
+
+
 @task(files=list, returns=list)
 def task_read_files(file_paths):
     """

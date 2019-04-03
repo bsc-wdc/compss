@@ -90,13 +90,13 @@ def pi_estimation():
 
 def example_1():
     print("Creating a DDS with range(10) and 5 partitions:")
-    dds = DDS(range(10), 5)
+    dds = DDS().load(range(10), 5)
     print("Elements of the DDS:")
     print(dds.collect())
 
     print("Elements & Partitions of the DDS:")
-    dds = DDS(range(10), 5)
-    print(dds.collect(True))
+    dds = DDS().load(range(10), 5)
+    print(dds.collect(keep_partitions=True))
     print('______________END OF THE EXAMPLE________________\n')
 
 
@@ -246,14 +246,14 @@ def load_n_map_example():
 
 def main_program():
     print("________RUNNING EXAMPLES_________")
-    # example_1()
+    example_1()
     # example_2()
     # example_3()
     # example_4()
     # example_5()
     # pi_estimation()
     # See 'launch.sh' for WordCount example.
-    word_count()
+    # word_count()
     # reduce_example()
     # load_n_map_example()
     # run_terasort()

@@ -20,7 +20,6 @@ from itertools import chain
 from pycompss.api.api import compss_wait_on, compss_barrier
 
 from pycompss.dds.new_tasks import *
-from tasks import get_next_partition, marker
 from operator import add
 
 
@@ -39,6 +38,10 @@ class DDS(object):
     def load(self, iterator, num_of_parts=10):
         """
         """
+        if num_of_parts == -1:
+            self.partitions = iterator
+            return
+
         total = len(iterator)
         if not total:
             return self
@@ -260,23 +263,35 @@ class DDS(object):
         compss_barrier()
         return
 
-    def collect(self, future_objects=False):
-        ret = list()
+    def collect(self, keep_partitions=False, future_objects=False):
+        """
+        Returns all elements from all partitions. Elements can be grouped by
+        partitions by setting keep_partitions value as True.
+        :param keep_partitions: Keep Partitions?
+        :param future_objects:
+        :return:
+
+        >>> dds = DDS().load(range(10), 2)
+        >>> dds.collect(True)
+        [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
+        >>> DDS().load(range(10), 2).collect()
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
         res = list()
-        if not callable(self.func):
-            return chain.from_iterable(self.partitions)
-
-        for part in self.partitions:
-            temp = map_partition(self.func, part)
-            ret.append(temp)
-
+        # Future objects cannot be extended for now...
         if future_objects:
-            return ret
+            return self.partitions
 
-        for item in ret:
-            res.extend(compss_wait_on(item))
-
+        self.partitions = compss_wait_on(self.partitions)
+        if not keep_partitions:
+            for p in self.partitions:
+                # p = compss_wait_on(p)
+                res.extend(p)
+        else:
+            for p in self.partitions:
+                res.append(list(p))
         return res
+
 
     """
     Functions for (Key, Value) pairs.

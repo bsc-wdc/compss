@@ -355,7 +355,7 @@ class DDS(object):
         return self.map(lambda x: (x, None))\
             .reduce_by_key(lambda x, _: x).map(lambda x: x[0])
 
-    def reduce(self, f, initial=marker, arity=-1, collect=True):
+    def reduce(self, f, initial=marker, arity=2, collect=True):
         """
         Reduce the whole data set.
         :param f: A reduce function which should take two parameters as inputs
@@ -378,10 +378,9 @@ class DDS(object):
         if initial != marker:
             local_results.append(initial)
 
-        arity = arity if arity > 0 else len(self.partitions)
         branch = list()
         while local_results:
-            while local_results and len(branch) < arity:
+            while len(branch) < arity:
                 temp = local_results.popleft()
                 branch.append(temp)
 

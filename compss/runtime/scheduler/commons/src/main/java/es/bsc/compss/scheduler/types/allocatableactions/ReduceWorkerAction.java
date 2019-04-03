@@ -116,9 +116,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      */
     @Override
     protected void doCompleted() {
-        DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
-        MethodResourceDescription reduction = (MethodResourceDescription) ru.getModification();
-        ResourceManager.notifyWorkerReduction(w, reduction);
+        Worker<T> w = worker.getResource();
+        ResourceManager.confirmWorkerReduction(w, ru);
     }
 
     @Override
@@ -130,20 +129,20 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     protected void doFailed() {
         LOGGER.error("Error waiting for tasks to end");
     }
-    
+
     @Override
     protected void doCanceled() {
-        
+
     }
-    
+
     @Override
     protected void doDirectFail() {
-        
+
     }
-    
+
     @Override
     protected void doFailIgnored() {
-        
+
     }
 
     @Override
@@ -221,7 +220,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     public int getPriority() {
         return Integer.MAX_VALUE;
     }
-    
+
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;

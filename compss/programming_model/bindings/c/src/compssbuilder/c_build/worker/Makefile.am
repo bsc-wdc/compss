@@ -27,11 +27,11 @@ libfunctions_a_CFLAGS =
 if OMPSS2
 libfunctions_a_CPPFLAGS  += --ompss-2
 libfunctions_a_CFLAGS    += --ompss-2
-endif
-
+else    
 if OMPSS
 libfunctions_a_CPPFLAGS  += --ompss
 libfunctions_a_CFLAGS    += --ompss
+endif
 endif
 
 bin_PROGRAMS = nio_worker_c worker_c
@@ -41,23 +41,21 @@ ACLOCAL_AMFLAGS=-I m4
 worker_c_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
 
 worker_c_SOURCES = worker_c.cc \
-        PACKAGE-executor.cc \
-        PACKAGE-functions.cc
+        PACKAGE-executor.cc
      
 #worker_c_LDFLAGS   = --Wf,"--board=zedboard,--clock=100,--task_manager,--name=worker_bitstream" #We need to customize the step and the board to use, as a workaround this should work.
 worker_c_LDFLAGS    =
 
-worker_c_LDADD = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
+worker_c_LDADD = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread libfunctions.a 
 
 nio_worker_c_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
 
 nio_worker_c_SOURCES = nio_worker_c.cc \
-        PACKAGE-executor.cc \
-        PACKAGE-functions.cc
+        PACKAGE-executor.cc
         
 nio_worker_c_LDFLAGS = 
 
-nio_worker_c_LDADD =  -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread 
+nio_worker_c_LDADD =  -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread libfunctions.a
 
 COMPSSGEN_FLAGS = 
 

@@ -321,7 +321,7 @@ public class ExecutionAction extends AllocatableAction {
             profile.start();
             JobDispatcher.dispatch(job);
         } else {
-            if (task.getOnFailure() != OnFailure.RETRY) {
+            if (task.getOnFailure() == OnFailure.IGNORE) {
                 // Delete versions that can not be sent
                 doOutputTransfers(job);
             }
@@ -507,9 +507,12 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doCanceled() {
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onFailedExecution();
         // Notify task failure
         task.decreaseExecutionCount();
-        task.setStatus(TaskState.CANCELED);
+//        task.setStatus(TaskState.CANCELED);
+        task.setStatus(TaskState.FAILED);
         producer.notifyTaskEnd(task);
     }
 

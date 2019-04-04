@@ -22,7 +22,7 @@ class MyClass(object):
     def instance_method(self):
         self.field = self.field * 2
 
-    @task(returns=int, targetDirection=IN)
+    @task(returns=int, target_direction=IN)
     def instance_method_nonmodifier(self):
         return self.field
 
@@ -44,7 +44,7 @@ class MyClassRetInt(object):
 
     # WARNING!!! WHEN DOING THIS, THE FUTURE OBJECT BUILT WILL BE OF 'OBJECT'
     # TYPE, ANT THE INTERNAL FUNCTIONS WILL NOT BE AVAILABLE.
-    @task(returns=1, targetDirection=IN)
+    @task(returns=1, target_direction=IN)
     def instance_method_nonmodifier(self):
         return self.field
 

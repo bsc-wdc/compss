@@ -30,10 +30,25 @@ import pycompss.api.parameter as parameter
 from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.util.context as context
+from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
     logger = logging.getLogger(__name__)
+
+MANDATORY_ARGUMENTS = {}
+# List since the parameter names are included before checking for unexpected arguments
+# (the user can define a=INOUT in the task decorator and this is not an unexpected argument)
+SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
+                       'returns',
+                       'priority',
+                       'on_failure',
+                       'is_replicated',
+                       'is_distributed',
+                       'varargs_type',
+                       'target_direction',
+                       'computing_nodes',
+                       'tracing_hook']
 
 # This lock allows tasks to be launched with the Threading module while ensuring
 # that no attribute is overwritten
@@ -74,15 +89,15 @@ class task(object):
         :return: A dictionary with the default values of the non-parameter decorator fields
         """
         return {
-            'targetDirection': parameter.INOUT,
+            'target_direction': parameter.INOUT,
             'returns': False,
             'priority': False,
-            'onFailure': 'RETRY',
-            'isReplicated': False,
-            'isDistributed': False,
-            'computingNodes': 1,
-            'tracingHook': False,
-            'varargsType': parameter.IN  # Here for legacy purposes
+            'on_failure': 'RETRY',
+            'is_replicated': False,
+            'is_distributed': False,
+            'computing_nodes': 1,
+            'tracing_hook': False,
+            'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
     def __init__(self, comment=None, **kwargs):
@@ -565,7 +580,7 @@ class task(object):
         # Also, the very nature of decorators are a huge hint about how we should treat user
         # functions, as most wrappers return a function f(*a, **k)
         if self.param_varargs is None:
-            self.param_varargs = 'varargsType'
+            self.param_varargs = 'varargs_type'
         if self.param_defaults is None:
             self.param_defaults = ()
 
@@ -698,9 +713,9 @@ class task(object):
             self.returns,
             self.decorator_arguments,
             self.computing_nodes,
-            self.decorator_arguments['isReplicated'],
-            self.decorator_arguments['isDistributed'],
-            self.decorator_arguments['onFailure']
+            self.decorator_arguments['is_replicated'],
+            self.decorator_arguments['is_distributed'],
+            self.decorator_arguments['on_failure']
         )
         master_lock.release()
         return ret
@@ -710,10 +725,10 @@ class task(object):
         Returns the direction of the varargs arguments.
         Can be defined in the decorator in two ways:
         args = dir, where args is the name of the variadic args tuple, or
-        varargsType = dir (for legacy reasons)
+        varargs_type = dir (for legacy reasons)
         """
         if self.param_varargs not in self.decorator_arguments:
-            return self.decorator_arguments['varargsType']
+            return self.decorator_arguments['varargs_type']
         return self.decorator_arguments[self.param_varargs]
 
     def get_default_direction(self, var_name):
@@ -725,9 +740,9 @@ class task(object):
         # We are the 'self' or 'cls' in an instance or classmethod that modifies the given class
         # so we are an INOUT or CONCURRENT
         self_dirs = [parameter.DIRECTION.INOUT, parameter.DIRECTION.CONCURRENT]
-        if self.decorator_arguments['targetDirection'].direction in self_dirs and var_name in ['self', 'cls'] and \
+        if self.decorator_arguments['target_direction'].direction in self_dirs and var_name in ['self', 'cls'] and \
                 self.param_args and self.param_args[0] == var_name:
-            return self.decorator_arguments['targetDirection']
+            return self.decorator_arguments['target_direction']
         return parameter.get_new_parameter('IN')
 
     def process_master_parameters(self, *args, **kwargs):
@@ -740,9 +755,10 @@ class task(object):
         """
         from collections import OrderedDict
         parameter_values = OrderedDict()
-        # If we have an MPI, COMPSs or MultiNode decorator above us we should have computingNodes
+        parameter_names = []
+        # If we have an MPI, COMPSs or MultiNode decorator above us we should have computing_nodes
         # as a kwarg, we should detect it and remove it. Otherwise we set it to 1
-        self.computing_nodes = kwargs.pop('computingNodes', 1)
+        self.computing_nodes = kwargs.pop('computing_nodes', 1)
         # It is important to know the name of the first argument to determine if we
         # are dealing with a class or instance method (i.e: first argument is named self)
         self.first_arg_name = None
@@ -754,6 +770,7 @@ class task(object):
             if self.first_arg_name is None:
                 self.first_arg_name = var_name
             parameter_values[var_name] = var_value
+            parameter_names.append(var_name)
         num_defaults = len(self.param_defaults)
         # Give default values to all the parameters that have a
         # default value and are not already set
@@ -802,6 +819,10 @@ class task(object):
                 self.parameters[var_name].file_name = parameter_values[var_name]
             else:
                 self.parameters[var_name].object = parameter_values[var_name]
+
+        # Check the arguments - Look for mandatory and unexpected arguments
+        supported_args = SUPPORTED_ARGUMENTS + parameter_names
+        check_arguments(MANDATORY_ARGUMENTS, supported_args, list(self.decorator_arguments.keys()), "@task")
 
     def get_parameter_direction(self, name):
         """
@@ -971,7 +992,7 @@ class task(object):
                 self_value = 'null'
 
         # Tracing hook is disabled by default during the user code of the task.
-        # The user can enable it with tracingHook=True in @task decorator for specific tasks or globally with the
+        # The user can enable it with tracing_hook=True in @task decorator for specific tasks or globally with the
         # COMPSS_TRACING_HOOK=true environment variable.
         restore_hook = False
         if kwargs['compss_tracing']:
@@ -979,7 +1000,7 @@ class task(object):
             global_tracing_hook = False
             if TRACING_HOOK_ENV_VAR in os.environ:
                 global_tracing_hook = os.environ[TRACING_HOOK_ENV_VAR] == "true"
-            if self.decorator_arguments['tracingHook'] or global_tracing_hook:
+            if self.decorator_arguments['tracing_hook'] or global_tracing_hook:
                 # The user wants to keep the tracing hook
                 pass
             else:
@@ -1066,7 +1087,7 @@ class task(object):
 
         # Add self type and value if exist
         if has_self:
-            if self.decorator_arguments['targetDirection'].direction == parameter.DIRECTION.INOUT:
+            if self.decorator_arguments['target_direction'].direction == parameter.DIRECTION.INOUT:
                 # Check if self is a PSCO that has been persisted inside the task and isModifier
                 # Update self type and value
                 self_type = parameter.get_compss_type(args[0])
@@ -1095,7 +1116,7 @@ class task(object):
                 new_types.append(ret_type)
                 new_values.append(ret_value)
 
-        return new_types, new_values, self.decorator_arguments['targetDirection']
+        return new_types, new_values, self.decorator_arguments['target_direction']
 
     def sequential_call(self, *args, **kwargs):
         """

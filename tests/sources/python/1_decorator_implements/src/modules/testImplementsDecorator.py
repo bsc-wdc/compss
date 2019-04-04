@@ -17,7 +17,7 @@ from pycompss.api.constraint import constraint
 
 
 @implement(source_class="modules.testImplementsDecorator", method="addtwovectors")
-@constraint(AppSoftware="NUMPY")
+@constraint(app_software="NUMPY")
 @task(returns=list)
 def myfunctionWithNumpy(list1, list2):
     assert (len(list1) == len(list2))
@@ -44,7 +44,7 @@ def myfunctionImplementation(list1, list2):
 '''
 
 
-@constraint(AppSoftware="NonNumpy")
+@constraint(app_software="NonNumpy")
 @task(returns=list)
 def addtwovectors(list1, list2):
     print("addtwovectors")

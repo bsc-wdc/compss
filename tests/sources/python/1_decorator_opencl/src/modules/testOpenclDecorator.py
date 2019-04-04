@@ -16,14 +16,14 @@ from pycompss.api.opencl import opencl
 from pycompss.api.constraint import constraint
 
 
-@opencl(kernel="date", workingDir="/tmp")
+@opencl(kernel="date", working_dir="/tmp")
 @task()
 def myDate(dprefix, param):
     pass
 
 
-@constraint(ComputingUnits="2")
-@opencl(kernel="date", workingDir="/tmp")
+@constraint(computing_units="2")
+@opencl(kernel="date", working_dir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):
     pass

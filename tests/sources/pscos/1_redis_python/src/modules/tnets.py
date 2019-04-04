@@ -16,7 +16,7 @@ class EA(TNet):
     def __init__(self):
         super(EA, self).__init__()
 
-    @constraint(ComputingUnits="1")
-    @task(targetDirection=IN, returns=object)
+    @constraint(computing_units="1")
+    @task(target_direction=IN, returns=object)
     def extract_features(self, bs, image_paths, pooled, mean):
         return self.main_extract_features(bs, image_paths, pooled, mean)

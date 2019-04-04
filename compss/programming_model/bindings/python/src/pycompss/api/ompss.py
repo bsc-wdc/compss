@@ -28,9 +28,15 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import check_arguments
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+MANDATORY_ARGUMENTS = {'binary'}
+SUPPORTED_ARGUMENTS = {'computing_nodes',
+                       'working_dir',
+                       'binary'}
 
 
 class Ompss(object):
@@ -58,23 +64,26 @@ class Ompss(object):
             if __debug__:
                 logger.debug("Init @ompss decorator...")
 
+            # Check the arguments
+            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@ompss")
+
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
-            if 'computingNodes' not in self.kwargs:
-                self.kwargs['computingNodes'] = 1
+            if 'computing_nodes' not in self.kwargs:
+                self.kwargs['computing_nodes'] = 1
             else:
-                computing_nodes = kwargs['computingNodes']
+                computing_nodes = kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
-                    self.kwargs['computingNodes'] = kwargs['computingNodes']
+                    self.kwargs['computing_nodes'] = kwargs['computing_nodes']
                 elif isinstance(computing_nodes, str) and computing_nodes.strip().startswith('$'):
                     env_var = computing_nodes.strip()[1:]  # Remove $
                     if env_var.startswith('{'):
                         env_var = env_var[1:-1]  # remove brackets
-                    self.kwargs['computingNodes'] = int(os.environ[env_var])
+                    self.kwargs['computing_nodes'] = int(os.environ[env_var])
                 else:
                     raise Exception("Wrong Computing Nodes value at MPI decorator.")
             if __debug__:
-                logger.debug("This OMPSs task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+                logger.debug("This OMPSs task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
         else:
             pass
 
@@ -135,8 +144,8 @@ class Ompss(object):
                     # Update the core element information with the mpi information
                     core_element.set_impl_type("OMPSS")
                     binary = self.kwargs['binary']
-                    if 'workingDir' in self.kwargs:
-                        working_dir = self.kwargs['workingDir']
+                    if 'working_dir' in self.kwargs:
+                        working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'OMPSS.' + binary
@@ -151,9 +160,9 @@ class Ompss(object):
             if __debug__:
                 logger.debug("Executing ompss_f wrapper.")
 
-            # Set the computingNodes variable in kwargs for its usage
+            # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computingNodes'] = self.kwargs['computingNodes']
+            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

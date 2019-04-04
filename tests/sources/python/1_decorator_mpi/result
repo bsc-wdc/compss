@@ -80,7 +80,7 @@
   else
     appearances=$(grep -c "$mondayDate2" "$monday_file")
     if [ ! "$appearances" -eq "4" ]; then
-      echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function computingNodes parameter failed." | tee -a "${output_file}"
+      echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function computing_nodes parameter failed." | tee -a "${output_file}"
       exit 1
     fi
   fi
@@ -108,7 +108,7 @@
   else
     appearances=$(grep -c "HELLO, this is a simple test to grep." "${hellofile}")
     if [ ! "$appearances" -eq "16" ]; then
-      echo "ERROR: TASK FAILED: testFileManagementIN function computingNodes parameter failed." | tee -a "${output_file}"
+      echo "ERROR: TASK FAILED: testFileManagementIN function computing_nodes parameter failed." | tee -a "${output_file}"
       exit 1
     fi
   fi
@@ -126,7 +126,7 @@
       # Check how many infile are that are symlinks (start with l).
       appearances=$(grep "infile" "$myLs" | grep -c "^l")
       if [ ! "$appearances" -eq "2" ]; then
-        echo "ERROR: TASK FAILED: testFilesAndPrefix function computingNodes parameter failed." | tee -a "${output_file}"
+        echo "ERROR: TASK FAILED: testFilesAndPrefix function computing_nodes parameter failed." | tee -a "${output_file}"
         exit 1
       fi
   fi
@@ -139,7 +139,7 @@
     # Check how many inoutfile are that are symlinks (start with l).
     appearances=$(grep "inoutfile" "$myLs2" | grep -c "^l")
     if [ ! "$appearances" -eq "2" ]; then
-      echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function computingNodes parameter failed." | tee -a "${output_file}"
+      echo "ERROR: TASK FAILED: testFilesAndPrefixWithoutType function computing_nodes parameter failed." | tee -a "${output_file}"
       exit 1
     fi
   fi

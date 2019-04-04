@@ -37,7 +37,7 @@ def create_matrix(m_size):
     return mat
 
 
-@constraint(ComputingUnits="${ComputingUnits}")
+@constraint(computing_units="${ComputingUnits}")
 @task(returns=1)
 def create_entry():
     import os

@@ -15,7 +15,7 @@ from pycompss.api.task import task
 from pycompss.api.parameter import *
 
 
-@task(varargsType=FILE_IN, returns=str)
+@task(varargs_type=FILE_IN, returns=str)
 def file_in(a, b, *args):
     """
     Basic test: args are file ins

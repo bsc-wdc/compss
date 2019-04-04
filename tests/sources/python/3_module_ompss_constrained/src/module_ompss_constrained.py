@@ -13,7 +13,7 @@ from pycompss.api.ompss import ompss
 from pycompss.api.constraint import constraint
 
 
-@constraint(ComputingUnits="1")
+@constraint(computing_units="1")
 @ompss(binary="date")
 @task()
 def myDateConstrained(dprefix, param):

@@ -28,9 +28,14 @@ import inspect
 import logging
 import os
 import pycompss.util.context as context
+from pycompss.util.arguments import check_arguments
 
 if __debug__:
     logger = logging.getLogger(__name__)
+
+MANDATORY_ARGUMENTS = {'kernel'}
+SUPPORTED_ARGUMENTS = {'kernel',
+                       'working_dir'}
 
 
 class Opencl(object):
@@ -54,8 +59,12 @@ class Opencl(object):
         self.kwargs = kwargs
         self.registered = False
         self.scope = context.in_pycompss()
-        if self.scope and __debug__:
-            logger.debug("Init @opencl decorator...")
+        if self.scope:
+            if __debug__:
+                logger.debug("Init @opencl decorator...")
+
+            # Check the arguments
+            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@opencl")
 
     def __call__(self, func):
         """
@@ -113,8 +122,8 @@ class Opencl(object):
                 # Update the core element information with the mpi information
                 core_element.set_impl_type("OPENCL")
                 kernel = self.kwargs['kernel']
-                if 'workingDir' in self.kwargs:
-                    working_dir = self.kwargs['workingDir']
+                if 'working_dir' in self.kwargs:
+                    working_dir = self.kwargs['working_dir']
                 else:
                     working_dir = '[unassigned]'  # Empty or '[unassigned]'
                 impl_signature = 'OPENCL.' + kernel

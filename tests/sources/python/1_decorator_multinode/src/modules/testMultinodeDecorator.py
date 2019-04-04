@@ -18,7 +18,7 @@ from pycompss.api.api import compss_wait_on
 
 
 @constraint(computingUnits="2")
-@multinode(computingNodes="2")
+@multinode(computing_nodes="2")
 @task()
 def multi_node_task():
     # Expected values

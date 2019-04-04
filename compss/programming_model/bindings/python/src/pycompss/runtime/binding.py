@@ -568,6 +568,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
     :param num_nodes: Number of nodes that the task must use
     :param replicated: Boolean indicating if the task must be replicated or not
     :param distributed: Boolean indicating if the task must be distributed or not
+    :param on_failure: Action on failure
     :return: The future object related to the task return
     """
 

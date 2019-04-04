@@ -18,51 +18,51 @@ from pycompss.api.ompss import ompss
 from pycompss.api.constraint import constraint
 
 
-@ompss(binary="date", workingDir="/tmp")
+@ompss(binary="date", working_dir="/tmp")
 @task()
 def myDate(dprefix, param):
     pass
 
 
-@constraint(ComputingUnits="2")
-@ompss(binary="date", workingDir="/tmp")
+@constraint(computing_units="2")
+@ompss(binary="date", working_dir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
 
-@constraint(ComputingUnits="$CUS")
-@ompss(binary="date", workingDir="/tmp")
+@constraint(computing_units="$CUS")
+@ompss(binary="date", working_dir="/tmp")
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):
     pass
 
 
-@ompss(binary="sed", workingDir=".")
+@ompss(binary="sed", working_dir=".")
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass
 
 
-@ompss(binary="date", workingDir=".")
+@ompss(binary="date", working_dir=".")
 @task(returns=int)
 def myReturn():
     pass
 
 
-@ompss(binary="./private.sh", workingDir=os.getcwd() + '/src/scripts/')
+@ompss(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/')
 @task(returns=int)
 def failedBinary(code):
     pass
 
 
-@ompss(binary="sed", workingDir=".")
+@ompss(binary="sed", working_dir=".")
 @task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
     pass
 
 
-@ompss(binary="grep", workingDir=".")
+@ompss(binary="grep", working_dir=".")
 # @task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
 # @task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
 @task(infile={Type: FILE_IN_STDIN}, result={Type: FILE_OUT_STDOUT})
@@ -81,7 +81,7 @@ def myLs(flag, hide, sort):
 def myLsWithoutType(flag, hide, sort):
     pass
 
-@ompss(binary="./checkNames.sh", workingDir=os.getcwd() + '/src/scripts/')
+@ompss(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/')
 @task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
 def checkFileNames(f, fp, name, fout):
     pass

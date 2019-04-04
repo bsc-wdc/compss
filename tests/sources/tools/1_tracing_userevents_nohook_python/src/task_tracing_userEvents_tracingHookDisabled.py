@@ -42,7 +42,7 @@ def init_board_random(numV, dim):
     return [random.random(dim) for _ in range(numV)]
 
 
-@task(returns=dict, tracingHook=False)
+@task(returns=dict, tracing_hook=False)
 def cluster_points_partial(XP, mu, ind):
     import pyextrae.multiprocessing as pyextrae
     import numpy as np
@@ -60,7 +60,7 @@ def cluster_points_partial(XP, mu, ind):
     return dic
 
 
-@task(returns=dict, tracingHook=False)
+@task(returns=dict, tracing_hook=False)
 def partial_sum(XP, clusters, ind):
     import pyextrae.multiprocessing as pyextrae
     import numpy as np
@@ -74,7 +74,7 @@ def partial_sum(XP, clusters, ind):
     return dic
 
 
-@task(returns=dict, priority=True, tracingHook=False)
+@task(returns=dict, priority=True, tracing_hook=False)
 def reduceCentersTask(a, b):
     import pyextrae.multiprocessing as pyextrae
     for key in b:
@@ -116,7 +116,7 @@ def init_random(dim, k):
     return m
 
 
-@task(returns=list, tracingHook=False)
+@task(returns=list, tracing_hook=False)
 def genFragment(numv, dim):
     import pyextrae.multiprocessing as pyextrae
     # if mode == "gauss":

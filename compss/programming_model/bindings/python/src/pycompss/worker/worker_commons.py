@@ -313,9 +313,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
 
         if persistent_storage:
             with storage_task_context(logger, values, config_file_path=storage_conf):
-                new_types, new_values, targetDirection = task_execution_1()
+                new_types, new_values, target_direction = task_execution_1()
         else:
-            new_types, new_values, targetDirection = task_execution_1()
+            new_types, new_values, target_direction = task_execution_1()
 
     # ==========================================================================
     except AttributeError:
@@ -398,9 +398,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             try:
                 if persistent_storage:
                     with storage_task_context(logger, values, config_file_path=storage_conf):
-                        new_types, new_values, targetDirection = task_execution_2()
+                        new_types, new_values, target_direction = task_execution_2()
                 else:
-                    new_types, new_values, targetDirection = task_execution_2()
+                    new_types, new_values, target_direction = task_execution_2()
             except Exception:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 import traceback
@@ -410,11 +410,11 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                 # If exception is raised during the task execution, new_types and new_values are empty
                 return 1, new_types, new_values
 
-            # Depending on the targetDirection option, it is necessary to serialize again self or not.
+            # Depending on the target_direction option, it is necessary to serialize again self or not.
             # Since this option is only visible within the task decorator, the task_execution returns
             # the value of isModifier in order to know here if self has to be serialized.
             # This solution avoids to use inspect.
-            if targetDirection.direction == parameter.DIRECTION.INOUT:
+            if target_direction.direction == parameter.DIRECTION.INOUT:
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(self_elem):
                     # There is no explicit update if self is a PSCO.
@@ -447,9 +447,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             try:
                 if persistent_storage:
                     with storage_task_context(logger, values, config_file_path=storage_conf):
-                        new_types, new_values, targetDirection = task_execution_3()
+                        new_types, new_values, target_direction = task_execution_3()
                 else:
-                    new_types, new_values, targetDirection = task_execution_3()
+                    new_types, new_values, target_direction = task_execution_3()
             except Exception:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 import traceback

@@ -89,34 +89,61 @@ class DDS(object):
 
         return self
 
-    def num_of_partitions(self):
+    def union(self, *args):
         """
-        Get the total amount of partitions
+        Combine this data set with some other DDS data.
+        :param args: Arbitrary amount of DDS objects.
+        :return:
+
+        >>> first = DDS().load([0, 1, 2, 3, 4], 2)
+        >>> second = DDS().load([5, 6, 7, 8, 9], 3)
+        >>> first.union(second).count()
+        10
+        """
+
+        for dds in args:
+            self.partitions.extend(dds.partitions)
+
+        return self
+
+    def num_of_partitions(self):
+        """ Get the total amount of partitions
         :return: int
 
-        >>> DDS(range(10), 5).num_of_partitions()
+        >>> DDS().load(range(10), 5).num_of_partitions()
         5
         """
         return len(self.partitions)
 
-    def map(self, func):
+    def map(self, func, *args, **kwargs):
+        """ Apply the given function to each element of the dataset.
 
-        def _map(iterator):
-            return map(func, iterator)
+        >>> dds = DDS().load(range(10), 5).map(lambda x: x * 2)
+        >>> sorted(dds.collect())
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+        """
 
-        return self.map_partitions(_map)
+        def mapper(iterator):
+            results = list()
+            for item in iterator:
+                results.append(func(item, *args, **kwargs))
+            return results
+
+        return self.map_partitions(mapper)
 
     def map_partitions(self, func):
+        """ Apply a function to each partition of this data set.
+
+        >>> DDS().load(range(10), 5).map_partitions(lambda x: [sum(x)]).collect(True)
+        [[1], [5], [9], [13], [17]]
+        """
         return ChildDDS(self, func)
 
     def map_and_flatten(self, f, *args, **kwargs):
-        """
-        Just because flat_map is an ugly name.
-        Apply a function to each element and extend the derived element(s) if
-        possible.
+        """ Apply a function to each element of the dataset, and extend the
+        derived element(s) if possible.
         :param f: A function that should return a list, tuple or another kind of
                   iterable
-        :return:
 
         >>> dds = DDS().load([2, 3, 4])
         >>> sorted(dds.map_and_flatten(lambda x: range(1, x)).collect())
@@ -131,7 +158,12 @@ class DDS(object):
         return self.map_partitions(mapper)
 
     def filter(self, f):
+        """ Filter elements of this data set by applying a given function.
 
+
+        >>> DDS().load(range(10), 5).filter(lambda x: x % 2).count()
+        5
+        """
         def _filter(iterator):
             return filter(f, iterator)
 
@@ -139,11 +171,16 @@ class DDS(object):
 
     def reduce(self, f, initial=marker, arity=-1):
         """
+        Reduce the whole data set.
+        :param f: A reduce function which should take two parameters as inputs
+                  and return a single result which will be sent to itself again.
+        :param initial: Initial value for reducer which will be used to reduce
+                the first element with.
+        :param arity: tree depth
+        :return: reduced result (inside a DDS if necessary).
 
-        :param f:
-        :param initial:
-        :param arity:
-        :return:
+        >>> DDS().load(range(10), 5).reduce((lambda b, a: b + a) , 100)
+        145
         """
         def local_reducer(partition):
             """
@@ -192,8 +229,8 @@ class DDS(object):
         Amount of each element on this data set.
         :return: list of tuples (element, number)
 
-        >>> first = DDS([0, 1, 2], 2)
-        >>> second = DDS([2, 3, 4], 3)
+        >>> first = DDS().load([0, 1, 2], 2)
+        >>> second = DDS().load([2, 3, 4], 3)
         >>> first.union(second).count_by_value(as_dict=True)
         {0: 1, 1: 1, 2: 2, 3: 1, 4: 1}
         """
@@ -257,17 +294,20 @@ class DDS(object):
         """
         return sum(self.map_partitions(lambda x: [sum(x)]).collect())
 
+    def count(self):
+        """
+        :return: total number of elements
+
+        >>> DDS().load(range(3), 2).count()
+        3
+        """
+        return self.map(lambda x: 1).sum()
+
     def foreach(self, f):
         """
         Apply a function to each element of this data set without returning
         anything.
         :param f: a void function
-        :return: null
-
-        >>> def dummy(x): print(x)
-        >>> DDS().load(range(2), 2).foreach(dummy)
-        1
-        2
         """
         self.map(f)
         # Wait for all the tasks to finish
@@ -443,8 +483,10 @@ def tree_reduce_dicts(initial, reduce_function, collect, total_parts=-1):
                 return ret
             # As a list of future objects
             # TODO: Implement 'dict' --> 'lists on nodes'
-            print(total_parts)
-            return []
+            ret = list()
+            for i in range(total_parts):
+                ret.append(task_dict_to_list(first, total_parts, i))
+            return ret
 
 
 def _run_tests():

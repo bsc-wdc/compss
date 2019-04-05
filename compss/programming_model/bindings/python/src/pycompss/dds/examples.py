@@ -65,10 +65,10 @@ def word_count():
 
     bir = DDS().load_files_from_dir(path_file)
 
-    iki = bir.map_and_flatten(lambda x: x[1].split())
+    iki = bir.map_and_flatten(lambda x: x[1].split()).collect()
 
-    result = iki.count_by_value(arity=4, as_dict=True)
-
+    # result = iki.count_by_value(arity=4, as_dict=True)
+    result = len(iki)
     print(result)
     print("Elapsed Time: ", time.time()-start)
     return
@@ -90,14 +90,9 @@ def pi_estimation():
 
 def example_1():
     print("Creating a DDS with range(10) and 5 partitions:")
-    dds = DDS().load(range(10), 5)
+    dds = DDS().load(range(10), 5).filter(lambda x: x % 2).collect()
     print("Elements of the DDS:")
-    print(dds.collect())
-
-    print("Elements & Partitions of the DDS:")
-    dds = DDS().load(range(10), 5).map(lambda x: x * 2)
-    print(dds.collect(keep_partitions=True, future_objects=True))
-    print('______________END OF THE EXAMPLE________________\n')
+    print(dds)
 
 
 def example_2():

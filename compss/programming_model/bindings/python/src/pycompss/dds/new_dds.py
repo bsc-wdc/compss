@@ -137,7 +137,7 @@ class DDS(object):
 
         return self.map_partitions(_filter)
 
-    def reduce(self, f, initial, arity=-1):
+    def reduce(self, f, initial=marker, arity=-1):
         """
 
         :param f:
@@ -205,10 +205,11 @@ class DDS(object):
             return counts
 
         # Count locally and create dictionary partitions
-        local_results = self.map_partitions(count_partition)
+        local_results = self.map_partitions(count_partition) \
+            .collect(future_objects=True)
 
         # Create a deque from partitions and start reduce
-        future_objects = deque(local_results.collect(True))
+        future_objects = deque(local_results)
         ret = []
         branch = list()
         while future_objects:
@@ -309,7 +310,6 @@ class DDS(object):
             for _pp in processed:
                 ret.append(list(_pp))
         return ret
-
 
     """
     Functions for (Key, Value) pairs.

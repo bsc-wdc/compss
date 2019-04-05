@@ -92,19 +92,38 @@ void sum_long_array(long* array) {
 }
 
 int* make_int_array(int a, int b, int c) {
-    return NULL;
+
+    int* arr = new int[3];
+
+    #pragma oss task
+    {
+        arr[0] = a;
+        arr[1] = b;
+        arr[2] = c;
+    }
+
+    return arr;
 }
 
 void sum_int_array(int* array) {
-
+    array[0] = array[0] + array[1] + array[2];
 }
 
 short* make_short_array(short a, short b, short c) {
-    return NULL;
+    short* arr = new short[3];
+
+    #pragma oss task
+    {
+        arr[0] = a;
+        arr[1] = b;
+        arr[2] = c;
+    }
+
+    return arr;
 }
 
 void sum_short_array(short* array) {
-
+    array[0] = array[0] + array[1] + array[2];
 }
 
 void split_string(char* str) {

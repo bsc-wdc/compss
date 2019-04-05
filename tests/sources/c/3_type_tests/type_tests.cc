@@ -105,16 +105,17 @@ int main() {
     long long_a, long_b, long_c;
     long_a = long_b = long_c = 1;
 
-    long result = long_a + long_b + long_c;
+    long long_result = long_a + long_b + long_c;
 
     long* long_array;
     long_array = make_long_array(long_a, long_b, long_c);
 
     sum_long_array(long_array);
-    
 
-    if (long_array[0] != result) {
-       cout << "The expected result when executing task sum_long_array is: " << result <<
+    compss_wait_on(long_array);
+
+    if (long_array[0] != long_result) {
+       cout << "The expected result when executing task sum_long_array is: " << long_result <<
                " and we got: " << long_array[0] << endl;
         return -1; 
     }
@@ -123,6 +124,58 @@ int main() {
     }
 
     //----------------------------------------------------------------------
+
+    //Test with int and int*
+    //----------------------------------------------------------------------
+    
+    int int_a, int_b, int_c;
+    int_a = int_b = int_c = 1;
+
+    int int_result = int_a + int_b + int_c;
+
+    int* int_array;
+    int_array = make_int_array(int_a, int_b, int_c);
+
+    sum_int_array(int_array);
+   
+    compss_wait_on(int_array);
+ 
+    if (int_array[0] != int_result) {
+       cout << "The expected result when executing task sum_int_array is: " << int_result <<
+               " and we got: " << int_array[0] << endl;
+        return -1; 
+    }
+    else {
+        cout << "make_int_array... works" << endl << "sum_int_array... works" << endl;
+    }
+    
+    //----------------------------------------------------------------------
+
+    //Test with short and short*
+    //----------------------------------------------------------------------
+
+    short short_a, short_b, short_c;
+    short_a = short_b = short_c = 1;
+
+    short short_result = short_a + short_b + short_c;
+
+    short_array = make_short_array(short_a, short_b, short_c);
+
+    sum_short_array(short_array);
+   
+    compss_wait_on(short_array);
+ 
+    if (short_array[0] != short_result) {
+       cout << "The expected result when executing task sum_short_array is: " << short_result <<
+               " and we got: " << short_array[0] << endl;
+        return -1; 
+    }
+    else {
+        cout << "make_short_array... works" << endl << "sum_short_array... works" << endl;
+    }
+
+    //----------------------------------------------------------------------
+
 
     //Test with char and char*
     //----------------------------------------------------------------------
@@ -135,11 +188,17 @@ int main() {
     
     make_string(a, b, c, str);
 
-    split_string(str);
+    split_string(str); //This one is useless, it only tests inside, but returns nothing!
 
     compss_wait_on(str);
 
-    cout << "str: " << str  << endl;
+    if (str != "LKM") {
+       cout << "The expected result when executing make_string is : \"LKM\" and we got: " << str << endl;
+        return -1;
+    }
+    else {
+        cout << "make_string... works" << endl;
+    }
     
     //----------------------------------------------------------------------
 

@@ -78,6 +78,16 @@ def compss_delete_object(obj):
 
     return True
 
+def compss_wait_on_file(file_name):
+    """
+    Delete a file -> Calls runtime.
+
+    :param file_name: File name.
+    :return: True if success. False otherwise.
+    """
+
+    return True
+
 
 def compss_barrier(no_more_tasks=False):
     """

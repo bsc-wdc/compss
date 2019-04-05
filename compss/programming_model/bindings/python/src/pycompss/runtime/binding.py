@@ -272,7 +272,7 @@ def stop_runtime():
         logger.info("COMPSs stopped")
 
 
-def get_file(file_name, mode):
+def open_file(file_name, mode):
     """
     Calls the external python library (that calls the bindings-common)
     in order to request a file.
@@ -284,7 +284,7 @@ def get_file(file_name, mode):
 
     if __debug__:
         logger.debug("Getting file %s with mode %s" % (file_name, mode))
-    compss_name = compss.get_file(file_name, mode)
+    compss_name = compss.open_file(file_name, mode)
     if __debug__:
         logger.debug("COMPSs file name is %s" % compss_name)
     return compss_name
@@ -308,6 +308,20 @@ def delete_file(file_name):
         else:
             logger.error("Failed to remove file %s." % file_name)
     return result
+
+def get_file(file_name):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request last version of file.
+
+    :param file_name: File name to remove
+    :return: None
+    """
+
+    if __debug__:
+        logger.debug("Getting file %s" % file_name)
+
+    compss.get_file(0, file_name)
 
 
 def delete_object(obj):
@@ -504,7 +518,7 @@ def synchronize(obj, mode):
     :return: The value of the object requested.
     """
 
-    # TODO: Add a boolean to differentiate between files and object on the compss.get_file call. This change pretends
+    # TODO: Add a boolean to differentiate between files and object on the compss.open_file call. This change pretends
     # to obtain better traces. Must be implemented first in the Runtime, then in the bindings common C API and
     # finally add the boolean here
     global _current_id
@@ -515,7 +529,7 @@ def synchronize(obj, mode):
             return obj
         else:
             # file_path is of the form storage://pscoId or file://sys_path_to_file
-            file_path = compss.get_file("storage://" + str(obj_id), mode)
+            file_path = compss.open_file("storage://" + str(obj_id), mode)
             # TODO: Add switch on protocol
             protocol, file_name = file_path.split('://')
             new_obj = get_by_id(file_name)
@@ -529,7 +543,7 @@ def synchronize(obj, mode):
         logger.debug("Synchronizing object %s with mode %s" % (obj_id, mode))
 
     file_name = objid_to_filename[obj_id]
-    compss_file = compss.get_file(file_name, mode)
+    compss_file = compss.open_file(file_name, mode)
 
     # Runtime can return a path or a PSCOId
     if compss_file.startswith('/'):

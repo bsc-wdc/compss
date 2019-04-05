@@ -25,7 +25,12 @@ public class GetFile {
         }
 
         // Execute task loop
-        for (int i = 0; i < M; i++) {
+        for (int i=0; i<M*2; i++) {
+            GetFileImpl.readInFile(FILE_NAME);
+        }
+        
+        // Execute task loop
+        for (int i=0; i<1; i++) {
             GetFileImpl.writeInFile(FILE_NAME, i);
         }
 
@@ -90,8 +95,9 @@ public class GetFile {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         // Exception if number of writers has not been correct
-        if (count != M) {
+        if (count != 1) {
             throw new Exception("Incorrect number of writers " + count);
         }
     }

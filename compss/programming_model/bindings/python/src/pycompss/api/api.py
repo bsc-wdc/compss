@@ -45,8 +45,9 @@ if context.in_pycompss():
 
     from pycompss.runtime.binding import start_runtime
     from pycompss.runtime.binding import stop_runtime
-    from pycompss.runtime.binding import get_file
+    from pycompss.runtime.binding import open_file
     from pycompss.runtime.binding import delete_file
+    from pycompss.runtime.binding import get_file
     from pycompss.runtime.binding import delete_object
     from pycompss.runtime.binding import barrier
     from pycompss.runtime.binding import synchronize
@@ -95,7 +96,7 @@ if context.in_pycompss():
         """
 
         compss_mode = get_compss_mode(mode)
-        compss_name = get_file(file_name, compss_mode)
+        compss_name = open_file(file_name, compss_mode)
         return open(compss_name, mode)
 
 
@@ -109,6 +110,16 @@ if context.in_pycompss():
 
         return delete_file(file_name)
 
+
+    def compss_wait_on_file(file_name):
+        """
+        Delete a file -> Calls runtime.
+
+        :param file_name: File name.
+        :return: True if success. False otherwise.
+        """
+
+        return get_file(file_name)
 
     def compss_delete_object(obj):
         """
@@ -201,6 +212,7 @@ else:
     from pycompss.api.dummy.api import compss_stop as __dummy_compss_stop__
     from pycompss.api.dummy.api import compss_open as __dummy_compss_open__
     from pycompss.api.dummy.api import compss_delete_file as __dummy_compss_delete_file__
+    from pycompss.api.dummy.api import compss_wait_on_file as __dummy_compss_wait_on_file__
     from pycompss.api.dummy.api import compss_delete_object as __dummy_compss_delete_object__
     from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
     from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
@@ -221,6 +233,8 @@ else:
     def compss_delete_file(file_name):
         return __dummy_compss_delete_file__(file_name)
 
+    def compss_wait_on_file(file_name):
+        return __dummy_compss_wait_on_file__(file_name)
 
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)

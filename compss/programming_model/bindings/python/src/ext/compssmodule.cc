@@ -358,12 +358,12 @@ process_task(PyObject *self, PyObject *args) {
   Given a PyCOMPSs-id file, get its corresponding COMPSs-id file
 */
 static PyObject *
-get_file(PyObject *self, PyObject *args) {
+open_file(PyObject *self, PyObject *args) {
     debug("####C#### GET FILE\n");
     char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
     char *compss_name;
-    GS_Get_File(file_name, mode, &compss_name);
+    GS_Open_File(file_name, mode, &compss_name);
     debug("####C#### COMPSs file name %s\n", compss_name);
     PyObject *ret = Py_BuildValue("s", compss_name);
     // File_name must NOT be freed, as it points to a PyObject
@@ -402,6 +402,20 @@ close_file(PyObject* self, PyObject* args) {
     char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
     GS_Close_File(file_name, mode);
+    Py_RETURN_NONE;
+}
+
+/*
+  Given a PyCOMPSs-id file, get its corresponding last version COMPSs-id file
+*/
+static PyObject *
+get_file(PyObject *self, PyObject *args) {
+    debug("####C#### GET FILE\n");
+    char *file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    GS_Get_File(app_id, file_name);
+    debug("####C#### COMPSs file name %s\n", compss_name);
+    debug("####C#### COMPSs getFile for AppId: %ld \n", (app_id));
     Py_RETURN_NONE;
 }
 
@@ -485,9 +499,10 @@ static PyMethodDef CompssMethods[] = {
     { "start_runtime", start_runtime, METH_VARARGS, "Start the COMPSs runtime." },
     { "stop_runtime", stop_runtime, METH_VARARGS, "Stop the COMPSs runtime." },
     { "process_task", process_task, METH_VARARGS, "Process a task call from the application." },
-    { "get_file", get_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
+    { "open_file", open_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
     { "close_file", close_file, METH_VARARGS, "Close a file." },
+    { "get_file", get_file, METH_VARARGS, "Get last version of file with its original name." },
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },

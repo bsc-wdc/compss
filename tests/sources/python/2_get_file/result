@@ -44,11 +44,20 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # Grep for unit test errors (ERROR or FAIL)
+  errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
+  fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
+  if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
+      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
+      exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
   # Compute result status
   FILES=11
 
   # Checks if the file has been writen as many times as expected
-  result=$(wc -l < /tmp/text.txt)
+  result=$(wc -m < /tmp/sharedDisk/file.txt)
   if [ "$result" -ne 1 ]; then
     echo "ERROR: The number of writing tasks is not correct. $result "
     exit 1
@@ -65,4 +74,8 @@
     exit 1
   fi
 
+  rm /tmp/sharedDisk/file.txt
+
+  #----------------------------------------------------------------------------------
+  # Report result status
   exit 0

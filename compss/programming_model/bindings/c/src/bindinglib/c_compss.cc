@@ -45,7 +45,7 @@ void compss_ifstream(char * filename, ifstream& ifs) {
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
 
-    GS_Get_File(filename, in_dir, &runtime_filename);
+    GS_Open_File(filename, in_dir, &runtime_filename);
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
@@ -57,7 +57,7 @@ void compss_ofstream(char * filename, ofstream& ofs) {
 
     debug_printf("[C-BINDING]  -  @compss_ofstream  -  Entry.filename: %s\n", filename);
 
-    GS_Get_File(filename, out_dir, &runtime_filename);
+    GS_Open_File(filename, out_dir, &runtime_filename);
 
     debug_printf("[C-BINDING]  -  @compss_ofstream  -  Runtime filename: %s\n", runtime_filename);
 
@@ -87,7 +87,7 @@ FILE* compss_fopen(char * filename, char * mode) {
         dir = concurrent_dir;
     }
 
-    GS_Get_File(filename, dir, &runtime_filename);
+    GS_Open_File(filename, dir, &runtime_filename);
 
     debug_printf("[C-BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
 
@@ -98,6 +98,12 @@ FILE* compss_fopen(char * filename, char * mode) {
 
 void compss_delete_file(char *filename) {
     GS_Delete_File(filename);
+    return;
+}
+
+void compss_wait_on_file(char *filename) {
+    long int l_app_id = 0;
+    GS_Get_File(l_app_id, filename);
     return;
 }
 

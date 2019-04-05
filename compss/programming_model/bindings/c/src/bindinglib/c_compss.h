@@ -64,6 +64,7 @@ void compss_ifstream(char * filename, ifstream& ifs);
 void compss_ofstream(char * filename, ofstream& ofs);
 void compss_delete_file(char * filename);
 FILE* compss_fopen(char * filename, char * mode);
+void compss_wait_on_file(char *filename);
 void compss_barrier();
 void compss_barrier_new(int no_more_tasks);
 

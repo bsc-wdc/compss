@@ -643,7 +643,7 @@ public abstract class AllocatableAction {
                 for (AllocatableAction succ : successors) {
                     failed.addAll(succ.canceled());
                 }
-                failed.add(this);
+//                failed.add(this);
 
                 
 
@@ -701,7 +701,7 @@ public abstract class AllocatableAction {
         List<AllocatableAction> failed = new LinkedList<>();
         
         // Failure notification
-        doFailed();
+        doFailIgnored();
         
         // Release data dependencies of the task of all the successors that need to be executed
         for (AllocatableAction aa : dataSuccessors) {

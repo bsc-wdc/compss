@@ -511,8 +511,7 @@ public class ExecutionAction extends AllocatableAction {
         monitor.onFailedExecution();
         // Notify task failure
         task.decreaseExecutionCount();
-//        task.setStatus(TaskState.CANCELED);
-        task.setStatus(TaskState.FAILED);
+        task.setStatus(TaskState.CANCELED);
         producer.notifyTaskEnd(task);
     }
 
@@ -521,7 +520,7 @@ public class ExecutionAction extends AllocatableAction {
         // Failed message
         String taskName = task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
-        sb.append("Task ").append(taskName).append(" failed. Successors keep running.\n");
+        sb.append("Task failure: Task ").append(taskName).append(" has failed. Successors keep running.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
         TaskMonitor monitor = task.getTaskMonitor();

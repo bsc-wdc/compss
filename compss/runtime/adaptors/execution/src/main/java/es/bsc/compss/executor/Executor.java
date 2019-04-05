@@ -220,8 +220,8 @@ public class Executor implements Runnable {
                 // Writing in the task .err/.out
                 context.getThreadOutStream().println("Exception executing task " + e.getMessage());
                 e.printStackTrace(context.getThreadErrStream());
-                
-                createEmptyFile(invocation);
+//                
+//                createEmptyFile(invocation);
                 throw e;
             } finally {
                 // Unbind files from task sandbox working dir
@@ -596,6 +596,7 @@ public class Executor implements Runnable {
             out.println("[EXECUTOR] executeTask - Error in task execution");
             PrintStream err = context.getThreadErrStream();
             err.println("[EXECUTOR] executeTask - Error in task execution");
+            createEmptyFile(invocation);
             jee.printStackTrace(err);
             throw jee;
         } finally {
@@ -608,20 +609,22 @@ public class Executor implements Runnable {
     
     private void createEmptyFile(Invocation invocation) {
         PrintStream out = context.getThreadOutStream();
+        out.println("[EXECUTOR] executeTask - Checking if a blank file needs to be created");
         for (InvocationParam param : invocation.getParams()) {
             if (param.getType().equals(DataType.FILE_T)) {
                 String filepath = (String) param.getValue();
                 File f = new File(filepath);
                 // If using C binding we ignore potential errors
-                if (!f.exists()) {
-                    out.println("[EXECUTOR] executeTask - Creating a new blank file");
-                    try {
-                        f.createNewFile();
-                    } catch (IOException e) {
-                        System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
-                    }
+                if (f.exists()) {
+                    f.delete();
                 }
-            }
+                out.println("[EXECUTOR] executeTask - Creating a new blank file");
+                try {
+                    f.createNewFile();
+                } catch (IOException e) {
+                    System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
+                }
+            }    
         }
     }
 

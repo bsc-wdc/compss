@@ -1,10 +1,10 @@
 package onFailureIgnore;
 
+import es.bsc.compss.api.COMPSs;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import es.bsc.compss.api.*;
 
 
 public class OnFailureIgnore {

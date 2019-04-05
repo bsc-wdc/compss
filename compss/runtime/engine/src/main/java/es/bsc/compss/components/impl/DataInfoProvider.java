@@ -632,6 +632,7 @@ public class DataInfoProvider {
 
         DataInfo dataInfo = idToData.get(dataId);
         int nPermits = dataInfo.waitForDataReadyToDelete(semWait);
+        LOGGER.debug("MARTA: Number of permits returned " + nPermits);
         return nPermits;
     }
     

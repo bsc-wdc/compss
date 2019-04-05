@@ -23,7 +23,7 @@
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
  
-  gcc -shared -fPIC -o libagent.so -I"${JAVA_HOME}"/include -I"${JAVA_HOME}"/include/linux c/agent.cpp
+  gcc -g -ggdb -shared -fPIC -o libagent.so -I"${JAVA_HOME}"/include -I"${JAVA_HOME}"/include/linux c/agent.cpp
 
   #----------------------------------------------------------------------------------
   # Run application

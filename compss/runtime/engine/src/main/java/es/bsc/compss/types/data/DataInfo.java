@@ -173,8 +173,8 @@ public abstract class DataInfo {
     }
     
     public int waitForDataReadyToDelete(Semaphore semWait) {
-        semWait.release();
-        return 1;
+//        semWait.release();
+        return 0;
     }
 
     public boolean isCurrentVersionToDelete() {

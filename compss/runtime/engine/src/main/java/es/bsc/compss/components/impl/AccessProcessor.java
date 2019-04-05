@@ -742,12 +742,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
         }
         
-        LOGGER.debug("MARTA: Wait request to finish");
         // Wait for response
         sem.acquireUninterruptibly();
         int nPermits = request.getNumPermits(); 
         if ( nPermits > 0 ) {
-            LOGGER.debug("MARTA: wait semWait to be released");
             semWait.acquireUninterruptibly(nPermits);
         }
         

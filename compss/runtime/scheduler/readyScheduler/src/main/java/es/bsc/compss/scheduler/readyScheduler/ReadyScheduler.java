@@ -33,7 +33,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -114,7 +113,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
 			}
 		}
 		this.unassignedReadyActions.remove(resource);
-		super.workerRemoved(resource);
 	}
 
 	@Override
@@ -418,6 +416,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
 				// Hence, this is not an ignored Exception but an expected behavior.
 			}
 		}
+		
 		for (ObjectValue<AllocatableAction> obj : objectValueToErase) {
 			AllocatableAction action = obj.getObject();
 			removeActionFromSchedulerStructures(action);

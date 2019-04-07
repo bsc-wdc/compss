@@ -40,7 +40,8 @@ import org.json.JSONObject;
  */
 public class LIFOScheduler extends TaskScheduler {
 	
-	protected LinkedList<AllocatableAction> unassignedReadyActions;
+	protected LinkedList<AllocatableAction> unassignedReadyActionsList;
+	protected HashSet<AllocatableAction> unassignedReadyActionsSet; 
 	protected final HashSet<ResourceScheduler<?>> availableWorkers;
 	protected int amountOfWorkers;
 
@@ -50,7 +51,8 @@ public class LIFOScheduler extends TaskScheduler {
      */
     public LIFOScheduler() {
         super();
-		this.unassignedReadyActions = new LinkedList<AllocatableAction>();
+		this.unassignedReadyActionsList = new LinkedList<AllocatableAction>();
+		this.unassignedReadyActionsSet = new HashSet<AllocatableAction>();
 		this.availableWorkers = new HashSet<ResourceScheduler<?>>();
 		this.amountOfWorkers = 0;
     }
@@ -81,17 +83,18 @@ public class LIFOScheduler extends TaskScheduler {
 		this.availableWorkers.remove(resource);
 		this.amountOfWorkers -= 1;
 		if (this.amountOfWorkers == 0) {
-			for (AllocatableAction action : this.unassignedReadyActions) {
+			for (AllocatableAction action : this.unassignedReadyActionsList) {
 				addToBlocked(action);
 			}
-			this.unassignedReadyActions.clear();
+			this.unassignedReadyActionsList.clear();
+			this.unassignedReadyActionsSet.clear();
 		}
 	}
 
 	@Override
 	public Score generateActionScore(AllocatableAction action) {
 		// LOGGER.debug("[FIFOScheduler] Generate Action Score for " + action);
-		return new Score(action.getPriority(), action.getId(), 0, 0);
+		return new Score(action.getPriority(), 0, 0, 0);
 	}
 
 	/*
@@ -131,19 +134,9 @@ public class LIFOScheduler extends TaskScheduler {
 		}
 	}
 
-	protected <T extends WorkerResourceDescription> void scheduleAction(AllocatableAction action,
-			ResourceScheduler<T> targetWorker, Score actionScore)
-			throws BlockedActionException, UnassignedActionException {
-		// This if should be eraseble since we only handle dependency free actions
-		if (!action.hasDataPredecessors()) {
-			action.schedule(targetWorker, actionScore);
-			removeActionFromSchedulerStructures(action);
-		}
-	}
-
 	@Override
 	public List<AllocatableAction> getUnassignedActions() {
-		return this.unassignedReadyActions;
+		return this.unassignedReadyActionsList;
 	}
 
 	@Override
@@ -164,24 +157,26 @@ public class LIFOScheduler extends TaskScheduler {
 	}
 
 	private void addActionToSchedulerStructures(AllocatableAction action) {
-		if (this.unassignedReadyActions.isEmpty()) {
+		if (this.amountOfWorkers == 0) {
 			if (DEBUG) {
 				LOGGER.debug(
 						"[ReadyScheduler] Cannot add action " + action + " because there are not available resources");
 			}
 			addToBlocked(action);
 		}else {
-			if(!this.unassignedReadyActions.contains(action)) {
+			if(this.unassignedReadyActionsSet.add(action)) {
 				if (DEBUG) {
 					LOGGER.debug("[ReadyScheduler] Add action to scheduler structures " + action);
 				}
-				this.unassignedReadyActions.addFirst(action);
+				this.unassignedReadyActionsList.addFirst(action);
 			}
 		}
 	}
 
 	private void removeActionFromSchedulerStructures(AllocatableAction action) {
-		this.unassignedReadyActions.remove(action);
+		if(this.unassignedReadyActionsSet.remove(action)) {
+			this.unassignedReadyActionsList.remove(action);	
+		}
 	}
 
 	protected <T extends WorkerResourceDescription> void tryToLaunchFreeActions(List<AllocatableAction> dataFreeActions,
@@ -189,7 +184,7 @@ public class LIFOScheduler extends TaskScheduler {
 			ResourceScheduler<T> resource) {
 		if (DEBUG) {
 			LOGGER.debug("[ReadyScheduler] Try to launch free actions on resource " + resource.getName() + " with "
-					+ this.unassignedReadyActions.size() + " candidates in this worker");
+					+ this.unassignedReadyActionsList.size() + " candidates in this worker");
 		}
 
 		// Actions that have been freeded by the action that just finished
@@ -222,8 +217,7 @@ public class LIFOScheduler extends TaskScheduler {
 		}
 		blockedCandidates = new LinkedList<AllocatableAction>();
 
-		Iterator<AllocatableAction> executableActionsIterator = this.unassignedReadyActions.iterator();
-		HashSet<AllocatableAction> actionsToErase = new HashSet<AllocatableAction>();
+		Iterator<AllocatableAction> executableActionsIterator = this.unassignedReadyActionsList.iterator();
 		while (executableActionsIterator.hasNext() && !this.availableWorkers.isEmpty()) {
 			AllocatableAction freeAction = executableActionsIterator.next();
 			try {
@@ -234,9 +228,11 @@ public class LIFOScheduler extends TaskScheduler {
 				if (!assignedResource.canRunSomething()) {
 					this.availableWorkers.remove(assignedResource);
 				}
-				actionsToErase.add(freeAction);
+				this.unassignedReadyActionsSet.remove(freeAction);
+				executableActionsIterator.remove();
 			} catch (BlockedActionException e) {
-				actionsToErase.add(freeAction);
+				this.unassignedReadyActionsSet.remove(freeAction);
+				executableActionsIterator.remove();
 				addToBlocked(freeAction);
 			} catch (UnassignedActionException e) {
 				// Nothing to be done here since the action was already in the scheduler
@@ -244,9 +240,6 @@ public class LIFOScheduler extends TaskScheduler {
 				// to the objectValueToErase list.
 				// Hence, this is not an ignored Exception but an expected behavior.
 			}
-		}
-		for (AllocatableAction action : actionsToErase) {
-			removeActionFromSchedulerStructures(action);
 		}
 	}
 

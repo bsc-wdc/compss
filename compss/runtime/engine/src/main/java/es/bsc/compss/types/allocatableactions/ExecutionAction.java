@@ -51,6 +51,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -541,6 +542,7 @@ public class ExecutionAction extends AllocatableAction {
                 throw new UnassignedActionException();
             }
         }
+        Collections.shuffle(candidates);
         this.schedule(actionScore, candidates);
     }
 

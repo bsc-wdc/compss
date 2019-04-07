@@ -87,18 +87,33 @@ public class FIFODataScheduler extends ReadyScheduler {
             executableActions.add(obj);
         }
         dataFreeActions.clear();
-        while (!executableActions.isEmpty()) {
+        while (!executableActions.isEmpty() && !this.availableWorkers.isEmpty()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
             try {
+            	/*
                 scheduleAction(freeAction, resource, obj.getScore());
                 tryToLaunch(freeAction);
+                */
+				freeAction.tryToSchedule(obj.getScore(), this.availableWorkers);
+				ResourceScheduler<? extends WorkerResourceDescription> assignedResource = freeAction
+						.getAssignedResource();
+				tryToLaunch(freeAction);
+				if (!assignedResource.canRunSomething()) {
+					this.availableWorkers.remove(assignedResource);
+				}
             } catch (BlockedActionException e) {
                 removeFromReady(freeAction);
                 addToBlocked(freeAction);
             } catch (UnassignedActionException e) {
                 dataFreeActions.add(freeAction);
             }
+        }
+        
+        while (!executableActions.isEmpty()) {
+            ObjectValue<AllocatableAction> obj = executableActions.poll();
+            AllocatableAction freeAction = obj.getObject();
+            dataFreeActions.add(freeAction);
         }
         
         super.purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);

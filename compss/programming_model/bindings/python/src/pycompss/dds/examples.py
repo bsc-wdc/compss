@@ -105,7 +105,7 @@ def example_2():
     print(occurrences)
     print("Retrieve the letters that have more than 5 occurrences in total:")
 
-    dds = DDS(occurrences)
+    dds = DDS().load(occurrences)
     print(dds.reduce_by_key(_sum).filter(lambda x: x[1] > 5).keys().collect())
     print('______________END OF THE EXAMPLE________________\n')
 
@@ -116,7 +116,7 @@ def example_3():
     print(results)
     print("Knowing that maximum tries is 3, show the results of the players "
           "who have finished the game :)")
-    dds = DDS(results)
+    dds = DDS().load(results)
     completed = dds.combine_by_key(to_list, append, extender).filter(
         _finished).collect()
     for k, v in completed:

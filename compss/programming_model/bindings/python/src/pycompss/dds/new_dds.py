@@ -434,7 +434,12 @@ class DDS(object):
                                  total_parts=total_parts)
 
     def reduce_by_key(self, f, collect=False):
-        """
+        """ Reduce values for each key.
+        :param f: a reducer function which takes two parameters and returns one.
+        :param collect: if should retrieve results
+
+        >>> DDS().load([("a",1), ("a",2)]).reduce_by_key((lambda a, b: a+b), collect=True)
+        {'a': 3}
         """
         return self.combine_by_key((lambda x: x), f, f, collect=collect)
 

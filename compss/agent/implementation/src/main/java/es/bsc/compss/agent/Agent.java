@@ -281,11 +281,11 @@ public class Agent {
         }
     }
 
-    public static void lostNode(String name) throws AgentException {
+    public static void lostNode(String workerName) throws AgentException {
         try {
-            ResourceManager.notifyWholeWorkerReduction(name);
+            ResourceManager.notifyWholeWorkerReduction(workerName);
         } catch (NullPointerException e) {
-            throw new AgentException("Resource " + name + " was not set up for this agent. Ignoring request.");
+            throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
         }
     }
 

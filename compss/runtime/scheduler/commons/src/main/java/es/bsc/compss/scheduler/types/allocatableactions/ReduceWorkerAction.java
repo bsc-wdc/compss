@@ -115,6 +115,10 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      * ***************************************************************************************************************
      */
     @Override
+    protected void doAbort() {
+    }
+
+    @Override
     protected void doCompleted() {
         Worker<T> w = worker.getResource();
         ResourceManager.confirmWorkerReduction(w, ru);

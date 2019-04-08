@@ -431,6 +431,12 @@ public class ExecutionAction extends AllocatableAction {
      * ***************************************************************************************************************
      */
     @Override
+    protected void doAbort() {
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onAbortedExecution();
+    }
+
+    @Override
     protected void doCompleted() {
         // Profile the resource
         this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), profile);

@@ -25,6 +25,7 @@ import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.rest.types.messages.IncreaseNodeNotification;
+import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.ReduceNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.types.Resource;
@@ -102,6 +103,20 @@ public class RESTAgent {
         String name = request.getWorkerName();
         try {
             Agent.removeNode(name);
+        } catch (AgentException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+
+        }
+        return Response.ok().build();
+    }
+
+    @PUT
+    @Path("lostNode/")
+    @Consumes(MediaType.APPLICATION_XML)
+    public Response lostResource(LostNodeNotification notification) {
+        String name = notification.getWorkerName();
+        try {
+            Agent.lostNode(name);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 

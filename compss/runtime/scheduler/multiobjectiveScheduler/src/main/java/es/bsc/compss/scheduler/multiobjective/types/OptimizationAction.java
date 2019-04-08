@@ -48,6 +48,10 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
+    protected void doAbort() {
+    }
+
+    @Override
     protected void doCompleted() {
 
     }
@@ -66,17 +70,17 @@ public class OptimizationAction extends AllocatableAction {
     protected void doCanceled() {
 
     }
-    
+
     @Override
     protected void doFailIgnored() {
-        
+
     }
-    
+
     @Override
     protected void doDirectFail() {
-        
+
     }
-    
+
     @Override
     public Integer getCoreId() {
         return null;
@@ -107,7 +111,7 @@ public class OptimizationAction extends AllocatableAction {
     public int getPriority() {
         return 0;
     }
-    
+
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;

@@ -111,6 +111,10 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
      * ***************************************************************************************************************
      */
     @Override
+    protected void doAbort() {
+    }
+
+    @Override
     protected void doCompleted() {
         // Notify worker available
         LOGGER.info("Worker " + worker.getName() + " is ready to execute tasks.");
@@ -139,19 +143,19 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void doCanceled() {
-        
+
     }
-    
+
     @Override
     protected void doFailIgnored() {
-        
+
     }
-    
+
     @Override
     protected void doDirectFail() {
-        
+
     }
-    
+
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT
@@ -171,7 +175,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[] { impl };
+        Implementation[] impls = new Implementation[]{impl};
         return impls;
     }
 

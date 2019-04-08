@@ -53,6 +53,11 @@ public interface TaskMonitor {
     public void valueGenerated(int paramId, DataType type, String name, Object location);
 
     /**
+     * Actions to be performed by monitor on task execution abortion.
+     */
+    public void onAbortedExecution();
+
+    /**
      * Actions to be performed by monitor on task execution error.
      */
     public void onErrorExecution();

@@ -93,6 +93,10 @@ public class AppTaskMonitor extends AppMonitor {
     }
 
     @Override
+    public void onAbortedExecution() {
+    }
+
+    @Override
     public void onErrorExecution() {
     }
 

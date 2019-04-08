@@ -176,6 +176,57 @@ int main() {
 
     //----------------------------------------------------------------------
 
+    //Test with float and float*
+    //----------------------------------------------------------------------
+
+    float float_a, float_b, float_c;
+    float_a = float_b = float_c = 3.33;
+
+    float float_result = float_a + float_b + float_c;
+
+    float* float_array;
+    float_array = make_float_array(float_a, float_b, float_c);
+
+    sum_float_array(float_array);
+   
+    compss_wait_on(float_array);
+ 
+    if (not (float_array[0] <= (float_result+0.1) and float_array[0] >= (float_result-0.1))) {
+       cout << "The expected result when executing task sum_float_array is between: " << float_result+0.1 << " " 
+            << float_result-0.1 << " and we got: " << float_array[0] << endl;
+        return -1; 
+    }
+    else {
+        cout << "make_float_array... works" << endl << "sum_float_array... works" << endl;
+    }
+
+    //----------------------------------------------------------------------
+
+    //Test with double and double*
+    //----------------------------------------------------------------------
+
+    double double_a, double_b, double_c;
+    double_a = double_b = double_c = 3.33;
+
+    double double_result = double_a + double_b + double_c;
+
+    double* double_array;
+    double_array = make_double_array(double_a, double_b, double_c);
+
+    sum_double_array(double_array);
+   
+    compss_wait_on(double_array);
+ 
+    if (not (double_array[0] <= double_result+0.1 and double_array[0] >= double_result-0.1)) {
+       cout << "The expected result when executing task sum_double_array is between: " << double_result+0.1 << " " 
+            << double_result-0.1 << " and we got: " << double_array[0] << endl;
+        return -1; 
+    }
+    else {
+        cout << "make_double_array... works" << endl << "sum_double_array... works" << endl;
+    }
+
+    //----------------------------------------------------------------------
 
     //Test with char and char*
     //----------------------------------------------------------------------
@@ -192,8 +243,10 @@ int main() {
 
     compss_wait_on(str);
 
-    if (str != "LKM") {
-       cout << "The expected result when executing make_string is : \"LKM\" and we got: " << str << endl;
+    string string_str(str);
+
+    if (string_str != "LKM") {
+       cout << "The expected result when executing make_string is : \"LKM\" and we got: " << string_str << endl;
         return -1;
     }
     else {

@@ -47,27 +47,44 @@ void make_string(char a, char b, char c, char* str) {
     
     cout << "[JOB] Executing make function..." << endl;
 
-    #pragma oss task out(str)
+    #pragma oss task
     {
         str[0] = a;
     }
 
-    #pragma oss task inout(str)
+    #pragma oss task
     {
         str[1] = b;
     }
 
-    #pragma oss task inout(str)
+    #pragma oss task
     {
         str[2] = c;
     }
 
-    #pragma oss task inout(str)
+    #pragma oss task
     {
         str[3] = '\0';
     }
 
     cout << "[JOB] Generated string" << str << endl;
+
+}
+
+void split_string(char* str) {
+
+    cout << "[JOB] Executing split function..." << endl;
+
+    char a, b, c;
+
+    #pragma oss task
+    {
+        a = str[0];
+        b = str[1];
+        c = str[2];
+    }
+
+    cout << "[JOB] a: " << a << " b: " << b << " c: " << c << endl;
 
 }
 
@@ -126,19 +143,37 @@ void sum_short_array(short* array) {
     array[0] = array[0] + array[1] + array[2];
 }
 
-void split_string(char* str) {
-
-    cout << "[JOB] Executing split function..." << endl;
-
-    char a, b, c;
+float* make_float_array(float a, float b, float c) {
+    float* arr = new float[3];
 
     #pragma oss task
     {
-        a = str[0];
-        b = str[1];
-        c = str[2];
+        arr[0] = a;
+        arr[1] = b;
+        arr[2] = c;
     }
 
-    cout << "[JOB] a: " << a << " b: " << b << " c: " << c << endl;
+    return arr;
+}
 
+void sum_float_array(float* array) {
+    array[0] = array[0] + array[1] + array[2];
+}
+
+
+double* make_double_array(double a, double b, double c) {
+    double* arr = new double[3];
+
+    #pragma oss task
+    {
+        arr[0] = a;
+        arr[1] = b;
+        arr[2] = c;
+    }
+
+    return arr;
+}
+
+void sum_double_array(double* array) {
+    array[0] = array[0] + array[1] + array[2];
 }

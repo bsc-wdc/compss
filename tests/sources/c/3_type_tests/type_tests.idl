@@ -38,6 +38,24 @@ interface type_tests {
 
     //----------------------------------------------------------------------
 
+    //Test with float and float*
+    //----------------------------------------------------------------------
+    
+    float[3] make_float_array(in float a, in float b, in float c);
+
+    void sum_float_array(inout float[3] array);
+
+    //----------------------------------------------------------------------
+    
+    //Test with double and double*
+    //----------------------------------------------------------------------
+
+    double[3] make_double_array(in double a, in double b, in double c);
+    
+    void sum_double_array(inout double[3] array);
+
+    //----------------------------------------------------------------------
+    
     //Test with char and char*
     //----------------------------------------------------------------------
 

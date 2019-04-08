@@ -393,8 +393,8 @@ if [ "${ompss2_enabled}" != "" ]; then
     if [ ${ompss2_enabled} == 1 ]; then
         export CC=${CROSS_COMPILE}${defined_mcc}
         export CXX=${CROSS_COMPILE}${defined_mcxx}
-        export CFLAGS="$CFLAGS --ompss-2 ${ompss_flags} $COMPSS_MCXX_FLAGS"
-        export CXXFLAGS="$CXXFLAGS --ompss-2 ${ompss_flags} $COMPSS_MCXX_FLAGS"
+        export CFLAGS="$CFLAGS ${ompss_flags}"
+        export CXXFLAGS="$CXXFLAGS ${ompss_flags}"
         export CPPFLAGS="$CPPFLAGS -DOMPSS2_ENABLED"
       
         export OMPSS2_ENABLED="enabled"
@@ -418,8 +418,8 @@ if [ "${ompss_enabled}" != "" ]; then
   if [ ${ompss_enabled} == 1 ]; then
         export CC=${CROSS_COMPILE}${defined_mcc}
         export CXX=${CROSS_COMPILE}${defined_mcxx}
-        export CFLAGS="$CFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
-        export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags} $COMPSS_MCXX_FLAGS"
+        export CFLAGS="$CFLAGS --ompss ${ompss_flags}"
+        export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags}"
         export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
 
         export OMPSS_ENABLED="enabled"

@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.request.ap;
 
-import java.io.File;
 import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.components.impl.AccessProcessor;
@@ -27,44 +26,33 @@ import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class DeleteFileRequest extends APRequest {
+public class WaitForDataReadyToDeleteRequest extends APRequest {
 
     private final DataLocation loc;
     private final Semaphore sem;
+    private final Semaphore semWait;
+    private int nPermits;
 
-
-    public DeleteFileRequest(DataLocation loc, Semaphore sem) {
+    public WaitForDataReadyToDeleteRequest(DataLocation loc, Semaphore sem, Semaphore semWait) {
         this.loc = loc;
         this.sem = sem;
+        this.semWait = semWait;
+        this.nPermits = 0;
     }
 
     public DataLocation getLocation() {
         return loc;
     }
-
+    
+    public int getNumPermits() {
+        return nPermits;
+    }
+    
+    
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[DeleteFileRequest] Notify data delete to DIP...");
-        FileInfo fileInfo = (FileInfo) dip.deleteData(loc);
-        if (fileInfo == null) {
-            // File is not used by any task, we can erase it
-            // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
-            String filePath = loc.getURIs().get(0).getPath();
-            File f = new File(filePath);
-            if (f.exists()) {
-                if (f.delete()) {
-                    LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted");
-                } else {
-                    LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath);
-                }
-            }
-        } else {
-            // file is involved in some task execution
-            // File Won't be read by any future task or from the main code.
-            // Remove it from the dependency analysis and the files to be transferred back
-            LOGGER.info("[DeleteFileRequest] Deleting Data in Task Analyser");
-            ta.deleteData(fileInfo);
-        }
+        LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data to DIP...");
+        this.nPermits = dip.waitForDataReadyToDelete(loc,semWait);
         sem.release();
     }
 

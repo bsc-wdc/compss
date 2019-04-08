@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data;
 
 import java.util.LinkedList;
+import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.comm.Comm;
 

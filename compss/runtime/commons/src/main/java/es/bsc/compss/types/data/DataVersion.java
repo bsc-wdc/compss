@@ -16,6 +16,10 @@
  */
 package es.bsc.compss.types.data;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+
 public class DataVersion {
 
     private final DataInstanceId dataInstanceId;
@@ -23,7 +27,8 @@ public class DataVersion {
     private int writters;
     private boolean toDelete;
     private boolean used; // The version has been read or written
-
+    private boolean semUsed;
+    private List<Semaphore> semReaders;
 
     /**
      * Creates a new DataVersion instance.
@@ -37,6 +42,8 @@ public class DataVersion {
         this.writters = 0;
         this.toDelete = false;
         this.used = false;
+        this.semReaders = new LinkedList<>();
+        this.semUsed = false;
     }
 
     /**
@@ -87,6 +94,11 @@ public class DataVersion {
      */
     public boolean hasBeenRead() {
         this.readers--;
+        if (readers == 0 && this.semUsed == true) {
+            for (Semaphore s : semReaders) {
+                s.release();
+            }
+        }
         return checkDeletion();
     }
 
@@ -98,6 +110,15 @@ public class DataVersion {
     public boolean hasBeenWritten() {
         this.writters--;
         return checkDeletion();
+    }
+    
+    /**
+     * Returns the number of readers
+     * 
+     * @return The number of readers
+     */
+    public Integer getNumberOfReaders() {
+        return readers;
     }
 
     /**
@@ -132,6 +153,7 @@ public class DataVersion {
                 && this.writters == 0 // version has been generated
                 && this.readers == 0 // version has been read
         ) {
+            
             return true;
         }
         return false;
@@ -151,5 +173,17 @@ public class DataVersion {
      */
     public boolean hasBeenUsed() {
         return this.used;
+    }
+    
+    /**
+     * Adds a Semaphore to the Semaphore list
+     * 
+     * @param semWait Semaphore to be added to the list 
+     */
+    public void addSemaphore(Semaphore semWait) {
+        if (readers != 0) {
+            this.semUsed = true;
+            this.semReaders.add(semWait);
+        }
     }
 }

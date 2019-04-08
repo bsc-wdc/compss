@@ -244,7 +244,6 @@ public class LogicalData {
                         this.bindingId = ((BindingObjectLocation) loc).getId();
                     }
                     r.addLogicalData(this);
-
                 }
                 break;
             case SHARED:

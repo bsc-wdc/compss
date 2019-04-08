@@ -311,7 +311,6 @@ public class TaskAnalyser {
         if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
             constrainingParam = params.getParameters().length - 1 - params.getNumReturns();
         }
-
         Parameter[] parameters = params.getParameters();
         for (int paramIdx = 0; paramIdx < parameters.length; paramIdx++) {
             registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam, parameters[paramIdx]);

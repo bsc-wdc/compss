@@ -18,6 +18,7 @@ package es.bsc.compss.types.data;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
+import java.util.concurrent.Semaphore;
 
 import es.bsc.compss.comm.Comm;
 
@@ -169,6 +170,11 @@ public abstract class DataInfo {
             }
         }
         return false;
+    }
+    
+    public int waitForDataReadyToDelete(Semaphore semWait) {
+//        semWait.release();
+        return 0;
     }
 
     public boolean isCurrentVersionToDelete() {

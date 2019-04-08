@@ -11,47 +11,43 @@
   execution_envs=$8
   
   # Global variables
-  exit_value=1
-  jar_name="3_object_deregister.jar"
-  app_name="objectDeregister.ObjectDeregister"
+  exit_value=0
+  jar_name="2_delete_file_shared_disk.jar"
+  app_name="deleteFileSharedDisk.DeleteFileSharedDisk"
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
-
+  
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
- 
-  gcc -g -ggdb -shared -fPIC -o libagent.so -I"${JAVA_HOME}"/include -I"${JAVA_HOME}"/include/linux c/agent.cpp
-
-  #----------------------------------------------------------------------------------
+  mkdir -p /tmp/COMPSsWorker02/
+  mkdir -p /tmp/COMPSsWorker03/
+  mkdir -p /tmp/sharedDisk/
+  
+   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING JAVA APPLICATION OBJECT DEREGISTER"
-  output_log="${target_log_folder}/objectDeregister_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/objectDeregister_0${retry_num}.errorlog"
-  expectedTime=3600s
+  echo "*** RUNNING JAVA APPLICATION SHARED DISKS"
+  output_log="${target_log_folder}/deleteFileSharedDisk_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/deleteFileSharedDisk_0${retry_num}.errorlog"
+  expectedTime=60s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \
      --resources="${base_app_dir}"/resources.xml \
      \
-     --jvm_master_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
-     \
-     --jvm_workers_opts="-agentpath:${base_app_dir}/libagent.so,-Djava.library.path=${base_app_dir}" \
-     \
      --comm="$comm" \
      \
      --debug \
-     --summary \
      ${runcompss_opts} \
      \
      --classpath="${base_app_dir}/${jar_name}" \
      \
-     "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
-
+     "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+  
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
@@ -59,11 +55,15 @@
      
      # Report time out
      echo "[WARNING] Java Application timed out" >> "${output_log}"
+     rm -rf /tmp/sharedDisk
      exit_value=124
   else
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   
+     # Remove shared folder
+     rm -rf /tmp/sharedDisk
+     
      # Check result
      "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
      exit_value=$?
@@ -71,4 +71,3 @@
   
   #----------------------------------------------------------------------------------
   # Return execution status
-  exit ${exit_value}

@@ -844,7 +844,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             }
         }
-
+       
         // Return deletion was successful
         return true;
     }

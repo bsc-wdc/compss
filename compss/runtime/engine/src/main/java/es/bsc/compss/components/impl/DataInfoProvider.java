@@ -143,12 +143,13 @@ public class DataInfoProvider {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to " + location.getLocationKey());
             }
+            
             // Update mappings
             fileInfo = new FileInfo(location);
             fileId = fileInfo.getDataId();
             nameToId.put(locationKey, fileId);
             idToData.put(fileId, fileInfo);
-
+            
             // Register the initial location of the file
             if (mode != AccessMode.W) {
                 Comm.registerLocation(fileInfo.getCurrentDataVersion().getDataInstanceId().getRenaming(), location);
@@ -610,7 +611,45 @@ public class DataInfoProvider {
         DataInfo dataInfo = idToData.get(dataId);
         dataInfo.unblockDeletions();
     }
+    
+    /**
+     * Waits until data is ready for its safe deletion
+     *
+     * @param loc
+     * @param semWait
+     * @return
+     */
+    public int waitForDataReadyToDelete(DataLocation loc, Semaphore semWait) {
+        LOGGER.debug("Waiting for data to be ready for deletion: " + loc.getPath());
+        String locationKey = loc.getLocationKey();
+        
+        Integer dataId = nameToId.get(locationKey);
+        if (dataId == null) {
+            LOGGER.debug("No data id found for this data location" + loc.getPath());
+            semWait.release();
+            return 0;
+        }
 
+        DataInfo dataInfo = idToData.get(dataId);
+        int nPermits = dataInfo.waitForDataReadyToDelete(semWait);
+        return nPermits;
+    }
+    
+    /**
+     * Gets the dataInfo of the location
+     * 
+     * @param loc
+     */
+    public DataInfo getLocationDataInfo(DataLocation loc) {
+        String locationKey = loc.getLocationKey();
+        if(nameToId.containsKey(locationKey)) {
+            Integer dataId = nameToId.get(locationKey);
+            DataInfo dataInfo = idToData.get(dataId);
+            return dataInfo;
+        }
+        return null;
+    }
+    
     /**
      * Marks a data Id for deletion
      *
@@ -634,7 +673,7 @@ public class DataInfoProvider {
         }
         return dataInfo;
     }
-
+    
     /**
      * Deletes the data associated with the code
      *

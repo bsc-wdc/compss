@@ -54,6 +54,11 @@ public class AppMainMonitor extends AppMonitor {
     public void valueGenerated(int paramId, DataType type, String name, Object location) {
 
     }
+    
+    @Override
+    public void onAbortedExecution() {
+        profile.finished();
+    }
 
     @Override
     public void onErrorExecution() {

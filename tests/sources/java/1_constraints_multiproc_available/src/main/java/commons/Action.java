@@ -1,3 +1,4 @@
+
 package commons;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
@@ -23,7 +24,6 @@ import java.util.Map;
 public class Action extends AllocatableAction {
 
     private final int coreId;
-
 
     public Action(ActionOrchestrator orchestrator, int coreId) {
 
@@ -80,18 +80,23 @@ public class Action extends AllocatableAction {
     }
 
     @Override
+    protected void doAbort() {
+
+    }
+
+    @Override
     protected void doCompleted() {
 
     }
-    
+
     @Override
     protected void doFailIgnored() {
-        
+
     }
-    
+
     @Override
     protected void doDirectFail() {
-        
+
     }
 
     @Override
@@ -103,7 +108,7 @@ public class Action extends AllocatableAction {
     protected void doFailed() {
 
     }
-    
+
     @Override
     protected void doCanceled() {
 
@@ -163,7 +168,7 @@ public class Action extends AllocatableAction {
     public int getPriority() {
         return 0;
     }
-    
+
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;

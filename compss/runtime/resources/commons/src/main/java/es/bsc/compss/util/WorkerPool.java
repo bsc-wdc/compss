@@ -42,7 +42,6 @@ public class WorkerPool {
     // TreeSet : Priority on criticalSet based on cost
     private final Set<DynamicMethodWorker> criticalOrder;
 
-
     public WorkerPool() {
         staticSet = new HashMap<>();
         criticalSet = new HashMap<>();
@@ -102,6 +101,7 @@ public class WorkerPool {
      * Returns all the resource information
      *
      * @param resourceName
+     *
      * @return
      */
     public Worker<? extends WorkerResourceDescription> getResource(String resourceName) {
@@ -124,16 +124,21 @@ public class WorkerPool {
      */
     public void delete(Worker<? extends WorkerResourceDescription> resource) {
         String resourceName = resource.getName();
+        DynamicMethodWorker worker;
         // Remove resource from sets
         if (nonCriticalSet.remove(resourceName) == null) {
-            if (criticalSet.remove(resourceName) == null) {
+            if ((worker = criticalSet.remove(resourceName)) == null) {
                 staticSet.remove(resourceName);
+            } else {
+                criticalOrder.remove(worker);
             }
+
         }
     }
 
     /**
      * @param res
+     *
      * @return list with all coreIds that can be executed by the resource res
      */
     public List<Integer> getExecutableCores(String res) {

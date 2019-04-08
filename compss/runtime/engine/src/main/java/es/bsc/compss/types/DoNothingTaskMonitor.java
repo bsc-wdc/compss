@@ -43,6 +43,10 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
+    public void onAbortedExecution() {
+    }
+
+    @Override
     public void onErrorExecution() {
     }
 

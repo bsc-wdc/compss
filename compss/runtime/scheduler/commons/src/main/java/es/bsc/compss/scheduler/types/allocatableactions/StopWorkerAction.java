@@ -122,6 +122,10 @@ public class StopWorkerAction extends AllocatableAction {
      * ***************************************************************************************************************
      */
     @Override
+    protected void doAbort() {
+    }
+
+    @Override
     protected void doCompleted() {
         removeResource();
     }
@@ -145,20 +149,20 @@ public class StopWorkerAction extends AllocatableAction {
     protected void doFailed() {
         removeResource();
     }
-    
+
     @Override
     protected void doCanceled() {
         removeResource();
     }
-    
+
     @Override
     protected void doFailIgnored() {
-        
+
     }
-    
+
     @Override
     protected void doDirectFail() {
-        
+
     }
 
     /*
@@ -240,7 +244,7 @@ public class StopWorkerAction extends AllocatableAction {
     public int getPriority() {
         return Integer.MAX_VALUE;
     }
-    
+
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;

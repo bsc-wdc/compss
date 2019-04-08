@@ -39,7 +39,6 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     private int fakeId;
 
-
     public FakeAllocatableAction(ActionOrchestrator td, int id) {
         super(new FakeSI(null), td);
         this.fakeId = id;
@@ -77,6 +76,10 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
+    protected void doAbort() {
+    }
+
+    @Override
     public void doCompleted() {
 
     }
@@ -93,7 +96,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     public void doFailed() {
         failed[this.fakeId]++;
     }
-    
+
     @Override
     protected void doCanceled() {
 
@@ -101,14 +104,14 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     protected void doFailIgnored() {
-        
+
     }
-    
+
     @Override
     protected void doDirectFail() {
-        
+
     }
-    
+
     @Override
     public String toString() {
         return "AllocatableAction " + this.fakeId;
@@ -182,7 +185,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     public int getPriority() {
         return 0;
     }
-    
+
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;

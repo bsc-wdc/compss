@@ -45,7 +45,6 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
     protected final ActionSet unassignedReadyActions;
 
-
     /**
      * Constructs a new Ready Scheduler instance
      */
@@ -68,10 +67,11 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
     @Override
     public <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker,
-            T modification) {
-        LinkedList<AllocatableAction> dataFreeActions = new LinkedList<>();
-        LinkedList<AllocatableAction> resourceFreeActions = new LinkedList<>();
-        LinkedList<AllocatableAction> blockedCandidates = new LinkedList<>();
+            T modification,
+            List<AllocatableAction> unblockedActions,
+            List<AllocatableAction> blockedCandidates) {
+        List<AllocatableAction> dataFreeActions = new LinkedList<>();
+        List<AllocatableAction> resourceFreeActions = unblockedActions;
         purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, worker);
         tryToLaunchFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, worker);
     }

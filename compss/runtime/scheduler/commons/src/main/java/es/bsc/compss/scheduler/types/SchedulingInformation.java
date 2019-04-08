@@ -30,7 +30,6 @@ public class SchedulingInformation {
     // List of active resources per core
     private static final List<List<ResourceScheduler<? extends WorkerResourceDescription>>> CORE_TO_WORKERS = new ArrayList<>();
 
-
     public static void updateCoreCount(int newCoreCount) {
         for (int currentCoreCount = CORE_TO_WORKERS.size(); currentCoreCount < newCoreCount; ++currentCoreCount) {
             // Add empty workers list to new core entry
@@ -62,12 +61,10 @@ public class SchedulingInformation {
         return res;
     }
 
-
     // Execution Information
     private final List<AllocatableAction> constrainingPredecessors;
     // Resource execution information
     private final ResourceScheduler<? extends WorkerResourceDescription> enforcedTargetResource;
-
 
     public <T extends WorkerResourceDescription> SchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
         constrainingPredecessors = new LinkedList<>();

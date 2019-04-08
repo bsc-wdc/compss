@@ -20,6 +20,7 @@ from itertools import chain
 from pycompss.api.api import compss_wait_on, compss_barrier
 
 from pycompss.dds.new_tasks import *
+from pycompss.dds.data_generators import WorkerFileLoader
 from operator import add
 
 
@@ -84,7 +85,8 @@ class DDS(object):
                 file_path = os.path.join(dir_path, file_name)
                 partition_files.append(file_path)
 
-            self.partitions.append(task_read_files(partition_files))
+            _partition_loader = WorkerFileLoader(partition_files)
+            self.partitions.append(_partition_loader)
             start = end
 
         return self

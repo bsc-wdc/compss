@@ -62,16 +62,18 @@ def task_read_files(file_paths):
 
 
 @task(returns=1)
-def task_map_partition(f, partition, *args, **kwargs):
+def task_map_partition(f, partition_loader, *args, **kwargs):
     """
     Apply a function to a partition in a new task. The function should take an
     iterable as a parameter and return a list.
     :param f: A function that takes an iterable as a parameter
-    :param partition:
+    :param partition_loader: Data generator
+    :type partition_loader: BaseDataGenerator
     :return: future object of the list containing results
     """
-    res = f(partition, *args, **kwargs)
-    del partition
+    data = partition_loader.retrieve_data()
+    res = f(data, *args, **kwargs)
+    del data
     return res
 
 

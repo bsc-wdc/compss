@@ -26,6 +26,20 @@ class BaseDataGenerator(object):
     """
     Everyone implements this.
     """
-    def generate_data(self):
+    def retrieve_data(self):
         raise NotImplementedError
 
+
+class WorkerFileLoader(BaseDataGenerator):
+
+    def __init__(self, file_paths):
+        super(WorkerFileLoader, self).__init__()
+        self.file_paths = file_paths
+
+    def retrieve_data(self):
+        ret = list()
+        for file_path in self.file_paths:
+            content = open(file_path).read()
+            ret.append((file_path, content))
+
+        return ret

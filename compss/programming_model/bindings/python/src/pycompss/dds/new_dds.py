@@ -20,7 +20,7 @@ from itertools import chain
 from pycompss.api.api import compss_wait_on, compss_barrier
 
 from pycompss.dds.new_tasks import *
-from pycompss.dds.data_generators import WorkerFileLoader
+from pycompss.dds.data_generators import *
 from operator import add
 
 
@@ -55,8 +55,8 @@ class DDS(object):
         start = 0
         for size in chunk_sizes:
             end = start + size
-            temp = get_next_partition(iterator, start, end)
-            self.partitions.append(temp)
+            _partition_loader = IteratorLoader(iterator, start, end)
+            self.partitions.append(_partition_loader)
             start = end
 
         return self

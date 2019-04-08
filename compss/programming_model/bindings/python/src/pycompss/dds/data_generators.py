@@ -22,7 +22,7 @@ loaded on master and sent to workers, or read from files on worker nodes.
 """
 
 
-class BaseDataGenerator(object):
+class BaseDataLoader(object):
     """
     Everyone implements this.
     """
@@ -30,7 +30,39 @@ class BaseDataGenerator(object):
         raise NotImplementedError
 
 
-class WorkerFileLoader(BaseDataGenerator):
+class IteratorLoader(BaseDataLoader):
+
+    def __init__(self, iterable, start, end):
+        super(IteratorLoader, self).__init__()
+        self.iterable = iterable
+        self.start = start
+        self.end = end
+
+    def retrieve_data(self):
+        """
+        Divide and retrieve the next partition.
+        :return:
+        """
+
+        # If it's a dict
+        if isinstance(self.iterable, dict):
+            sorted_keys = sorted(self.iterable.keys())
+            for key in sorted_keys[self.start:self.end]:
+                yield key, self.iterable[key]
+        elif isinstance(self.iterable, list):
+            for item in iter(self.iterable[self.start:self.end]):
+                yield item
+        else:
+            index = 0
+            for item in iter(self.iterable):
+                index += 1
+                if index > self.end:
+                    break
+                elif index > self.start:
+                    yield item
+
+
+class WorkerFileLoader(BaseDataLoader):
 
     def __init__(self, file_paths):
         super(WorkerFileLoader, self).__init__()

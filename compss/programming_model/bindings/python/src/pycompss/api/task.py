@@ -48,6 +48,7 @@ SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
                        'varargs_type',
                        'target_direction',
                        'computing_nodes',
+                       'numba',
                        'tracing_hook']
 
 # This lock allows tasks to be launched with the Threading module while ensuring

@@ -454,6 +454,7 @@ public class ExecutionAction extends AllocatableAction {
     protected void doError() throws FailedActionException {
         TaskMonitor monitor = task.getTaskMonitor();
         monitor.onErrorExecution();
+        
         if (task.getOnFailure() == OnFailure.RETRY) {
             if (this.getExecutingResources().size() >= SCHEDULING_CHANCES) {
                 LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
@@ -474,7 +475,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doFailed() {
-        // Failed message
+        // Failed log message
         String taskName = task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("Task '").append(taskName).append("' TOTALLY FAILED.\n");
@@ -507,9 +508,11 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doCanceled() {
-        TaskMonitor monitor = task.getTaskMonitor();
-        monitor.onFailedExecution();
-        // Notify task failure
+        // Cancelled log message
+        String taskName = task.getTaskDescription().getName();
+        ErrorManager.warn("Task " + taskName + " has been cancelled.");
+
+        // Notify task cancellation
         task.decreaseExecutionCount();
         task.setStatus(TaskState.CANCELED);
         producer.notifyTaskEnd(task);
@@ -517,32 +520,22 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doFailIgnored() {
-        // Failed message
+        // Failed log message
         String taskName = task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("Task failure: Task ").append(taskName).append(" has failed. Successors keep running.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
+
         TaskMonitor monitor = task.getTaskMonitor();
         monitor.onFailedExecution();
 
-        // Notify task failure
+        // Notify task completion despite the failure
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FINISHED);
         producer.notifyTaskEnd(task);
     }
 
-    @Override
-    protected void doDirectFail() {
-
-        TaskMonitor monitor = task.getTaskMonitor();
-        monitor.onFailedExecution();
-
-        // Notify task failure
-        task.decreaseExecutionCount();
-        task.setStatus(TaskState.FAILED);
-        producer.notifyTaskEnd(task);
-    }
 
     /*
      * ***************************************************************************************************************

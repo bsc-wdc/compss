@@ -470,7 +470,7 @@ public class TaskScheduler {
                 }
             } else {
                 // Get the data free actions and mark them as ready
-                dataFreeActions = action.releaseDependencies();
+                dataFreeActions = action.ignoredFailure();
                 for (AllocatableAction dataFreeAction : dataFreeActions) {
                     addToReady(dataFreeAction);
                 }

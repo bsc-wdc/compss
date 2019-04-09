@@ -81,7 +81,7 @@ if [ -n "$TARGET_HOST" ]; then
 fi
 
 @CAT@ >> autogen.sh << EOF
-./configure $TARGET_HOST --with-cs-prefix=$CS_HOME $conf_opts CXXFLAGS="$cflags_aux" CFLAGS="$cflags_aux" LDFLAGS="$ldflags_aux" 
+./configure $TARGET_HOST --with-cs-prefix=$CS_HOME $conf_opts CXXFLAGS="$CXXFLAGS $cflags_aux" CFLAGS="$CFLAGS $cflags_aux" LDFLAGS="$LDFLAGS $ldflags_aux" 
 EOF
 
 @CHMOD@ +x autogen.sh

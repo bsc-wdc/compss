@@ -1,5 +1,4 @@
 /*
- /*
  *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");

@@ -23,7 +23,7 @@ loaded on master and sent to workers, or read from files on worker nodes.
 import sys
 
 
-class IPartitionLoader(object):
+class IPartitionGenerator(object):
     """
     Everyone implements this.
     """
@@ -31,7 +31,7 @@ class IPartitionLoader(object):
         raise NotImplementedError
 
 
-class BasicDataLoader(IPartitionLoader):
+class BasicDataLoader(IPartitionGenerator):
 
     def __init__(self, data):
         super(BasicDataLoader, self).__init__()
@@ -46,7 +46,7 @@ class BasicDataLoader(IPartitionLoader):
         return ret
 
 
-class IteratorLoader(IPartitionLoader):
+class IteratorLoader(IPartitionGenerator):
 
     def __init__(self, iterable, start, end):
         super(IteratorLoader, self).__init__()
@@ -78,7 +78,7 @@ class IteratorLoader(IPartitionLoader):
                     yield item
 
 
-class WorkerFileLoader(IPartitionLoader):
+class WorkerFileLoader(IPartitionGenerator):
 
     def __init__(self, file_paths, start=0, chunk_size=None):
         super(WorkerFileLoader, self).__init__()

@@ -20,7 +20,7 @@ from itertools import chain
 from pycompss.api.api import compss_wait_on, compss_barrier
 
 from pycompss.dds.new_tasks import *
-from pycompss.dds.data_generators import *
+from pycompss.dds.partition_generators import *
 from operator import add
 
 

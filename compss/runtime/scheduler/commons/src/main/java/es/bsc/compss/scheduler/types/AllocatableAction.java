@@ -635,8 +635,7 @@ public abstract class AllocatableAction {
         List<AllocatableAction> failed = new LinkedList<>();
 
         List<AllocatableAction> successors = new LinkedList<>();
-        successors = ((List<AllocatableAction>) ((LinkedList) dataSuccessors).clone());
-        Collections.copy(successors, dataSuccessors);
+        successors.addAll(dataSuccessors);
 
         // Failure notification
         doFailed();
@@ -687,8 +686,7 @@ public abstract class AllocatableAction {
         cancelAction();
 
         List<AllocatableAction> successors = new LinkedList<>();
-        successors = ((List<AllocatableAction>) ((LinkedList) dataSuccessors).clone());
-        Collections.copy(successors, dataSuccessors);
+        successors.addAll(dataSuccessors);
 
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();

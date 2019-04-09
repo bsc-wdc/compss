@@ -115,11 +115,6 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    protected void doDirectFail() {
-
-    }
-
-    @Override
     public String toString() {
         return "AllocatableAction " + this.fakeId;
     }

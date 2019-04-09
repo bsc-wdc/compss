@@ -110,11 +110,6 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    protected void doDirectFail() {
-
-    }
-
-    @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {
         return new Score(0, 0, 0, 0);

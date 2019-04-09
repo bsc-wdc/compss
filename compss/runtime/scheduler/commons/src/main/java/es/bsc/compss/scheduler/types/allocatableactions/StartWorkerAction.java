@@ -151,11 +151,6 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     }
 
-    @Override
-    protected void doDirectFail() {
-
-    }
-
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT

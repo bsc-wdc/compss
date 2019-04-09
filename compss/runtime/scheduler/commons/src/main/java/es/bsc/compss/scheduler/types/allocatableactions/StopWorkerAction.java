@@ -160,11 +160,6 @@ public class StopWorkerAction extends AllocatableAction {
 
     }
 
-    @Override
-    protected void doDirectFail() {
-
-    }
-
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT

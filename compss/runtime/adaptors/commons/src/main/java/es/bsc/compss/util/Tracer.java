@@ -138,6 +138,7 @@ public abstract class Tracer {
         TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), 
         UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
         WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
+        TRY_TO_LAUNCH(54, RUNTIME_EVENTS, "Task Dispatcher: Try to launch free actions"),
         
         // Task Events
         TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"),

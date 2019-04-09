@@ -36,6 +36,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     private static int[] executions;
     private static int[] error;
     private static int[] failed;
+    private static int[] cancelled;
 
     private int fakeId;
 
@@ -52,6 +53,7 @@ public class FakeAllocatableAction extends AllocatableAction {
         FakeAllocatableAction.executions = new int[size];
         FakeAllocatableAction.error = new int[size];
         FakeAllocatableAction.failed = new int[size];
+        FakeAllocatableAction.cancelled = new int[size];
     }
 
     public static int getSize() {
@@ -68,6 +70,10 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     public static int getFailed(int id) {
         return FakeAllocatableAction.failed[id];
+    }
+
+    public static int getCancelled(int id) {
+        return FakeAllocatableAction.cancelled[id];
     }
 
     @Override
@@ -99,16 +105,11 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     protected void doCanceled() {
-
+        cancelled[this.fakeId]++;
     }
 
     @Override
     protected void doFailIgnored() {
-
-    }
-
-    @Override
-    protected void doDirectFail() {
 
     }
 

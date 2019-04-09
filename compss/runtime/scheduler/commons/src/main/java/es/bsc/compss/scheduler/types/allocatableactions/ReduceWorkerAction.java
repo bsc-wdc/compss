@@ -140,11 +140,6 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
-    protected void doDirectFail() {
-
-    }
-
-    @Override
     protected void doFailIgnored() {
 
     }

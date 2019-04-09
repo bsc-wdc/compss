@@ -77,11 +77,6 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    protected void doDirectFail() {
-
-    }
-
-    @Override
     public Integer getCoreId() {
         return null;
     }

@@ -95,11 +95,6 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    protected void doDirectFail() {
-
-    }
-
-    @Override
     protected void doError() throws FailedActionException {
 
     }

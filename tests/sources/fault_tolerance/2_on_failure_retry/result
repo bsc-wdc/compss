@@ -73,7 +73,7 @@
 
   # Check if the task has failed
   output1=$(cat "${runtime_log}" | grep "TOTALLY FAILED" | wc -l)
-  if [ ${output1} -ne ${FILES} ]; then
+  if [ ${output1} -ne ${resultN} ]; then
   	echo "ERROR: The first task has not failed."
   	exit 1
   fi

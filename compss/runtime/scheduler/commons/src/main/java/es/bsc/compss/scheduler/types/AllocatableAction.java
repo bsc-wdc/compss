@@ -569,9 +569,22 @@ public abstract class AllocatableAction {
             // Action was not running -> Ignore request
         }
     }
+    
+    private List<AllocatableAction> releaseDataSuccessors() {
+        // Release data dependencies of the task
+        List<AllocatableAction> freeTasks = new LinkedList<>();
+        for (AllocatableAction aa : dataSuccessors) {
+            aa.dataPredecessorDone(this);
+            if (!aa.hasDataPredecessors()) {
+                freeTasks.add(aa);
+            }
+        }
+        dataSuccessors.clear();
+        return freeTasks;
+    }
 
     /**
-     * Operations to perform when AA has been successfully completed. It calls specific operation doCompleted
+     * Operations to perform when AA has been successfully completed. It calls specific operation doCompleted.
      *
      * @return
      */
@@ -586,20 +599,11 @@ public abstract class AllocatableAction {
 
         // Action notification
         doCompleted();
-        // Release data dependencies of the task
-        List<AllocatableAction> freeTasks = new LinkedList<>();
-        for (AllocatableAction aa : dataSuccessors) {
-            aa.dataPredecessorDone(this);
-            if (!aa.hasDataPredecessors()) {
-                freeTasks.add(aa);
-            }
-        }
-        dataSuccessors.clear();
-        return freeTasks;
+        return releaseDataSuccessors();
     }
 
     /**
-     * Operations to perform when AA has raised an error. Calls specific operation doError
+     * Operations to perform when AA has raised an error. Calls specific operation doError.
      *
      * @throws es.bsc.compss.scheduler.exceptions.FailedActionException
      */
@@ -617,7 +621,7 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Operations to perform when AA has totally failed Calls specific operation doFailed
+     * Operations to perform when AA has totally failed. Calls specific operation doFailed.
      *
      * @return
      */
@@ -630,52 +634,14 @@ public abstract class AllocatableAction {
         // Triggering failure on Data Successors
         List<AllocatableAction> failed = new LinkedList<>();
 
-        switch (this.getOnFailure()) {
+        List<AllocatableAction> successors = new LinkedList<>();
+        successors.addAll(dataSuccessors);
 
-            case RETRY:
-                for (AllocatableAction succ : dataSuccessors) {
-                    failed.addAll(succ.failed());
-                }
-                failed.add(this);
+        // Failure notification
+        doFailed();
 
-                // Failure notification
-                doFailed();
-
-                break;
-            case FAIL:
-                for (AllocatableAction succ : dataSuccessors) {
-                    failed.addAll(succ.directFail());
-                }
-
-                // Failure notification
-                doFailed();
-
-                break;
-            case CANCEL_SUCCESSORS:
-                List<AllocatableAction> successors = new LinkedList<>();
-                successors = ((List<AllocatableAction>) ((LinkedList) dataSuccessors).clone());
-                Collections.copy(successors, dataSuccessors);
-
-                // Failure notification
-                doFailed();
-
-                for (AllocatableAction succ : successors) {
-                    failed.addAll(succ.canceled());
-                }
-                break;
-            case IGNORE:
-                // Release data dependencies of the task of all the successors that need to be executed
-                for (AllocatableAction aa : dataSuccessors) {
-                    aa.dataPredecessorDone(this);
-                    if (!aa.hasDataPredecessors()) {
-                        failed.add(aa);
-                    }
-                }
-
-                // Failure notification
-                doFailed();
-
-                break;
+        for (AllocatableAction succ : successors) {
+            failed.addAll(succ.canceled());
         }
 
         dataPredecessors.clear();
@@ -685,25 +651,51 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Operations to perform when task successors have to be canceled
+     * Operations to perform when AA has totally failed but the failure is to be ignored. Calls specific operation
+     * doFailed.
+     *
+     * @return
+     */
+    public final List<AllocatableAction> ignoredFailure() {
+
+        // Mark as failed
+        this.state = State.FAILED;
+
+        cancelAction();
+
+        // Failure notification
+        doFailIgnored();
+
+        // Release data dependencies of the task of all the successors that need to be executed
+        List<AllocatableAction> releasedSuccessors = releaseDataSuccessors();
+        dataPredecessors.clear();
+
+        return releasedSuccessors;
+    }
+
+    /**
+     * Operations to perform when task successors have to be canceled. Calls specific operation doCanceled.
      *
      * @return
      */
     public final List<AllocatableAction> canceled() {
+
         // Mark as canceled
         this.state = State.CANCELED;
 
         cancelAction();
 
-        List<AllocatableAction> actions = dataSuccessors;
-        actions = ((List) ((LinkedList) dataSuccessors).clone());
+        List<AllocatableAction> successors = new LinkedList<>();
+        successors.addAll(dataSuccessors);
+
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
 
         // Action notification
         doCanceled();
 
-        for (AllocatableAction succ : actions) {
+        // Forward cancellation to successors
+        for (AllocatableAction succ : successors) {
             cancel.addAll(succ.canceled());
         }
 
@@ -711,32 +703,6 @@ public abstract class AllocatableAction {
         dataSuccessors.clear();
 
         return cancel;
-    }
-
-    /**
-     * Operations to perform when a task has to fail without any resubmission
-     *
-     * @return
-     */
-    public final List<AllocatableAction> directFail() {
-        // Mark as canceled
-        this.state = State.FAILED;
-
-        cancelAction();
-
-        // Triggering cancellation on Data Successors
-        List<AllocatableAction> fail = new LinkedList<>();
-        for (AllocatableAction succ : dataSuccessors) {
-            fail.addAll(succ.directFail());
-        }
-
-        dataPredecessors.clear();
-        dataSuccessors.clear();
-
-        // Action notification
-        doDirectFail();
-
-        return fail;
     }
 
     private void cancelAction() {
@@ -764,42 +730,45 @@ public abstract class AllocatableAction {
     }
 
     /**
+<<<<<<< HEAD
      * Triggers the aborted action execution notification
      */
     protected abstract void doAbort();
 
     /**
      * Triggers the successful job completion notification
+=======
+     * Triggers the successful job completion notification.
+>>>>>>> Cleaning code
      */
     protected abstract void doCompleted();
 
     /**
-     * Triggers a retry on a job completion
+     * Triggers a retry on a job completion.
      *
      * @throws FailedActionException
      */
     protected abstract void doError() throws FailedActionException;
 
     /**
-     * Triggers the unsuccessful action completion notification
+     * Triggers the unsuccessful action completion notification.
      */
     protected abstract void doFailed();
 
     /**
+<<<<<<< HEAD
      *
      * Triggers the cancellation action notification
+=======
+     * Triggers the cancellation action notification.
+>>>>>>> Cleaning code
      */
     protected abstract void doCanceled();
 
     /**
-     * Triggers the ignored unsuccessful action
+     * Triggers the ignored unsuccessful action.
      */
     protected abstract void doFailIgnored();
-
-    /**
-     * Triggers the unsuccessful action at first chance
-     */
-    protected abstract void doDirectFail();
 
     /*
      * ***************************************************************************************************************

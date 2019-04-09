@@ -46,15 +46,7 @@
   #----------------------------------------------------------------------------------
   # Compute result status
   FILES=5
-  resultN=6
-  failed=1
-
-  # Checks if the file has been writen as many times as expected
-  result=$(cat /tmp/sharedDisk/onFailure1.txt)
-  if [ "${result}" -ne $resultN ]; then
-    echo "ERROR: The number of writing tasks is not correct. ${#result} "
-    exit 1
-  fi
+  failed=5
 
   # Checks if all the tasks have been executed through the creation of a job for each
   if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
@@ -67,10 +59,10 @@
     exit 1
   fi
 
-  # Check if only a task has failed
-  output1=$(cat "${runtime_log}" | grep "Task failed:" | wc -l)
+  # Check if the tasks have failed
+  output1=$(cat "${runtime_log}" | grep "Task failure:" | wc -l)
   if [ "${output1}" -ne "${failed}" ]; then
-  	echo "ERROR: The task has not failed."
+  	echo "ERROR: A task has not failed."
   	exit 1
   fi
 

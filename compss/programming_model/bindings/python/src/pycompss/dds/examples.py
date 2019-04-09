@@ -63,9 +63,9 @@ def word_count():
     path_file = sys.argv[1]
     start = time.time()
 
-    bir = DDS().load_files_from_dir(path_file)
+    bir = DDS().load_text_file(path_file)
 
-    iki = bir.map_and_flatten(lambda x: x[1].split())
+    iki = bir.map_and_flatten(lambda x: x.split())
 
     result = iki.count_by_value(arity=4, as_dict=True)
     print(result)
@@ -240,14 +240,14 @@ def load_n_map_example():
 
 def main_program():
     print("________RUNNING EXAMPLES_________")
-    example_1()
+    # example_1()
     # example_2()
     # example_3()
     # example_4()
     # example_5()
     # pi_estimation()
     # See 'launch.sh' for WordCount example.
-    # word_count()
+    word_count()
     # reduce_example()
     # load_n_map_example()
     # run_terasort()

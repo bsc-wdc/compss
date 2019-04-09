@@ -61,6 +61,30 @@ class DDS(object):
 
         return self
 
+    def load_text_file(self, file_name, chunk_size=1024, in_bytes=True,
+                       strip=True):
+        """
+        Load a text file into partitions with 'chunk_size' lines on each.
+        :param file_name: a path to a file to be loaded
+        :param chunk_size: size of chunks in bytes
+        :param in_bytes: if chunk size is in bytes or in number of lines.
+        :param strip: if line separators should be stripped from lines
+        :return:
+
+        >>> with open("test.txt", "w") as testFile:
+        ...    _ = testFile.write("First Line! \\n")
+        ...    _ = testFile.write("Second Line! \\n")
+        >>> DDS().load_text_file("test.txt").collect()
+        ['First Line! ', 'Second Line! ']
+        """
+        func = read_in_chunks if in_bytes else read_lines
+
+        for _p in func(file_name, chunk_size, strip=strip):
+            partition_loader = BasicDataLoader(_p)
+            self.partitions.append(partition_loader)
+
+        return self
+
     def load_files_from_dir(self, dir_path, num_of_parts=-1):
         """
         Read multiple files from a given directory. Each file and its content

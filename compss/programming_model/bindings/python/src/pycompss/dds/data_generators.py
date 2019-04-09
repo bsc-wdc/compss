@@ -20,9 +20,10 @@ objects are necessary. Inside 'task' functions we will call their 'generate'
 method in order to retrieve the partition. These partitions can previously be
 loaded on master and sent to workers, or read from files on worker nodes.
 """
+import sys
 
 
-class BaseDataLoader(object):
+class IPartitionLoader(object):
     """
     Everyone implements this.
     """
@@ -30,7 +31,22 @@ class BaseDataLoader(object):
         raise NotImplementedError
 
 
-class IteratorLoader(BaseDataLoader):
+class BasicDataLoader(IPartitionLoader):
+
+    def __init__(self, data):
+        super(BasicDataLoader, self).__init__()
+        self.data = data
+
+    def retrieve_data(self):
+        ret = list()
+        if isinstance(self.data, list):
+            ret.extend(self.data)
+        else:
+            ret.append(self.data)
+        return ret
+
+
+class IteratorLoader(IPartitionLoader):
 
     def __init__(self, iterable, start, end):
         super(IteratorLoader, self).__init__()
@@ -62,7 +78,7 @@ class IteratorLoader(BaseDataLoader):
                     yield item
 
 
-class WorkerFileLoader(BaseDataLoader):
+class WorkerFileLoader(IPartitionLoader):
 
     def __init__(self, file_paths):
         super(WorkerFileLoader, self).__init__()
@@ -75,3 +91,45 @@ class WorkerFileLoader(BaseDataLoader):
             ret.append((file_path, content))
 
         return ret
+
+
+def read_in_chunks(file_name, chunk_size=1024, strip=True):
+    """Lazy function (generator) to read a file piece by piece.
+    Default chunk size: 1k."""
+    partition = list()
+    f = open(file_name)
+    collected = 0
+    for line in f:
+        _line = line.rstrip("\n") if strip else line
+        partition.append(_line)
+        collected += sys.getsizeof(_line)
+        if collected > chunk_size:
+            yield partition
+            partition = []
+            collected = 0
+
+    if partition:
+        yield partition
+
+
+def read_lines(file_name, num_of_lines=1024, strip=True):
+    """
+    Lazy function (generator) to read a file line by line.
+    :param file_name:
+    :param num_of_lines: total number of lines in each partition
+    :param strip: if line separators should be stripped from lines
+    """
+    partition = list()
+    f = open(file_name)
+    collected = 0
+    for line in f:
+        _line = line.rstrip("\n") if strip else line
+        partition.append(_line)
+        collected += 1
+        if collected > num_of_lines:
+            yield partition
+            partition = []
+            collected = 0
+
+    if partition:
+        yield partition

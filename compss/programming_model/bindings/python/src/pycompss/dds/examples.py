@@ -63,7 +63,7 @@ def word_count():
     path_file = sys.argv[1]
     start = time.time()
 
-    bir = DDS().load_text_file(path_file)
+    bir = DDS().load_file(path_file, chunk_size=10, worker_read=True)
 
     iki = bir.map_and_flatten(lambda x: x.split())
 

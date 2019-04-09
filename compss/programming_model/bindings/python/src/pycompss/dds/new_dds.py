@@ -61,6 +61,39 @@ class DDS(object):
 
         return self
 
+    def load_file(self, file_path, chunk_size=1024, worker_read=False):
+        """
+        Read file in chunks and save it onto partitions.
+        :param file_path: a path to a file to be loaded
+        :param chunk_size: size of chunks in bytes
+        :param worker_read:
+        :return:
+
+        >>> with open("test.file", "w") as testFile:
+        ...    _ = testFile.write("Hello world!")
+        >>> DDS().load_file("test.file", 6).collect()
+        ['Hello ', 'world!']
+        """
+        if worker_read:
+            fp = open(file_path)
+            fp.seek(0, 2)
+            total = fp.tell()
+            parsed = 0
+            while parsed < total:
+                _partition_loader = WorkerFileLoader(
+                    [file_path], start=parsed, chunk_size=chunk_size)
+                self.partitions.append(_partition_loader)
+                parsed += chunk_size
+        else:
+            f = open(file_path, 'r')
+            chunk = f.read(chunk_size)
+            while chunk:
+                _partition_loader = BasicDataLoader(chunk)
+                self.partitions.append(_partition_loader)
+                chunk = f.read(chunk_size)
+
+        return self
+
     def load_text_file(self, file_name, chunk_size=1024, in_bytes=True,
                        strip=True):
         """

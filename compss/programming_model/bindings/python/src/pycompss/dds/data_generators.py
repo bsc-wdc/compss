@@ -80,11 +80,26 @@ class IteratorLoader(IPartitionLoader):
 
 class WorkerFileLoader(IPartitionLoader):
 
-    def __init__(self, file_paths):
+    def __init__(self, file_paths, start=0, chunk_size=None):
         super(WorkerFileLoader, self).__init__()
+
+        self.single_file = len(file_paths) == 1
         self.file_paths = file_paths
+        self.start = start
+        self.chunk_size = chunk_size
+
+        if self.single_file and not chunk_size:
+            raise Exception("Missing chunk_size argument...")
 
     def retrieve_data(self):
+
+        if self.single_file:
+            fp = open(self.file_paths[0])
+            fp.seek(self.start)
+            temp = fp.read(self.chunk_size)
+            fp.close()
+            return [temp]
+
         ret = list()
         for file_path in self.file_paths:
             content = open(file_path).read()

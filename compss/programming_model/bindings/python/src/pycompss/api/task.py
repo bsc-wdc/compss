@@ -737,9 +737,11 @@ class Task(object):
 
         # Step 5.- Update the Parameter type with the worker information
         if at_worker:
+            t = kwargs['compss_types']
             for i, param in enumerate(self.parameters):
-                t = kwargs['compss_types']
                 self.parameters[param].type = t[i]
+                if i + 1 == len(t):
+                    break
 
         # Step 6.- Clean elements that are not defined in parameter_names
         for p in list(self.parameters.keys()):
@@ -885,7 +887,15 @@ class Task(object):
         else:
             pass
 
+        restore_hook = False
+        if kwargs['compss_tracing']:
+            pro_f = sys.getprofile()
+            sys.setprofile(None)
+            restore_hook = True
+        
         ret = f(*real_values, **kargs)  # Real call to f function
+        if restore_hook:
+            sys.setprofile(pro_f)
 
         # This will contain the same as to_serialize but we will store the whole
         # file identifier string instead of simply the file_name

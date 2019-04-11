@@ -17,11 +17,13 @@
 package es.bsc.compss.agent.loader;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -40,7 +42,8 @@ import javassist.NotFoundException;
 
 public class Loader {
 
-    public static void load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className, String methodName, Object... params) throws MalformedURLException {
+    public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className, String methodName, Object... params)
+            throws AgentException {
         try {
             // Add the jars that the custom class loader needs
             String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
@@ -66,7 +69,7 @@ public class Loader {
 
             Class<?> app = appClass.toClass();
             appClass.defrost();
-            
+
             Method setter = app.getDeclaredMethod("setCOMPSsVariables",
                     new Class<?>[]{
                         Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
@@ -84,11 +87,12 @@ public class Loader {
             }
 
             Method main = findMethod(app, methodName, params.length, types, params);
-            main.invoke(null, params);
+            Object returnValue = main.invoke(null, params);
             runtime.noMoreTasks(appId);
+            return returnValue;
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            throw new AgentException(e);
         }
     }
 

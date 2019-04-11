@@ -105,6 +105,20 @@ public class Agent {
         System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
     }
 
+    /**
+     * Request the execution of a method tasks and detect possible nested tasks.
+     *
+     * @param lang       programming language of the method
+     * @param ceiClass   Core Element interface to detect nested tasks in the code
+     * @param className  name of the class containing the method to execute
+     * @param methodName name of the method to execute
+     * @param params     parameter values to pass in to the method
+     * @param monitor    monitor to notify changes on the method execution
+     *
+     * @return Identifier of the application associated to the main task
+     *
+     * @throws AgentException error parsing the CEI
+     */
     public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params,
             AppMonitor monitor) throws AgentException {
 
@@ -141,6 +155,21 @@ public class Agent {
         return mainAppId;
     }
 
+    /**
+     * Requests the execution of a method as a task.
+     *
+     * @param lang       programming language of the method
+     * @param className  name of the class containing the method to execute
+     * @param methodName name of the method to execute
+     * @param sarParams  paramter description of the task
+     * @param target     paramter description of the task callee
+     * @param hasResult  true if the task returns any value
+     * @param monitor    monitor to notify changes on the method execution
+     *
+     * @return Identifier of the application associated to the task
+     *
+     * @throws AgentException could not retrieve the value of some parameter
+     */
     public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams,
             ApplicationParameter target, boolean hasResult, AppMonitor monitor) throws AgentException {
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
@@ -237,6 +266,13 @@ public class Agent {
         return (name.equals(AGENT_NAME) || hostName.equals(AGENT_NAME) || name.equals("localhost"));
     }
 
+    /**
+     * Adds new resources into the resource pool.
+     *
+     * @param r Description of the resources to add into the resource pool
+     *
+     * @throws AgentException could not create a configuration to start using this resource
+     */
     public static void addResources(Resource r) throws AgentException {
         String workerName = r.getName();
         String adaptor = r.getAdaptor();
@@ -276,6 +312,14 @@ public class Agent {
         }
     }
 
+    /**
+     * Requests the agent to stop using some resources from a node.
+     *
+     * @param workerName name of the worker to whom the resources belong.
+     * @param reduction  description of the resources to stop using.
+     *
+     * @throws AgentException the worker was not set up for the agent.
+     */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {
@@ -285,14 +329,28 @@ public class Agent {
         }
     }
 
-    public static void removeNode(String name) throws AgentException {
+    /**
+     * Request the agent to stop using all the resources from a node.
+     *
+     * @param workerName name of the worker to stop using
+     *
+     * @throws AgentException the worker was not set up for the agent.
+     */
+    public static void removeNode(String workerName) throws AgentException {
         try {
-            ResourceManager.requestWholeWorkerReduction(name);
+            ResourceManager.requestWholeWorkerReduction(workerName);
         } catch (NullPointerException e) {
-            throw new AgentException("Resource " + name + " was not set up for this agent. Ignoring request.");
+            throw new AgentException("Resource " + workerName + " was not set up for this agent. Ignoring request.");
         }
     }
 
+    /**
+     * Forces the agent to remove a node with which it has lost the connection.
+     *
+     * @param workerName name of the worker to stop using
+     *
+     * @throws AgentException the worker was not set up for the agent.
+     */
     public static void lostNode(String workerName) throws AgentException {
         try {
             ResourceManager.notifyWholeWorkerReduction(workerName);
@@ -302,7 +360,7 @@ public class Agent {
     }
 
 
-    public static abstract class AppMonitor implements TaskMonitor {
+    public abstract static class AppMonitor implements TaskMonitor {
 
         private long appId;
 

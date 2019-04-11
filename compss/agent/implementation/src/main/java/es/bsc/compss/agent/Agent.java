@@ -122,14 +122,22 @@ public class Agent {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
 
-        RUNTIME.executeTask(mainAppId, monitor, lang, "es.bsc.compss.agent.loader.Loader", "load", false, 1, false,
-                false, false, 7, OnFailure.RETRY,
-                new Object[]{RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime", RUNTIME,
-                    DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", ceiClass, DataType.STRING_T,
-                    Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", appId, DataType.LONG_T, Direction.IN,
-                    Stream.UNSPECIFIED, "", "appId", className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED,
-                    "", "className", methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "",
-                    "methodName", params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params"});
+        RUNTIME.executeTask(
+                mainAppId, monitor,
+                lang, "es.bsc.compss.agent.loader.Loader", "load",
+                false, 1, false, false,
+                false, 7,
+                OnFailure.RETRY,
+                new Object[]{
+                    RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime",
+                    RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api",
+                    ceiClass, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "ceiClass",
+                    appId, DataType.LONG_T, Direction.IN, Stream.UNSPECIFIED, "", "appId",
+                    className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "className",
+                    methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "methodName",
+                    params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params",
+                    new Object(), DataType.OBJECT_T, Direction.OUT, Stream.UNSPECIFIED, "", "return"
+                });
         return mainAppId;
     }
 
@@ -200,8 +208,12 @@ public class Agent {
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
 
-            RUNTIME.executeTask(appId, monitor, lang, className, methodName, false, 1, false, false, target != null,
-                    paramsCount, OnFailure.RETRY, params);
+            RUNTIME.executeTask(
+                    appId,
+                    monitor,
+                    lang, className, methodName,
+                    false, 1, false, false,
+                    target != null, paramsCount, OnFailure.RETRY, params);
 
         } catch (Exception e) {
             throw new AgentException(e);

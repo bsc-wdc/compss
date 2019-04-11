@@ -138,7 +138,11 @@ public abstract class Tracer {
         TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), 
         UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
         WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
-        TRY_TO_LAUNCH(54, RUNTIME_EVENTS, "Task Dispatcher: Try to launch free actions"),
+        TRY_TO_LAUNCH(54, RUNTIME_EVENTS, "Task Dispatcher: Try to launch free action"),
+        TRY_TO_SCHEDULE(55, RUNTIME_EVENTS, "Task Dispatcher: Try to schedule free action"),
+        COMPUTE_CANDIDATES(56, RUNTIME_EVENTS, "Task Dispatcher: Compute candidates"),
+        RESERVE_RESOURCES(57, RUNTIME_EVENTS, "Task Dispatcher: Reserve resources"),
+        DO_ACTION(58, RUNTIME_EVENTS, "Task Dispatcher: Do action"),
         
         // Task Events
         TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"),

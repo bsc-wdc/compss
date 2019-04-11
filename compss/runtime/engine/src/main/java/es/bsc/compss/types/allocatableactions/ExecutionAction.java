@@ -49,6 +49,7 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
+import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
 import java.util.Collections;

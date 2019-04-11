@@ -27,6 +27,7 @@ import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.util.Tracer;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -473,11 +474,9 @@ public abstract class AllocatableAction {
         state = State.RUNNING;
         // Allow other threads to execute the task (complete and error executor)
         lock.unlock();
-
         reserveResources();
         profile = selectedResource.generateProfileForRun(this);
         selectedResource.hostAction(this);
-
         doAction();
     }
 

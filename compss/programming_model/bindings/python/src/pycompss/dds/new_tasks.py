@@ -116,7 +116,8 @@ def task_dict_to_list(iterator, total_parts, partition_num):
 def merge_dicts(first, second, merger_function):
     """
     """
-    for key, val in second.items():
+    for key in second:
+        val = second[key]
         first[key] = merger_function(first[key], val) if key in first else val
 
 

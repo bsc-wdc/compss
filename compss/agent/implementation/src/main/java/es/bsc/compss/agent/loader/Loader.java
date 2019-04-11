@@ -23,9 +23,7 @@ import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import javassist.CannotCompileException;
@@ -42,7 +40,28 @@ import javassist.NotFoundException;
 
 public class Loader {
 
-    public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className, String methodName, Object... params)
+    /**
+     * Instruments a method using a CEI and runs it passing in the parameters given.
+     *
+     * @param runtime    COMPSs runtime that will handle the execution of the nested tasks
+     * @param api        COMPSs runtime that will handle the execution of the nested tasks
+     * @param ceiClass   CEI to detect tasks
+     * @param appId      application Id that will be used by the nested tasks
+     * @param className  name of the class containing the method to run
+     * @param methodName name of the method to run
+     * @param params     values of the parameters to pass in to the method
+     *
+     * @return returns the return value of the executed method
+     *
+     * @throws AgentException could not instrument the code or the execution raised an exception
+     */
+    public static Object load(
+            COMPSsRuntime runtime,
+            LoaderAPI api,
+            String ceiClass,
+            long appId,
+            String className, String methodName,
+            Object... params)
             throws AgentException {
         try {
             // Add the jars that the custom class loader needs
@@ -96,7 +115,9 @@ public class Loader {
         }
     }
 
-    private static void addVariables(ClassPool cp, CtClass appClass, String itApiVar, String itSRVar, String itORVar, String itAppIdVar)
+    private static void addVariables(
+            ClassPool cp, CtClass appClass,
+            String itApiVar, String itSRVar, String itORVar, String itAppIdVar)
             throws NotFoundException, CannotCompileException {
         CtClass itApiClass = cp.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
         CtField itApiField = new CtField(itApiClass, itApiVar, appClass);
@@ -129,7 +150,8 @@ public class Loader {
 
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
         // Candidates to be instrumented if they are not remote
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
+        ITAppEditor itAppEditor;
+        itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
 
 
         /*
@@ -137,7 +159,8 @@ public class Loader {
          */
         CodeConverter converter = new CodeConverter();
         CtClass arrayWatcher = cp.get(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
-        CodeConverter.DefaultArrayAccessReplacementMethodNames names = new CodeConverter.DefaultArrayAccessReplacementMethodNames();
+        CodeConverter.DefaultArrayAccessReplacementMethodNames names;
+        names = new CodeConverter.DefaultArrayAccessReplacementMethodNames();
         converter.replaceArrayAccess(arrayWatcher, (CodeConverter.ArrayAccessReplacementMethodNames) names);
 
         /*
@@ -156,7 +179,9 @@ public class Loader {
         }
     }
 
-    private static void addModifyVariablesMethod(CtClass appClass, String itApiVar, String itSRVar, String itORVar, String itAppIdVar)
+    private static void addModifyVariablesMethod(
+            CtClass appClass,
+            String itApiVar, String itSRVar, String itORVar, String itAppIdVar)
             throws CannotCompileException, NotFoundException {
 
         String methodBody;
@@ -195,7 +220,9 @@ public class Loader {
         return cp;
     }
 
-    private static Method findMethod(Class<?> methodClass, String methodName, int numParams, Class<?>[] types, Object[] values) {
+    private static Method findMethod(
+            Class<?> methodClass, String methodName,
+            int numParams, Class<?>[] types, Object[] values) {
         Method method = null;
         try {
             method = methodClass.getMethod(methodName, types);
@@ -205,38 +232,15 @@ public class Loader {
                     int paramId = 0;
                     boolean isMatch = true;
                     for (java.lang.reflect.Parameter p : m.getParameters()) {
-                        if (p.getType().isPrimitive()) {
-                            if (p.getType() != values[paramId].getClass()) {
-                                switch (p.getType().getCanonicalName()) {
-                                    case "byte":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Byte");
-                                        break;
-                                    case "char":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Char");
-                                        break;
-                                    case "short":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Short");
-                                        break;
-                                    case "int":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Integer");
-                                        break;
-                                    case "long":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Long");
-                                        break;
-                                    case "float":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Float");
-                                        break;
-                                    case "double":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Double");
-                                        break;
-                                    case "boolean":
-                                        isMatch = values[paramId].getClass().getCanonicalName().equals("java.lang.Boolean");
-                                        break;
-                                }
+                        Class<?> methodParamClass = p.getType();
+                        if (methodParamClass.isPrimitive()) {
+                            Class<?> taskParamClass = values[paramId].getClass();
+                            if (methodParamClass != taskParamClass) {
+                                isMatch &= isBasicTypeMatch(methodParamClass, taskParamClass);
                             }
                         } else {
                             try {
-                                p.getType().cast(values[paramId]);
+                                methodParamClass.cast(values[paramId]);
                             } catch (ClassCastException cce) {
                                 isMatch = false;
                                 break;
@@ -251,6 +255,39 @@ public class Loader {
             }
         }
         return method;
+    }
+
+    private static boolean isBasicTypeMatch(Class<?> methodParamClass, Class<?> taskParamClass) {
+        String methodParamClassName = methodParamClass.getCanonicalName();
+        String taskParamClassName = taskParamClass.getCanonicalName();
+        boolean isMatch = false;
+        switch (methodParamClassName) {
+            case "byte":
+                isMatch = taskParamClassName.equals("java.lang.Byte");
+                break;
+            case "char":
+                isMatch = taskParamClassName.equals("java.lang.Char");
+                break;
+            case "short":
+                isMatch = taskParamClassName.equals("java.lang.Short");
+                break;
+            case "int":
+                isMatch = taskParamClassName.equals("java.lang.Integer");
+                break;
+            case "long":
+                isMatch = taskParamClassName.equals("java.lang.Long");
+                break;
+            case "float":
+                isMatch = taskParamClassName.equals("java.lang.Float");
+                break;
+            case "double":
+                isMatch = taskParamClassName.equals("java.lang.Double");
+                break;
+            case "boolean":
+                isMatch = taskParamClassName.equals("java.lang.Boolean");
+                break;
+        }
+        return isMatch;
     }
 
     private static void printVariables(Class<?> app) throws Exception {

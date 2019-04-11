@@ -19,6 +19,12 @@ package es.bsc.compss.agent.types;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
+/**
+ * Description of a resource to be used by the agent.
+ *
+ * @param <P> Description of the resource corresponding to the project configuration file
+ * @param <R> Description of the resource corresponding to the resources configuration file
+ */
 public class Resource<P, R> {
 
     private String name;
@@ -30,6 +36,15 @@ public class Resource<P, R> {
     public Resource() {
     }
 
+    /**
+     * Constructs a new resource description.
+     *
+     * @param name         Name of the node
+     * @param description  Description of the resources available
+     * @param adaptor      Name of the adaptor to use to interact with the node
+     * @param projectConf  Project configuration file content related to the node
+     * @param resourceConf Resources configuration file content related to the node
+     */
     public Resource(String name, MethodResourceDescription description, String adaptor, P projectConf, R resourceConf) {
         this.name = name;
         this.description = description;

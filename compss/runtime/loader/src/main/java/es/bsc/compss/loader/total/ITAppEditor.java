@@ -668,10 +668,13 @@ public class ITAppEditor extends ExprEditor {
                  * ********************************* PRIMITIVE *********************************
                  */
                 String tempRetVar = "ret" + System.nanoTime();
-                infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',')
-                        .append(DATA_DIRECTION + ".OUT").append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED)
-                        .append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",").append("\"")
-                        .append("\"");
+                infoToAppend
+                        .append(tempRetVar).append(',')
+                        .append(DATA_TYPES + ".OBJECT_T").append(',')
+                        .append(DATA_DIRECTION + ".OUT").append(',')
+                        .append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',')
+                        .append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",")
+                        .append("\"").append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -736,11 +739,12 @@ public class ITAppEditor extends ExprEditor {
                 }
                 String compTypeName = compType.getName();
                 infoToPrepend.insert(0, "$_ = new " + compTypeName + dims + ';');
-                infoToAppend.append("$_,").append(DATA_TYPES + ".OBJECT_T");
-                infoToAppend.append(',').append(DATA_DIRECTION + ".OUT");
-                infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
-                infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
-                infoToAppend.append(',').append("\"").append("\"");
+                infoToAppend
+                        .append("$_,").append(DATA_TYPES + ".OBJECT_T").append(',')
+                        .append(DATA_DIRECTION + ".OUT").append(',')
+                        .append(DATA_STREAM + ".UNSPECIFIED").append(',')
+                        .append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(',')
+                        .append("\"").append("\"");
             } else {
                 /*
                  * ********************************* OBJECT

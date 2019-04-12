@@ -102,9 +102,9 @@ class testCollectionFunctions(unittest.TestCase):
         fifth_vector = compss_wait_on(select_element(ten_random_vectors, 4))
         import numpy as np
         np.random.seed(4)
-        self.assertEqual(
+        self.assertTrue(
             np.allclose(
                 fifth_vector,
-                np.random.rand(5)
+                np.random.rand(5) + 2.0
             )
         )

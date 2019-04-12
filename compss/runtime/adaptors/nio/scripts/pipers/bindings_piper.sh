@@ -112,7 +112,7 @@
 
   if [ "$tracing" -eq "-1" ]; then # scorep
     echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
-    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../scripts/system/trace
+    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
     source ${TRACE_SCRIPTS_PATH}/scorep.sh
 
     app_path=$(pwd)
@@ -130,7 +130,7 @@
   elif [ "$tracing" -eq "-2" ]; then # arm-map
 
     echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
-    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../scripts/system/trace
+    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
     source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
     # Set path to the application - this even better because the submission is independent of the current working directory
 
@@ -142,7 +142,7 @@
   elif [ "$tracing" -eq "-3" ]; then # arm-ddt
 
     echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
-    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../scripts/system/trace
+    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
     source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
     # Set path to the application - this even better because the submission is independent of the current working directory
 

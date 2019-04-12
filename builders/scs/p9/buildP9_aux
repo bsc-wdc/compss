@@ -35,7 +35,7 @@
 #  additionalExports="export PATH=$PATH:/apps/JDK/SRC/jdk1.9.0_131 JAVA_HOME=/apps/JDK/SRC/jdk1.9.0_131"
   additionalExports="export BOOST_CPPFLAGS=-I/apps/BOOST/1.66.0/include"
   queues_cfg="p9.cfg"
-  extrae_with_openmpi="false"
+  extrae_with_openmpi="true"
   openmpi_version=""
   extrae_with_impi="false"
   impi_version=""

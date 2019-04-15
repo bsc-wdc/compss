@@ -140,7 +140,7 @@ public class Agent {
                 mainAppId, monitor,
                 lang, "es.bsc.compss.agent.loader.Loader", "load",
                 false, 1, false, false,
-                false, 7,
+                false, 8,
                 OnFailure.RETRY,
                 new Object[]{
                     RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime",

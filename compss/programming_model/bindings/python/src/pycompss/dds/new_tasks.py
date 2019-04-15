@@ -62,7 +62,7 @@ def task_read_files(file_paths):
 
 
 @task(returns=1)
-def task_map_partition(f, partition_loader, *args, **kwargs):
+def load_and_map_partition(f, partition_loader):
     """
     Apply a function to a partition in a new task. The function should take an
     iterable as a parameter and return a list.
@@ -72,8 +72,17 @@ def task_map_partition(f, partition_loader, *args, **kwargs):
     :return: future object of the list containing results
     """
     data = partition_loader.retrieve_data()
-    res = f(data, *args, **kwargs)
+    res = f(data)
     del data
+    return res
+
+
+@task(returns=1)
+def map_partition(f, partition):
+    """
+    """
+    res = f(partition)
+    del partition
     return res
 
 
@@ -119,14 +128,6 @@ def merge_dicts(first, second, merger_function):
     for key in second:
         val = second[key]
         first[key] = merger_function(first[key], val) if key in first else val
-
-
-@task(returns=1)
-def map_partition(f, loader):
-    """
-    """
-    res = f(loader)
-    return res
 
 
 @task(returns=1)

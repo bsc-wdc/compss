@@ -35,13 +35,15 @@ class DDS(object):
         super(DDS, self).__init__()
         self.partitions = list()
         self.func = None
+        # To check if partitions have been loaded
+        self.has_loaded_partitions = False
 
     def load(self, iterator, num_of_parts=10):
         """
         """
         if num_of_parts == -1:
             self.partitions = iterator
-            return
+            return self
 
         total = len(iterator)
         if not total:
@@ -390,10 +392,23 @@ class DDS(object):
 
         processed = list()
         if self.func:
-            for _p in self.partitions:
-                processed.append(task_map_partition(self.func, _p))
+            if self.has_loaded_partitions:
+                for _p in self.partitions:
+                    processed.append(map_partition(self.func, _p))
+            else:
+                for _p in self.partitions:
+                    processed.append(load_and_map_partition(self.func, _p))
+                self.has_loaded_partitions = True
+            # Reset the function!
+            self.func = None
         else:
-            processed = self.partitions
+            if self.has_loaded_partitions:
+                for _p in self.partitions:
+                    processed.append(_p.retrieve_data())
+                self.has_loaded_partitions = True
+            else:
+                for _p in self.partitions:
+                    processed.append(_p)
 
         # Future objects cannot be extended for now...
         if future_objects:
@@ -488,9 +503,29 @@ class DDS(object):
 
         locally_combined = self.map_partitions(combine_partition)\
             .collect(future_objects=True)
+        self.has_loaded_partitions = True
 
-        return tree_reduce_dicts(locally_combined, merger_function, collect,
-                                 total_parts=total_parts)
+        future_objects = deque(locally_combined)
+        while future_objects:
+            first = future_objects.popleft()
+            if future_objects:
+                second = future_objects.popleft()
+                merge_dicts(first, second, merger_function)
+                future_objects.append(first)
+            else:
+                # If it's the last item in the queue, retrieve it:
+                if collect:
+                    # As a dict if necessary
+                    ret = compss_wait_on(first)
+                    return ret
+
+                # As a list of future objects
+                # TODO: Implement 'dict' --> 'lists on nodes'
+                self.partitions = list()
+                for i in range(total_parts):
+                    self.partitions.append(task_dict_to_list(first, total_parts, i))
+
+                return self
 
     def reduce_by_key(self, f, collect=False):
         """ Reduce values for each key.
@@ -514,6 +549,7 @@ class ChildDDS(DDS):
         :param func:
         """
         super(ChildDDS, self).__init__()
+        self.has_loaded_partitions = parent.has_loaded_partitions
         if not isinstance(parent, ChildDDS):
             self.func = func
             if isinstance(parent, DDS):

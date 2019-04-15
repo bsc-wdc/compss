@@ -64,16 +64,20 @@ ldflags_aux="-L."
 cflags_aux="-I$(pwd)"
 conf_opts=""
 
-if [ -n "$OMPSS2_ENABLED" ]; then
+if [ "$OMPSS2_ENABLED" = "enabled" ]; then
     ldflags_aux="$ldflags_aux -L$OMPSS2_DIR/lib -Wl,-rpath,$OMPSS2_DIR/lib"
     cflags_aux="$cflags_aux -I$OMPSS2_DIR/include"
     conf_opts="--with-ompss-2"
 fi
 
-if [ -n "$OMPSS_ENABLED" ]; then
+if [ "$OMPSS_ENABLED" = "enabled" ]; then
     ldflags_aux="$ldflags_aux -L$OMPSS_DIR/lib"
     cflags_aux="$cflags_aux -I$OMPSS_DIR/include"
     conf_opts="$conf_opts --with-ompss"
+fi
+
+if [ "$CUDA_ENABLED" = "enabled"]; then
+    conf_opts="$conf_opts --with-cuda"
 fi
 
 if [ -n "$TARGET_HOST" ]; then

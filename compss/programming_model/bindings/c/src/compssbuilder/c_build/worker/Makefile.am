@@ -24,13 +24,27 @@ libfunctions_a_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JA
 
 libfunctions_a_CFLAGS =
 
+#There are not or's nor and's, so this looks pretty ugly...
 if OMPSS2
-libfunctions_a_CPPFLAGS  += --ompss-2
-libfunctions_a_CFLAGS    += --ompss-2
+libfunctions_a_CPPFLAGS  += --ompss-2 -DOMPSS2_ENABLED
+libfunctions_a_CFLAGS    += --ompss-2 -DOMPSS2_ENABLED
+
+if CUDA 
+libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
+libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
+endif
+
 else    
+
 if OMPSS
-libfunctions_a_CPPFLAGS  += --ompss
-libfunctions_a_CFLAGS    += --ompss
+libfunctions_a_CPPFLAGS  += --ompss -DOMPSS_ENABLED
+libfunctions_a_CFLAGS    += --ompss -DOMPSS_ENABLED
+
+if CUDA 
+libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
+libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
+endif
+
 endif
 endif
 

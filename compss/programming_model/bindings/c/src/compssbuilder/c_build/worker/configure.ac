@@ -54,6 +54,7 @@ AC_ARG_WITH([cs-prefix],
 
 ompss=false
 ompss2=false
+cuda=false
 
 dnl Linking with Nanos++ libraries if necessary
 AC_ARG_WITH([ompss],
@@ -88,13 +89,27 @@ AC_ARG_WITH([ompss-2],
                 [
                     AC_MSG_ERROR([nanos6-library-mode.o is needed, we make a custom library from it.])
                 ])
-                #LIBS=$withval/lib/nanos6-library-mode.o -L$withval/lib -lnanos6 $LIBS
-                #CPPFLAGS="-I$withval/include $CPPFLAGS"              
+            ]
+)
+
+dnl Linking with CUDA libraries if necessary
+AC_ARG_WITH([cuda],
+    AS_HELP_STRING([ --with-cuda], [Enables the use of CUDA.]),
+            [
+                cuda=true
+                
+                AC_CHECK_LIB([cudart], [cudaMalloc], [],
+                [
+                    AC_MSG_ERROR([cudart library not found, is needed to enable CUDA.])
+
             ]
 )
 
 AM_CONDITIONAL([OMPSS], [test x$ompss = xtrue])
 AM_CONDITIONAL([OMPSS2], [test x$ompss2 = xtrue])
+AM_CONDITIONAL([CUDA], [test x$cuda = xtrue])
+
+#Please, note that there are dependencies between the cuda option and OmpSs, OmpSs-2, in order to use cuda you must have enabled OmpSs or OmpSs-2. This dependencies are managed by the compss_build_app script.
 
 dnl Checks for libraries.
 #AC_CHECK_LIB(GS-master, GS_On,, [ AC_MSG_ERROR([Required Master COMP Supercalar c library cannot be found]) ])

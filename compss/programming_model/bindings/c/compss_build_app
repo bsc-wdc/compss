@@ -343,9 +343,11 @@ check_args() {
     fi
 
     if [ "$enable_cross" == "true" ]; then
+      
         if [ -z "${CROSS_COMPILE}" ]; then
             CROSS_COMPILE=${CROSS_COMPILE_PREFIX}
         fi
+      
         #At this point, if you defined a prefix, it will be set, if you enabled cross-compile 
         #but you did not exported CROSS_COMPILE, no effect is expected from the option.
         echo "[ INFO ] You enabled cross-compile and the prefix to be used is: ${CROSS_COMPILE}"
@@ -358,7 +360,7 @@ check_args() {
 set_target_host() {
         #To use GNU tools, such as configure, we have to specify a target; environment variable TARGET_HOST will do the trick.
         if [ -z "${TARGET_HOST}" ] & [ ! -z "${enable_cross}" ]; then
-            #If not defined, we assume that your currently CC or CXX configured (the want you are going to use to build)
+            #If not defined, we assume that your currently CC or CXX configured (the one you are going to use to build the app)
             #has the details of what architecture is the one we are targeting.
             export TARGET_HOST=$(${CC} -dumpmachine)
             local retVal=$?
@@ -389,6 +391,10 @@ if [ -z "${defined_mcxx}" ]; then
         fi
 fi
 
+#The environment variables that we export of the type *_ENABLED are used to interface
+#with the compss_build script, that will execute the configure with the enabled options.
+
+
 if [ "${ompss2_enabled}" != "" ]; then
     if [ ${ompss2_enabled} == 1 ]; then
         export CC=${CROSS_COMPILE}${defined_mcc}
@@ -418,9 +424,9 @@ if [ "${ompss_enabled}" != "" ]; then
   if [ ${ompss_enabled} == 1 ]; then
         export CC=${CROSS_COMPILE}${defined_mcc}
         export CXX=${CROSS_COMPILE}${defined_mcxx}
-        export CFLAGS="$CFLAGS --ompss ${ompss_flags}"
-        export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags}"
-        export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
+#        export CFLAGS="$CFLAGS --ompss ${ompss_flags}"
+#        export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags}"
+#        export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
 
         export OMPSS_ENABLED="enabled"
   fi
@@ -436,11 +442,14 @@ if [ "${cuda_enabled}" != "" ]; then
         else
                 export CUDA_HOME=${cuda_prefix}
         fi
-        export PATH=$PATH:${CUDA_HOME}/bin
-        export LDFLAGS="--cuda $LDFLAGS"
-        export LIBS="-L${CUDA_HOME}/lib64 -lcudart $LIBS"
-        export CFLAGS="$CFLAGS --cuda"
-        export CXXFLAGS="$CXXFLAGS --cuda"
+
+    export CUDA_ENABLED="enabled"
+
+#        export PATH=$PATH:${CUDA_HOME}/bin
+#        export LDFLAGS="--cuda $LDFLAGS"
+#        export LIBS="-L${CUDA_HOME}/lib64 -lcudart $LIBS"
+#        export CFLAGS="$CFLAGS --cuda"
+#        export CXXFLAGS="$CXXFLAGS --cuda"
   fi
 fi
 
@@ -502,47 +511,48 @@ export COMPSSGEN=$CS_HOME/bin/compss_generator
 
 # Building Master and Worker
 if [ -z "${defined_cc}" ]; then
-   if [ -z "$CC" ]; then
-	defined_cc="gcc"
-   else
-	defined_cc=$CC
-   fi
+    if [ -z "$CC" ]; then
+        defined_cc="gcc"
+    else
+	    defined_cc=$CC
+    fi
 fi
 export CC=${CROSS_COMPILE}${defined_cc}
 
 if [ -z "${defined_cxx}" ]; then
-   if [ -z "$CXX" ]; then
+    if [ -z "$CXX" ]; then
         defined_cxx="g++"
-   else
+    else
         defined_cxx=$CXX
-   fi
+    fi
 fi
 export CXX=${CROSS_COMPILE}${defined_cxx}
 
 if [ ! -z "${defined_cflags}" ]; then
-   export CFLAGS="${defined_cflags}"
+    export CFLAGS="${defined_cflags}"
 fi
 
 if [ ! -z "${defined_cxxflags}" ]; then
-   export CXXFLAGS="${defined_cxxflags}"
+    export CXXFLAGS="${defined_cxxflags}"
 fi
 
 if [ ! -z "${defined_cppflags}" ]; then
-   export CPPFLAGS="${defined_cppflags}"
+    export CPPFLAGS="${defined_cppflags}"
 fi
 
 if [ ! -z "${defined_ldflags}" ]; then
-   export LDFLAGS="${defined_ldflags}"
+    export LDFLAGS="${defined_ldflags}"
 fi
 
 if [ ! -z "${defined_libs}" ]; then
-   export LIBS="${defined_libs}"
+    export LIBS="${defined_libs}"
 fi
 
 set_target_host #Tell GNU tools the target host of the build
 
 # Application src compilation
 if [ -d "./src" ]; then
+
   (
   cd ./src || exit 1
   make $goals

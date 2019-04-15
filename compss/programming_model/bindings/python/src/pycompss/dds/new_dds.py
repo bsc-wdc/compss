@@ -42,6 +42,7 @@ class DDS(object):
         """
         """
         if num_of_parts == -1:
+            self.has_loaded_partitions = True
             self.partitions = iterator
             return self
 
@@ -536,11 +537,11 @@ class DDS(object):
 
                 # As a list of future objects
                 # TODO: Implement 'dict' --> 'lists on nodes'
-                self.partitions = list()
+                new_partitions = list()
                 for i in range(total_parts):
-                    self.partitions.append(task_dict_to_list(first, total_parts, i))
+                    new_partitions.append(task_dict_to_list(first, total_parts, i))
 
-                return self
+                return DDS().load(new_partitions, -1)
 
     def reduce_by_key(self, f, collect=False):
         """ Reduce values for each key.

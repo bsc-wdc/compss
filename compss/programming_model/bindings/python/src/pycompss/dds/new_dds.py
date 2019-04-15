@@ -285,6 +285,21 @@ class DDS(object):
 
         return branch[0]
 
+    def distinct(self):
+        """
+        Get the distinct elements of this data set.
+        :return:
+
+        >>> test = list(range(10))
+        >>> test.extend(list(range(5)))
+        >>> len(test)
+        15
+        >>> DDS().load(test, 5).distinct().count()
+        10
+        """
+        return self.map(lambda x: (x, None))\
+            .reduce_by_key(lambda x, _: x).map(lambda x: x[0])
+
     def count_by_value(self, arity=2, as_dict=False):
         """
         Amount of each element on this data set.
@@ -404,11 +419,11 @@ class DDS(object):
         else:
             if self.has_loaded_partitions:
                 for _p in self.partitions:
-                    processed.append(_p.retrieve_data())
-                self.has_loaded_partitions = True
+                    processed.append(_p)
             else:
                 for _p in self.partitions:
-                    processed.append(_p)
+                    processed.append(_p.retrieve_data())
+                self.has_loaded_partitions = True
 
         # Future objects cannot be extended for now...
         if future_objects:

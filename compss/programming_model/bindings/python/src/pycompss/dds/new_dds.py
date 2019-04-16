@@ -324,7 +324,7 @@ class DDS(object):
 
         # Create a deque from partitions and start reduce
         future_objects = deque(local_results)
-        ret = []
+
         branch = list()
         while future_objects:
             branch = []
@@ -341,12 +341,12 @@ class DDS(object):
             branch[0] = compss_wait_on(branch[0])
             return dict(branch[0])
 
-        length = len(self.partitions)
+        length = self.num_of_partitions()
+        new_partitions = list()
         for i in range(length):
-            ret.append(task_dict_to_list(branch[0], length, i))
+            new_partitions.append(task_dict_to_list(branch[0], length, i))
 
-        self.partitions = ret
-        return self
+        return DDS().load(new_partitions, -1)
 
     def key_by(self, f):
         """
@@ -552,6 +552,16 @@ class DDS(object):
         {'a': 3}
         """
         return self.combine_by_key((lambda x: x), f, f, collect=collect)
+
+    def count_by_key(self, as_dict=False):
+        """
+        :return: a new DDS with data set of list of tuples (element, occurrence)
+        :param as_dict: see 'as_dict' argument of 'combine_by_key'
+
+        >>> DDS().load([("a", 100), ("a", 200)]).count_by_key(True)
+        {'a': 2}
+        """
+        return self.map(lambda x: x[0]).count_by_value(as_dict=as_dict)
 
 
 class ChildDDS(DDS):

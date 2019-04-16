@@ -20,7 +20,6 @@ import time
 
 from pycompss.dds.new_dds import DDS
 from pycompss.dds.tasks import gen_fragment
-from pycompss.api.api import compss_wait_on as cwo
 
 
 def to_list(a): return [a]
@@ -28,11 +27,6 @@ def to_list(a): return [a]
 
 def append(a, b):
     a.append(b)
-    return a
-
-
-def extender(a, b):
-    a.extend(b)
     return a
 
 
@@ -51,24 +45,16 @@ def inside(_):
         return True
 
 
-def reduce_example():
-    test = DDS(range(100), 50).reduce((lambda b, a: b + a), initial=100,
-                                      arity=3, collect=False)\
-                              .map(lambda a: a+1).collect()
-    print(test)
-
-
 def word_count():
 
     path_file = sys.argv[1]
     start = time.time()
 
-    bir = DDS().load_file(path_file, chunk_size=10, worker_read=True)
+    results = DDS().load_files_from_dir(path_file).\
+        map_and_flatten(lambda x: x[1].split())\
+        .count_by_value(arity=4, as_dict=True)
 
-    iki = bir.map_and_flatten(lambda x: x.split())
-
-    result = iki.count_by_value(arity=4, as_dict=True)
-    print(result)
+    print(results)
     print("Elapsed Time: ", time.time()-start)
     return
 
@@ -110,17 +96,25 @@ def example_2():
 
 
 def example_3():
+
+    def extender(a, b):
+        a.extend(b)
+        return a
+
     print("Given: ID's of players and their points from different tries are:")
-    results = [(1, 10), (2, 5), (3, 8), (1, 7), (2, 6), (3, 15), (1, 5), (2, 6)]
+    results = [(1, 10), (1, 7), (2, 5), (3, 8), (2, 6), (3, 15), (1, 5), (2, 6)]
     print(results)
     print("Knowing that maximum tries is 3, show the results of the players "
           "who have finished the game :)")
-    dds = DDS().load(results)
-    completed = dds.combine_by_key(to_list, append, extender).filter(
-        _finished).collect()
+    dds = DDS().load(results, 3)
+    completed = dds.map(lambda x: (x[0], x[1] + 1))\
+        .combine_by_key(to_list, append, extender)\
+        .filter(_finished).collect()
+
     for k, v in completed:
         print("Player ID: ", k)
         print("Points: ", v)
+
     print('______________END OF THE EXAMPLE________________\n')
 
 
@@ -193,7 +187,7 @@ def terasort(num_fragments, num_entries, num_buckets, seed):
     """
 
     dataset = [gen_fragment(num_entries, seed + i) for i in range(num_fragments)]
-    dds = DDS(dataset, -1).sort_by_key().collect(True)
+    dds = DDS().load(dataset, -1).sort_by_key().collect(True)
     for i in range(len(dds)):
         if dds[i][0] < dds[i-1][0] and i > 0:
             print("Failed:", i)
@@ -215,27 +209,22 @@ def run_terasort():
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
-def load_n_map_example():
+def test_new_dds():
 
-    fayl = 'test.txt'
-    test = open(fayl, 'w')
-    for number in range(100):
-        test.write("This is line # {} \n".format(number))
-    test.close()
+    path_file = sys.argv[1]
 
-    def sum_line_numbers(partition, initial=0):
-        """
-        Doesn't return a list, but a single value...
-        """
-        sum = initial
-        for line in partition:
-            sum += int(line.split()[-1])
-        return sum
+    test = DDS().\
+        load_files_from_dir(path_file).\
+        map(lambda x: x).\
+        map_and_flatten(lambda x: x[1].split()).\
+        map(lambda x: (x, x)).\
+        filter(lambda x: True).\
+        map_partitions(lambda x: x).\
+        map(lambda x: x[0]).\
+        count_by_value(arity=4, as_dict=True)
 
-    result = DDS().load_and_map_partitions(fayl, sum_line_numbers, initial=9).collect()
-    import os
-    os.remove(fayl)
-    print(result)
+    print(test)
+    return
 
 
 def main_program():
@@ -247,10 +236,11 @@ def main_program():
     # example_5()
     # pi_estimation()
     # See 'launch.sh' for WordCount example.
-    word_count()
+    # word_count()
     # reduce_example()
     # load_n_map_example()
     # run_terasort()
+    test_new_dds()
 
 
 if __name__ == '__main__':

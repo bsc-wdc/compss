@@ -84,7 +84,9 @@ class DDS(object):
             parsed = 0
             while parsed < total:
                 _partition_loader = WorkerFileLoader(
-                    [file_path], start=parsed, chunk_size=chunk_size)
+                    [file_path], single_file=True,
+                    start=parsed, chunk_size=chunk_size)
+
                 self.partitions.append(_partition_loader)
                 parsed += chunk_size
         else:

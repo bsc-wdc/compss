@@ -80,11 +80,11 @@ class IteratorLoader(IPartitionGenerator):
 
 class WorkerFileLoader(IPartitionGenerator):
 
-    def __init__(self, file_paths, start=0, chunk_size=None):
+    def __init__(self, file_paths, single_file=False, start=0, chunk_size=None):
         super(WorkerFileLoader, self).__init__()
 
-        self.single_file = len(file_paths) == 1
         self.file_paths = file_paths
+        self.single_file = single_file
         self.start = start
         self.chunk_size = chunk_size
 

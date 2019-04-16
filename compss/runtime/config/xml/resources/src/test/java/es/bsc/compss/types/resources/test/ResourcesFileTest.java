@@ -16,15 +16,17 @@
  */
 package es.bsc.compss.types.resources.test;
 
-import static org.junit.Assert.*;
 import es.bsc.compss.types.resources.ResourcesFile;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
 import es.bsc.compss.types.resources.jaxb.AdaptorType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
-import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.OSTypeType;
 import es.bsc.compss.types.resources.jaxb.ProcessorPropertyType;
 import es.bsc.compss.types.resources.jaxb.ProcessorType;
+import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +78,10 @@ public class ResourcesFileTest {
     private static final Logger LOGGER = LogManager.getLogger("Console");
 
 
+    /**
+     * Before class method.
+     * @throws Exception Error in before class
+     */
     @BeforeClass
     public static void beforeClass() throws Exception {
         // Initialize logger
@@ -111,6 +117,10 @@ public class ResourcesFileTest {
         }
     }
 
+    /**
+     * After class method.
+     * @throws Exception Error in after class method
+     */
     @AfterClass
     public static void afterClass() throws Exception {
         if ((new File(XML_TMP_PATH)).exists()) {
@@ -118,12 +128,11 @@ public class ResourcesFileTest {
         }
     }
 
-    /*
-     * *************************************************************** 
-     * CONSTRUCTOR TESTS
-     ***************************************************************/
+    /* ****************** CONSTRUCTOR TESTS *******************/
+    
     @Test
-    public void creation_XMLfile_XSDschema() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+    public void creation_XMLfile_XSDschema()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -137,18 +146,19 @@ public class ResourcesFileTest {
         // Checkers
         assertNotNull(resources);
 
-        int numWorkers_byName = resources.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = resources.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = resources.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = resources.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = resources.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = resources.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
     @Test
-    public void creation_XMLstring_XSDschema() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+    public void creation_XMLstring_XSDschema()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -162,62 +172,64 @@ public class ResourcesFileTest {
         // Checkers
         assertNotNull(resources);
 
-        int numWorkers_byName = resources.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = resources.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = resources.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = resources.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = resources.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = resources.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
     @Test
-    public void creation_XMLfile_XSDpath() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+    public void creation_XMLfile_XSDpath()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File defaultResources = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
 
-        int numWorkers_byName = resources.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = resources.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = resources.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = resources.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = resources.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = resources.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
     @Test
-    public void creation_XMLstring_XSDpath() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+    public void creation_XMLstring_XSDpath()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         String defaultResources = buildXMLString();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
 
-        int numWorkers_byName = resources.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = resources.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = resources.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = resources.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = resources.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = resources.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
     /*
@@ -225,15 +237,16 @@ public class ResourcesFileTest {
      * Dumpers checkers
      ***************************************************************/
     @Test
-    public void XMLtoFile() throws URISyntaxException, SAXException, JAXBException, ResourcesFileValidationException, IOException {
+    public void xmlToFile()
+            throws URISyntaxException, SAXException, JAXBException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File defaultResources = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -245,22 +258,22 @@ public class ResourcesFileTest {
     }
 
     @Test
-    public void XMLtoString() throws URISyntaxException, SAXException, JAXBException, ResourcesFileValidationException {
+    public void xmltoString() throws URISyntaxException, SAXException, JAXBException, ResourcesFileValidationException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File defaultResources = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(defaultResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(defaultResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
 
-        String real_xml = resources.getString();
-        String ideal_xml = buildXMLString();
-        assertEquals("To string method doesn't produce the correct dump", real_xml, ideal_xml);
+        String realXml = resources.getString();
+        String idealXml = buildXMLString();
+        assertEquals("To string method doesn't produce the correct dump", realXml, idealXml);
     }
 
     /*
@@ -268,15 +281,16 @@ public class ResourcesFileTest {
      *  Different types of XML checkers
      ***************************************************************/
     @Test
-    public void fullXML() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+    public void fullXML()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File fullResources = new File(FULL_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(fullResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(fullResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -288,15 +302,16 @@ public class ResourcesFileTest {
     }
 
     @Test
-    public void gridXML() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+    public void gridXML()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File gridResources = new File(GRID_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(gridResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(gridResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -308,15 +323,16 @@ public class ResourcesFileTest {
     }
 
     @Test
-    public void servicesXML() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+    public void servicesXML()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File servicesResources = new File(SERVICES_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(servicesResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(servicesResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -328,15 +344,16 @@ public class ResourcesFileTest {
     }
 
     @Test
-    public void rocciXML() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+    public void rocciXML()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File rocciResources = new File(ROCCI_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(rocciResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(rocciResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -348,15 +365,16 @@ public class ResourcesFileTest {
     }
 
     @Test
-    public void jclouds_gceXML() throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+    public void jclouds_gceXML()
+            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File gceResources = new File(JCLOUDS_GCE_XML_PATH);
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(gceResources, xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(gceResources, xsdPath, LOGGER);
 
         // Checkers
         assertNotNull(resources);
@@ -382,24 +400,31 @@ public class ResourcesFileTest {
         sb.append("    ").append("    ").append("</Processor>").append("\n");
 
         sb.append("    ").append("    ").append("<Adaptors>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.nio.master.NIOAdaptor\">").append("\n");
+        sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.nio.master.NIOAdaptor\">")
+                .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("<SubmissionSystem>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Interactive/>").append("\n");
+        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Interactive/>")
+                .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("</SubmissionSystem>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("<Ports>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<MinPort>43001</MinPort>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<MaxPort>43002</MaxPort>").append("\n");
+        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<MinPort>43001</MinPort>")
+                .append("\n");
+        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<MaxPort>43002</MaxPort>")
+                .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("</Ports>").append("\n");
         sb.append("    ").append("    ").append("    ").append("</Adaptor>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.gat.master.GATAdaptor\">").append("\n");
+        sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.gat.master.GATAdaptor\">")
+                .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("<SubmissionSystem>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Batch>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("    ").append("<Queue>sequential</Queue>")
-                .append("\n");
+        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("    ")
+                .append("<Queue>sequential</Queue>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("</Batch>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Interactive/>").append("\n");
+        sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Interactive/>")
+                .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("</SubmissionSystem>").append("\n");
-        sb.append("    ").append("    ").append("    ").append("    ").append("<BrokerAdaptor>sshtrilead</BrokerAdaptor>").append("\n");
+        sb.append("    ").append("    ").append("    ").append("    ")
+                .append("<BrokerAdaptor>sshtrilead</BrokerAdaptor>").append("\n");
         sb.append("    ").append("    ").append("    ").append("</Adaptor>").append("\n");
         sb.append("    ").append("    ").append("</Adaptors>").append("\n");
         sb.append("    ").append("</ComputeNode>").append("\n");
@@ -410,7 +435,8 @@ public class ResourcesFileTest {
     }
 
     @Test
-    public void staticProcessorAdaptorComputeNodeCreationAndRead() throws SAXException, JAXBException, ResourcesFileValidationException {
+    public void staticProcessorAdaptorComputeNodeCreationAndRead()
+            throws SAXException, JAXBException, ResourcesFileValidationException {
         int cu = 5;
         float speed = 2.6f;
         String nodeName = "blablahost";
@@ -425,12 +451,12 @@ public class ResourcesFileTest {
         String user = "user";
 
         ProcessorPropertyType pp = ResourcesFile.createProcessorProperty(key, value);
-        ProcessorType proc = ResourcesFile.createProcessor(procName, cu, arch, speed, "CPU", 0.0f,pp);
+        ProcessorType proc = ResourcesFile.createProcessor(procName, cu, arch, speed, "CPU", 0.0f, pp);
         AdaptorType ad = ResourcesFile.createAdaptor(adaptorName, batch, null, interactive, gatprop, user);
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
         List<ProcessorType> processors = new LinkedList<ProcessorType>();
         processors.add(proc);
         List<AdaptorType> adaptors = new LinkedList<AdaptorType>();
@@ -442,14 +468,15 @@ public class ResourcesFileTest {
         assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
         assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
         assertEquals(speed, resources.getProcessorSpeed(procExtracted), 0);
-        assertEquals("CPU",resources.getProcessorType(procExtracted));
-        assertEquals(-1.0f, resources.getProcessorMemorySize(procExtracted),0);
+        assertEquals("CPU", resources.getProcessorType(procExtracted));
+        assertEquals(-1.0f, resources.getProcessorMemorySize(procExtracted), 0);
         assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
         assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
     }
 
     @Test
-    public void computeNodeCreationWithNIOAndRead() throws SAXException, JAXBException, ResourcesFileValidationException {
+    public void computeNodeCreationWithNIOAndRead()
+            throws SAXException, JAXBException, ResourcesFileValidationException {
         int cu = 5;
         float speed = 2.6f;
         String nodeName = "blablahost";
@@ -472,21 +499,21 @@ public class ResourcesFileTest {
         // String gatprop = "sshtrillead";
         String user = "user";
 
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(xsd_path, LOGGER);
+        ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
         resources.addComputeNode(nodeName, procName, cu, arch, speed, type, internalMemorySize,
-        		ResourcesFile.createProcessorProperty(key, value), adaptorName,
-                maxPort, minPort, executor, user, memSize, null, storageSize, null, osType, null, null);
+                ResourcesFile.createProcessorProperty(key, value), adaptorName, maxPort, minPort, executor, user,
+                memSize, null, storageSize, null, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
         assertEquals(procName, procExtracted.getName());
         assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
         assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
         assertEquals(speed, resources.getProcessorSpeed(procExtracted), 0);
-        assertEquals(type,resources.getProcessorType(procExtracted));
-        assertEquals(internalMemorySize, resources.getProcessorMemorySize(procExtracted),0);
+        assertEquals(type, resources.getProcessorType(procExtracted));
+        assertEquals(internalMemorySize, resources.getProcessorMemorySize(procExtracted), 0);
         assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
         assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
         assertEquals(memSize, resources.getMemorySize(cn), 0);
@@ -494,13 +521,17 @@ public class ResourcesFileTest {
 
         assertEquals(osType, resources.getOperatingSystemType(cn));
         assertEquals(ResourcesNIOAdaptorProperties.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
-        assertEquals(minPort, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMinPort());
-        assertEquals(maxPort, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMaxPort());
-        assertEquals(executor, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getRemoteExecutionCommand());
+        assertEquals(minPort,
+                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMinPort());
+        assertEquals(maxPort,
+                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMaxPort());
+        assertEquals(executor, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName))
+                .getRemoteExecutionCommand());
     }
 
     @Test
-    public void computeNodeCreationWithGATAndRead() throws SAXException, JAXBException, ResourcesFileValidationException {
+    public void computeNodeCreationWithGATAndRead()
+            throws SAXException, JAXBException, ResourcesFileValidationException {
         int cu = 5;
         float speed = 2.6f;
         String nodeName = "blablahost";
@@ -523,19 +554,20 @@ public class ResourcesFileTest {
         String gatprop = "sshtrillead";
         String user = "user";
 
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Instantiate ResourcesFile
-        ResourcesFile resources = new ResourcesFile(xsd_path, LOGGER);
-        resources.addComputeNode(nodeName, procName, cu, arch, speed, null,-1f, ResourcesFile.createProcessorProperty(key, value), adaptorName, batch,
-                queues, interactive, gatprop, user, memSize, null, storageSize, null, osType, null, null);
+        ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
+        resources.addComputeNode(nodeName, procName, cu, arch, speed, null, -1f,
+                ResourcesFile.createProcessorProperty(key, value), adaptorName, batch, queues, interactive, gatprop,
+                user, memSize, null, storageSize, null, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
         assertEquals(procName, procExtracted.getName());
         assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
         assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
         assertEquals(speed, resources.getProcessorSpeed(procExtracted), 0);
-        assertEquals("CPU",resources.getProcessorType(procExtracted));
+        assertEquals("CPU", resources.getProcessorType(procExtracted));
         assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
         assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
         assertEquals(memSize, resources.getMemorySize(cn), 0);

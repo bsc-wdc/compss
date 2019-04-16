@@ -6,4 +6,5 @@
 
 <suppressions>
     <suppress files="[a-zA-Z0-9]*Itf\.java" checks="[a-zA-Z0-9]*"/>
+    <suppress files="[\\/]jaxb[\\/]" checks="[a-zA-Z0-9]*"/>
 </suppressions>

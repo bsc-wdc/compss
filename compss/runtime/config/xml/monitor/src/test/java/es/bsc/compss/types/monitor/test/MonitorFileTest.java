@@ -17,6 +17,7 @@
 package es.bsc.compss.types.monitor.test;
 
 import static org.junit.Assert.assertNotNull;
+
 import es.bsc.compss.types.monitor.jaxb.COMPSsStateType;
 import es.bsc.compss.types.monitor.jaxb.ObjectFactory;
 

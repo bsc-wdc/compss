@@ -16,9 +16,11 @@
  */
 package es.bsc.compss.types.project.test;
 
-import static org.junit.Assert.*;
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,10 +31,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import org.apache.commons.io.FileUtils;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -70,6 +71,11 @@ public class ProjectFileTest {
     private static final Logger logger = LogManager.getLogger("Console");
 
 
+    /**
+     * Before class method.
+     * 
+     * @throws Exception Error in before class
+     */
     @BeforeClass
     public static void beforeClass() throws Exception {
         // Initialize logger
@@ -105,6 +111,10 @@ public class ProjectFileTest {
         }
     }
 
+    /**
+     * After class method.
+     * @throws Exception Error in after class
+     */
     @AfterClass
     public static void afterClass() throws Exception {
         if ((new File(XML_TMP_PATH)).exists()) {
@@ -112,12 +122,11 @@ public class ProjectFileTest {
         }
     }
 
-    /*
-     * *************************************************************** 
-     * CONSTRUCTOR TESTS
-     ***************************************************************/
+    /* ******** CONSTRUCTOR TESTS **********/
+
     @Test
-    public void creation_XMLfile_XSDschema() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+    public void creation_XMLfile_XSDschema()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -131,18 +140,19 @@ public class ProjectFileTest {
         // Checkers
         assertNotNull(project);
 
-        int numWorkers_byName = project.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = project.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = project.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = project.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = project.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
     @Test
-    public void creation_XMLstring_XSDschema() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+    public void creation_XMLstring_XSDschema()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -156,78 +166,78 @@ public class ProjectFileTest {
         // Checkers
         assertNotNull(project);
 
-        int numWorkers_byName = project.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = project.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = project.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = project.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = project.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
     @Test
-    public void creation_XMLfile_XSDpath() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+    public void creation_XMLfile_XSDpath()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File defaultProject = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(defaultProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(defaultProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
 
-        int numWorkers_byName = project.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = project.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = project.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = project.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = project.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
     @Test
-    public void creation_XMLstring_XSDpath() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+    public void creation_XMLstring_XSDpath()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         String defaultProject = buildXMLString();
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(defaultProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(defaultProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
 
-        int numWorkers_byName = project.getComputeNodes_names().size();
-        assertEquals("Should have a worker", numWorkers_byName, 1);
+        int numWorkersByName = project.getComputeNodes_names().size();
+        assertEquals("Should have a worker", numWorkersByName, 1);
 
-        int numWorkers_byList = project.getComputeNodes_list().size();
-        assertEquals("Should have a worker", numWorkers_byList, 1);
+        int numWorkersByList = project.getComputeNodes_list().size();
+        assertEquals("Should have a worker", numWorkersByList, 1);
 
-        int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
-        assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+        int numWorkersByHashMap = project.getComputeNodes_hashMap().size();
+        assertEquals("Should have a worker", numWorkersByHashMap, 1);
     }
 
-    /*
-     * *************************************************************** 
-     * Dumpers checkers
-     ***************************************************************/
+    /* ********** Dumpers checkers *************/
     @Test
-    public void XMLtoFile() throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException, IOException {
+    public void xmlToFile()
+            throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File defaultProject = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(defaultProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(defaultProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
@@ -239,38 +249,38 @@ public class ProjectFileTest {
     }
 
     @Test
-    public void XMLtoString() throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException {
+    public void xmlToString() throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File defaultProject = new File(DEFAULT_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(defaultProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(defaultProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
 
-        String real_xml = project.getString();
-        String ideal_xml = buildXMLString();
-        assertEquals("To string method doesn't produce the correct dump", real_xml, ideal_xml);
+        String realXml = project.getString();
+        String idealXml = buildXMLString();
+        assertEquals("To string method doesn't produce the correct dump", realXml, idealXml);
     }
 
     /*
-     * ***************************************************************
-     * Different types of XML checkers
+     * *************************************************************** Different types of XML checkers
      ***************************************************************/
     @Test
-    public void fullXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+    public void fullXML()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File fullProject = new File(FULL_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(fullProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(fullProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
@@ -282,15 +292,16 @@ public class ProjectFileTest {
     }
 
     @Test
-    public void gridXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+    public void gridXML()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File gridProject = new File(GRID_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(gridProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(gridProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
@@ -302,15 +313,16 @@ public class ProjectFileTest {
     }
 
     @Test
-    public void servicesXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+    public void servicesXML()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File servicesProject = new File(SERVICES_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(servicesProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(servicesProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
@@ -322,15 +334,16 @@ public class ProjectFileTest {
     }
 
     @Test
-    public void rocciXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+    public void rocciXML()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File rocciProject = new File(ROCCI_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(rocciProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(rocciProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
@@ -342,15 +355,16 @@ public class ProjectFileTest {
     }
 
     @Test
-    public void jclouds_gceXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+    public void jclouds_gceXML()
+            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
-        String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+        String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
         // Get default resources file
         File gceProject = new File(JCLOUDS_GCE_XML_PATH);
 
         // Instantiate ResourcesFile
-        ProjectFile project = new ProjectFile(gceProject, xsd_path, logger);
+        ProjectFile project = new ProjectFile(gceProject, xsdPath, logger);
 
         // Checkers
         assertNotNull(project);
@@ -361,10 +375,7 @@ public class ProjectFileTest {
         assertEquals("Dump content not equal", true, compareFile);
     }
 
-    /*
-     * ***************************************************************
-     * XML String builder (PRIVATE)
-     ***************************************************************/
+    /* ********** XML String builder (PRIVATE) ************/
     private String buildXMLString() {
         StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
         sb.append("<Project>").append("\n");

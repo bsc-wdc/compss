@@ -16,6 +16,39 @@
  */
 package es.bsc.compss.types.project;
 
+import es.bsc.compss.types.project.exceptions.InvalidElementException;
+import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
+import es.bsc.compss.types.project.jaxb.AdaptorType;
+import es.bsc.compss.types.project.jaxb.AdaptorsListType;
+import es.bsc.compss.types.project.jaxb.ApplicationType;
+import es.bsc.compss.types.project.jaxb.AttachedDiskType;
+import es.bsc.compss.types.project.jaxb.AttachedDisksListType;
+import es.bsc.compss.types.project.jaxb.BatchType;
+import es.bsc.compss.types.project.jaxb.CloudPropertiesType;
+import es.bsc.compss.types.project.jaxb.CloudPropertyType;
+import es.bsc.compss.types.project.jaxb.CloudProviderType;
+import es.bsc.compss.types.project.jaxb.CloudType;
+import es.bsc.compss.types.project.jaxb.ComputeNodeType;
+import es.bsc.compss.types.project.jaxb.DataNodeType;
+import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.ImageType;
+import es.bsc.compss.types.project.jaxb.ImagesType;
+import es.bsc.compss.types.project.jaxb.InstanceTypeType;
+import es.bsc.compss.types.project.jaxb.InstanceTypesType;
+import es.bsc.compss.types.project.jaxb.InteractiveType;
+import es.bsc.compss.types.project.jaxb.MasterNodeType;
+import es.bsc.compss.types.project.jaxb.MemoryType;
+import es.bsc.compss.types.project.jaxb.NIOAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.OSType;
+import es.bsc.compss.types.project.jaxb.PackageType;
+import es.bsc.compss.types.project.jaxb.PriceType;
+import es.bsc.compss.types.project.jaxb.ProcessorType;
+import es.bsc.compss.types.project.jaxb.ServiceType;
+import es.bsc.compss.types.project.jaxb.SoftwareListType;
+import es.bsc.compss.types.project.jaxb.StorageType;
+import es.bsc.compss.types.project.jaxb.SubmissionSystemType;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,14 +57,11 @@ import javax.xml.namespace.QName;
 
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
-import es.bsc.compss.types.project.exceptions.InvalidElementException;
-import es.bsc.compss.types.project.jaxb.*;
-import java.io.Serializable;
+
 
 
 /**
- * Custom XML Validation for COMPSs
+ * Custom XML Validation for COMPSs.
  */
 public class Validator {
 
@@ -42,10 +72,10 @@ public class Validator {
 
 
     /**
-     * Validator instantiation for ProjectFile pf
+     * Validator instantiation for ProjectFile @pf.
      *
-     * @param pf
-     * @param logger
+     * @param pf Project File
+     * @param logger Logger
      */
     public Validator(ProjectFile pf, Logger logger) {
         this.logger = logger;
@@ -53,9 +83,9 @@ public class Validator {
     }
 
     /**
-     * Validates the content of the given ResourcesFile object The content is correct if no exception is raised
+     * Validates the content of the given ResourcesFile object. The content is correct if no exception is raised.
      *
-     * @throws es.bsc.compss.types.project.exceptions.ProjectFileValidationException
+     * @throws ProjectFileValidationException Raise exception when content is not valid.
      */
     public void validate() throws ProjectFileValidationException {
         logger.info("Validating <Project> tag");
@@ -100,13 +130,12 @@ public class Validator {
     }
 
     /*
-     * ********************************************** VALIDATION OF MAIN ELEMENTS
-     **********************************************/
+     * ******** VALIDATION OF MAIN ELEMENTS ***********/
     /**
-     * Validates the MasterNode
+     * Validates the MasterNode.
      *
-     * @param mn
-     * @throws InvalidElementException
+     * @param mn Master Node
+     * @throws InvalidElementException Invalid data.
      */
     public boolean validateMasterNode(MasterNodeType mn) throws InvalidElementException {
         boolean hasComputingPower = false;
@@ -200,10 +229,10 @@ public class Validator {
     }
 
     /**
-     * Validates a ComputeNode
+     * Validates a ComputeNode.
      *
-     * @param cn
-     * @throws InvalidElementException
+     * @param cn Compute Node object to validate
+     * @throws InvalidElementException Invalid data.
      */
     public void validateComputeNode(ComputeNodeType cn) throws InvalidElementException {
         if (cn != null) {
@@ -297,10 +326,10 @@ public class Validator {
     }
 
     /**
-     * Validates a DataNode
+     * Validates a DataNode.
      *
-     * @param dn
-     * @throws InvalidElementException
+     * @param dn Data node to validate
+     * @throws InvalidElementException Invalid data.
      */
     public void validateDataNode(DataNodeType dn) throws InvalidElementException {
         if (dn != null) {
@@ -328,10 +357,10 @@ public class Validator {
     }
 
     /**
-     * Validates a Service
+     * Validates a Service.
      *
-     * @param s
-     * @throws InvalidElementException
+     * @param s Service to validate.
+     * @throws InvalidElementException Invalid data.
      */
     public void validateService(ServiceType s) throws InvalidElementException {
         if (s != null) {
@@ -344,10 +373,10 @@ public class Validator {
     }
 
     /**
-     * Validates a full Cloud tag
+     * Validates a full Cloud tag.
      *
-     * @param c
-     * @throws InvalidElementException
+     * @param c Cloud description to validate
+     * @throws InvalidElementException Invalid data.
      */
     @SuppressWarnings("unchecked")
     public void validateCloud(CloudType c) throws InvalidElementException {
@@ -419,10 +448,10 @@ public class Validator {
     }
 
     /**
-     * Validates a CloudProvider
+     * Validates a CloudProvider.
      *
-     * @param cp
-     * @throws InvalidElementException
+     * @param cp Cloud provider description to validate.
+     * @throws InvalidElementException Invalid data.
      */
     public void validateCloudProvider(CloudProviderType cp) throws InvalidElementException {
         if (cp != null) {
@@ -502,7 +531,7 @@ public class Validator {
         List<JAXBElement<?>> innerElements = processor.getComputingUnitsOrArchitectureOrSpeed();
         if (innerElements != null) {
             boolean cuTagFound = false;
-            boolean ArchitectureTagFound = false;
+            boolean architectureTagFound = false;
             boolean speedTagFound = false;
             boolean typeTagFound = false;
             boolean memTagFound = false;
@@ -521,11 +550,11 @@ public class Validator {
                         }
                     }
                 } else if (obj.getName().equals(new QName("Architecture"))) {
-                    if (ArchitectureTagFound) {
+                    if (architectureTagFound) {
                         throw new InvalidElementException("Processor", "Attribute Architecture",
                                 "Appears more than once");
                     } else {
-                        ArchitectureTagFound = true;
+                        architectureTagFound = true;
                     }
                 } else if (obj.getName().equals(new QName("Speed"))) {
                     if (speedTagFound) {
@@ -710,6 +739,11 @@ public class Validator {
         // All of the parameters are optional and XSD ensures that they only appear once
         // Nothing to do
     }
+    
+    private void validateApplication(String app) throws InvalidElementException {
+        // Application only contains a name (String) defined by user
+        // Nothing to check
+    }
 
     private void validateLimitOfTasks(Integer lot) throws InvalidElementException {
         if (lot != null) {
@@ -784,9 +818,9 @@ public class Validator {
     private void validateAdaptors(AdaptorsListType adaptors) throws InvalidElementException {
         // Validate inner elements
         if (adaptors != null) {
-            List<AdaptorType> adaptors_list = adaptors.getAdaptor();
-            if (adaptors_list != null) {
-                for (AdaptorType adaptor : adaptors_list) {
+            List<AdaptorType> adaptorsList = adaptors.getAdaptor();
+            if (adaptorsList != null) {
+                for (AdaptorType adaptor : adaptorsList) {
                     validateAdaptor(adaptor);
                 }
             } else {
@@ -960,9 +994,9 @@ public class Validator {
     private void validateImages(ImagesType images) throws InvalidElementException {
         List<String> imageNames = new ArrayList<String>();
 
-        List<ImageType> images_list = images.getImage();
-        if (images_list != null) {
-            for (ImageType im : images_list) {
+        List<ImageType> imagesList = images.getImage();
+        if (imagesList != null) {
+            for (ImageType im : imagesList) {
                 if (imageNames.contains(im.getName())) {
                     throw new InvalidElementException("Images", "Attribute Image " + im.getName(), "Name already used");
                 } else {
@@ -1103,16 +1137,11 @@ public class Validator {
         }
     }
 
-    private void validateApplication(String app) throws InvalidElementException {
-        // Application only contains a name (String) defined by user
-        // Nothing to check
-    }
-
     private void validateInstanceTypes(InstanceTypesType instances) throws InvalidElementException {
         List<String> instanceNames = new ArrayList<String>();
 
-        List<InstanceTypeType> instances_list = instances.getInstanceType();
-        if (instances_list != null) {
+        List<InstanceTypeType> instancesList = instances.getInstanceType();
+        if (instancesList != null) {
             for (InstanceTypeType i : instances.getInstanceType()) {
                 if (instanceNames.contains(i.getName())) {
                     throw new InvalidElementException("Instances", "Attribute Instance " + i.getName(),

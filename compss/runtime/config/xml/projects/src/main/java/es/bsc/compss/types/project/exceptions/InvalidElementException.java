@@ -19,11 +19,18 @@ package es.bsc.compss.types.project.exceptions;
 public class InvalidElementException extends ProjectFileValidationException {
 
     /**
-     * Exceptions Version UID are 2L in all Runtime
+     * Exceptions Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
 
+    /** 
+     * Creates Invalid Element Exception.
+     *  
+     * @param elementType Element Type
+     * @param elementId Element Id
+     * @param reason Invalid reason
+     */
     public InvalidElementException(String elementType, String elementId, String reason) {
         super("Invalid element " + elementType + " with id = " + elementId + ". Reason: " + reason);
     }

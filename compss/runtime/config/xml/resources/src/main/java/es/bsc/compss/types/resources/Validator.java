@@ -27,17 +27,17 @@ import es.bsc.compss.types.resources.jaxb.CloudProviderType;
 import es.bsc.compss.types.resources.jaxb.ComputeNodeType;
 import es.bsc.compss.types.resources.jaxb.DataNodeType;
 import es.bsc.compss.types.resources.jaxb.EndpointType;
-import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ImageType;
 import es.bsc.compss.types.resources.jaxb.ImagesType;
 import es.bsc.compss.types.resources.jaxb.InstanceTypeType;
 import es.bsc.compss.types.resources.jaxb.InstanceTypesType;
 import es.bsc.compss.types.resources.jaxb.InteractiveType;
 import es.bsc.compss.types.resources.jaxb.MemoryType;
-import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.OSType;
 import es.bsc.compss.types.resources.jaxb.PriceType;
 import es.bsc.compss.types.resources.jaxb.ProcessorType;
+import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ServiceType;
 import es.bsc.compss.types.resources.jaxb.SharedDiskType;
 import es.bsc.compss.types.resources.jaxb.SoftwareListType;
@@ -56,7 +56,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Custom XML Validation for COMPSs
+ * Custom XML Validation for COMPSs Resources file.
  */
 public class Validator {
 
@@ -66,20 +66,19 @@ public class Validator {
 
 
     /**
-     * Validator instantiation for ResourcesFile rf
+     * Validator instantiation for ResourcesFile rf.
      *
-     * @param rf
-     */
+     * @param rf Resource file to validate
+     */ 
     public Validator(ResourcesFile rf, Logger logger) {
         this.logger = logger;
         this.rf = rf;
     }
 
     /**
-     * Validates the content of the given ResourcesFile object The content is correct if no exception is raised
+     * Validates the content of the given ResourcesFile object. The content is correct if no exception is raised.
      *
-     * @throws JAXBException
-     * @throws ResourcesFileValidationException
+     * @throws ResourcesFileValidationException Invalid data
      */
     public void validate() throws ResourcesFileValidationException {
         logger.info("Validating <ResourcesList> tag");
@@ -113,15 +112,13 @@ public class Validator {
         logger.info("End validation");
     }
 
-    /*
-     * ********************************************** VALIDATION OF MAIN ELEMENTS
-     **********************************************/
+    /* ******************* VALIDATION OF MAIN ELEMENTS  *********************/
     /**
-     * Validates the given SharedDiskType @sd with the current ResourcesFileType The content is correct if no exception
-     * is raised
+     * Validates the given SharedDiskType @sd with the current ResourcesFileType. The content is correct if no exception
+     * is raised.
      *
-     * @param sd
-     * @throws InvalidElementException
+     * @param sd Shared disk description
+     * @throws InvalidElementException Error invalid data
      */
     public void validateSharedDisk(SharedDiskType sd) throws InvalidElementException {
         // Check that name isn't used
@@ -143,11 +140,13 @@ public class Validator {
     }
 
     /**
-     * Validates the given DataNodeType @dn with the current ResourcesFileType The content is correct if no exception is
-     * raised
+     * Validates the given DataNodeType @dn with the current ResourcesFileType. The content is correct if no exception
+     * is raised.
      *
      * @param dn
+     *            Data node description
      * @throws InvalidElementException
+     *             Error invalid data
      */
     public void validateDataNode(DataNodeType dn) throws InvalidElementException {
         // Check that name isn't used
@@ -237,11 +236,13 @@ public class Validator {
     }
 
     /**
-     * Validates the given ComputeNodeType @cn with the current ResourcesFileType The content is correct if no exception
-     * is raised
+     * Validates the given ComputeNodeType @cn with the current ResourcesFileType. The content is correct if no
+     * exception is raised.
      *
      * @param cn
+     *            Compute node description
      * @throws InvalidElementException
+     *             Error invalid data
      */
     public void validateComputeNode(ComputeNodeType cn) throws InvalidElementException {
         // Check that name isn't used
@@ -363,11 +364,11 @@ public class Validator {
     }
 
     /**
-     * Validates the given ServiceType @s with the current ResourcesFileType The content is correct if no exception is
-     * raised
+     * Validates the given ServiceType @s with the current ResourcesFileType. The content is correct if no exception is
+     * raised. 
      *
-     * @param s
-     * @throws InvalidElementException
+     * @param s Service description
+     * @throws InvalidElementException Error invalid data
      */
     public void validateService(ServiceType s) throws InvalidElementException {
         // Check that name isn't used
@@ -400,11 +401,11 @@ public class Validator {
     }
 
     /**
-     * Validates the given CloudProviderType @cp with the current ResourcesFileType The content is correct if no
-     * exception is raised
+     * Validates the given CloudProviderType @cp with the current ResourcesFileType. The content is correct if no
+     * exception is raised.
      *
-     * @param cp
-     * @throws InvalidElementException
+     * @param cp Cloud provider description
+     * @throws InvalidElementException Error invalid data
      */
     public void validateCloudProvider(CloudProviderType cp) throws InvalidElementException {
         // Check that name isn't used
@@ -438,9 +439,8 @@ public class Validator {
         }
     }
 
-    /*
-     * ********************************************** HELPERS FOR VALIDATION (PRIVATE METHODS)
-     **********************************************/
+    /* ********** HELPERS FOR VALIDATION (PRIVATE METHODS) *************/
+    
     private void validateStorage(StorageType s) throws InvalidElementException {
         // Validate inner elements
         List<Serializable> innerElements = s.getSizeOrType();
@@ -481,9 +481,9 @@ public class Validator {
     private void validateAdaptors(AdaptorsListType adaptors) throws InvalidElementException {
         // Validate inner elements
         if (adaptors != null) {
-            List<AdaptorType> adaptors_list = adaptors.getAdaptor();
-            if (adaptors_list != null) {
-                for (AdaptorType adaptor : adaptors_list) {
+            List<AdaptorType> adaptorsList = adaptors.getAdaptor();
+            if (adaptorsList != null) {
+                for (AdaptorType adaptor : adaptorsList) {
                     validateAdaptor(adaptor);
                 }
             } else {
@@ -689,7 +689,7 @@ public class Validator {
         List<JAXBElement<?>> innerElements = processor.getComputingUnitsOrArchitectureOrSpeed();
         if (innerElements != null) {
             boolean cuTagFound = false;
-            boolean ArchitectureTagFound = false;
+            boolean architectureTagFound = false;
             boolean speedTagFound = false;
             boolean typeTagFound = false;
             boolean memTagFound = false;
@@ -708,11 +708,11 @@ public class Validator {
                         }
                     }
                 } else if (obj.getName().equals(new QName("Architecture"))) {
-                    if (ArchitectureTagFound) {
+                    if (architectureTagFound) {
                         throw new InvalidElementException("Processor", "Attribute Architecture",
                                 "Appears more than once");
                     } else {
-                        ArchitectureTagFound = true;
+                        architectureTagFound = true;
                     }
                 } else if (obj.getName().equals(new QName("Speed"))) {
                     if (speedTagFound) {
@@ -827,9 +827,9 @@ public class Validator {
     private void validateImages(ImagesType images) throws InvalidElementException {
         List<String> imageNames = new ArrayList<String>();
 
-        List<ImageType> images_list = images.getImage();
-        if (images_list != null) {
-            for (ImageType im : images_list) {
+        List<ImageType> imagesList = images.getImage();
+        if (imagesList != null) {
+            for (ImageType im : imagesList) {
                 if (imageNames.contains(im.getName())) {
                     throw new InvalidElementException("Images", "Attribute Image " + im.getName(), "Name already used");
                 } else {
@@ -848,7 +848,7 @@ public class Validator {
         List<Object> innerElements = image.getAdaptorsOrOperatingSystemOrSoftware();
         if (innerElements != null) {
             boolean adaptorsTagFound = false;
-            boolean OSTagFound = false;
+            boolean osTagFound = false;
             boolean softwareTagFound = false;
             boolean sdTagFound = false;
             boolean priceTagFound = false;
@@ -862,11 +862,11 @@ public class Validator {
                         validateAdaptors(((AdaptorsListType) obj));
                     }
                 } else if (obj instanceof OSType) {
-                    if (OSTagFound) {
+                    if (osTagFound) {
                         throw new InvalidElementException("Image", "Attribute OperatingSystem",
                                 "Appears more than once");
                     } else {
-                        OSTagFound = true;
+                        osTagFound = true;
                         validateOS(((OSType) obj));
                     }
                 } else if (obj instanceof SoftwareListType) {
@@ -914,8 +914,8 @@ public class Validator {
     private void validateInstanceTypes(InstanceTypesType instances) throws InvalidElementException {
         List<String> instanceNames = new ArrayList<String>();
 
-        List<InstanceTypeType> instances_list = instances.getInstanceType();
-        if (instances_list != null) {
+        List<InstanceTypeType> instancesList = instances.getInstanceType();
+        if (instancesList != null) {
             for (InstanceTypeType i : instances.getInstanceType()) {
                 if (instanceNames.contains(i.getName())) {
                     throw new InvalidElementException("Instances", "Attribute Instance " + i.getName(),

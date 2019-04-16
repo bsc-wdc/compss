@@ -249,7 +249,7 @@ infer_language() {
 ###############################################
 load_tracing_env() {
   local module_tmp
-  module_tmp=$(mktemp)
+  module_tmp=$(mktemp -p /tmp)
   module list 2> "${module_tmp}"
 
   # Look for openmpi / impi / none
@@ -1431,7 +1431,8 @@ set_variables() {
   if [ "${worker_working_dir}" == "gpfs" ]; then
     worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "scratch" ]; then
-    worker_working_dir=$TMPDIR/${!ENV_VAR_JOB_ID}
+    worker_working_dir={$SCRATCH_DIR}/${!ENV_VAR_JOB_ID}
+    mkdir -p "${worker_working_dir}"
   else
     # The working dir is a custom absolute path, create tmp
     worker_working_dir=$(mktemp -d -p "${worker_working_dir}")

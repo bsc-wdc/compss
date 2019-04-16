@@ -19,7 +19,7 @@ package es.bsc.compss.types.resources.exceptions;
 public class ResourcesFileValidationException extends Exception {
 
     /**
-     * Exceptions Version UID are 2L in all Runtime
+     * Exceptions Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 

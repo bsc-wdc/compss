@@ -329,7 +329,7 @@ check_args() {
         exit 1
     fi
 
-    if [ -z "$ompss_enabled" ] && [ -n "$cuda_enabled" ] && [ $cuda_enabled -eq 1 ]; then
+    if [ -z "$ompss_enabled" ] && [ -z "$ompss2_enabled" ] && [ -n "$cuda_enabled" ] && [ $cuda_enabled -eq 1 ]; then
 
         echo " "
         echo "[ WARNING ] Is not possible to use the --cuda option without using the --ompss one, removing --cuda..."
@@ -401,7 +401,6 @@ if [ "${ompss2_enabled}" != "" ]; then
         export CXX=${CROSS_COMPILE}${defined_mcxx}
         export CFLAGS="$CFLAGS ${ompss_flags}"
         export CXXFLAGS="$CXXFLAGS ${ompss_flags}"
-        export CPPFLAGS="$CPPFLAGS -DOMPSS2_ENABLED"
       
         export OMPSS2_ENABLED="enabled"
  
@@ -424,9 +423,8 @@ if [ "${ompss_enabled}" != "" ]; then
   if [ ${ompss_enabled} == 1 ]; then
         export CC=${CROSS_COMPILE}${defined_mcc}
         export CXX=${CROSS_COMPILE}${defined_mcxx}
-#        export CFLAGS="$CFLAGS --ompss ${ompss_flags}"
-#        export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags}"
-#        export CPPFLAGS="$CPPFLAGS -DOMPSS_ENABLED"
+        export CFLAGS="$CFLAGS --ompss ${ompss_flags}"
+        export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags}"
 
         export OMPSS_ENABLED="enabled"
   fi
@@ -445,11 +443,6 @@ if [ "${cuda_enabled}" != "" ]; then
 
     export CUDA_ENABLED="enabled"
 
-#        export PATH=$PATH:${CUDA_HOME}/bin
-#        export LDFLAGS="--cuda $LDFLAGS"
-#        export LIBS="-L${CUDA_HOME}/lib64 -lcudart $LIBS"
-#        export CFLAGS="$CFLAGS --cuda"
-#        export CXXFLAGS="$CXXFLAGS --cuda"
   fi
 fi
 

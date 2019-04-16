@@ -102,6 +102,7 @@ AC_ARG_WITH([cuda],
                 [
                     AC_MSG_ERROR([cudart library not found, is needed to enable CUDA.])
 
+                ])
             ]
 )
 

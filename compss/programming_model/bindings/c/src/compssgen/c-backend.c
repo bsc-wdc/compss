@@ -1417,14 +1417,15 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", \"%s\", 0, method_name, 0, %s, %d, %d, (void**)arrayObjs);\n", class_name, on_failure, hasTarget, num_returns, arg_count);
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Task submited in the runtime\\n\", method_name);\n");
     fprintf(outFile, "\n");
+    
+    fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Free method name\\n\", method_name);\n");
+    fprintf(outFile, "\t free(method_name);\n");
+    fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  End of task submission.\\n\");\n");
 
     if ( func->return_type != void_dt ) {
         fprintf(outFile, "\n\t return return_obj;\n");
         fprintf(outFile, "\n");
     }
-    fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Free method name\\n\", method_name);\n");
-    fprintf(outFile, "\t free(method_name);\n");
-    fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  End of task submission.\\n\");\n");
 
 }
 

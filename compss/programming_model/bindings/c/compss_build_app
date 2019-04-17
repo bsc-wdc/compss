@@ -394,7 +394,6 @@ fi
 #The environment variables that we export of the type *_ENABLED are used to interface
 #with the compss_build script, that will execute the configure with the enabled options.
 
-
 if [ "${ompss2_enabled}" != "" ]; then
     if [ ${ompss2_enabled} == 1 ]; then
         export CC=${CROSS_COMPILE}${defined_mcc}

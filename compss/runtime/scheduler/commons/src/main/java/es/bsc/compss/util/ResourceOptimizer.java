@@ -851,8 +851,9 @@ public class ResourceOptimizer extends Thread {
             }
         }
         // Check Recommended destructions
-        if ((minNumberOfVMs == null || minNumberOfVMs < currentCloudVMCount) && totalPendingTasks == 0
-                && workload.getReadyCount() == 0) {
+        if ((minNumberOfVMs == null || minNumberOfVMs < currentCloudVMCount)
+                && totalPendingTasks <= workload.getReadyCount() + workload.getRunningTaskCount()
+                && workload.getReadyCount() + workload.getRunningTaskCount() <= maxConcurrentTasks) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount
                     + ") count bigger than minimum VMs (" + minNumberOfVMs + ")");
             float[] destroyRecommendations = deleteRecommendations(coreCount, SLEEP_TIME, pendingMinCoreTime,

@@ -428,12 +428,12 @@ public class ExecutionAction extends AllocatableAction {
     private final void doOutputTransfers(Job<?> job) {
         // Job finished, update info about the generated/updated data
         Parameter[] params = job.getTaskParams().getParameters();
-        int paramId = 0;
-        for(Parameter p: params) {
+        for (int i = 0; i < params.length; ++i) {
+            Parameter p = params[i];
             DataLocation outLoc = storeOutputParameter(job, p);
             TaskMonitor monitor = task.getTaskMonitor();
-            if(outLoc != null) {
-                monitor.valueGenerated(paramId++, p.getType(), p.getName(), outLoc);
+            if (outLoc != null) {
+                monitor.valueGenerated(i, p.getType(), p.getName(), outLoc);
             }
         }
     }

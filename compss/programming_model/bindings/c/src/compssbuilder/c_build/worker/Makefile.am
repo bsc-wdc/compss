@@ -24,30 +24,6 @@ libfunctions_a_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JA
 
 libfunctions_a_CFLAGS =
 
-#There are not or's nor and's, so this looks pretty ugly...
-if OMPSS2
-libfunctions_a_CPPFLAGS  += --ompss-2 -DOMPSS2_ENABLED
-libfunctions_a_CFLAGS    += --ompss-2 -DOMPSS2_ENABLED
-
-if CUDA 
-libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
-libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
-endif
-
-else    
-
-if OMPSS
-libfunctions_a_CPPFLAGS  += --ompss -DOMPSS_ENABLED
-libfunctions_a_CFLAGS    += --ompss -DOMPSS_ENABLED
-
-if CUDA 
-libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
-libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
-endif
-
-endif
-endif
-
 bin_PROGRAMS = nio_worker_c worker_c
 
 ACLOCAL_AMFLAGS=-I m4
@@ -70,6 +46,36 @@ nio_worker_c_SOURCES = nio_worker_c.cc \
 nio_worker_c_LDFLAGS = 
 
 nio_worker_c_LDADD =  -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread libfunctions.a
+
+#There are not or's nor and's, so this looks pretty ugly...
+if OMPSS2
+libfunctions_a_CPPFLAGS  += --ompss-2 -DOMPSS2_ENABLED
+libfunctions_a_CFLAGS    += --ompss-2 -DOMPSS2_ENABLED
+
+nio_worker_c_CPPFLAGS    += -DOMPSS2_ENABLED
+worker_c_CPPFLAGS        += -DOMPSS2_ENABLED
+
+if CUDA 
+libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
+libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
+endif
+
+else    
+
+if OMPSS
+libfunctions_a_CPPFLAGS  += --ompss -DOMPSS_ENABLED
+libfunctions_a_CFLAGS    += --ompss -DOMPSS_ENABLED
+
+nio_worker_c_CPPFLAGS    += -DOMPSS_ENABLED
+worker_c_CPPFLAGS        += -DOMPSS_ENABLED
+
+if CUDA 
+libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
+libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
+endif
+
+endif
+endif
 
 COMPSSGEN_FLAGS = 
 

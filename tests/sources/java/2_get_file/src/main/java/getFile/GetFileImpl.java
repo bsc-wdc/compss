@@ -12,12 +12,9 @@ import java.io.FileReader;
 public class GetFileImpl {
 
     public static void writeInFile(String file, int i) {
-        try {
-            String str = "New writter type INOUT";
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+        String str = "New writter type INOUT";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
             writer.write(str + " " + String.valueOf(i) + "\n");
-
-            writer.close();
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
             System.exit(-1);
@@ -26,14 +23,13 @@ public class GetFileImpl {
             System.exit(-1);
         }
     }
+
     public static void readInFile(String filename) {
-        try {
-            File file = new File(filename); 
-            BufferedReader br = new BufferedReader(new FileReader(file)); 
-            String st; 
+        try (BufferedReader br = new BufferedReader(new FileReader(new File(filename)))) {
+            String st;
             while ((st = br.readLine()) != null) {
-              System.out.println(st); 
-            } 
+                System.out.println(st);
+            }
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
             System.exit(-1);

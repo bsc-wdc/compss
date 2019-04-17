@@ -721,6 +721,10 @@ public class ResourceOptimizer extends Thread {
         } catch (Exception ex) {
             creationTime = 120_000l;
         }
+        
+        if (creationTime < 30_000){
+            creationTime = 30_000l;
+        }
 
         int coreCount = workload.getCoreCount();
         int noResourceCount = workload.getNoResourceCount();
@@ -774,6 +778,7 @@ public class ResourceOptimizer extends Thread {
         int[] pendingCounts = new int[coreCount];
 
         long totalPendingTasks = 0;
+        int maxConcurrentTasks = 0;
         for (int i = 0; i < coreCount; i++) {
             runningMinCoreTime[i] = minRemainingCoreTime[i] * runningCounts[i];
             readyMinCoreTime[i] = runningMinCoreTime[i] + (minCoreTime[i] * readyCounts[i]);
@@ -785,6 +790,12 @@ public class ResourceOptimizer extends Thread {
             readyMaxCoreTime[i] = runningMaxCoreTime[i] + (maxCoreTime[i] * readyCounts[i]);
             pendingMaxCoreTime[i] = readyMaxCoreTime[i] + (maxCoreTime[i] * pendingCounts[i]);
             totalPendingTasks = totalPendingTasks + pendingCounts[i];
+            if (runningCounts[i] > 0 || readyCounts[i] > 0) {
+                if (realSlots[i] > maxConcurrentTasks) {
+                    maxConcurrentTasks = realSlots[i];
+                }
+            }
+
         }
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Applying VM optimization policies (currentVMs: "
@@ -840,8 +851,9 @@ public class ResourceOptimizer extends Thread {
             }
         }
         // Check Recommended destructions
-        if ((minNumberOfVMs == null || minNumberOfVMs < currentCloudVMCount) && totalPendingTasks == 0
-                && workload.getReadyCount() == 0) {
+        if ((minNumberOfVMs == null || minNumberOfVMs < currentCloudVMCount)
+                && totalPendingTasks <= workload.getReadyCount() + workload.getRunningTaskCount()
+                && workload.getReadyCount() + workload.getRunningTaskCount() <= maxConcurrentTasks) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount
                     + ") count bigger than minimum VMs (" + minNumberOfVMs + ")");
             float[] destroyRecommendations = deleteRecommendations(coreCount, SLEEP_TIME, pendingMinCoreTime,

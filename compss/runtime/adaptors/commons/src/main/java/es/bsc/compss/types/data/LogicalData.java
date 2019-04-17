@@ -483,7 +483,7 @@ public class LogicalData {
         // location if needed. We only store the "best" location if any (by
         // choosing
         // any private location found or the first shared location)
-        lockHostRemoval_private();
+        
         DataLocation uniqueHostLocation = null;
         Iterator<DataLocation> it = this.locations.iterator();
         while (it.hasNext()) {
@@ -529,7 +529,6 @@ public class LogicalData {
             }
         }
 
-        releaseHostRemoval_private();
         return uniqueHostLocation;
     }
 

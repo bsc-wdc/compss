@@ -167,8 +167,8 @@ EOT
       <Properties>
 EOT
     for prop in ${properties}; do
-      p_name=${prop%=*}  # Deletes shortest =* from back
-      p_value=${prop##*=}  # Deletes longest *= from front
+      p_name=$(echo "$prop" | cut -d "=" -f 1)
+      p_value=${prop#"${p_name}="}
       cat >> "${PROJECT_FILE}" << EOT
         <Property>
           <Name>${p_name}</Name>

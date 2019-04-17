@@ -404,8 +404,12 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         Map<String, String> disks = SharedDiskManager.terminate(this);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
         for (LogicalData ld : lds) {
-            ld.notifyToInProgressCopiesEnd(listener);
+            if (ld.getCopiesInProgress().size()>0) {
+                ld.notifyToInProgressCopiesEnd(listener);
+            }
+            ld.lockHostRemoval();
             DataLocation lastLoc = ld.removeHostAndCheckLocationToSave(this, disks);
+            ld.releaseHostRemoval();
             if (lastLoc != null && saveUniqueData) {
                 listener.addOperation();
 
@@ -438,13 +442,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         if (DEBUG) {
             LOGGER.debug("Waiting for finishing saving copies for " + this.getName());
         }
-        listener.enable();
-        try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            LOGGER.error("Error waiting for files in resource " + getName() + " to get saved");
+        if (listener.getOperations()>0) {
+            listener.enable();
+            try {
+                sem.acquire();
+            } catch (InterruptedException ex) {
+                LOGGER.error("Error waiting for files in resource " + getName() + " to get saved");
+            }
         }
-
         if (DEBUG) {
             LOGGER.debug("Unique files saved for " + this.getName());
         }

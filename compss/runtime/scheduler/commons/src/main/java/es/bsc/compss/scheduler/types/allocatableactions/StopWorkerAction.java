@@ -135,9 +135,8 @@ public class StopWorkerAction extends AllocatableAction {
         if (w instanceof CloudMethodWorker) {
             CloudMethodWorker cmw = (CloudMethodWorker) w;
             ResourceManager.terminateCloudResource(cmw, (CloudMethodResourceDescription) ru.getModification());
-        } else {
-            ResourceManager.removeWorker(w);
         }
+        ResourceManager.removeWorker(w);
     }
 
     @Override

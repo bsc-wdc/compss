@@ -555,6 +555,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
             }
         }
+        LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName() + " and nothing done. Releasing listeners and locks");
+        listener.notifyEnd(null);
+        ld.releaseHostRemoval();
     }
 
     public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
@@ -637,7 +640,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         if (DEBUG) {
             LOGGER.debug("Checking if " + ld.getName() + " is at master (" + Comm.getAppHost().getName() + ").");
         }
-
+  
         for (MultiURI u : ld.getURIs()) {
             if (DEBUG) {
                 String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
@@ -744,6 +747,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
         // If we have not exited before, any copy method was successful. Raise warning
         ErrorManager.warn("Error file " + ld.getName() + " not transferred to " + targetPath);
+        listener.notifyEnd(null);
         ld.releaseHostRemoval();
     }
 

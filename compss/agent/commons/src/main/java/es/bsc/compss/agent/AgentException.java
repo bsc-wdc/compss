@@ -16,8 +16,13 @@
  */
 package es.bsc.compss.agent;
 
-
 public class AgentException extends Exception {
+
+    /**
+     * Exceptions Version UID are 2L in all Runtime.
+     */
+    private static final long serialVersionUID = 2L;
+
 
     public AgentException(String message) {
         super(message);

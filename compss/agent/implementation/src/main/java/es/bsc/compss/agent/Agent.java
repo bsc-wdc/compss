@@ -105,18 +105,17 @@ public class Agent {
         System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
     }
 
+
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
      *
-     * @param lang       programming language of the method
-     * @param ceiClass   Core Element interface to detect nested tasks in the code
-     * @param className  name of the class containing the method to execute
+     * @param lang programming language of the method
+     * @param ceiClass Core Element interface to detect nested tasks in the code
+     * @param className name of the class containing the method to execute
      * @param methodName name of the method to execute
-     * @param params     parameter values to pass in to the method
-     * @param monitor    monitor to notify changes on the method execution
-     *
+     * @param params parameter values to pass in to the method
+     * @param monitor monitor to notify changes on the method execution
      * @return Identifier of the application associated to the main task
-     *
      * @throws AgentException error parsing the CEI
      */
     public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params,
@@ -136,38 +135,29 @@ public class Agent {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
 
-        RUNTIME.executeTask(
-                mainAppId, monitor,
-                lang, "es.bsc.compss.agent.loader.Loader", "load",
-                false, 1, false, false,
-                false, 8,
-                OnFailure.RETRY,
-                new Object[]{
-                    RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime",
-                    RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api",
-                    ceiClass, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "ceiClass",
-                    appId, DataType.LONG_T, Direction.IN, Stream.UNSPECIFIED, "", "appId",
-                    className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "className",
-                    methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "methodName",
-                    params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params",
-                    new Object(), DataType.OBJECT_T, Direction.OUT, Stream.UNSPECIFIED, "", "return"
-                });
+        RUNTIME.executeTask(mainAppId, monitor, lang, "es.bsc.compss.agent.loader.Loader", "load", false, 1, false,
+                false, false, 8, OnFailure.RETRY,
+                new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime", RUNTIME,
+                        DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", ceiClass, DataType.STRING_T,
+                        Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", appId, DataType.LONG_T, Direction.IN,
+                        Stream.UNSPECIFIED, "", "appId", className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED,
+                        "", "className", methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "",
+                        "methodName", params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params",
+                        new Object(), DataType.OBJECT_T, Direction.OUT, Stream.UNSPECIFIED, "", "return" });
         return mainAppId;
     }
 
     /**
      * Requests the execution of a method as a task.
      *
-     * @param lang       programming language of the method
-     * @param className  name of the class containing the method to execute
+     * @param lang programming language of the method
+     * @param className name of the class containing the method to execute
      * @param methodName name of the method to execute
-     * @param sarParams  paramter description of the task
-     * @param target     paramter description of the task callee
-     * @param hasResult  true if the task returns any value
-     * @param monitor    monitor to notify changes on the method execution
-     *
+     * @param sarParams paramter description of the task
+     * @param target paramter description of the task callee
+     * @param hasResult true if the task returns any value
+     * @param monitor monitor to notify changes on the method execution
      * @return Identifier of the application associated to the task
-     *
      * @throws AgentException could not retrieve the value of some parameter
      */
     public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams,
@@ -237,12 +227,8 @@ public class Agent {
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
 
-            RUNTIME.executeTask(
-                    appId,
-                    monitor,
-                    lang, className, methodName,
-                    false, 1, false, false,
-                    target != null, paramsCount, OnFailure.RETRY, params);
+            RUNTIME.executeTask(appId, monitor, lang, className, methodName, false, 1, false, false, target != null,
+                    paramsCount, OnFailure.RETRY, params);
 
         } catch (Exception e) {
             throw new AgentException(e);
@@ -270,7 +256,6 @@ public class Agent {
      * Adds new resources into the resource pool.
      *
      * @param r Description of the resources to add into the resource pool
-     *
      * @throws AgentException could not create a configuration to start using this resource
      */
     public static void addResources(Resource r) throws AgentException {
@@ -307,7 +292,7 @@ public class Agent {
             mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
 
             mc.setHost(workerName);
-            DynamicMethodWorker mw = new DynamicMethodWorker(workerName, description, mc, new HashMap());
+            DynamicMethodWorker mw = new DynamicMethodWorker(workerName, description, mc, new HashMap<>());
             ResourceManager.addDynamicWorker(mw, description);
         }
     }
@@ -316,8 +301,7 @@ public class Agent {
      * Requests the agent to stop using some resources from a node.
      *
      * @param workerName name of the worker to whom the resources belong.
-     * @param reduction  description of the resources to stop using.
-     *
+     * @param reduction description of the resources to stop using.
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
@@ -333,7 +317,6 @@ public class Agent {
      * Request the agent to stop using all the resources from a node.
      *
      * @param workerName name of the worker to stop using
-     *
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeNode(String workerName) throws AgentException {
@@ -348,7 +331,6 @@ public class Agent {
      * Forces the agent to remove a node with which it has lost the connection.
      *
      * @param workerName name of the worker to stop using
-     *
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void lostNode(String workerName) throws AgentException {
@@ -363,6 +345,7 @@ public class Agent {
     public abstract static class AppMonitor implements TaskMonitor {
 
         private long appId;
+
 
         public AppMonitor() {
         }

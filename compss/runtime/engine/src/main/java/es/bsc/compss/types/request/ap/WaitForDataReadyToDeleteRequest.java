@@ -22,7 +22,6 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
 
 
@@ -32,6 +31,7 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     private final Semaphore sem;
     private final Semaphore semWait;
     private int nPermits;
+
 
     public WaitForDataReadyToDeleteRequest(DataLocation loc, Semaphore sem, Semaphore semWait) {
         this.loc = loc;
@@ -43,16 +43,15 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     public DataLocation getLocation() {
         return loc;
     }
-    
+
     public int getNumPermits() {
         return nPermits;
     }
-    
-    
+
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data to DIP...");
-        this.nPermits = dip.waitForDataReadyToDelete(loc,semWait);
+        this.nPermits = dip.waitForDataReadyToDelete(loc, semWait);
         sem.release();
     }
 

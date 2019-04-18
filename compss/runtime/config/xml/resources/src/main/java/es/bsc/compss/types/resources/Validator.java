@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.logging.log4j.Logger;
@@ -69,7 +68,7 @@ public class Validator {
      * Validator instantiation for ResourcesFile rf.
      *
      * @param rf Resource file to validate
-     */ 
+     */
     public Validator(ResourcesFile rf, Logger logger) {
         this.logger = logger;
         this.rf = rf;
@@ -112,7 +111,7 @@ public class Validator {
         logger.info("End validation");
     }
 
-    /* ******************* VALIDATION OF MAIN ELEMENTS  *********************/
+    /* ******************* VALIDATION OF MAIN ELEMENTS *********************/
     /**
      * Validates the given SharedDiskType @sd with the current ResourcesFileType. The content is correct if no exception
      * is raised.
@@ -143,10 +142,8 @@ public class Validator {
      * Validates the given DataNodeType @dn with the current ResourcesFileType. The content is correct if no exception
      * is raised.
      *
-     * @param dn
-     *            Data node description
-     * @throws InvalidElementException
-     *             Error invalid data
+     * @param dn Data node description
+     * @throws InvalidElementException Error invalid data
      */
     public void validateDataNode(DataNodeType dn) throws InvalidElementException {
         // Check that name isn't used
@@ -239,10 +236,8 @@ public class Validator {
      * Validates the given ComputeNodeType @cn with the current ResourcesFileType. The content is correct if no
      * exception is raised.
      *
-     * @param cn
-     *            Compute node description
-     * @throws InvalidElementException
-     *             Error invalid data
+     * @param cn Compute node description
+     * @throws InvalidElementException Error invalid data
      */
     public void validateComputeNode(ComputeNodeType cn) throws InvalidElementException {
         // Check that name isn't used
@@ -365,7 +360,7 @@ public class Validator {
 
     /**
      * Validates the given ServiceType @s with the current ResourcesFileType. The content is correct if no exception is
-     * raised. 
+     * raised.
      *
      * @param s Service description
      * @throws InvalidElementException Error invalid data
@@ -440,7 +435,7 @@ public class Validator {
     }
 
     /* ********** HELPERS FOR VALIDATION (PRIVATE METHODS) *************/
-    
+
     private void validateStorage(StorageType s) throws InvalidElementException {
         // Validate inner elements
         List<Serializable> innerElements = s.getSizeOrType();

@@ -34,6 +34,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "startApplication")
 public class StartApplicationRequest implements Serializable {
 
+    /**
+     * OBjects Version UID are 1L in all Runtime.
+     */
+    private static final long serialVersionUID = 1L;
+
     private String serviceInstanceId;
     private String ceiClass;
     private String className;
@@ -42,6 +47,7 @@ public class StartApplicationRequest implements Serializable {
     private ApplicationParameterImpl target;
     private boolean hasResult;
     private Orchestrator orchestrator;
+
 
     public StartApplicationRequest() {
 
@@ -197,11 +203,7 @@ public class StartApplicationRequest implements Serializable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("StartApplication ")
-                .append(className)
-                .append(".")
-                .append(methodName)
-                .append("(");
+        sb.append("StartApplication ").append(className).append(".").append(methodName).append("(");
 
         int count = 0;
         for (ApplicationParameterImpl param : this.params) {

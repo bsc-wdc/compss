@@ -203,7 +203,6 @@ public class ResourceManager {
      * Returns a worker instance with the given name @name
      *
      * @param name
-     *
      * @return
      */
     public static Worker<? extends WorkerResourceDescription> getWorker(String name) {
@@ -297,9 +296,9 @@ public class ResourceManager {
     /**
      * Sets the boundaries on the cloud elasticity
      *
-     * @param minVMs     lower number of VMs allowed
+     * @param minVMs lower number of VMs allowed
      * @param initialVMs initial number of VMs
-     * @param maxVMs     higher number of VMs allowed
+     * @param maxVMs higher number of VMs allowed
      */
     public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
         cloudManager.setInitialVMs(initialVMs);
@@ -316,9 +315,7 @@ public class ResourceManager {
      * @param connectorJarPath
      * @param connectorMainClass
      * @param connectorProperties
-     *
      * @return
-     *
      * @throws es.bsc.compss.connectors.ConnectorException
      */
     public static CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs,
@@ -435,13 +432,14 @@ public class ResourceManager {
         resourceUser.updatedResource(worker, modification);
     }
 
-    public static <T extends WorkerResourceDescription> void confirmWorkerReduction(Worker<T> worker, PendingReduction<T> reduction) {
+    public static <T extends WorkerResourceDescription> void confirmWorkerReduction(Worker<T> worker,
+            PendingReduction<T> reduction) {
         ResourceUpdate<T> ru = new PerformedReduction<>(reduction.getModification());
         resourceUser.updatedResource(worker, ru);
     }
 
     public static void notifyWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
-        worker.applyReduction(new PendingReduction(reduction));
+        worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
         MethodResourceDescription modification = reduction;
         ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
         resourceUser.updatedResource(worker, ru);
@@ -450,7 +448,7 @@ public class ResourceManager {
     public static void notifyWholeWorkerReduction(String name) {
         DynamicMethodWorker worker = (DynamicMethodWorker) pool.getResource(name);
         MethodResourceDescription reduction = worker.getDescription();
-        worker.applyReduction(new PendingReduction(reduction));
+        worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
         MethodResourceDescription modification = reduction;
         ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
         resourceUser.updatedResource(worker, ru);
@@ -458,7 +456,7 @@ public class ResourceManager {
 
     public static void notifyWholeWorkerReduction(DynamicMethodWorker worker) {
         MethodResourceDescription reduction = worker.getDescription();
-        worker.applyReduction(new PendingReduction(reduction));
+        worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
         MethodResourceDescription modification = reduction;
         ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
         resourceUser.updatedResource(worker, ru);
@@ -521,7 +519,6 @@ public class ResourceManager {
      * Returns the mean creation time
      *
      * @return
-     *
      * @throws Exception
      */
     public static Long getCreationTime() throws Exception {
@@ -653,7 +650,6 @@ public class ResourceManager {
      * Returns the dynamic resource with name = @name
      *
      * @param name
-     *
      * @return
      */
     public static DynamicMethodWorker getDynamicResource(String name) {
@@ -683,7 +679,6 @@ public class ResourceManager {
      * Prints out the information about the pending requests
      *
      * @param prefix
-     *
      * @return
      */
     public static String getPendingRequestsMonitorData(String prefix) {
@@ -793,7 +788,6 @@ public class ResourceManager {
      * Returns the current state of the resources pool
      *
      * @param prefix
-     *
      * @return
      */
     public static String getCurrentState(String prefix) {

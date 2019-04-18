@@ -859,7 +859,7 @@ class task(object):
             return self.get_varargs_direction().type is None
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
-            return self.decorator_arguments[original_name].type is None
+            return self.decorator_arguments[original_name].type in [parameter.TYPE.COLLECTION, None]
         # The parameter is not annotated in the decorator, so (by default) return True
         return True
 
@@ -908,6 +908,9 @@ class task(object):
                     arg.content = arg.file_name.split(':')[-1]
             elif arg.type == parameter.TYPE.COLLECTION:
                 arg.content = []
+                # This field is exclusive for COLLECTION_T parameters, so make sure you have checked this
+                # parameter is a collection before consulting it
+                arg.collection_content = []
                 for (i, line) in enumerate(open(arg.file_name.split(':')[-1], 'r')):
                     content_type, content_file = line.strip().split(' ')
                     # Same naming convention as in COMPSsRuntimeImpl.java
@@ -922,6 +925,8 @@ class task(object):
                     retrieve_content(sub_arg, sub_name)
                     from pycompss.util.serializer import deserialize_from_file
                     arg.content.append(sub_arg.content)
+                    arg.collection_content.append(sub_arg)
+
             elif not storage_supports_pipelining() and arg.type == parameter.TYPE.EXTERNAL_PSCO:
                 # The object is a PSCO and the storage does not support pipelining, do a single getByID
                 # of the PSCO
@@ -1033,7 +1038,19 @@ class task(object):
                 # If it si INOUT and not PSCO, serialize to file
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
                 from pycompss.util.serializer import serialize_to_file
-                serialize_to_file(arg.content, get_file_name(arg.file_name))
+                if arg.type == parameter.TYPE.COLLECTION:
+                    def get_collection_objects(arg):
+                        if arg.type == parameter.TYPE.COLLECTION:
+                            for elem in arg.collection_content:
+                                for sub_elem in get_collection_objects(elem):
+                                    yield sub_elem
+                        else:
+                            yield arg
+                    for elem in get_collection_objects(arg):
+                        serialize_to_file(elem.content, get_file_name(elem.file_name))
+                else:
+                    from pycompss.util.serializer import serialize_to_file
+                    serialize_to_file(arg.content, get_file_name(arg.file_name))
 
         # Deal with returns (if any)
         if num_returns > 0:

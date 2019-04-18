@@ -76,6 +76,7 @@
   if [ "${tasksOrderExpected}" != "${tasksOrder}" ]; then
     echo "[ERROR] Obtained trace file is not as expected" | tee -a "${output_file}"
     echo "[ERROR] GOT ${tasksOrder}" | tee -a "${output_file}"
+    echo "[ERROR] EXPECTED ${tasksOrderExpected}" | tee -a "${output_file}"
     exit 1
   fi
   

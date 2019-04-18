@@ -28,12 +28,18 @@ def generate_object(seed):
     np.random.seed(seed)
     return np.random.rand(5)
 
+@task(c = COLLECTION_INOUT)
+def increase_elements(c):
+    for elem in c:
+        elem += 1.0
 
+@task(e = INOUT)
+def increase_element(e):
+    e += 1.0
 
+class testCollectionFunctions(unittest.TestCase):
 
-class testCollectionInFunctions(unittest.TestCase):
-
-    def testMasterGeneration(self):
+    def testMasterGenerationIn(self):
         matrix = [
             np.random.rand(5) for _ in range(10)
         ]
@@ -46,7 +52,7 @@ class testCollectionInFunctions(unittest.TestCase):
             )
         )
 
-    def testWorkerGeneration(self):
+    def testWorkerGenerationIn(self):
         matrix = [
             generate_object(i) for i in range(10)
         ]
@@ -61,7 +67,7 @@ class testCollectionInFunctions(unittest.TestCase):
             )
         )
 
-    def testDepthWorkerGeneration(self):
+    def testDepthWorkerGenerationIn(self):
         two_two_two_two_matrix = \
             [
                 [
@@ -83,5 +89,22 @@ class testCollectionInFunctions(unittest.TestCase):
             np.allclose(
                 compss_wait_on(zero_one_zero_one),
                 should
+            )
+        )
+
+
+    def testWorkerGenerationInout(self):
+        # Generate ten random vectors with pre-determined seed
+        ten_random_vectors = [generate_object(i) for i in range(10)]
+        increase_elements(ten_random_vectors)
+        increase_element(ten_random_vectors[4])
+        # Pick the fifth vector from a COLLECTION_IN parameter
+        fifth_vector = compss_wait_on(select_element(ten_random_vectors, 4))
+        import numpy as np
+        np.random.seed(4)
+        self.assertTrue(
+            np.allclose(
+                fifth_vector,
+                np.random.rand(5) + 2.0
             )
         )

@@ -251,6 +251,10 @@ _param_conversion_dict_ = {
     'COLLECTION_IN': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.IN
+    },
+    'COLLECTION_INOUT': {
+        'p_type': TYPE.COLLECTION,
+        'p_direction': DIRECTION.INOUT
     }
 }
 
@@ -540,6 +544,7 @@ FILE_CONCURRENT_STDOUT = _param_('FILE_CONCURRENT_STDOUT')
 # Aliases for collections
 COLLECTION = _param_('COLLECTION')
 COLLECTION_IN = _param_('COLLECTION_IN')
+COLLECTION_INOUT = _param_('COLLECTION_INOUT')
 
 # Aliases for streams (just stream direction)
 STDIN = STREAM.STDIN

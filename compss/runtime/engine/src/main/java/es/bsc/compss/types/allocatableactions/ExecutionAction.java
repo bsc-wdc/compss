@@ -66,7 +66,6 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class ExecutionAction extends AllocatableAction {
 
     // Fault tolerance parameters
@@ -93,7 +92,7 @@ public class ExecutionAction extends AllocatableAction {
      * @param task
      */
     public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-            TaskProducer producer, Task task) {
+                           TaskProducer producer, Task task) {
 
         super(schedulingInformation, orchestrator);
 
@@ -347,80 +346,94 @@ public class ExecutionAction extends AllocatableAction {
         notifyCompleted();
     }
 
-    private final void doOutputTransfers(Job<?> job) {
-        // Job finished, update info about the generated/updated data
+
+    private final DataLocation storeOutputParameter(Job<?> job, Parameter p) {
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
-        Parameter[] params = job.getTaskParams().getParameters();
-        for (int paramId = 0; paramId < params.length; paramId++) {
-            Parameter p = params[paramId];
-            if (p instanceof DependencyParameter) {
-                // OUT or INOUT: we must tell the FTM about the
-                // generated/updated datum
-                DataInstanceId dId = null;
-                DependencyParameter dp = (DependencyParameter) p;
-                switch (p.getDirection()) {
-                    case CONCURRENT:
-                    case IN:
-                        // FTM already knows about this datum
-                        continue;
-                    case OUT:
-                        dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+        if (p instanceof DependencyParameter) {
+            // OUT or INOUT: we must tell the FTM about the
+            // generated/updated datum
+            DataInstanceId dId = null;
+            DependencyParameter dp = (DependencyParameter) p;
+            switch (p.getDirection()) {
+                case CONCURRENT:
+                case IN:
+                    // FTM already knows about this datum
+                    return null;
+                case OUT:
+                    dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                    break;
+                case INOUT:
+                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                    if (job.getType() == TaskType.SERVICE) {
+                        return null;
+                    }
+                    break;
+            }
+            String name = dId.getRenaming();
+            if (job.getType() == TaskType.METHOD) {
+                String targetProtocol = null;
+                switch (dp.getType()) {
+                    case FILE_T:
+                        targetProtocol = DataLocation.Protocol.FILE_URI.getSchema();
                         break;
-                    case INOUT:
-                        dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                        if (job.getType() == TaskType.SERVICE) {
-                            continue;
+                    case OBJECT_T:
+                        targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
+                        break;
+                    case COLLECTION_T:
+                        targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
+                        CollectionParameter cp = (CollectionParameter) p;
+                        for(Parameter elem: cp.getParameters()) {
+                            storeOutputParameter(job, elem);
                         }
                         break;
+                    case PSCO_T:
+                        targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                        break;
+                    case EXTERNAL_PSCO_T:
+                        // Its value is the PSCO Id
+                        targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                        break;
+                    case BINDING_OBJECT_T:
+                        // Its value is the PSCO Id
+                        targetProtocol = DataLocation.Protocol.BINDING_URI.getSchema();
+                        break;
+                    default:
+                        // Should never reach this point because only
+                        // DependencyParameter types are treated
+                        // Ask for any_uri just in case
+                        targetProtocol = DataLocation.Protocol.ANY_URI.getSchema();
+                        break;
                 }
-                String name = dId.getRenaming();
-                if (job.getType() == TaskType.METHOD) {
-                    String targetProtocol = null;
-                    switch (dp.getType()) {
-                        case FILE_T:
-                            targetProtocol = DataLocation.Protocol.FILE_URI.getSchema();
-                            break;
-                        case OBJECT_T:
-                        case COLLECTION_T:
-                            targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
-                            break;
-                        case PSCO_T:
-                            targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
-                            break;
-                        case EXTERNAL_PSCO_T:
-                            // Its value is the PSCO Id
-                            targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
-                            break;
-                        case BINDING_OBJECT_T:
-                            // Its value is the PSCO Id
-                            targetProtocol = DataLocation.Protocol.BINDING_URI.getSchema();
-                            break;
-                        default:
-                            // Should never reach this point because only
-                            // DependencyParameter types are treated
-                            // Ask for any_uri just in case
-                            targetProtocol = DataLocation.Protocol.ANY_URI.getSchema();
-                            break;
-                    }
-                    DataLocation outLoc = null;
-                    try {
-                        SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
-                        outLoc = DataLocation.createLocation(w, targetURI);
-                    } catch (Exception e) {
-                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
-                    }
-                    Comm.registerLocation(name, outLoc);
-                    TaskMonitor monitor = task.getTaskMonitor();
-                    monitor.valueGenerated(paramId, dp.getType(), name, outLoc);
-                } else {
-                    // Service
-                    Object value = job.getReturnValue();
-                    LogicalData ld = Comm.registerValue(name, value);
-                    TaskMonitor monitor = task.getTaskMonitor();
-                    for (DataLocation loc : ld.getLocations()) {
-                        monitor.valueGenerated(paramId, dp.getType(), name, loc);
-                    }
+                DataLocation outLoc = null;
+                try {
+                    SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
+                    outLoc = DataLocation.createLocation(w, targetURI);
+                } catch (Exception e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
                 }
+                Comm.registerLocation(name, outLoc);
+                return outLoc;
+            } else {
+                // Service
+                Object value = job.getReturnValue();
+                LogicalData ld = Comm.registerValue(name, value);
+                for (DataLocation loc : ld.getLocations()) {
+                    return loc;
+                }
+            }
+        }
+        return null;
+    }
+
+    private final void doOutputTransfers(Job<?> job) {
+        // Job finished, update info about the generated/updated data
+        Parameter[] params = job.getTaskParams().getParameters();
+        for (int i = 0; i < params.length; ++i) {
+            Parameter p = params[i];
+            DataLocation outLoc = storeOutputParameter(job, p);
+            TaskMonitor monitor = task.getTaskMonitor();
+            if (outLoc != null) {
+                monitor.valueGenerated(i, p.getType(), p.getName(), outLoc);
             }
         }
     }
@@ -430,12 +443,6 @@ public class ExecutionAction extends AllocatableAction {
      * EXECUTION TRIGGERS
      * ***************************************************************************************************************
      */
-    @Override
-    protected void doAbort() {
-        TaskMonitor monitor = task.getTaskMonitor();
-        monitor.onAbortedExecution();
-    }
-
     @Override
     protected void doCompleted() {
         // Profile the resource
@@ -471,6 +478,12 @@ public class ExecutionAction extends AllocatableAction {
             ErrorManager.warn("Notifying task " + task.getId() + " failure");
             throw new FailedActionException();
         }
+    }
+
+    @Override
+    protected void doAbort() {
+        TaskMonitor monitor = task.getTaskMonitor();
+        monitor.onAbortedExecution();
     }
 
     @Override
@@ -587,7 +600,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
-            Score actionScore) {
+                                                                             Score actionScore) {
         Score computedScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
         // LOGGER.debug("Scheduling Score " + computedScore);
         return computedScore;
@@ -616,7 +629,7 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     private <T extends WorkerResourceDescription> void schedule(Score actionScore,
-            List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
+                                                                List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
             throws BlockedActionException, UnassignedActionException {
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
@@ -676,7 +689,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Score actionScore) throws BlockedActionException, UnassignedActionException {
+                                                                     Score actionScore) throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker == null
                 // Resource is not compatible with the Core
@@ -707,7 +720,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Implementation impl) throws BlockedActionException, UnassignedActionException {
+                                                                     Implementation impl) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
         }
@@ -719,8 +732,8 @@ public class ExecutionAction extends AllocatableAction {
 
         if (// Resource is not compatible with the implementation
                 !targetWorker.getResource().canRun(impl)
-                // already ran on the resource
-                || this.getExecutingResources().contains(targetWorker)) {
+                        // already ran on the resource
+                        || this.getExecutingResources().contains(targetWorker)) {
 
             LOGGER.debug("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();

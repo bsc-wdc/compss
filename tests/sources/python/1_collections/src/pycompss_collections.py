@@ -10,11 +10,10 @@ PyCOMPSs Testbench
 # Imports
 import unittest
 
-from modules.testCollectionInFunctions import testCollectionInFunctions
-
+from modules.testCollectionsFunctions import testCollectionFunctions
 
 def main():
-    suite = unittest.TestLoader().loadTestsFromTestCase(testCollectionInFunctions)
+    suite = unittest.TestLoader().loadTestsFromTestCase(testCollectionFunctions)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

@@ -69,8 +69,10 @@ public class Executor implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task with Method Definition [";
-    private static final String WARN_ATOMIC_MOVE = "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic";
+    private static final String ERROR_OUT_FILES = 
+            "ERROR: One or more OUT files have not been created by task with Method Definition [";
+    private static final String WARN_ATOMIC_MOVE = 
+            "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic";
 
     // Attached component NIOWorker
     private final InvocationContext context;
@@ -85,11 +87,14 @@ public class Executor implements Runnable {
 
 
     /**
-     * Instantiates a new Executor
+     * Instantiates a new Executor.
      *
      * @param context
+     *            Invocation context
      * @param platform
+     *            Executor context (Execution Platform
      * @param executorId
+     *            Executor Identifier
      */
     public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
         LOGGER.info("Executor init");
@@ -100,7 +105,7 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Starts the executor execution
+     * Starts the executor execution.
      */
     public void start() {
         // Nothing to do since everything is deleted in each task execution
@@ -108,7 +113,7 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Thread main code which enables the request processing
+     * Thread main code which enables the request processing.
      */
     @Override
     public void run() {
@@ -122,7 +127,7 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Stop executor
+     * Stop executor.
      */
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
@@ -135,7 +140,7 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Returns the executor id
+     * Returns the executor id.
      *
      * @return executor id
      */
@@ -147,8 +152,10 @@ public class Executor implements Runnable {
         Execution execution;
         while (true) {
             execution = this.platform.getJob(); // Get tasks until there are no more tasks pending
-
             if (execution == null) {
+                LOGGER.error("ERROR: Execution is null!!!!!");
+            }
+            if (execution.getInvocation() == null) {
                 LOGGER.debug("Dequeued job is null");
                 break;
             }
@@ -180,6 +187,61 @@ public class Executor implements Runnable {
         }
         return execute(invocation);
     }
+    
+    private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
+            throws JobExecutionException {
+        /* Register outputs **************************************** */
+        String streamsPath = context.getStandardStreamsPath(invocation);
+        context.registerOutputs(streamsPath);
+        PrintStream out = context.getThreadOutStream();
+
+        /* TRY TO PROCESS THE TASK ******************************** */
+        if (invocation.isDebugEnabled()) {
+            out.println("[EXECUTOR] executeTask - Begin task execution");
+        }
+        try {
+            Invoker invoker = null;
+            switch (invocation.getMethodImplementation().getMethodType()) {
+                case METHOD:
+                    invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case BINARY:
+                    invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case MPI:
+                    invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case COMPSs:
+                    invoker = new COMPSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case DECAF:
+                    invoker = new DecafInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case MULTI_NODE:
+                    invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case OMPSS:
+                    invoker = new OmpSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+                case OPENCL:
+                    invoker = new OpenCLInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
+            }
+            invoker.processTask();
+        } catch (Exception jee) {
+            out.println("[EXECUTOR] executeTask - Error in task execution");
+            PrintStream err = context.getThreadErrStream();
+            err.println("[EXECUTOR] executeTask - Error in task execution");
+            createEmptyFile(invocation);
+            jee.printStackTrace(err);
+            throw jee;
+        } finally {
+            if (invocation.isDebugEnabled()) {
+                out.println("[EXECUTOR] executeTask - End task execution");
+            }
+            context.unregisterOutputs();
+        }
+    }
 
     private boolean execute(Invocation invocation) {
         if (Tracer.extraeEnabled()) {
@@ -205,9 +267,9 @@ public class Executor implements Runnable {
             InvocationResources assignedResources = platform.acquireResources(invocation.getJobId(),
                     invocation.getRequirements());
             long cubDuration = System.currentTimeMillis() - startCUB;
-            
+
             long execDuration = 0;
-            
+
             try {
                 // Execute task
                 LOGGER.debug("Executing Task of Job " + invocation.getJobId());
@@ -220,8 +282,8 @@ public class Executor implements Runnable {
                 // Writing in the task .err/.out
                 context.getThreadOutStream().println("Exception executing task " + e.getMessage());
                 e.printStackTrace(context.getThreadErrStream());
-//                
-//                createEmptyFile(invocation);
+                //
+                // createEmptyFile(invocation);
                 throw e;
             } finally {
                 // Unbind files from task sandbox working dir
@@ -229,17 +291,17 @@ public class Executor implements Runnable {
                 long startOrig = System.currentTimeMillis();
                 unbindOriginalFileNamesToRenames(invocation);
                 long origFileDuration = System.currentTimeMillis() - startOrig;
-    
+
                 // Check job output files
                 LOGGER.debug("Checking generated files for Job " + invocation.getJobId());
                 long startCheckResults = System.currentTimeMillis();
                 checkJobFiles(invocation);
                 long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
 
-                LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration + " bindCU: " + cubDuration
-                        + " execution" + execDuration + " restoreSimLinks: " + origFileDuration + " checkResults: " + checkResultsDuration);
+                LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration
+                        + " bindCU: " + cubDuration + " execution" + execDuration + " restoreSimLinks: "
+                        + origFileDuration + " checkResults: " + checkResultsDuration);
 
-               
             }
             return true;
 
@@ -263,12 +325,11 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Creates a sandbox for a task
+     * Creates a sandbox for a task.
      *
      * @param invocation task description
      * @return Sandbox dir
-     * @throws IOException
-     * @throws Exception
+     * @throws IOException Error creating sandbox
      */
     private TaskWorkingDir createTaskSandbox(Invocation invocation) throws IOException {
         // Check if an specific working dir is provided
@@ -352,10 +413,12 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Check whether file1 corresponds to a file with a higher version than file2
+     * Check whether file1 corresponds to a file with a higher version than file2.
      *
-     * @param file1 first file name
-     * @param file2 second file name
+     * @param file1
+     *            first file name
+     * @param file2
+     *            second file name
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
      *         is not correct)
      */
@@ -381,12 +444,14 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Create symbolic links from files with the original name in task sandbox to the renamed file
+     * Create symbolic links from files with the original name in task sandbox to the renamed file.
      *
-     * @param invocation task description
-     * @param sandbox created sandbox
+     * @param invocation
+     *            task description
+     * @param sandbox
+     *            created sandbox
      * @throws IOException
-     * @throws Exception returns exception is a problem occurs during creation
+     *             returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -437,12 +502,12 @@ public class Executor implements Runnable {
     }
 
     /**
-     * Undo symbolic links and renames done with the original names in task sandbox to the renamed file
+     * Undo symbolic links and renames done with the original names in task sandbox to the renamed file.
      *
-     * @param invocation task description
-     * @throws IOException
-     * @throws JobExecutionException
-     * @throws Exception returns exception is an unexpected case is found.
+     * @param invocation
+     *            task description
+     * @throws IOException Exception with file operations
+     * @throws JobExecutionException Exception unbinding original names to renamed names
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
         for (InvocationParam param : invocation.getParams()) {
@@ -483,8 +548,7 @@ public class Executor implements Runnable {
                         // Both files exist and are updated
                         LOGGER.debug("Repeated data for " + inSandboxPath + ". Nothing to do");
                     }
-                } else // OUT
-                {
+                } else { // OUT
                     if (inSandboxFile.exists()) {
                         if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // Unexpected case
@@ -552,61 +616,7 @@ public class Executor implements Runnable {
 
     }
 
-    private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
-            throws JobExecutionException {
-        /* Register outputs **************************************** */
-        String streamsPath = context.getStandardStreamsPath(invocation);
-        context.registerOutputs(streamsPath);
-        PrintStream out = context.getThreadOutStream();
 
-        /* TRY TO PROCESS THE TASK ******************************** */
-        if (invocation.isDebugEnabled()) {
-            out.println("[EXECUTOR] executeTask - Begin task execution");
-        }
-        try {
-            Invoker invoker = null;
-            switch (invocation.getMethodImplementation().getMethodType()) {
-                case METHOD:
-                    invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case BINARY:
-                    invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case MPI:
-                    invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case COMPSs:
-                    invoker = new COMPSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case DECAF:
-                    invoker = new DecafInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case MULTI_NODE:
-                    invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case OMPSS:
-                    invoker = new OmpSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-                case OPENCL:
-                    invoker = new OpenCLInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                    break;
-            }
-            invoker.processTask();
-        } catch (Exception jee) {
-            out.println("[EXECUTOR] executeTask - Error in task execution");
-            PrintStream err = context.getThreadErrStream();
-            err.println("[EXECUTOR] executeTask - Error in task execution");
-            createEmptyFile(invocation);
-            jee.printStackTrace(err);
-            throw jee;
-        } finally {
-            if (invocation.isDebugEnabled()) {
-                out.println("[EXECUTOR] executeTask - End task execution");
-            }
-            context.unregisterOutputs();
-        }
-    }
-    
     private void createEmptyFile(Invocation invocation) {
         PrintStream out = context.getThreadOutStream();
         out.println("[EXECUTOR] executeTask - Checking if a blank file needs to be created");
@@ -624,7 +634,7 @@ public class Executor implements Runnable {
                 } catch (IOException e) {
                     System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
                 }
-            }    
+            }
         }
     }
 

@@ -16,30 +16,31 @@
  */
 package es.bsc.compss.executor.utils;
 
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.InvocationContext;
-import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
-import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.util.JobQueue;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
+import es.bsc.compss.types.resources.ResourceDescription;
+
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Semaphore;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
- * The thread pool is an utility to manage a set of threads for job execution
+ * The thread pool is an utility to manage a set of threads for job execution.
  */
 public class ExecutionPlatform implements ExecutorContext {
 
@@ -64,10 +65,10 @@ public class ExecutionPlatform implements ExecutorContext {
     /**
      * Constructs a new thread pool but not the threads inside it.
      *
-     * @param platformName
-     * @param context
-     * @param initialSize
-     * @param resManager
+     * @param platformName Platform name
+     * @param context Invocation Context
+     * @param initialSize Initial number of processes
+     * @param resManager Resource Manager
      */
     public ExecutionPlatform(String platformName, InvocationContext context, int initialSize,
             ResourceManager resManager) {
@@ -100,21 +101,22 @@ public class ExecutionPlatform implements ExecutorContext {
     }
 
     /**
-     * Adds a new task to the queue
+     * Adds a new task to the queue.
      *
-     * @param exec
+     * @param exec Task execution description
      */
     public void execute(Execution exec) {
         this.queue.enqueue(exec);
     }
 
     /**
-     * Creates and starts the threads of the pool and waits until they are created
+     * Creates and starts the threads of the pool and waits until they are created.
      */
     public final synchronized void start() {
         LOGGER.info("Starting execution platform " + this.platformName);
         // Start is in inverse order so that Thread 1 is the last available
         for (Thread t : this.workerThreads.descendingSet()) {
+            LOGGER.info("Starting Thread " + t.getName());
             t.start();
         }
         int size = this.workerThreads.size();
@@ -145,6 +147,10 @@ public class ExecutionPlatform implements ExecutorContext {
         LOGGER.info("Stopped execution platform " + this.platformName);
     }
 
+    /**
+     * Add worker threads to Execution Platform.
+     * @param numWorkerThreads Number of new worker threads
+     */
     public final synchronized void addWorkerThreads(int numWorkerThreads) {
         Semaphore startSem;
         if (started) {
@@ -170,6 +176,7 @@ public class ExecutionPlatform implements ExecutorContext {
             t.setName(platformName + " compute thread # " + id);
             workerThreads.add(t);
             if (started) {
+                
                 t.start();
             }
         }
@@ -178,20 +185,30 @@ public class ExecutionPlatform implements ExecutorContext {
         }
     }
 
-    public synchronized final void removeWorkerThreads(int numWorkerThreads) {
-        LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
-        // Request N threads to finish
-        for (int i = 0; i < numWorkerThreads; i++) {
-            this.queue.enqueue(null);
+    /**
+     * Remove worker threads from execution platform.
+     * 
+     * @param numWorkerThreads
+     *            Number of worker threads to reduce
+     */
+    public final synchronized void removeWorkerThreads(int numWorkerThreads) {
+        if (numWorkerThreads > 0) {
+            LOGGER.info("Stopping " + numWorkerThreads + " executors from execution platform " + this.platformName);
+            // Request N threads to finish
+            for (int i = 0; i < numWorkerThreads; i++) {
+                this.queue.enqueue(new Execution(null, null));
+            }
+            LOGGER.info("Waking up all locks");
+            this.queue.wakeUpAll();
+
+            // Wait until all threads have completed their last request
+            LOGGER.info("Waiting for " + numWorkerThreads + " threads finished");
+            this.stopSemaphore.acquireUninterruptibly(numWorkerThreads);
+
+            // Stop specific language components
+            joinThreads();
+            LOGGER.info("Stopped " + numWorkerThreads + " executors from execution platform " + this.platformName);
         }
-        this.queue.wakeUpAll();
-
-        // Wait until all threads have completed their last request
-        this.stopSemaphore.acquireUninterruptibly(numWorkerThreads);
-
-        // Stop specific language components
-        joinThreads();
-        LOGGER.info("Stopped " + numWorkerThreads + " executors from execution platform " + this.platformName);
     }
 
     private void joinThreads() {

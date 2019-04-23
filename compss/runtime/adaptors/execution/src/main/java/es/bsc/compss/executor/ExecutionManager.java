@@ -37,16 +37,16 @@ public class ExecutionManager {
 
 
     /**
-     * Instantiates a new Execution Manager
+     * Instantiates a new Execution Manager. 
      *
-     * @param context
-     * @param computingUnitsCPU
-     * @param cpuMap
-     * @param computingUnitsGPU
-     * @param gpuMap
-     * @param computingUnitsFPGA
-     * @param fpgaMap
-     * @param limitOfTasks
+     * @param context Invocation context
+     * @param computingUnitsCPU Number of CPU Computing Units
+     * @param cpuMap CPU Mapping
+     * @param computingUnitsGPU Number of GPU Computing Units
+     * @param gpuMap GPU Mapping
+     * @param computingUnitsFPGA Number of FPGA Computing Units
+     * @param fpgaMap FPGA Mapping
+     * @param limitOfTasks Limit of number of simultaneous tasks
      */
     public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU,
             String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
@@ -61,9 +61,9 @@ public class ExecutionManager {
     }
 
     /**
-     * Initializes the pool of threads that execute tasks
+     * Initializes the pool of threads that execute tasks.
      *
-     * @throws InitializationException
+     * @throws InitializationException Error initializing execution Manager
      */
     public void init() throws InitializationException {
         LOGGER.info("Init Execution Manager");
@@ -71,16 +71,16 @@ public class ExecutionManager {
     }
 
     /**
-     * Enqueues a new task
+     * Enqueues a new task.
      *
-     * @param exec
+     * @param exec Task execution description
      */
     public void enqueue(Execution exec) {
         this.cpuExecutors.execute(exec);
     }
 
     /**
-     * Stops the Execution Manager and its pool of threads
+     * Stops the Execution Manager and its pool of threads.
      */
     public void stop() {
         LOGGER.info("Stopping Threads...");
@@ -88,21 +88,35 @@ public class ExecutionManager {
         this.cpuExecutors.stop();
     }
 
-    public void increaseCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    /**
+     * Increase execution manager capabilities.
+     * @param cpuCount Number of CPU Computing Units
+     * @param gpuCount Number of GPU Computing Units
+     * @param fpgaCount Number of FPGA Computing Units
+     * @param otherCount Number of Other type of Computing Units
+     */
+    public void increaseCapabilities(int cpuCount, int gpuCount, int fpgaCount, int otherCount) {
         /*
          * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
          */
-        this.cpuExecutors.addWorkerThreads(CPUCount);
+        this.cpuExecutors.addWorkerThreads(cpuCount);
         /*
          * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
          */
     }
 
-    public void reduceCapabilities(int CPUCount, int GPUCount, int FPGACount, int otherCount) {
+    /**
+     * Reduce execution manager capabilities.
+     * @param cpuCount Number of CPU Computing Units
+     * @param gpuCount Number of GPU Computing Units
+     * @param fpgaCount Number of FPGA Computing Units
+     * @param otherCount Number of Other type of Computing Units
+     */
+    public void reduceCapabilities(int cpuCount, int gpuCount, int fpgaCount, int otherCount) {
         /*
          * if (tracing_level == Tracer.BASIC_MODE) { Tracer.enablePThreads(); }
          */
-        this.cpuExecutors.removeWorkerThreads(CPUCount);
+        this.cpuExecutors.removeWorkerThreads(cpuCount);
         /*
          * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
          */

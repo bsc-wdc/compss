@@ -16,20 +16,19 @@
  */
 package es.bsc.compss.invokers.binary;
 
-import java.io.File;
-
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
-import java.io.PrintStream;
 
+import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 
@@ -40,6 +39,13 @@ public class BinaryInvoker extends Invoker {
     private final String binary;
 
 
+    /** Binary Invoker constructor.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param assignedResources Assigned resources
+     * @throws JobExecutionException Error creating the binary invoker
+     */
     public BinaryInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
 

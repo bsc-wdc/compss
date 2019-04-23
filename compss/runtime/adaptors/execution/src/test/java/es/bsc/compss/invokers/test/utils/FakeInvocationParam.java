@@ -40,6 +40,15 @@ public class FakeInvocationParam implements InvocationParam {
     private final String dataMgmtId;
 
 
+    /** Fake Invocation parameter constructor.
+     * @param type Type
+     * @param prefix Prefix
+     * @param name Name
+     * @param stream Stream
+     * @param originalName Original Name
+     * @param dataMgmtId Data Management Id
+     * @param writeFinalValue Write final value flag
+     */
     public FakeInvocationParam(DataType type, String prefix, String name, Stream stream, String originalName,
             String dataMgmtId, boolean writeFinalValue) {
         this.type = type;

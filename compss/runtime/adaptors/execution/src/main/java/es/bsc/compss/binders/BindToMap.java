@@ -348,6 +348,7 @@ public class BindToMap implements ThreadBinder {
     }
 
     /**
+     * Recursive method for binding computing units.
      * @param jobId : job associated to the threads to locate
      * @param amount : amount of threads that needs to be allocated
      * @param index : lower socket allowed to hosts the threads

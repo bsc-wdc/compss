@@ -18,17 +18,18 @@ package es.bsc.compss.invokers;
 
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
+
 import storage.StubItf;
 
 
@@ -42,6 +43,13 @@ public class JavaInvoker extends Invoker {
     protected final Method method;
 
 
+    /** Java Invoker constructor.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param assignedResources Assigned resources
+     * @throws JobExecutionException Error creating the Java invoker
+     */
     public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
 

@@ -83,6 +83,11 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     private ControlPipePair pipeWorkerPipe;
 
 
+    /**
+     * Piped Mirror constructor.
+     * @param context Invocation context
+     * @param size Processes size
+     */
     public PipedMirror(InvocationContext context, int size) {
         mirrorId = String.valueOf(UUID.randomUUID().hashCode());
         String workingDir = context.getWorkingDir();
@@ -232,19 +237,19 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     }
 
     /**
-     * Returns the launch command for every binding
+     * Returns the launch command for every binding.
      *
-     * @param context
-     * @param pipe
+     * @param context Invocation context
+     * @param pipe Control pipes
      * @return
      */
     public abstract String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe);
 
     /**
-     * Returns the specific environment variables of each binding
+     * Returns the specific environment variables of each binding.
      *
-     * @param context
-     * @return
+     * @param context Invocation Context
+     * @return Environment variables key, value map 
      */
     public abstract Map<String, String> getEnvironment(InvocationContext context);
 
@@ -297,9 +302,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         try {
             LOGGER.info("Waiting for finishing piper process");
             int exitCode = pipeBuilderProcess.waitFor();
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
-            }
             pipeBuildeOutGobbler.join();
             pipeBuildeErrGobbler.join();
             if (exitCode != 0) {
@@ -308,6 +310,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         } catch (InterruptedException e) {
             // No need to handle such exception
         } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
+            }
             if (pipeBuilderProcess != null) {
                 if (pipeBuilderProcess.getInputStream() != null) {
                     try {
@@ -326,7 +331,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             }
         }
         pipeBuilderPipe.delete();
-        // ---------------------------------------------------------------------------
         LOGGER.info("ExternalThreadPool finished");
     }
 

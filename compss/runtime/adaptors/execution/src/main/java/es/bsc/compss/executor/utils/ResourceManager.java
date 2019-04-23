@@ -18,13 +18,14 @@ package es.bsc.compss.executor.utils;
 
 import es.bsc.compss.binders.BindToMap;
 import es.bsc.compss.binders.BindToResource;
-import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.binders.Unbinded;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,6 +39,15 @@ public class ResourceManager {
     private final ThreadBinder binderFPGAs;
 
 
+    /** Resource Manager constructor.
+     * @param cusCPU CPU Computing units
+     * @param cpuMap CPU Mapping
+     * @param cusGPU GPU Computing units
+     * @param gpuMap GPU Mapping
+     * @param cusFPGA FPGA Computing units
+     * @param fpgaMap FPGA Mapping
+     * @throws InvalidMapException Incorrect mapping specification
+     */
     public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap)
             throws InvalidMapException {
         // Instantiate CPU binders
@@ -117,12 +127,12 @@ public class ResourceManager {
     }
 
     /**
-     * Bind numCUs core units to the job
+     * Bind numCUs core units to the job.
      *
-     * @param jobId
-     * @param rd
-     * @return
-     * @throws UnsufficientAvailableComputingUnitsException
+     * @param jobId Job identifier
+     * @param rd Resource descripton
+     * @return Assigned resources
+     * @throws UnsufficientAvailableComputingUnitsException Not enough available computing units
      */
     public InvocationResources acquireResources(int jobId, ResourceDescription rd)
             throws UnsufficientAvailableComputingUnitsException {
@@ -148,9 +158,9 @@ public class ResourceManager {
     }
 
     /**
-     * Release core units occupied by the job
+     * Release core units occupied by the job.
      *
-     * @param jobId
+     * @param jobId Job identifier
      */
     public void releaseResources(int jobId) {
         this.binderCPUs.releaseComputingUnits(jobId);
@@ -166,6 +176,13 @@ public class ResourceManager {
         private final int[] fpgas;
 
 
+        /** 
+         * Invocation resources constructor.
+         * 
+         * @param cpus Assigned CPUs array
+         * @param gpus Assigned GPUs array
+         * @param fpgas Assigned FPGAs arrays
+         */
         public InvocationResources(int[] cpus, int[] gpus, int[] fpgas) {
             this.cpus = cpus;
             this.gpus = gpus;

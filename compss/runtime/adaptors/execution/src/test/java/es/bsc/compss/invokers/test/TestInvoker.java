@@ -16,17 +16,18 @@
  */
 package es.bsc.compss.invokers.test;
 
-import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
-import es.bsc.compss.invokers.test.utils.FakeInvocationParam;
-import es.bsc.compss.invokers.test.utils.FakeInvoker;
-import es.bsc.compss.invokers.test.utils.FakeInvocationContext;
-import es.bsc.compss.invokers.test.utils.FakeInvocation;
-import es.bsc.compss.invokers.test.utils.types.Event;
-import es.bsc.compss.types.execution.exceptions.InvalidMapException;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.objects.StorageTestObject;
 import es.bsc.compss.invokers.test.objects.TestObject;
+import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
+import es.bsc.compss.invokers.test.utils.FakeInvocation;
+import es.bsc.compss.invokers.test.utils.FakeInvocationContext;
+import es.bsc.compss.invokers.test.utils.FakeInvocationParam;
+import es.bsc.compss.invokers.test.utils.FakeInvoker;
+import es.bsc.compss.invokers.test.utils.types.Event;
 import es.bsc.compss.invokers.test.utils.types.InvocationParameterAction;
 import es.bsc.compss.invokers.test.utils.types.InvocationParameterAction.Action;
 import es.bsc.compss.invokers.test.utils.types.InvocationParameterAssertion;
@@ -36,13 +37,16 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.InvalidMapException;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.UUID;
-import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 
@@ -81,21 +85,13 @@ public class TestInvoker {
     }
 
     @Test
-    public void EmptyInvoker() throws InvalidMapException, IOException, JobExecutionException {
-
-        File sandBoxDir = createTempDirectory();
+    public void emptyInvoker() throws InvalidMapException, IOException, JobExecutionException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         LinkedList<InvocationParameterAction> actions = new LinkedList<>();
         actions.add(new InvocationParameterAction(Role.RETURN, 0, Action.CREATE, 3));
@@ -103,6 +99,11 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedResults.add(new TestObject(3));
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();        
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);       
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -113,8 +114,6 @@ public class TestInvoker {
     @Test
     public void booleanInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.BOOLEAN_T, "", "none", Stream.UNSPECIFIED, "", "", false);
@@ -123,13 +122,8 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
-
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, true));
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE_CLASS, boolean.class));
@@ -138,7 +132,10 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        Invocation invocation = invBr.build(); 
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -152,8 +149,6 @@ public class TestInvoker {
     @Test
     public void charInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.CHAR_T, "", "none", Stream.UNSPECIFIED, "", "", false);
@@ -162,12 +157,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 'a'));
@@ -177,7 +166,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -191,8 +186,6 @@ public class TestInvoker {
     @Test
     public void byteInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.BYTE_T, "", "none", Stream.UNSPECIFIED, "", "", false);
@@ -201,12 +194,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 240));
@@ -216,7 +203,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -230,8 +223,6 @@ public class TestInvoker {
     @Test
     public void shortInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.SHORT_T, "", "none", Stream.UNSPECIFIED, "", "", false);
@@ -240,12 +231,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 25));
@@ -255,7 +240,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -269,7 +260,7 @@ public class TestInvoker {
     @Test
     public void integerInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -279,12 +270,7 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 878544));
@@ -294,7 +280,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -308,8 +300,6 @@ public class TestInvoker {
     @Test
     public void longInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.LONG_T, "", "none", Stream.UNSPECIFIED, "", "", false);
@@ -318,12 +308,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 832478544));
@@ -333,7 +317,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -347,8 +337,6 @@ public class TestInvoker {
     @Test
     public void floatInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.FLOAT_T, "", "none", Stream.UNSPECIFIED, "", "", false);
@@ -357,12 +345,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 832.23f));
@@ -372,7 +354,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -386,8 +374,6 @@ public class TestInvoker {
     @Test
     public void doubleInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", Stream.UNSPECIFIED, "", "", false);
@@ -396,12 +382,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 83.31415644d));
@@ -411,7 +391,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -425,7 +411,7 @@ public class TestInvoker {
     @Test
     public void stringInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -435,12 +421,7 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
+        
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, "Test String"));
@@ -451,6 +432,12 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -464,9 +451,6 @@ public class TestInvoker {
     @Test
     public void multiplePrimitiveInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
-        File sandBoxDir = createTempDirectory();
-
-        FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         InvocationParam p = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", Stream.UNSPECIFIED, "", "", false);
         p.setValue(83.31415644d);
@@ -474,15 +458,11 @@ public class TestInvoker {
         p = new FakeInvocationParam(DataType.STRING_T, "", "none", Stream.UNSPECIFIED, "", "", false);
         p.setValue("Test String");
         params.add(p);
+        FakeInvocation.Builder invBr = new FakeInvocation.Builder();       
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, 83.31415644d));
@@ -496,6 +476,12 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -511,7 +497,6 @@ public class TestInvoker {
 
     @Test
     public void objectInputParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -524,12 +509,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -539,7 +518,13 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.RUNNING_METHOD, assertions, actions);
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -552,7 +537,6 @@ public class TestInvoker {
 
     @Test
     public void objectInoutParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -565,12 +549,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -583,6 +561,12 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -595,7 +579,7 @@ public class TestInvoker {
 
     @Test
     public void targetInWithEmptyParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         String renaming = "d5v3_754478989756456.IT";
@@ -606,12 +590,7 @@ public class TestInvoker {
         invBr = invBr.setTarget(p);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -622,6 +601,12 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -634,7 +619,7 @@ public class TestInvoker {
 
     @Test
     public void targetInoutWithEmptyParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -647,12 +632,6 @@ public class TestInvoker {
         invBr = invBr.setTarget(p);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -664,6 +643,13 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -676,7 +662,7 @@ public class TestInvoker {
 
     @Test
     public void resultWithEmptyParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -690,12 +676,7 @@ public class TestInvoker {
         invBr = invBr.setResult(results);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.RETURN, 0, Field.WRITE_FINAL, true));
@@ -707,7 +688,15 @@ public class TestInvoker {
         expectedResults.add(new TestObject(5));
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming, 5);
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
+        
         expectedEvents.testCompleted();
 
         InvocationParam result = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "",
@@ -718,8 +707,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void PSCOInputParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+    public void pSCOInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -731,12 +719,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -747,6 +729,12 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();        
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -759,9 +747,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInputParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
 
-        FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
@@ -769,15 +755,10 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
+        FakeInvocation.Builder invBr = new FakeInvocation.Builder();       
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -788,6 +769,12 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -799,8 +786,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void PSCOInoutParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+    public void pSCOInoutParameter() throws InvalidMapException, IOException, JobExecutionException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -812,12 +798,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -830,6 +810,12 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -842,9 +828,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInoutParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
 
-        FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
@@ -852,15 +836,11 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
+        FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -873,6 +853,12 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -885,8 +871,6 @@ public class TestInvoker {
 
     @Test
     public void persistingObjectInoutParameter() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
 
@@ -899,12 +883,6 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.ARGUMENT, 0, Field.VALUE, value));
@@ -917,7 +895,13 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 3);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -929,8 +913,8 @@ public class TestInvoker {
     }
 
     @Test
-    public void PSCOInputTarget() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+    public void pSCOInputTarget() throws InvalidMapException, IOException, JobExecutionException {
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -942,12 +926,7 @@ public class TestInvoker {
         invBr = invBr.setTarget(p);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -958,6 +937,12 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -970,25 +955,19 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInputTarget() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
-        LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
         InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", id, false);
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setTarget(p);
+        LinkedList<InvocationParam> params = new LinkedList<>();
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -999,6 +978,12 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -1010,8 +995,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void PSCOInoutTarget() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+    public void pSCOInoutTarget() throws InvalidMapException, IOException, JobExecutionException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -1023,12 +1007,7 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -1041,6 +1020,12 @@ public class TestInvoker {
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
 
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -1052,25 +1037,17 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectInoutTarget() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
-
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
-        LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
         InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", id, true);
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setTarget(p);
+        LinkedList<InvocationParam> params = new LinkedList<>();
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -1082,7 +1059,13 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -1094,7 +1077,7 @@ public class TestInvoker {
 
     @Test
     public void persistingObjectInoutTarget() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -1107,12 +1090,7 @@ public class TestInvoker {
         invBr = invBr.setParams(params);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.TARGET, 0, Field.VALUE, value));
@@ -1127,6 +1105,13 @@ public class TestInvoker {
         LinkedList<TestObject> expectedResults = new LinkedList<>();
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -1138,7 +1123,7 @@ public class TestInvoker {
 
     @Test
     public void persistedObjectResult() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -1151,12 +1136,7 @@ public class TestInvoker {
         invBr = invBr.setResult(results);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.RETURN, 0, Field.WRITE_FINAL, true));
@@ -1168,6 +1148,13 @@ public class TestInvoker {
         expectedResults.add(new StorageTestObject(id, 5));
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();
@@ -1178,8 +1165,7 @@ public class TestInvoker {
     }
 
     @Test
-    public void persistedPSCOResult() throws InvalidMapException, IOException, JobExecutionException {
-        File sandBoxDir = createTempDirectory();
+    public void persistedPscoResult() throws InvalidMapException, IOException, JobExecutionException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
@@ -1192,12 +1178,7 @@ public class TestInvoker {
         invBr = invBr.setResult(results);
         invBr = invBr
                 .setImpl(new MethodImplementation("FakeClass", "fakeMethod", 0, 0, new MethodResourceDescription()));
-        Invocation invocation = invBr.build();
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
 
-        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
 
         LinkedList<InvocationParameterAssertion> assertions = new LinkedList<>();
         assertions.add(new InvocationParameterAssertion(Role.RETURN, 0, Field.WRITE_FINAL, true));
@@ -1209,7 +1190,13 @@ public class TestInvoker {
         expectedResults.add(new StorageTestObject(id, 5));
         expectedEvents.add(Event.Type.METHOD_RETURN, expectedResults, null);
         expectedEvents.add(Event.Type.STORE_PERSISTENT_OBJECT, id, 5);
-
+        
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new FakeInvoker(context, invocation, sandBoxDir, null, expectedEvents);
         invoker.processTask();
 
         expectedEvents.testCompleted();

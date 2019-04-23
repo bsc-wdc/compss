@@ -43,6 +43,11 @@ public class ControlPipePair {
     private final Map<PipeCommand, PendingCommandStatus> waitingCommands;
 
 
+    /**
+     * Constructor for control pipe object.
+     * @param basePipePath Pipe path
+     * @param id Pipe identifier
+     */
     public ControlPipePair(String basePipePath, String id) {
         this.pipe = new PipePair(basePipePath, id);
         this.waitingCommands = new TreeMap<>();
@@ -53,6 +58,11 @@ public class ControlPipePair {
         return this.pipe.sendCommand(command);
     }
 
+    /** 
+     * Waiting for a command in the control pipe.
+     * @param command Command to wait
+     * @throws ClosedPipeException Error Pipe closed.
+     */
     public void waitForCommand(PipeCommand command) throws ClosedPipeException {
         PendingCommandStatus status = new PendingCommandStatus(command);
         PipeCommand unusedCommand;
@@ -100,7 +110,10 @@ public class ControlPipePair {
     public String getInboundPipe() {
         return this.pipe.getInboundPipe();
     }
-
+    
+    /**
+     *  Marking pipe as no longer exist.
+     */
     public void noLongerExists() {
         synchronized (this) {
             this.closed = true;
@@ -109,6 +122,9 @@ public class ControlPipePair {
         this.pipe.delete();
     }
 
+    /**
+     * Delete control pipe.
+     */
     public void delete() {
         this.readerAlive = false;
         this.pipe.noLongerExists();

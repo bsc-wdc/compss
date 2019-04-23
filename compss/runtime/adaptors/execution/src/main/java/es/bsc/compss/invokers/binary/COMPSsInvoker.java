@@ -23,11 +23,11 @@ import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.invokers.util.BinaryRunner.StreamSTD;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.util.Tracer;
 
@@ -60,7 +60,13 @@ public class COMPSsInvoker extends Invoker {
     private final String appName;
     private final String workerInMaster;
 
-
+    /** COMPSs Invoker constructor.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param assignedResources Assigned resources
+     * @throws JobExecutionException Error creating the COMPSs invoker
+     */
     public COMPSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
 
@@ -210,10 +216,6 @@ public class COMPSsInvoker extends Invoker {
             throw new InvokeExecutionException("Error generating resources.xml file", ie);
         }
 
-        // Convert binary parameters and calculate binary-streams redirection
-        StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
-                invocation.getTarget(), streamValues);
 
         // Prepare and purge runcompss extra flags
         String nestedLogDir = this.taskSandboxWorkingDir.getAbsolutePath() + File.separator + "nestedCOMPSsLog";
@@ -251,13 +253,19 @@ public class COMPSsInvoker extends Invoker {
         if (!new File(nestedLogDir).mkdir()) {
             throw new InvokeExecutionException("Error creating COMPSs nested log directory " + nestedLogDir);
         }
-        String nestedLogDirFlag = "--specific_log_dir=" + nestedLogDir;
-
+        
+        // Convert binary parameters and calculate binary-streams redirection
+        StreamSTD streamValues = new StreamSTD();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
+                invocation.getTarget(), streamValues);
+        
         // Prepare command (the +1 is for the appName)
         String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + binaryParams.size()];
         cmd[0] = runcompss;
         cmd[1] = "--project=" + projectXml;
         cmd[2] = "--resources=" + resourcesXml;
+        
+        String nestedLogDirFlag = "--specific_log_dir=" + nestedLogDir;
         cmd[3] = nestedLogDirFlag;
         cmd[4] = classpathFlag;
         int i = NUM_BASE_COMPSS_ARGS;

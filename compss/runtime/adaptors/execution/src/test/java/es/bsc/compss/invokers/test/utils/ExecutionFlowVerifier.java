@@ -16,19 +16,24 @@
  */
 package es.bsc.compss.invokers.test.utils;
 
-import es.bsc.compss.invokers.test.utils.FakeInvocationContext.InvocationContextListener;
-import es.bsc.compss.invokers.test.utils.FakeInvoker.InvokerListener;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.invokers.test.objects.StorageTestObject;
 import es.bsc.compss.invokers.test.objects.TestObject;
+import es.bsc.compss.invokers.test.utils.FakeInvocationContext.InvocationContextListener;
+import es.bsc.compss.invokers.test.utils.FakeInvoker.InvokerListener;
 import es.bsc.compss.invokers.test.utils.types.Event;
 import es.bsc.compss.invokers.test.utils.types.InvocationParameterAction;
 import es.bsc.compss.invokers.test.utils.types.InvocationParameterAssertion;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.*;
+
 import storage.StubItf;
 
 
@@ -46,6 +51,9 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         expectedEvents.add(new Event(type, state, reply));
     }
 
+    /**
+     * Test completed.
+     */
     public void testCompleted() {
         System.out.println("Test Completed");
         if (!expectedEvents.isEmpty()) {

@@ -20,6 +20,9 @@ import es.bsc.compss.executor.external.commands.AddedExecutorExternalCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
 
 
+/**
+ * Class to describe a notification for an added executor.
+ */
 public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand implements PipeCommand {
 
     private final String inPipe;
@@ -27,6 +30,10 @@ public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand imple
     private int pid;
 
 
+    /** 
+     * Executor added notification constructor.
+     * @param line String array with the in/out pipe names and the process identifier
+     */
     public AddedExecutorPipeCommand(String[] line) {
         inPipe = line[1];
         outPipe = line[2];

@@ -17,15 +17,15 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.util.Tracer;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.util.Tracer;
 
 import java.io.File;
-import java.util.concurrent.Semaphore;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -42,7 +42,8 @@ import storage.StubItf;
 public class StorageInvoker extends JavaInvoker {
 
     private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Target object class not found";
-    private static final String ERROR_EXTERNAL_NO_PSCO = "ERROR: External ExecuteTask can only be used with target PSCOs";
+    private static final String ERROR_EXTERNAL_NO_PSCO = 
+            "ERROR: External ExecuteTask can only be used with target PSCOs";
     private static final String ERROR_STORAGE_CALL = "ERROR: External executeTask call failed";
     private static final String ERROR_CALLBACK_INTERRUPTED = "ERROR: External callback interrupted";
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
@@ -110,11 +111,11 @@ public class StorageInvoker extends JavaInvoker {
             values[paramIdx++] = param.getValue();
         }
 
-        PSCOCallbackHandler callback = new PSCOCallbackHandler();
+        CallbackHandlerPSCO callback = new CallbackHandlerPSCO();
         try {
-            String call_result = StorageItf.executeTask(id, descriptor, values, context.getHostName(), callback);
+            String callResult = StorageItf.executeTask(id, descriptor, values, context.getHostName(), callback);
 
-            LOGGER.debug(call_result);
+            LOGGER.debug(callResult);
 
             // Wait for execution
             callback.waitForCompletion();
@@ -151,15 +152,15 @@ public class StorageInvoker extends JavaInvoker {
 
 
     /**
-     * Class to get the Storage Callback
+     * Class to get the Storage Callback.
      */
-    private class PSCOCallbackHandler extends CallbackHandler {
+    private class CallbackHandlerPSCO extends CallbackHandler {
 
         private CallbackEvent event;
         private Semaphore sem;
 
 
-        public PSCOCallbackHandler() {
+        public CallbackHandlerPSCO() {
             this.sem = new Semaphore(0);
         }
 

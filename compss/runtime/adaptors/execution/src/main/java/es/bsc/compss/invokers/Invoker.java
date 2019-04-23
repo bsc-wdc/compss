@@ -18,16 +18,16 @@ package es.bsc.compss.invokers;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
 
 import java.io.BufferedWriter;
@@ -66,6 +66,14 @@ public abstract class Invoker {
     protected final int numWorkers;
 
 
+    /**
+     * Invoker constructor.
+     * @param context Invocation context
+     * @param invocation task execution invocation description (job)
+     * @param taskSandboxWorkingDir task execution sandboxed working dir
+     * @param assignedResources Assigned resources
+     * @throws JobExecutionException Error creating task execution (job)
+     */
     public Invoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
 
@@ -227,6 +235,10 @@ public abstract class Invoker {
         }
     }
 
+    /**
+     * Perform the task execution (job).
+     * @throws JobExecutionException Error execution the task
+     */
     public void processTask() throws JobExecutionException {
         /* Invoke the requested method ****************************** */
         invoke();
@@ -237,6 +249,12 @@ public abstract class Invoker {
         }
     }
 
+    /**
+     *  Serialize the exit value in the task execution return parameter location.
+     * @param returnParam Task execution return parameter
+     * @param exitValue Exit value
+     * @throws JobExecutionException Exception serializing the exist value.
+     */
     public void serializeBinaryExitValue(InvocationParam returnParam, Object exitValue) throws JobExecutionException {
         LOGGER.debug("Checking binary exit value serialization");
         if (LOGGER.isDebugEnabled()) {
@@ -309,8 +327,8 @@ public abstract class Invoker {
     private void emitStartTask() {
         // TRACING: Emit start task
         if (Tracer.extraeEnabled()) {
-            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; // +1 Because Invocation ID can't be
-                                                                                    // 0 (0 signals end task)
+            // +1 Because Invocation ID can't be 0 (0 signals end task)
+            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; 
             int taskId = this.invocation.getTaskId();
             Tracer.emitEventAndCounters(coreId, Tracer.getTaskEventsType());
             Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());
@@ -328,12 +346,12 @@ public abstract class Invoker {
     protected abstract void invokeMethod() throws JobExecutionException;
 
     /**
-     * Writes the given list of workers to a hostfile inside the given task sandbox
+     * Writes the given list of workers to a hostfile inside the given task sandbox.
      *
-     * @param taskSandboxWorkingDir
-     * @param workers
-     * @return
-     * @throws InvokeExecutionException
+     * @param taskSandboxWorkingDir task execution sandbox directory
+     * @param workers Strig with the list of workers in mpi hostfile style 
+     * @return Returns the generated hostfile location inside the task sandbox
+     * @throws InvokeExecutionException Exception writting hostfile
      */
     protected static String writeHostfile(File taskSandboxWorkingDir, String workers) throws InvokeExecutionException {
         // Locate hostfile file

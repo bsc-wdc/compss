@@ -135,8 +135,15 @@ public class FakeInvocationContext implements InvocationContext {
                 o = getObject(param.getDataMgmtId());
                 if (o != null) {
                     param.setValue(o);
-                    break;
+                } else {
+                    //Checking if initial object is now a persistent object
+                    o = getPersistentObject(param.getDataMgmtId());
+                    if (o != null) {
+                        param.setType(DataType.PSCO_T);
+                        param.setValue(o);
+                    }
                 }
+                break;
             case PSCO_T:
                 o = getPersistentObject(param.getDataMgmtId());
                 if (o != null) {
@@ -177,12 +184,20 @@ public class FakeInvocationContext implements InvocationContext {
         }
     }
 
+    /** Store Object.
+     * @param renaming renaming
+     * @param value value
+     */
     public void storeObject(String renaming, Object value) {
         if (this.listener != null) {
             listener.storeObject(renaming, value);
         }
     }
 
+    /** Store persistenst object.
+     * @param id PSCO Id
+     * @param obj Object
+     */
     public void storePersistentObject(String id, Object obj) {
         if (this.listener != null) {
             listener.storePersistentObject(id, obj);

@@ -19,11 +19,17 @@ package es.bsc.compss.executor.external.piped.commands;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 
 
+/**
+ * Description of a task execution command to be sent through a pipe.
+ */
 public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implements PipeCommand {
 
     private final Integer jobId;
 
-
+    /**
+     * Execute task command constructor.
+     * @param jobId Job Identifier
+     */
     public ExecuteTaskPipeCommand(Integer jobId) {
         super();
 
@@ -53,7 +59,6 @@ public class ExecuteTaskPipeCommand extends ExecuteTaskExternalCommand implement
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

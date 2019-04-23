@@ -105,7 +105,6 @@ public class Agent {
         System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
     }
 
-
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
      *
@@ -135,15 +134,26 @@ public class Agent {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
 
-        RUNTIME.executeTask(mainAppId, monitor, lang, "es.bsc.compss.agent.loader.Loader", "load", false, 1, false,
-                false, false, 8, OnFailure.RETRY,
-                new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime", RUNTIME,
-                        DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", ceiClass, DataType.STRING_T,
-                        Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", appId, DataType.LONG_T, Direction.IN,
-                        Stream.UNSPECIFIED, "", "appId", className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED,
-                        "", "className", methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "",
-                        "methodName", params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params",
-                        new Object(), DataType.OBJECT_T, Direction.OUT, Stream.UNSPECIFIED, "", "return" });
+        Object[] paramsValues = new Object[]{
+            RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime",// Runtime API
+            RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", // Loader API
+            ceiClass, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", // CEI
+            appId, DataType.LONG_T, Direction.IN, Stream.UNSPECIFIED, "", "appId", // Nested tasks App ID
+            className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "className", // Class name
+            methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "methodName", // Method name
+            params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params", // Method arguments
+            new Object(), DataType.OBJECT_T, Direction.OUT, Stream.UNSPECIFIED, "", "return" // Return value
+        };
+
+        RUNTIME.executeTask(
+                mainAppId, // Task application ID
+                monitor, // Corresponding task monitor
+                lang, "es.bsc.compss.agent.loader.Loader", "load", // Method to run
+                false, 1, false, false, //Scheduler hints
+                false, 8, //Parameters information
+                OnFailure.RETRY, // On failure behavior
+                paramsValues // Argument values
+        );
         return mainAppId;
     }
 
@@ -227,8 +237,15 @@ public class Agent {
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
 
-            RUNTIME.executeTask(appId, monitor, lang, className, methodName, false, 1, false, false, target != null,
-                    paramsCount, OnFailure.RETRY, params);
+            RUNTIME.executeTask(
+                    appId, // APP ID
+                    monitor, // Corresponding task monitor
+                    lang, className, methodName, // Method to call
+                    false, 1, false, false, //Scheduling information
+                    target != null, paramsCount, //Parameter information
+                    OnFailure.RETRY, // On failure behavior
+                    params // Parameter values
+            );
 
         } catch (Exception e) {
             throw new AgentException(e);
@@ -345,7 +362,6 @@ public class Agent {
     public abstract static class AppMonitor implements TaskMonitor {
 
         private long appId;
-
 
         public AppMonitor() {
         }

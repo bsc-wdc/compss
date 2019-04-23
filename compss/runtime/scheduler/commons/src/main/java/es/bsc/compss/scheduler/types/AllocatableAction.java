@@ -48,14 +48,13 @@ public abstract class AllocatableAction {
      * Available states for any allocatable action
      */
     private enum State {
-    RUNNABLE, // Action can be run
-    WAITING, // Action is waiting
-    RUNNING, // Action is running
-    FINISHED, // Action has been successfully completed
-    FAILED, // Action has failed
-    CANCELED // Action has been canceled
+        RUNNABLE, // Action can be run
+        WAITING, // Action is waiting
+        RUNNING, // Action is running
+        FINISHED, // Action has been successfully completed
+        FAILED, // Action has failed
+        CANCELED // Action has been canceled
     }
-
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
@@ -391,17 +390,17 @@ public abstract class AllocatableAction {
     public final void tryToLaunch() throws InvalidSchedulingException {
         // Gets the lock on the action
         lock.lock();
-        if ( // has an assigned resource where to run
-        selectedResource != null && // has not been started yet
-                state == State.RUNNABLE && // has no data dependencies with other methods
-                !hasDataPredecessors() && // scheduler does not block the execution
-                schedulingInfo.isExecutable()) {
+        if (selectedResource != null // has an assigned resource where to run
+                && state == State.RUNNABLE // has not been started yet
+                && !hasDataPredecessors()// has no data dependencies with other methods
+                && schedulingInfo.isExecutable()// scheduler does not block the execution
+                ) {
 
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
             // task is not to stop; or the assigned resource is not the required
             if ((selectedResource.isRemoved() && !isToStopResource())
                     || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
-                            && selectedResource != schedulingInfo.getEnforcedTargetResource())) {
+                    && selectedResource != schedulingInfo.getEnforcedTargetResource())) {
                 // Allow other threads to access the action
                 lock.unlock();
                 // Notify invalid scheduling
@@ -562,7 +561,7 @@ public abstract class AllocatableAction {
                 state = State.RUNNABLE;
                 doAbort();
             default:
-                // Action was not running -> Ignore request
+            // Action was not running -> Ignore request
         }
     }
 
@@ -726,13 +725,12 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * <<<<<<< HEAD Triggers the aborted action execution notification
+     * Triggers the aborted action execution notification
      */
     protected abstract void doAbort();
 
     /**
-     * Triggers the successful job completion notification ======= Triggers the successful job completion notification.
-     * >>>>>>> Cleaning code
+     * Triggers the successful job completion notification.
      */
     protected abstract void doCompleted();
 
@@ -749,8 +747,7 @@ public abstract class AllocatableAction {
     protected abstract void doFailed();
 
     /**
-     * <<<<<<< HEAD Triggers the cancellation action notification ======= Triggers the cancellation action notification.
-     * >>>>>>> Cleaning code
+     * Triggers the cancellation action notification.
      */
     protected abstract void doCanceled();
 

@@ -425,13 +425,18 @@ if [ "${ompss_enabled}" != "" ]; then
         export CFLAGS="$CFLAGS --ompss ${ompss_flags}"
         export CXXFLAGS="$CXXFLAGS --ompss ${ompss_flags}"
 
+        if [ "${cuda_enabled}" -eq 1 ]; then
+            export CFLAGS="$CFLAGS --cuda"
+            export CXXFLAGS="$CXXFLAGS --cuda"
+        fi
+
         export OMPSS_ENABLED="enabled"
   fi
 fi
 
 if [ "${cuda_enabled}" != "" ]; then
   # Flag is defined, check value
-  if [ ${cuda_enabled} == 1 ]; then
+  if [ "${cuda_enabled}" -eq 1 ]; then
         if [ -z "${cuda_prefix}" ]; then
                 if [ -z "$CUDA_HOME" ]; then
                    export CUDA_HOME=/usr/local/cuda/

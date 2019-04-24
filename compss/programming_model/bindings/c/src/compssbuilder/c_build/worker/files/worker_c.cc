@@ -38,7 +38,13 @@ int release_compss_worker_lock() {
 int main(int argc, char **argv) {
 
 #ifdef OMPSS2_ENABLED
-    std::cerr << "[C-BINDING] Executing the application without OmpSs-2 as it's not supported with not persistent worker." << std::endl;
+    char const *error = nanos6_library_mode_init();
+    if (error != NULL)
+    {
+        fprintf(stderr, "Error initializing Nanos6: %s\n", error);
+        return 1;
+    }
+    std::cout << "[C-BINDING] Nanos6 initialized" << std::endl;
 #endif
 
     init_env_vars();
@@ -55,6 +61,11 @@ int main(int argc, char **argv) {
     } else {
         printf("Error task execution at worker returned %d", out);
     }
+
+#ifdef OMPSS2_ENABLED
+    nanos6_shutdown();
+    std::cout << "[C-BINDING] Nanos6 shutdown" << std::endl;
+#endif
 
     return out;
 }

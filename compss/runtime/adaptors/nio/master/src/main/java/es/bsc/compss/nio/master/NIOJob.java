@@ -32,7 +32,7 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.util.NIOParamFactory;
+import es.bsc.compss.nio.master.utils.NIOParamFactory;
 
 
 public class NIOJob extends Job<NIOWorkerNode> {

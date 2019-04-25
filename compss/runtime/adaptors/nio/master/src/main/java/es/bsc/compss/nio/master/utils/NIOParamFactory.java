@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util;
+package es.bsc.compss.nio.master.utils;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;

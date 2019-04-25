@@ -37,6 +37,7 @@ fi
 DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
 DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_JUPYTER_NOTEBOOK=false
+DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 
 
 #---------------------------------------------------------------------------------------
@@ -161,7 +162,7 @@ show_opts() {
     --elasticity=<max_extra_nodes>          Activate elasticity specifiying the maximum extra nodes (ONLY AVAILABLE FORM SLURM CLUSTERS WITH NIO ADAPTOR)
                                             Default: 0
 
-    --jupyter_notebook=<bool>,              Swap the COMPSs master initialization with jupyter notebook. Use: true | false
+    --jupyter_notebook=<path>,              Swap the COMPSs master initialization with jupyter notebook from the specified path.
     --jupyter_notebook                      Default: ${DEFAULT_JUPYTER_NOTEBOOK}
 
   Runcompss configuration:
@@ -1085,9 +1086,11 @@ get_args() {
           ;;
         jupyter_notebook)
           jupyter_notebook=true
+          jupyter_notebook_path=${DEFAULT_JUPYTER_NOTEBOOK_PATH}
           ;;
         jupyter_notebook=*)
-          jupyter_notebook=${OPTARG//jupyter_notebook=/}
+          jupyter_notebook=true
+          jupyter_notebook_path=${OPTARG//jupyter_notebook=/}
           ;;
         xmls_phase=*)
           #Added for heterogeneity
@@ -1343,6 +1346,7 @@ check_args() {
 
   if [ -z "${jupyter_notebook}" ]; then
     jupyter_notebook=${DEFAULT_JUPYTER_NOTEBOOK}
+    jupyter_notebook_path=${DEFAULT_JUPYTER_NOTEBOOK_PATH}
   fi
 
   #
@@ -1650,7 +1654,7 @@ launch() {
       $MCMD
     else
       # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
-      export PYTHONPATH=${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
+      export PYTHONPATH=${jupyter_notebook_path}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
       # JAVA_HOME variable must exist
       export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
       unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
@@ -1670,9 +1674,9 @@ launch() {
       export COMPSS_BASE_LOG_DIR="${base_log_dir}"
       export COMPSS_SPECIFIC_LOG_DIR="${specific_log_dir}"
       export COMPSS_STORAGE_CONF="${storage_conf}"
-      # Run jupyter notebook instead of the master
+      # Run jupyter notebook instead of the master within the jupyter_notebook_path
       # The master will be started when the user wants later from the notebook (the workers have already been launched)
-      jupyter notebook --no-browser --ip=127.0.0.1 --port=8888
+      (cd ${jupyter_notebook_path} && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
     fi
   fi
 }

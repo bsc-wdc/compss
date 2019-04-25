@@ -50,5 +50,10 @@ public class TracingCopyTransferable implements Transferable {
     public DataType getType() {
         return DataType.FILE_T;
     }
-
+    @Override
+    public boolean isSourcePreserved() {
+        // Only invoked to transfer tracing information from a remote node.
+        // Remote data is always copied
+        return true;
+    }
 }

@@ -22,6 +22,8 @@ import es.bsc.compss.types.annotations.parameter.Stream;
 
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
 
 
 public class DependencyParameter extends Parameter implements Transferable {
@@ -37,10 +39,9 @@ public class DependencyParameter extends Parameter implements Transferable {
     private Object dataSource;
     private String dataTarget; // Full path with PROTOCOL
 
-
     /**
      * Creates a new DependencyParameter instance from the given parameters.
-     * 
+     *
      * @param type Parameter type.
      * @param direction Parameter direction.
      * @param stream Parameter IO stream mode.
@@ -53,7 +54,7 @@ public class DependencyParameter extends Parameter implements Transferable {
 
     /**
      * Returns the data access id.
-     * 
+     *
      * @return The data access id.
      */
     public DataAccessId getDataAccessId() {
@@ -62,7 +63,7 @@ public class DependencyParameter extends Parameter implements Transferable {
 
     /**
      * Sets a new data access id.
-     * 
+     *
      * @param daId New data access id.
      */
     public void setDataAccessId(DataAccessId daId) {
@@ -96,11 +97,27 @@ public class DependencyParameter extends Parameter implements Transferable {
 
     /**
      * Returns the parameter's original name.
-     * 
+     *
      * @return The parameter's original name.
      */
     public String getOriginalName() {
         return NO_NAME;
+    }
+
+    @Override
+    public boolean isSourcePreserved() {
+        boolean preserveSourceData;
+        if (daId instanceof RAccessId) {
+            // Parameter is a R, has sources
+            preserveSourceData = ((RAccessId) daId).isPreserveSourceData();
+        } else if (daId instanceof RWAccessId) {
+            // Parameter is a RW, has sources
+            preserveSourceData = ((RWAccessId) daId).isPreserveSourceData();
+        } else {
+            // Parameter is a W, it has no sources
+            preserveSourceData = false;
+        }
+        return preserveSourceData;
     }
 
 }

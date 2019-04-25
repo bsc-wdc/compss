@@ -1,4 +1,4 @@
-<h1 align="center">  
+<h1 align="center">
     <img src="docs/logos/pycompssisc-logo-full.png" alt="The Distributed Computing Library" height="90px">
 </h1>
 
@@ -18,7 +18,7 @@ This tool has been implemented on top of [PyCOMPSs programming model](http://com
 
 ## Quickstart
 
-Get started with pycompss_interactive_sc following our [quickstart guide](https://TBD/QUICKSTART.md).
+Get started with pycompss_interactive_sc following our [quickstart guide](QUICKSTART.md).
 
 ## Availability
 

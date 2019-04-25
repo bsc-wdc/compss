@@ -44,7 +44,7 @@ The specific arguments of each option can be displayed by executing:
 interactive_sc <option> -h
 ```
 
-##### Differences between running in Linux and Windows
+#### Differences between running in Linux and Windows
 
 Although this package is supported in Linux and Windows, there are differences
 that need to be taken into account.

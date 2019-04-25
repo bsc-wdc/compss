@@ -564,6 +564,25 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             Transferable reason, EventListener listener) {
 
         String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
+
+        //Check if file is already on the Path
+        List<MultiURI> uris = ld.getURIs();
+        for (MultiURI u : uris) {
+            if (DEBUG) {
+                String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                LOGGER.debug(ld.getName() + " is at " + u.toString() + "(" + hostname + ")");
+            }
+            if (u.getHost().getNode() == this) {
+                if (targetPath.compareTo(u.getPath()) == 0) {
+                    LOGGER.debug(ld.getName() + " is already at " + targetPath);
+                    // File already in the Path
+                    reason.setDataTarget(targetPath);
+                    listener.notifyEnd(null);
+                    return;
+                }
+            }
+        }
+
         // Check if there are current copies in progress
         if (DEBUG) {
             LOGGER.debug(
@@ -640,31 +659,43 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         if (DEBUG) {
             LOGGER.debug("Checking if " + ld.getName() + " is at master (" + Comm.getAppHost().getName() + ").");
         }
-  
-        for (MultiURI u : ld.getURIs()) {
+
+        for (MultiURI u : uris) {
             if (DEBUG) {
                 String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
                 LOGGER.debug(ld.getName() + " is at " + u.toString() + "(" + hostname + ")");
             }
-            if (u.getHost() == Comm.getAppHost()) {
+            if (u.getHost().getNode() == this) {
                 try {
-                    if (targetPath.startsWith(this.getWorkingDir())) {
+                    if (DEBUG) {
+                        LOGGER.debug("Data " + ld.getName() + " is already accessible at " + u.getPath());
+                    }
+                    if (reason.isSourcePreserved()) {
                         if (DEBUG) {
-                            LOGGER.debug("Data " + ld.getName() + " is already accessible at " + u.getPath());
+                            LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
+                                    + targetPath);
                         }
-                        targetPath = u.getPath();
+                        Files.copy(
+                                (new File(u.getPath())).toPath(),
+                                new File(targetPath).toPath(),
+                                StandardCopyOption.REPLACE_EXISTING);
+
                     } else {
                         if (DEBUG) {
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                                     + targetPath);
                         }
-                        Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
+                        Files.move(
+                                (new File(u.getPath())).toPath(),
+                                new File(targetPath).toPath(),
                                 StandardCopyOption.REPLACE_EXISTING);
-                        if (tgtData != null) {
-                            tgtData.addLocation(target);
-                        }
+                        uris.remove(u);
                     }
-                    LOGGER.debug("File copied. Set data target to " + targetPath);
+
+                    if (tgtData != null) {
+                        tgtData.addLocation(target);
+                    }
+                    LOGGER.debug("File on path. Set data target to " + targetPath);
                     reason.setDataTarget(targetPath);
 
                     listener.notifyEnd(null);

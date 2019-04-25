@@ -16,15 +16,15 @@
  */
 package es.bsc.compss.invokers.external;
 
+import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.Implementation;
@@ -49,7 +49,13 @@ public abstract class ExternalInvoker extends Invoker {
 
     protected final ExecuteTaskExternalCommand command;
 
-
+    /** External Invoker constructor.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param assignedResources Assigned resources
+     * @throws JobExecutionException Error creating the External invoker
+     */
     public ExternalInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
 

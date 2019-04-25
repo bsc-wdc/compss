@@ -16,15 +16,14 @@
  */
 package es.bsc.compss.invokers.external.persistent;
 
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
 import java.io.File;
-
 
 public class CPersistentInvoker extends PersistentInvoker {
 

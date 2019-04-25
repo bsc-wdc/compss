@@ -16,18 +16,18 @@
  */
 package es.bsc.compss.invokers.types;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
 /**
- * Stores the task status information for bindings
+ * Stores the task status information for bindings.
  */
 public class ExternalTaskStatus {
 
@@ -38,16 +38,21 @@ public class ExternalTaskStatus {
 
 
     /**
-     * Creates a new task status instance with exitValue
+     * Creates a new task status instance with exitValue.
      *
-     * @param exitValue
+     * @param exitValue Exit Value
      */
     public ExternalTaskStatus(Integer exitValue) {
         this.exitValue = exitValue;
         this.updatedParameterTypes = new LinkedList<>();
         this.updatedParameterValues = new LinkedList<>();
     }
-
+    
+    /**
+     * Creates a new task status instance with exitValue.
+     *
+     * @param line task status content as string array
+     */
     public ExternalTaskStatus(String[] line) {
         this.updatedParameterTypes = new LinkedList<>();
         this.updatedParameterValues = new LinkedList<>();
@@ -85,45 +90,45 @@ public class ExternalTaskStatus {
     }
 
     /**
-     * Returns the exitValue of the task (null if it has not ended yet)
+     * Returns the exitValue of the task (null if it has not ended yet).
      *
-     * @return
+     * @return Exit value
      */
     public Integer getExitValue() {
         return this.exitValue;
     }
 
     /**
-     * Returns the number of parameters of the task
+     * Returns the number of parameters of the task.
      *
-     * @return
+     * @return Number of parameters
      */
     public int getNumParameters() {
         return this.updatedParameterValues.size();
     }
 
     /**
-     * Returns all the parameters' types
+     * Returns all the parameters' types.
      *
-     * @return
+     * @return List of Parameters' Data types
      */
     public List<DataType> getParameterTypes() {
         return this.updatedParameterTypes;
     }
 
     /**
-     * Returns all the parameters' values
+     * Returns all the parameters' values.
      *
-     * @return
+     * @return List of Parameters' values
      */
     public List<String> getParameterValues() {
         return this.updatedParameterValues;
     }
 
     /**
-     * Returns the i-th parameter type. Null if i is out of the parameters range
+     * Returns the i-th parameter type. Null if i is out of the parameters range.
      *
-     * @param i
+     * @param i Parameter ordinal
      * @return
      */
     public DataType getParameterType(int i) {
@@ -136,7 +141,7 @@ public class ExternalTaskStatus {
     /**
      * Returns the i-th parameter value. Null if i is out of the parameters range
      *
-     * @param i
+     * @param i Parameter ordinal
      * @return
      */
     public String getParameterValue(int i) {
@@ -147,10 +152,10 @@ public class ExternalTaskStatus {
     }
 
     /**
-     * Adds a new parameter
+     * Adds a new parameter.
      *
-     * @param type
-     * @param value
+     * @param type Parameter Datatype
+     * @param value Parameter Value
      */
     public void addParameter(DataType type, String value) {
         this.updatedParameterTypes.add(type);

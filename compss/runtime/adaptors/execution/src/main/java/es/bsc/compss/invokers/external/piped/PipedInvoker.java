@@ -17,26 +17,33 @@
 package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.executor.external.ExternalExecutorException;
-import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.external.piped.PipePair;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.PipeCommand;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.external.ExternalInvoker;
 import es.bsc.compss.invokers.types.ExternalTaskStatus;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
 import java.io.File;
-
 
 public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;
 
-
+    /** 
+     * Piped Invoker constructor.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param assignedResources Assigned resources
+     * @param pipes In/Out pipe pair
+     * @throws JobExecutionException Error creating the Piped invoker
+     */
     public PipedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
 

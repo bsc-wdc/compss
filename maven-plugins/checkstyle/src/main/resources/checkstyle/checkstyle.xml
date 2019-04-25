@@ -192,8 +192,8 @@
         <module name="AbbreviationAsWordInName">
             <property name="ignoreStatic" value="true"/>
             <property name="ignoreFinal" value="false"/>
-            <property name="allowedAbbreviationLength" value="3"/> <!-- Means max 4 consecutive letters allowed -->
-            <property name="allowedAbbreviations" value="COMPS,FPGA,OTHER,INOUT,STDIN,STDOUT,STDERR,JSON"/>
+            <property name="allowedAbbreviationLength" value="4"/> <!-- Means max 5 consecutive letters allowed -->
+            <property name="allowedAbbreviations" value="COMPS,FPGA,OTHER,INOUT,STDIN,STDOUT,STDERR,JSON"/> <!-- This list seems to not work properly. Abbreviation length is 4 instead of 3 because of COMPS abbreviation -->
         </module>
         <module name="OverloadMethodsDeclarationOrder"/>
         <module name="VariableDeclarationUsageDistance"/>

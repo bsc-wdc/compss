@@ -16,20 +16,20 @@
  */
 package es.bsc.compss.invokers.external.piped;
 
-import es.bsc.compss.executor.external.piped.PipePair;
-import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
+import es.bsc.compss.executor.external.piped.PipePair;
+import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
+import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.util.CExecutionCommandGenerator;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -109,7 +109,6 @@ public class CInvoker extends PipedInvoker {
 
         @Override
         public Map<String, String> getEnvironment(InvocationContext context) {
-            Map<String, String> env = new HashMap<>();
             String ldLibraryPath = System.getenv(LIBRARY_PATH_ENV);
             CParams cParams = (CParams) context.getLanguageParams(Lang.C);
             if (ldLibraryPath == null) {
@@ -121,7 +120,7 @@ public class CInvoker extends PipedInvoker {
             // Add C and commons libs
             ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + C_LIB_RELATIVE_PATH);
             ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + BINDINGS_RELATIVE_PATH);
-
+            Map<String, String> env = new HashMap<>();
             env.put(LIBRARY_PATH_ENV, ldLibraryPath);
             return env;
         }

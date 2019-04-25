@@ -93,6 +93,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         return this.pipePath + ".outbound";
     }
 
+    /**
+     * Delete pipe.
+     */
     public final void delete() {
         File f = new File(this.pipePath + ".inbound");
         if (f.exists()) {
@@ -279,6 +282,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
         return readCommand;
     }
 
+    /**
+     * Mark Pipe pair as no longer exists.
+     */
     public void noLongerExists() {
         int senders;
         int readers;

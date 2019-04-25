@@ -16,6 +16,15 @@
  */
 package es.bsc.compss.invokers.util;
 
+import es.bsc.compss.exceptions.InvokeExecutionException;
+import es.bsc.compss.invokers.Invoker;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.util.StreamGobbler;
+import es.bsc.compss.util.Tracer;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,15 +33,6 @@ import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-
-import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.invokers.Invoker;
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.util.Tracer;
-import es.bsc.compss.util.StreamGobbler;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.execution.InvocationParam;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -49,11 +49,11 @@ public class BinaryRunner {
     /**
      * Converts the values to the CMD standard and calculates with are the streamValues.
      *
-     * @param parameters
-     * @param target
-     * @param streamValues
-     * @return
-     * @throws InvokeExecutionException
+     * @param parameters Binary parameters
+     * @param target Binary target parameter
+     * @param streamValues Binary stream values
+     * @return Binary execution Command as list of strings
+     * @throws InvokeExecutionException Error creating command.
      */
     public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters,
             InvocationParam target, StreamSTD streamValues) throws InvokeExecutionException {
@@ -128,15 +128,15 @@ public class BinaryRunner {
     }
 
     /**
-     * Executes a given command @cmd with the stream redirections @streamValues
+     * Executes a given command @cmd with the stream redirections @streamValues.
      *
-     * @param cmd
-     * @param streamValues
-     * @param taskSandboxWorkingDir
-     * @param outLog
-     * @param errLog
-     * @return
-     * @throws InvokeExecutionException
+     * @param cmd Command to execute
+     * @param streamValues Stream values
+     * @param taskSandboxWorkingDir Execution sandbox
+     * @param outLog Execution output stream
+     * @param errLog Execution error stream
+     * @return Exit value as object 
+     * @throws InvokeExecutionException Error execution the binary
      */
     public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir,
             PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {

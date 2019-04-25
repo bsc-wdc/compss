@@ -16,8 +16,9 @@
  */
 package es.bsc.compss.invokers.test;
 
-import es.bsc.compss.types.execution.exceptions.InvalidMapException;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
 import es.bsc.compss.invokers.test.objects.TestObject;
@@ -30,13 +31,15 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Stream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.InvalidMapException;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 
@@ -203,7 +206,7 @@ public class TestJavaInvoker extends TestObject {
     @Test
     public void emptyTest() throws InvalidMapException, IOException, JobExecutionException {
         long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_EMPTY);
@@ -215,7 +218,7 @@ public class TestJavaInvoker extends TestObject {
 
         ExecutionReport result = new ExecutionReport(TEST_EMPTY_METHODNAME, false, new Object[0], null, null);
         executions.put(executorId, result);
-
+        File sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
         invoker.processTask();
 
@@ -225,6 +228,9 @@ public class TestJavaInvoker extends TestObject {
 
     }
 
+    /**
+     * Testing if empty.
+     */
     public static void testEmpty() {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
@@ -237,8 +243,7 @@ public class TestJavaInvoker extends TestObject {
 
     @Test
     public void readsTest() throws InvalidMapException, IOException, JobExecutionException {
-        long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_READS);
@@ -261,7 +266,8 @@ public class TestJavaInvoker extends TestObject {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-
+        long executorId = Thread.currentThread().getId();
+        File sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result = new ExecutionReport(TEST_READS_METHODNAME, false, new Object[] { value1, value2 },
@@ -274,6 +280,10 @@ public class TestJavaInvoker extends TestObject {
         deleteSandbox(sandBoxDir);
     }
 
+    /** Test reads.
+     * @param a test result a 
+     * @param b test result b
+     */
     public static void testReads(TestObject a, TestObject b) {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
@@ -286,8 +296,6 @@ public class TestJavaInvoker extends TestObject {
 
     @Test
     public void inoutsTest() throws InvalidMapException, IOException, JobExecutionException {
-        long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_INOUT);
@@ -305,21 +313,22 @@ public class TestJavaInvoker extends TestObject {
         params.add(p2);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming2, value2);
         invBr = invBr.setParams(params);
-        Invocation invocation = invBr.build();
 
-        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
-        ctxBdr = ctxBdr.setListener(expectedEvents);
-        FakeInvocationContext context = ctxBdr.build();
-
-        Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result = new ExecutionReport(TEST_INOUT_METHODNAME, false, new Object[] { value1, value2 },
                 null, null);
+        long executorId = Thread.currentThread().getId();        
         executions.put(executorId, result);
         TestObject out1 = new TestObject(4);
         TestObject out2 = new TestObject(4);
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming1, out1.getValue());
         expectedEvents.add(Event.Type.STORE_OBJECT, renaming2, out2.getValue());
+        Invocation invocation = invBr.build();
+        FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
+        ctxBdr = ctxBdr.setListener(expectedEvents);
+        FakeInvocationContext context = ctxBdr.build();
+        File sandBoxDir = createTempDirectory();
+        Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);      
         invoker.processTask();
 
         ExecutionReport report = executions.remove(executorId);
@@ -327,6 +336,10 @@ public class TestJavaInvoker extends TestObject {
         deleteSandbox(sandBoxDir);
     }
 
+    /** Test inouts.
+     * @param a test result a
+     * @param b test result b
+     */
     public static void testInouts(TestObject a, TestObject b) {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
@@ -362,8 +375,7 @@ public class TestJavaInvoker extends TestObject {
     @Test
     public void targetInTest() throws InvalidMapException, IOException, JobExecutionException {
 
-        long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_TARGET_IN);
@@ -380,7 +392,8 @@ public class TestJavaInvoker extends TestObject {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-
+        long executorId = Thread.currentThread().getId();
+        File sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result = new ExecutionReport(TEST_TARGET_IN_METHODNAME, false, new Object[] {}, target, null);
@@ -394,6 +407,9 @@ public class TestJavaInvoker extends TestObject {
 
     }
 
+    /**
+     *  Test target in.
+     */
     public void testTargetIn() {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
@@ -406,9 +422,6 @@ public class TestJavaInvoker extends TestObject {
 
     @Test
     public void targetInoutTest() throws InvalidMapException, IOException, JobExecutionException {
-
-        long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_TARGET_INOUT);
@@ -426,7 +439,8 @@ public class TestJavaInvoker extends TestObject {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-
+        long executorId = Thread.currentThread().getId();
+        File sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result = new ExecutionReport(TEST_TARGET_INOUT_METHODNAME, false, new Object[] {}, target,
@@ -440,6 +454,9 @@ public class TestJavaInvoker extends TestObject {
         deleteSandbox(sandBoxDir);
     }
 
+    /**
+     *  Testing targetInout.
+     */
     public void testTargetInout() {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);
@@ -452,8 +469,7 @@ public class TestJavaInvoker extends TestObject {
 
     @Test
     public void resultTest() throws InvalidMapException, IOException, JobExecutionException {
-        long executorId = Thread.currentThread().getId();
-        File sandBoxDir = createTempDirectory();
+
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_RESULT);
@@ -470,7 +486,8 @@ public class TestJavaInvoker extends TestObject {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         ctxBdr = ctxBdr.setListener(expectedEvents);
         FakeInvocationContext context = ctxBdr.build();
-
+        long executorId = Thread.currentThread().getId();
+        File sandBoxDir = createTempDirectory();
         Invoker invoker = new JavaInvoker(context, invocation, sandBoxDir, null);
 
         ExecutionReport result = new ExecutionReport(TEST_RESULT_METHODNAME, false, new Object[] {}, null,
@@ -485,6 +502,10 @@ public class TestJavaInvoker extends TestObject {
         deleteSandbox(sandBoxDir);
     }
 
+    /**
+     * Testing result.
+     * @return test result
+     */
     public static TestObject testResult() {
         long executorId = Thread.currentThread().getId();
         ExecutionReport report = executions.remove(executorId);

@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.invokers.test.utils.types;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.invokers.test.utils.types.Role;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 
 public class InvocationParameterAssertion {
@@ -37,6 +37,12 @@ public class InvocationParameterAssertion {
     private final Object value;
 
 
+    /** Invocation Parameter Assertion constructor.
+     * @param role Role
+     * @param paramIdx Param Identifier
+     * @param field Field
+     * @param value Value
+     */
     public InvocationParameterAssertion(Role role, int paramIdx, Field field, Object value) {
         this.role = role;
         this.paramIdx = paramIdx;
@@ -56,6 +62,9 @@ public class InvocationParameterAssertion {
         return value;
     }
 
+    /** Validate.
+     * @param inv Invocation
+     */
     public void validate(Invocation inv) {
         InvocationParam param;
         String caseId;

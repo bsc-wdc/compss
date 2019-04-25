@@ -35,7 +35,7 @@ public class MirrorMonitor {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 
-    private final static long MONITORING_PERIOD = 5_000;
+    private static final long MONITORING_PERIOD = 5_000;
     private final Thread monitorThread;
 
     private Process mainProcess;
@@ -46,6 +46,9 @@ public class MirrorMonitor {
     private final List<String> unremovedElements = new LinkedList<>();
 
 
+    /**
+     * Mirror Monitor constructor.
+     */
     public MirrorMonitor() {
         monitorThread = new Thread() {
 
@@ -173,13 +176,13 @@ public class MirrorMonitor {
                         }
                         if (!removed) {
                             // If it was not removed yet
-                            PipedMirror mirror = info.getMirror();
-                            String executorId = info.getExecutorId();
                             PipePair workerPipe = info.getPipe();
                             LOGGER.debug("Piped mirrors monitor has detected that executor process " + info.getPID()
                                     + " has died.");
                             workerPipe.noLongerExists();
                             workerPipe.delete();
+                            PipedMirror mirror = info.getMirror();
+                            String executorId = info.getExecutorId();
                             mirror.unregisterExecutor(executorId);
                         }
                     }
@@ -191,6 +194,9 @@ public class MirrorMonitor {
         }
     }
 
+    /**
+     * Start a Mirror monitor.
+     */
     public void start() {
         synchronized (this) {
             this.keepAlive = true;
@@ -198,6 +204,9 @@ public class MirrorMonitor {
         }
     }
 
+    /**
+     * Stop a Mirror monitor.
+     */
     public void stop() {
         LOGGER.debug("Stopping monitor");
         synchronized (this) {
@@ -216,13 +225,23 @@ public class MirrorMonitor {
         controlPipe = pipe;
     }
 
-    public void registerWorker(String workerName, int workerPID, ControlPipePair pipeWorkerPipe) {
-        PipeWorkerInfo info = new PipeWorkerInfo(workerPID, pipeWorkerPipe);
+    /**
+     * Register a worker to the Mirror monitor.
+     * @param workerName Worker Name
+     * @param workerPID Worker Process Identifier
+     * @param workerControlPipe Worker control pipe
+     */
+    public void registerWorker(String workerName, int workerPID, ControlPipePair workerControlPipe) {
+        PipeWorkerInfo info = new PipeWorkerInfo(workerPID, workerControlPipe);
         synchronized (this) {
             this.workers.put(workerName, info);
         }
     }
 
+    /**
+     * Unregister a worker to the Mirror monitor.
+     * @param workerName Worker name
+     */
     public void unregisterWorker(String workerName) {
         synchronized (this) {
             PipeWorkerInfo info = this.workers.remove(workerName);
@@ -232,6 +251,13 @@ public class MirrorMonitor {
         }
     }
 
+    /**
+     * Register executor to the Mirror monitor.
+     * @param mirror Piped mirror
+     * @param executorId Executor Identifier
+     * @param executorPId Executor Process identifier
+     * @param pipe Pipe attached to executor
+     */
     public void registerExecutor(PipedMirror mirror, String executorId, int executorPId, PipePair pipe) {
         PipeExecutorInfo info = new PipeExecutorInfo(mirror, executorId, executorPId, pipe);
         synchronized (this) {
@@ -239,6 +265,11 @@ public class MirrorMonitor {
         }
     }
 
+    /**
+     * Unregister executor from the Mirror monitor.
+     * @param mirror Piped Mirror
+     * @param executorId Executor Identifier
+     */
     public void unregisterExecutor(PipedMirror mirror, String executorId) {
         String id = mirror.getMirrorId() + "_" + executorId;
         synchronized (this) {

@@ -34,6 +34,10 @@ public class Execution {
         return invocation;
     }
 
+    /**
+     * Execution end notification.
+     * @param success Flags to indicate if execution was successful
+     */
     public void notifyEnd(boolean success) {
         if (listener != null) {
             listener.notifyEnd(invocation, success);

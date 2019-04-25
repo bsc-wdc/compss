@@ -21,17 +21,28 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+/**
+ * Alive notification command send through a pipe.
+ *
+ */
 public class AliveReplyPipeCommand extends AliveReplyExternalCommand implements PipeCommand {
 
     private final List<Integer> pids = new LinkedList<>();
 
 
+    /**
+     * Alive notification constructor.
+     * @param command Command content
+     */
     public AliveReplyPipeCommand(String[] command) {
         for (int i = 1; i < command.length; i++) {
             pids.add(Integer.parseInt(command[i]));
         }
     }
-
+    
+    /**
+     * Alive notification default constructor.
+     */
     public AliveReplyPipeCommand() {
 
     }

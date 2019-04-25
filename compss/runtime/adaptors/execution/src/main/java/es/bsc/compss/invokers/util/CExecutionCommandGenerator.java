@@ -42,46 +42,51 @@ public class CExecutionCommandGenerator {
     private static final String QUOTES = "\"";
 
 
+    /** Generate task execution command.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param sandBox Execution sandbox
+     * @param assignedResources Assigned resources
+     * @return execution command as list of strings
+     */
     public static ArrayList<String> getTaskExecutionCommand(InvocationContext context, Invocation invocation,
             String sandBox, InvocationResources assignedResources) {
-        int[] assignedCoreUnits = assignedResources.getAssignedCPUs();
-        int[] assignedGPUs = assignedResources.getAssignedGPUs();
-        int[] assignedFPGAs = assignedResources.getAssignedFPGAs();
-        ArrayList<String> lArgs = new ArrayList<>();
 
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
         MethodResourceDescription requirements = (MethodResourceDescription) invocation.getRequirements();
         int numCUs = requirements.getTotalCPUComputingUnits();
         reqs.append("NX_ARGS='--smp-cpus=").append(numCUs);
-        String compss_nx_args;
-        if ((compss_nx_args = System.getenv("COMPSS_NX_ARGS")) != null) {
-            reqs.append(" " + compss_nx_args);
+        String compssNXArgs;
+        if ((compssNXArgs = System.getenv("COMPSS_NX_ARGS")) != null) {
+            reqs.append(" " + compssNXArgs);
         }
         // Debug mode on
         if (invocation.isDebugEnabled()) {
             reqs.append("#--summary#--verbose-copies#--verbose");
         }
 
-        StringBuilder cuda_visible = new StringBuilder();
-        StringBuilder opencl_visible = new StringBuilder();
-        cuda_visible.append("CUDA_VISIBLE_DEVICES=").append(QUOTES);
-        opencl_visible.append("GPU_DEVICE_ORDINAL=").append(QUOTES);
+        StringBuilder cudaVisible = new StringBuilder();
+        StringBuilder openCLVisible = new StringBuilder();
+        cudaVisible.append("CUDA_VISIBLE_DEVICES=").append(QUOTES);
+        openCLVisible.append("GPU_DEVICE_ORDINAL=").append(QUOTES);
+        int[] assignedGPUs = assignedResources.getAssignedGPUs();
+        int[] assignedFPGAs = assignedResources.getAssignedFPGAs();                
         if (assignedGPUs.length > 0) {
             reqs.append("#--gpu-warmup=no");
             for (int i = 0; i < (assignedGPUs.length - 1); i++) {
-                cuda_visible.append(assignedGPUs[i]).append(",");
-                opencl_visible.append(assignedGPUs[i]).append(",");
+                cudaVisible.append(assignedGPUs[i]).append(",");
+                openCLVisible.append(assignedGPUs[i]).append(",");
             }
-            cuda_visible.append(assignedGPUs[assignedGPUs.length - 1]);
-            opencl_visible.append(assignedGPUs[assignedGPUs.length - 1]);
+            cudaVisible.append(assignedGPUs[assignedGPUs.length - 1]);
+            openCLVisible.append(assignedGPUs[assignedGPUs.length - 1]);
 
             for (int j = 0; j < requirements.getProcessors().size(); j++) {
                 Processor p = requirements.getProcessors().get(j);
                 if (p.getType().equals(ProcessorType.GPU) && p.getInternalMemory() > 0.00001) {
                     float bytes = p.getInternalMemory() * 1048576; // MB to byte conversion
-                    int b_int = Math.round(bytes);
-                    reqs.append("#--gpu-max-memory=").append(b_int);
+                    int bInt = Math.round(bytes);
+                    reqs.append("#--gpu-max-memory=").append(bInt);
                 }
             }
         } else if (assignedFPGAs.length > 0) {
@@ -91,12 +96,13 @@ public class CExecutionCommandGenerator {
             reqs.append("#--disable-opencl=yes");
             reqs.append("#--disable-fpga=yes");
         }
-        cuda_visible.append(QUOTES);
-        opencl_visible.append(QUOTES);
+        cudaVisible.append(QUOTES);
+        openCLVisible.append(QUOTES);
         reqs.append("'");
 
         // Taskset string to bind the job
         StringBuilder taskset = new StringBuilder();
+        int[] assignedCoreUnits = assignedResources.getAssignedCPUs();
         if (assignedCoreUnits != null && assignedCoreUnits.length > 0) {
             taskset.append("taskset -c ");
             for (int i = 0; i < (numCUs - 1); i++) {
@@ -104,14 +110,19 @@ public class CExecutionCommandGenerator {
             }
             taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
         }
-
-        lArgs.add(cuda_visible.toString() + ";" + opencl_visible.toString() + ";" + reqs.toString() + " "
+        
+        ArrayList<String> lArgs = new ArrayList<>();
+        lArgs.add(cudaVisible.toString() + ";" + openCLVisible.toString() + ";" + reqs.toString() + " "
                 + taskset.toString() + context.getAppDir() + WORKER_C_RELATIVE_PATH);
         return lArgs;
     }
 
+    /** Get execution environment.
+     * @param context Task execution context
+     * @return Environment as key-value map
+     */
     public static Map<String, String> getEnvironment(InvocationContext context) {
-        Map<String, String> env = new HashMap<>();
+        
         String ldLibraryPath = System.getenv(LIBRARY_PATH_ENV);
         CParams cParams = (CParams) context.getLanguageParams(Lang.C);
         if (ldLibraryPath == null) {
@@ -123,7 +134,8 @@ public class CExecutionCommandGenerator {
         // Add C and commons libs
         ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + C_LIB_RELATIVE_PATH);
         ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + BINDINGS_RELATIVE_PATH);
-
+        
+        Map<String, String> env = new HashMap<>();
         env.put(LIBRARY_PATH_ENV, ldLibraryPath);
         return env;
     }

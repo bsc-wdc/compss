@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.invokers.test.utils.types;
 
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
-
-import static org.junit.Assert.fail;
 
 
 public class InvocationParameterAction {
@@ -39,6 +39,12 @@ public class InvocationParameterAction {
     private final Action action;
 
 
+    /** Invocation Parameter Action constructor.
+     * @param role Role
+     * @param paramIdx Parameters Identifier
+     * @param action Action
+     * @param value Value
+     */
     public InvocationParameterAction(Role role, int paramIdx, Action action, Object value) {
         this.role = role;
         this.paramIdx = paramIdx;
@@ -58,6 +64,10 @@ public class InvocationParameterAction {
         return action;
     }
 
+    /** Obtain invocation parameter.
+     * @param inv Invocation
+     * @return
+     */
     public InvocationParam obtain(Invocation inv) {
         InvocationParam param;
         String caseId;

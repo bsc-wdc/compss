@@ -16,11 +16,8 @@
  */
 package es.bsc.compss.invokers.binary;
 
-import java.io.File;
-
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.types.annotations.Constants;
@@ -28,7 +25,10 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.DecafImplementation;
+
+import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -46,7 +46,13 @@ public class DecafInvoker extends Invoker {
     private String dfExecutor;
     private String dfLib;
 
-
+    /** Decaf Invoker constructor.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param assignedResources Assigned resources
+     * @throws JobExecutionException Error creating the Decaf invoker
+     */
     public DecafInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
 
@@ -117,13 +123,12 @@ public class DecafInvoker extends Invoker {
         // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
         // 2 (--bind-to core) exec args
         // Get COMPSS ENV VARS
-        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
-
+        
         // Convert binary parameters and calculate binary-streams redirection
         BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
                 invocation.getTarget(), streamValues);
-        String hostfile = writeHostfile(this.taskSandboxWorkingDir, workers);
+        
         // Prepare command
         String args = new String();
         for (int i = 0; i < binaryParams.size(); ++i) {
@@ -144,8 +149,12 @@ public class DecafInvoker extends Invoker {
         cmd[2] = this.dfExecutor;
         cmd[3] = this.dfLib;
         cmd[4] = this.mpiRunner;
+        
+        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
         cmd[5] = "-n";
         cmd[6] = numProcs;
+        
+        String hostfile = writeHostfile(this.taskSandboxWorkingDir, workers);
         cmd[7] = "--hostfile";
         cmd[8] = hostfile;
         if (!args.isEmpty()) {

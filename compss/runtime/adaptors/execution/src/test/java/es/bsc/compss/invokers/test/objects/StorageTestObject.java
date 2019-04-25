@@ -21,27 +21,27 @@ import storage.StubItf;
 
 public class StorageTestObject extends TestObject implements StubItf {
 
-    private String ID = null;
+    private String id = null;
 
 
     public StorageTestObject(int value) {
         super(value);
-        this.ID = null;
+        this.id = null;
     }
 
     public StorageTestObject(String id, int value) {
         super(value);
-        this.ID = id;
+        this.id = id;
     }
 
     @Override
     public String getID() {
-        return ID;
+        return id;
     }
 
     @Override
     public void makePersistent(String id) {
-        this.ID = id;
+        this.id = id;
     }
 
     @Override

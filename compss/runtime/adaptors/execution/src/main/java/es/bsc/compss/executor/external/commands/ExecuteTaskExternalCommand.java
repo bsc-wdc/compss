@@ -20,11 +20,18 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+/**
+ * Command to describe an external task execution.
+ *
+ */
 public class ExecuteTaskExternalCommand implements ExternalCommand {
 
     protected final LinkedList<String> arguments;
 
 
+    /**
+     * Constructor for an external task execution.
+     */
     public ExecuteTaskExternalCommand() {
         super();
 

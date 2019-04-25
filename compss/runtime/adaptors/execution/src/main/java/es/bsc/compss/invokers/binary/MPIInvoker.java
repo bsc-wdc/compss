@@ -16,11 +16,8 @@
  */
 package es.bsc.compss.invokers.binary;
 
-import java.io.File;
-
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
 import es.bsc.compss.invokers.util.BinaryRunner.StreamSTD;
@@ -28,7 +25,10 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MPIImplementation;
+
+import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -44,7 +44,13 @@ public class MPIInvoker extends Invoker {
     private final String mpiRunner;
     private final String mpiBinary;
 
-
+    /** MPI Invoker constructor.
+     * @param context Task execution context
+     * @param invocation Task execution description
+     * @param taskSandboxWorkingDir Task execution sandbox directory
+     * @param assignedResources Assigned resources
+     * @throws JobExecutionException Error creating the MPI invoker
+     */
     public MPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
 
@@ -100,7 +106,6 @@ public class MPIInvoker extends Invoker {
         // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
         // 2 (--bind-to core) exec args
         // Get COMPSS ENV VARS
-        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
 
         // Convert binary parameters and calculate binary-streams redirection
         StreamSTD streamValues = new StreamSTD();
@@ -109,13 +114,15 @@ public class MPIInvoker extends Invoker {
 
         // Create hostfile
         String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
-
+        
         // Prepare command
         String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];
         cmd[0] = this.mpiRunner;
         cmd[1] = "-hostfile";
         cmd[2] = hostfile;
         cmd[3] = "-n";
+        
+        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
         cmd[4] = numProcs;
         // cmd[5] = "--bind-to";
         // cmd[6] = "core";

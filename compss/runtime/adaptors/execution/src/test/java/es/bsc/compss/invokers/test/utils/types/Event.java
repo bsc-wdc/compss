@@ -28,6 +28,12 @@ public class Event {
     private final Object attachedReply;
 
 
+    /**
+     * Event constructor.
+     * @param type Type
+     * @param state State
+     * @param reply Reply
+     */
     public Event(Type type, Object state, Object reply) {
         this.type = type;
         this.expectedState = state;

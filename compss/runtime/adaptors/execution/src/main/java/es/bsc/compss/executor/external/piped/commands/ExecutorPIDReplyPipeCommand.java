@@ -22,6 +22,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+/**
+ * Reply of an Executor PID command sent through a pipe.
+ */
 public class ExecutorPIDReplyPipeCommand extends ExecutorPIDReplyExternalCommand implements PipeCommand {
 
     private final String inPipe;
@@ -29,6 +32,10 @@ public class ExecutorPIDReplyPipeCommand extends ExecutorPIDReplyExternalCommand
     private final List<Integer> pids;
 
 
+    /**
+     * Executor PID reply command constructor.
+     * @param line command content as a string array with in/out pipes and PIDs
+     */
     public ExecutorPIDReplyPipeCommand(String[] line) {
         this.inPipe = line[1];
         this.outPipe = line[2];
@@ -38,6 +45,10 @@ public class ExecutorPIDReplyPipeCommand extends ExecutorPIDReplyExternalCommand
         }
     }
 
+    /**
+     *  Executor PID reply command constructor.
+     * @param pp In/out pipe pair
+     */
     public ExecutorPIDReplyPipeCommand(PipePair pp) {
         this.inPipe = pp.getInboundPipe();
         this.outPipe = pp.getOutboundPipe();

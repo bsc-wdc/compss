@@ -19,8 +19,8 @@ package es.bsc.compss.executors;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.ExecutorContext;
-import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
+import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
 import es.bsc.compss.invokers.test.utils.FakeInvocation;
@@ -52,12 +52,12 @@ public class ExecutorTest {
         Thread t = new Thread(ex);
         t.start();
 
-        p.execute(null);
+        p.execute(new Execution(null, null));
         t.join();
     }
 
     @Test
-    public void JavaExecutor() throws InterruptedException, InvalidMapException {
+    public void javaExecutor() throws InterruptedException, InvalidMapException {
         FakeInvocationContext.Builder ctxBdr = new FakeInvocationContext.Builder();
         Platform p = new Platform();
         ctxBdr.setListener(expectedEvents);
@@ -73,7 +73,7 @@ public class ExecutorTest {
         Invocation invocation1 = invBr.build();
         Execution exec = new Execution(invocation1, null);
         p.execute(exec);
-        p.execute(null);
+        p.execute(new Execution(null, null));
         t.join();
     }
 

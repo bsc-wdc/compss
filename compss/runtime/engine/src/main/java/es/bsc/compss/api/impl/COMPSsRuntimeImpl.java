@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.api.impl;
 
+import es.bsc.compss.types.parameter.CollectionParameter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

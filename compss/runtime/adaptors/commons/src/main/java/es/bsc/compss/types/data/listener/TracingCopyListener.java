@@ -34,6 +34,9 @@ public class TracingCopyListener extends EventListener {
         this.sem = sem;
     }
 
+    /**
+     * Enable the listener.
+     */
     public void enable() {
         boolean finished;
         boolean failed;

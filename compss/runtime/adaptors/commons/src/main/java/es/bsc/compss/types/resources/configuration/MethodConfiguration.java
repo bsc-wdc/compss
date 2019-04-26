@@ -47,6 +47,10 @@ public class MethodConfiguration extends Configuration {
         super(adaptorName);
     }
 
+    /**
+     * Method Configuration constructors cloning an existing configuration.
+     * @param clone Configuration to clone
+     */
     public MethodConfiguration(MethodConfiguration clone) {
         super(clone);
         this.host = clone.host;
@@ -75,6 +79,10 @@ public class MethodConfiguration extends Configuration {
         return installDir;
     }
 
+    /**
+     * Set the installation directory.
+     * @param installDir Installation directory path
+     */
     public void setInstallDir(String installDir) {
         if (installDir == null) {
             this.installDir = "";
@@ -99,6 +107,10 @@ public class MethodConfiguration extends Configuration {
         return workingDir;
     }
 
+    /**
+     * Set the working directory.
+     * @param workingDir Working directory path
+     */
     public void setWorkingDir(String workingDir) {
         if (workingDir == null) {
             // No working dir specified in the project file. Using default tmp
@@ -120,6 +132,10 @@ public class MethodConfiguration extends Configuration {
         return totalComputingUnits;
     }
 
+    /**
+     * Set total computing units.
+     * @param totalCUs Total computing units
+     */
     public void setTotalComputingUnits(int totalCUs) {
         if (totalCUs > 0) {
             this.totalComputingUnits = totalCUs;
@@ -132,6 +148,10 @@ public class MethodConfiguration extends Configuration {
         return totalGPUComputingUnits;
     }
 
+    /**
+     * Set total GPU computing units.
+     * @param totalGPUs Total GPU computing units
+     */
     public void setTotalGPUComputingUnits(int totalGPUs) {
         if (totalGPUs > 0) {
             this.totalGPUComputingUnits = totalGPUs;
@@ -144,6 +164,10 @@ public class MethodConfiguration extends Configuration {
         return totalFPGAComputingUnits;
     }
 
+    /**
+     * Set total FPGA computing units.
+     * @param totalFPGAs Total FPGA computing units
+     */
     public void setTotalFPGAComputingUnits(int totalFPGAs) {
         if (totalFPGAs > 0) {
             this.totalFPGAComputingUnits = totalFPGAs;
@@ -156,6 +180,10 @@ public class MethodConfiguration extends Configuration {
         return totalOTHERComputingUnits;
     }
 
+    /**
+     * Set total OTHER computing units.
+     * @param totalOTHERs Total OTHER computing units
+     */
     public void setTotalOTHERComputingUnits(int totalOTHERs) {
         if (totalOTHERs > 0) {
             this.totalOTHERComputingUnits = totalOTHERs;
@@ -168,6 +196,10 @@ public class MethodConfiguration extends Configuration {
         return appDir;
     }
 
+    /**
+     * Set the application location directory.
+     * @param appDir Application directory path
+     */
     public void setAppDir(String appDir) {
         if (appDir == null || appDir.isEmpty()) {
             this.appDir = "";
@@ -181,7 +213,11 @@ public class MethodConfiguration extends Configuration {
     public String getClasspath() {
         return classpath;
     }
-
+    
+    /**
+     * Set the application required classpath.
+     * @param classpath Application classpath
+     */
     public void setClasspath(String classpath) {
         if (classpath == null) {
             this.classpath = "";
@@ -194,6 +230,10 @@ public class MethodConfiguration extends Configuration {
         return pythonpath;
     }
 
+    /**
+     * Set the application required pythonpath.
+     * @param pythonpath Application pythonpath
+     */
     public void setPythonpath(String pythonpath) {
         if (pythonpath == null) {
             this.pythonpath = "";
@@ -206,6 +246,10 @@ public class MethodConfiguration extends Configuration {
         return libraryPath;
     }
 
+    /**
+     * Set the application required library path.
+     * @param libraryPath Application library path
+     */
     public void setLibraryPath(String libraryPath) {
         if (libraryPath == null) {
             this.libraryPath = "";
@@ -217,7 +261,11 @@ public class MethodConfiguration extends Configuration {
     public String getHost() {
         return host;
     }
-
+    
+    /**
+     * Set the hostname of the configuration.
+     * @param host Hostname
+     */
     public void setHost(String host) {
         if (host != null) {
             this.host = host;
@@ -233,6 +281,9 @@ public class MethodConfiguration extends Configuration {
         return user;
     }
 
+    /** Set the username.
+     * @param user username
+     */
     public void setUser(String user) {
         if (user != null) {
             this.user = user;

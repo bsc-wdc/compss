@@ -36,6 +36,9 @@ public class Delete extends DataOperation {
         return file;
     }
 
+    /**
+     * Perform deletion.
+     */
     public void perform() {
         LOGGER.debug("THREAD " + Thread.currentThread().getName() + " Delete " + this.getFile());
         try {

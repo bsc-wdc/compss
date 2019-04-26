@@ -32,6 +32,11 @@ public class SharedLocation extends DataLocation {
     private final Protocol protocol;
 
 
+    /** Shared location constructor.
+     * @param protocol Protocol
+     * @param sharedDisk Shared disk name/identifier
+     * @param path Path from mount point
+     */
     public SharedLocation(Protocol protocol, String sharedDisk, String path) {
         this.diskName = sharedDisk;
         this.path = path;

@@ -17,12 +17,12 @@
 package es.bsc.compss.types.job;
 
 /**
- * Abstract Representation of a listener for the job execution
+ * Abstract Representation of a listener for the job execution.
  */
 public interface JobListener {
 
     /**
-     * Job status types
+     * Job status types.
      */
     public enum JobEndStatus {
     OK, // Success status
@@ -34,17 +34,17 @@ public interface JobListener {
 
 
     /**
-     * Actions when job has successfully ended
+     * Actions when job has successfully ended.
      * 
-     * @param job
+     * @param job Job to notify completion
      */
     public void jobCompleted(Job<?> job);
 
     /**
-     * Actions when job has failed
+     * Actions when job has failed.
      * 
-     * @param job
-     * @param endStatus
+     * @param job Job to notify completion
+     * @param endStatus Failure status
      */
     public void jobFailed(Job<?> job, JobEndStatus endStatus);
 

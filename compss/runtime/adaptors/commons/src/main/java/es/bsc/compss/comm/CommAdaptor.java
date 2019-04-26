@@ -16,66 +16,65 @@
  */
 package es.bsc.compss.comm;
 
-import java.util.List;
-
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 
+import java.util.List;
 
 /**
- * Abstract definition of a Communication Adaptor for the Runtime
+ * Abstract definition of a Communication Adaptor for the Runtime.
  */
 public interface CommAdaptor {
 
     /**
-     * Initializes the Communication Adaptor
+     * Initializes the Communication Adaptor.
      */
     public void init();
 
     /**
-     * Creates a configuration instance for the specific adaptor
+     * Creates a configuration instance for the specific adaptor.
      * 
-     * @param project_properties
-     * @param resources_properties
-     * @return
-     * @throws Exception
+     * @param projectProperties Project Properties
+     * @param resourcesProperties Resources Properties
+     * @return Configuration
+     * @throws ConstructConfigurationException Error creating configuration.
      */
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException;
 
     /**
-     * Initializes a worker through an adaptor
+     * Initializes a worker through an adaptor.
      * 
-     * @param workerName
-     * @param config
-     * @return
+     * @param workerName Worker name
+     * @param config Worker configuration
+     * @return COMPSs worker representation
      */
     public COMPSsWorker initWorker(String workerName, Configuration config);
 
     /**
-     * Stops the Communication Adaptor
+     * Stops the Communication Adaptor.
      */
     public void stop();
 
     /**
-     * Retrieves all the pending operations
+     * Retrieves all the pending operations.
      * 
      * @return
      */
     public List<DataOperation> getPending();
 
     /**
-     * Returns the complete Master URI
+     * add complete Master URI to a multiURI.
      * 
-     * @param u
+     * @param u MultiURI
      */
     public void completeMasterURI(MultiURI u);
 
     /**
-     * Stops all the pending jobs inside the Communication Adaptor
+     * Stops all the pending jobs inside the Communication Adaptor.
      */
     public void stopSubmittedJobs();
 

@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.data.operation;
 
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.log.Loggers;
 
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,22 +51,26 @@ public abstract class DataOperation {
     }
 
 
+    /**
+     * Data Operation constructor.
+     * @param ld Logical data to operate
+     * @param listener Data operation listener
+     */
     public DataOperation(LogicalData ld, EventListener listener) {
-        try {
-            this.name = ld.getName();
-        } catch (Exception e) {
-        }
+        this.name = ld.getName();
         this.listeners = new LinkedList<>();
         this.listeners.add(listener);
         operationId = opCount;
         opCount++;
     }
 
+    /**
+     * Data Operation constructor.
+     * @param ld Logical data to operate
+     * @param eventListeners List of ata operation listeners
+     */
     public DataOperation(LogicalData ld, List<EventListener> eventListeners) {
-        try {
-            this.name = ld.getName();
-        } catch (Exception e) {
-        }
+        this.name = ld.getName();
         this.listeners = eventListeners;
         operationId = opCount;
         opCount++;
@@ -84,6 +88,10 @@ public abstract class DataOperation {
         return listeners;
     }
 
+    /**
+     * Add listener to a data operation.
+     * @param eventListener Listener to add
+     */
     public void addEventListener(EventListener eventListener) {
         synchronized (listeners) {
             if (endState == null) {
@@ -105,6 +113,10 @@ public abstract class DataOperation {
         }
     }
 
+    /**
+     * Add a list of listener to a data operation.
+     * @param eventListeners Listeners to add
+     */
     public void addEventListeners(List<EventListener> eventListeners) {
         synchronized (listeners) {
             if (endState == null) {

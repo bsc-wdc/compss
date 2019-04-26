@@ -16,9 +16,6 @@
  */
 package es.bsc.compss.types.job;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.log.Loggers;
@@ -28,11 +25,13 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.resources.Resource;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
- * Abstract representation of a job
+ * Abstract representation of a job.
  *
- * @param <T>
+ * @param <T> COMPSs Worker
  */
 public abstract class Job<T extends COMPSsWorker> {
 
@@ -80,13 +79,13 @@ public abstract class Job<T extends COMPSsWorker> {
 
 
     /**
-     * Creates a new job instance with the given parameters
+     * Creates a new job instance with the given parameters.
      *
-     * @param taskId
-     * @param task
-     * @param impl
-     * @param res
-     * @param listener
+     * @param taskId Task Identifier
+     * @param task Task description
+     * @param impl Task Implementation
+     * @param res Assigned Resource
+     * @param listener Listener to notify job events
      */
     public Job(int taskId, TaskDescription task, Implementation impl, Resource res, JobListener listener) {
         this.jobId = nextJobId++;
@@ -131,7 +130,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the language of the task
+     * Returns the language of the task.
      *
      * @return language of the task
      */
@@ -140,7 +139,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the job id
+     * Returns the job id.
      *
      * @return
      */
@@ -149,7 +148,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the id of the task executed by this job
+     * Returns the id of the task executed by this job.
      *
      * @return
      */
@@ -158,7 +157,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the task parameters
+     * Returns the task parameters.
      *
      * @return
      */
@@ -167,7 +166,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the job history
+     * Returns the job history.
      *
      * @return
      */
@@ -176,16 +175,16 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Sets a new job history
+     * Sets a new job history.
      *
-     * @param newHistoryState
+     * @param newHistoryState job history state
      */
     public void setHistory(JobHistory newHistoryState) {
         this.history = newHistoryState;
     }
 
     /**
-     * Returns the resource assigned to the job execution
+     * Returns the resource assigned to the job execution.
      *
      * @return
      */
@@ -194,8 +193,8 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the job classpath
-     *
+     * Returns the job classpath.
+     *.
      * @return
      */
     public String getClasspath() {
@@ -203,7 +202,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the job pythonpath
+     * Returns the job pythonpath.
      *
      * @return
      */
@@ -212,7 +211,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the resource node assigned to the job
+     * Returns the resource node assigned to the job.
      *
      * @return
      */
@@ -222,7 +221,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the job listener associated to the job
+     * Returns the job listener associated to the job.
      *
      * @return
      */
@@ -231,7 +230,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the core implementation
+     * Returns the core implementation.
      *
      * @return
      */
@@ -240,16 +239,16 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Sets the transfer group id
+     * Sets the transfer group id.
      *
-     * @param transferId
+     * @param transferId Transfer group Id
      */
     public void setTransferGroupId(int transferId) {
         this.transferId = transferId;
     }
 
     /**
-     * Returns the transfer group id
+     * Returns the transfer group id.
      *
      * @return
      */
@@ -258,7 +257,7 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the return value of the job
+     * Returns the return value of the job.
      *
      * @return
      */
@@ -267,28 +266,28 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Actions to submit the job
+     * Submits the job.
      *
-     * @throws Exception
+     * @throws Exception Error when submitting a job
      */
     public abstract void submit() throws Exception;
 
     /**
-     * Actions to stop the job
+     * Stops the job.
      *
-     * @throws Exception
+     * @throws Exception Error when stopping a job
      */
     public abstract void stop() throws Exception;
 
     /**
-     * Returns the hostname
+     * Returns the hostname.
      *
      * @return
      */
     public abstract String getHostName();
 
     /**
-     * Returns the task type of the job
+     * Returns the task type of the job.
      *
      * @return
      */

@@ -21,59 +21,59 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 
 
 /**
- * Abstract definition of a COMPSs Worker
+ * Abstract definition of a COMPSs Worker.
  */
 public abstract class COMPSsWorker extends COMPSsNode {
 
     /**
-     * New worker with name @name and configuration @config
+     * New worker with name @name and configuration @config.
      * 
-     * @param name
-     * @param config
+     * @param name Worker name
+     * @param config Worker configuration
      */
     public COMPSsWorker(String name, Configuration config) {
         super();
     }
 
     /**
-     * Returns the worker user
+     * Returns the worker user.
      * 
-     * @return
+     * @return Worker user
      */
     public abstract String getUser();
 
     /**
-     * Returns the worker classpath
+     * Returns the worker classpath.
      * 
-     * @return
+     * @return worker classpath
      */
     public abstract String getClasspath();
 
     /**
-     * Returns the worker pythonpath
+     * Returns the worker pythonpath.
      * 
-     * @return
+     * @return worker pythonpath
      */
     public abstract String getPythonpath();
 
     /**
-     * Updates the task count to @processorCoreCount
+     * Updates the task count to @processorCoreCount. 
      * 
-     * @param processorCoreCount
+     * @param processorCoreCount number of processor cores
      */
     public abstract void updateTaskCount(int processorCoreCount);
 
     /**
-     * Announces the worker destruction
+     * Announces the worker destruction.
      * 
-     * @throws AnnounceException
+     * @throws AnnounceException Exception announcing destruction
      */
     public abstract void announceDestruction() throws AnnounceException;
 
     /**
-     * Announces the worker creation
+     * Announces the worker creation.
      * 
-     * @throws AnnounceException
+     * @throws AnnounceException Error announcing the worker creation
      */
     public abstract void announceCreation() throws AnnounceException;
 

@@ -17,8 +17,6 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -37,6 +35,8 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TraceMerger {
 
@@ -50,9 +50,9 @@ public class TraceMerger {
     // Selectors for replace Pattern
     private static final Integer R_ID_INDEX = 1;
     private static final Integer TIMESTAMP_INDEX = 4;
-    private static final Integer WORKER_ID_INDEX = 2; // could be wrong this regex (designed for matching tasks not
-                                                      // workers)
-
+    private static final Integer WORKER_ID_INDEX = 2;
+    
+    // could be wrong this regex (designed for matching tasks not workers)
     private String workerThreadInfo = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
     private Pattern workerThreadInfoPattern = Pattern.compile(workerThreadInfo);
     private static final Integer STATE_TYPE = 1;
@@ -95,6 +95,11 @@ public class TraceMerger {
     }
 
 
+    /** Trace Merger constructor.
+     * @param workingDir Working directory
+     * @param appName Application name
+     * @throws IOException Error managing files
+     */
     public TraceMerger(String workingDir, String appName) throws IOException {
         initMasterTraceInfo(workingDir, appName);
         initWorkersTracesInfo(workingDir);
@@ -112,7 +117,7 @@ public class TraceMerger {
 
         File f = new File(workingDir + File.separator + traceSubDir);
         File[] matchingFiles = f.listFiles(
-                (File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
+            (File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
 
         if (matchingFiles == null) {
             throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + traceExtension + " not found.");
@@ -146,6 +151,10 @@ public class TraceMerger {
         }
     }
 
+    /**
+     * Merge traces.
+     * @throws IOException Error managing traces
+     */
     public void merge() throws IOException {
         logger.debug("Parsing master sync events");
         HashMap<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(masterTracePath, -1);

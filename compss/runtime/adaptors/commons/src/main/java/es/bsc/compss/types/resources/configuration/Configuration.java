@@ -16,15 +16,18 @@
  */
 package es.bsc.compss.types.resources.configuration;
 
+import es.bsc.compss.log.Loggers;
+
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.compss.log.Loggers;
 
-
+/**
+ * Basic worker resource configuration.
+ */
 public class Configuration {
 
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
@@ -34,22 +37,22 @@ public class Configuration {
     private int limitOfTasks = -1;
     private int limitOfGPUTasks = -1;
     private int limitOfFPGATasks = -1;
-    private int limitOfOTHERSTasks = -1;
+    private int limitOfOTHERsTasks = -1;
 
 
     /**
-     * Instantiates the class
+     * Instantiates the class.
      *
-     * @param adaptorName
+     * @param adaptorName Adaptor name
      */
     public Configuration(String adaptorName) {
         this.adaptorName = adaptorName;
     }
 
     /**
-     * Clones a class instance
+     * Clones a class instance.
      *
-     * @param clone
+     * @param clone Configuration to clone
      */
     public Configuration(Configuration clone) {
         this.adaptorName = clone.adaptorName;
@@ -57,7 +60,7 @@ public class Configuration {
         this.limitOfTasks = clone.limitOfTasks;
         this.limitOfGPUTasks = clone.limitOfGPUTasks;
         this.limitOfFPGATasks = clone.limitOfFPGATasks;
-        this.limitOfOTHERSTasks = clone.limitOfOTHERSTasks;
+        this.limitOfOTHERsTasks = clone.limitOfOTHERsTasks;
 
         for (Entry<String, String> addProp : clone.additionalProperties.entrySet()) {
             additionalProperties.put(addProp.getKey(), addProp.getValue());
@@ -65,7 +68,7 @@ public class Configuration {
     }
 
     /**
-     * Returns the adaptor name (fully qualified classname)
+     * Returns the adaptor name (fully qualified classname).
      *
      * @return
      */
@@ -86,7 +89,7 @@ public class Configuration {
     /**
      * Returns the value of the property with name @name. Null if key doesn't exist
      *
-     * @param name
+     * @param name Property name.
      * @return
      */
     public final String getProperty(String name) {
@@ -94,17 +97,17 @@ public class Configuration {
     }
 
     /**
-     * Adds a property with name @name and value @value
+     * Adds a property with name @name and value @value.
      *
-     * @param name
-     * @param value
+     * @param name Property name
+     * @param value Property value
      */
     public final void addProperty(String name, String value) {
         this.additionalProperties.put(name, value);
     }
 
     /**
-     * Gets the limit of tasks
+     * Gets the limit of tasks.
      *
      * @return
      */
@@ -113,16 +116,16 @@ public class Configuration {
     }
 
     /**
-     * Sets the limit of tasks
+     * Sets the limit of tasks.
      *
-     * @param limitOfTasks
+     * @param limitOfTasks maximum number of tasks
      */
     public void setLimitOfTasks(int limitOfTasks) {
         this.limitOfTasks = limitOfTasks;
     }
 
     /**
-     * Gets the limit of GPU tasks
+     * Gets the limit of GPU tasks.
      *
      * @return
      */
@@ -131,16 +134,16 @@ public class Configuration {
     }
 
     /**
-     * Sets the limit of GPU tasks
+     * Sets the limit of GPU tasks.
      *
-     * @param limitOfGPUTasks
+     * @param limitOfGPUTasks Limit of tasks with GPUS
      */
     public void setLimitOfGPUTasks(int limitOfGPUTasks) {
         this.limitOfGPUTasks = limitOfGPUTasks;
     }
 
     /**
-     * Gets the limit of FPGA tasks
+     * Gets the limit of FPGA tasks.
      *
      * @return
      */
@@ -149,30 +152,30 @@ public class Configuration {
     }
 
     /**
-     * Sets the limit of FPGA tasks
+     * Sets the limit of FPGA tasks.
      *
-     * @param limitOfFPGATasks
+     * @param limitOfFPGATasks Limit of tasks with GPU
      */
     public void setLimitOfFPGATasks(int limitOfFPGATasks) {
         this.limitOfFPGATasks = limitOfFPGATasks;
     }
 
     /**
-     * Gets the limit of OTHERS tasks
+     * Gets the limit of OTHER tasks.
      *
      * @return
      */
-    public int getLimitOfOTHERSTasks() {
-        return limitOfOTHERSTasks;
+    public int getLimitOfOTHERsTasks() {
+        return limitOfOTHERsTasks;
     }
 
     /**
-     * Sets the limit of OTHERS tasks
+     * Sets the limit of OTHERS tasks.
      *
-     * @param limitOfOTHERSTasks
+     * @param limitOfOTHERsTasks Limit of task with OTHER devices
      */
-    public void setLimitOfOTHERSTasks(int limitOfOTHERSTasks) {
-        this.limitOfOTHERSTasks = limitOfOTHERSTasks;
+    public void setLimitOfOTHERsTasks(int limitOfOTHERsTasks) {
+        this.limitOfOTHERsTasks = limitOfOTHERsTasks;
     }
 
 }

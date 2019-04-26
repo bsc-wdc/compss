@@ -16,18 +16,17 @@
  */
 package es.bsc.compss.types.data.operation.copy;
 
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.util.ErrorManager;
 
+import java.util.concurrent.Semaphore;
 
 public abstract class Copy extends DataOperation {
 
@@ -38,6 +37,14 @@ public abstract class Copy extends DataOperation {
     protected final Transferable reason;
 
 
+    /** Data Copy Constructor.
+     * @param srcData source logical data
+     * @param prefSrc preferred source data location
+     * @param prefTgt preferred target data location
+     * @param tgtData target logical data
+     * @param reason Transfer reason
+     * @param listener listener to notify events
+     */
     public Copy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
             Transferable reason, EventListener listener) {
 
@@ -76,6 +83,10 @@ public abstract class Copy extends DataOperation {
         reason.setDataSource(source);
     }
 
+    /**
+     * Set the final target absolute path of a data.
+     * @param targetAbsolutePath final absolute path of the data copied
+     */
     public void setFinalTarget(String targetAbsolutePath) {
         if (DEBUG) {
             LOGGER.debug(" Setting copy final target to : " + targetAbsolutePath);
@@ -91,6 +102,11 @@ public abstract class Copy extends DataOperation {
         return reason.getType();
     }
 
+    /**
+     * Blocks the thread until a copy to a resource is finished.
+     * @param copy Copy to wait
+     * @param resource Resource
+     */
     public static void waitForCopyTofinish(Copy copy, COMPSsNode resource) {
         Semaphore sem = new Semaphore(0);
         SafeCopyListener currentCopylistener = new SafeCopyListener(sem);

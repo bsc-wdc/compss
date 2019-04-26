@@ -1064,13 +1064,14 @@ class task(object):
             from numba import cfunc
             numba_mode = self.decorator_arguments['numba']
             numba_flags = self.decorator_arguments['numba_flags']
-            numba_flags['cache'] = True   # Always force cache
             if type(numba_mode) is dict:
                 # Use the flags defined by the user
+                numba_flags['cache'] = True  # Always force cache
                 user_returns = \
                     jit(self.user_function,
                         **numba_flags)(*user_args, **user_kwargs)
             elif numba_mode is True or numba_mode == 'jit':
+                numba_flags['cache'] = True  # Always force cache
                 user_returns = jit(self.user_function,
                                    **numba_flags)(*user_args,
                                                   **user_kwargs)
@@ -1082,23 +1083,25 @@ class task(object):
                                              **numba_flags)(*user_args,
                                                             **user_kwargs)
             elif numba_mode == 'njit':
+                numba_flags['cache'] = True  # Always force cache
                 numba_flags['nopython'] = True
                 user_returns = jit(self.user_function,
                                    **numba_flags)(*user_args, **user_kwargs)
             elif numba_mode == 'vectorize':
                 numba_signature = self.decorator_arguments['numba_signature']
                 user_returns = vectorize(
-                                   numba_signature
+                                   numba_signature,
+                                   **numba_flags
                                )(self.user_function)(*user_args, **user_kwargs)
             elif numba_mode == 'guvectorize':
                 numba_signature = self.decorator_arguments['numba_signature']
                 numba_decl = self.decorator_arguments['numba_declaration']
                 user_returns = guvectorize(
                                    numba_signature,
-                                   numba_decl
+                                   numba_decl,
+                                   **numba_flags
                                )(self.user_function)(*user_args, **user_kwargs)
             elif numba_mode == 'stencil':
-                del numba_flags['cache']  # remove the forced cache flag
                 user_returns = stencil(
                                    **numba_flags
                                )(self.user_function)(*user_args, **user_kwargs)

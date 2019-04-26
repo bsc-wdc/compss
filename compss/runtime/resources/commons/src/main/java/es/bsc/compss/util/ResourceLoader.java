@@ -452,8 +452,8 @@ public class ResourceLoader {
         int taskCountFPGA = getValidMinimum(mc.getLimitOfFPGATasks(), rd.getTotalFPGAComputingUnits());
         mc.setLimitOfFPGATasks(taskCountFPGA);
 
-        int taskCountOther = getValidMinimum(mc.getLimitOfOTHERSTasks(), rd.getTotalOTHERComputingUnits());
-        mc.setLimitOfOTHERSTasks(taskCountOther);
+        int taskCountOther = getValidMinimum(mc.getLimitOfOTHERsTasks(), rd.getTotalOTHERComputingUnits());
+        mc.setLimitOfOTHERsTasks(taskCountOther);
 
         // Create the method worker
         MethodWorker methodWorker = new MethodWorker(name, rd, mc, sharedDisks);

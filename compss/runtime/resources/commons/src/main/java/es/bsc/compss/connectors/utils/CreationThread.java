@@ -288,7 +288,7 @@ public class CreationThread extends Thread {
         mc.setTotalGPUComputingUnits(granted.getTotalGPUComputingUnits());
         mc.setLimitOfFPGATasks(granted.getTotalFPGAComputingUnits());
         mc.setTotalFPGAComputingUnits(granted.getTotalFPGAComputingUnits());
-        mc.setLimitOfOTHERSTasks(granted.getTotalOTHERComputingUnits());
+        mc.setLimitOfOTHERsTasks(granted.getTotalOTHERComputingUnits());
         mc.setTotalOTHERComputingUnits(granted.getTotalOTHERComputingUnits());
         worker = new CloudMethodWorker(granted.getName(), provider, granted, mc, cid.getSharedDisks());
 

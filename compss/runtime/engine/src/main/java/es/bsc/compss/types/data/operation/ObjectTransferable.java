@@ -54,4 +54,11 @@ public class ObjectTransferable implements Transferable {
         return DataType.FILE_T;
     }
 
+    @Override
+    public boolean isSourcePreserved() {
+        // Only invoked from the DIP when it needs to transfer a remote object.
+        // Remote data is always copied
+        return true;
+    }
+
 }

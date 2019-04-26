@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util;
+package es.bsc.compss.nio.master.utils;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
@@ -42,7 +42,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class NIOParamFactory {
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
 
     /**
@@ -63,37 +63,26 @@ public class NIOParamFactory {
             case BINDING_OBJECT_T:
             case COLLECTION_T:
                 DependencyParameter dPar = (DependencyParameter) param;
-                DataAccessId dAccId = dPar.getDataAccessId();
                 Object value = dPar.getDataTarget();
-                boolean preserveSourceData;
-                if (dAccId instanceof RAccessId) {
-                    // Parameter is a R, has sources
-                    preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
-                } else if (dAccId instanceof RWAccessId) {
-                    // Parameter is a RW, has sources
-                    preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
-                } else {
-                    // Parameter is a W, it has no sources
-                    preserveSourceData = false;
-                }
+                boolean preserveSourceData = dPar.isSourcePreserved();
 
                 // Check if the parameter has a valid PSCO and change its type
                 // OUT objects are restricted by the API
                 String renaming = null;
                 String dataMgmtId;
-                DataAccessId faId = dPar.getDataAccessId();
-                if (faId instanceof RWAccessId) {
+                DataAccessId dAccId = dPar.getDataAccessId();
+                if (dAccId instanceof RWAccessId) {
                     // Read write mode
-                    RWAccessId rwaId = (RWAccessId) faId;
+                    RWAccessId rwaId = (RWAccessId) dAccId;
                     renaming = rwaId.getReadDataInstance().getRenaming();
                     dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-                } else if (faId instanceof RAccessId) {
+                } else if (dAccId instanceof RAccessId) {
                     // Read only mode
-                    RAccessId raId = (RAccessId) faId;
+                    RAccessId raId = (RAccessId) dAccId;
                     renaming = raId.getReadDataInstance().getRenaming();
                     dataMgmtId = renaming;
                 } else {
-                    WAccessId waId = (WAccessId) faId;
+                    WAccessId waId = (WAccessId) dAccId;
                     dataMgmtId = waId.getWrittenDataInstance().getRenaming();
                 }
                 if (renaming != null) {

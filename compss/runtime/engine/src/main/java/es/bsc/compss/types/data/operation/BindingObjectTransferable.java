@@ -27,7 +27,6 @@ public class BindingObjectTransferable implements Transferable {
     private String target;
     private TransferBindingObjectRequest toRequest;
 
-
     public BindingObjectTransferable(TransferBindingObjectRequest toRequest) {
         this.toRequest = toRequest;
     }
@@ -56,6 +55,13 @@ public class BindingObjectTransferable implements Transferable {
     @Override
     public DataType getType() {
         return DataType.BINDING_OBJECT_T;
+    }
+
+    @Override
+    public boolean isSourcePreserved() {
+        // Only invoked from the DIP when it needs to transfer a remote object.
+        // Remote data is always copied
+        return true;
     }
 
 }

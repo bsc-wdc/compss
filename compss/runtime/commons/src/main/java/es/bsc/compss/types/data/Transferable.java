@@ -23,37 +23,43 @@ public interface Transferable {
 
     /**
      * Returns the source data.
-     * 
+     *
      * @return The source data.
      */
     public Object getDataSource();
 
     /**
      * Sets the source data.
-     * 
+     *
      * @param dataSource New source data.
      */
     public void setDataSource(Object dataSource);
 
     /**
      * Returns the target data.
-     * 
+     *
      * @return The target data.
      */
     public String getDataTarget();
 
     /**
      * Sets the target data.
-     * 
+     *
      * @param target New target data.
      */
     public void setDataTarget(String target);
 
     /**
      * Returns the data Transfer type.
-     * 
+     *
      * @return The data Transfer type.
      */
     public DataType getType();
 
+    /**
+     * Return whether the source should be preserved on the transfer
+     *
+     * @return <code>true</code> if source is to be preserved; <code>false</code> otherwise
+     */
+    public boolean isSourcePreserved();
 }

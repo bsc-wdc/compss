@@ -25,7 +25,6 @@ public class FileTransferable implements Transferable {
     private Object source;
     private String target;
 
-
     public FileTransferable() {
     }
 
@@ -52,6 +51,11 @@ public class FileTransferable implements Transferable {
     @Override
     public DataType getType() {
         return DataType.FILE_T;
+    }
+
+    @Override
+    public boolean isSourcePreserved() {
+        return true;
     }
 
 }

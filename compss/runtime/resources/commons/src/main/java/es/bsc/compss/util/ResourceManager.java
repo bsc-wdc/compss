@@ -17,6 +17,7 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
@@ -190,6 +191,24 @@ public class ResourceManager {
             }
             RESOURCES_LOGGER.info("INFO_MSG = [Workers stopped]");
         }
+
+        //Stopping worker at master process
+        RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
+        Comm.getAppHost().retrieveData(false);
+        Semaphore sem = new Semaphore(0);
+        ShutdownListener sl = new ShutdownListener(sem);
+        RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
+        for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
+            Comm.getAppHost().stop(sl);
+        }
+        sl.enable();
+
+        try {
+            sem.acquire();
+        } catch (Exception e) {
+            RESOURCES_LOGGER.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
+        }
+        RESOURCES_LOGGER.info("INFO_MSG = [Worker in master stopped]");
     }
 
     /*

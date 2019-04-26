@@ -26,7 +26,6 @@ public class SafeCopyTransferable implements Transferable {
     private String dataTarget;
     private DataType type;
 
-
     public SafeCopyTransferable(DataType dt) {
         this.type = dt;
     }
@@ -60,4 +59,10 @@ public class SafeCopyTransferable implements Transferable {
         return type;
     }
 
+    @Override
+    public boolean isSourcePreserved() {
+        // Only invoked to transfer data values from a remote node for saving them on the master.
+        // Remote data is always copied
+        return true;
+    }
 }

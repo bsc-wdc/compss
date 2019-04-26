@@ -37,7 +37,7 @@ public interface InvocationContext {
     // EXECUTION CONFIGURATION
     public TaskExecution getExecutionType();
 
-    public boolean isPersistentEnabled();
+    public boolean isPersistentCEnabled();
 
     public LanguageParams getLanguageParams(Lang language);
 

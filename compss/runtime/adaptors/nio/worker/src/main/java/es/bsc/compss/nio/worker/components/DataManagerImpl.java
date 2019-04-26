@@ -17,6 +17,7 @@
 package es.bsc.compss.nio.worker.components;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.StreamBackend;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
@@ -32,6 +33,9 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.util.BindingDataManager;
+import es.bsc.distrostreamlib.client.DistroStreamClient;
+import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
+import es.bsc.distrostreamlib.requests.StopRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,19 +59,30 @@ public class DataManagerImpl implements DataManager {
     private static final Logger WORKER_LOGGER = LogManager.getLogger(Loggers.WORKER);
     private static final boolean WORKER_LOGGER_DEBUG = WORKER_LOGGER.isDebugEnabled();
 
+    // Streaming
+    private static final StreamBackend STREAMING_BACKEND;
+
     // Storage
     private static final String STORAGE_CONF;
 
-    // Data Provider
-    private final DataProvider provider;
     // String hostName
     private final String hostName;
+    private final String masterName;
+    private final int streamingPort;
+
+    // Data Provider
+    private final DataProvider provider;
     // Default data folder
     private final String baseFolder;
     // Data registry
     private final HashMap<String, DataRegister> registry;
 
     static {
+        String streamBackendProperty = System.getProperty(COMPSsConstants.STREAMING_BACKEND);
+        String streamBackendPropertyFixed = (streamBackendProperty == null || streamBackendProperty.isEmpty()
+                || streamBackendProperty.equals("null")) ? "NONE" : streamBackendProperty.toUpperCase();
+        STREAMING_BACKEND = StreamBackend.valueOf(streamBackendPropertyFixed);
+
         String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
         STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))
                 ? null
@@ -79,18 +94,35 @@ public class DataManagerImpl implements DataManager {
      * Instantiates a new Data Manager.
      *
      * @param hostName Worker hostname.
+     * @param masterName Master hostname.
+     * @param streamingPort Streaming port to communicate with the master.
      * @param baseFolder Base worker working directory.
      * @param provider Data provider.
      */
-    public DataManagerImpl(String hostName, String baseFolder, DataProvider provider) {
-        this.registry = new HashMap<>();
-        this.provider = provider;
+    public DataManagerImpl(String hostName, String masterName, int streamingPort, String baseFolder,
+            DataProvider provider) {
         this.hostName = hostName;
+        this.masterName = masterName;
+        this.streamingPort = streamingPort;
         this.baseFolder = baseFolder;
+        this.provider = provider;
+        this.registry = new HashMap<>();
     }
 
     @Override
     public void init() throws InitializationException {
+        // Start streaming library
+        if (STREAMING_BACKEND.equals(StreamBackend.NONE)) {
+            WORKER_LOGGER.warn("No streaming backend passed");
+        } else {
+            WORKER_LOGGER.debug("Initializing Streaming Client");
+            try {
+                DistroStreamClient.initAndStart(this.masterName, this.streamingPort);
+            } catch (DistroStreamClientInitException dscie) {
+                throw new InitializationException("Error initializing DS Client", dscie);
+            }
+        }
+
         // Start storage interface
         if (STORAGE_CONF == null) {
             WORKER_LOGGER.warn("No storage configuration file passed");
@@ -111,6 +143,20 @@ public class DataManagerImpl implements DataManager {
 
     @Override
     public void stop() {
+        // End Streaming
+        if (!STREAMING_BACKEND.equals(StreamBackend.NONE)) {
+            WORKER_LOGGER.debug("Stopping Streaming Client...");
+            StopRequest stopRequest = new StopRequest();
+            DistroStreamClient.request(stopRequest);
+            stopRequest.waitProcessed();
+            int errorCode = stopRequest.getErrorCode();
+            if (errorCode != 0) {
+                WORKER_LOGGER.error("Error stopping Streaming Client");
+                WORKER_LOGGER.error("Error Code: " + errorCode);
+                WORKER_LOGGER.error("Error Message: " + stopRequest.getErrorMessage());
+            }
+        }
+
         // End storage
         if (STORAGE_CONF != null) {
             WORKER_LOGGER.debug("Stopping Storage...");
@@ -136,7 +182,7 @@ public class DataManagerImpl implements DataManager {
                 String dataName = new File(name).getName();
                 DataRegister register = null;
                 synchronized (registry) {
-                    register = registry.remove(dataName);
+                    register = this.registry.remove(dataName);
                     WORKER_LOGGER.debug(dataName + " removed from cache.");
                 }
                 if (register != null) {
@@ -184,10 +230,10 @@ public class DataManagerImpl implements DataManager {
         DataRegister originalRegister;
         boolean newRegister = false;
         synchronized (registry) {
-            originalRegister = registry.get(originalRename);
+            originalRegister = this.registry.get(originalRename);
             if (originalRegister == null) {
                 originalRegister = new DataRegister();
-                registry.put(originalRename, originalRegister);
+                this.registry.put(originalRename, originalRegister);
                 newRegister = true;
             }
         }
@@ -197,7 +243,7 @@ public class DataManagerImpl implements DataManager {
                 for (InvocationParamURI loc : param.getSources()) {
                     switch (loc.getProtocol()) {
                         case FILE_URI:
-                            if (loc.isHost(hostName)) {
+                            if (loc.isHost(this.hostName)) {
                                 originalRegister.addFileLocation(loc.getPath());
                             }
                             break;
@@ -207,7 +253,7 @@ public class DataManagerImpl implements DataManager {
                             break;
                         case OBJECT_URI:
                         case BINDING_URI:
-                            if (loc.isHost(hostName)) {
+                            if (loc.isHost(this.hostName)) {
                                 WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
                                         + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT "
                                                 : " BINDING OBJECT "));
@@ -300,7 +346,7 @@ public class DataManagerImpl implements DataManager {
                         }
                         DataRegister dr = new DataRegister();
                         dr.setValue(o);
-                        registry.put(finalRename, dr);
+                        this.registry.put(finalRename, dr);
                     } catch (Exception e) {
                         WORKER_LOGGER.error(e);
                         listener.errorFetchingValue(param.getDataMgmtId(), e);
@@ -321,17 +367,17 @@ public class DataManagerImpl implements DataManager {
         String name = (String) param.getValue();
         WORKER_LOGGER.debug("   - " + name + " registered as binding object.");
 
-        BindingObject dest_bo = BindingObject.generate(name);
-        String value = dest_bo.getName();
-        int type = dest_bo.getType();
-        int elements = dest_bo.getElements();
+        BindingObject destBo = BindingObject.generate(name);
+        String value = destBo.getName();
+        int type = destBo.getType();
+        int elements = destBo.getElements();
 
         boolean askTransfer = false;
 
         boolean cached = false;
         boolean locationsInCache = false;
 
-        if (provider.isPersistentEnabled()) {
+        if (this.provider.isPersistentCEnabled()) {
             // Try if parameter is in cache
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug("   - fetching Binding object for persistent worker.");
@@ -347,7 +393,7 @@ public class DataManagerImpl implements DataManager {
 
                 for (InvocationParamURI loc : param.getSources()) {
                     BindingObject bo = BindingObject.generate(loc.getPath());
-                    if (loc.isHost(hostName) && BindingDataManager.isInBinding(bo.getName())) {
+                    if (loc.isHost(this.hostName) && BindingDataManager.isInBinding(bo.getName())) {
                         // The value we want is not directly cached, but one of it sources is
                         if (WORKER_LOGGER_DEBUG) {
                             WORKER_LOGGER.debug(
@@ -401,7 +447,7 @@ public class DataManagerImpl implements DataManager {
             }
 
             for (InvocationParamURI loc : param.getSources()) {
-                if (loc.isHost(hostName)) {
+                if (loc.isHost(this.hostName)) {
                     BindingObject bo = BindingObject.generate(loc.getPath());
 
                     if (WORKER_LOGGER_DEBUG) {
@@ -412,7 +458,7 @@ public class DataManagerImpl implements DataManager {
 
                     File inFile = new File(bo.getId());
                     if (!inFile.isAbsolute()) {
-                        inFile = new File(baseFolder + File.separator + bo.getId());
+                        inFile = new File(this.baseFolder + File.separator + bo.getId());
                     }
 
                     String path = inFile.getAbsolutePath();
@@ -420,7 +466,7 @@ public class DataManagerImpl implements DataManager {
                         existInHost = true;
 
                         int res;
-                        if (provider.isPersistentEnabled()) {
+                        if (provider.isPersistentCEnabled()) {
                             // Load data from file into cache
                             res = BindingDataManager.loadFromFile(value, path, type, elements);
                             if (res != 0) {
@@ -440,8 +486,9 @@ public class DataManagerImpl implements DataManager {
                                     try {
                                         Files.move(inFile.toPath(), outFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
                                     } catch (AtomicMoveNotSupportedException amnse) {
-                                        WORKER_LOGGER.warn(
-                                                "   - AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                                        WORKER_LOGGER.warn("   - AtomicMoveNotSupportedException."
+                                                + "File cannot be atomically moved."
+                                                + " Trying to move without atomic");
                                         Files.move(inFile.toPath(), outFile.toPath());
                                     }
                                     break;
@@ -524,15 +571,15 @@ public class DataManagerImpl implements DataManager {
                             try {
                                 Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
                             } catch (AtomicMoveNotSupportedException amnse) {
-                                WORKER_LOGGER.warn(
-                                        "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                                WORKER_LOGGER.warn("WARN: AtomicMoveNotSupportedException."
+                                        + " File cannot be atomically moved. Trying to move without atomic");
                                 Files.move(source.toPath(), target.toPath());
                             }
                             originalRegister.removeFileLocation(path);
                         }
                         DataRegister dr = new DataRegister();
                         dr.addFileLocation(path);
-                        registry.put(originalName, dr);
+                        this.registry.put(originalName, dr);
                         fetchedLocalParameter(param, index, tt);
                         return;
                     } catch (IOException ioe) {
@@ -574,7 +621,7 @@ public class DataManagerImpl implements DataManager {
         Object o = null;
         DataRegister register;
         synchronized (registry) {
-            register = registry.get(rename);
+            register = this.registry.get(rename);
         }
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("[Thread "+Thread.currentThread().getName() +" ] Loading value: " +rename);
@@ -614,10 +661,10 @@ public class DataManagerImpl implements DataManager {
     private void storeObject(String rename, Object value) {
         DataRegister register;
         synchronized (registry) {
-            register = registry.get(rename);
+            register = this.registry.get(rename);
             if (register == null) {
                 register = new DataRegister();
-                registry.put(rename, register);
+                this.registry.put(rename, register);
             }
         }
         synchronized (register) {
@@ -634,10 +681,10 @@ public class DataManagerImpl implements DataManager {
     public void storeFile(String rename, String path) {
         DataRegister register;
         synchronized (registry) {
-            register = registry.get(rename);
+            register = this.registry.get(rename);
             if (register == null) {
                 register = new DataRegister();
-                registry.put(rename, register);
+                this.registry.put(rename, register);
             }
         }
         synchronized (register) {
@@ -650,7 +697,7 @@ public class DataManagerImpl implements DataManager {
         Object o = null;
         DataRegister register;
         synchronized (registry) {
-            register = registry.get(dataMgmtId);
+            register = this.registry.get(dataMgmtId);
         }
         synchronized (register) {
             try {

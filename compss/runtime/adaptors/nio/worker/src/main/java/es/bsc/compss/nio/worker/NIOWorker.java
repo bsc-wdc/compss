@@ -89,8 +89,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private static final boolean REMOVE_WD;
 
     // Processes to capture out/err of each job
-    private static final ThreadedPrintStream out;
-    private static final ThreadedPrintStream err;
+    private static final ThreadedPrintStream OUT;
+    private static final ThreadedPrintStream ERR;
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
 
@@ -98,12 +98,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private final String deploymentId;
     private final boolean transferLogs;
 
-    private final String host;
+    private final String hostName;
     private final String workingDir;
     private final String installDir;
     private final String appDir;
 
     private final TaskExecution executionType;
+    private final boolean persistentC;
 
     private final LanguageParams[] langParams;
 
@@ -120,10 +121,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
 
         // Set processes to captuer out/error
-        out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
-        err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
-        System.setErr(err);
-        System.setOut(out);
+        OUT = new ThreadedPrintStream(SUFFIX_OUT, System.out);
+        ERR = new ThreadedPrintStream(SUFFIX_ERR, System.err);
+        System.setErr(ERR);
+        System.setOut(OUT);
     }
 
 
@@ -136,6 +137,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param hostName Worker hostname.
      * @param masterName Master hostname.
      * @param masterPort Master port.
+     * @param streamingPort Streaming port.
      * @param computingUnitsCPU Worker CPU computing units.
      * @param computingUnitsGPU Worker GPU computing units.
      * @param computingUnitsFPGA Worker FPGA computing units
@@ -144,6 +146,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param fpgaMap String describing the thread-fpga mapping.
      * @param limitOfTasks Limit of simultaneous tasks.
      * @param appUuid Application UUID.
+     * @param traceFlag Tracing flag.
+     * @param traceHost Tracing host name.
      * @param storageConf Storage configuration file path.
      * @param executionType Task execution type.
      * @param persistentC Whether to spawn persistent C workers or not.
@@ -155,10 +159,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param cParams C specific parameters.
      */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
-            int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap,
-            String fpgaMap, int limitOfTasks, String appUuid, String storageConf, TaskExecution executionType,
-            boolean persistentC, String workingDir, String installDir, String appDir, JavaParams javaParams,
-            PythonParams pyParams, CParams cParams) {
+            int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
+            String gpuMap, String fpgaMap, int limitOfTasks, String appUuid, String traceFlag, String traceHost,
+            String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir,
+            String appDir, JavaParams javaParams, PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
 
@@ -166,9 +170,25 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // Log worker creation
         WORKER_LOGGER.info("NIO Worker init");
 
+        // Set tracing attributes and initialize module if needed
+        this.tracingLevel = Integer.parseInt(traceFlag);
+        NIOTracer.init(this.tracingLevel);
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
+
+            if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
+                try {
+                    this.tracingId = Integer.parseInt(traceHost);
+                    NIOTracer.setWorkerInfo(installDir, hostName, workingDir, this.tracingId);
+                } catch (Exception e) {
+                    WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
+                }
+            }
+        }
+
         // Set attributes
         this.deploymentId = appUuid;
-        this.host = hostName;
+        this.hostName = hostName;
         this.workingDir = (workingDir.endsWith(File.separator) ? workingDir : workingDir + File.separator);
         this.installDir = (installDir.endsWith(File.separator) ? installDir : installDir + File.separator);
         this.appDir = appDir.equals("null") ? "" : appDir;
@@ -192,7 +212,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         // Start DataManagerImpl
-        this.dataManager = new DataManagerImpl(host, workingDir, this);
+        this.dataManager = new DataManagerImpl(this.hostName, masterName, streamingPort, workingDir, this);
 
         try {
             this.dataManager.init();
@@ -203,7 +223,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
                 computingUnitsFPGA, fpgaMap, limitOfTasks);
 
-        if (tracing_level == Tracer.BASIC_MODE) {
+        if (tracingLevel == Tracer.BASIC_MODE) {
             Tracer.enablePThreads();
         }
 
@@ -213,7 +233,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
-        if (tracing_level == Tracer.BASIC_MODE) {
+        if (tracingLevel == Tracer.BASIC_MODE) {
             Tracer.disablePThreads();
         }
     }
@@ -232,25 +252,28 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public boolean isMyUuid(String uuid, String nodeName) {
-        return uuid.equals(this.deploymentId) && nodeName.equals(this.host);
+        return uuid.equals(this.deploymentId) && nodeName.equals(this.hostName);
     }
 
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, List<String> obsoleteFiles) {
         WORKER_LOGGER.info("Received Job " + task);
-        WORKER_LOGGER.info("ARGUMENTS:");
-        for (InvocationParam param : task.getParams()) {
-            WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("ARGUMENTS:");
+            for (InvocationParam param : task.getParams()) {
+                WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
+            }
+            WORKER_LOGGER.debug("TARGET:");
+            if (task.getTarget() != null) {
+                WORKER_LOGGER.info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":"
+                        + task.getTarget().getValue());
+            }
+            WORKER_LOGGER.debug("RESULTS:");
+            for (InvocationParam param : task.getResults()) {
+                WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
+            }
         }
-        WORKER_LOGGER.info("TARGET:");
-        if (task.getTarget() != null) {
-            WORKER_LOGGER.info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":"
-                    + task.getTarget().getValue());
-        }
-        WORKER_LOGGER.info("RESULTS:");
-        for (InvocationParam param : task.getResults()) {
-            WORKER_LOGGER.info("    -" + param.getPrefix() + " " + param.getType() + ":" + param.getValue());
-        }
+
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.Event.WORKER_RECEIVED_NEW_TASK.getId(),
                     Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
@@ -343,7 +366,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     protected void handleDataToSendNotAvailable(Connection c, NIOData d) {
         // Now only manage at C (python could do the same when cache available)
-        WORKER_LOGGER.debug("handling data not available");
+        WORKER_LOGGER.debug("Handling data not available");
         /*
          * if (Lang.valueOf(lang.toUpperCase()) == Lang.C) { String path = d.getFirstURI().getPath();
          * WORKER_LOGGER.debug("about to serialize"); if (executionManager.serializeExternalData(d.getDataMgmtId(),
@@ -384,9 +407,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
+            if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug(
                     "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
-
+            }
         }
     }
 
@@ -413,15 +437,21 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             String taskFileErrName = this.getStandardStreamsPath(invocation) + ".err";
             checkStreamFileExistence(taskFileErrName, "err",
                     "Autogenerated Empty file. An error was produced before generating any log in the stderr");
-            WORKER_LOGGER.debug("Sending file " + taskFileOutName + ", for connection: " + c.hashCode());
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("Sending file " + taskFileOutName + ", for connection: " + c.hashCode());
+            }
             c.sendDataFile(taskFileOutName);
-            WORKER_LOGGER.debug("Sending file " + taskFileErrName + ", for connection: " + c.hashCode());
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("Sending file " + taskFileErrName + ", for connection: " + c.hashCode());
+            }
             c.sendDataFile(taskFileErrName);
         }
 
         c.finishConnection();
 
-        WORKER_LOGGER.debug("Job " + jobId + "(Task " + taskId + ") send job done");
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("Job " + jobId + "(Task " + taskId + ") send job done");
+        }
     }
 
     private void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
@@ -438,7 +468,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     // Check if this task is ready to execute
     private void executeTask(NIOTask task) {
-        WORKER_LOGGER.debug("Enqueueing job " + task.getJobId() + " for execution.");
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("Enqueueing job " + task.getJobId() + " for execution.");
+        }
 
         // Execute the job
         Execution e = new Execution(task, new ExecutionListener() {
@@ -454,7 +486,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // The message is sent after the task enqueue because the connection can
         // have N pending task transfer and will wait until they
         // are finished to send all the answers (blocking the task execution)
-        WORKER_LOGGER.debug("Notifying presence of all data for job " + task.getJobId() + ".");
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("Notifying presence of all data for job " + task.getJobId() + ".");
+        }
 
         CommandDataReceived cdr = new CommandDataReceived(this, task.getTransferGroupId());
         Connection c = TM.startConnection(masterNode);
@@ -581,13 +615,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public void generateWorkersDebugInfo(Connection c) {
         // Freeze output
-        String outSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + host + ".out";
-        String outTarget = workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + host + ".out";
+        String outSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + hostName + ".out";
+        String outTarget = workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName
+                + ".out";
         freezeFile(outSourcePath, outTarget);
 
         // Freeze error
-        String errSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + host + ".err";
-        String errTarget = workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + host + ".err";
+        String errSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + hostName + ".err";
+        String errTarget = workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName
+                + ".err";
         freezeFile(errSourcePath, errTarget);
 
         // End
@@ -653,38 +689,39 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         int wPort = Integer.parseInt(args[4]);
         String mName = args[5];
         int mPort = Integer.parseInt(args[6]);
+        int streamingPort = Integer.parseInt(args[7]);
 
-        int computingUnitsCPU = Integer.parseInt(args[7]);
-        int computingUnitsGPU = Integer.parseInt(args[8]);
-        int computingUnitsFPGA = Integer.parseInt(args[9]);
-        String cpuMap = args[10];
-        String gpuMap = args[11];
-        String fpgaMap = args[12];
-        int limitOfTasks = Integer.parseInt(args[13]);
+        int computingUnitsCPU = Integer.parseInt(args[8]);
+        int computingUnitsGPU = Integer.parseInt(args[9]);
+        int computingUnitsFPGA = Integer.parseInt(args[10]);
+        String cpuMap = args[11];
+        String gpuMap = args[12];
+        String fpgaMap = args[13];
+        int limitOfTasks = Integer.parseInt(args[14]);
 
-        String appUuid = args[14];
-        // String lang = args[15];
-        String workingDir = args[16];
-        String installDir = args[17];
-        final String appDir = args[18];
-        String libPath = args[19];
-        String classpath = args[20];
-        String pythonpath = args[21];
+        String appUuid = args[15];
+        // String lang = args[16];
+        String workingDir = args[17];
+        String installDir = args[18];
+        final String appDir = args[19];
+        String libPath = args[20];
+        String classpath = args[21];
+        String pythonpath = args[22];
 
-        String trace = args[22];
-        String extraeFile = args[23];
-        String host = args[24];
+        String traceFlag = args[23];
+        String extraeFile = args[24];
+        String traceHost = args[25];
 
-        String storageConf = args[25];
-        TaskExecution executionType = TaskExecution.valueOf(args[26].toUpperCase());
+        String storageConf = args[26];
+        TaskExecution executionType = TaskExecution.valueOf(args[27].toUpperCase());
 
-        boolean persistentC = Boolean.parseBoolean(args[27]);
+        boolean persistentC = Boolean.parseBoolean(args[28]);
 
-        String pythonInterpreter = args[28];
-        String pythonVersion = args[29];
-        String pythonVirtualEnvironment = args[30];
-        String pythonPropagateVirtualEnvironment = args[31];
-        String pythonMpiWorker = args[32];
+        String pythonInterpreter = args[29];
+        String pythonVersion = args[30];
+        String pythonVirtualEnvironment = args[31];
+        String pythonPropagateVirtualEnvironment = args[32];
+        String pythonMpiWorker = args[33];
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
@@ -700,6 +737,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("WorkerPort: " + String.valueOf(wPort));
             WORKER_LOGGER.debug("MasterName: " + mName);
             WORKER_LOGGER.debug("MasterPort: " + String.valueOf(mPort));
+            WORKER_LOGGER.debug("StreamingPort: " + String.valueOf(streamingPort));
 
             WORKER_LOGGER.debug("Computing Units CPU: " + String.valueOf(computingUnitsCPU));
             WORKER_LOGGER.debug("Computing Units GPU: " + String.valueOf(computingUnitsGPU));
@@ -713,9 +751,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("WorkingDir:" + workingDir);
             WORKER_LOGGER.debug("Install Dir: " + installDir);
 
-            WORKER_LOGGER.debug("Tracing: " + trace);
+            WORKER_LOGGER.debug("Tracing: " + traceFlag);
             WORKER_LOGGER.debug("Extrae config File: " + extraeFile);
-            WORKER_LOGGER.debug("Host: " + host);
+            WORKER_LOGGER.debug("Host: " + traceHost);
 
             WORKER_LOGGER.debug("LibraryPath: " + libPath);
             WORKER_LOGGER.debug("Classpath: " + classpath);
@@ -740,27 +778,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Configure tracing
         System.setProperty(COMPSsConstants.EXTRAE_CONFIG_FILE, extraeFile);
-        tracing_level = Integer.parseInt(trace);
-        NIOTracer.init(tracing_level);
-        if (NIOTracer.extraeEnabled()) {
-            NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
-        }
-        if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
-            try {
-                tracingID = Integer.parseInt(host);
-                NIOTracer.setWorkerInfo(installDir, workerIP, workingDir, tracingID);
-            } catch (Exception e) {
-                WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + host);
-            }
-        }
 
         /*
          * ***********************************************************************************************************
          * LAUNCH THE WORKER
          *************************************************************************************************************/
-        NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, computingUnitsCPU,
-                computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, storageConf,
-                executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams, cParams);
+        NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
+                computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, traceFlag,
+                traceHost, storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams,
+                pyParams, cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

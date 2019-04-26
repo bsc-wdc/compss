@@ -23,11 +23,11 @@ import es.bsc.compss.types.execution.InvocationParam;
 public interface DataProvider {
 
     /**
-     * Returns whether the persistent storage is enabled or not.
+     * Returns whether the persistent C backend is enabled or not.
      * 
-     * @return {@code true} if the persistent storage is enabled, {@code false} otherwise.
+     * @return {@code true} if the persistent C backend is enabled, {@code false} otherwise.
      */
-    public boolean isPersistentEnabled();
+    public boolean isPersistentCEnabled();
 
     /**
      * Requests a new transfer with the given information.

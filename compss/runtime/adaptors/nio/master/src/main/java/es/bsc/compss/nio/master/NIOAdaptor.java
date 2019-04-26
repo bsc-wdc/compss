@@ -77,15 +77,15 @@ import org.apache.logging.log4j.Logger;
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
+    // Logging
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean WORKER_DEBUG = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
+
     public static final int MAX_SEND = 1_000;
     public static final int MAX_RECEIVE = 1_000;
 
     public static final int MAX_SEND_WORKER = 5;
     public static final int MAX_RECEIVE_WORKER = 5;
-
-    // Logging
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final boolean WORKER_DEBUG = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
 
     /*
      * The master port can be: 1. Given by the MASTER_PORT property 2. A BASE_MASTER_PORT plus a random number
@@ -118,8 +118,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final Map<Connection, Semaphore> PENDING_MODIFICATIONS = new HashMap<>();
 
-    private Semaphore tracingGeneration = new Semaphore(0);
-    private Semaphore workersDebugInfo = new Semaphore(0);
+    private final boolean persistentC;
+
+    private final Semaphore tracingGeneration;
+    private final Semaphore workersDebugInfo;
 
 
     /**
@@ -127,12 +129,19 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
-        // Setting persistentC flag in the NIOAgent
+
+        // Setting persistentC flag
         String persistentCStr = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (persistentCStr == null || persistentCStr.isEmpty() || persistentCStr.equals("null")) {
             persistentCStr = COMPSsConstants.DEFAULT_PERSISTENT_C;
         }
-        setPersistent(Boolean.parseBoolean(persistentCStr));
+        this.persistentC = Boolean.parseBoolean(persistentCStr);
+
+        // Initialize tracing and workers debug semaphores
+        this.tracingGeneration = new Semaphore(0);
+        this.workersDebugInfo = new Semaphore(0);
+
+        // Create jobs directory
         File file = new File(JOBS_DIR);
         if (!file.exists()) {
             file.mkdir();
@@ -157,9 +166,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
 
         /* Init tracing values */
-        tracing = System.getProperty(COMPSsConstants.TRACING) != null
+        this.tracing = System.getProperty(COMPSsConstants.TRACING) != null
                 && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0;
-        tracing_level = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
+        this.tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
 
         // Start the server
         LOGGER.debug("  Starting transfer server...");
@@ -169,10 +178,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             String errMsg = "Error starting transfer server";
             ErrorManager.error(errMsg, ce);
         }
-
-        // Start the Transfer Manager thread (starts the EventManager)
-        // LOGGER.debug(" Starting TransferManager Thread");
-        // TM.start();
     }
 
     @Override
@@ -181,10 +186,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
-        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject = 
-                (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties;
-        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources = 
-                (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties;
+        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties;
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties;
 
         // Get ports
         int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
@@ -259,6 +262,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         NIOWorkerNode worker = new NIOWorkerNode(workerName, (NIOConfiguration) config, this);
         NODES.add(worker);
         return worker;
+    }
+
+    @Override
+    public boolean isPersistentCEnabled() {
+        return this.persistentC;
     }
 
     /**

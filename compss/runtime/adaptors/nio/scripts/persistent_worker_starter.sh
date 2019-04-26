@@ -1,5 +1,9 @@
 #!/bin/bash
 
+  # shellcheck disable=SC2154
+  # Because many variables are sourced from common setup.sh
+
+
   ######################
   # MAIN PROGRAM
   ######################
@@ -12,10 +16,11 @@
     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
   fi
   # shellcheck source=setup.sh
-  source ${SCRIPT_DIR}/setup.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/setup.sh
 
   # Load parameters --------------------------------------------------
-  load_parameters $@
+  load_parameters "$@"
 
   # Trap to clean environment
   trap clean_env EXIT
@@ -38,7 +43,8 @@
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
-  $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err
+  # shellcheck disable=SC2086
+  $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err"
   exitValue=$?
 
   post_launch
@@ -48,4 +54,3 @@
     echo "[persistent_worker.sh] Exit NIOWorker of host ${hostName} with exit value ${exitValue}"
   fi
   exit $exitValue
-

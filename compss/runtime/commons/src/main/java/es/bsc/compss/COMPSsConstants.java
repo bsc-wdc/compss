@@ -31,8 +31,8 @@ public class COMPSsConstants {
      * Accepted Execution modes.
      */
     public static enum TaskExecution {
-        COMPSS, // Internal Execution
-        STORAGE // External execution
+    COMPSS, // Internal Execution
+    STORAGE // External execution
     }
 
     /**
@@ -52,6 +52,17 @@ public class COMPSsConstants {
         python, // For systemwide python interpreter
         python2, // For Python 2 interpreter
         python3 // For python 3 interpreter
+    }
+
+    /**
+     * Stream backends
+     */
+    public static enum StreamBackend {
+        FILES, // Only enable streaming for files
+        OBJECTS, // Only enable streaming for objects
+        PSCOS, // Only enable streaming for PSCOs
+        NONE, // Disable any kind of stream
+        ALL; // Enable all kinds of streams
     }
 
 
@@ -130,6 +141,9 @@ public class COMPSsConstants {
     public static final String STORAGE_CONF = "compss.storage.conf";
     public static final String TASK_EXECUTION = "compss.task.execution";
 
+    // Streaming properties
+    public static final String STREAMING_BACKEND = "compss.streaming";
+
     // Persistent worker c property
     public static final String WORKER_PERSISTENT_C = "compss.worker.persistent.c";
 
@@ -145,7 +159,7 @@ public class COMPSsConstants {
     public static final String COMPSS_IS_WS = "compss.is.ws";
     public static final String COMPSS_IS_MAINCLASS = "compss.is.mainclass";
 
-    // Properties for locating the it.properties file
+    // Properties for locating the compss.properties file
     public static final String COMPSS_CONFIG = "compss.properties";
     public static final String COMPSS_CONFIG_LOCATION = "compss.properties.location";
     public static final String COMPSS_CONTEXT = "compss.context";
@@ -190,6 +204,9 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
 
 
+    /**
+     * Private constructor to avoid instantiation.
+     */
     private COMPSsConstants() {
         throw new NonInstantiableException("COMPSsConstants");
     }

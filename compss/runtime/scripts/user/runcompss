@@ -24,6 +24,10 @@ DEFAULT_TRACING_ARGUMENT=true #-3:arm-ddt, -2:arm-map, -1:scorep, 0:deactivated,
 DEFAULT_MONITORING_INTERVAL=0
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 
+DEFAULT_STORAGE_CONF="null"
+
+DEFAULT_STREAMING="null"
+
 DEFAULT_TASK_COUNT=50
 
 if [ -z "${PBS_O_WORKDIR}" ]; then
@@ -38,7 +42,6 @@ else
   DEFAULT_APPDIR=${PBS_O_WORKDIR}
 fi
 
-DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
 DEFAULT_PYTHON_INTERPRETER=python
 DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
@@ -83,6 +86,8 @@ JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your 
 RUNTIME_ERROR="Error running application"
 TMP_FILE_JVM_ERROR="Error: Can't create temporary file for JVM options."
 TRACING_ERROR="Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
+
+
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -132,6 +137,9 @@ show_opts() {
                                             Supported connectors: es.bsc.compss.connectors.DefaultSSHConnector
                                                | es.bsc.compss.connectors.DefaultNoSSHConnector
                                             Default: ${DEFAULT_CONNECTOR}
+    --streaming=<type>                      Enable the streaming mode for the given type.
+                                            Supported types: FILES, OBJECTS, PSCOS, ALL, NONE
+                                            Default: ${DEFAULT_STREAMING}
     --scheduler=<className>                 Class that implements the Scheduler for COMPSs
                                             Supported schedulers: es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
                                                                   | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
@@ -420,37 +428,40 @@ get_args() {
             show_recipe
             exit 0
             ;;
-	  project=*)
-	    # Custom project file
-	    projFile=${OPTARG//project=/}
-	    if [ ! -f "$projFile" ]; then
-	      echo "[ WARNING ]: Project XML file '$projFile' could not be found."
-	    fi
-	    ;;
-	  resources=*)
-	    # Custom resources file
-	    resFile=${OPTARG//resources=/}
-	    if [ ! -f "$resFile" ]; then
-	      echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
-	    fi
+	      project=*)
+	        # Custom project file
+	        projFile=${OPTARG//project=/}
+	        if [ ! -f "$projFile" ]; then
+	          echo "[ WARNING ]: Project XML file '$projFile' could not be found."
+	        fi
+	        ;;
+	      resources=*)
+	        # Custom resources file
+	        resFile=${OPTARG//resources=/}
+	        if [ ! -f "$resFile" ]; then
+	          echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
+	        fi
             ;;
           summary)
             summary=true
             ;;
-	  storage_conf=*)
+	      storage_conf=*)
             storageConf=${OPTARG//storage_conf=/}
             ;;
-    storage_impl=*)
+          storage_impl=*)
             storageImpl=${OPTARG//storage_impl=/}
             ;;
-	  task_execution=*)
-	    # Task execution under COMPSs or Storage
-	    taskExecution=${OPTARG//task_execution=/}
-	    ;;
-	  lang=*)
-	    # Language selection
-	    lang=${OPTARG//lang=/}
-	    ;;
+          streaming=*)
+            streaming=${OPTARG//streaming=/}
+            ;;
+	      task_execution=*)
+	        # Task execution under COMPSs or Storage
+	        taskExecution=${OPTARG//task_execution=/}
+	        ;;
+	      lang=*)
+	        # Language selection
+	        lang=${OPTARG//lang=/}
+	        ;;
           log_level=*)
             # Enable different log_levels by user selection
             log_level=${OPTARG//log_level=/}
@@ -459,14 +470,14 @@ get_args() {
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
-	  graph=*)
-	    # Graph generation at the end of the execution with user option
-	    graph=${OPTARG//graph=/}
-	    ;;
-	  graph)
-	    # Graph generation at the end of the execution by default arg
-	    graph=${DEFAULT_GRAPH_ARGUMENT}
-	    ;;
+	      graph=*)
+	        # Graph generation at the end of the execution with user option
+	        graph=${OPTARG//graph=/}
+	        ;;
+	      graph)
+	        # Graph generation at the end of the execution by default arg
+	        graph=${DEFAULT_GRAPH_ARGUMENT}
+	        ;;
           tracing=*)
             # Tracing system
             tracing=${OPTARG//tracing=/}
@@ -479,34 +490,34 @@ get_args() {
             # Custom extrae config file
             custom_extrae_config_file=${OPTARG//extrae_config_file=/}
             ;;
-	  monitoring=*)
-	    # Value between monitor steps (ms)
-	    monitoring=${OPTARG//monitoring=/}
-	    ;;
-	  monitoring)
-	    # Value between monitor steps (ms)
-	    monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
-	    ;;
-	  comm=*)
-	    # Communication adaptor main class
-	    comm=${OPTARG//comm=/}
-	    ;;
-	  conn=*)
-	    # Communication connector main class
-	    conn=${OPTARG//conn=/}
-	    ;;
+	      monitoring=*)
+	        # Value between monitor steps (ms)
+	        monitoring=${OPTARG//monitoring=/}
+	        ;;
+	      monitoring)
+	        # Value between monitor steps (ms)
+	        monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+	        ;;
+	      comm=*)
+	        # Communication adaptor main class
+	        comm=${OPTARG//comm=/}
+	        ;;
+	      conn=*)
+	        # Communication connector main class
+	        conn=${OPTARG//conn=/}
+	        ;;
           scheduler=*)
             # Scheduler main class
             scheduler=${OPTARG//scheduler=/}
             ;;
-	  classpath=*)
-	    # Additional classpath
-	    cp=${OPTARG//classpath=/}
-	    ;;
-	  library_path=*)
-	    # Additional library path
-	    library_path=${OPTARG//library_path=/}
-	    ;;
+	      classpath=*)
+	        # Additional classpath
+	        cp=${OPTARG//classpath=/}
+	        ;;
+	      library_path=*)
+	        # Additional library path
+	        library_path=${OPTARG//library_path=/}
+	        ;;
           jvm_master_opts=*)
             # Master JVM option
             jvm_master_opts=${OPTARG//jvm_master_opts=/}
@@ -549,7 +560,7 @@ get_args() {
             # Set a custom specific log dir
             specific_log_dir=${OPTARG//specific_log_dir=/}
             ;;
-	  uuid=*)
+	      uuid=*)
             # Preset an Application UUID
             uuid=${OPTARG//uuid=/}
             ;;
@@ -609,16 +620,16 @@ get_args() {
             # Enable or disable the virtual environment propagation
             python_mpi_worker=${OPTARG//python_mpi_worker=/}
             ;;
-  	  *)
-	    # Flag didn't match any patern. Raise exception
-	    display_error "Bad argument: $OPTARG"
+  	      *)
+	        # Flag didn't match any patern. Raise exception
+	        display_error "Bad argument: $OPTARG"
+	        ;;
+	    esac
 	    ;;
-	esac
-	;;
       *)
-	# Flag didn't match any patern. End of COMPSs flags
-	break
-	;;
+	    # Flag didn't match any patern. End of COMPSs flags
+	    break
+	    ;;
     esac
   done
   # Shift COMPSs arguments
@@ -638,7 +649,6 @@ get_args() {
 
   # Parse application arguments
   application_args=$*
-
 }
 
 ###############################################
@@ -664,7 +674,7 @@ infer_language() {
     # Try to infer language by file command
     isPython=$(file "$fullAppPath" | grep "Python" | cat)
     isPythonCompiled=$(file "$fullAppPath" | grep "python" | cat)
-    isC=$(file "$fullAppPath" | egrep "executable|ELF" | cat)
+    isC=$(file "$fullAppPath" | grep -E "executable|ELF" | cat)
     if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
       echo "[  INFO] Inferred PYTHON language"
       lang=python
@@ -778,7 +788,12 @@ check_args() {
 
   # Storage configuration
   if [ -z "$storageConf" ]; then
-    storageConf="null"
+    storageConf=${DEFAULT_STORAGE_CONF}
+  fi
+
+  # Streaming
+  if [ -z "${streaming}" ]; then
+    streaming=${DEFAULT_STREAMING}
   fi
 
   # Master log level
@@ -1021,6 +1036,7 @@ ${jvm_debugger_opts}
 -Dcompss.extrae.file=${custom_extrae_config_file}
 -Dcompss.comm=${comm}
 -Dcompss.conn=${conn}
+-Dcompss.streaming=${streaming}
 -Dcompss.masterName=${master_name}
 -Dcompss.masterPort=${master_port}
 -Dcompss.scheduler=${scheduler}
@@ -1084,7 +1100,7 @@ exec_java() {
   # Define command
   local java_opts
   local JAVACMD
-  java_opts=$(cat "${jvm_options_file}" | tr '\n' ' ')
+  java_opts=$(tr "\\n" " " < "${jvm_options_file}")
   JAVACMD=$JAVA" ${java_opts}"
 
   if [ $tracing -gt 0 ]; then
@@ -1092,6 +1108,7 @@ exec_java() {
   fi
 
   # Launch application
+  # shellcheck disable=SC2086
   $JAVACMD ${RUNTIME_LOADER} total "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
@@ -1135,6 +1152,7 @@ exec_c() {
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
 
+  # shellcheck disable=SC2086
   $fullAppPath ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
@@ -1188,6 +1206,7 @@ exec_python() {
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
 
+  # shellcheck disable=SC2086
   $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then

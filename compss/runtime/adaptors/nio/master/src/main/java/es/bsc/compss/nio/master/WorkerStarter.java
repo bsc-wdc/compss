@@ -19,6 +19,7 @@ package es.bsc.compss.nio.master;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTracer;
@@ -385,33 +386,28 @@ public class WorkerStarter {
         String storageConf = System.getProperty(COMPSsConstants.STORAGE_CONF);
         if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
             storageConf = "null";
-            LOGGER.warn("No storage configuration file passed");
         }
         String executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
         if (executionType == null || executionType.equals("") || executionType.equals("null")) {
             executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
-            LOGGER.warn("No executionType passed");
         }
 
         // configure persistent_worker_c execution
         String workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (workerPersistentC == null || workerPersistentC.isEmpty() || workerPersistentC.equals("null")) {
             workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
-            LOGGER.warn("No persistent c passed");
         }
 
         // Configure python interpreter
         String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
         if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
             pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
-            LOGGER.warn("No python interpreter passed");
         }
 
         // Configure python version
         String pythonVersion = System.getProperty(COMPSsConstants.PYTHON_VERSION);
         if (pythonVersion == null || pythonVersion.isEmpty() || pythonVersion.equals("null")) {
             pythonVersion = COMPSsConstants.DEFAULT_PYTHON_VERSION;
-            LOGGER.warn("No python version passed");
         }
 
         // Configure python virtual environment
@@ -419,20 +415,17 @@ public class WorkerStarter {
         if (pythonVirtualEnvironment == null || pythonVirtualEnvironment.isEmpty()
                 || pythonVirtualEnvironment.equals("null")) {
             pythonVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
-            LOGGER.warn("No python virtual environment passed");
         }
         String pythonPropagateVirtualEnvironment = System
                 .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
         if (pythonPropagateVirtualEnvironment == null || pythonPropagateVirtualEnvironment.isEmpty()
                 || pythonPropagateVirtualEnvironment.equals("null")) {
             pythonPropagateVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
-            LOGGER.warn("No python propagate virtual environment passed");
         }
 
         String pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
         if (pythonMpiWorker == null || pythonMpiWorker.isEmpty() || pythonMpiWorker.equals("null")) {
             pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
-            LOGGER.warn("No python MPI worker flag passed.");
         }
 
         /*
@@ -464,19 +457,21 @@ public class WorkerStarter {
         }
 
         cmd[3] = workerClasspath.isEmpty() ? "null" : workerClasspath;
-        cmd[4] = String.valueOf(jvmFlags.length);
+
+        cmd[4] = Comm.getStreamingBackend().name();
+
+        cmd[5] = String.valueOf(jvmFlags.length);
         for (int i = 0; i < jvmFlags.length; ++i) {
             cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = jvmFlags[i];
         }
 
-        int fpgaPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
-        cmd[fpgaPosition] = String.valueOf(fpgaArgs.length);
-        for (int i = 0; i < fpgaArgs.length; ++i) {
-            cmd[fpgaPosition + i + 1] = fpgaArgs[i];
+        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
+        cmd[nextPosition++] = String.valueOf(fpgaArgs.length);
+        for (String fpgaArg : fpgaArgs) {
+            cmd[nextPosition++] = fpgaArg;
         }
 
         /* Values for NIOWorker ********************************** */
-        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length + 1 + fpgaArgs.length;
         cmd[nextPosition++] = workerDebug;
 
         // Internal parameters
@@ -486,6 +481,7 @@ public class WorkerStarter {
         cmd[nextPosition++] = String.valueOf(workerPort);
         cmd[nextPosition++] = masterName;
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MASTER_PORT);
+        cmd[nextPosition++] = String.valueOf(Comm.getStreamingPort());
 
         // Worker parameters
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalComputingUnits());

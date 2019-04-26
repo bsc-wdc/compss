@@ -217,7 +217,7 @@ public class GATWorker implements InvocationContext {
     }
 
     @Override
-    public boolean isPersistentEnabled() {
+    public boolean isPersistentCEnabled() {
         return false;
     }
 

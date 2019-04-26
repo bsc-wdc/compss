@@ -1134,7 +1134,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public boolean isPersistentEnabled() {
+    public boolean isPersistentCEnabled() {
         return this.persistentEnabled;
     }
 

@@ -1057,9 +1057,11 @@ class task(object):
         # get the return values
         if self.decorator_arguments['numba']:
             from numba import jit
+            from numba import generated_jit
             from numba import vectorize
             from numba import guvectorize
             from numba import stencil
+            from numba import cfunc
             numba_mode = self.decorator_arguments['numba']
             numba_flags = self.decorator_arguments['numba_flags']
             numba_flags['cache'] = True   # Always force cache
@@ -1070,10 +1072,15 @@ class task(object):
                         **numba_flags)(*user_args, **user_kwargs)
             elif numba_mode is True or numba_mode == 'jit':
                 user_returns = jit(self.user_function,
-                                   **numba_flags)(*user_args, **user_kwargs)
+                                   **numba_flags)(*user_args,
+                                                  **user_kwargs)
                 # Alternative way of calling:
                 # user_returns = jit(cache=True)(self.user_function) \
                 #                   (*user_args, **user_kwargs)
+            elif numba_mode is True or numba_mode == 'generated_jit':
+                user_returns = generated_jit(self.user_function,
+                                             **numba_flags)(*user_args,
+                                                            **user_kwargs)
             elif numba_mode == 'njit':
                 numba_flags['nopython'] = True
                 user_returns = jit(self.user_function,
@@ -1094,6 +1101,11 @@ class task(object):
                 del numba_flags['cache']  # remove the forced cache flag
                 user_returns = stencil(
                                    **numba_flags
+                               )(self.user_function)(*user_args, **user_kwargs)
+            elif numba_mode == 'cfunc':
+                numba_signature = self.decorator_arguments['numba_signature']
+                user_returns = cfunc(
+                                   numba_signature
                                )(self.user_function)(*user_args, **user_kwargs)
             else:
                 raise Exception("Unsupported numba mode.")

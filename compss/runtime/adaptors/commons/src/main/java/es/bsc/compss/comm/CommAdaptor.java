@@ -37,10 +37,10 @@ public interface CommAdaptor {
     /**
      * Creates a configuration instance for the specific adaptor.
      * 
-     * @param projectProperties Project Properties
-     * @param resourcesProperties Resources Properties
-     * @return Configuration
-     * @throws ConstructConfigurationException Error creating configuration.
+     * @param project_properties Properties from the project.xml file.
+     * @param resources_properties Properties from the resources.xml file.
+     * @return Adaptor configuration.
+     * @throws ConstructConfigurationException When cannot load the adaptor jar files.
      */
     public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException;
@@ -48,9 +48,9 @@ public interface CommAdaptor {
     /**
      * Initializes a worker through an adaptor.
      * 
-     * @param workerName Worker name
-     * @param config Worker configuration
-     * @return COMPSs worker representation
+     * @param workerName Worker name.
+     * @param config Adaptor configuration.
+     * @return A COMPSsWorker object representing the initialized worker.
      */
     public COMPSsWorker initWorker(String workerName, Configuration config);
 
@@ -62,14 +62,14 @@ public interface CommAdaptor {
     /**
      * Retrieves all the pending operations.
      * 
-     * @return
+     * @return All the pending operations.
      */
     public List<DataOperation> getPending();
 
     /**
-     * add complete Master URI to a multiURI.
+     * Modifies the given MultiURI to append the complete Master URI.
      * 
-     * @param u MultiURI
+     * @param u MultiURI to store the Master URI.
      */
     public void completeMasterURI(MultiURI u);
 

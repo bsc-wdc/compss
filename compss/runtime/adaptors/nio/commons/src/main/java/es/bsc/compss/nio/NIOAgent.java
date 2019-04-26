@@ -106,6 +106,7 @@ public abstract class NIOAgent {
     protected static int tracingID = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected static HashMap<Connection, Integer> connection2Partner;
 
+
     /**
      * Constructor
      *
@@ -156,7 +157,6 @@ public abstract class NIOAgent {
      * Returns DataRequests of a given dataId
      *
      * @param dataId
-     *
      * @return
      */
     protected List<DataRequest> getDataRequests(String dataId) {
@@ -180,8 +180,8 @@ public abstract class NIOAgent {
     public void requestTransfers() {
         DataRequest dr = null;
         synchronized (pendingRequests) {
-            if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
-                dr = pendingRequests.remove();
+            if (!this.pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
+                dr = this.pendingRequests.remove();
             }
         }
         while (dr != null) {
@@ -193,7 +193,7 @@ public abstract class NIOAgent {
             }
             NIONode nn = uri.getHost();
             if (nn.getIp() == null) {
-                nn = masterNode;
+                nn = this.masterNode;
             }
             Connection c = null;
 
@@ -205,7 +205,7 @@ public abstract class NIOAgent {
                 }
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
                 CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
-                ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
+                this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
                 if (NIOTracer.extraeEnabled()) {
@@ -239,8 +239,8 @@ public abstract class NIOAgent {
                 }
             }
             synchronized (pendingRequests) {
-                if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
-                    dr = pendingRequests.remove();
+                if (!this.pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
+                    dr = this.pendingRequests.remove();
                 } else {
                     dr = null;
                 }
@@ -291,8 +291,8 @@ public abstract class NIOAgent {
         if (list == null) {
             list = new LinkedList<>();
             dataToRequests.put(dr.getSource().getDataMgmtId(), list);
-            synchronized (pendingRequests) {
-                pendingRequests.add(dr);
+            synchronized (this.pendingRequests) {
+                this.pendingRequests.add(dr);
             }
         }
         list.add(dr);
@@ -308,7 +308,7 @@ public abstract class NIOAgent {
     public void sendData(Connection c, NIOData d, int receiverID) {
         if (NIOTracer.extraeEnabled()) {
             int tag = abs(d.getDataMgmtId().hashCode());
-            CommandTracingID cmd = new CommandTracingID(tracingID, tag);
+            CommandTracingID cmd = new CommandTracingID(this.tracingID, tag);
             c.sendCommand(cmd);
             NIOTracer.emitDataTransferEvent(d.getDataMgmtId());
             NIOTracer.emitCommEvent(true, receiverID, tag);
@@ -482,9 +482,8 @@ public abstract class NIOAgent {
      * @param t
      */
     public void receivedData(Connection c, Transfer t) {
-
-        String dataId = ongoingTransfers.remove(c);
-        if (dataId == null) { 
+        String dataId = this.ongoingTransfers.remove(c);
+        if (dataId == null) {
             // It has received the output and error of a job execution
             return;
         }
@@ -492,22 +491,22 @@ public abstract class NIOAgent {
             LOGGER.debug(DBG_PREFIX + "Receiving data " + dataId);
         }
         releaseReceiveSlot();
-        
+
         // Add tracing event
         if (NIOTracer.extraeEnabled()) {
             int tag = abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId);
-            NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag, t.getSize());
-            connection2Partner.remove(c);
+            NIOTracer.emitCommEvent(false, this.connection2Partner.get(c), tag, t.getSize());
+            this.connection2Partner.remove(c);
         }
-        
+
         // Get all data requests for this source data_id/filename, and group by the target(final) data_id/filename
-        List<DataRequest> requests = dataToRequests.remove(dataId);       
+        List<DataRequest> requests = dataToRequests.remove(dataId);
         if (requests == null || requests.isEmpty()) {
-            LOGGER.warn( "WARN: No data removed for received data " + dataId);
+            LOGGER.warn("WARN: No data removed for received data " + dataId);
             return;
         }
-        
+
         boolean isBindingType = requests.get(0).getType().equals(DataType.BINDING_OBJECT_T);
         Map<String, List<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
@@ -585,7 +584,8 @@ public abstract class NIOAgent {
                             LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
                                     + " will be saved as name " + dataId);
                         }
-                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
+                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(),
+                                bo.getElements());
                         receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
                     } else {
                         BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
@@ -639,7 +639,7 @@ public abstract class NIOAgent {
         requestTransfers();
 
         // Check if shutdown and ready
-        if (finish == true && !hasPendingTransfers()) {
+        if (this.finish == true && !hasPendingTransfers()) {
             shutdown(closingConnection);
         }
 
@@ -675,8 +675,8 @@ public abstract class NIOAgent {
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Command for shutdown received. Preparing for shutdown...");
         }
-        closingConnection = requester;
-        finish = true;
+        this.closingConnection = requester;
+        this.finish = true;
 
         // Order copies of filesToSend?
         if (!hasPendingTransfers()) {
@@ -697,8 +697,8 @@ public abstract class NIOAgent {
     private boolean tryAcquireReceiveSlot() {
         boolean b = false;
         synchronized (this) {
-            if (receiveTransfers < MAX_RECEIVE_TRANSFERS) {
-                receiveTransfers++;
+            if (this.receiveTransfers < MAX_RECEIVE_TRANSFERS) {
+                this.receiveTransfers++;
                 b = true;
             }
         }
@@ -718,18 +718,17 @@ public abstract class NIOAgent {
      * Check if there is a transfer slot available
      *
      * @param c
-     *
      * @return
      */
     public boolean tryAcquireSendSlot(Connection c) {
         boolean b = false;
-        if (sendTransfers < MAX_SEND_TRANSFERS) {
-            sendTransfers++;
+        if (this.sendTransfers < MAX_SEND_TRANSFERS) {
+            this.sendTransfers++;
 
             b = true;
             for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
-                if (trasmittingConnections[i] == null) {
-                    trasmittingConnections[i] = c;
+                if (this.trasmittingConnections[i] == null) {
+                    this.trasmittingConnections[i] = c;
                     break;
                 }
             }
@@ -745,12 +744,12 @@ public abstract class NIOAgent {
     public void releaseSendSlot(Connection c) {
         synchronized (this) {
             for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
-                if (trasmittingConnections[i] == c) {
-                    trasmittingConnections[i] = null;
-                    sendTransfers--;
-                    if (finish) {
+                if (this.trasmittingConnections[i] == c) {
+                    this.trasmittingConnections[i] = null;
+                    this.sendTransfers--;
+                    if (this.finish) {
                         if (!hasPendingTransfers()) {
-                            shutdown(closingConnection);
+                            shutdown(this.closingConnection);
                         }
                     }
                     break;
@@ -767,20 +766,20 @@ public abstract class NIOAgent {
      * @param t
      */
     public void receivedRequestedDataNotAvailableError(Connection c, Transfer t) {
-        String dataId = ongoingTransfers.remove(c);
+        String dataId = this.ongoingTransfers.remove(c);
         if (dataId == null) { // It has received the output and error of a job
             // execution
             return;
         }
 
         releaseReceiveSlot();
-        List<DataRequest> requests = dataToRequests.remove(dataId);
+        List<DataRequest> requests = this.dataToRequests.remove(dataId);
         handleRequestedDataNotAvailableError(requests, dataId);
         requestTransfers();
 
         // Check if shutdown and ready
-        if (finish == true && !hasPendingTransfers()) {
-            shutdown(closingConnection);
+        if (this.finish == true && !hasPendingTransfers()) {
+            shutdown(this.closingConnection);
         }
     }
 

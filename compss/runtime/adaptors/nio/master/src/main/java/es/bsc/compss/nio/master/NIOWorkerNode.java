@@ -48,17 +48,25 @@ import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
+import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.DataOperation.OpEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.data.operation.copy.DeferredCopy;
 import es.bsc.compss.types.data.operation.copy.StorageCopy;
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -92,15 +100,23 @@ public class NIOWorkerNode extends COMPSsWorker {
     private boolean started = false;
     private WorkerStarter workerStarter;
 
-    @Override
-    public String getName() {
-        return this.config.getHost();
-    }
 
+    /**
+     * Creates a new NIOWorkerNode instance.
+     * 
+     * @param name Worker name.
+     * @param config Worker configuration.
+     * @param adaptor Worker communication adaptor.
+     */
     public NIOWorkerNode(String name, NIOConfiguration config, NIOAdaptor adaptor) {
         super(name, config);
         this.config = config;
         this.commManager = adaptor;
+    }
+
+    @Override
+    public String getName() {
+        return this.config.getHost();
     }
 
     @Override
@@ -129,26 +145,56 @@ public class NIOWorkerNode extends COMPSsWorker {
         return this.config.getUser();
     }
 
+    /**
+     * Returns the hostname of the worker node.
+     * 
+     * @return The hostname of the worker node.
+     */
     public String getHost() {
         return this.config.getHost();
     }
 
+    /**
+     * Returns the installation directory of the worker node.
+     * 
+     * @return The installation directory of the worker node.
+     */
     public String getInstallDir() {
         return this.config.getInstallDir();
     }
 
+    /**
+     * Returns the base working directory of the worker node.
+     * 
+     * @return The base working directory of the worker node.
+     */
     public String getBaseWorkingDir() {
         return this.config.getWorkingDir();
     }
 
+    /**
+     * Returns the sandboxed working directory of the worker node.
+     * 
+     * @return The sandboxed working directory of the worker node.
+     */
     public String getWorkingDir() {
         return this.config.getSandboxWorkingDir();
     }
 
+    /**
+     * Returns the application directory.
+     * 
+     * @return The application directory.
+     */
     public String getAppDir() {
         return this.config.getAppDir();
     }
 
+    /**
+     * Returns the library path.
+     * 
+     * @return The library path.
+     */
     public String getLibPath() {
         return this.config.getLibraryPath();
     }
@@ -163,22 +209,47 @@ public class NIOWorkerNode extends COMPSsWorker {
         return this.config.getPythonpath();
     }
 
+    /**
+     * Returns the limit of tasks of the worker node.
+     * 
+     * @return The limit of tasks of the worker node.
+     */
     public int getLimitOfTasks() {
         return this.config.getLimitOfTasks();
     }
 
+    /**
+     * Returns the total number of CPU computing units of the worker node.
+     * 
+     * @return The total number of CPU computing units of the worker node.
+     */
     public int getTotalComputingUnits() {
         return this.config.getTotalComputingUnits();
     }
 
+    /**
+     * Returns the total number of GPU computing units of the worker node.
+     * 
+     * @return The total number of GPU computing units of the worker node.
+     */
     public int getTotalGPUs() {
         return this.config.getTotalGPUComputingUnits();
     }
 
+    /**
+     * Returns the total number of FPGA computing units of the worker node.
+     * 
+     * @return The total number of FPGA computing units of the worker node.
+     */
     public int getTotalFPGAs() {
         return this.config.getTotalFPGAComputingUnits();
     }
 
+    /**
+     * Returns the worker node configuration.
+     * 
+     * @return The worker node configuration.
+     */
     public NIOConfiguration getConfiguration() {
         return this.config;
     }
@@ -355,8 +426,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     private void newReplica(StorageCopy sc) {
         String targetHostname = this.getName();
-        LogicalData srcLD = sc.getSourceData();
-        LogicalData targetLD = sc.getTargetData();
+        final LogicalData srcLD = sc.getSourceData();
+        final LogicalData targetLD = sc.getTargetData();
 
         LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
@@ -591,6 +662,13 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
     }
 
+    /**
+     * Submits a new task to the worker.
+     * 
+     * @param job Job to submit.
+     * @param obsolete List of obsolete objects to delete.
+     * @throws UnstartedNodeException If the node has not started yet.
+     */
     public void submitTask(NIOJob job, List<String> obsolete) throws UnstartedNodeException {
         if (node == null) {
             throw new UnstartedNodeException();
@@ -602,8 +680,13 @@ public class NIOWorkerNode extends COMPSsWorker {
         c.finishConnection();
     }
 
+    /**
+     * Marks the worker start status.
+     * 
+     * @param b New worker start status.
+     */
     public void setStarted(boolean b) {
-        started = b;
+        this.started = b;
     }
 
     @Override
@@ -617,7 +700,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         try {
             sem.acquire();
         } catch (InterruptedException ie) {
-            //Do nothing
+            // Do nothing
         }
     }
 
@@ -632,7 +715,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         try {
             sem.acquire();
         } catch (InterruptedException ie) {
-            //Do nothing
+            // Do nothing
         }
     }
 }

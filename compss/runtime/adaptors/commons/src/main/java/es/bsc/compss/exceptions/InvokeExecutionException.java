@@ -24,10 +24,21 @@ public class InvokeExecutionException extends Exception {
     private static final long serialVersionUID = 2L;
 
 
+    /**
+     * New InvokeExecutionException exception with message {@code message}.
+     * 
+     * @param message Exception message.
+     */
     public InvokeExecutionException(String message) {
         super(message);
     }
 
+    /**
+     * New InvokeExecutionException exception with message {@code message} and nested exception {@code e}.
+     * 
+     * @param message Exception message.
+     * @param e Nested exception.
+     */
     public InvokeExecutionException(String message, Exception e) {
         super(message, e);
     }

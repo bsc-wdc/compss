@@ -28,25 +28,25 @@ public class CopyException extends Exception {
 
 
     /**
-     * New empty Copy Exception
+     * New empty Copy Exception.
      */
     public CopyException() {
         super();
     }
 
     /**
-     * New nested @e Copy Exception.
+     * New nested {@code e} Copy Exception.
      * 
-     * @param e Causing exception
+     * @param e Nested exception.
      */
     public CopyException(Exception e) {
         super(e);
     }
 
     /**
-     * New Copy Exception with message @msg.
+     * New Copy Exception with message {@code msg}.
      * 
-     * @param msg Error message
+     * @param msg Exception message.
      */
     public CopyException(String msg) {
         super(msg);

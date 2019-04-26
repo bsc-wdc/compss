@@ -19,29 +19,32 @@ package es.bsc.compss.nio.worker.components;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
+import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.data.MultiOperationFetchListener;
+import es.bsc.compss.exceptions.UnloadableValueException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
+import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.util.BindingDataManager;
-import es.bsc.compss.util.ErrorManager;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-
 import java.util.HashMap;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import storage.StorageException;
 import storage.StorageItf;
 
@@ -52,72 +55,65 @@ public class DataManagerImpl implements DataManager {
     private static final Logger WORKER_LOGGER = LogManager.getLogger(Loggers.WORKER);
     private static final boolean WORKER_LOGGER_DEBUG = WORKER_LOGGER.isDebugEnabled();
 
+    // Storage
+    private static final String STORAGE_CONF;
+
     // Data Provider
     private final DataProvider provider;
     // String hostName
     private final String hostName;
     // Default data folder
     private final String baseFolder;
-    // Storage configuration file
-    private final String storageConf;
-
+    // Data registry
     private final HashMap<String, DataRegister> registry;
 
+    static {
+        String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
+        STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))
+                ? null
+                : storageCfgProperty;
+    }
+
+
     /**
-     * Instantiates a new Data Manager
+     * Instantiates a new Data Manager.
      *
-     * @param hostName
-     * @param baseFolder
-     * @param provider
+     * @param hostName Worker hostname.
+     * @param baseFolder Base worker working directory.
+     * @param provider Data provider.
      */
     public DataManagerImpl(String hostName, String baseFolder, DataProvider provider) {
         this.registry = new HashMap<>();
         this.provider = provider;
         this.hostName = hostName;
         this.baseFolder = baseFolder;
-        String storageCfg = System.getProperty(COMPSsConstants.STORAGE_CONF);
-        if (storageCfg == null || storageCfg.equals("") || storageCfg.equals("null")) {
-            storageCfg = null;
-        }
-        this.storageConf = storageCfg;
     }
 
-    /**
-     * Initializes the Data Manager
-     *
-     * @throws InitializationException
-     */
     @Override
     public void init() throws InitializationException {
-        if (storageConf != null) {
-            try {
-                StorageItf.init(storageConf);
-            } catch (StorageException e) {
-                ErrorManager.fatal("Error loading storage configuration file: " + storageConf, e);
-            }
-        } else {
+        // Start storage interface
+        if (STORAGE_CONF == null) {
             WORKER_LOGGER.warn("No storage configuration file passed");
+        } else {
+            WORKER_LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);
+            try {
+                StorageItf.init(STORAGE_CONF);
+            } catch (StorageException se) {
+                throw new InitializationException("Error loading storage configuration file: " + STORAGE_CONF, se);
+            }
         }
-        // All structures are already instanciated
     }
 
-    /**
-     * Returns the path of the configuration file used by the persistent storage
-     *
-     * @return path of the storage configuration file
-     */
     @Override
     public String getStorageConf() {
-        return storageConf;
+        return STORAGE_CONF;
     }
 
-    /**
-     * Stops the Data Manager and its sub-components
-     */
     @Override
     public void stop() {
         // End storage
-        if (storageConf != null) {
+        if (STORAGE_CONF != null) {
+            WORKER_LOGGER.debug("Stopping Storage...");
             try {
                 StorageItf.finish();
             } catch (StorageException e) {
@@ -136,15 +132,6 @@ public class DataManagerImpl implements DataManager {
                     if (!f.delete()) {
                         WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
-                    // Now only manage at C (python could do the same when cache available)
-                    // if (COMPSsConstants.Lang.valueOf(lang.toUpperCase()) == COMPSsConstants.Lang.C && persistentC) {
-                    // if (BindingDataManager.removeData(f.getName()) != 0) {
-                    // LOGGER.error("Error removing data " + f.getName() + " from Binding");
-                    // } else {
-                    // LOGGER.debug("Data removed from cache " + f.getName());
-                    // }
-                    // }
-
                 }
                 String dataName = new File(name).getName();
                 DataRegister register = null;
@@ -187,7 +174,8 @@ public class DataManagerImpl implements DataManager {
                 tt.fetchedValue(param.getDataMgmtId());
                 break;
             default:
-            // Nothing to do since basic type parameters require no action
+                // Nothing to do since basic type parameters require no action
+                break;
         }
     }
 
@@ -222,7 +210,7 @@ public class DataManagerImpl implements DataManager {
                             if (loc.isHost(hostName)) {
                                 WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
                                         + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT "
-                                           : " BINDING OBJECT "));
+                                                : " BINDING OBJECT "));
                             }
                             break;
                         case SHARED_URI:
@@ -243,6 +231,7 @@ public class DataManagerImpl implements DataManager {
         private final String collectionDataId;
         private final FetchDataListener listener;
 
+
         public CollectionFetchOperationsListener(String collectionDataId, FetchDataListener listener) {
             this.collectionDataId = collectionDataId;
             this.listener = listener;
@@ -259,6 +248,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
+
     private void fetchCollection(InvocationParam param, int index, FetchDataListener listener) {
         try {
             String pathToWrite = (String) param.getValue();
@@ -267,7 +257,8 @@ public class DataManagerImpl implements DataManager {
             List<NIOParam> elements = npc.getCollectionParameters();
             WORKER_LOGGER.info("Checking NIOParamCollection (received " + elements.size() + " params)");
             int subIndex = 0;
-            CollectionFetchOperationsListener cfol = new CollectionFetchOperationsListener(param.getDataMgmtId(), listener);
+            CollectionFetchOperationsListener cfol = new CollectionFetchOperationsListener(param.getDataMgmtId(),
+                    listener);
             for (NIOParam subNioParam : npc.getCollectionParameters()) {
                 cfol.addOperation();
                 fetchParam(subNioParam, subIndex, cfol);
@@ -286,6 +277,7 @@ public class DataManagerImpl implements DataManager {
         final String originalRename = param.getSourceDataId();
         WORKER_LOGGER.debug("   - " + finalRename + " registered as object.");
         DataRegister originalRegister = getOriginalDataRegister(param);
+
         // Try if parameter is in cache
         WORKER_LOGGER.debug("   - Checking if " + finalRename + " is in cache.");
         synchronized (originalRegister) {
@@ -340,7 +332,6 @@ public class DataManagerImpl implements DataManager {
         boolean locationsInCache = false;
 
         if (provider.isPersistentEnabled()) {
-
             // Try if parameter is in cache
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug("   - fetching Binding object for persistent worker.");
@@ -348,7 +339,6 @@ public class DataManagerImpl implements DataManager {
             }
 
             cached = BindingDataManager.isInBinding(value);
-
             // If is not cached and the worker is persistent
             if (!cached) {
                 if (WORKER_LOGGER_DEBUG) {
@@ -363,8 +353,6 @@ public class DataManagerImpl implements DataManager {
                             WORKER_LOGGER.debug(
                                     "   - Parameter " + index + "(" + value + ") sources location found in cache.");
                         }
-
-                        int res;
                         if (param.isPreserveSourceData()) {
                             if (WORKER_LOGGER_DEBUG) {
                                 WORKER_LOGGER.debug(
@@ -372,8 +360,7 @@ public class DataManagerImpl implements DataManager {
                                 WORKER_LOGGER.debug(
                                         "   - Parameters to issue the copy are: " + bo.getName() + " and " + value);
                             }
-
-                            res = BindingDataManager.copyCachedData(bo.getName(), value);
+                            int res = BindingDataManager.copyCachedData(bo.getName(), value);
                             if (res != 0) {
                                 WORKER_LOGGER
                                         .error("CACHE-COPY from " + bo.getName() + " to " + value + " has failed. ");
@@ -384,7 +371,7 @@ public class DataManagerImpl implements DataManager {
                                 WORKER_LOGGER.debug(
                                         "   - Parameter " + index + "(" + value + ") overwrites sources. CACHE-MOVING");
                             }
-                            res = BindingDataManager.moveCachedData(bo.getName(), value);
+                            int res = BindingDataManager.moveCachedData(bo.getName(), value);
                             if (res != 0) {
                                 WORKER_LOGGER
                                         .error("CACHE-MOVE from " + bo.getName() + " to " + value + " has failed. ");
@@ -420,7 +407,7 @@ public class DataManagerImpl implements DataManager {
                     if (WORKER_LOGGER_DEBUG) {
                         WORKER_LOGGER.debug(
                                 "   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
-                                + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
+                                        + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
                     }
 
                     File inFile = new File(bo.getId());
@@ -561,10 +548,11 @@ public class DataManagerImpl implements DataManager {
     }
 
     @Override
-    public void loadParam(InvocationParam param) throws Exception {
+    public void loadParam(InvocationParam param) throws UnloadableValueException {
         if (WORKER_LOGGER_DEBUG) {
-            WORKER_LOGGER.debug("[Thread "+Thread.currentThread().getName() +" ] Loading parameter: " +param);
+            WORKER_LOGGER.debug("[Thread " + Thread.currentThread().getName() + " ] Loading parameter: " + param);
         }
+
         switch (param.getType()) {
             case OBJECT_T:
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
@@ -576,11 +564,12 @@ public class DataManagerImpl implements DataManager {
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
             default:
-            // Nothing to do since basic type parameters require no action
+                // Nothing to do since basic type parameters require no action
+                break;
         }
     }
 
-    private void loadObject(InvocationParam param) throws Exception {
+    private void loadObject(InvocationParam param) throws UnloadableValueException {
         String rename = param.getDataMgmtId();
         Object o = null;
         DataRegister register;
@@ -591,7 +580,11 @@ public class DataManagerImpl implements DataManager {
             WORKER_LOGGER.debug("[Thread "+Thread.currentThread().getName() +" ] Loading value: " +rename);
         }
         synchronized (register) {
-            o = register.loadValue();
+            try {
+                o = register.loadValue();
+            } catch (ClassNotFoundException | IOException | NoSourcesException | StorageException e) {
+                throw new UnloadableValueException(e);
+            }
         }
         param.setValue(o);
     }
@@ -662,14 +655,14 @@ public class DataManagerImpl implements DataManager {
         synchronized (register) {
             try {
                 o = register.loadValue();
-            } catch (IOException ex) {
-
-            } catch (ClassNotFoundException ex) {
-
-            } catch (DataRegister.NoSourcesException ex) {
-
-            } catch (StorageException ex) {
-
+            } catch (IOException ioe) {
+                WORKER_LOGGER.error("Error loading value", ioe);
+            } catch (ClassNotFoundException cnfe) {
+                WORKER_LOGGER.error("Error loading value", cnfe);
+            } catch (NoSourcesException nse) {
+                WORKER_LOGGER.error("Error loading value", nse);
+            } catch (StorageException se) {
+                WORKER_LOGGER.error("Error loading value", se);
             }
         }
         return o;

@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.nio.master.configuration;
 
+import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+
 import java.util.Arrays;
 import java.util.List;
-
-import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 
 
 public class NIOConfiguration extends MethodConfiguration {
@@ -31,8 +31,12 @@ public class NIOConfiguration extends MethodConfiguration {
     public static final String QRSH_REMOTE_EXECUTION_COMMAND = "qrsh";
     public static final String NO_REMOTE_EXECUTION_COMMAND = "none";
     public static final List<String> AVAILABLE_REMOTE_EXECUTION_COMMANDS = Arrays
-            .asList(new String[] { SSH_REMOTE_EXECUTION_COMMAND, SRUN_REMOTE_EXECUTION_COMMAND,
-                    BLAUNCH_REMOTE_EXECUTION_COMMAND, QRSH_REMOTE_EXECUTION_COMMAND, NO_REMOTE_EXECUTION_COMMAND });
+            .asList(new String[] { SSH_REMOTE_EXECUTION_COMMAND, // SSH
+                SRUN_REMOTE_EXECUTION_COMMAND, // SRUN
+                BLAUNCH_REMOTE_EXECUTION_COMMAND, // BLAUNCH
+                QRSH_REMOTE_EXECUTION_COMMAND, // QRSH
+                NO_REMOTE_EXECUTION_COMMAND // NONE
+            });
     public static final String DEFAULT_REMOTE_EXECUTION_COMMAND = SSH_REMOTE_EXECUTION_COMMAND;
 
     private int minPort;
@@ -40,10 +44,20 @@ public class NIOConfiguration extends MethodConfiguration {
     private String remoteExecutionCommand;
 
 
+    /**
+     * Creates a new NIOConfiguration instance.
+     * 
+     * @param adaptorName Associated adaptor name.
+     */
     public NIOConfiguration(String adaptorName) {
         super(adaptorName);
     }
 
+    /**
+     * Clones the given NIOConfiguration.
+     * 
+     * @param clone NIOConfiguration to clone.
+     */
     public NIOConfiguration(NIOConfiguration clone) {
         super(clone);
         this.minPort = clone.minPort;
@@ -61,6 +75,11 @@ public class NIOConfiguration extends MethodConfiguration {
         return minPort;
     }
 
+    /**
+     * Sets a new value for the minPort property.
+     * 
+     * @param minPort New minPort value.
+     */
     public void setMinPort(int minPort) {
         this.minPort = minPort;
     }
@@ -70,10 +89,23 @@ public class NIOConfiguration extends MethodConfiguration {
         return maxPort;
     }
 
+    /**
+     * Sets a new value for the maxPort property.
+     * 
+     * @param maxPort New maxPort value.
+     */
     public void setMaxPort(int maxPort) {
         this.maxPort = maxPort;
     }
 
+    /**
+     * Returns the remote execution command.
+     * 
+     * @param user User.
+     * @param resource Resource name.
+     * @param command Specific command.
+     * @return Complete remote execution command.
+     */
     public String[] getRemoteExecutionCommand(String user, String resource, String[] command) {
         String[] cmd = null;
         switch (this.remoteExecutionCommand) {
@@ -116,6 +148,11 @@ public class NIOConfiguration extends MethodConfiguration {
         return cmd;
     }
 
+    /**
+     * Sets a new value for the remote execution command.
+     * 
+     * @param remoteExecutionCommand New remote execution command.
+     */
     public void setRemoteExecutionCommand(String remoteExecutionCommand) {
         this.remoteExecutionCommand = remoteExecutionCommand;
     }

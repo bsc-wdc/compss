@@ -16,19 +16,16 @@
  */
 package es.bsc.compss.nio.master;
 
-import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
+import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer.Destination;
+
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.resources.ExecutorShutdownListener;
-import es.bsc.compss.util.BindingDataManager;
-import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
@@ -42,30 +39,34 @@ import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.MasterDataRequest;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
-import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.Job.JobHistory;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.util.BindingDataManager;
+import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
@@ -95,8 +96,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final int MASTER_PORT_CALCULATED = BASE_MASTER_PORT + RANDOM_VALUE;
     private static final String MASTER_PORT_PROPERTY = System.getProperty(COMPSsConstants.MASTER_PORT);
     public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty())
-                                          ? Integer.valueOf(MASTER_PORT_PROPERTY)
-                                          : MASTER_PORT_CALCULATED;
+            ? Integer.valueOf(MASTER_PORT_PROPERTY)
+            : MASTER_PORT_CALCULATED;
 
     // Final jobs log directory
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + File.separator;
@@ -120,8 +121,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
 
+
     /**
-     * New NIOAdaptor instance
+     * New NIOAdaptor instance.
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
@@ -174,68 +176,71 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
 
-        NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
+        final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
-        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties props_project = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) project_properties;
-        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties props_resources = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resources_properties;
+        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject = 
+                (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties;
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources = 
+                (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties;
 
         // Get ports
-        int min_project = (props_project != null) ? props_project.getMinPort() : -1;
-        int min_resources = -1;
-        if (props_resources != null) {
-            min_resources = props_resources.getMinPort();
+        int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
+        int minResources = -1;
+        if (propsResources != null) {
+            minResources = propsResources.getMinPort();
         } else {
             // MinPort on resources is mandatory
             throw new ConstructConfigurationException("Resources file doesn't contain a minimum port value");
         }
-        int max_project = (props_project != null) ? props_project.getMaxPort() : -1;
-        int max_resources = (props_resources != null) ? props_resources.getMaxPort() : -1;
+        int maxProject = (propsProject != null) ? propsProject.getMaxPort() : -1;
+        int maxResources = (propsResources != null) ? propsResources.getMaxPort() : -1;
 
         // Merge port ranges
-        int min_final = -1;
-        if (min_project < 0) {
-            min_final = min_resources;
+        int minFinal = -1;
+        if (minProject < 0) {
+            minFinal = minResources;
         } else {
-            if (min_project < min_resources) {
+            if (minProject < minResources) {
                 LOGGER.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
-                min_final = min_resources;
+                minFinal = minResources;
             } else {
-                min_final = min_project;
+                minFinal = minProject;
             }
         }
 
-        int max_final = -1;
-        if (max_project < 0) {
-            if (max_resources < 0) {
+        int maxFinal = -1;
+        if (maxProject < 0) {
+            if (maxResources < 0) {
                 // No max port defined
                 LOGGER.warn("MaxPort not defined in resources.xml/project.xml. Loading no limit");
             } else {
                 LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
-                max_final = max_resources;
+                maxFinal = maxResources;
             }
         } else {
-            if (max_resources < 0) {
-                max_final = max_project;
+            if (maxResources < 0) {
+                maxFinal = maxProject;
             } else {
-                if (max_project < max_resources) {
-                    max_final = max_project;
+                if (maxProject < maxResources) {
+                    maxFinal = maxProject;
                 } else {
-                    LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
-                    max_final = max_resources;
+                    LOGGER.warn(
+                            "resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+                    maxFinal = maxResources;
                 }
             }
         }
 
-        LOGGER.info("NIO Min Port: " + min_final);
-        LOGGER.info("NIO MAX Port: " + max_final);
-        config.setMinPort(min_final);
-        config.setMaxPort(max_final);
+        LOGGER.info("NIO Min Port: " + minFinal);
+        LOGGER.info("NIO MAX Port: " + maxFinal);
+        config.setMinPort(minFinal);
+        config.setMaxPort(maxFinal);
 
         // Add remote execution command
-        String remoteExecutionCommand = props_resources.getRemoteExecutionCommand();
+        String remoteExecutionCommand = propsResources.getRemoteExecutionCommand();
         if (remoteExecutionCommand == null || remoteExecutionCommand.isEmpty()) {
             remoteExecutionCommand = NIOConfiguration.DEFAULT_REMOTE_EXECUTION_COMMAND;
         }
@@ -257,9 +262,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     /**
-     * Notice the removal of a worker
+     * Notice the removal of a worker.
      *
-     * @param worker
+     * @param worker Worker to remove.
      */
     public void removedNode(NIOWorkerNode worker) {
         LOGGER.debug("Remove worker " + worker.getName());
@@ -446,6 +451,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         dp.setDataTarget(pscoId);
     }
 
+    /**
+     * Registers a new copy.
+     * 
+     * @param c New copy to register.
+     */
     public void registerCopy(Copy c) {
         for (EventListener el : c.getEventListeners()) {
             Integer groupId = el.getId();
@@ -546,15 +556,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         return new LinkedList<DataOperation>();
     }
 
-    public boolean checkData(NIOData d) {
-        boolean data = false;
-        /*
-         * for (Entry<String, LogicalData> e : Comm.DC.nameToLogicalData.entrySet()) { if
-         * (d.getSourceName().equals(e.getValue().getName())) { data = true; break; } }
-         */
-        return data;
-    }
-
     @Override
     public Object getObject(String name) throws SerializedObjectException {
         LogicalData ld = Comm.getData(name);
@@ -614,10 +615,39 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         u.setInternalURI(ID, new NIOURI(masterNode, u.getPath(), u.getProtocol()));
     }
 
+    /**
+     * Requests a new data.
+     * 
+     * @param c Associated copy.
+     * @param paramType Data type.
+     * @param d NIOData to request.
+     * @param path Target path.
+     */
+    public void requestData(Copy c, DataType paramType, NIOData d, String path) {
+        DataRequest dr = new MasterDataRequest(c, paramType, d, path);
+        addTransferRequest(dr);
+        requestTransfers();
+
+    }
+
+    /**
+     * Marks the worker to shutdown.
+     * 
+     * @param worker Worker node.
+     * @param c Connection.
+     * @param listener Listener.
+     */
     public void shuttingDown(NIOWorkerNode worker, Connection c, ShutdownListener listener) {
         STOPPING_NODES.put(c, new ClosingWorker(worker, listener));
     }
 
+    /**
+     * Marks the worker to shutdown only the execution manager.
+     * 
+     * @param worker Worker node.
+     * @param c Connection.
+     * @param listener Listener.
+     */
     public void shuttingDownEM(NIOWorkerNode worker, Connection c, ExecutorShutdownListener listener) {
         STOPPING_EXECUTORS.put(c, new ClosingExecutor(listener));
     }
@@ -704,6 +734,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
     }
 
+    /**
+     * Registers a pending modification of the current worker node.
+     * 
+     * @param c Connection.
+     * @param sem Semaphore to wait until the modification is performed.
+     */
     public void registerPendingResourceUpdateConfirmation(Connection c, Semaphore sem) {
         PENDING_MODIFICATIONS.put(c, sem);
     }
@@ -714,21 +750,23 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
+
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             worker = w;
             listener = l;
         }
     }
 
-
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
+
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
         }
     }
+
 
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {

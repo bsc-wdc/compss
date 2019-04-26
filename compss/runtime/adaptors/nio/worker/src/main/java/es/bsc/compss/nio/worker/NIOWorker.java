@@ -16,38 +16,18 @@
  */
 package es.bsc.compss.nio.worker;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import es.bsc.compss.nio.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.comm.Connection;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-
-import es.bsc.compss.nio.commands.CommandDataReceived;
-import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
-import es.bsc.compss.nio.commands.CommandShutdownACK;
-import es.bsc.compss.nio.commands.CommandNIOTaskDone;
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
-import es.bsc.compss.nio.dataRequest.DataRequest;
-import es.bsc.compss.nio.dataRequest.WorkerDataRequest;
-import es.bsc.compss.nio.worker.components.DataManagerImpl;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
+import es.bsc.compss.data.FetchDataListener;
+import es.bsc.compss.data.MultiOperationFetchListener;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.ExecutionListener;
@@ -55,17 +35,43 @@ import es.bsc.compss.executor.utils.ThreadedPrintStream;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
-import es.bsc.compss.types.execution.LanguageParams;
-import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOMessageHandler;
+import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOTask;
+import es.bsc.compss.nio.NIOTaskResult;
+import es.bsc.compss.nio.NIOTracer;
+import es.bsc.compss.nio.commands.CommandDataReceived;
+import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
+import es.bsc.compss.nio.commands.CommandNIOTaskDone;
+import es.bsc.compss.nio.commands.CommandShutdownACK;
+import es.bsc.compss.nio.commands.NIOData;
+import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
+import es.bsc.compss.nio.dataRequest.DataRequest;
+import es.bsc.compss.nio.datarequest.WorkerDataRequest;
+import es.bsc.compss.nio.exceptions.DataNotAvailableException;
+import es.bsc.compss.nio.worker.components.DataManagerImpl;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
-import es.bsc.compss.data.DataManager.FetchDataListener;
-import es.bsc.compss.data.MultiOperationFetchListener;
-import es.bsc.compss.nio.exceptions.DataNotAvailableException;
-import es.bsc.compss.types.resources.MethodResourceDescription;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class NIOWorker extends NIOAgent implements InvocationContext, DataProvider {
@@ -82,6 +88,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     // JVM Flag for WorkingDir removal
     private static final boolean REMOVE_WD;
 
+    // Processes to capture out/err of each job
+    private static final ThreadedPrintStream out;
+    private static final ThreadedPrintStream err;
+    public static final String SUFFIX_OUT = ".out";
+    public static final String SUFFIX_ERR = ".err";
+
     // Application dependent attributes
     private final String deploymentId;
     private final boolean transferLogs;
@@ -93,33 +105,55 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     private final TaskExecution executionType;
 
-    private final LanguageParams[] langParams = new LanguageParams[Lang.values().length];
+    private final LanguageParams[] langParams;
+
+    private final Map<Integer, Long> times;
 
     // Internal components
     private final ExecutionManager executionManager;
     private final DataManager dataManager;
 
-    // Processes to capture out/err of each job
-    private static ThreadedPrintStream out;
-    private static ThreadedPrintStream err;
-    public static final String SUFFIX_OUT = ".out";
-    public static final String SUFFIX_ERR = ".err";
-    private Map<Integer, Long> times;
-
     static {
-        try {
-            out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
-            err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
-            System.setErr(err);
-            System.setOut(out);
-        } catch (Exception e) {
-            WORKER_LOGGER.error("Exception", e);
-        }
+        // Set REMOVE_WD flag
         String removeWDFlag = System.getProperty(COMPSsConstants.WORKER_REMOVE_WD);
         boolean removeWDFlagDefined = removeWDFlag != null && !removeWDFlag.isEmpty();
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
+
+        // Set processes to captuer out/error
+        out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
+        err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
+        System.setErr(err);
+        System.setOut(out);
     }
 
+
+    /**
+     * Creates a new NIOWorker instance.
+     * 
+     * @param transferLogs Whether to transfer the output/error files or not.
+     * @param snd Number of senders.
+     * @param rcv Number of receivers.
+     * @param hostName Worker hostname.
+     * @param masterName Master hostname.
+     * @param masterPort Master port.
+     * @param computingUnitsCPU Worker CPU computing units.
+     * @param computingUnitsGPU Worker GPU computing units.
+     * @param computingUnitsFPGA Worker FPGA computing units
+     * @param cpuMap String describing the thread-cpu mapping.
+     * @param gpuMap String describing the thread-gpu mapping.
+     * @param fpgaMap String describing the thread-fpga mapping.
+     * @param limitOfTasks Limit of simultaneous tasks.
+     * @param appUuid Application UUID.
+     * @param storageConf Storage configuration file path.
+     * @param executionType Task execution type.
+     * @param persistentC Whether to spawn persistent C workers or not.
+     * @param workingDir Worker working directory.
+     * @param installDir Installation directory.
+     * @param appDir Application directory.
+     * @param javaParams Java specific parameters.
+     * @param pyParams Python specific parameters.
+     * @param cParams C specific parameters.
+     */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
             int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap, String gpuMap,
             String fpgaMap, int limitOfTasks, String appUuid, String storageConf, TaskExecution executionType,
@@ -127,7 +161,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
-        times = new HashMap<>();
+
         this.transferLogs = transferLogs;
         // Log worker creation
         WORKER_LOGGER.info("NIO Worker init");
@@ -143,9 +177,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
         this.persistentC = persistentC;
 
+        this.langParams = new LanguageParams[Lang.values().length];
         this.langParams[Lang.JAVA.ordinal()] = javaParams;
         this.langParams[Lang.PYTHON.ordinal()] = pyParams;
         this.langParams[Lang.C.ordinal()] = cParams;
+
+        this.times = new HashMap<>();
 
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
@@ -179,7 +216,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (tracing_level == Tracer.BASIC_MODE) {
             Tracer.disablePThreads();
         }
-
     }
 
     @Override
@@ -219,13 +255,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             Tracer.emitEvent(Tracer.Event.WORKER_RECEIVED_NEW_TASK.getId(),
                     Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
-        long obsolSt = System.currentTimeMillis();
+        final long obsolSt = System.currentTimeMillis();
         // Remove obsolete
         if (obsoleteFiles != null) {
             removeObsolete(obsoleteFiles);
         }
-        long obsolEnd = System.currentTimeMillis();
-        long obsolDuration = obsolEnd - obsolSt;
+        final long obsolEnd = System.currentTimeMillis();
+        final long obsolDuration = obsolEnd - obsolSt;
 
         // Demand files
         WORKER_LOGGER.info("Checking parameters");
@@ -238,8 +274,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 // Parameter has associated data
                 if (WORKER_LOGGER_DEBUG) {
                     WORKER_LOGGER.debug(
-                            "- Checking transfers for data " + param.getDataMgmtId() + " for parameter " + paramIdx
-                    );
+                            "- Checking transfers for data " + param.getDataMgmtId() + " for parameter " + paramIdx);
                 }
                 listener.addOperation();
                 dataManager.fetchParam(param, paramIdx, listener);
@@ -263,8 +298,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType());
         }
-        long paramsEnd = System.currentTimeMillis();
-        long paramsDuration = paramsEnd - obsolEnd;
+        final long paramsEnd = System.currentTimeMillis();
+        final long paramsDuration = paramsEnd - obsolEnd;
         WORKER_LOGGER.info("[Profile] Obsolete Processing: " + obsolDuration + " Processing " + paramsDuration);
         WORKER_LOGGER.info("[Profile] Pending parameters: " + listener.getMissingOperations());
         times.put(task.getJobId(), paramsEnd);
@@ -287,19 +322,21 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         // Request the transfers
-        /*if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(listener.getTask().getTaskId(), Tracer.getTaskTransfersType());
-        }*/
+        /*
+         * if (Tracer.extraeEnabled()) { Tracer.emitEvent(listener.getTask().getTaskId(),
+         * Tracer.getTaskTransfersType()); }
+         */
         requestTransfers();
-        /*if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType());
-        }*/
+        /*
+         * if (Tracer.extraeEnabled()) { Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType()); }
+         */
 
     }
 
     @Override
     public void askForTransfer(InvocationParam param, int index, FetchDataListener listener) {
-        DataRequest dr = new WorkerDataRequest(listener, param.getType(), ((NIOParam) param).getData(), (String) param.getValue());
+        DataRequest dr = new WorkerDataRequest(listener, param.getType(), ((NIOParam) param).getData(),
+                (String) param.getValue());
         addTransferRequest(dr);
     }
 
@@ -347,8 +384,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
-            WORKER_LOGGER.debug("Pending parameters: "
-                    + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
+            WORKER_LOGGER.debug(
+                    "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
 
         }
     }
@@ -425,13 +462,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         c.finishConnection();
     }
 
-    // Remove obsolete files and objects
+    /**
+     * Remove obsolete objects.
+     * 
+     * @param obsolete List of obsolete objects.
+     */
     public void removeObsolete(List<String> obsolete) {
         dataManager.removeObsoletes(obsolete);
-    }
-
-    public void receivedUpdateSources(Connection c) {
-
     }
 
     @Override
@@ -588,6 +625,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
     }
 
+    // **************************************
+    // *************** MAIN *****************
+    // **************************************
+
+    /**
+     * Entry Point.
+     * 
+     * @param args Command line arguments.
+     */
     public static void main(String[] args) {
         // Check arguments length
         if (args.length != (NUM_PARAMS_NIO_WORKER)) {
@@ -620,7 +666,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         // String lang = args[15];
         String workingDir = args[16];
         String installDir = args[17];
-        String appDir = args[18];
+        final String appDir = args[18];
         String libPath = args[19];
         String classpath = args[20];
         String pythonpath = args[21];
@@ -640,10 +686,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String pythonPropagateVirtualEnvironment = args[31];
         String pythonMpiWorker = args[32];
 
-        JavaParams javaParams = new JavaParams(classpath);
-        PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
+        final JavaParams javaParams = new JavaParams(classpath);
+        final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
                 pythonPropagateVirtualEnvironment, pythonpath, pythonMpiWorker);
-        CParams cParams = new CParams(classpath);
+        final CParams cParams = new CParams(classpath);
 
         // Print arguments
         if (WORKER_LOGGER.isDebugEnabled()) {
@@ -760,7 +806,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {
         // Nothing to do at worker
-
     }
 
     @Override
@@ -900,6 +945,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         private final int transferId;
 
+
         public FetchDataOperationListener(int transferId) {
             this.transferId = transferId;
         }
@@ -919,10 +965,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     }
 
-
     public class TaskFetchOperationsListener extends MultiOperationFetchListener {
 
         private final NIOTask task;
+
 
         public TaskFetchOperationsListener(NIOTask task) {
             super();

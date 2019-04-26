@@ -14,11 +14,11 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.dataRequest;
-
-import es.bsc.compss.data.DataManager.FetchDataListener;
+package es.bsc.compss.nio.datarequest;
 
 import es.bsc.compss.nio.commands.NIOData;
+import es.bsc.compss.data.FetchDataListener;
+import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.types.annotations.parameter.DataType;
 
 
@@ -26,14 +26,27 @@ public class WorkerDataRequest extends DataRequest {
 
     private final FetchDataListener listener;
 
+
+    /**
+     * Creates a new WorkerDataRequest instance.
+     * 
+     * @param task FetchDataListener task.
+     * @param type Data type.
+     * @param source NIO source data.
+     * @param target Target path.
+     */
     public WorkerDataRequest(FetchDataListener task, DataType type, NIOData source, String target) {
         super(type, source, target);
         this.listener = task;
     }
 
+    /**
+     * Returns the associated fetch data listener task.
+     *
+     * @return The associated fetch data listener task.
+     */
     public FetchDataListener getListener() {
         return this.listener;
     }
-
 
 }

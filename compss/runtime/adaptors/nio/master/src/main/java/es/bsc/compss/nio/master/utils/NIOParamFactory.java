@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Build NIOParam from other data types
+ * Build NIOParam from other data types.
  * 
  * @see NIOParam
  */
@@ -49,8 +49,8 @@ public class NIOParamFactory {
      * Construct a NIOParam from a Parameter object. Necessary to translate master representations of parameters to
      * something transferable.
      * 
-     * @param param Parameter
-     * @return NIOParam representing this Parameter
+     * @param param Parameter.
+     * @return NIOParam representing this Parameter.
      */
     public static NIOParam fromParameter(Parameter param) {
         DataType type = param.getType();

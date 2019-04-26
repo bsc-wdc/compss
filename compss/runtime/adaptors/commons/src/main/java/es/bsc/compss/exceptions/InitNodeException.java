@@ -35,18 +35,18 @@ public class InitNodeException extends Exception {
     }
 
     /**
-     * New nested @e Init Node Exception.
+     * New nested {@code e} Init Node Exception.
      * 
-     * @param e Causing Exception
+     * @param e Nested exception.
      */
     public InitNodeException(Exception e) {
         super(e);
     }
 
     /**
-     * New Init Node Exception with message @msg.
+     * New Init Node Exception with message {@code msg}.
      * 
-     * @param msg Error message
+     * @param msg Exception message.
      */
     public InitNodeException(String msg) {
         super(msg);

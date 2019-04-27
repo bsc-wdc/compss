@@ -40,6 +40,21 @@ public interface TestItf {
             @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName);
 
     @Method(declaringClass = "masterinworker.Tasks")
+    StringWrapper createObjectWithContent(
+            @Parameter(type = Type.STRING) String content);
+
+    @Method(declaringClass = "masterinworker.Tasks")    
+    void checkObjectWithContent(
+            @Parameter(type = Type.STRING) String content, 
+            @Parameter(type = Type.OBJECT) StringWrapper sw);
+
+    @Method(declaringClass = "masterinworker.Tasks")
+    void checkAndUpdateObjectWithContent(
+            @Parameter(type = Type.STRING) String content,
+            @Parameter(type = Type.STRING) String newContent,
+            @Parameter(type = Type.OBJECT, direction = Direction.INOUT) StringWrapper sw);
+
+    @Method(declaringClass = "masterinworker.Tasks")
     Report sleepTask();
 
 }

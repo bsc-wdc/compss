@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
-    <artifactId>4_master_in_worker_cooperative</artifactId>
+    <artifactId>4_worker_in_master_cooperative</artifactId>
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
@@ -13,9 +13,9 @@
     </parent>
 
     <!-- PROJECT INFORMATION -->
-    <name>Test - Java - Master in Worker Cooperative</name>
+    <name>Test - Java - Worker in Master Cooperative</name>
     <description>Application with three nodes to run tasks including the master process</description>
-    <url>http://compss.bsc.es/projects/bar/wiki/master_in_worker_cooperative</url>
+    <url>http://compss.bsc.es/projects/bar/wiki/worker_in_master_cooperative</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
         <license>

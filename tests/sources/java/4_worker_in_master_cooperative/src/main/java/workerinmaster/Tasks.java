@@ -1,5 +1,5 @@
 
-package masterinworker;
+package workerinmaster;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;

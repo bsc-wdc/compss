@@ -1,5 +1,5 @@
 
-package masterinworker;
+package workerinmaster;
 
 import es.bsc.compss.api.COMPSs;
 import java.io.File;

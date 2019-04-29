@@ -1080,6 +1080,9 @@ get_args() {
           # Added for elasticity
           qos=${OPTARG//qos=/}
           ;;
+        cpus_per_task)
+          cpus_per_task="true"
+          ;;
         constraints=*)
           #Added for elasticity
           constraints=${OPTARG//constraints=/}
@@ -1582,8 +1585,7 @@ launch() {
       hostid=${initial_hostid}
     fi
     if [ ! -z "${master_node}" ]; then
-      if [ "${worker_in_master_cpus}" -ne 0 ]; then
-        # Worker in master node
+      if [ "${worker_in_master_cpus}" -ne 0 ]; then # Worker in master node
         local jvm_worker_in_master_opts_str
         local jvm_worker_in_master_opts_size
         local fpga_reprogram_str
@@ -1597,6 +1599,10 @@ launch() {
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
+        fi
+
+        if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
+            LAUNCH_PARAMS="${QARG_CPUS_PER_TASK}" "${worker_in_master_cpus}" "${LAUNCH_PARAMS}"
         fi
 
         WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"

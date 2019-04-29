@@ -103,7 +103,12 @@ def get_wrapped_source(f):
     else:
         # Returning getsource
         import inspect
-        return inspect.getsource(f)
+        try:
+            source = inspect.getsource(f)
+        except TypeError:
+            # This is a numba jit declared task
+            source = inspect.getsource(f.py_func)
+        return source
 
 
 
@@ -124,14 +129,24 @@ def get_wrapped_sourcelines(f):
             return _get_wrapped_sourcelines(f.__wrapped__)
         else:
             # Returning getsourcelines
-            return inspect.getsourcelines(f)
+            try:
+                sourcelines = inspect.getsourcelines(f)
+            except TypeError:
+                # This is a numba jit declared task
+                sourcelines = inspect.getsourcelines(f.py_func)
+            return sourcelines
     import inspect
     if hasattr(f, '__wrapped__'):
         # has __wrapped__, apply the same function to the wrapped content
         return _get_wrapped_sourcelines(f.__wrapped__)
     else:
         # Returning getsourcelines
-        return inspect.getsourcelines(f)
+        try:
+            sourcelines = inspect.getsourcelines(f)
+        except TypeError:
+            # This is a numba jit declared task
+            sourcelines = inspect.getsourcelines(f.py_func)
+        return sourcelines
 
 
 

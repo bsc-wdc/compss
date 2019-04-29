@@ -37,8 +37,9 @@ if __debug__:
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}
-# List since the parameter names are included before checking for unexpected arguments
-# (the user can define a=INOUT in the task decorator and this is not an unexpected argument)
+# List since the parameter names are included before checking for unexpected
+# arguments (the user can define a=INOUT in the task decorator and this is not
+# an unexpected argument)
 SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
                        'returns',
                        'priority',
@@ -48,10 +49,14 @@ SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
                        'varargs_type',
                        'target_direction',
                        'computing_nodes',
+                       'numba',
+                       'numba_flags',
+                       'numba_signature',
+                       'numba_declaration',
                        'tracing_hook']
 
-# This lock allows tasks to be launched with the Threading module while ensuring
-# that no attribute is overwritten
+# This lock allows tasks to be launched with the Threading module while
+# ensuring that no attribute is overwritten
 master_lock = threading.Lock()
 # Determine if strings should have a sharp symbol prepended or not
 prepend_strings = True
@@ -72,13 +77,13 @@ class task(object):
     This first step corresponds to the class constructor.
 
     Function call is what happens when the user calls their function somewhere
-    in the code. A decorator simply adds pre and post steps in this function call,
-    allowing us to change and process the arguments. This second steps happens in the
-    __call__ implementation.
+    in the code. A decorator simply adds pre and post steps in this function
+    call, allowing us to change and process the arguments. This second steps
+    happens in the __call__ implementation.
 
-    Also, the call itself does different things in the master than in the worker.
-    We must also handle the case when the user just runs the app with python and
-    no PyCOMPSs.
+    Also, the call itself does different things in the master than in the
+    worker. We must also handle the case when the user just runs the app with
+    python and no PyCOMPSs.
     The specific implementations can be found in self.master_call(),
     self.worker_call(), self.sequential_call()
     """
@@ -86,7 +91,12 @@ class task(object):
     def get_default_decorator_values(self):
         """
         Default value for decorator arguments.
-        :return: A dictionary with the default values of the non-parameter decorator fields
+        By default, do not use jit (if true -> use nopython mode,
+        alternatively, the user can define a dictionary with the specific
+        flags - using a dictionary will be considered as the user wants to use
+        compile with jit).
+        :return: A dictionary with the default values of the non-parameter
+                 decorator fields
         """
         return {
             'target_direction': parameter.INOUT,
@@ -97,6 +107,10 @@ class task(object):
             'is_distributed': False,
             'computing_nodes': 1,
             'tracing_hook': False,
+            'numba': False,          # numba mode (jit, vectorize, guvectorize)
+            'numba_flags': {},            # user defined extra numba flags
+            'numba_signature': None,      # vectorize and guvectorize signature
+            'numba_declaration': None,    # guvectorize declaration
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
@@ -106,12 +120,14 @@ class task(object):
         explicit function call.
 
         We do two things here:
-        a) Assign default values to unspecified fields (see get_default_decorator_values )
-        b) Transform the parameters from user friendly types (i.e Parameter.IN, etc) to
-           a more convenient internal representation
+        a) Assign default values to unspecified fields
+           (see get_default_decorator_values )
+        b) Transform the parameters from user friendly types
+           (i.e Parameter.IN, etc) to a more convenient internal representation
 
         :param comment: Hidden to the user (non-documented).
-        :param kwargs: Decorator parameters. A task decorator has no positional arguments.
+        :param kwargs: Decorator parameters. A task decorator has no positional
+                       arguments.
         """
         self.comment = comment
         self.decorator_arguments = kwargs
@@ -128,22 +144,33 @@ class task(object):
             # Not all decorator arguments are necessarily parameters
             # (see self.get_default_decorator_values)
             if parameter.is_parameter(value):
-                self.decorator_arguments[key] = parameter.get_parameter_copy(value)
+                self.decorator_arguments[key] = \
+                    parameter.get_parameter_copy(value)
             # Specific case when value is a dictionary
             # Use case example:
             # @binary(binary="ls")
-            # @task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Type: IN, Prefix: "--sort="})
+            # @task(hide={Type: FILE_IN, Prefix: "--hide="},
+            #       sort={Type: IN, Prefix: "--sort="})
             # def myLs(flag, hide, sort):
             #   pass
             # Transform this dictionary to a Parameter object
             if parameter.is_dict_specifier(value):
-                # Perform user -> instance substitution
-                # param = self.decorator_arguments[key][parameter.Type]
-                # Replace the whole dict by a single parameter object
-                self.decorator_arguments[key] = parameter.get_parameter_from_dictionary(
-                    self.decorator_arguments[key]
-                )
-                # self.decorator_arguments[key].update({parameter.Type: parameter.get_parameter_copy(param)})
+                if key not in ['numba', 'numba_flags',
+                               'numba_signature', 'numba_declaration']:
+                    # Perform user -> instance substitution
+                    # param = self.decorator_arguments[key][parameter.Type]
+                    # Replace the whole dict by a single parameter object
+                    self.decorator_arguments[key] = \
+                        parameter.get_parameter_from_dictionary(
+                            self.decorator_arguments[key]
+                        )
+                    # self.decorator_arguments[key].update(
+                    #     {parameter.Type: parameter.get_parameter_copy(param)}
+                    # )
+                else:
+                    # It is a reserved word that we need to keep the user
+                    # defined value (not a Parameter object)
+                    self.decorator_arguments[key] = value
 
         # Add more argument related attributes that will be useful later
         self.parameters = None
@@ -162,8 +189,8 @@ class task(object):
         self.returns = None
         self.multi_return = False
 
-        # Task wont be registered until called from the master for the first time or
-        # have a different signature
+        # Task wont be registered until called from the master for the first
+        # time or have a different signature
         self.signature = None
         self.registered = False
 
@@ -195,7 +222,11 @@ class task(object):
                     num_rets = int(self.decorator_arguments['returns'])
                 except ValueError:
                     # Return is hidden by a global variable. i.e., LT_ARGS
-                    num_rets = self.user_function.__globals__.get(self.decorator_arguments['returns'])
+                    try:
+                        num_rets = self.user_function.__globals__.get(self.decorator_arguments['returns'])
+                    except AttributeError:
+                        # This is a numba jit declared task
+                        num_rets = self.user_function.py_func.__globals__.get(self.decorator_arguments['returns'])
                 # Construct hidden multireturn
                 if num_rets > 1:
                     to_return = [tuple([]) for _ in range(num_rets)]
@@ -569,8 +600,13 @@ class task(object):
         :return: None, it just adds attributes
         """
         import inspect
-        self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
-            inspect.getargspec(self.user_function)
+        try:
+            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
+                inspect.getargspec(self.user_function)
+        except TypeError:
+            # This is a numba jit declared task
+            self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
+                inspect.getargspec(self.user_function.py_func)
         # It will be easier to deal with functions if we pretend that all have the
         # signature f(positionals, *variadic, **named). This is why we are substituting
         # Nones with default stuff
@@ -1017,8 +1053,68 @@ class task(object):
                 sys.setprofile(None)
                 restore_hook = True
 
-        # Call the user function with all the reconstructed parameters, get the return values
-        user_returns = self.user_function(*user_args, **user_kwargs)
+        # Call the user function with all the reconstructed parameters and
+        # get the return values
+        if self.decorator_arguments['numba']:
+            from numba import jit
+            from numba import generated_jit
+            from numba import vectorize
+            from numba import guvectorize
+            from numba import stencil
+            from numba import cfunc
+            numba_mode = self.decorator_arguments['numba']
+            numba_flags = self.decorator_arguments['numba_flags']
+            if type(numba_mode) is dict:
+                # Use the flags defined by the user
+                numba_flags['cache'] = True  # Always force cache
+                user_returns = \
+                    jit(self.user_function,
+                        **numba_flags)(*user_args, **user_kwargs)
+            elif numba_mode is True or numba_mode == 'jit':
+                numba_flags['cache'] = True  # Always force cache
+                user_returns = jit(self.user_function,
+                                   **numba_flags)(*user_args,
+                                                  **user_kwargs)
+                # Alternative way of calling:
+                # user_returns = jit(cache=True)(self.user_function) \
+                #                   (*user_args, **user_kwargs)
+            elif numba_mode is True or numba_mode == 'generated_jit':
+                user_returns = generated_jit(self.user_function,
+                                             **numba_flags)(*user_args,
+                                                            **user_kwargs)
+            elif numba_mode == 'njit':
+                numba_flags['cache'] = True  # Always force cache
+                numba_flags['nopython'] = True
+                user_returns = jit(self.user_function,
+                                   **numba_flags)(*user_args, **user_kwargs)
+            elif numba_mode == 'vectorize':
+                numba_signature = self.decorator_arguments['numba_signature']
+                user_returns = vectorize(
+                                   numba_signature,
+                                   **numba_flags
+                               )(self.user_function)(*user_args, **user_kwargs)
+            elif numba_mode == 'guvectorize':
+                numba_signature = self.decorator_arguments['numba_signature']
+                numba_decl = self.decorator_arguments['numba_declaration']
+                user_returns = guvectorize(
+                                   numba_signature,
+                                   numba_decl,
+                                   **numba_flags
+                               )(self.user_function)(*user_args, **user_kwargs)
+            elif numba_mode == 'stencil':
+                user_returns = stencil(
+                                   **numba_flags
+                               )(self.user_function)(*user_args, **user_kwargs)
+            elif numba_mode == 'cfunc':
+                numba_signature = self.decorator_arguments['numba_signature']
+                user_returns = cfunc(
+                                   numba_signature
+                               )(self.user_function)(*user_args, **user_kwargs)
+            else:
+                raise Exception("Unsupported numba mode.")
+        else:
+            # Normal task execution
+            user_returns = self.user_function(*user_args, **user_kwargs)
 
         # Reestablish the hook if it was disabled
         if restore_hook:

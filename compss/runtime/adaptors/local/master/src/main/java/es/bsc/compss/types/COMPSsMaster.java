@@ -583,7 +583,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
         }
 
-        // Check if there are current copies in progress
+        // Check if there are current copies in progress bringing it into the node.
         if (DEBUG) {
             LOGGER.debug(
                     "Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progress");
@@ -620,36 +620,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                     + " from master to " + targetPath + " with replacing", ex);
                         }
 
-                    } else {
-                        if (copy.getTargetData() != null
-                                && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
-                            Copy.waitForCopyTofinish(copy, this);
-                            try {
-                                if (DEBUG) {
-                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
-                                            + " to " + targetPath);
-                                }
-                                Files.copy((new File(copy.getFinalTarget())).toPath(), new File(targetPath).toPath(),
-                                        StandardCopyOption.REPLACE_EXISTING);
-                                if (tgtData != null) {
-                                    tgtData.addLocation(target);
-                                }
-                                LOGGER.debug("File copied. Set data target to " + targetPath);
-                                reason.setDataTarget(targetPath);
-
-                                listener.notifyEnd(null);
-                                ld.releaseHostRemoval();
-                                return;
-                            } catch (IOException ex) {
-                                ErrorManager.warn("Error master local copy from " + copy.getFinalTarget() + " to "
-                                        + targetPath + " with replacing", ex);
-                            }
-                        } else {
-                            if (DEBUG) {
-                                LOGGER.debug("Current copies are not transfering " + ld.getName()
-                                        + " to master. Ignoring at this moment");
-                            }
-                        }
                     }
                 }
             }
@@ -711,7 +681,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     LOGGER.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
                 }
             }
-
         }
 
         // Ask the transfer from an specific source

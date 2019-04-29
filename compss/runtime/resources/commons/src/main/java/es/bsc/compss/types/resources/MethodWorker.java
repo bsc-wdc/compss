@@ -64,7 +64,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         this.maxCPUtaskCount = conf.getLimitOfTasks();
         this.maxGPUtaskCount = conf.getLimitOfGPUTasks();
         this.maxFPGAtaskCount = conf.getLimitOfFPGATasks();
-        this.maxOthersTaskCount = conf.getLimitOfOTHERSTasks();
+        this.maxOthersTaskCount = conf.getLimitOfOTHERsTasks();
     }
 
     public MethodWorker(MethodWorker mw) {

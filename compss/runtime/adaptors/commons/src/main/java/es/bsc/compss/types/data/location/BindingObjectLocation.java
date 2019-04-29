@@ -31,6 +31,11 @@ public class BindingObjectLocation extends DataLocation {
     private MultiURI uri;
 
 
+    /**
+     * Binding location constructor.
+     * @param host Resource
+     * @param bo BindingObject reference
+     */
     public BindingObjectLocation(Resource host, BindingObject bo) {
         super();
         this.id = bo.getId();

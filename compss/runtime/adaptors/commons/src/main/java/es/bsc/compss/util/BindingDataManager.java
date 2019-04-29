@@ -21,21 +21,21 @@ import java.nio.ByteBuffer;
 
 public class BindingDataManager {
 
-    public native static boolean isInBinding(String id);
+    public static native boolean isInBinding(String id);
 
-    public native static int removeData(String id);
+    public static native int removeData(String id);
 
-    public native static int copyCachedData(String from_id, String to_id);
+    public static native int copyCachedData(String fromId, String toId);
 
-    public native static int moveCachedData(String from_id, String to_id);
+    public static native int moveCachedData(String fromId, String toId);
 
-    public native static int storeInFile(String id, String filepath);
+    public static native int storeInFile(String id, String filepath);
 
-    public native static int loadFromFile(String id, String filepath, int type, int elements);
+    public static native int loadFromFile(String id, String filepath, int type, int elements);
 
-    public native static ByteBuffer getByteArray(String id);
+    public static native ByteBuffer getByteArray(String id);
 
-    public native static int setByteArray(String id, ByteBuffer b, int type, int elements);
+    public static native int setByteArray(String id, ByteBuffer b, int type, int elements);
 
 
     static {

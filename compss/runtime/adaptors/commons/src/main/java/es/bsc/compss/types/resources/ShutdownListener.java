@@ -31,7 +31,10 @@ public class ShutdownListener {
     public ShutdownListener(Semaphore sem) {
         this.sem = sem;
     }
-
+    
+    /**
+     * Enable the listener to receive events.
+     */
     public void enable() {
         boolean finished;
         boolean failed;
@@ -52,7 +55,10 @@ public class ShutdownListener {
     public synchronized void addOperation() {
         operation++;
     }
-
+    
+    /**
+     * Notify that a listened operation has ended.
+     */
     public void notifyEnd() {
         boolean enabled;
         boolean finished;
@@ -71,7 +77,10 @@ public class ShutdownListener {
             }
         }
     }
-
+    
+    /**
+     * Notify that a listened operation has failed with exception e.
+     */
     public void notifyFailure(Exception e) {
         boolean enabled;
         boolean finished;

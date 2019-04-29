@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.types.data.operation.copy;
 
-import java.util.LinkedList;
-
 import es.bsc.compss.exceptions.CopyException;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
@@ -27,6 +25,7 @@ import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 
+import java.util.LinkedList;
 
 public abstract class ImmediateCopy extends Copy {
 
@@ -36,6 +35,9 @@ public abstract class ImmediateCopy extends Copy {
         super(ld, prefSrc, prefTgt, tgtData, reason, listener);
     }
 
+    /**
+     * Perform data copy.
+     */
     public void perform() {
         Resource targetHost = ((LinkedList<Resource>) tgtLoc.getHosts()).getFirst();
         LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - Copy file " + getName() + " to " + tgtLoc);

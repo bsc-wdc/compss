@@ -32,6 +32,9 @@ public class ExecutorShutdownListener {
         this.sem = sem;
     }
 
+    /**
+     * Enable the listener to receive events.
+     */
     public void enable() {
         boolean finished;
         boolean failed;
@@ -53,6 +56,9 @@ public class ExecutorShutdownListener {
         operation++;
     }
 
+    /**
+     * Notify that a listened operation has ended.
+     */
     public void notifyEnd() {
         boolean enabled;
         boolean finished;
@@ -72,6 +78,10 @@ public class ExecutorShutdownListener {
         }
     }
 
+    /**
+     * Notify that a listened operation has failed with exception e.
+     * @param e Failure exception
+     */
     public void notifyFailure(Exception e) {
         boolean enabled;
         boolean finished;

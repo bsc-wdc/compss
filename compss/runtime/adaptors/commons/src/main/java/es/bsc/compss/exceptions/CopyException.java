@@ -17,12 +17,12 @@
 package es.bsc.compss.exceptions;
 
 /**
- * Exception for Copy Exceptions
+ * Exception for Copy Exceptions.
  */
 public class CopyException extends Exception {
 
     /**
-     * Exceptions Version UID are 2L in all Runtime
+     * Exceptions Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
@@ -35,18 +35,18 @@ public class CopyException extends Exception {
     }
 
     /**
-     * New nested @e Copy Exception
+     * New nested @e Copy Exception.
      * 
-     * @param e
+     * @param e Causing exception
      */
     public CopyException(Exception e) {
         super(e);
     }
 
     /**
-     * New Copy Exception with message @msg
+     * New Copy Exception with message @msg.
      * 
-     * @param msg
+     * @param msg Error message
      */
     public CopyException(String msg) {
         super(msg);

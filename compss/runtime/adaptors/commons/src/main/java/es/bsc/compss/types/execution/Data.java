@@ -41,6 +41,10 @@ public abstract class Data<T extends InvocationParamURI> implements Externalizab
         this.sources = new LinkedList<>();
     }
 
+    /** Data constructor.
+     * @param name Name/identifier
+     * @param uri Initial data source URI
+     */
     public Data(String name, T uri) {
         this.dataMgmtId = name;
         this.sources = new LinkedList<>();
@@ -55,6 +59,9 @@ public abstract class Data<T extends InvocationParamURI> implements Externalizab
         return sources;
     }
 
+    /** Get first URI.
+     * @return
+     */
     public T getFirstURI() {
         if (sources != null && !sources.isEmpty()) {
             return sources.getFirst();

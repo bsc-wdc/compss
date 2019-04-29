@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 
 
 /**
- * Represents the different URIs associated to the same path in the same host
+ * Represents the different URIs associated to the same path in the same host.
  */
 public class MultiURI implements Comparable<MultiURI> {
 
@@ -36,6 +36,12 @@ public class MultiURI implements Comparable<MultiURI> {
     private final HashMap<String, Object> internal;
 
 
+    /**
+     * Constructor.
+     * @param protocol Protocol
+     * @param host Resource
+     * @param path Path in the resource
+     */
     public MultiURI(Protocol protocol, Resource host, String path) {
         this.protocol = protocol;
         this.host = host;
@@ -56,6 +62,11 @@ public class MultiURI implements Comparable<MultiURI> {
         internal.put(adaptor, uri);
     }
 
+    /** Get the internal URI for a given adaptor.
+     * @param adaptor Adaptor name
+     * @return Returns the URI in the adaptors format
+     * @throws UnstartedNodeException Error because host of the MultiURI not started
+     */
     public Object getInternalURI(String adaptor) throws UnstartedNodeException {
         Object o = internal.get(adaptor);
 
@@ -88,6 +99,10 @@ public class MultiURI implements Comparable<MultiURI> {
         return this.protocol.getSchema() + this.host.getName() + File.separator + this.path;
     }
 
+    /**
+     * Extended toString version for debugging purposes.
+     * @return 
+     */
     public String debugString() {
         StringBuilder sb = new StringBuilder(
                 this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");

@@ -18,15 +18,7 @@ package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CannotLoadException;
-import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
@@ -48,7 +40,12 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -92,9 +89,9 @@ public class LogicalData {
      * Constructors
      */
     /**
-     * Constructs a LogicalData for a given data version
+     * Constructs a LogicalData for a given data version.
      *
-     * @param name
+     * @param name Data name
      */
     public LogicalData(String name) {
         this.name = name;
@@ -110,7 +107,7 @@ public class LogicalData {
      * Getters
      */
     /**
-     * Returns the data version name
+     * Returns the data version name.
      *
      * @return
      */
@@ -129,7 +126,7 @@ public class LogicalData {
     }
 
     /**
-     * Returns all the hosts that contain a data location
+     * Returns all the hosts that contain a data location.
      *
      * @return
      */
@@ -146,7 +143,7 @@ public class LogicalData {
     }
 
     /**
-     * Returns all the hosts where a task using the data has been scheduled
+     * Returns all the hosts where a task using the data has been scheduled.
      *
      * @return
      */
@@ -155,16 +152,49 @@ public class LogicalData {
     }
 
     /**
-     * Add a new location where a task using the data has been scheduled
+     * Add a new location where a task using the data has been scheduled.
      *
-     * @param res
+     * @param res Resource
      */
     public synchronized void addLocation(Resource res) {
         localLocations.add(res);
     }
+    
+    /**
+     * Adds a new location.
+     *
+     * @param loc New location
+     */
+    public synchronized void addLocation(DataLocation loc) {
+        this.isBeingSaved = false;
+        this.locations.add(loc);
+        switch (loc.getType()) {
+            case PRIVATE:
+                for (Resource r : loc.getHosts()) {
+                    r.addLogicalData(this);
+                }
+                break;
+            case BINDING:
+                for (Resource r : loc.getHosts()) {
+                    this.isBindingData = true;
+                    if (this.bindingId == null) {
+                        this.bindingId = ((BindingObjectLocation) loc).getId();
+                    }
+                    r.addLogicalData(this);
+                }
+                break;
+            case SHARED:
+                SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+                break;
+            case PERSISTENT:
+                this.pscoId = ((PersistentLocation) loc).getId();
+                break;
+        }
+    }
+    
 
     /**
-     * Obtain the all the URIs
+     * Obtain the all the URIs.
      *
      * @return
      */
@@ -194,7 +224,7 @@ public class LogicalData {
     }
 
     /**
-     * Returns if the data value is stored in memory or not
+     * Returns if the data value is stored in memory or not.
      *
      * @return
      */
@@ -203,7 +233,7 @@ public class LogicalData {
     }
 
     /**
-     * Returns if the data is binding data
+     * Returns if the data is binding data.
      *
      * @return
      */
@@ -212,7 +242,7 @@ public class LogicalData {
     }
 
     /**
-     * Returns the value stored in memory
+     * Returns the value stored in memory.
      *
      * @return
      */
@@ -223,40 +253,10 @@ public class LogicalData {
     /*
      * Setters
      */
-    /**
-     * Adds a new location
-     *
-     * @param loc
-     */
-    public synchronized void addLocation(DataLocation loc) {
-        this.isBeingSaved = false;
-        this.locations.add(loc);
-        switch (loc.getType()) {
-            case PRIVATE:
-                for (Resource r : loc.getHosts()) {
-                    r.addLogicalData(this);
-                }
-                break;
-            case BINDING:
-                for (Resource r : loc.getHosts()) {
-                    this.isBindingData = true;
-                    if (this.bindingId == null) {
-                        this.bindingId = ((BindingObjectLocation) loc).getId();
-                    }
-                    r.addLogicalData(this);
-                }
-                break;
-            case SHARED:
-                SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
-                break;
-            case PERSISTENT:
-                this.pscoId = ((PersistentLocation) loc).getId();
-                break;
-        }
-    }
+
 
     /**
-     * Removes the object from master main memory and removes its location
+     * Removes the object from master main memory and removes its location.
      *
      * @return
      */
@@ -280,27 +280,27 @@ public class LogicalData {
     }
 
     /**
-     * Sets the memory value
+     * Sets the memory value.
      *
-     * @param o
+     * @param o Object value
      */
     public synchronized void setValue(Object o) {
         this.value = o;
     }
 
     /**
-     * Sets the LD id
+     * Sets the PSCO id of a logical data.
      *
-     * @param id
+     * @param id PSCO Identifier
      */
     public synchronized void setPscoId(String id) {
         this.pscoId = id;
     }
 
     /**
-     * Writes memory value to file
+     * Writes memory value to file.
      *
-     * @throws Exception
+     * @throws Exception Error writting to storage
      */
     public synchronized void writeToStorage() throws Exception {
         if (DEBUG) {
@@ -372,14 +372,9 @@ public class LogicalData {
     }
 
     /**
-     * Loads the value of the LogicalData from a file
+     * Loads the value of the LogicalData from a file.
      *
-     * @throws CannotLoadException
-     * @throws IOException
-     * @throws ClassNotFoundException
-     * @throws StorageException
-     * @throws UnstartedNodeException
-     * @throws Exception
+     * @throws CannotLoadException Error loading from storage
      */
     public synchronized void loadFromStorage() throws CannotLoadException {
         // TODO: Check if we have to do something in binding data??
@@ -462,10 +457,10 @@ public class LogicalData {
     }
 
     /**
-     * Removes all the locations assigned to a given host and returns a valid location if the file is unique
+     * Removes all the locations assigned to a given host and returns a valid location if the file is unique.
      *
-     * @param host
-     * @param sharedMountPoints
+     * @param host Resource
+     * @param sharedMountPoints Shared mount point
      * @return a valid location if the file is unique
      */
     public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host,
@@ -533,7 +528,7 @@ public class LogicalData {
     }
 
     /**
-     * Returns the copies in progress
+     * Returns the copies in progress.
      *
      * @return
      */
@@ -547,9 +542,9 @@ public class LogicalData {
     }
 
     /**
-     * Returns if the data is already available in a given targetHost
+     * Returns if the data is already available in a given targetHost.
      *
-     * @param targetHost
+     * @param targetHost target resource
      * @return
      */
     public synchronized MultiURI alreadyAvailable(Resource targetHost) {
@@ -566,9 +561,9 @@ public class LogicalData {
     }
 
     /**
-     * Returns if a copy of the LogicalData is being performed to a target host
+     * Returns if a copy of the LogicalData is being performed to a target host.
      *
-     * @param target
+     * @param target Target location
      * @return the copy in progress or null if none
      */
     public synchronized Copy alreadyCopying(DataLocation target) {
@@ -582,19 +577,19 @@ public class LogicalData {
     }
 
     /**
-     * Begins a copy of the LogicalData to a target host
+     * Begins a copy of the LogicalData to a target host.
      *
-     * @param c
-     * @param target
+     * @param c Copy 
+     * @param target Target data location
      */
     public synchronized void startCopy(Copy c, DataLocation target) {
         this.inProgress.add(new CopyInProgress(c, target));
     }
 
     /**
-     * Marks the end of a copy. Returns the location of the finished copy or null if not found
+     * Marks the end of a copy. Returns the location of the finished copy or null if not found.
      *
-     * @param c
+     * @param c Copy
      * @return
      */
     public synchronized DataLocation finishedCopy(Copy c) {
@@ -614,9 +609,9 @@ public class LogicalData {
     }
 
     /**
-     * Adds a listener to the inProgress copies
+     * Adds a listener to the inProgress copies.
      *
-     * @param listener
+     * @param listener Copy listener
      */
     public synchronized void notifyToInProgressCopiesEnd(SafeCopyListener listener) {
         for (CopyInProgress cip : this.inProgress) {
@@ -626,7 +621,7 @@ public class LogicalData {
     }
 
     /**
-     * Sets the LogicalData as obsolete
+     * Sets the LogicalData as obsolete.
      */
     public synchronized void isObsolete() {
         for (Resource res : this.getAllHosts()) {

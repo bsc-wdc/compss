@@ -25,9 +25,9 @@ import es.bsc.compss.util.SharedDiskManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 public abstract class DataLocation implements Comparable<DataLocation> {
 
     /**
-     * DataLocation Types
+     * DataLocation Types.
      */
     public enum Type {
     PRIVATE, // For private objects and files
@@ -46,7 +46,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     }
 
     /**
-     * Supported Protocols
+     * Supported Protocols.
      */
     public enum Protocol {
         FILE_URI("file://"), // File protocol
@@ -67,6 +67,11 @@ public abstract class DataLocation implements Comparable<DataLocation> {
             return this.schema;
         }
 
+        /**
+         * Get protocol by Schema.
+         * @param schema Scheme
+         * @return Protocol related to the schema. Null if there is no protocol bind to the schema
+         */
         public static Protocol getBySchema(String schema) {
             for (Protocol p : Protocol.values()) {
                 if (p.schema.equals(schema)) {
@@ -91,10 +96,10 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      * shared://, object://, storage://) - Contain a valid path - Any hostname (ignored since host is received from the
      * other parameter)
      * 
-     * @param host
-     * @param uri
-     * @return
-     * @throws Exception
+     * @param host Location Resource
+     * @param uri Location URI
+     * @return Data location object
+     * @throws IOException Error creating location
      */
     public static DataLocation createLocation(Resource host, SimpleURI uri) throws IOException {
         Protocol protocol = Protocol.getBySchema(uri.getSchema());
@@ -141,9 +146,9 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 loc = new PersistentLocation(id);
                 break;
             case BINDING_URI:
-                // Object
-                BindingObject bo = BindingObject.generate(uri.getPath()); // The Object name is stored as path in the
-                                                                          // URI
+                // Binding Object
+                // The Object name is stored as path in the URI
+                BindingObject bo = BindingObject.generate(uri.getPath()); 
                 LOGGER.debug("Creating new BindingObjectLocation: " + protocol.getSchema() + host.getName() + "@" + bo);
                 loc = new BindingObjectLocation(host, bo);
                 break;
@@ -157,12 +162,12 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     }
 
     /**
-     * Private Helper method for createLocation
+     * Private Helper method for createLocation.
      * 
-     * @param host
-     * @param path
-     * @param protocol
-     * @return
+     * @param host Resource
+     * @param path Path
+     * @param protocol Protocol
+     * @return Data location object
      */
     private static DataLocation createLocation(Protocol protocol, Resource host, String path) {
         String diskName = SharedDiskManager.getSharedName(host, path);

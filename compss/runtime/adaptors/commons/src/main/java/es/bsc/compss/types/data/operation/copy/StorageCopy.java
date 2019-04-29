@@ -28,7 +28,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 /**
- * Representation of a Storage Copy
+ * Representation of a Storage Copy.
  */
 public class StorageCopy extends DataOperation {
 
@@ -42,14 +42,14 @@ public class StorageCopy extends DataOperation {
 
 
     /**
-     * Create a new Storage Copy
+     * Create a new Storage Copy.
      *
-     * @param srcData
-     * @param prefSrc
-     * @param prefTgt
-     * @param tgtData
-     * @param reason
-     * @param listener
+     * @param srcData Source logical data
+     * @param prefSrc preferred source location
+     * @param prefTgt preferred target location
+     * @param tgtData Target logical data
+     * @param reason Transferable action which requested the copy
+     * @param listener Listener to notify events
      */
     public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
             Transferable reason, EventListener listener) {
@@ -81,7 +81,7 @@ public class StorageCopy extends DataOperation {
     }
 
     /**
-     * Returns the source data
+     * Returns the source data.
      *
      * @return
      */
@@ -90,7 +90,7 @@ public class StorageCopy extends DataOperation {
     }
 
     /**
-     * Returns the preferred location of the source data
+     * Returns the preferred location of the source data.
      *
      * @return
      */
@@ -103,7 +103,7 @@ public class StorageCopy extends DataOperation {
     }
 
     /**
-     * Returns the target location
+     * Returns the target location.
      *
      * @return
      */
@@ -112,7 +112,7 @@ public class StorageCopy extends DataOperation {
     }
 
     /**
-     * Returns the target data
+     * Returns the target data.
      *
      * @return
      */
@@ -121,7 +121,7 @@ public class StorageCopy extends DataOperation {
     }
 
     /**
-     * Returns whether the source data must be preserved or not
+     * Returns whether the source data must be preserved or not.
      *
      * @return
      */
@@ -130,9 +130,9 @@ public class StorageCopy extends DataOperation {
     }
 
     /**
-     * Sets a new final target data
+     * Sets a new final target data.
      *
-     * @param targetAbsolutePath
+     * @param targetAbsolutePath Absolute path
      */
     public void setFinalTarget(String targetAbsolutePath) {
         if (DEBUG) {
@@ -142,7 +142,7 @@ public class StorageCopy extends DataOperation {
     }
 
     /**
-     * Returns whether the target data is registered or not
+     * Returns whether the target data is registered or not.
      *
      * @return
      */

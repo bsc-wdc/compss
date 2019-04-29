@@ -305,7 +305,7 @@ public class Agent {
             mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
             mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
             mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
-            mc.setLimitOfOTHERSTasks(description.getTotalOTHERComputingUnits());
+            mc.setLimitOfOTHERsTasks(description.getTotalOTHERComputingUnits());
             mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
 
             mc.setHost(workerName);

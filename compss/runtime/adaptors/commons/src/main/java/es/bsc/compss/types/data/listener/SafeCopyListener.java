@@ -34,6 +34,9 @@ public class SafeCopyListener extends EventListener {
         this.sem = sem;
     }
 
+    /**
+     * Enable the listener.
+     */
     public void enable() {
         boolean finished;
         boolean failed;

@@ -37,23 +37,23 @@ import java.util.TreeMap;
 public class SharedDiskManager {
 
     /**
-     * Relation shared disk name --> worker names where it is mounted
+     * Relation shared disk name --> worker names where it is mounted.
      */
     private static final Map<String, List<Resource>> shared2Machines = new HashMap<>();
 
     /**
-     * Relation resource name --> Shared disks contained
+     * Relation resource name --> Shared disks contained.
      */
     private static final Map<Resource, Machine> machine2Shareds = new HashMap<>();
 
     /**
-     * LogicalData stored in any sharedDisk
+     * LogicalData stored in any sharedDisk.
      */
     private static final Map<String, Set<LogicalData>> sharedDisk2SharedFiles = new TreeMap<>();
 
 
     /**
-     * Adds a new resource to be managed
+     * Adds a new resource to be managed.
      *
      * @param host Resource
      */
@@ -63,7 +63,7 @@ public class SharedDiskManager {
     }
 
     /**
-     * Links a shared disk with a resource
+     * Links a shared disk with a resource.
      *
      * @param diskName shared disk identifier
      * @param mountpoint path where the shared disk is mounted
@@ -82,7 +82,7 @@ public class SharedDiskManager {
     }
 
     /**
-     * Gets the name of a shared disk which contains the files in a resource path
+     * Gets the name of a shared disk which contains the files in a resource path.
      *
      * @param host Name of the resource
      * @param path File path contained by the disk
@@ -98,11 +98,11 @@ public class SharedDiskManager {
     }
 
     /**
-     * Returns a string describing the current state of the shared disk configuration and the files contained on them
+     * Returns a string describing the current state of the shared disk configuration and the files contained on them.
      *
-     * @return description of the current state of the shared disk configuration and the files contained on them
+     * @return description of the current state of the shared disk configuration and the files contained on them.
      */
-    public synchronized static String getSharedStatus() {
+    public static synchronized String getSharedStatus() {
         StringBuilder sb = new StringBuilder("Shared disk in machines:\n");
         for (Entry<String, List<Resource>> e : shared2Machines.entrySet()) {
             sb.append(e.getKey()).append("--> {");
@@ -125,7 +125,7 @@ public class SharedDiskManager {
     }
 
     /**
-     * Returns a list with all the name of all the shared disks mounted on a resource
+     * Returns a list with all the name of all the shared disks mounted on a resource.
      *
      * @param host resource
      * @return a list with all the name of all the shared disks mounted on a resource
@@ -139,7 +139,7 @@ public class SharedDiskManager {
     }
 
     /**
-     * Returns the mountpoint of a shared disk in a resource
+     * Returns the mountpoint of a shared disk in a resource.
      *
      * @param host resource
      * @param sharedDisk shared disk name
@@ -154,7 +154,7 @@ public class SharedDiskManager {
     }
 
     /**
-     * Returns a list of machines with a shared disk mounted
+     * Returns a list of machines with a shared disk mounted.
      *
      * @param diskName name of the shared disk we are looking for
      * @return list of machines with a shared disk mounted
@@ -164,7 +164,7 @@ public class SharedDiskManager {
     }
 
     /**
-     * Removes all the information of a resource
+     * Removes all the information of a resource.
      *
      * @param host Machine to remove
      * @return returns the correlation diskName->mountpoint
@@ -188,10 +188,10 @@ public class SharedDiskManager {
     }
 
     /**
-     * Adds a LogicalData to a diskName
+     * Adds a LogicalData to a diskName.
      *
-     * @param diskName
-     * @param ld
+     * @param diskName Disk name
+     * @param ld Logical data
      */
     public static synchronized void addLogicalData(String diskName, LogicalData ld) {
         Set<LogicalData> lds = null;
@@ -208,8 +208,8 @@ public class SharedDiskManager {
      * Removes all the obsolete logical data appearances in the given shared disk. It doesn't have any effect if the
      * diskName or the logicalData don't exist
      *
-     * @param r
-     * @param obsolete
+     * @param diskName Shared disk name
+     * @param obsolete obsoleted logical data
      */
     public static synchronized void removeLogicalData(String diskName, LogicalData obsolete) {
         Set<LogicalData> lds = sharedDisk2SharedFiles.get(diskName);
@@ -219,9 +219,9 @@ public class SharedDiskManager {
     }
 
     /**
-     * Recovers all the data of a given sharedDisk
+     * Recovers all the data of a given sharedDisk.
      *
-     * @param diskName
+     * @param diskName Shared Disk name
      * @return
      */
     public static synchronized Set<LogicalData> getAllSharedFiles(String diskName) {

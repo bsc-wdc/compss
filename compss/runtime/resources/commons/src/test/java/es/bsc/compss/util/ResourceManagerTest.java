@@ -494,7 +494,7 @@ public class ResourceManagerTest {
         }
         mc.setLimitOfFPGATasks(taskCount);
 
-        limitOfTasks = mc.getLimitOfOTHERSTasks();
+        limitOfTasks = mc.getLimitOfOTHERsTasks();
         computingUnits = rd.getTotalOTHERComputingUnits();
 
         if (limitOfTasks < 0 && computingUnits < 0) {
@@ -502,7 +502,7 @@ public class ResourceManagerTest {
         } else {
             taskCount = Math.max(limitOfTasks, computingUnits);
         }
-        mc.setLimitOfOTHERSTasks(taskCount);
+        mc.setLimitOfOTHERsTasks(taskCount);
 
         MethodWorker methodWorker = new MethodWorker(name, rd, mc, sharedDisks);
         return methodWorker;

@@ -16,23 +16,16 @@
  */
 package es.bsc.compss.comm;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.exceptions.ConstructConfigurationException;
+import es.bsc.compss.exceptions.UnstartedNodeException;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.exceptions.ConstructConfigurationException;
-import es.bsc.compss.exceptions.UnstartedNodeException;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
-import storage.StorageException;
-import storage.StorageItf;
-import storage.StubItf;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.resources.MasterResource;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.configuration.Configuration;
@@ -45,16 +38,26 @@ import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import storage.StorageException;
+import storage.StorageItf;
+import storage.StubItf;
+
 
 /**
- * Representation of the Communication interface of the Runtime
+ * Representation of the Communication interface of the Runtime.
  */
 public class Comm {
 
@@ -75,16 +78,16 @@ public class Comm {
 
 
     /**
-     * Private constructor to avoid instantiation
+     * Private constructor to avoid instantiation.
      */
     private Comm() {
         throw new NonInstantiableException("Comm");
     }
 
     /**
-     * Communications initializer
+     * Communications initializer.
      *
-     * @param master
+     * @param master Master resource
      */
     public static void init(MasterResource master) {
         appHost = master;
@@ -106,9 +109,9 @@ public class Comm {
          */
         if (System.getProperty(COMPSsConstants.TRACING) != null
                 && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
-            int tracing_level = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
-            LOGGER.debug("Tracing is activated [" + tracing_level + ']');
-            Tracer.init(tracing_level);
+            int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
+            LOGGER.debug("Tracing is activated [" + tracingLevel + ']');
+            Tracer.init(tracingLevel);
             if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
             }
@@ -117,16 +120,16 @@ public class Comm {
     }
 
     /**
-     * Initializes the internal adaptor and constructs a comm configuration
+     * Initializes the internal adaptor and constructs a comm configuration.
      *
-     * @param adaptorName
-     * @param project_properties
-     * @param resources_properties
-     * @return
-     * @throws ConstructConfigurationException
+     * @param adaptorName Adaptor name
+     * @param projectProperties Project properties
+     * @param resourcesProperties Resources properties
+     * @return Communication layer configuration
+     * @throws ConstructConfigurationException Error building the configuration
      */
-    public static Configuration constructConfiguration(String adaptorName, Object project_properties,
-            Object resources_properties) throws ConstructConfigurationException {
+    public static Configuration constructConfiguration(String adaptorName, Object projectProperties,
+            Object resourcesProperties) throws ConstructConfigurationException {
 
         // Check if adaptor has already been used
         CommAdaptor adaptor = adaptors.get(adaptorName);
@@ -153,24 +156,24 @@ public class Comm {
         }
 
         // Construct properties
-        return adaptor.constructConfiguration(project_properties, resources_properties);
+        return adaptor.constructConfiguration(projectProperties, resourcesProperties);
     }
 
     /**
-     * Returns the resource assigned as master node
+     * Returns the resource assigned as master node.
      *
-     * @return
+     * @return Master Resource
      */
     public static MasterResource getAppHost() {
         return appHost;
     }
 
     /**
-     * Initializes a worker with name @name and configuration @config
+     * Initializes a worker with name @name and configuration @config.
      *
-     * @param name
-     * @param config
-     * @return
+     * @param name Worker name
+     * @param config Worker configuration
+     * @return COMPSs worker node representation
      */
     public static COMPSsWorker initWorker(String name, Configuration config) {
         String adaptorName = config.getAdaptorName();
@@ -179,7 +182,7 @@ public class Comm {
     }
 
     /**
-     * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob
+     * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob.
      */
     public static void stop() {
         appHost.deleteIntermediate();
@@ -204,9 +207,9 @@ public class Comm {
     }
 
     /**
-     * Registers a new data with id @dataId
+     * Registers a new data with id @dataId.
      *
-     * @param dataId
+     * @param dataId Data identifier
      * @return
      */
     public static synchronized LogicalData registerData(String dataId) {
@@ -219,11 +222,11 @@ public class Comm {
     }
 
     /**
-     * Registers a new location @location for the data with id @dataId dataId must exist
+     * Registers a new location @location for the data with id @dataId dataId must exist.
      *
-     * @param dataId
-     * @param location
-     * @return
+     * @param dataId Data identifier
+     * @param location Data location
+     * @return modified logical data
      */
     public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
         LOGGER.debug("Registering new Location for data " + dataId + ":");
@@ -236,11 +239,11 @@ public class Comm {
     }
 
     /**
-     * Registers a new value @value for the data with id @dataId dataId must exist
+     * Registers a new value @value for the data with id @dataId dataId must exist.
      *
-     * @param dataId
-     * @param value
-     * @return
+     * @param dataId Data identifier
+     * @param value Data value
+     * @return Modified logical data
      */
     public static synchronized LogicalData registerValue(String dataId, Object value) {
         LOGGER.debug("Register value " + value + " for data " + dataId);
@@ -270,7 +273,7 @@ public class Comm {
     }
 
     /**
-     * Registers a new value @value for the data with id @dataId dataId must exist
+     * Registers a new value @value for the data with id @dataId dataId must exist.
      * 
      * @param dataId Identifier of the collection
      * @param parameters Parameters of the collection
@@ -281,11 +284,11 @@ public class Comm {
     }
 
     /**
-     * Registers a new External PSCO id @id for the data with id @dataId dataId must exist
+     * Registers a new External PSCO id @id for the data with id @dataId dataId must exist.
      *
-     * @param dataId
-     * @param id
-     * @return
+     * @param dataId Data identifier
+     * @param id PSCO identifier
+     * @return LogicalData
      */
     public static synchronized LogicalData registerExternalPSCO(String dataId, String id) {
         LogicalData ld = registerPSCO(dataId, id);
@@ -295,10 +298,11 @@ public class Comm {
     }
 
     /**
-     * Registers a new Binding Object id @id for the data with id @dataId dataId must exist
+     * Registers a new Binding Object id @id for the data with id @dataId dataId must exist.
      *
-     * @param dataId
-     * @return
+     * @param dataId Data identifier
+     * @param bo BindingObject
+     * @return LogicalData
      */
     public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
         String targetPath = Protocol.BINDING_URI.getSchema() + bo.toString();
@@ -318,10 +322,10 @@ public class Comm {
     }
 
     /**
-     * Registers a new PSCO id @id for the data with id @dataId dataId must exist
+     * Registers a new PSCO id @id for the data with id @dataId dataId must exist.
      *
-     * @param dataId
-     * @param id
+     * @param dataId Data identifier
+     * @param id PSCO Identifier
      * @return
      */
     public static synchronized LogicalData registerPSCO(String dataId, String id) {
@@ -341,10 +345,10 @@ public class Comm {
     }
 
     /**
-     * Clears the value of the data id @dataId
+     * Clears the value of the data id @dataId.
      *
-     * @param dataId
-     * @return
+     * @param dataId Data identifier
+     * @return Data value
      */
     public static synchronized Object clearValue(String dataId) {
         LOGGER.debug("Clear value of data " + dataId);
@@ -354,20 +358,20 @@ public class Comm {
     }
 
     /**
-     * Checks if a given dataId @renaming exists
+     * Checks if a given dataId @renaming exists.
      *
-     * @param renaming
-     * @return
+     * @param renaming Data renaming
+     * @return True if exists, otherwise false
      */
     public static synchronized boolean existsData(String renaming) {
         return (data.get(renaming) != null);
     }
 
     /**
-     * Returns the data with id @dataId
+     * Returns the data with id @dataId.
      *
-     * @param dataId
-     * @return
+     * @param dataId Data identifier
+     * @return Logical Data
      */
     public static synchronized LogicalData getData(String dataId) {
         LogicalData retVal = data.get(dataId);
@@ -378,7 +382,7 @@ public class Comm {
     }
 
     /**
-     * Dumps the stored data (only for testing)
+     * Dumps the stored data (only for testing).
      *
      * @return
      */
@@ -407,10 +411,10 @@ public class Comm {
     }
 
     /**
-     * Returns all the data stored in a host @host
+     * Returns all the data stored in a host @host.
      *
-     * @param host
-     * @return
+     * @param host Resource
+     * @return Set of LogicalData
      */
     public static Set<LogicalData> getAllData(Resource host) {
         // logger.debug("Get all data from host: " + host.getName());
@@ -418,9 +422,9 @@ public class Comm {
     }
 
     /**
-     * Removes the data with id @renaming
+     * Removes the data with id @renaming.
      *
-     * @param renaming
+     * @param renaming Data renaming
      */
     public static synchronized void removeData(String renaming) {
         LOGGER.debug("Removing data " + renaming);
@@ -444,7 +448,7 @@ public class Comm {
     }
 
     /**
-     * Return the active adaptors
+     * Return the active adaptors.
      *
      * @return
      */
@@ -453,7 +457,7 @@ public class Comm {
     }
 
     /**
-     * Stops all the submitted jobs
+     * Stops all the submitted jobs.
      */
     public static void stopSubmittedjobs() {
         for (CommAdaptor adaptor : adaptors.values()) {

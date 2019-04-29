@@ -17,36 +17,36 @@
 package es.bsc.compss.exceptions;
 
 /**
- * Exception to creation/deletion announce errors
+ * Exception to creation/deletion announce errors.
  */
 public class AnnounceException extends Exception {
 
     /**
-     * Exceptions Version UID are 2L in all Runtime
+     * Exceptions Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
 
     /**
-     * New empty Announce Exception
+     * New empty Announce Exception.
      */
     public AnnounceException() {
         super();
     }
 
     /**
-     * New nested @e Announce Exception
+     * New nested @e Announce Exception.
      * 
-     * @param e
+     * @param e Exception
      */
     public AnnounceException(Exception e) {
         super(e);
     }
 
     /**
-     * New Announce Exception with message @msg
+     * New Announce Exception with message @msg.
      * 
-     * @param msg
+     * @param msg Exception message
      */
     public AnnounceException(String msg) {
         super(msg);

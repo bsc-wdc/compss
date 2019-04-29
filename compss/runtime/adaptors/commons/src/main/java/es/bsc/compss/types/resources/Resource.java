@@ -20,6 +20,7 @@ import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -29,7 +30,7 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.types.annotations.parameter.DataType;
+
 import java.util.List;
 import java.util.Set;
 
@@ -44,143 +45,142 @@ public interface Resource extends Comparable<Resource> {
 
 
     /**
-     * Starts a resource execution
+     * Starts a resource execution.
      *
-     * @throws es.bsc.compss.exceptions.InitNodeException
+     * @throws es.bsc.compss.exceptions.InitNodeException Error starting a resource
      */
     public void start() throws InitNodeException;
 
     /**
-     * Returns all the LogicalData stored in the host
+     * Returns all the LogicalData stored in the host.
      *
-     * @param
      * @return
      */
     public Set<LogicalData> getAllDataFromHost();
 
     /**
-     * Adds a new LogicalData available in the host
+     * Adds a new LogicalData available in the host.
      *
-     * @param ld
+     * @param ld Logical data to add
      */
     public void addLogicalData(LogicalData ld);
 
     /**
-     * Marks a file as obsolete
+     * Marks a file as obsolete.
      *
-     * @param obsolete
+     * @param obsolete logical data to mark as obsolete
      */
     public void addObsolete(LogicalData obsolete);
 
     /**
-     * Gets the list of obsolete files
+     * Gets the list of obsolete files.
      *
      * @return List of logicalData objects
      */
     public LogicalData[] pollObsoletes();
 
     /**
-     * Clears the list of obsolete files
+     * Clears the list of obsolete files.
      */
     public void clearObsoletes();
 
     /**
-     * Returns the node name
+     * Returns the node name.
      *
      * @return
      */
     public String getName();
 
     /**
-     * Returns the node associated to the resource
+     * Returns the node associated to the resource.
      *
      * @return
      */
     public COMPSsNode getNode();
 
     /**
-     * Returns the internal URI representation of the given MultiURI
+     * Returns the internal URI representation of the given MultiURI.
      *
-     * @param u
-     * @throws UnstartedNodeException
+     * @param u Multi- URI
+     * @throws UnstartedNodeException Error node not started
      */
     public void setInternalURI(MultiURI u) throws UnstartedNodeException;
 
     /**
-     * Creates a new Job
+     * Creates a new Job from a task in the resource.
      *
-     * @param taskId
-     * @param taskParams
-     * @param impl
-     * @param slaveWorkersNodeNames
-     * @param listener
+     * @param taskId Task Identifier
+     * @param taskParams Task description
+     * @param impl Task Implementation
+     * @param slaveWorkersNodeNames List of slave resources assigned in a multi-node execution
+     * @param listener Listener to notify job events
      * @return
      */
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
             List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param dataId
-     * @param tgtDataId
-     * @param reason
-     * @param listener
+     * @param dataId Data name/identifier
+     * @param tgtDataId Target data name/identifier
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(String dataId, String tgtDataId, Transferable reason, EventListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param ld
-     * @param tgtData
-     * @param reason
-     * @param listener
+     * @param ld Source logical data
+     * @param tgtData Target logical data
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(LogicalData ld, LogicalData tgtData, Transferable reason, EventListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param dataId
-     * @param newName
-     * @param tgtDataId
-     * @param reason
-     * @param listener
+     * @param dataId Data name/identifier
+     * @param newName Target data new name
+     * @param tgtDataId Target data identifier
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(String dataId, String newName, String tgtDataId, Transferable reason, EventListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param dataId
-     * @param newName
-     * @param tgtData
-     * @param reason
-     * @param listener
+     * @param dataId Data name/identifier
+     * @param newName Target data new name
+     * @param tgtData Target logical data
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
             EventListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param ld
-     * @param newName
-     * @param tgtData
-     * @param reason
-     * @param listener
+     * @param ld Source logical data
+     * @param newName Target data new name
+     * @param tgtData Target logical data
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
             EventListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param dataId
-     * @param target
-     * @param reason
-     * @param listener
+     * @param dataId Data name/identifier
+     * @param target Target location
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(String dataId, DataLocation target, Transferable reason, EventListener listener);
 
@@ -188,59 +188,59 @@ public interface Resource extends Comparable<Resource> {
             EventListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param dataId
-     * @param target
-     * @param tgtData
-     * @param reason
-     * @param listener
+     * @param dataId Data name/identifier
+     * @param target Target location
+     * @param tgtData Target logical data
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener);
 
     /**
-     * Retrieves a given data
+     * Retrieves a given data.
      *
-     * @param srcData
-     * @param target
-     * @param tgtData
-     * @param reason
-     * @param listener
+     * @param srcData Source logical data
+     * @param target Target location
+     * @param tgtData Target logical data
+     * @param reason Transferable action how requested the data retrieve
+     * @param listener Listener to notify operation events
      */
     public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener);
 
     /**
-     * Returns the complete remote path of a given data
+     * Returns the complete remote path of a given data .
      *
-     * @param type
-     * @param name
+     * @param type Data type
+     * @param name Data name/identifier
      * @return
      */
     public SimpleURI getCompleteRemotePath(DataType type, String name);
 
     /**
-     * Retrieves all the data from the Resource
+     * Retrieves all the data from the Resource.
      *
-     * @param saveUniqueData
+     * @param saveUniqueData Flag to indicate to save unique data
      */
     public void retrieveData(boolean saveUniqueData);
 
     /**
-     * Deletes the intermediate data
+     * Deletes the intermediate data.
      */
     public void deleteIntermediate();
 
     /**
-     * Stops the resource
+     * Stops the resource.
      *
-     * @param sl
+     * @param sl Listener to notify operation events
      */
     public void stop(ShutdownListener sl);
 
     /**
-     * Returns the Resource type
+     * Returns the Resource type.
      *
      * @return
      */

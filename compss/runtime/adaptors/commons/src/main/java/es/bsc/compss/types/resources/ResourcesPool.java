@@ -34,10 +34,9 @@ public class ResourcesPool {
 
 
     /**
-     * Returns the Resource associated to the given name @name Null if any resource has been registered with the name
+     * Returns the Resource associated to the given name @name. Null if any resource has been registered with the name
      *
-     * @name
-     * @param name
+     * @param name Resource name
      * @return
      */
     public static Resource getResource(String name) {

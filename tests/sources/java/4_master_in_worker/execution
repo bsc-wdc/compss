@@ -27,7 +27,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING JAVA APPLICATION DATA LOCALITY - Basic Test"
+  echo "*** RUNNING JAVA APPLICATION MASTER IN WORKER - Basic Test"
   output_log="${target_log_folder}/master_in_worker_0${retry_num}.outputlog"
   error_log="${target_log_folder}/master_in_worker_0${retry_num}.errorlog"
   

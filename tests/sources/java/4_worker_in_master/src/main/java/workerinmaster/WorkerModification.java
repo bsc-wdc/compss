@@ -1,5 +1,5 @@
 
-package masterinworker;
+package workerinmaster;
 
 
 public class WorkerModification {

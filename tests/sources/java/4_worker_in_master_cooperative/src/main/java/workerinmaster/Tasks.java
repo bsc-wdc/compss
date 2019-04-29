@@ -1,5 +1,5 @@
 
-package masterinworker;
+package workerinmaster;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -138,7 +138,7 @@ public class Tasks {
     }
 
     /**
-     * Verifies that the content of the file matches the one passed in as a parameter on COMPSsWorker02
+     * Verifies that the content of the file matches the one passed in as a parameter on COMPSsWorker02.
      *
      * @param content text expected to be found on the file
      * @param fileName path of the file to analyze

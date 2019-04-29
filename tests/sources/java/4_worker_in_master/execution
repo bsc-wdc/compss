@@ -12,8 +12,8 @@
   
   # Global variables
   exit_value=1
-  jar_name="4_master_in_worker_cooperative.jar"
-  app_name="masterinworker.Test"
+  jar_name="4_worker_in_master.jar"
+  app_name="workerinmaster.Test"
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -27,9 +27,9 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING JAVA APPLICATION MASTER IN WORKER COOPERATIVE - Basic Test"
-  output_log="${target_log_folder}/master_in_worker_cooperative_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/master_in_worker_cooperative_0${retry_num}.errorlog"
+  echo "*** RUNNING JAVA APPLICATION WORKER IN MASTER - Basic Test"
+  output_log="${target_log_folder}/worker_in_master_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/worker_in_master_0${retry_num}.errorlog"
   
   expectedTime=60s
 

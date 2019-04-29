@@ -1,5 +1,5 @@
 
-package masterinworker;
+package workerinmaster;
 
 import es.bsc.compss.api.COMPSs;
 import java.io.File;
@@ -37,7 +37,7 @@ public class Test {
         System.out.println("Master produces file, several workers consume, master updates, worker reads");
         String fileName = "produce_consume_update";
         Tasks.createFileWithContentMaster(INITIAL_CONTENT, fileName);
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < PARALLEL_TEST_COUNT; i++) {
             Tasks.checkFileWithContentWorker(INITIAL_CONTENT, fileName);
         }
         Tasks.checkAndUpdateFileWithContent(INITIAL_CONTENT, UPDATED_CONTENT_1, fileName);
@@ -65,7 +65,7 @@ public class Test {
     private static void masterProducerWorkerConsumerMasterUpdatesObject() throws Exception {
         System.out.println("Master produces object, several workers consume, master updates, worker reads");
         StringWrapper sw = Tasks.createObjectWithContentMaster(INITIAL_CONTENT);
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < PARALLEL_TEST_COUNT; i++) {
             Tasks.checkObjectWithContentWorker(INITIAL_CONTENT, sw);
         }
         Tasks.checkAndUpdateObjectWithContent(INITIAL_CONTENT, UPDATED_CONTENT_1, sw);

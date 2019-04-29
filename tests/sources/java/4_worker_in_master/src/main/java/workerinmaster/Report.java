@@ -1,5 +1,5 @@
 
-package masterinworker;
+package workerinmaster;
 
 import java.io.Externalizable;
 import java.io.IOException;

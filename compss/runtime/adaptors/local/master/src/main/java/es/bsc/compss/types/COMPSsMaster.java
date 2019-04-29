@@ -17,6 +17,7 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
@@ -25,6 +26,9 @@ import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.ExecutionListener;
 import es.bsc.compss.executor.utils.ThreadedPrintStream;
+import es.bsc.compss.invokers.types.CParams;
+import es.bsc.compss.invokers.types.JavaParams;
+import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -100,6 +104,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final String tempDirPath;
     private final String jobsDirPath;
     private final String workersDirPath;
+
+    private final LanguageParams[] langParams = new LanguageParams[COMPSsConstants.Lang.values().length];
+    private boolean persistentEnabled;
 
     private ExecutionManager executionManager;
     private final ThreadedPrintStream out;
@@ -290,6 +297,59 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
         System.setErr(err);
         System.setOut(out);
+
+        // Get worker classpath
+        String classPath = System.getProperty(COMPSsConstants.WORKER_CP);
+        if (classPath == null || classPath.isEmpty()) {
+            classPath = "";
+        }
+
+        // Get python interpreter
+        String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+        if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
+            pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+        }
+
+        // Get python version
+        String pythonVersion = System.getProperty(COMPSsConstants.PYTHON_VERSION);
+        if (pythonVersion == null || pythonVersion.isEmpty() || pythonVersion.equals("null")) {
+            pythonVersion = COMPSsConstants.DEFAULT_PYTHON_VERSION;
+        }
+
+        // Configure python virtual environment
+        String pythonVEnv = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
+        if (pythonVEnv == null || pythonVEnv.isEmpty() || pythonVEnv.equals("null")) {
+            pythonVEnv = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+        }
+        String pythonPropagateVEnv = System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+        if (pythonPropagateVEnv == null || pythonPropagateVEnv.isEmpty() || pythonPropagateVEnv.equals("null")) {
+            pythonPropagateVEnv = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+        }
+
+        String pythonPath = System.getProperty(COMPSsConstants.WORKER_PP);
+        if (pythonPath == null || pythonPath.isEmpty()) {
+            pythonPath = "";
+        }
+
+        // Get Python MPI worker invocation
+        String pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
+        if (pythonMpiWorker == null || pythonMpiWorker.isEmpty() || pythonMpiWorker.equals("null")) {
+            pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
+        }
+        JavaParams javaParams = new JavaParams(classPath);
+        PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVEnv, pythonPropagateVEnv,
+                pythonPath, pythonMpiWorker);
+        CParams cParams = new CParams(classPath);
+
+        this.langParams[Lang.JAVA.ordinal()] = javaParams;
+        this.langParams[Lang.PYTHON.ordinal()] = pyParams;
+        this.langParams[Lang.C.ordinal()] = cParams;
+
+        String workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
+        if (workerPersistentC == null || workerPersistentC.isEmpty() || workerPersistentC.equals("null")) {
+            workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
+        }
+        this.persistentEnabled = workerPersistentC.toUpperCase().compareTo("TRUE") == 0;
 
         this.executionManager = new ExecutionManager(this, 0, ThreadBinder.BINDER_DISABLED, 0,
                 ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 0);
@@ -973,12 +1033,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public boolean isPersistentEnabled() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.persistentEnabled;
     }
 
     @Override
     public LanguageParams getLanguageParams(COMPSsConstants.Lang language) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.langParams[language.ordinal()];
     }
 
     @Override

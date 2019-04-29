@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- GENERAL INFORMATION -->
-    <artifactId>4_master_in_worker</artifactId>
+    <artifactId>4_worker_in_master</artifactId>
     <packaging>jar</packaging>
     <parent>
         <groupId>es.bsc.compss.tests</groupId>
@@ -13,9 +13,9 @@
     </parent>
 
     <!-- PROJECT INFORMATION -->
-    <name>Test - Java - Master in Worker</name>
+    <name>Test - Java - Worker in Master</name>
     <description>Application with one single node using the worker in the master process</description>
-    <url>http://compss.bsc.es/projects/bar/wiki/master_in_worker</url>
+    <url>http://compss.bsc.es/projects/bar/wiki/worker_in_master</url>
     <inceptionYear>2014</inceptionYear>
     <licenses>
         <license>

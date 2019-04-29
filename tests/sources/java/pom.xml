@@ -67,6 +67,7 @@
         <module>4_data_locality_basic</module>
         <module>4_data_locality_complex</module>
         <module>4_master_in_worker</module>
+        <module>4_master_in_worker_cooperative</module>
         <module>4_scheduler_data</module>
         <module>4_scheduler_default</module>
         <module>4_scheduler_fifo</module>
@@ -80,3 +81,4 @@
 		<!-- Add new modules below -->
 	</modules>
 </project>
+

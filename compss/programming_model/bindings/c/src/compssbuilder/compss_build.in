@@ -77,6 +77,8 @@ if [ "$OMPSS_ENABLED" == "enabled" ]; then
 fi
 
 if [ "$CUDA_ENABLED" == "enabled" ]; then
+    ldflags_aux="$ldflags_aux -L$CUDA_HOME/lib64"
+    cflags_aux="$cflags_aux -I$CUDA_HOME/include"
     conf_opts="$conf_opts --with-cuda"
 fi
 

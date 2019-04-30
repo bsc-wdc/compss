@@ -47,35 +47,41 @@ nio_worker_c_LDFLAGS =
 
 nio_worker_c_LDADD =  -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread libfunctions.a
 
-#There are not or's nor and's, so this looks pretty ugly...
 if OMPSS2
 libfunctions_a_CPPFLAGS  += --ompss-2 -DOMPSS2_ENABLED
 libfunctions_a_CFLAGS    += --ompss-2 -DOMPSS2_ENABLED
 
 nio_worker_c_CPPFLAGS    += -DOMPSS2_ENABLED
 worker_c_CPPFLAGS        += -DOMPSS2_ENABLED
-
-if CUDA 
-libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
-libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
 endif
-
-else    
 
 if OMPSS
 libfunctions_a_CPPFLAGS  += --ompss -DOMPSS_ENABLED
 libfunctions_a_CFLAGS    += --ompss -DOMPSS_ENABLED
 
-nio_worker_c_CPPFLAGS    += -DOMPSS_ENABLED
-worker_c_CPPFLAGS        += -DOMPSS_ENABLED
+nio_worker_c_CPPFLAGS    += --ompss -DOMPSS_ENABLED
+worker_c_CPPFLAGS        += --ompss -DOMPSS_ENABLED
 
-if CUDA 
+nio_worker_c_LDFLAGS += --ompss
+worker_c_LDFLAGS     += --ompss
+endif
+
+if CUDAOMPSS
+libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
+libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
+
+nio_worker_c_CPPFLAGS    += --cuda -DCUDA_ENABLED
+worker_c_CPPFLAGS        += --cuda -DCUDA_ENABLED
+
+nio_worker_c_LDFLAGS += --cuda
+worker_c_LDFLAGS     += --cuda
+endif
+
+if CUDAOMPSS2
 libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
 libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
 endif
 
-endif
-endif
 
 COMPSSGEN_FLAGS = 
 

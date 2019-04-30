@@ -101,14 +101,14 @@ AC_ARG_WITH([cuda],
                 AC_CHECK_LIB([cudart], [cudaMalloc], [],
                 [
                     AC_MSG_ERROR([cudart library not found, is needed to enable CUDA.])
-
                 ])
             ]
 )
 
 AM_CONDITIONAL([OMPSS], [test x$ompss = xtrue])
 AM_CONDITIONAL([OMPSS2], [test x$ompss2 = xtrue])
-AM_CONDITIONAL([CUDA], [test x$cuda = xtrue])
+AM_CONDITIONAL([CUDAOMPSS], [test x$cuda = xtrue && test x$ompss = xtrue])
+AM_CONDITIONAL([CUDAOMPSS2], [test x$cuda = xtrue && test x$ompss2 = xtrue])
 
 #Please, note that there are dependencies between the cuda option and OmpSs, OmpSs-2, in order to use cuda you must have enabled OmpSs or OmpSs-2. This dependencies are managed by the compss_build_app script.
 

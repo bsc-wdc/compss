@@ -1599,15 +1599,13 @@ launch() {
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
-        fi
-
         if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
             if [ -n "${worker_in_master_cpus}" ] && [ "${worker_in_master_cpus}" != "0" ]; then
-                LAUNCH_PARAMS="${QARG_CPUS_PER_TASK}" "${worker_in_master_cpus}" "${LAUNCH_PARAMS}"
+                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${worker_in_master_cpus} ${LAUNCH_PARAMS}"
             fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
+        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
         echo "CMD Worker $hostid launcher: $WCMD"
         $WCMD&
         hostid=$((hostid+1))
@@ -1630,10 +1628,12 @@ launch() {
         fi
 
         if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
-            LAUNCH_PARAMS="${QARG_CPUS_PER_TASK}" "${cpus_per_node}" "${LAUNCH_PARAMS}"
+            if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
+                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} ${LAUNCH_PARAMS}"
+            fi
         fi
 
-        WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
+        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
         echo "CMD Worker $hostid launcher: $WCMD"
         $WCMD&
         hostid=$((hostid+1))

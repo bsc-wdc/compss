@@ -101,6 +101,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final String COMPSsLogBaseDirPath;
     private final String appLogDirPath;
 
+    private final String installDirPath;
+    private final String appDirPath;
     private final String tempDirPath;
     private final String jobsDirPath;
     private final String workersDirPath;
@@ -298,11 +300,21 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         System.setErr(err);
         System.setOut(out);
 
+        // Get installDir classpath
+        this.installDirPath = System.getenv(COMPSsConstants.COMPSS_HOME);
+
         // Get worker classpath
         String classPath = System.getProperty(COMPSsConstants.WORKER_CP);
         if (classPath == null || classPath.isEmpty()) {
             classPath = "";
         }
+
+        // Get appDir classpath
+        String appDir = System.getProperty(COMPSsConstants.WORKER_APPDIR);
+        if (appDir == null || appDir.isEmpty()) {
+            appDir = "";
+        }
+        this.appDirPath = appDir;
 
         // Get python interpreter
         String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
@@ -1013,17 +1025,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public String getAppDir() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.appDirPath;
     }
 
     @Override
     public String getInstallDir() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.installDirPath;
     }
 
     @Override
     public String getWorkingDir() {
-        return Comm.getAppHost().getTempDirPath();
+        return this.tempDirPath;
     }
 
     @Override

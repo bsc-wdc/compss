@@ -7,6 +7,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 DEFAULT_SC_CFG="default"
 DEFAULT_JOB_NAME="COMPSs"
+DEFAULT_CPUS_PER_TASK="false"
 
 #---------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -99,6 +100,15 @@ EOT
     cat <<EOT
     --qos=<qos>                             Quality of Service to pass to the queue system.
                                             Default: ${DEFAULT_QOS}
+EOT
+  fi
+
+  if [ -z "${DISABLE_QARG_CPUS_PER_TASK}" ] || [ "${DISABLE_QARG_CPUS_PER_TASK}" == "false" ]; then
+    cat <<EOT
+    --cpus_per_task                         Number of cpus per task the queue system must allocate per task.
+                                            Note that this will be equal to the cpus_per_node in a worker node and
+                                            equal to the worker_in_master_cpus in a master node respectively.
+                                            Default: ${DEFAULT_CPUS_PER_TASK}
 EOT
   fi
     cat <<EOT
@@ -236,7 +246,6 @@ convert_to_wc() {
   fi
 }
 
-
 #---------------------------------------------------
 # MAIN FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -315,6 +324,10 @@ get_args() {
             ;;
           qos=*)
             qos=${OPTARG//qos=/}
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          cpus_per_task)
+            cpus_per_task="true"
             args_pass="$args_pass --$OPTARG"
             ;;
           constraints=*)

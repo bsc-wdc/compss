@@ -50,7 +50,7 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data to DIP...");
+        LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + loc.getPath() + "to DIP...");
         this.nPermits = dip.waitForDataReadyToDelete(loc, semWait);
         sem.release();
     }

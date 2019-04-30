@@ -743,9 +743,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
         
         // Wait for response
+        LOGGER.debug("Waiting for ready to delete request response...");
         sem.acquireUninterruptibly();
+        
         int nPermits = request.getNumPermits(); 
         if ( nPermits > 0 ) {
+            LOGGER.debug("Waiting for " + nPermits + " tasks to finish...");
             semWait.acquireUninterruptibly(nPermits);
         }
         
@@ -754,10 +757,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (!requestQueue.offer(new DeleteFileRequest(loc, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
-           
+        
+        LOGGER.debug("Waiting for delete request response...");
         // Wait for response
         sem.acquireUninterruptibly();
-        LOGGER.debug("Sata " + loc + " deleted");
+        LOGGER.debug("Data " + loc + " deleted.");
     }
 
     /**

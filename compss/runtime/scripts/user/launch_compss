@@ -1323,7 +1323,7 @@ check_args() {
   fi
   jvm_workers_opts=${jvm_workers_opts//\"/}
 
-  if [ -n "${worker_in_master_cpus}" ]; then
+  if [ -z "${jvm_worker_in_master_opts}" ] && [ -n "${worker_in_master_cpus}" ]; then
     jvm_worker_in_master_opts=${DEFAULT_JVM_WORKER_IN_MASTER}
   fi
   jvm_worker_in_master_opts=${jvm_worker_in_master_opts//\"/}

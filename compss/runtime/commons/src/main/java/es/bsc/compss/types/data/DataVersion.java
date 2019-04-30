@@ -113,7 +113,7 @@ public class DataVersion {
     }
     
     /**
-     * Returns the number of readers
+     * Returns the number of readers.
      * 
      * @return The number of readers
      */
@@ -176,14 +176,17 @@ public class DataVersion {
     }
     
     /**
-     * Adds a Semaphore to the Semaphore list
+     * Adds a Semaphore to the Semaphore list.
      * 
      * @param semWait Semaphore to be added to the list 
+     * @return True if semaphore is add. Otherwise false.
      */
-    public void addSemaphore(Semaphore semWait) {
+    public boolean addSemaphore(Semaphore semWait) {
         if (readers != 0) {
             this.semUsed = true;
             this.semReaders.add(semWait);
+            return true;
         }
+        return false;
     }
 }

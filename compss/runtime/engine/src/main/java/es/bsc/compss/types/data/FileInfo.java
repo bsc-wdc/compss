@@ -54,42 +54,47 @@ public class FileInfo extends DataInfo {
     
     @Override
     public int waitForDataReadyToDelete(Semaphore semWait) {
-        int nPermits=1;
+        int nPermits = 1;
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
         DataVersion firstVersion = this.getFirstVersion();
         if (firstVersion != null) {
             LogicalData ld = Comm.getData(firstVersion.getDataInstanceId().getRenaming());
             if (ld != null) {
-                for (DataLocation loc : ld.getLocations()) {                
+                for (DataLocation loc : ld.getLocations()) {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
                     if (uri != null) {
                         if (loc.equals(origLocation)) {
                             if (loc.getType() != Type.SHARED) {
                                 nPermits = waitForEndingCopies(ld, loc, semWait);
                             } else {
-                                waitForLecturers(firstVersion,ld,loc,semWait);
+                                // Add a semaphore to notify if all readers to finish
+                                if (!firstVersion.addSemaphore(semWait)) {
+                                    LOGGER.debug("[FileInfo] Readers for first version of " + this.getDataId()
+                                            + "finished. Nothing to do. Releasing semaphore.");
+                                    semWait.release();
+                                }
+                                ;
                             }
+                            return nPermits;
                         }
                     }
                 }
-                if (ld.getLocations().size() == 0) {
-                    semWait.release();
-                }
-            } 
-        }  else {
-            semWait.release();  
+                LOGGER.debug("[FileInfo] No location in " + this.getDataId()
+                        + "equal to original. Nothing to do. Releasing semaphore.");
+                semWait.release();
+            }
+        } else {
+            LOGGER.debug("[FileInfo] First version of data " + this.getDataId()
+                    + "is null. Nothing to do. Releasing semaphore.");
+            semWait.release();
         }
         return nPermits;
-    }
-    
-    private void waitForLecturers(DataVersion firstVersion, LogicalData ld, DataLocation loc, Semaphore semWait) {
-        firstVersion.addSemaphore(semWait);
     }
     
     @Override
     public boolean delete() {
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
-          DataVersion firstVersion = this.getFirstVersion();
+        DataVersion firstVersion = this.getFirstVersion();
         if (firstVersion != null) {
             LogicalData ld = Comm.getData(firstVersion.getDataInstanceId().getRenaming());
             if (ld != null) {
@@ -105,8 +110,8 @@ public class FileInfo extends DataInfo {
                             Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath(),
                                     StandardCopyOption.REPLACE_EXISTING);
                         } catch (IOException e) {
-                            ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath
-                                    + "Reason: " + e.getMessage());
+                            ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath + "Reason: "
+                                    + e.getMessage());
                         }
                     }
                 }
@@ -121,7 +126,7 @@ public class FileInfo extends DataInfo {
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
         int nPermits = 1;
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
-            //length copiesInProgress son els permits
+            // length copiesInProgress son els permits
             nPermits = copiesInProgress.size();
             for (Copy copy : copiesInProgress) {
                 if (copy.getSourceData().equals(ld)) {
@@ -130,7 +135,7 @@ public class FileInfo extends DataInfo {
                     copy.addEventListener(currentCopylistener);
                     currentCopylistener.addOperation();
                     currentCopylistener.enable();
-//                    Copy.waitForCopyTofinish(copy, Comm.getAppHost().getNode());
+                    // Copy.waitForCopyTofinish(copy, Comm.getAppHost().getNode());
                 }
             }
         } else {

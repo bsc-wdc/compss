@@ -44,7 +44,7 @@ public class DeleteFileRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[DeleteFileRequest] Notify data delete to DIP...");
+        LOGGER.info("[DeleteFileRequest] Notify data delete " +loc.getPath() + " to DIP...");
         FileInfo fileInfo = (FileInfo) dip.deleteData(loc);
         if (fileInfo == null) {
             // File is not used by any task, we can erase it
@@ -53,7 +53,7 @@ public class DeleteFileRequest extends APRequest {
             File f = new File(filePath);
             if (f.exists()) {
                 if (f.delete()) {
-                    LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted");
+                    LOGGER.info("[DeleteFileRequest] File " + filePath + " deleted.");
                 } else {
                     LOGGER.error("[DeleteFileRequest] Error on deleting file " + filePath);
                 }

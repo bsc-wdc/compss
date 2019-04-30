@@ -41,7 +41,6 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     private int usedOthersTaskCount = 0;
     private int maxOthersTaskCount;
 
-
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
             int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
 
@@ -347,6 +346,9 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     @Override
     public MethodResourceDescription runTask(MethodResourceDescription consumption) {
         MethodResourceDescription reserved = super.runTask(consumption);
+        if (DEBUG) {
+            LOGGER.debug("Run task received. Reserving resource " + consumption +" on " + getName());
+        }
         if (reserved != null) {
             // Consumption can be hosted
             if (consumption.containsCPU()) {

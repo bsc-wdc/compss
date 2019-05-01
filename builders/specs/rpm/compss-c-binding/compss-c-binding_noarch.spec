@@ -1,5 +1,5 @@
 %define name	 	compss-c-binding
-%define version		2.4.rc1904
+%define version		2.4.rc1905
 %define release		1
 
 Requires: compss-bindings-common, libxml2-devel, boost-devel

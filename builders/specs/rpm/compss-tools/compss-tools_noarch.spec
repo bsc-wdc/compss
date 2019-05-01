@@ -1,5 +1,5 @@
 %define name	 	compss-tools
-%define version		2.4.rc1904
+%define version		2.4.rc1905
 %define release		1
 
 Requires: compss-monitor, compss-extrae, compss-storage, compss-autoparallel

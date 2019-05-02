@@ -1438,7 +1438,7 @@ set_variables() {
   if [ "${worker_working_dir}" == "gpfs" ]; then
     worker_working_dir=$(mktemp -d -p "${GPFS_PREFIX}${HOME}")
   elif [ "${worker_working_dir}" == "scratch" ]; then
-    worker_working_dir={$SCRATCH_DIR}/${!ENV_VAR_JOB_ID}
+    worker_working_dir=${SCRATCH_DIR}/${!ENV_VAR_JOB_ID}
     mkdir -p "${worker_working_dir}"
   else
     # The working dir is a custom absolute path, create tmp

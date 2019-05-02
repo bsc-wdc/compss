@@ -262,7 +262,7 @@ public class Test {
             }
         }
         if (maxCount != PARALLEL_TEST_MAX_COUNT) {
-            throw new Exception("Master in worker does not hold as many task as possible");
+            throw new Exception("Worker in master does not hold as many task as possible");
         }
         System.out.println("\tOK");
     }

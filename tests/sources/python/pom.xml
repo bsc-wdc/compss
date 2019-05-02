@@ -73,6 +73,7 @@
         <!-- 3_module_ompss_constrained -->
         <!-- 3_module_opencl -->
         <!-- 3_module_opencl_constrained -->
+	<!-- 4_worker_in_master -->
         <!-- 9_interpreters -->
         <!-- 9_jupyter_notebook -->
 

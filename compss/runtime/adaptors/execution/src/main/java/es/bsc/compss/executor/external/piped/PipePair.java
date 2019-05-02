@@ -76,7 +76,6 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     private int readers;
     private boolean closed = false;
 
-
     public PipePair(String basePipePath, String id) {
         this.pipePath = basePipePath + id;
     }
@@ -154,15 +153,19 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                     this.sendMutex.unlock();
                 }
             }
-            try {
-                Thread.sleep(PIPE_ERROR_WAIT_TIME);
-            } catch (InterruptedException e) {
-                LOGGER.debug("Pipe error wait time for message " + command + " on pipe " + this.getPipesLocation());
-                // No need to catch such exceptions
+            if (!done) {
+                try {
+                    Thread.sleep(PIPE_ERROR_WAIT_TIME);
+                } catch (InterruptedException e) {
+                    LOGGER.debug("Pipe error wait time for message " + command + " on pipe " + this.getPipesLocation());
+                    // No need to catch such exceptions
+                }
             }
 
         }
-        LOGGER.debug("Failed to send " + command + " on pipe " + this.getPipesLocation());
+        if (!done) {
+            LOGGER.debug("Failed to send " + command + " on pipe " + this.getPipesLocation());
+        }
         return done;
     }
 

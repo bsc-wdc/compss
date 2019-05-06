@@ -413,7 +413,10 @@ class DDS(object):
             self.func = None
         else:
             for _p in self.partitions:
-                processed.append(_p)
+                if isinstance(_p, IPartitionGenerator):
+                    processed.append(_p.retrieve_data())
+                else:
+                    processed.append(_p)
 
         # Future objects cannot be extended for now...
         if future_objects:

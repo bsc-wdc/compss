@@ -134,7 +134,7 @@ public class Test {
 
     private static void fileDependenciesTestComplex() throws Exception {
         System.out.println("Testing file dependencies - Complex Version");
-        String fileName = "dependencies_file_1";
+        String fileName = "dependencies_file_2";
 
         Tasks.createFileWithContent(INITIAL_CONTENT, fileName);
         Tasks.checkFileWithContent(INITIAL_CONTENT, fileName);

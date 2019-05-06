@@ -20,8 +20,8 @@
   #-------------------------------------
   # Remove obsolete files
   #-------------------------------------
-  rmfilesNum=$8
-  obsoletes=${*:9:${rmfilesNum}}
+  rmfilesNum=${11}
+  obsoletes=${*:12:${rmfilesNum}}
 
   if [ "${rmfilesNum}" -gt 0 ]; then
     echo "[WORKER.SH] Removing $rmfilesNum obsolete files"
@@ -48,6 +48,9 @@
     else
       echo "[WORKER.SH]         - Tracing                            = disabled" 
     fi
+    echo "[WORKER.SH]         - Streaming Backend                  = ${streaming}"
+    echo "[WORKER.SH]         - Streaming Master                   = ${streamingMasterName}"
+    echo "[WORKER.SH]         - Streaming Port                     = ${streamingPort}"
   fi
 
   implType=${invocation[0]}

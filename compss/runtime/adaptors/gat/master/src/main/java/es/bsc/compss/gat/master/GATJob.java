@@ -40,6 +40,7 @@ import org.gridlab.gat.resources.SoftwareDescription;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.parameter.Parameter;
@@ -314,6 +315,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(getResourceNode().getLibPath());
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(STORAGE_CONF);
+        lArgs.add(Comm.getStreamingBackend().name());
+        lArgs.add(Comm.getAppHost().getName());
+        lArgs.add(String.valueOf(Comm.getStreamingPort()));
         lArgs.add(String.valueOf(DEBUG));
 
         LogicalData[] obsoleteFiles = getResource().pollObsoletes();

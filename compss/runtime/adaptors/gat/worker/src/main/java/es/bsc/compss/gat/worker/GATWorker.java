@@ -18,6 +18,7 @@ package es.bsc.compss.gat.worker;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.COMPSsConstants.StreamBackend;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
@@ -40,6 +41,10 @@ import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
+import es.bsc.distrostreamlib.client.DistroStreamClient;
+import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
+import es.bsc.distrostreamlib.requests.StopRequest;
+
 import java.io.PrintStream;
 import java.util.concurrent.Semaphore;
 
@@ -52,19 +57,29 @@ import storage.StorageItf;
  */
 public class GATWorker implements InvocationContext {
 
+    private static final String ERROR_STREAMING_INIT = "ERROR: Cannot load Streaming Client";
+    private static final String ERROR_STREAMING_FINISH = "ERROR: Cannot stop Streaming Client";
+
+    private static final String ERROR_STORAGE_CONF_INIT = "ERROR: Cannot load storage configuration file: ";
+    private static final String ERROR_STORAGE_CONF_FINISH = "ERROR: Cannot stop StorageItf";
+
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
     private static final String WARN_UNSUPPORTED_METHOD_TYPE = "WARNING: Unsupported method type";
-    private static final String ERROR_STORAGE_CONF = "ERROR: Cannot load storage configuration file: ";
 
     // FLAGS IDX
-    private static final int DEFAULT_FLAGS_SIZE = 6;
+    private static final int DEFAULT_FLAGS_SIZE = 9;
+
     private static final int WORKER_NAME_IDX = 0;
     private static final int WORKING_DIR_IDX = 1;
     private static final int DEBUG_IDX = 2;
     private static final int INSTALL_DIR_IDX = 3;
     private static final int APP_DIR_IDX = 4;
     private static final int STORAGE_CONF_IDX = 5;
+    private static final int STREAMING_IDX = 6;
+    private static final int STREAMING_MASTER_IDX = 7;
+    private static final int STREAMING_PORT_IDX = 8;
 
+    // Internal components
     private final String hostName;
     private final boolean debug;
     private final String appDir;
@@ -72,7 +87,6 @@ public class GATWorker implements InvocationContext {
     private final String workingDir;
     private final String storageConf;
 
-    // Internal components
     private final ExecutionManager executionManager;
 
 
@@ -88,30 +102,77 @@ public class GATWorker implements InvocationContext {
         String workerName = args[WORKER_NAME_IDX];
         String workingDir = args[WORKING_DIR_IDX];
         boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
-        // Prepares the Loggers according to the worker debug parameter
-        GATLog.init(debug);
-
         String installDir = args[INSTALL_DIR_IDX];
         String appDir = args[APP_DIR_IDX];
 
-        // Configures storage API, if necessary
-        String storageConf = args[STORAGE_CONF_IDX];
-        // Check if we must enable the storage
-        System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
-        if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
+        // Prepares the Loggers according to the worker debug parameter
+        GATLog.init(debug);
+
+        // Configures streaming if necessary
+        String streamingArg = args[STREAMING_IDX];
+        String streaming = (streamingArg == null || streamingArg.isEmpty() || streamingArg.equals("null")) ? "NONE"
+                : streamingArg.toUpperCase();
+        StreamBackend streamBackend = StreamBackend.valueOf(streaming);
+        String masterName = args[STREAMING_MASTER_IDX];
+        int streamingPort = Integer.parseInt(args[STREAMING_PORT_IDX]);
+
+        if (!streamBackend.equals(StreamBackend.NONE)) {
             try {
-                StorageItf.init(storageConf);
-            } catch (StorageException e) {
-                ErrorManager.fatal(ERROR_STORAGE_CONF + storageConf, e);
+                DistroStreamClient.initAndStart(masterName, streamingPort);
+            } catch (DistroStreamClientInitException dscie) {
+                ErrorManager.fatal(ERROR_STREAMING_INIT, dscie);
             }
         }
 
-        // Retrieve arguments
+        // Configures storage API if necessary
+        String storageConfArg = args[STORAGE_CONF_IDX];
+        String storageConf = (storageConfArg == null || storageConfArg.isEmpty() || storageConfArg.equals("null")) ? ""
+                : storageConfArg;
+
+        System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
+        if (!storageConf.isEmpty()) {
+            try {
+                StorageItf.init(storageConf);
+            } catch (StorageException se) {
+                ErrorManager.fatal(ERROR_STORAGE_CONF_INIT + storageConf, se);
+            }
+        }
+
+        // Retrieve task arguments
         ImplementationDefinition implDef = parseArguments(args);
 
+        // Initialize GAT Worker
         GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf,
                 implDef.getComputingUnits());
-        if (!worker.runTask(implDef)) {
+
+        // Run task
+        boolean success = worker.runTask(implDef);
+
+        // Stop streaming if necessary
+        if (!streamBackend.equals(StreamBackend.NONE)) {
+            StopRequest stopRequest = new StopRequest();
+            DistroStreamClient.request(stopRequest);
+            stopRequest.waitProcessed();
+            int errorCode = stopRequest.getErrorCode();
+            if (errorCode != 0) {
+                System.err.println(ERROR_STREAMING_FINISH);
+                System.err.println("Error Code: " + errorCode);
+                System.err.println("Error Message: " + stopRequest.getErrorMessage());
+            }
+        }
+
+        // Stop storage if necessary
+        if (!storageConf.isEmpty()) {
+            try {
+                StorageItf.finish();
+            } catch (StorageException se) {
+                System.err.println(ERROR_STORAGE_CONF_FINISH);
+                se.printStackTrace();
+            }
+        }
+
+        // System exit if a failure was found while executing the task, normal exit otherwise
+        if (!success) {
             System.exit(7);
         }
     }

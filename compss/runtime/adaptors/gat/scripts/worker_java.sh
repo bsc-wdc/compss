@@ -1,8 +1,12 @@
 #!/bin/bash
 
+  # shellcheck disable=SC2154,SC2034
+  # Because many variables are processed by the worker_commons.sh script
+
   # Get worker common functions
   SCRIPT_DIR=$(dirname "$0")
   # shellcheck source=./worker_commons.sh
+  # shellcheck disable=SC1091
   source "${SCRIPT_DIR}"/worker_commons.sh
 
   #-------------------------------------
@@ -10,7 +14,7 @@
   #-------------------------------------
   get_host_parameters "$@"
 
-  implType=${invocation[0]}
+  implType="${invocation[0]}"
   specificSandbox=false;
   case "${implType}" in
     "METHOD")
@@ -33,7 +37,7 @@
       echo "[WORKER_JAVA.SH]    - sandbox                            = ${mpi_sandbox}"
       implDescription=( "${implType}" "${mpi_runner}" "${mpi_binary}" "${mpi_sandbox}")
       arguments=(${invocation[@]:4})
-      if [ ! -z "${mpi_sandbox}" -a "${mpi_sandbox}" != "null" ]; then
+      if [ ! -z "${mpi_sandbox}" ] && [ "${mpi_sandbox}" != "null" ]; then
         specificSandbox=true;
       fi
       ;;
@@ -50,7 +54,7 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${decaf_sandbox}"
       implDescription=( "${implType}" "${decaf_dfScript}" "${decaf_dfExecutor}" "${decaf_dfLib}" "${mpi_runner}" "${decaf_sandbox}")
       arguments=(${invocation[@]:6})
-      if [ ! -z "${decaf_sandbox}" -a "${decaf_sandbox}" != "null" ]; then
+      if [ ! -z "${decaf_sandbox}" ] && [ "${decaf_sandbox}" != "null" ]; then
         specificSandbox=true;
       fi
       ;;
@@ -61,7 +65,7 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${ompss_sandbox}"
       implDescription=( "${implType}" "${ompss_binary}" "${ompss_sandbox}")
       arguments=(${invocation[@]:3})
-      if [ ! -z "${ompss_sandbox}" -a "${ompss_sandbox}" != "null" ]; then
+      if [ ! -z "${ompss_sandbox}" ] && [ "${ompss_sandbox}" != "null" ]; then
         specificSandbox=true;
       fi
       ;;
@@ -72,7 +76,7 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${opencl_sandbox}"
       implDescription=( "${implType}" "${opencl_kernel}" "${opencl_sandbox}")
       arguments=(${invocation[@]:3})
-      if [ ! -z "${opencl_sandbox}" -a "${opencl_sandbox}" != "null" ]; then
+      if [ ! -z "${opencl_sandbox}" ] && [ "${opencl_sandbox}" != "null" ]; then
         specificSandbox=true;
       fi
       ;;
@@ -83,23 +87,24 @@
       echo "[WORKER_JAVA.SH]    - sandbox                             = ${binary_sandbox}"
       implDescription=( "${implType}" "${binary}" "${binary_sandbox}")
       arguments=(${invocation[@]:3})
-      if [ ! -z "${binary_sandbox}" -a "${binary_sandbox}" != "null" ]; then
+      if [ ! -z "${binary_sandbox}" ] && [ "${binary_sandbox}" != "null" ]; then
         specificSandbox=true;
       fi
       ;;
     *)
-      echo 1>&2 "Unsupported implementation Type "${implType}""
+      echo 1>&2 "Unsupported implementation Type ${implType}"
       exit 7
       ;;
   esac
 
   echo "ARGUMENTS  = ${arguments[*]}"
-  get_invocation_params ${arguments[@]}
+  get_invocation_params "${arguments[@]}"
 
   # Pre-execution
   set_env
   
   # Execution: launch the JVM to run the task
+  # shellcheck disable=SC2068
   java \
     -Xms128m -Xmx2048m \
     -classpath "$CLASSPATH" \

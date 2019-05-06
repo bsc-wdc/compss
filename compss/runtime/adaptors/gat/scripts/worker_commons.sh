@@ -1,10 +1,14 @@
-#!/bin/bash
+#
+# This script defines common methods that can be sourced and executed
+#
 
-  ##########################
-  # HELPER FUNCTIONS
-  ##########################
+# shellcheck disable=SC2034
 
-  get_host_parameters () {
+##########################
+# HELPER FUNCTIONS
+##########################
+
+get_host_parameters () {
     nodeName=$1
     installDir=$2
     appDir=$3
@@ -18,9 +22,12 @@
     fi
     export COMPSS_WORKING_DIR=$workingDir
     storageConf=$6
-    debug=$7
-    rmfilesNum=$8
-    shift $((8 + rmfilesNum))
+    streaming=$7
+    streamingMasterName=$8
+    streamingPort=$9
+    debug=${10}
+    rmfilesNum=${11}
+    shift $((11 + rmfilesNum))
 
     tracing=$1
     shift 1
@@ -34,15 +41,17 @@
       slot=$6
       shift 6      
     fi
-    hostFlags=( "${nodeName}" "${workingDir}" "${debug}" "${installDir}" "${appDir}" "${storageConf}" )
+    hostFlags=( "${nodeName}" "${workingDir}" "${debug}" "${installDir}" "${appDir}" "${storageConf}" "${streaming}" "${streamingMasterName}" "${streamingPort}" )
+    # shellcheck disable=SC2206
     invocation=($@)
-  }
+}
 
-  get_invocation_params () {
+get_invocation_params () {
     jobId=$1
     taskId=$2
 
     numSlaves=$3
+    # shellcheck disable=SC2206
     slaves=(${@:4:${numSlaves}})
     shift $((3 + numSlaves))
 
@@ -52,21 +61,22 @@
     numResults=$4
 
     shift 4
+    # shellcheck disable=SC2206
     params=($@)
+    # shellcheck disable=SC2206
     invocationParams=( "${jobId}" "${taskId}" "$numSlaves" ${slaves[@]} "${cus}" "${numParams}" "${hasTarget}" "${numResults}" ${params[@]})
-  }
+}
 
-
-  add_to_classpath () {
+add_to_classpath () {
     local DIRLIBS="${1}/*.jar"
     for i in ${DIRLIBS}; do
       if [ "$i" != "${DIRLIBS}" ] ; then
         CLASSPATH=$CLASSPATH:"$i"
       fi
     done
-  }
+}
 
-  get_parameters() {
+get_parameters() {
     # Get parameters
     taskSandboxWorkingDir=$1
     app_dir=$2
@@ -85,7 +95,8 @@
     shift $shiftSizeForApp
    
     # Get method parameters
-    params=$*
+    # shellcheck disable=SC2206
+    params=($@)
 
     # Log status if needed
     if [ "$debug" == "true" ]; then
@@ -97,9 +108,9 @@
       echo "[WORKER_COMMONS.SH] - pythonVirtualEnvironment           $pythonVirtualEnvironment"
       echo "[WORKER_COMMONS.SH] - pythonPropagateVirtualEnvironment  $pythonPropagateVirtualEnvironment"
     fi
-  }
+}
 
-  set_env() {
+set_env() {
     local bindingsDir
     bindingsDir=$(dirname "$0")/../../../../../Bindings
     # Set LD_LIBRARY_PATH related env
@@ -134,14 +145,14 @@
 
     # Set python home related env
     export PYCOMPSS_HOME=${bindingsDir}/python
-  }
+}
 
-  compute_generic_sandbox () {
+compute_generic_sandbox () {
     sandbox="${workingDir}/sandBox/job_${jobId}/"
-  }
+}
   
-  numRenames=0
-  moveFileToSandbox () {
+numRenames=0
+moveFileToSandbox () {
     if [ -f "$1" ]; then
         if [ ! -f "${sandbox}/${2}" ]; then
           echo "[WORKER_COMMONS.SH] Link ${1} -> ${sandbox}/${2}"
@@ -167,9 +178,9 @@
       else
         renames="$renames $1 ${sandbox}/$2"
       fi
-  }
+}
 
-  moveFilesOutFromSandbox () {
+moveFilesOutFromSandbox () {
     removeOrMove=0
     renamedFile=""
     for element in $renames; do
@@ -200,4 +211,4 @@
         renamedFile=""
       fi
     done
-  }
+}

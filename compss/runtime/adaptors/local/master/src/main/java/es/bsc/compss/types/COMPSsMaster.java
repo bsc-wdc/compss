@@ -1007,7 +1007,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success) {
-                job.getListener().jobCompleted(job);
+                if (success) {
+                    job.getListener().jobCompleted(job);
+                } else {
+                    job.getListener().jobFailed(job, JobListener.JobEndStatus.EXECUTION_FAILED);
+                }
             }
         });
         executionManager.enqueue(exec);
@@ -1105,17 +1109,14 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     Object o = Serializer.deserialize(dpar.getDataTarget());
                     invParam.setValue(o);
                 }
+                break;
             }
-            break;
             case PSCO_T: {
                 String pscoId = (String) localParam.getValue();
                 Object o = StorageItf.getByID(pscoId);
                 invParam.setValue(o);
+                break;
             }
-            break;
-            case EXTERNAL_PSCO_T:
-            case BINDING_OBJECT_T:
-                throw new UnsupportedOperationException("Not supported yet.");
             default:
             // Already contains the proper value on the param
         }
@@ -1129,13 +1130,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case FILE_T:
                 // No need to store anything. Already stored on disk
                 break;
-            case OBJECT_T:
+            case OBJECT_T: {
                 String resultName = localParam.getDataMgmtId();
                 LogicalData ld = Comm.getData(resultName);
                 ld.setValue(invParam.getValue());
                 break;
+            }
+            case BINDING_OBJECT_T:
+                //No need to store anything. Already stored on the binding
+                break;
             default:
-                throw new UnsupportedOperationException("Not supported yet.");
+                throw new UnsupportedOperationException("Not supported yet." + param.getType());
         }
     }
 

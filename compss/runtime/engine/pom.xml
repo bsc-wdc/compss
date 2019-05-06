@@ -29,31 +29,29 @@
         <url>http://www.bsc.es</url>
     </organization>
 
-    <!-- DEPENDENCIES -->
-    <dependencies>
-        <!-- Runtime dependencies -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-loader</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-resources-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-scheduler-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- Storage -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-storage</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<!-- Runtime dependencies -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-loader</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-resources-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-scheduler-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-storage</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
         <!-- JUnit dependencies -->
         <dependency>
@@ -62,13 +60,13 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Log4j -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-        </dependency>
-        
-    </dependencies>
+		<!-- Log4j -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+		</dependency>
+
+	</dependencies>
 
     <!-- BUILD -->
     <build>

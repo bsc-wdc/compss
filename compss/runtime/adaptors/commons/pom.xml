@@ -29,37 +29,47 @@
         <url>http://www.bsc.es</url>
     </organization>
 
-    <!-- DEPENDENCIES -->
-    <dependencies>
-        <!-- Storage -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-storage</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<!-- Extrae -->
+		<dependency>
+			<groupId>es.bsc.cepbatools</groupId>
+			<artifactId>extrae</artifactId>
+		</dependency>
 
-        <!-- Extrae -->
-        <dependency>
-            <groupId>es.bsc.cepbatools</groupId>
-            <artifactId>extrae</artifactId>
-        </dependency>
+		<!-- Streaming -->
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.distro-stream-lib</groupId>
+			<artifactId>client</artifactId>
+		</dependency>
 
-        <!-- Common Runtime Dependencies -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-resources-schema</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-project-schema</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+		<!-- Storage -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-storage</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Common Runtime Dependencies -->
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-resources-schema</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-project-schema</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
         <!-- Log4j -->
         <dependency>

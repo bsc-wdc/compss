@@ -178,7 +178,7 @@ public class GATWorker implements InvocationContext {
 
     @Override
     public String getHostName() {
-        return hostName;
+        return this.hostName;
     }
 
     @Override
@@ -188,12 +188,12 @@ public class GATWorker implements InvocationContext {
 
     @Override
     public String getAppDir() {
-        return appDir;
+        return this.appDir;
     }
 
     @Override
     public String getInstallDir() {
-        return installDir;
+        return this.installDir;
     }
 
     @Override

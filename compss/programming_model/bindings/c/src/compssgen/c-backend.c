@@ -1435,15 +1435,15 @@ static void add_other_arg_worker_treatment(FILE *outFile, argument *arg, Types c
         case string_dt:
         case wstring_dt:
             fprintf(outFile, "\t\t\t int %s_nwords = atoi(argv[arg_offset]);\n", arg->name);
-            fprintf(outFile, "\t\t\t int word_i;\n");
+            fprintf(outFile, "\t\t\t int word_i_%s;\n", arg->name);
             fprintf(outFile, "\t\t\t int %s_size = 0;\n", arg->name);
-            fprintf(outFile, "\t\t\t for (word_i=1; word_i<=%s_nwords; word_i++) {\n", arg->name);
-            fprintf(outFile, "\t\t\t\t %s_size += strlen(argv[arg_offset + word_i]);\n", arg->name);
+            fprintf(outFile, "\t\t\t for (word_i_%s=1; word_i_%s<=%s_nwords; word_i_%s++) {\n", arg->name, arg->name, arg->name, arg->name);
+            fprintf(outFile, "\t\t\t\t %s_size += strlen(argv[arg_offset + word_i_%s]);\n", arg->name, arg->name);
             fprintf(outFile, "\t\t\t }\n");
             fprintf(outFile, "\t\t\t %s = (char *) malloc(%s_size + %s_nwords);\n", arg->name,arg->name,arg->name);
-            fprintf(outFile, "\t\t\t for (word_i=1; word_i<=%s_nwords; word_i++) {\n", arg->name);
+            fprintf(outFile, "\t\t\t for (word_i_%s=1; word_i_%s<=%s_nwords; word_i_%s++) {\n", arg->name, arg->name, arg->name, arg->name);
             fprintf(outFile, "\t\t\t\t arg_offset += 1;\n");
-            fprintf(outFile, "\t\t\t\t if (word_i == 1)\n");
+            fprintf(outFile, "\t\t\t\t if (word_i_%s == 1)\n", arg->name);
             fprintf(outFile, "\t\t\t\t\t strcpy(%s, argv[arg_offset]);\n", arg->name);
             fprintf(outFile, "\t\t\t\t else {\n");
             fprintf(outFile, "\t\t\t\t\t strcat(%s, \" \");\n", arg->name);

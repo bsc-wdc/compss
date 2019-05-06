@@ -1078,7 +1078,7 @@ class task(object):
                 # Alternative way of calling:
                 # user_returns = jit(cache=True)(self.user_function) \
                 #                   (*user_args, **user_kwargs)
-            elif numba_mode is True or numba_mode == 'generated_jit':
+            elif numba_mode == 'generated_jit':
                 user_returns = generated_jit(self.user_function,
                                              **numba_flags)(*user_args,
                                                             **user_kwargs)

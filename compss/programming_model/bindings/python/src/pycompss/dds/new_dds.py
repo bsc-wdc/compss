@@ -35,14 +35,11 @@ class DDS(object):
         super(DDS, self).__init__()
         self.partitions = list()
         self.func = None
-        # To check if partitions have been loaded
-        self.has_loaded_partitions = False
 
     def load(self, iterator, num_of_parts=10):
         """
         """
         if num_of_parts == -1:
-            self.has_loaded_partitions = True
             self.partitions = iterator
             return self
 
@@ -410,23 +407,13 @@ class DDS(object):
 
         processed = list()
         if self.func:
-            if self.has_loaded_partitions:
-                for _p in self.partitions:
-                    processed.append(map_partition(self.func, _p))
-            else:
-                for _p in self.partitions:
-                    processed.append(load_and_map_partition(self.func, _p))
-                self.has_loaded_partitions = True
+            for _p in self.partitions:
+                processed.append(map_partition(self.func, _p))
             # Reset the function!
             self.func = None
         else:
-            if self.has_loaded_partitions:
-                for _p in self.partitions:
-                    processed.append(_p)
-            else:
-                for _p in self.partitions:
-                    processed.append(_p.retrieve_data())
-                self.has_loaded_partitions = True
+            for _p in self.partitions:
+                processed.append(_p)
 
         # Future objects cannot be extended for now...
         if future_objects:
@@ -521,7 +508,6 @@ class DDS(object):
 
         locally_combined = self.map_partitions(combine_partition)\
             .collect(future_objects=True)
-        self.has_loaded_partitions = True
 
         future_objects = deque(locally_combined)
         while future_objects:
@@ -577,7 +563,6 @@ class ChildDDS(DDS):
         :param func:
         """
         super(ChildDDS, self).__init__()
-        self.has_loaded_partitions = parent.has_loaded_partitions
         if not isinstance(parent, ChildDDS):
             self.func = func
             if isinstance(parent, DDS):

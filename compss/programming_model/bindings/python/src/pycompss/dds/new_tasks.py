@@ -13,10 +13,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
-
+from pycompss.dds.partition_generators import IPartitionGenerator
 
 marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 
@@ -62,25 +63,17 @@ def task_read_files(file_paths):
 
 
 @task(returns=1)
-def load_and_map_partition(f, partition_loader):
-    """
-    Apply a function to a partition in a new task. The function should take an
-    iterable as a parameter and return a list.
-    :param f: A function that takes an iterable as a parameter
-    :param partition_loader: Data generator
-    :type partition_loader: BaseDataGenerator
-    :return: future object of the list containing results
-    """
-    data = partition_loader.retrieve_data()
-    res = f(data)
-    del data
-    return res
-
-
-@task(returns=1)
 def map_partition(f, partition):
     """
+    Apply a function to a partition in a new task. The function should take an
+    iterable as the parameter and return a list.
+    :param f: A function that takes an iterable as a parameter
+    :param partition: partition generator
+    :return: future object of the list containing results
     """
+    if isinstance(partition, IPartitionGenerator):
+        partition = partition.retrieve_data()
+
     res = f(partition)
     del partition
     return res

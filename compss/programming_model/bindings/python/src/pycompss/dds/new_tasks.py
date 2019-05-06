@@ -14,7 +14,6 @@
 #  limitations under the License.
 #
 
-from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.parameter import INOUT, IN
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
@@ -140,6 +139,18 @@ def reduce_partition(f, partition):
     return res
 
 
+@task(returns=list)
+def filter_partition(partition, filter_func, nop, bucket_number):
+    """
+    """
+    filtered_list = list()
+    for k, v in partition:
+        if (filter_func(k) % nop) == bucket_number:
+            filtered_list.append((k, v))
+
+    return filtered_list
+
+
 @task(returns=1)
 def reduce_multiple(f, *args):
     """
@@ -155,3 +166,11 @@ def reduce_multiple(f, *args):
             res = f(res, part[0])
 
     return [res]
+
+
+@task(returns=list)
+def combine_lists(*args):
+    ret = list()
+    for _list in args:
+        ret.extend(_list)
+    return ret

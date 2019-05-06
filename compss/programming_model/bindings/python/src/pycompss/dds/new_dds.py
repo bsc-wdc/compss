@@ -24,6 +24,14 @@ from pycompss.dds.partition_generators import *
 from operator import add
 
 
+def default_hash(x):
+    """
+    :param x:
+    :return: hash value
+    """
+    return hash(x)
+
+
 class DDS(object):
     """
 
@@ -464,6 +472,34 @@ class DDS(object):
         [1, 2]
         """
         return self.map(lambda x: x[1])
+
+    def partition_by(self, partition_func=default_hash, num_of_partitions=-1):
+        """
+        Create partitions by a Partition Func.
+        :param partition_func: A Function distribute data on partitions based on
+                For example, hash function.
+        :param num_of_partitions: number of partitions to be created
+        :return:
+        >>> dds = DDS().load(range(6)).map(lambda x: (x, x))
+        >>> dds.partition_by(num_of_partitions=3).collect(True)
+        [[(0, 0), (3, 3)], [(1, 1), (4, 4)], [(2, 2), (5, 5)]]
+        """
+
+        nop = len(self.partitions) if num_of_partitions == -1 \
+            else num_of_partitions
+
+        collected = self.collect(future_objects=True)
+        buckets = defaultdict(list)
+        for bucket in range(nop):
+            for partition in collected:
+                buckets[bucket].append(
+                    filter_partition(partition, partition_func, nop, bucket))
+
+        future_partitions = list()
+        for bucket in buckets.values():
+            future_partitions.append(combine_lists(*bucket))
+
+        return DDS().load(future_partitions, -1)
 
     def map_values(self, f):
         """

@@ -28,7 +28,7 @@
   targetDir=$1
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-  modules="intel/19.0.3.199 py2-numpy/1.15.3 impi/2019.3.199 gnu8/8.3.0 boost/1.69.0"
+  modules="intel/19.0.3.199 py2-numpy/1.15.3 impi/2019.3.199 gnu7/7.3.0 boost/1.69.0"
   py2_modules="py2-numpy/1.15.3"
   py3_modules="ignore"
   additionalExports="export BOOST_CPPFLAGS=-I${BOOST_INC} BOOST_HOME=${BOOST_DIR}" #PATH=/usr/include/libxml2/libxml:$PATH"

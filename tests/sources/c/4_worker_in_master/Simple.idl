@@ -1,0 +1,47 @@
+interface Simple {
+
+	void testBasicTypes(
+		out File file_name,
+		in int b,
+		in char c,
+		in string s,
+		in short sh,
+		in int i,
+		in long l,
+		in float f,
+		in double d);
+
+	void checkFileWithContent(
+		in string content,
+		in File file_name
+	);
+
+	void createFileWithContent(
+		in string content,
+		out File file_name
+	);
+
+	void checkAndUpdateFileWithContent(
+		in string content,
+		in string new_content,
+		inout File file_name
+	);
+
+	StringWrapper createObjectWithContent(
+		in string content
+	);
+
+	void checkObjectWithContent(
+		in string content, 
+		in StringWrapper sw
+	);
+
+	void checkAndUpdateObjectWithContent(
+		in string content,
+		in string newContent,
+		inout StringWrapper sw
+	);
+
+	Report sleepTask();
+	
+};

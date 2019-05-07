@@ -44,15 +44,20 @@ import java.io.File;
 
 public class GATAdaptor implements CommAdaptor {
 
+    // LOGGING
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    protected static final String THREAD_POOL_ERR = "Error starting pool of threads";
+    protected static final String POOL_ERR = "Error deleting pool of threads";
+
+    // Class ID
     public static final String ID = GATAdaptor.class.getCanonicalName();
 
+    // Class properties
     protected static final String POOL_NAME = "FTM";
     private static final int GAT_POOL_SIZE = 5;
     protected static final String SAFE_POOL_NAME = "SAFE_FTM";
     protected static final int SAFE_POOL_SIZE = 1;
-
-    protected static final String THREAD_POOL_ERR = "Error starting pool of threads";
-    protected static final String POOL_ERR = "Error deleting pool of threads";
 
     // Copy request queues
     // copyQueue is for ordinary copies
@@ -67,13 +72,9 @@ public class GATAdaptor implements CommAdaptor {
     // GAT context
     private static GATContext transferContext;
 
-    // LOGGING
-    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    private static final boolean debug = logger.isDebugEnabled();
-
 
     public GATAdaptor() {
-
+        // NOthing to do
     }
 
     public void init() {
@@ -83,8 +84,8 @@ public class GATAdaptor implements CommAdaptor {
 
         String adaptor = System.getProperty(COMPSsConstants.GAT_FILE_ADAPTOR);
 
-        if (debug) {
-            logger.debug("Initializing GAT");
+        if (DEBUG) {
+            LOGGER.debug("Initializing GAT");
         }
         pool = new ThreadPool(GAT_POOL_SIZE, POOL_NAME, new Dispatcher(copyQueue));
         try {
@@ -101,8 +102,8 @@ public class GATAdaptor implements CommAdaptor {
         }
 
         // GAT adaptor path
-        if (debug) {
-            logger.debug("Initializing GAT Tranfer Context");
+        if (DEBUG) {
+            LOGGER.debug("Initializing GAT Tranfer Context");
         }
         transferContext = new GATContext();
 
@@ -141,7 +142,7 @@ public class GATAdaptor implements CommAdaptor {
                 brokerAdaptorName = resources_brokerAdaptor;
             } else {
                 // No broker adaptor specified, load default
-                logger.debug("GAT Broker Adaptor not specified. Setting default value " + brokerAdaptorName);
+                LOGGER.debug("GAT Broker Adaptor not specified. Setting default value " + brokerAdaptorName);
             }
         }
 
@@ -151,8 +152,11 @@ public class GATAdaptor implements CommAdaptor {
 
     // GAT adaptor initializes the worker each time it sends a new job
     @Override
-    public GATWorkerNode initWorker(String name, Configuration config) {
-        GATWorkerNode node = new GATWorkerNode(name, (GATConfiguration) config);
+    public GATWorkerNode initWorker(Configuration config) {
+        GATConfiguration gatCfg = (GATConfiguration) config;
+        LOGGER.debug("Init GAT Worker Node named " + gatCfg.getHost());
+
+        GATWorkerNode node = new GATWorkerNode((GATConfiguration) config);
         return node;
     }
 
@@ -179,7 +183,7 @@ public class GATAdaptor implements CommAdaptor {
             pool.stopThreads();
             safePool.stopThreads();
         } catch (Exception e) {
-            logger.error(POOL_ERR, e);
+            LOGGER.error(POOL_ERR, e);
         }
 
         GAT.end();
@@ -204,7 +208,7 @@ public class GATAdaptor implements CommAdaptor {
         try {
             uri.setInternalURI(ID, new org.gridlab.gat.URI(s));
         } catch (URISyntaxException e) {
-            logger.error("Exception", e);
+            LOGGER.error("Exception", e);
         }
     }
 

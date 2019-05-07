@@ -92,8 +92,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
 
-    private final String name;
-
     private final String storageConf;
     private final TaskExecution executionType;
 
@@ -115,24 +113,25 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream err;
     private boolean started = false;
 
+
     /**
      * New COMPSs Master
      *
      * @param hostName
      */
-    public COMPSsMaster(String hostName) {
-        super(hostName, null);
-        name = hostName;
+    public COMPSsMaster() {
+        super();
 
         // Gets user execution directory
-        userExecutionDirPath = System.getProperty("user.dir");
+        this.userExecutionDirPath = System.getProperty("user.dir");
 
         /* Creates base Runtime structure directories ************************** */
         boolean mustCreateExecutionSandbox = true;
         // Checks if specific log base dir has been given
         String specificOpt = System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR);
         if (specificOpt != null && !specificOpt.isEmpty()) {
-            COMPSsLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt : specificOpt + File.separator;
+            this.COMPSsLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt
+                    : specificOpt + File.separator;
             mustCreateExecutionSandbox = false; // This is the only case where
             // the sandbox is provided
         } else {
@@ -140,10 +139,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             String baseOpt = System.getProperty(COMPSsConstants.BASE_LOG_DIR);
             if (baseOpt != null && !baseOpt.isEmpty()) {
                 baseOpt = baseOpt.endsWith(File.separator) ? baseOpt : baseOpt + File.separator;
-                COMPSsLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
+                this.COMPSsLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
             } else {
                 // No option given - load default (user home)
-                COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
+                this.COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs"
+                        + File.separator;
             }
         }
 
@@ -405,7 +405,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public String getName() {
-        return name;
+        return MASTER_NAME;
     }
 
     @Override
@@ -480,8 +480,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             Copy.waitForCopyTofinish(copy, this);
                             // try {
                             if (DEBUG) {
-                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
-                                        + tgtBO.getName());
+                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
+                                        + " to " + tgtBO.getName());
                             }
                             try {
                                 if (persistentEnabled) {
@@ -606,7 +606,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
             }
         }
-        LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName() + " and nothing done. Releasing listeners and locks");
+        LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName()
+                + " and nothing done. Releasing listeners and locks");
         listener.notifyEnd(null);
         ld.releaseHostRemoval();
     }
@@ -717,7 +718,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
         String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
 
-        //Check if file is already on the Path
+        // Check if file is already on the Path
         List<MultiURI> uris = ld.getURIs();
         for (MultiURI u : uris) {
             if (DEBUG) {
@@ -797,9 +798,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                                     + targetPath);
                         }
-                        Files.copy(
-                                (new File(u.getPath())).toPath(),
-                                new File(targetPath).toPath(),
+                        Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
                                 StandardCopyOption.REPLACE_EXISTING);
 
                     } else {
@@ -807,9 +806,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                                     + targetPath);
                         }
-                        Files.move(
-                                (new File(u.getPath())).toPath(),
-                                new File(targetPath).toPath(),
+                        Files.move((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
                                 StandardCopyOption.REPLACE_EXISTING);
                         uris.remove(u);
                     }
@@ -1105,7 +1102,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public String getHostName() {
-        return this.name;
+        return MASTER_NAME;
     }
 
     @Override
@@ -1185,7 +1182,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case FILE_T:
                 // No need to load anything. Value already on a file
                 break;
-            case OBJECT_T: {
+            case OBJECT_T:
                 DependencyParameter dpar = (DependencyParameter) localParam.getParam();
                 String dataId = (String) localParam.getValue();
                 LogicalData ld = Comm.getData(dataId);
@@ -1196,15 +1193,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     invParam.setValue(o);
                 }
                 break;
-            }
-            case PSCO_T: {
+            case PSCO_T:
                 String pscoId = (String) localParam.getValue();
                 Object o = StorageItf.getByID(pscoId);
                 invParam.setValue(o);
-                break;
-            }
             default:
-            // Already contains the proper value on the param
+                // Already contains the proper value on the param
+                break;
         }
     }
 

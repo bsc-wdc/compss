@@ -24,6 +24,7 @@ import es.bsc.compss.types.uri.MultiURI;
 
 import java.util.List;
 
+
 /**
  * Abstract definition of a Communication Adaptor for the Runtime.
  */
@@ -48,11 +49,10 @@ public interface CommAdaptor {
     /**
      * Initializes a worker through an adaptor.
      * 
-     * @param workerName Worker name.
      * @param config Adaptor configuration.
      * @return A COMPSsWorker object representing the initialized worker.
      */
-    public COMPSsWorker initWorker(String workerName, Configuration config);
+    public COMPSsWorker initWorker(Configuration config);
 
     /**
      * Stops the Communication Adaptor.

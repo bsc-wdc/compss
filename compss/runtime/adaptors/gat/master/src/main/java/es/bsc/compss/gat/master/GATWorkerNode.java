@@ -65,13 +65,12 @@ public class GATWorkerNode extends COMPSsWorker {
     private org.gridlab.gat.resources.Job tracingJob;
 
     /**
-     * New GAT Worker Node with name @name and configuration @config
+     * New GAT Worker Node with name @name and configuration @{code config}.
      *
-     * @param name
-     * @param config
+     * @param config Adaptor configuration.
      */
-    public GATWorkerNode(String name, GATConfiguration config) {
-        super(name, config);
+    public GATWorkerNode(GATConfiguration config) {
+        super();
         this.config = config;
     }
 

@@ -16,53 +16,37 @@
  */
 package es.bsc.compss.types.resources;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.util.ErrorManager;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class MasterResourceImpl extends DynamicMethodWorker implements MasterResource {
 
-    private static final String MASTER_NAME_PROPERTY = System.getProperty(COMPSsConstants.MASTER_NAME);
-    private static final String UNDEFINED_MASTER_NAME = "master";
-
-    public static final String MASTER_NAME;
-
-    static {
-        // Initializing host attributes
-        String hostName = "";
-        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals(""))
-                && (!MASTER_NAME_PROPERTY.equals("null"))) {
-            // Set the hostname from the defined property
-            hostName = MASTER_NAME_PROPERTY;
-        } else {
-            // The MASTER_NAME_PROPERTY has not been defined, try load from machine
-            try {
-                InetAddress localHost = InetAddress.getLocalHost();
-                hostName = localHost.getHostName();
-            } catch (UnknownHostException e) {
-                // Sets a default hsotName value
-                ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
-                hostName = UNDEFINED_MASTER_NAME;
-            }
-        }
-        MASTER_NAME = hostName;
-    }
-
-
+    /**
+     * Creates a new Master Resource.
+     */
     public MasterResourceImpl() {
-        super(MASTER_NAME, new MethodResourceDescription(), new COMPSsMaster(MASTER_NAME), 0, 0, 0, 0,
-                new HashMap<String, String>());
+        super(COMPSsMaster.getMasterName(), // Master name
+                new MethodResourceDescription(), // Master resource description
+                new COMPSsMaster(), // Master COMPSs node
+                0, // limit of tasks
+                0, // Limit of GPU tasks
+                0, // Limit of FPGA tasks
+                0, // Limit of OTHER tasks
+                new HashMap<String, String>()// Shared disks
+        );
     }
 
+    /**
+     * Returns the COMPSs base log directory.
+     * 
+     * @return The COMPSs base log directory.
+     */
     public String getCOMPSsLogBaseDirPath() {
         return ((COMPSsMaster) this.getNode()).getCOMPSsLogBaseDirPath();
     }

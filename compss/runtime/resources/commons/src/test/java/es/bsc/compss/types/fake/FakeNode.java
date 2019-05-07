@@ -42,8 +42,9 @@ public class FakeNode extends COMPSsWorker {
 
     private final String name;
 
+
     public FakeNode(String name) {
-        super(name, null);
+        super();
         this.name = name;
     }
 
@@ -79,7 +80,7 @@ public class FakeNode extends COMPSsWorker {
 
     @Override
     public String getName() {
-        return name;
+        return this.name;
     }
 
     @Override

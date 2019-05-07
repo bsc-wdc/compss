@@ -243,14 +243,13 @@ public class Comm {
     /**
      * Initializes a worker with name {@code name} and configuration {@code config}.
      *
-     * @param name Worker name.
      * @param config Adaptor configuration.
      * @return A COMPSsWorker object representing the worker.
      */
-    public static COMPSsWorker initWorker(String name, Configuration config) {
+    public static COMPSsWorker initWorker(Configuration config) {
         String adaptorName = config.getAdaptorName();
         CommAdaptor adaptor = ADAPTORS.get(adaptorName);
-        return adaptor.initWorker(name, config);
+        return adaptor.initWorker(config);
     }
 
     /**

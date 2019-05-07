@@ -26,6 +26,7 @@ import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.commands.CommandCheckWorker;
 import es.bsc.compss.nio.master.handlers.Ender;
 import es.bsc.compss.nio.master.handlers.ProcessOut;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.util.Tracer;
 
@@ -41,6 +42,10 @@ import org.apache.logging.log4j.Logger;
 
 
 public class WorkerStarter {
+
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Static Environment variables
     private static final String LIB_SEPARATOR = ":";
@@ -87,9 +92,6 @@ public class WorkerStarter {
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
-    // Master name
-    private static final String MASTER_NAME_PROPERTY = System.getProperty(COMPSsConstants.MASTER_NAME);
-
     // Scripts configuration
     private static final String STARTER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
             + File.separator + "adaptors" + File.separator + "nio" + File.separator;
@@ -105,11 +107,10 @@ public class WorkerStarter {
     private static final long MAX_WAIT_FOR_INIT = 20_000;
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
 
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-
+    // Starting workers
     private static final Map<String, WorkerStarter> ADDRESS_TO_WORKER_STARTER = new TreeMap<>();
+
+    // Instance attributes
     private boolean workerIsReady = false;
     private boolean toStop = false;
     private final NIOWorkerNode nw;
@@ -161,12 +162,8 @@ public class WorkerStarter {
         int minPort = this.nw.getConfiguration().getMinPort();
         int maxPort = this.nw.getConfiguration().getMaxPort();
         int port = minPort;
-        String masterName = "null";
-        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals(""))
-                && (!MASTER_NAME_PROPERTY.equals("null"))) {
-            // Set the hostname from the defined property
-            masterName = MASTER_NAME_PROPERTY;
-        }
+        String masterName = COMPSsNode.getMasterName();
+
         // Solves exit error 143
         synchronized (ADDRESS_TO_WORKER_STARTER) {
             ADDRESS_TO_WORKER_STARTER.put(name, this);

@@ -53,8 +53,8 @@ public class DummyAdaptor implements CommAdaptor {
     }
 
     @Override
-    public DummyWorkerNode initWorker(String name, Configuration config) {
-        return new DummyWorkerNode(name, (MethodConfiguration) config);
+    public DummyWorkerNode initWorker(Configuration config) {
+        return new DummyWorkerNode((MethodConfiguration) config);
     }
 
     @Override

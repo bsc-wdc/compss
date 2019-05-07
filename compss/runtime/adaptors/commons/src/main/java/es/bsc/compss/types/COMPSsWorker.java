@@ -17,7 +17,6 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.exceptions.AnnounceException;
-import es.bsc.compss.types.resources.configuration.Configuration;
 
 
 /**
@@ -26,12 +25,9 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 public abstract class COMPSsWorker extends COMPSsNode {
 
     /**
-     * New worker with name {@code name} and configuration {@code config}.
-     * 
-     * @param name Worker name.
-     * @param config Adaptor configuration.
+     * New worker
      */
-    public COMPSsWorker(String name, Configuration config) {
+    public COMPSsWorker() {
         super();
     }
 

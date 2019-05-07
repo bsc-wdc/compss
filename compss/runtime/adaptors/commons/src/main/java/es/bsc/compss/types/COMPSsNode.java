@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
@@ -33,7 +34,10 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.ErrorManager;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -52,6 +56,32 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     protected static final String DELETE_ERR = "Error deleting intermediate files";
     protected static final String URI_CREATION_ERR = "Error creating new URI";
 
+    // Master name (included here to be visible from the different packages)
+    private static final String MASTER_NAME_PROPERTY = System.getProperty(COMPSsConstants.MASTER_NAME);
+    private static final String UNDEFINED_MASTER_NAME = "master";
+    protected static final String MASTER_NAME;
+
+    static {
+        // Initializing host attributes
+        String hostName = "";
+        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals(""))
+                && (!MASTER_NAME_PROPERTY.equals("null"))) {
+            // Set the hostname from the defined property
+            hostName = MASTER_NAME_PROPERTY;
+        } else {
+            // The MASTER_NAME_PROPERTY has not been defined, try load from machine
+            try {
+                InetAddress localHost = InetAddress.getLocalHost();
+                hostName = localHost.getHostName();
+            } catch (UnknownHostException e) {
+                // Sets a default hsotName value
+                ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
+                hostName = UNDEFINED_MASTER_NAME;
+            }
+        }
+        MASTER_NAME = hostName;
+    }
+
 
     /**
      * Creates a new node.
@@ -66,6 +96,15 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @return The node name.
      */
     public abstract String getName();
+
+    /**
+     * Returns the master name.
+     * 
+     * @return The master name.
+     */
+    public static String getMasterName() {
+        return MASTER_NAME;
+    }
 
     /**
      * Starts the node process.

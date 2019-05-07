@@ -115,7 +115,9 @@ public class DataManagerImpl implements DataManager {
         if (STREAMING_BACKEND.equals(StreamBackend.NONE)) {
             WORKER_LOGGER.warn("No streaming backend passed");
         } else {
-            WORKER_LOGGER.debug("Initializing Streaming Client");
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("Initializing Streaming Client for " + this.masterName + ":" + this.streamingPort);
+            }
             try {
                 DistroStreamClient.initAndStart(this.masterName, this.streamingPort);
             } catch (DistroStreamClientInitException dscie) {

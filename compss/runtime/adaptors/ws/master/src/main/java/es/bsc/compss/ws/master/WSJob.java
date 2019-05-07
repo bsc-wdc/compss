@@ -40,6 +40,7 @@ import es.bsc.compss.types.resources.Resource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -54,22 +55,23 @@ import org.apache.logging.log4j.Logger;
 
 public class WSJob extends Job<ServiceInstance> {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    protected static final boolean debug = logger.isDebugEnabled();
+    // Logger
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String THREAD_POOL_ERR = "Error starting pool of threads";
+    private static final String SUBMIT_ERROR = "Error calling Web Service";
+
+    // Class structures
+    private static final int POOL_SIZE = 10;
+    private static final String POOL_NAME = "WS";
+    private static final JaxWsDynamicClientFactory DCF = JaxWsDynamicClientFactory.newInstance();
+    // wsdl-port--> Client
+    private static final Map<String, Client> PORT2CLIENT = new HashMap<>();
 
     private static RequestQueue<WSJob> callerQueue;
     private static WSCaller caller;
-    private static final JaxWsDynamicClientFactory dcf = JaxWsDynamicClientFactory.newInstance();
-    // wsdl-port--> Client
-    private static final HashMap<String, Client> portToClient = new HashMap<>();
-
     // Pool of worker threads and queue of requests
     private static ThreadPool callerPool;
-
-    private static final int POOL_SIZE = 10;
-    private static final String POOL_NAME = "WS";
-    private static final String THREAD_POOL_ERR = "Error starting pool of threads";
-    private static final String SUBMIT_ERROR = "Error calling Web Service";
 
     private Object returnValue;
 
@@ -86,7 +88,7 @@ public class WSJob extends Job<ServiceInstance> {
         try {
             callerPool.startThreads();
         } catch (Exception e) {
-            logger.error(THREAD_POOL_ERR, e);
+            LOGGER.error(THREAD_POOL_ERR, e);
             throw e;
         }
     }
@@ -172,12 +174,12 @@ public class WSJob extends Job<ServiceInstance> {
                                     input.add(o);
                                     break;
                                 case FILE_T:
-                                    logger.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
+                                    LOGGER.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
                                     // CAN'T USE A FILE AS A PARAMETER
                                     // SKIP!
                                     break;
                                 case BINDING_OBJECT_T:
-                                    logger.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
+                                    LOGGER.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
                                     break;
                                 default:
                                     // Basic or String
@@ -204,7 +206,7 @@ public class WSJob extends Job<ServiceInstance> {
                     job.listener.jobCompleted(job);
                 } catch (Exception e) {
                     job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED);
-                    logger.error(SUBMIT_ERROR, e);
+                    LOGGER.error(SUBMIT_ERROR, e);
                     return;
                 }
 
@@ -212,16 +214,16 @@ public class WSJob extends Job<ServiceInstance> {
         }
 
         private Client getClient(ServiceInstance si, String portName) {
-            Client c = portToClient.get(si.getName() + "-" + portName);
+            Client c = PORT2CLIENT.get(si.getName() + "-" + portName);
             if (c == null) {
                 c = addPort(si, portName);
-                portToClient.put(si.getName() + "-" + portName, c);
+                PORT2CLIENT.put(si.getName() + "-" + portName, c);
             }
             return c;
         }
 
         public synchronized Client addPort(ServiceInstance si, String portName) {
-            Client client = portToClient.get(portName);
+            Client client = PORT2CLIENT.get(portName);
             if (client != null) {
                 return client;
             }
@@ -229,9 +231,9 @@ public class WSJob extends Job<ServiceInstance> {
             QName serviceQName = new QName(si.getNamespace(), si.getServiceName());
             QName portQName = new QName(si.getNamespace(), portName);
             try {
-                client = dcf.createClient(si.getWsdl(), serviceQName, portQName);
+                client = DCF.createClient(si.getWsdl(), serviceQName, portQName);
             } catch (Exception e) {
-                logger.error("Exception", e);
+                LOGGER.error("Exception", e);
                 return null;
             }
 
@@ -241,7 +243,7 @@ public class WSJob extends Job<ServiceInstance> {
             httpClientPolicy.setReceiveTimeout(0);
             http.setClient(httpClientPolicy);
 
-            portToClient.put(portName, client);
+            PORT2CLIENT.put(portName, client);
             return client;
         }
 

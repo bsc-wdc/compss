@@ -56,10 +56,12 @@ public class RemoteRESTAgent extends COMPSsWorker {
     // REST endpoint for the node
     private final WebTarget target;
 
-    public RemoteRESTAgent(String name, AgentConfiguration config) {
-        super(name, config);
-        this.name = name;
+
+    public RemoteRESTAgent(AgentConfiguration config) {
+        super();
         this.config = config;
+        this.name = this.config.getHost();
+
         String host = config.getHost();
         String port = config.getProperty("Port");
         System.out.println("Adding resource:" + host + " through port " + port);
@@ -67,16 +69,16 @@ public class RemoteRESTAgent extends COMPSsWorker {
             host = "http://" + host + ":" + port;
         }
         Client client = ClientBuilder.newClient(new ClientConfig());
-        target = client.target(host);
+        this.target = client.target(host);
     }
 
     @Override
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public WebTarget getTarget() {
-        return target;
+        return this.target;
     }
 
     @Override
@@ -108,12 +110,13 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public void updateTaskCount(int i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public void start() throws InitNodeException {
-        //Should already have been started on the devices   
+        // Should already have been started on the devices
     }
 
     @Override
@@ -122,12 +125,14 @@ public class RemoteRESTAgent extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
         return new RemoteRESTAgentJob(this, taskId, taskParams, impl, res, listener);
     }
 
     @Override
-    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
         if (target.getHosts().contains(Comm.getAppHost())) {
             // Request to master
             System.out.println("[DATA] Trying to fetch data " + ld.getName());
@@ -149,8 +154,8 @@ public class RemoteRESTAgent extends COMPSsWorker {
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
+            Transferable reason, EventListener listener) {
         if (ld == null) {
             return;
         }
@@ -171,7 +176,8 @@ public class RemoteRESTAgent extends COMPSsWorker {
                 ld.setPscoId(pscoId);
                 orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
             } else {
-                listener.notifyFailure(new DeferredCopy(ld, source, target, tgtData, reason, listener), new Exception("Regular objects are not supported yet"));
+                listener.notifyFailure(new DeferredCopy(ld, source, target, tgtData, reason, listener),
+                        new Exception("Regular objects are not supported yet"));
             }
         }
     }
@@ -184,7 +190,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
-        //Demon should be stopped
+        // Demon should be stopped
         sl.notifyEnd();
     }
 
@@ -262,7 +268,8 @@ public class RemoteRESTAgent extends COMPSsWorker {
         LogicalData srcLD = sc.getSourceData();
         LogicalData targetLD = sc.getTargetData();
 
-        System.out.println("STAGE IN Requesting Storage to place a new replica of " + srcLD.getPscoId() + " on " + targetHostname + ")");
+        System.out.println("STAGE IN Requesting Storage to place a new replica of " + srcLD.getPscoId() + " on "
+                + targetHostname + ")");
         LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
         // Get the PSCO to replicate
@@ -309,7 +316,8 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // Get the PSCOId to replicate
         String pscoId = srcLD.getPscoId();
 
-        System.out.println("STAGE IN Requesting Storage to create a new Version of " + pscoId + "(" + srcLD.getName() + ")");
+        System.out.println(
+                "STAGE IN Requesting Storage to create a new Version of " + pscoId + "(" + srcLD.getName() + ")");
         if (DEBUG) {
             LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + pscoId + " to " + targetHostname
                     + " with must preserve " + preserveSource);

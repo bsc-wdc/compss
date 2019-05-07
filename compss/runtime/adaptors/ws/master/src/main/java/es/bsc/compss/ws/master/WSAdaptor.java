@@ -35,8 +35,8 @@ import org.apache.logging.log4j.Logger;
 public class WSAdaptor implements CommAdaptor {
 
     // Logging
-    public static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    public static final boolean debug = logger.isDebugEnabled();
+    public static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    public static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Tracing
     protected static boolean tracing;
@@ -47,7 +47,7 @@ public class WSAdaptor implements CommAdaptor {
         try {
             WSJob.init();
         } catch (Exception e) {
-            logger.error("Can not initialize WS Adaptor");
+            LOGGER.error("Can not initialize WS Adaptor");
         }
     }
 
@@ -91,8 +91,10 @@ public class WSAdaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(String workerName, Configuration config) {
-        return new ServiceInstance(workerName, (WSConfiguration) config);
+    public COMPSsWorker initWorker(Configuration config) {
+        WSConfiguration wsCfg = (WSConfiguration) config;
+        LOGGER.debug("Init WS Worker Node named " + wsCfg.getWsdl());
+        return new ServiceInstance(wsCfg);
     }
 
     @Override

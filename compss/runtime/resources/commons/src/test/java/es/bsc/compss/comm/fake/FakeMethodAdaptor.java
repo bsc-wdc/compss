@@ -41,9 +41,9 @@ public class FakeMethodAdaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(String workerName, Configuration config) {
-        return new FakeNode(workerName);
-
+    public COMPSsWorker initWorker(Configuration config) {
+        MethodConfiguration methodCfg = (MethodConfiguration) config;
+        return new FakeNode(methodCfg.getHost());
     }
 
     @Override

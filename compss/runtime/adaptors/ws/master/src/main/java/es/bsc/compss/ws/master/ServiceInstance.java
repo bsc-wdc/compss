@@ -46,8 +46,9 @@ public class ServiceInstance extends COMPSsWorker {
 
     private WSConfiguration config;
 
-    public ServiceInstance(String name, WSConfiguration config) {
-        super(name, config);
+
+    public ServiceInstance(WSConfiguration config) {
+        super();
         this.config = config;
     }
 

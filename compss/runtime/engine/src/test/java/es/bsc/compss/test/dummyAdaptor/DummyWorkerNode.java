@@ -47,15 +47,15 @@ public class DummyWorkerNode extends COMPSsWorker {
 
     private final String name;
 
+
     /**
-     * New DummyWorker node with name @name and configuration @config
+     * New DummyWorker node with name {@code name} and configuration {@code config}.
      *
-     * @param name
-     * @param config
+     * @param config Adaptor configuration.
      */
-    public DummyWorkerNode(String name, MethodConfiguration config) {
-        super(name, config);
-        this.name = name;
+    public DummyWorkerNode(MethodConfiguration config) {
+        super();
+        this.name = config.getHost();
     }
 
     @Override

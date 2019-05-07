@@ -257,9 +257,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public NIOWorkerNode initWorker(String workerName, Configuration config) {
-        LOGGER.debug("Init NIO Worker Node named " + workerName);
-        NIOWorkerNode worker = new NIOWorkerNode(workerName, (NIOConfiguration) config, this);
+    public NIOWorkerNode initWorker(Configuration config) {
+        NIOConfiguration nioCfg = (NIOConfiguration) config;
+        LOGGER.debug("Init NIO Worker Node named " + nioCfg.getHost());
+
+        NIOWorkerNode worker = new NIOWorkerNode(nioCfg, this);
         NODES.add(worker);
         return worker;
     }

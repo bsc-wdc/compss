@@ -74,7 +74,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
-        this.node = Comm.initWorker(name, conf);
+        this.node = Comm.initWorker(conf);
         this.sharedDisks = sharedDisks;
         SharedDiskManager.addMachine(this);
         ResourcesPool.add(this);

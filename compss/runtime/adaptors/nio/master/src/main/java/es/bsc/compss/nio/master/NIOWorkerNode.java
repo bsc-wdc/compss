@@ -104,12 +104,11 @@ public class NIOWorkerNode extends COMPSsWorker {
     /**
      * Creates a new NIOWorkerNode instance.
      * 
-     * @param name Worker name.
      * @param config Worker configuration.
      * @param adaptor Worker communication adaptor.
      */
-    public NIOWorkerNode(String name, NIOConfiguration config, NIOAdaptor adaptor) {
-        super(name, config);
+    public NIOWorkerNode(NIOConfiguration config, NIOAdaptor adaptor) {
+        super();
         this.config = config;
         this.commManager = adaptor;
     }

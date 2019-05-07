@@ -23,14 +23,16 @@ import es.bsc.compss.util.ResourceManager;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 
 public class DynamicMethodWorker extends MethodWorker {
 
     // Pending removals
-    private final LinkedList<PendingReduction<MethodResourceDescription>> pendingReductions;
+    private final List<PendingReduction<MethodResourceDescription>> pendingReductions;
     private final MethodResourceDescription toRemove;
+
 
     public DynamicMethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker,
             int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,

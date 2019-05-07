@@ -187,11 +187,13 @@ def terasort(num_fragments, num_entries, num_buckets, seed):
     """
 
     dataset = [gen_fragment(num_entries, seed + i) for i in range(num_fragments)]
-    dds = DDS().load(dataset, -1).sort_by_key().collect(True)
-    for i in range(len(dds)):
-        if dds[i][0] < dds[i-1][0] and i > 0:
-            print("Failed:", i)
-            break
+    dds = DDS().load(dataset, -1).sort_by_key().collect()
+    # temp = 0
+    # for i, k in dds:
+    #     if i < temp:
+    #         print("FAILED")
+    #         break
+    #     temp = i
 
 
 def run_terasort():
@@ -239,8 +241,8 @@ def main_program():
     # word_count()
     # reduce_example()
     # load_n_map_example()
-    # run_terasort()
-    test_new_dds()
+    run_terasort()
+    # test_new_dds()
 
 
 if __name__ == '__main__':

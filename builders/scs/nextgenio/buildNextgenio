@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+  #############################################################
+  # Name: buildNextgenio
+  # Description: SCRIPT FOR Nextgenio COMPSs BUILD
+  # Parameters: <Nextgenio_user> Nextgenio user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Nextgenio for deployment
+  #             <FullTargetPath> Base Target Installation folder on Nextgenio
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildNextgenio <Nextgenio_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+  Nextgeniouser=$1
+  NextgeniotmpDir=$2
+  NextgeniotargetDir=$3
+  NextgeniologinNode=nextgenio
+  NextgenioauxScript="${SCRIPT_DIR}"/buildNextgenio_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons
+  ./buildSC "${Nextgeniouser}" "${NextgeniologinNode}" "${NextgeniotmpDir}" "${NextgeniotargetDir}" "${NextgenioauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus

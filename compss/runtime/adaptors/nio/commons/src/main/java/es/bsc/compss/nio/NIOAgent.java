@@ -484,16 +484,30 @@ public abstract class NIOAgent {
     public void receivedData(Connection c, Transfer t) {
 
         String dataId = ongoingTransfers.remove(c);
-        if (dataId == null) { // It has received the output and error of a job
-            // execution
+        if (dataId == null) { 
+            // It has received the output and error of a job execution
             return;
         }
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Receiving data " + dataId);
         }
         releaseReceiveSlot();
+        
+        // Add tracing event
+        if (NIOTracer.extraeEnabled()) {
+            int tag = abs(dataId.hashCode());
+            NIOTracer.emitDataTransferEvent(dataId);
+            NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag, t.getSize());
+            connection2Partner.remove(c);
+        }
+        
         // Get all data requests for this source data_id/filename, and group by the target(final) data_id/filename
-        List<DataRequest> requests = dataToRequests.remove(dataId);
+        List<DataRequest> requests = dataToRequests.remove(dataId);       
+        if (requests == null || requests.isEmpty()) {
+            LOGGER.warn( "WARN: No data removed for received data " + dataId);
+            return;
+        }
+        
         boolean isBindingType = requests.get(0).getType().equals(DataType.BINDING_OBJECT_T);
         Map<String, List<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
@@ -504,13 +518,6 @@ public abstract class NIOAgent {
                 byTarget.put(req.getTarget(), sameTarget);
             }
             sameTarget.add(req);
-        }
-        // Add tracing event
-        if (NIOTracer.extraeEnabled()) {
-            int tag = abs(dataId.hashCode());
-            NIOTracer.emitDataTransferEvent(dataId);
-            NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag, t.getSize());
-            connection2Partner.remove(c);
         }
 
         if (byTarget.size() == 1) {

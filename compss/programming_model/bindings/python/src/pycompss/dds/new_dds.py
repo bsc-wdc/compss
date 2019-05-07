@@ -13,6 +13,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import bisect
+import itertools
 import os
 from collections import deque, defaultdict
 from itertools import chain
@@ -21,6 +23,7 @@ from pycompss.api.api import compss_wait_on, compss_barrier
 
 from pycompss.dds.new_tasks import *
 from pycompss.dds.partition_generators import *
+from pycompss.dds import heapq3
 from operator import add
 
 
@@ -589,6 +592,60 @@ class DDS(object):
         {'a': 2}
         """
         return self.map(lambda x: x[0]).count_by_value(as_dict=as_dict)
+
+    def sort_by_key(self, ascending=True, num_of_parts=None,
+                    key_func=lambda x: x):
+        """
+
+        :type key_func:
+        :param num_of_parts:
+        :param ascending:
+        :return:
+        """
+        if num_of_parts is None:
+            num_of_parts = len(self.partitions)
+
+        def sort_partition(iterator):
+            """
+            Sort a partition locally.
+            :param iterator:
+            :return:
+            """
+            chunk_size = 500
+            iterator = iter(iterator)
+            chunks = list()
+            while True:
+                chunk = list(itertools.islice(iterator, chunk_size))
+                chunk.sort(key=lambda kv: key_func(kv[0]), reverse=not ascending)
+                chunks.append(chunk)
+                if len(chunk) < chunk_size:
+                    break
+            else:
+                chunks.append(chunk.sort(key=lambda kv: key_func(kv[0]),
+                                         reverse=not ascending))
+
+            return heapq3.merge(chunks, key=lambda kv: key_func(kv[0]),
+                                reverse=not ascending)
+
+        samples = list()
+        for each in self.partitions:
+            samples.append(task_collect_samples(each, key_func))
+
+        samples = sorted(list(
+            itertools.chain.from_iterable(compss_wait_on(samples))))
+
+        bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
+                  for i in range(0, num_of_parts - 1)]
+
+        def range_partitioner(key):
+            p = bisect.bisect_left(bounds, key_func(key))
+            if ascending:
+                return p
+            else:
+                return num_of_parts - 1 - p
+
+        partitioned = self.partition_by(range_partitioner)
+        return partitioned.map_partitions(sort_partition)
 
 
 class ChildDDS(DDS):

@@ -174,3 +174,16 @@ def combine_lists(*args):
     for _list in args:
         ret.extend(_list)
     return ret
+
+
+@task(returns=list)
+def task_collect_samples(partition, key_func):
+    """
+    """
+    ret = list()
+    for index in range(len(partition)):
+        if not index % 100:
+            ret.append(key_func(partition[index][0]))
+
+    return ret
+

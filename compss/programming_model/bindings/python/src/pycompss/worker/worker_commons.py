@@ -248,7 +248,11 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
     args = args[4:]
 
     # COMPSs keywords for tasks (ie: tracing, process name...)
+    # compss_key is included to be checked in the @task decorator, so that
+    # the task knows if it has been called from the worker or from the
+    # user code (reason: ignore @task decorator if called from another task).
     compss_kwargs = {
+        'compss_key': True,
         'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,

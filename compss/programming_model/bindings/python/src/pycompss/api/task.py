@@ -285,7 +285,12 @@ class task(object):
             if context.in_master():
                 return self.master_call(*args, **kwargs)
             elif context.in_worker():
-                return self.worker_call(*args, **kwargs)
+                if 'compss_key' in kwargs.keys():
+                    return self.worker_call(*args, **kwargs)
+                else:
+                    # Called from another task within the worker
+                    # Ignore the @task decorator and run it sequentially
+                    return self.sequential_call(*args, **kwargs)
             # We are neither in master nor in the worker, or the user has
             # stopped the interactive session.
             # Therefore, the user code is being executed with no

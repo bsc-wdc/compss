@@ -32,8 +32,6 @@
   py2_modules="py2-numpy/1.15.3"
   py3_modules="ignore"
   additionalExports="export BOOST_CPPFLAGS=-I${BOOST_INC} BOOST_HOME=${BOOST_DIR}" #PATH=/usr/include/libxml2/libxml:$PATH"
-  #additionalExports="$PATH"
-  #additionalExports="export LD_LIBRARY_PATH=/opt/intel/compilers_and_libraries_2019.3.199/linux/mpi/intel64/lib:$LD_LIBRARY_PATH"
   queues_cfg="nextgenio.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""

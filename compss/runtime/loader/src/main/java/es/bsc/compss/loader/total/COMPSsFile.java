@@ -22,19 +22,18 @@ import java.io.File;
 
 public class COMPSsFile extends File {
 
-    /**
-     * Class which intercepts.
-     */
     private static final long serialVersionUID = 1L;
 
     private LoaderAPI api;
     private String pathname;
 
+
     /**
-     * TODO javadoc.
-     *
-     * @param api description
-     * @param f   description
+     * Creates a new COMPSsFile instance associated to the given file {@code f} and pointing to the given LoaderAPI
+     * {@code api}.
+     * 
+     * @param api Associated LoaderAPI.
+     * @param f Associated file.
      */
     public COMPSsFile(LoaderAPI api, File f) {
         super(f.getAbsolutePath());
@@ -44,49 +43,62 @@ public class COMPSsFile extends File {
 
     @Override
     public boolean createNewFile() throws java.io.IOException {
-        System.out.println("COMPSs WARNING: You are creating a new file from a file " + pathname
+        System.out.println("COMPSs WARNING: You are creating a new file from a file " + this.pathname
                 + " which has been used in a task. This could make your program to not work as expected.");
         return super.createNewFile();
     }
 
     @Override
     public long getFreeSpace() {
-        System.out.println("COMPSs WARNING: You are getting the free space in file " + pathname
+        System.out.println("COMPSs WARNING: You are getting the free space in file " + this.pathname
                 + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getFreeSpace();
     }
 
     @Override
     public long getUsableSpace() {
-        System.out.println("COMPSs WARNING: You are getting the usable space in file " + pathname
+        System.out.println("COMPSs WARNING: You are getting the usable space in file " + this.pathname
                 + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getUsableSpace();
     }
 
     @Override
     public long getTotalSpace() {
-        System.out.println("COMPSs WARNING: You are getting the total space in file " + pathname
+        System.out.println("COMPSs WARNING: You are getting the total space in file " + this.pathname
                 + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getTotalSpace();
     }
 
     @Override
     public boolean exists() {
-        System.out.println("COMPSs WARNING: You are checking if file " + pathname
+        System.out.println("COMPSs WARNING: You are checking if file " + this.pathname
                 + " exists. This has been used in a task. This could make your program to not work as expected.");
         return super.exists();
     }
 
     @Override
     public boolean delete() {
-        return api.deleteFile(pathname);
+        return this.api.deleteFile(this.pathname);
     }
 
+    /**
+     * Returns the File object after synchronizing its content.
+     * 
+     * @param appId Application id.
+     * @return File File object after synchronizing its content.
+     */
     public File synchFile(Long appId) {
-        api.getFile(appId, pathname);
-        return new File(pathname);
+        this.api.getFile(appId, this.pathname);
+        return new File(this.pathname);
     }
 
+    /**
+     * Synchronizes the given COMPSsFile {@code f}.
+     * 
+     * @param appId Application id.
+     * @param f COMPSsFile.
+     * @return File object after synchronizing its content.
+     */
     public static File synchFile(Long appId, COMPSsFile f) {
         return f.synchFile(appId);
     }

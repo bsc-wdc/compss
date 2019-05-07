@@ -28,23 +28,25 @@ import org.apache.logging.log4j.Logger;
 
 public class ObjectRegistry {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+
+    private static final String EMPTY = "EMPTY";
+
     // Api object used to invoke calls on the Integrated Toolkit
     private LoaderAPI itApi;
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
     private String serialDir;
 
-    private static final String EMPTY = "EMPTY";
     // Map: hash code -> object
-    // Objects
     private Map<Integer, Object> appTaskObjects;
     private Map<Integer, Object> internalObjects;
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-
 
     /**
-     * TODO javadoc.
+     * Creates a new ObjectRegistry instance assocaited to a given LoaderAPI {@code api}.
+     * 
+     * @param api LoaderAPI.
      */
     public ObjectRegistry(LoaderAPI api) {
         this.itApi = api;
@@ -56,7 +58,19 @@ public class ObjectRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Registers a new Object access.
+     * 
+     * @param o Object.
+     */
+    public void newObjectAccess(Object o) {
+        newObjectAccess(o, true);
+    }
+
+    /**
+     * Registers a new Object parameter.
+     * 
+     * @param obj Object parameter.
+     * @return Final hashcode of the object.
      */
     public int newObjectParameter(Object obj) {
         if (obj == null) {
@@ -95,12 +109,11 @@ public class ObjectRegistry {
         return objHashCode;
     }
 
-    public void newObjectAccess(Object o) {
-        newObjectAccess(o, true);
-    }
-
     /**
-     * TODO javadoc.
+     * Registers a new access to the given object {@code o} in mode {@code isWriter}.
+     * 
+     * @param o Object.
+     * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
      */
     public void newObjectAccess(Object o, boolean isWriter) {
         if (o == null) {
@@ -140,7 +153,9 @@ public class ObjectRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Locally serializes the given object {@code o}.
+     * 
+     * @param o Object.
      */
     public void serializeLocally(Object o) {
         if (o == null) {
@@ -164,7 +179,10 @@ public class ObjectRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Returns the internal object representing the given object {@code o}.
+     * 
+     * @param o Object.
+     * @return Internal object representing the given object {@code o}.
      */
     public Object getInternalObject(Object o) {
         if (o == null) {
@@ -187,7 +205,10 @@ public class ObjectRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Deletes the given object {@code o}.
+     * 
+     * @param o Object.
+     * @return {@code true} if the object has been removed, {@code false} otherwise.
      */
     public boolean delete(Object o) {
         if (o == null) {
@@ -207,10 +228,12 @@ public class ObjectRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Deletes the internal object represented by the given hashcode {@code hashcode}.
+     * 
+     * @param hashcode Internal's object hashcode.
+     * @return {@code true} if the object has been deleted, {@code false} otherwise.
      */
-    public boolean deleteFromInternal(int hashcode) {
-
+    private boolean deleteFromInternal(int hashcode) {
         Object toDelete = this.internalObjects.get(hashcode);
         if (toDelete != null) {
             this.internalObjects.remove(hashcode);
@@ -220,9 +243,12 @@ public class ObjectRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Deletes the application object represented by the given hashcode {@code hashcode}.
+     * 
+     * @param hashcode Application's object hashcode.
+     * @return {@code true} if the object has been deleted, {@code false} otherwise.
      */
-    public boolean deleteFromApps(int hashcode) {
+    private boolean deleteFromApps(int hashcode) {
         Object toDelete = this.appTaskObjects.get(hashcode);
         if (toDelete != null) {
             this.appTaskObjects.put(hashcode, EMPTY);

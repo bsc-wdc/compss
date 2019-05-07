@@ -25,61 +25,96 @@ public interface LoaderAPI {
 
     /**
      * Returns the renaming of the file version opened.
+     * 
+     * @param fileName File.
+     * @param mode Access mode.
+     * @return Renaming of the current file version.
      */
     public String openFile(String fileName, Direction mode);
 
     /**
-     * Close the file version opened.
+     * Closes the given file {@code fileName}.
+     * 
+     * @param fileName File version name.
+     * @param mode Access mode.
      */
     public void closeFile(String fileName, Direction mode);
 
     /**
      * Deletes the specified version of a file.
+     * 
+     * @param fileName File version name.
+     * @return {@code true} if the file has been erased, {@code false} otherwise.
      */
     public boolean deleteFile(String fileName);
 
     /**
-     * Returns last version of file with its original name.
+     * Retrieves the last version of file with its original name.
+     * 
+     * @param appId Application id.
+     * @param fileName File name.
      */
     public void getFile(Long appId, String fileName);
 
     /**
-     * Returns a copy of the last object version.
+     * Returns a copy of the last version of the given object {@code o}.
+     * 
+     * @param o Object.
+     * @param hashCode Object hashcode.
+     * @param destDir Destination directory for serialization.
+     * @return In-memory copy of the last version of the given object.
      */
     public Object getObject(Object o, int hashCode, String destDir);
 
     /**
-     * Serializes the given object.
+     * Serializes the given object {@code o} to the given path {@code destDir}.
+     * 
+     * @param o Object.
+     * @param hashCode Object hashcode.
+     * @param destDir Destination directory.
      */
     public void serializeObject(Object o, int hashCode, String destDir);
 
     /**
-     * Gets the object Registry instance.
+     * Returns the Object Registry instance.
+     * 
+     * @return The Object Registry instance.
      */
     public ObjectRegistry getObjectRegistry();
 
     /**
-     * Gets the stream Registry instance.
+     * Returns the Stream Registry instance.
+     * 
+     * @return The Stream Registry instance.
      */
     public StreamRegistry getStreamRegistry();
 
     /**
-     * Sets the object Registry instance.
+     * Associates a new Object Registry.
+     * 
+     * @param oReg Object Registry.
      */
     public void setObjectRegistry(ObjectRegistry oReg);
 
     /**
-     * Sets the object Registry instance.
+     * Associates a new Stream Registry instance.
+     * 
+     * @param sReg Stream Registry.
      */
-    public void setStreamRegistry(StreamRegistry oReg);
+    public void setStreamRegistry(StreamRegistry sReg);
 
     /**
      * Returns the directory where to store temporary files.
+     * 
+     * @return The directory where to store temporary files.
      */
     public String getTempDir();
 
     /**
-     * Removes the TODO.
+     * Removes the given object {@code o}.
+     * 
+     * @param o Object.
+     * @param hashcode Object hashcode.
      */
     public void removeObject(Object o, int hashcode);
 

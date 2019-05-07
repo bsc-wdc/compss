@@ -35,14 +35,18 @@ public class NameNotFoundException extends Exception {
     }
 
     /**
-     * New nested @e Name Not Found Exception.
+     * New NameNotFoundException exception with a nested exception {@code e}.
+     * 
+     * @param e Nested exception.
      */
     public NameNotFoundException(Exception e) {
         super(e);
     }
 
     /**
-     * New Announce Name Not Found with message @msg.
+     * New NameNotFoundException exception with message {@code msg}.
+     * 
+     * @param msg Exception message.
      */
     public NameNotFoundException(String msg) {
         super(msg);

@@ -22,11 +22,16 @@
 
     <!-- COMMUNICATION -->
     <!-- es.bsc.compss.Communication: DEFAULT = DEBUG -->
-    <Logger name="es.bsc.comm" additivity="FALSE" level="debug">
+    <Logger name="es.bsc.comm" additivity="FALSE" level="info">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="debug">
       <AppenderRef ref="Console"/>
     </Logger>
 
-    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="debug">
+    <!-- DISTRO STREAM LIBRARY -->
+    <!-- es.bsc.distroStreamLib: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.distroStreamLib" additivity="FALSE" level="debug">
       <AppenderRef ref="Console"/>
     </Logger>
 

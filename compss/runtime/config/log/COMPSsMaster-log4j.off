@@ -35,6 +35,12 @@
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
+    <!-- DISTRO STREAM LIBRARY -->
+    <!-- es.bsc.distroStreamLib: DEFAULT = ERROR -->
+    <Logger name="es.bsc.distroStreamLib" additivity="FALSE" level="error">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+
     <!-- RUNTIME LOADER -->
     <!-- es.bsc.compss.Loader: DEFAULT = ERROR -->
     <Logger name="es.bsc.compss.Loader" additivity="FALSE" level="error">

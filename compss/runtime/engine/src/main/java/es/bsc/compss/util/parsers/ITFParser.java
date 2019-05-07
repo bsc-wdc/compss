@@ -22,7 +22,7 @@ import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Parameter;
@@ -263,7 +263,7 @@ public class ITFParser {
                     case UNSPECIFIED:
                         break;
                 }
-                hasStreams = hasStreams || !par.stream().equals(Stream.UNSPECIFIED);
+                hasStreams = hasStreams || !par.stream().equals(StdIOStream.UNSPECIFIED);
                 hasPrefixes = hasPrefixes || !par.prefix().equals(Constants.PREFIX_EMPTY);
 
                 // Check parameter annotation (warnings and errors)
@@ -329,7 +329,7 @@ public class ITFParser {
 
         Type annotType = par.type();
         Direction annotDirection = par.direction();
-        Stream stream = par.stream();
+        StdIOStream stream = par.stream();
 
         boolean isOut = annotDirection.equals(Direction.OUT);
         boolean isInOut = annotDirection.equals(Direction.INOUT);
@@ -371,7 +371,7 @@ public class ITFParser {
         /*
          * Stream checks
          */
-        if (!stream.equals(Stream.UNSPECIFIED)) {
+        if (!stream.equals(StdIOStream.UNSPECIFIED)) {
             // Stream parameters can only be files
             if (!annotType.equals(Type.FILE)) {
                 ErrorManager.error("Can't specify an Stream with type different than File." + ErrorManager.NEWLINE

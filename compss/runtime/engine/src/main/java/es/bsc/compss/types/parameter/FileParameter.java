@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.location.DataLocation;
 
@@ -35,7 +35,7 @@ public class FileParameter extends DependencyParameter {
     private final String originalName;
 
 
-    public FileParameter(Direction direction, Stream stream, String prefix, String name, DataLocation location,
+    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, DataLocation location,
             String originalName) {
         super(DataType.FILE_T, direction, stream, prefix, name);
         this.location = location;

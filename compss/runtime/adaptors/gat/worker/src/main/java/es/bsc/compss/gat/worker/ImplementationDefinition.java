@@ -18,7 +18,7 @@ package es.bsc.compss.gat.worker;
 
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
@@ -107,13 +107,13 @@ public abstract class ImplementationDefinition implements Invocation {
             throws Exception {
         LinkedList<Param> paramsList = new LinkedList<>();
         DataType[] dataTypesEnum = DataType.values();
-        Stream[] dataStream = Stream.values();
+        StdIOStream[] dataStream = StdIOStream.values();
 
         int totalParams = numParams + numReturns + (hasTarget ? 1 : 0);
         for (int paramIdx = 0; paramIdx < totalParams; paramIdx++) {
             DataType argType;
 
-            Stream stream;
+            StdIOStream stream;
             String prefix;
             String name;
 
@@ -320,13 +320,13 @@ public abstract class ImplementationDefinition implements Invocation {
 
         private final String prefix;
         private final String name;
-        private final Stream stream;
+        private final StdIOStream stream;
         private String originalName;
         private String renamedName;
         private final boolean writeFinalValue;
 
 
-        public Param(DataType type, String prefix, String name, Stream stream, String originalName,
+        public Param(DataType type, String prefix, String name, StdIOStream stream, String originalName,
                 boolean writeFinalValue) {
             this.type = type;
             this.prefix = prefix;
@@ -367,7 +367,7 @@ public abstract class ImplementationDefinition implements Invocation {
         }
 
         @Override
-        public Stream getStream() {
+        public StdIOStream getStream() {
             return this.stream;
         }
 

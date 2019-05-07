@@ -18,7 +18,7 @@ package es.bsc.compss.nio;
 
 import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -53,7 +53,7 @@ public class NIOParamCollection extends NIOParam {
      * @param originalName String
      * @see NIOParam Constructor
      */
-    public NIOParamCollection(String dataMgmtId, DataType type, Stream stream, String prefix, String name,
+    public NIOParamCollection(String dataMgmtId, DataType type, StdIOStream stream, String prefix, String name,
             boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
         super(dataMgmtId, type, stream, prefix, name, preserveSourceData, writeFinalValue, value, data, originalName);
     }

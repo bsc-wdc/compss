@@ -31,7 +31,7 @@ import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
@@ -135,14 +135,14 @@ public class Agent {
         }
 
         Object[] paramsValues = new Object[]{
-            RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "runtime",// Runtime API
-            RUNTIME, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "api", // Loader API
-            ceiClass, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "ceiClass", // CEI
-            appId, DataType.LONG_T, Direction.IN, Stream.UNSPECIFIED, "", "appId", // Nested tasks App ID
-            className, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "className", // Class name
-            methodName, DataType.STRING_T, Direction.IN, Stream.UNSPECIFIED, "", "methodName", // Method name
-            params, DataType.OBJECT_T, Direction.IN, Stream.UNSPECIFIED, "", "params", // Method arguments
-            new Object(), DataType.OBJECT_T, Direction.OUT, Stream.UNSPECIFIED, "", "return" // Return value
+            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime",// Runtime API
+            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
+            ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
+            appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
+            className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
+            methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
+            params, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "params", // Method arguments
+            new Object(), DataType.OBJECT_T, Direction.OUT, StdIOStream.UNSPECIFIED, "", "return" // Return value
         };
 
         RUNTIME.executeTask(
@@ -200,7 +200,7 @@ public class Agent {
                 params[position] = param.getValueContent();
                 params[position + 1] = param.getType();
                 params[position + 2] = param.getDirection();
-                params[position + 3] = Stream.UNSPECIFIED;
+                params[position + 3] = StdIOStream.UNSPECIFIED;
                 params[position + 4] = ""; // Prefix
                 params[position + 5] = ""; // Parameter Name
                 position += 6;
@@ -210,7 +210,7 @@ public class Agent {
                 params[position] = target.getValueContent();
                 params[position + 1] = target.getType();
                 params[position + 2] = target.getDirection();
-                params[position + 3] = Stream.UNSPECIFIED;
+                params[position + 3] = StdIOStream.UNSPECIFIED;
                 params[position + 4] = "";
                 params[position + 5] = ""; // Parameter Name
                 position += 6;
@@ -220,7 +220,7 @@ public class Agent {
                 params[position] = null;
                 params[position + 1] = DataType.OBJECT_T;
                 params[position + 2] = Direction.OUT;
-                params[position + 3] = Stream.UNSPECIFIED;
+                params[position + 3] = StdIOStream.UNSPECIFIED;
                 params[position + 4] = "";
                 params[position + 5] = "";
                 position += 6;

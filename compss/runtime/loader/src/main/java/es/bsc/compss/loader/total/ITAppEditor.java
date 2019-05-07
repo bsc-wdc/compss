@@ -26,7 +26,7 @@ import es.bsc.compss.types.annotations.SchedulerHints;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
@@ -38,6 +38,7 @@ import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.util.EnvironmentLoader;
+
 import java.io.File;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
@@ -45,6 +46,7 @@ import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -54,6 +56,7 @@ import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
 import javassist.expr.MethodCall;
 import javassist.expr.NewExpr;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -86,7 +89,7 @@ public class ITAppEditor extends ExprEditor {
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
     private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
-    private static final String DATA_STREAM = Stream.class.getCanonicalName();
+    private static final String DATA_STREAM = StdIOStream.class.getCanonicalName();
 
     private static final String LANG = Lang.class.getCanonicalName() + ".JAVA";
 
@@ -99,11 +102,20 @@ public class ITAppEditor extends ExprEditor {
 
     private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
+
     /**
-     * TODO javadoc.
+     * Modifies the current application to instrument the task methods with remote invocations.
+     * 
+     * @param remoteMethods List of ITF remote methods.
+     * @param instrCandidates List of detected methods in the main code.
+     * @param itApiVar COMPSs API pointer.
+     * @param itSRVar Stream Registry.
+     * @param itORVar Object Registry pointer.
+     * @param itAppIdVar COMPSs Application Id variable.
+     * @param appClass Application main class.
      */
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
-                       String itORVar, String itAppIdVar, CtClass appClass) {
+            String itORVar, String itAppIdVar, CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
@@ -115,6 +127,11 @@ public class ITAppEditor extends ExprEditor {
         this.appClass = appClass;
     }
 
+    /**
+     * Returns the application class.
+     * 
+     * @return The application class.
+     */
     public CtClass getAppClass() {
         return this.appClass;
     }
@@ -260,9 +277,9 @@ public class ITAppEditor extends ExprEditor {
 
             mc.replace(modifiedCall);
         } else // The method is an instrumented method
-            if (DEBUG) {
-                LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
-            } // Nothing to do
+        if (DEBUG) {
+            LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
+        } // Nothing to do
         LOGGER.debug("---- END EDIT METHOD CALL ----");
     }
 
@@ -359,7 +376,7 @@ public class ITAppEditor extends ExprEditor {
      * Replaces calls to local methods by executeTask.
      */
     private String replaceTaskMethodCall(String methodName, String className, Method declaredMethod,
-                                         CtMethod calledMethod) throws CannotCompileException {
+            CtMethod calledMethod) throws CannotCompileException {
 
         if (DEBUG) {
             LOGGER.debug("Found call to remote method " + methodName);
@@ -495,8 +512,7 @@ public class ITAppEditor extends ExprEditor {
      * Process the parameters, the target object and the return value of a given method.
      */
     private CallInformation processParameters(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes,
-                                              boolean isVoid, boolean isStatic, boolean isMethod, int numParams,
-                                              Class<?> retType)
+            boolean isVoid, boolean isStatic, boolean isMethod, int numParams, Class<?> retType)
             throws CannotCompileException {
 
         StringBuilder toAppend = new StringBuilder("");
@@ -546,7 +562,7 @@ public class ITAppEditor extends ExprEditor {
     private ParameterInformation processParameterValue(int paramIndex, Parameter par, Class<?> formalType) {
         Type annotType = par.type();
         Direction paramDirection = par.direction();
-        Stream paramStream = par.stream();
+        StdIOStream paramStream = par.stream();
         String paramPrefix = par.prefix();
 
         StringBuilder infoToAppend = new StringBuilder("");
@@ -605,7 +621,7 @@ public class ITAppEditor extends ExprEditor {
      * Process the target object of a given method call.
      */
     private String processTargetObject(Method declaredMethod, boolean isStatic, int numParams, boolean isVoid,
-                                       boolean isMethod) {
+            boolean isMethod) {
         StringBuilder targetObj = new StringBuilder("");
 
         if (!isStatic) {
@@ -639,7 +655,7 @@ public class ITAppEditor extends ExprEditor {
             }
 
             // Add binary stream
-            targetObj.append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
+            targetObj.append(',').append(DATA_STREAM + "." + StdIOStream.UNSPECIFIED);
             // Add empty prefix
             targetObj.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
             // Add empty parameter name
@@ -668,13 +684,10 @@ public class ITAppEditor extends ExprEditor {
                  * ********************************* PRIMITIVE *********************************
                  */
                 String tempRetVar = "ret" + System.nanoTime();
-                infoToAppend
-                        .append(tempRetVar).append(',')
-                        .append(DATA_TYPES + ".OBJECT_T").append(',')
-                        .append(DATA_DIRECTION + ".OUT").append(',')
-                        .append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',')
-                        .append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",")
-                        .append("\"").append("\"");
+                infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',')
+                        .append(DATA_DIRECTION + ".OUT").append(',').append(DATA_STREAM + "." + StdIOStream.UNSPECIFIED)
+                        .append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",").append("\"")
+                        .append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -739,12 +752,9 @@ public class ITAppEditor extends ExprEditor {
                 }
                 String compTypeName = compType.getName();
                 infoToPrepend.insert(0, "$_ = new " + compTypeName + dims + ';');
-                infoToAppend
-                        .append("$_,").append(DATA_TYPES + ".OBJECT_T").append(',')
-                        .append(DATA_DIRECTION + ".OUT").append(',')
-                        .append(DATA_STREAM + ".UNSPECIFIED").append(',')
-                        .append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(',')
-                        .append("\"").append("\"");
+                infoToAppend.append("$_,").append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
+                        .append(',').append(DATA_STREAM + ".UNSPECIFIED").append(',').append("\"")
+                        .append(Constants.PREFIX_EMPTY).append("\"").append(',').append("\"").append("\"");
             } else {
                 /*
                  * ********************************* OBJECT
@@ -985,18 +995,19 @@ public class ITAppEditor extends ExprEditor {
         return modifiedCall.toString();
     }
 
+
     private class ParameterInformation {
 
         private final String toAppend;
         private final String toPrepend;
         private final String type;
         private final Direction direction;
-        private final Stream stream;
+        private final StdIOStream stream;
         private final String prefix;
 
 
-        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream,
-                                    String prefix) {
+        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction,
+                StdIOStream stream, String prefix) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;

@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
@@ -48,7 +48,7 @@ public class DependencyParameter extends Parameter implements Transferable {
      * @param prefix Parameter prefix.
      * @param name Parameter name.
      */
-    public DependencyParameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
+    public DependencyParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name) {
         super(type, direction, stream, prefix, name);
     }
 

@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.parameter.DependencyParameter;
 
 
@@ -33,7 +33,7 @@ public class ExternalPSCOParameter extends DependencyParameter {
     private String pscoId;
 
 
-    public ExternalPSCOParameter(Direction direction, Stream stream, String prefix, String name, String pscoId,
+    public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, String pscoId,
             int hashCode) {
         super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name);
         this.pscoId = pscoId;

@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
 public class ObjectParameter extends DependencyParameter {
@@ -32,7 +32,7 @@ public class ObjectParameter extends DependencyParameter {
     private Object value;
 
 
-    public ObjectParameter(Direction direction, Stream stream, String prefix, String name, Object value, int hashCode) {
+    public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value, int hashCode) {
         super(DataType.OBJECT_T, direction, stream, prefix, name);
         this.value = value;
         this.hashCode = hashCode;

@@ -19,7 +19,7 @@ package es.bsc.compss.types.annotations.parameter;
 /**
  * Stream types
  */
-public enum Stream {
+public enum StdIOStream {
     STDIN, // standard in
     STDOUT, // standard out
     STDERR, // standard error

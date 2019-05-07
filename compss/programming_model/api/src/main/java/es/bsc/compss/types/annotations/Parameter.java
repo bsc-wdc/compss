@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -53,7 +53,7 @@ public @interface Parameter {
      * 
      * @return the stream entry of the parameter
      */
-    Stream stream() default Stream.UNSPECIFIED;
+    StdIOStream stream() default StdIOStream.UNSPECIFIED;
 
     /**
      * Returns the prefix of the parameter

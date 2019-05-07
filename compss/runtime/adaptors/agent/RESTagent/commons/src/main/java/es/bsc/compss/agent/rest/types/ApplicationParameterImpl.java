@@ -19,7 +19,7 @@ package es.bsc.compss.agent.rest.types;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
@@ -31,13 +31,13 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     private ApplicationParameterValue value;
     private Direction direction;
     private DataType type;
-    private Stream stream;
+    private StdIOStream stream;
 
     public ApplicationParameterImpl() {
 
     }
 
-    public ApplicationParameterImpl(Object val, Direction dir, DataType type, Stream stream) {
+    public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream) {
         this.value = ApplicationParameterValue.createParameterValue(val);
         this.direction = dir;
         this.stream = stream;
@@ -71,11 +71,11 @@ public class ApplicationParameterImpl implements ApplicationParameter {
         this.type = type;
     }
 
-    public Stream getStream() {
+    public StdIOStream getStream() {
         return stream;
     }
 
-    public void setStream(Stream stream) {
+    public void setStream(StdIOStream stream) {
         this.stream = stream;
     }
 

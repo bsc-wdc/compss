@@ -23,7 +23,7 @@ import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ArrayParameter;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ElementParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.parameter.Parameter;
 import java.io.Serializable;
 
@@ -151,7 +151,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type) {
-        ApplicationParameterImpl p = new ApplicationParameterImpl(value, direction, type, Stream.UNSPECIFIED);
+        ApplicationParameterImpl p = new ApplicationParameterImpl(value, direction, type, StdIOStream.UNSPECIFIED);
         p.setParamId(params.length);
 
         ApplicationParameterImpl[] oldParams = params;

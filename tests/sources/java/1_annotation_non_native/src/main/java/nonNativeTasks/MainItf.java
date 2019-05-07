@@ -3,7 +3,7 @@ package nonNativeTasks;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.task.Binary;
 
 
@@ -41,13 +41,13 @@ public interface MainItf {
     @Binary(binary = "${IN_OUT_ERR_BINARY}")
     void taskSTDINFileRedirection(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.IN, stream = Stream.STDIN) String fileIn
+        @Parameter(type = Type.FILE, direction = Direction.IN, stream = StdIOStream.STDIN) String fileIn
     );
 
     @Binary(binary = "${IN_OUT_ERR_BINARY}")
     int taskSTDINFileRedirectionWithEV(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.IN, stream = Stream.STDIN) String fileIn
+        @Parameter(type = Type.FILE, direction = Direction.IN, stream = StdIOStream.STDIN) String fileIn
     );
 
     /*
@@ -56,13 +56,13 @@ public interface MainItf {
     @Binary(binary = "${OUT_ERR_BINARY}")
     void taskSTDOUTFileRedirection(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut
     );
 
     @Binary(binary = "${OUT_ERR_BINARY}")
     int taskSTDOUTFileRedirectionWithEV(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut
     );
 
     /*
@@ -71,13 +71,13 @@ public interface MainItf {
     @Binary(binary = "${OUT_ERR_BINARY}")
     void taskSTDOUTFileRedirectionAppend(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = Stream.STDOUT) String fileOut
+        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = StdIOStream.STDOUT) String fileOut
     );
 
     @Binary(binary = "${OUT_ERR_BINARY}")
     int taskSTDOUTFileRedirectionWithEVAppend(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = Stream.STDOUT) String fileOut
+        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = StdIOStream.STDOUT) String fileOut
     );
 
     /*
@@ -86,13 +86,13 @@ public interface MainItf {
     @Binary(binary = "${OUT_ERR_BINARY}")
     void taskSTDERRFileRedirection(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDERR) String fileErr
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDERR) String fileErr
     );
 
     @Binary(binary = "${OUT_ERR_BINARY}")
     int taskSTDERRFileRedirectionWithEV(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDERR) String fileErr
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDERR) String fileErr
     );
 
     /*
@@ -101,13 +101,13 @@ public interface MainItf {
     @Binary(binary = "${OUT_ERR_BINARY}")
     void taskSTDERRFileRedirectionAppend(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = Stream.STDERR) String fileErr
+        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = StdIOStream.STDERR) String fileErr
     );
 
     @Binary(binary = "${OUT_ERR_BINARY}")
     int taskSTDERRFileRedirectionWithEVAppend(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = Stream.STDERR) String fileErr
+        @Parameter(type = Type.FILE, direction = Direction.INOUT, stream = StdIOStream.STDERR) String fileErr
     );
 
     /*
@@ -116,17 +116,17 @@ public interface MainItf {
     @Binary(binary = "${IN_OUT_ERR_BINARY}")
     void fullTask1(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.IN, stream = Stream.STDIN) String fileIn,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDERR) String fileErr
+        @Parameter(type = Type.FILE, direction = Direction.IN, stream = StdIOStream.STDIN) String fileIn,
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut,
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDERR) String fileErr
     );
 
     @Binary(binary = "${IN_OUT_ERR_BINARY}")
     int fullTask2(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.IN, stream = Stream.STDIN) String fileIn,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDERR) String fileErr
+        @Parameter(type = Type.FILE, direction = Direction.IN, stream = StdIOStream.STDIN) String fileIn,
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut,
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDERR) String fileErr
     );
     
 }

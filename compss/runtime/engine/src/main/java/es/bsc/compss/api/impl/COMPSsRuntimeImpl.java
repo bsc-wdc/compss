@@ -51,7 +51,7 @@ import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.data.AccessParams.AccessMode;
 import es.bsc.compss.types.data.AccessParams.FileAccessParams;
@@ -1204,7 +1204,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return true;
     }
 
-    private int addParameter(Object content, DataType type, Direction direction, Stream stream, String prefix,
+    private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
             String name, ArrayList<Parameter> pars, int offset, String[] vals) {
         switch (type) {
             case FILE_T:
@@ -1273,7 +1273,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     // Prepare stuff for recursive call
                     Object elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
                     // N/A to non-direct parameters
-                    Stream elemStream = Stream.UNSPECIFIED;
+                    StdIOStream elemStream = StdIOStream.UNSPECIFIED;
                     String elemPrefix = Constants.PREFIX_EMPTY;
                     String elemName = name + "." + j;
                     // Add @ only for the first time
@@ -1320,7 +1320,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Object content = parameters[NUM_FIELDS_PER_PARAM * i];
             DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
             Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
-            Stream stream = (Stream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
+            StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
             String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
             String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
             // Add parameter to list

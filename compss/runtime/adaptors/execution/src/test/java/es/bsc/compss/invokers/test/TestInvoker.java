@@ -34,7 +34,7 @@ import es.bsc.compss.invokers.test.utils.types.InvocationParameterAssertion;
 import es.bsc.compss.invokers.test.utils.types.InvocationParameterAssertion.Field;
 import es.bsc.compss.invokers.test.utils.types.Role;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
@@ -116,7 +116,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.BOOLEAN_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.BOOLEAN_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(true);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -139,7 +139,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.BOOLEAN_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.BOOLEAN_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(true);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -151,7 +151,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.CHAR_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.CHAR_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue('a');
         params.add(p);
         invBr = invBr.setParams(params);
@@ -176,7 +176,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.CHAR_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.CHAR_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue('a');
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -188,7 +188,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.BYTE_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.BYTE_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(240);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -213,7 +213,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.BYTE_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.BYTE_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(240);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -225,7 +225,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.SHORT_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.SHORT_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(25);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -250,7 +250,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.SHORT_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.SHORT_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(25);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -264,7 +264,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.INT_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.INT_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(878544);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -290,7 +290,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.INT_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.INT_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(878544);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -302,7 +302,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.LONG_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.LONG_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(832478544);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -327,7 +327,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.LONG_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.LONG_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(832478544);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -339,7 +339,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.FLOAT_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.FLOAT_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(832.23f);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -364,7 +364,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.FLOAT_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.FLOAT_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(832.23f);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -376,7 +376,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(83.31415644d);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -401,7 +401,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(83.31415644d);
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -415,7 +415,7 @@ public class TestInvoker {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.STRING_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.STRING_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue("Test String");
         params.add(p);
         invBr = invBr.setParams(params);
@@ -441,7 +441,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.STRING_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.STRING_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue("Test String");
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -452,10 +452,10 @@ public class TestInvoker {
     public void multiplePrimitiveInputParameter() throws InvalidMapException, IOException, JobExecutionException {
 
         LinkedList<InvocationParam> params = new LinkedList<>();
-        InvocationParam p = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        InvocationParam p = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue(83.31415644d);
         params.add(p);
-        p = new FakeInvocationParam(DataType.STRING_T, "", "none", Stream.UNSPECIFIED, "", "", false);
+        p = new FakeInvocationParam(DataType.STRING_T, "", "none", StdIOStream.UNSPECIFIED, "", "", false);
         p.setValue("Test String");
         params.add(p);
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();       
@@ -485,10 +485,10 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.DOUBLE_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam0.setValue(83.31415644d);
-        InvocationParam endParam1 = new FakeInvocationParam(DataType.STRING_T, "", "none", Stream.UNSPECIFIED, "", "",
+        InvocationParam endParam1 = new FakeInvocationParam(DataType.STRING_T, "", "none", StdIOStream.UNSPECIFIED, "", "",
                 false);
         endParam1.setValue("Test String");
         checkInvocation(invocation, new InvocationParam[] { endParam0, endParam1 }, null, null);
@@ -502,7 +502,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming = "d5v3_754478989756456.IT";
         Object value = new TestObject(3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 false);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         params.add(p);
@@ -528,7 +528,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "",
                 renaming, false);
         endParam0.setValue(new TestObject(3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -542,7 +542,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming = "d5v3_754478989756456.IT";
         Object value = new TestObject(3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         params.add(p);
@@ -570,7 +570,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "",
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "",
                 renaming, false);
         endParam0.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -584,7 +584,7 @@ public class TestInvoker {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         String renaming = "d5v3_754478989756456.IT";
         Object value = new TestObject(3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 false);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         invBr = invBr.setTarget(p);
@@ -610,7 +610,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "",
+        InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "",
                 renaming, false);
         target.setValue(new TestObject(3));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
@@ -625,7 +625,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming = "d5v3_754478989756456.IT";
         Object value = new TestObject(3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         invBr = invBr.setParams(params);
@@ -653,7 +653,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "",
+        InvocationParam target = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "",
                 renaming, true);
         target.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
@@ -668,7 +668,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming = "d5v3_754478989756456.IT";
         // Object value = new TestObject(3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         invBr = invBr.setParams(params);
         LinkedList<InvocationParam> results = new LinkedList<>();
@@ -699,7 +699,7 @@ public class TestInvoker {
         
         expectedEvents.testCompleted();
 
-        InvocationParam result = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "",
+        InvocationParam result = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "",
                 renaming, true);
         result.setValue(new TestObject(5));
         checkInvocation(invocation, new InvocationParam[] {}, null, new InvocationParam[] { result });
@@ -713,7 +713,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, false);
+        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, false);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -738,7 +738,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id,
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id,
                 false);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -751,7 +751,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", id, false);
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", id, false);
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
@@ -778,7 +778,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id,
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id,
                 false);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -792,7 +792,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
         invBr = invBr.setParams(params);
@@ -819,7 +819,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id,
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id,
                 true);
         endParam0.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -832,7 +832,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         params.add(p);
@@ -862,7 +862,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id,
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id,
                 true);
         endParam0.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -876,7 +876,7 @@ public class TestInvoker {
 
         String renaming = "d5v3_754478989756456.IT";
         Object value = new StorageTestObject(3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         params.add(p);
@@ -905,7 +905,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id,
+        InvocationParam endParam0 = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id,
                 true);
         endParam0.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] { endParam0 }, null, null);
@@ -920,7 +920,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, false);
+        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, false);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setParams(params);
         invBr = invBr.setTarget(p);
@@ -946,7 +946,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id,
+        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id,
                 false);
         target.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
@@ -959,7 +959,7 @@ public class TestInvoker {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", id, false);
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", id, false);
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setTarget(p);
@@ -987,7 +987,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id,
+        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id,
                 false);
         target.setValue(new StorageTestObject(id, 3));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
@@ -1001,7 +1001,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setTarget(p);
         invBr = invBr.setParams(params);
@@ -1029,7 +1029,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
         deleteSandbox(sandBoxDir);
@@ -1040,7 +1040,7 @@ public class TestInvoker {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         String id = UUID.randomUUID().toString();
         Object value = new StorageTestObject(id, 3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         expectedEvents.add(Event.Type.GET_OBJECT, id, null);
         expectedEvents.add(Event.Type.GET_PERSISTENT_OBJECT, id, value);
         invBr = invBr.setTarget(p);
@@ -1069,7 +1069,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
         deleteSandbox(sandBoxDir);
@@ -1083,7 +1083,7 @@ public class TestInvoker {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming = "d5v3_754478989756456.IT";
         Object value = new StorageTestObject(3);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, value);
         invBr = invBr.setTarget(p);
@@ -1115,7 +1115,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam target = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         target.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, target, null);
         deleteSandbox(sandBoxDir);
@@ -1128,7 +1128,7 @@ public class TestInvoker {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming = "d5v3_754478989756456.IT";
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         invBr = invBr.setParams(params);
         LinkedList<InvocationParam> results = new LinkedList<>();
@@ -1158,7 +1158,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam result = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam result = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         result.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, null, new InvocationParam[] { result });
         deleteSandbox(sandBoxDir);
@@ -1170,7 +1170,7 @@ public class TestInvoker {
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming = "d5v3_754478989756456.IT";
-        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         invBr = invBr.setParams(params);
         LinkedList<InvocationParam> results = new LinkedList<>();
@@ -1200,7 +1200,7 @@ public class TestInvoker {
         invoker.processTask();
 
         expectedEvents.testCompleted();
-        InvocationParam result = new FakeInvocationParam(DataType.PSCO_T, "", "none", Stream.UNSPECIFIED, "", id, true);
+        InvocationParam result = new FakeInvocationParam(DataType.PSCO_T, "", "none", StdIOStream.UNSPECIFIED, "", id, true);
         result.setValue(new StorageTestObject(id, 5));
         checkInvocation(invocation, new InvocationParam[] {}, null, new InvocationParam[] { result });
         deleteSandbox(sandBoxDir);

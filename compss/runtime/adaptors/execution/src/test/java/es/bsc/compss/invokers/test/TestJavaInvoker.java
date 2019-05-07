@@ -28,7 +28,7 @@ import es.bsc.compss.invokers.test.utils.FakeInvocationContext;
 import es.bsc.compss.invokers.test.utils.FakeInvocationParam;
 import es.bsc.compss.invokers.test.utils.types.Event;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
@@ -177,13 +177,13 @@ public class TestJavaInvoker extends TestObject {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming1 = "d5v3_754478989756456.IT";
         Object value1 = new TestObject(3);
-        InvocationParam p1 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming1,
+        InvocationParam p1 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming1,
                 false);
         params.add(p1);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming1, value1);
         String renaming2 = "d6v3_754478989756456.IT";
         Object value2 = new TestObject(2);
-        InvocationParam p2 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming2,
+        InvocationParam p2 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming2,
                 false);
         params.add(p2);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming2, value2);
@@ -250,13 +250,13 @@ public class TestJavaInvoker extends TestObject {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming1 = "d5v3_754478989756456.IT";
         Object value1 = new TestObject(3);
-        InvocationParam p1 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming1,
+        InvocationParam p1 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming1,
                 false);
         params.add(p1);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming1, value1);
         String renaming2 = "d6v3_754478989756456.IT";
         Object value2 = new TestObject(2);
-        InvocationParam p2 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming2,
+        InvocationParam p2 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming2,
                 false);
         params.add(p2);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming2, value2);
@@ -302,13 +302,13 @@ public class TestJavaInvoker extends TestObject {
         LinkedList<InvocationParam> params = new LinkedList<>();
         String renaming1 = "d5v3_754478989756456.IT";
         Object value1 = new TestObject(3);
-        InvocationParam p1 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming1,
+        InvocationParam p1 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming1,
                 true);
         params.add(p1);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming1, value1);
         String renaming2 = "d6v3_754478989756456.IT";
         Object value2 = new TestObject(2);
-        InvocationParam p2 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming2,
+        InvocationParam p2 = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming2,
                 true);
         params.add(p2);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming2, value2);
@@ -383,7 +383,7 @@ public class TestJavaInvoker extends TestObject {
         invBr = invBr.setParams(params);
         String renaming = "d5v3_754478989756456.IT";
         TestObject target = new TestJavaInvoker();
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 false);
         invBr = invBr.setTarget(p);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, target);
@@ -430,7 +430,7 @@ public class TestJavaInvoker extends TestObject {
         String renaming = "d5v3_754478989756456.IT";
         TestObject target = new TestJavaInvoker();
         target.updateValue(4);
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         invBr = invBr.setTarget(p);
         expectedEvents.add(Event.Type.GET_OBJECT, renaming, target);
@@ -476,7 +476,7 @@ public class TestJavaInvoker extends TestObject {
         LinkedList<InvocationParam> params = new LinkedList<>();
         invBr = invBr.setParams(params);
         String renaming = "d5v3_754478989756456.IT";
-        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", Stream.UNSPECIFIED, "", renaming,
+        InvocationParam p = new FakeInvocationParam(DataType.OBJECT_T, "", "none", StdIOStream.UNSPECIFIED, "", renaming,
                 true);
         LinkedList<InvocationParam> results = new LinkedList<>();
         results.add(p);

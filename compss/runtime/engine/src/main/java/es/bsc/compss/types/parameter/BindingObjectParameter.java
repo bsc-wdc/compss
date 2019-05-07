@@ -19,7 +19,7 @@ package es.bsc.compss.types.parameter;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.parameter.DependencyParameter;
 
 
@@ -34,7 +34,7 @@ public class BindingObjectParameter extends DependencyParameter {
     private final BindingObject bo;
 
 
-    public BindingObjectParameter(Direction direction, Stream stream, String prefix, String name, BindingObject bo,
+    public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, BindingObject bo,
             int hashCode) {
         super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name);
         this.bo = bo;

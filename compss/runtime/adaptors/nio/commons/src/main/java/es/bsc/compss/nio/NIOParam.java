@@ -18,7 +18,7 @@ package es.bsc.compss.nio;
 
 import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.InvocationParam;
 
 import java.io.Externalizable;
@@ -32,7 +32,7 @@ public class NIOParam implements Externalizable, InvocationParam {
 
     private String dataMgmtId;
     private DataType type;
-    private Stream stream;
+    private StdIOStream stream;
     private String prefix;
     private String name;
     private boolean preserveSourceData;
@@ -50,7 +50,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         // Only executed by externalizable
     }
 
-    public NIOParam(String dataMgmtId, DataType type, Stream stream, String prefix, String name,
+    public NIOParam(String dataMgmtId, DataType type, StdIOStream stream, String prefix, String name,
             boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
         this.dataMgmtId = dataMgmtId;
         this.type = type;
@@ -70,7 +70,7 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
-    public Stream getStream() {
+    public StdIOStream getStream() {
         return this.stream;
     }
 
@@ -162,7 +162,7 @@ public class NIOParam implements Externalizable, InvocationParam {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.dataMgmtId = (String) in.readObject();
         this.type = (DataType) in.readObject();
-        this.stream = (Stream) in.readObject();
+        this.stream = (StdIOStream) in.readObject();
         this.prefix = in.readUTF();
         this.name = in.readUTF();
         this.preserveSourceData = in.readBoolean();

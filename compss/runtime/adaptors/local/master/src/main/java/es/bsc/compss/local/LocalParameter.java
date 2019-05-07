@@ -18,7 +18,7 @@ package es.bsc.compss.local;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
@@ -150,7 +150,7 @@ public class LocalParameter implements InvocationParam {
     }
 
     @Override
-    public Stream getStream() {
+    public StdIOStream getStream() {
         return this.param.getStream();
     }
 

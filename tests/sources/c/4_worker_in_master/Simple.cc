@@ -490,7 +490,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
         
-    result = test_concurrency();
+//    result = test_concurrency();
     if ( result != 0 ) {
         return -1;
     }

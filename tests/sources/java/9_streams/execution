@@ -13,7 +13,7 @@
   # Global variables
   exit_value=1
   jar_name="9_streams.jar"
-  app_name="streams.Main"
+  app_name="fileStreamTest.Main"
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -28,11 +28,9 @@
   # Run application
   echo
   echo "*** RUNNING JAVA APPLICATION STREAMS"
-  output_log="${target_log_folder}/streams_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/streams_0${retry_num}.errorlog"
+  output_log="${target_log_folder}/fileStreams_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/fileStreams_0${retry_num}.errorlog"
   expectedTime=120s
-
-  numMsg=1000000
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
@@ -42,12 +40,13 @@
      --comm="$comm" \
      \
      --debug \
+     --streaming=FILES \
      --summary \
      ${runcompss_opts} \
      \
      --classpath="${base_app_dir}/${jar_name}" \
      \
-     "${app_name}" $numMsg > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+     "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then

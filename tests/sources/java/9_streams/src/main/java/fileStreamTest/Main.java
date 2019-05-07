@@ -1,0 +1,119 @@
+package fileStreamTest;
+
+import es.bsc.distrostreamlib.api.files.FileDistroStream;
+import es.bsc.distrostreamlib.exceptions.BackendException;
+import es.bsc.distrostreamlib.exceptions.RegistrationException;
+
+import java.io.IOException;
+import java.util.List;
+
+
+public class Main {
+
+    public static final String TEST_PATH = "/tmp/file_stream/";
+    public static final String BASE_FILENAME = "file";
+    public static final int NUM_FILES = 10;
+
+    private static final int SLEEP_TIME1 = 400; // ms
+    private static final int SLEEP_TIME2 = 1_000; // ms
+    private static final int SLEEP_TIME3 = 2_000; // ms
+
+
+    public static void main(String[] args) throws RegistrationException, IOException, BackendException {
+        // One producer, One consumer. ConsumerTime < ProducerTime
+        produceConsume(1, SLEEP_TIME2, 1, SLEEP_TIME1);
+
+        // One producer, One consumer. ConsumerTime > ProducerTime
+        produceConsume(1, SLEEP_TIME2, 1, SLEEP_TIME3);
+
+        // Two producer, One consumer
+        produceConsume(2, SLEEP_TIME2, 1, SLEEP_TIME1);
+
+        // One producer, Two consumer
+        produceConsume(1, SLEEP_TIME1, 2, SLEEP_TIME2);
+
+        // Two producer, Two consumer
+        produceConsume(2, SLEEP_TIME2, 2, SLEEP_TIME1);
+
+        // One producer task, main consumer generating tasks
+        produceSpawnConsumers(1, SLEEP_TIME1, SLEEP_TIME2);
+
+        // Clean test path
+        Utils.removeDirectory(TEST_PATH);
+    }
+
+    private static void produceConsume(int numProducers, int producerSleep, int numConsumers, int consumerSleep)
+            throws RegistrationException, IOException, BackendException {
+
+        // Clean and create base test path
+        Utils.removeDirectory(TEST_PATH);
+        Utils.createDirectory(TEST_PATH);
+
+        // Create stream
+        FileDistroStream fds = new FileDistroStream(TEST_PATH);
+
+        // Create producer task
+        for (int i = 0; i < numProducers; ++i) {
+            Tasks.writeFiles(fds, producerSleep);
+        }
+
+        // Create consumer task
+        Integer totalFiles = 0;
+        for (int i = 0; i < numConsumers; ++i) {
+            Integer partialFiles = Tasks.readFiles(fds, consumerSleep);
+            totalFiles = totalFiles + partialFiles;
+        }
+
+        // Wait for tasks completion
+        System.out.println("[LOG] TOTAL NUMBER OF PROCESSED FILES: " + totalFiles);
+    }
+
+    private static void produceSpawnConsumers(int numProducers, int producerSleep, int consumerSleep)
+            throws RegistrationException, IOException, BackendException {
+
+        // Clean and create base test path
+        Utils.removeDirectory(TEST_PATH);
+        Utils.createDirectory(TEST_PATH);
+
+        // Create stream
+        FileDistroStream fds = new FileDistroStream(TEST_PATH);
+
+        // Create producer task
+        for (int i = 0; i < numProducers; ++i) {
+            Tasks.writeFiles(fds, producerSleep);
+        }
+
+        // Check stream status and generate consumers
+        Integer totalFiles = 0;
+        while (!fds.isClosed()) {
+            Integer polledFiles = pollNewFilesAndSpawnConsumer(fds);
+            totalFiles = totalFiles + polledFiles;
+            // Sleep between polls
+            try {
+                Thread.sleep(consumerSleep);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        // Although the stream is closed, there can still be pending events to process
+        Integer polledFiles = pollNewFilesAndSpawnConsumer(fds);
+        totalFiles = totalFiles + polledFiles;
+
+        // Wait for tasks completion
+        System.out.println("[LOG] TOTAL NUMBER OF PROCESSED FILES: " + totalFiles);
+    }
+
+    private static Integer pollNewFilesAndSpawnConsumer(FileDistroStream fds) throws IOException, BackendException {
+        Integer polledFiles = 0;
+        // Poll new files
+        List<String> newFiles = fds.poll();
+        // Process their content
+        for (String fileName : newFiles) {
+            System.out.println("Sending " + fileName + " to a process task");
+            Integer numProcessed = Tasks.processFile(fileName);
+            polledFiles = polledFiles + numProcessed;
+        }
+        return polledFiles;
+    }
+
+}

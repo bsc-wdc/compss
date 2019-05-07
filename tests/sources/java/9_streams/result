@@ -45,11 +45,12 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  hosts=$(grep "Target host" "$runtime_log" | awk '{ print $NF }')
-  producer=$(echo "$hosts" | awk '{ print $1 }')
-  consumer=$(echo "$hosts" | awk '{ print $2 }')
-  if [ "$producer" == "$consumer" ]; then
-    echo "ERROR: Tasks are not beeing scheduled at the same time in different workers" | tee -a "${output_file}"
+  filesPerTest=$(grep "\\[LOG\\]" "${output_file}" | awk '{ print $NF }' | tr "\\n" " ")
+  expectedFilesPerTest="10 10 20 10 20 10 "
+  if [ "${filesPerTest}" != "${expectedFilesPerTest}" ]; then
+    echo "ERROR: Stream processed files are not as expected"
+    echo " - GOT: ${filesPerTest}"
+    echo " - EXPECTED: ${expectedFilesPerTest}"
     exit 1
   fi
 

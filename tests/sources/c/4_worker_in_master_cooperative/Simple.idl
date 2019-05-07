@@ -1,0 +1,97 @@
+interface Simple {
+
+	void checkFileWithContent(
+		in string content,
+		in File file_name
+	);
+
+	void checkFileWithContentMaster(
+		in string content,
+		in File file_name
+	);
+
+	void checkFileWithContentWorker(
+		in string content,
+		in File file_name
+	);
+
+	void createFileWithContent(
+		in string content,
+		out File file_name
+	);
+
+	void createFileWithContentMaster(
+		in string content,
+		out File file_name
+	);
+
+	void createFileWithContentWorker(
+		in string content,
+		out File file_name
+	);
+	
+	void checkAndUpdateFileWithContent(
+		in string content,
+		in string new_content,
+		inout File file_name
+	);
+	
+	void checkAndUpdateFileWithContentMaster(
+		in string content,
+		in string new_content,
+		inout File file_name
+	);
+	
+	void checkAndUpdateFileWithContentWorker(
+		in string content,
+		in string new_content,
+		inout File file_name
+	);
+
+	StringWrapper createObjectWithContent(
+		in string content
+	);
+
+	StringWrapper createObjectWithContentMaster(
+		in string content
+	);
+
+	StringWrapper createObjectWithContentWorker(
+		in string content
+	);
+
+	void checkObjectWithContent(
+		in string content, 
+		in StringWrapper sw
+	);
+
+	void checkObjectWithContentMaster(
+		in string content, 
+		in StringWrapper sw
+	);
+
+	void checkObjectWithContentWorker(
+		in string content, 
+		in StringWrapper sw
+	);
+
+	void checkAndUpdateObjectWithContent(
+		in string content,
+		in string newContent,
+		inout StringWrapper sw
+	);
+
+	void checkAndUpdateObjectWithContentMaster(
+		in string content,
+		in string newContent,
+		inout StringWrapper sw
+	);
+
+	void checkAndUpdateObjectWithContentWorker(
+		in string content,
+		in string newContent,
+		inout StringWrapper sw
+	);
+
+	
+};

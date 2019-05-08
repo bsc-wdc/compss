@@ -17,7 +17,6 @@
 package es.bsc.compss.comm;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.StreamBackend;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
@@ -39,6 +38,7 @@ import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.DistroStreamServer;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -145,18 +145,13 @@ public class Comm {
             LOGGER.info("Initializing DS Library for type " + STREAMING_BACKEND.name());
             // Server
             LOGGER.debug("Initializing Streaming Server");
-            DistroStreamServer.initAndStart(master.getName(), STREAMING_PORT);
+            DistroStreamServer.initAndStart(master.getName(), STREAMING_PORT, STREAMING_BACKEND);
             // Client
             LOGGER.debug("Initializing Streaming Client");
             try {
                 DistroStreamClient.initAndStart(master.getName(), STREAMING_PORT);
             } catch (DistroStreamClientInitException dscie) {
                 ErrorManager.fatal("Error initializing DS client", dscie);
-            }
-            // Internal libraries if needed
-            if (STREAMING_BACKEND.equals(StreamBackend.OBJECTS) || STREAMING_BACKEND.equals(StreamBackend.ALL)) {
-                LOGGER.debug("Initializing Kafka Backend");
-                // TODO: Start Kafka backend
             }
         }
 

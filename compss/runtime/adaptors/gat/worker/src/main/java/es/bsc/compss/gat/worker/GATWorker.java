@@ -18,7 +18,6 @@ package es.bsc.compss.gat.worker;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.COMPSsConstants.StreamBackend;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
@@ -44,6 +43,7 @@ import es.bsc.compss.util.Serializer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.PrintStream;
 import java.util.concurrent.Semaphore;

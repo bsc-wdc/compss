@@ -17,7 +17,6 @@
 package es.bsc.compss.nio.worker.components;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.StreamBackend;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
@@ -36,6 +35,7 @@ import es.bsc.compss.util.BindingDataManager;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
 import java.io.IOException;

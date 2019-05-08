@@ -602,8 +602,13 @@ class DDS(object):
         :param ascending:
         :return:
         """
-        if num_of_parts is None:
-            num_of_parts = len(self.partitions)
+
+        def range_partitioner(key):
+            p = bisect.bisect_left(bounds, key_func(key))
+            if ascending:
+                return p
+            else:
+                return num_of_parts - 1 - p
 
         def sort_partition(iterator):
             """
@@ -627,9 +632,15 @@ class DDS(object):
             return heapq3.merge(chunks, key=lambda kv: key_func(kv[0]),
                                 reverse=not ascending)
 
+        if num_of_parts is None:
+            num_of_parts = len(self.partitions)
+
+        # Collect everything to take samples
+        col_parts = self.collect(True)
+
         samples = list()
-        for each in self.partitions:
-            samples.append(task_collect_samples(each, key_func))
+        for _part in col_parts:
+            samples.append(task_collect_samples(_part, key_func))
 
         samples = sorted(list(
             itertools.chain.from_iterable(compss_wait_on(samples))))
@@ -637,14 +648,7 @@ class DDS(object):
         bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
                   for i in range(0, num_of_parts - 1)]
 
-        def range_partitioner(key):
-            p = bisect.bisect_left(bounds, key_func(key))
-            if ascending:
-                return p
-            else:
-                return num_of_parts - 1 - p
-
-        partitioned = self.partition_by(range_partitioner)
+        partitioned = DDS().load(col_parts, -1).partition_by(range_partitioner)
         return partitioned.map_partitions(sort_partition)
 
 

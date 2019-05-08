@@ -76,7 +76,7 @@
         <module>9_concurrent_procs</module>
         <module>9_concurrent_threads</module>
         <module>9_services</module>
-        <module>9_streams</module>
+        <module>9_stream_files</module>
 
 		<!-- Add new modules below -->
 	</modules>

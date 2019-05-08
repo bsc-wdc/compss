@@ -12,7 +12,7 @@
   
   # Global variables
   exit_value=1
-  jar_name="9_streams.jar"
+  jar_name="9_stream_files.jar"
   app_name="fileStreamTest.Main"
   
   #----------------------------------------------------------------------------------

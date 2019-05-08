@@ -1,8 +1,10 @@
 #!/bin/bash
 
+
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
+
 DEFAULT_LANGUAGE=java
 
 DEFAULT_SUMMARY=false
@@ -79,18 +81,23 @@ DEFAULT_DEBUGGER_PORT=9999
 
 DEFAULT_PERSISTENT_WORKER_C=false
 DEFAULT_EXTERNAL_ADAPTATION=false
-APPLICATION_ERROR="Error: Application name not provided"
-LANGUAGE_ERROR="Value of option --lang must be: java, c or python"
-JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME."
-JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
+
+APPLICATION_ERROR="ERROR: Application name not provided"
+LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c or python"
+JAVA_HOME_ERROR="ERRROR: Cannot find Java JRE installation. Please set JAVA_HOME."
+JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
+TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
+TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
+STREAM_BACKEND_ERROR="ERROR: Cannot load stream backend. Invalid KAFKA_HOME location"
+ERROR_ZOOKEEPER_CONFIG="ERROR: Cannot create zookeeper configuration file"
+ERROR_KAFKA_CONFIG="ERROR: Cannot create kafka configuration file"
 RUNTIME_ERROR="Error running application"
-TMP_FILE_JVM_ERROR="Error: Can't create temporary file for JVM options."
-TRACING_ERROR="Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
 
 
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
+
 show_opts() {
   cat <<EOT
 
@@ -357,6 +364,12 @@ check_env() {
     PLUTO_HOME=${COMPSS_HOME}/Dependencies/pluto/
     export PLUTO_HOME=${PLUTO_HOME}
     export PATH=${PLUTO_HOME}/bin:${PATH}
+  fi
+
+  # Object stream environment
+  if [ -z "${KAFKA_HOME}" ]; then
+    KAFKA_HOME=${COMPSS_HOME}/Dependencies/kafka/
+    export KAFKA_HOME=${KAFKA_HOME}
   fi
 
   # JAVA HOME
@@ -985,8 +998,41 @@ execute_runtime() {
   appName=$(basename "$fullAppPath")
   generate_jvm_opts_file
 
+  # Start streaming backend if required
+  if [ "${streaming}" == "OBJECTS" ] || [ "${streaming}" == "ALL" ]; then
+    echo ""
+    echo "[  INFO] Starting Streaming Backend"
+    if [ -d "${KAFKA_HOME}" ]; then
+      # Generate stream configuration files
+      generate_stream_config_files
+
+      # Clean classpath before starting daemons
+      backup_classpath=$CLASSPATH
+      export CLASSPATH=
+
+      # Start ZooKeeper and Kafka
+      export LOG_DIR="${zookeeper_log_dir}"
+      # echo "ZK: ${KAFKA_HOME}/bin/zookeeper-server-start.sh -daemon ${zookeeper_props_file}"
+      "${KAFKA_HOME}"/bin/zookeeper-server-start.sh -daemon "${zookeeper_props_file}"
+      export LOG_DIR="${kafka_log_dir}"
+      # echo "KAFKA: ${KAFKA_HOME}/bin/kafka-server-start.sh -daemon ${kafka_props_file}"
+      "${KAFKA_HOME}"/bin/kafka-server-start.sh -daemon "${kafka_props_file}"
+
+      # Wait for servers to setup
+      sleep 5s
+
+      # Restore classpath
+      export CLASSPATH=${backup_classpath}
+    else
+      error_msg "${STREAM_BACKEND_ERROR}"
+    fi
+    echo "[  INFO] Streaming Backend ready"
+  fi
+
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
+
+  # Launch application execution
   if [ $lang = java ]; then
     add_jvm_opts_java
     exec_java
@@ -997,8 +1043,48 @@ execute_runtime() {
     add_jvm_opts_python
     exec_python
   fi
+
+  # End
   echo
   echo ------------------------------------------------------------
+}
+
+generate_stream_config_files() {
+  # Create zookeeper properties
+  zookeeper_log_dir="/tmp/zookeeper"
+  mkdir -p "${zookeeper_log_dir}"
+  zookeeper_props_file=$(mktemp -p "${zookeeper_log_dir}") || display_error "${ERROR_ZOOKEEPER_CONFIG}"
+  cat > "${zookeeper_props_file}" << EOT
+dataDir=${zookeeper_log_dir}
+clientPort=49000
+maxClientCnxns=0
+EOT
+
+  # Create kafka properties
+  kafka_log_dir="/tmp/kafka-logs"
+  mkdir -p "${kafka_log_dir}"
+  kafka_props_file=$(mktemp -p "${kafka_log_dir}") || display_error "${ERROR_KAFKA_CONFIG}"
+  cat > "${kafka_props_file}" << EOT
+broker.id=$((RANDOM % 100))
+port=49001
+num.network.threads=3
+num.io.threads=8
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+socket.request.max.bytes=104857600
+log.dirs=/tmp/kafka-logs
+num.partitions=1
+num.recovery.threads.per.data.dir=1
+offsets.topic.replication.factor=1
+transaction.state.log.replication.factor=1
+transaction.state.log.min.isr=1
+log.retention.hours=168
+log.segment.bytes=1073741824
+log.retention.check.interval.ms=300000
+zookeeper.connect=localhost:49000
+zookeeper.connection.timeout.ms=6000
+group.initial.rebalance.delay.ms=0
+EOT
 }
 
 generate_jvm_opts_file() {
@@ -1218,6 +1304,16 @@ exec_python() {
 }
 
 clean_env() {
+  # Stop streaming backend if necessary
+  if [ "${streaming}" == "OBJECTS" ] || [ "${streaming}" == "ALL" ]; then
+    "${KAFKA_HOME}"/bin/kafka-server-stop.sh
+    "${KAFKA_HOME}"/bin/zookeeper-server-stop.sh
+
+    # Delete ZooKeeper and Kafka logs and configuration files
+    rm -rf "${zookeeper_log_dir}"
+    rm -rf "${kafka_log_dir}"
+  fi
+
   # Delete JVM options file
   rm -f "${jvm_options_file}"
 

@@ -45,6 +45,18 @@ def inside(_):
         return True
 
 
+def files_to_pairs(element):
+    tuples = list()
+    lines = element[1].split("\n")
+    for _l in lines:
+        if not _l:
+            continue
+        k_v = _l.split(",")
+        tuples.append(tuple(k_v))
+
+    return tuples
+
+
 def word_count():
 
     path_file = sys.argv[1]
@@ -197,17 +209,25 @@ def terasort(num_fragments, num_entries, num_buckets, seed):
 
 
 def run_terasort():
-    arg1 = sys.argv[1] if len(sys.argv) > 1 else 16
-    arg2 = sys.argv[2] if len(sys.argv) > 2 else 50
+    """
+    """
 
-    num_fragments = int(arg1)  # Default: 16
-    num_entries = int(arg2)  # Default: 50
-    # be very careful with the following argument (since it is in a decorator)
-    num_buckets = 10  # int(sys.argv[3])
-    seed = 5
+    dir_path = sys.argv[1]
+    partitions = sys.argv[2] if len(sys.argv) > 2 else -1
 
     start_time = time.time()
-    terasort(num_fragments, num_entries, num_buckets, seed)
+
+    dds = DDS().load_files_from_dir(dir_path, partitions)\
+        .map_and_flatten(files_to_pairs)\
+        .sort_by_key().collect()
+
+    temp = 0
+    for i, k in dds:
+        if i < temp:
+            print("FAILED")
+            break
+        temp = i
+
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 

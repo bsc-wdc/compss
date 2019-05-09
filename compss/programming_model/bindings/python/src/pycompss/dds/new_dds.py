@@ -640,7 +640,7 @@ class DDS(object):
 
         samples = list()
         for _part in col_parts:
-            samples.append(task_collect_samples(_part, key_func))
+            samples.append(task_collect_samples(_part, 20, key_func))
 
         samples = sorted(list(
             itertools.chain.from_iterable(compss_wait_on(samples))))

@@ -177,13 +177,11 @@ def combine_lists(*args):
 
 
 @task(returns=list)
-def task_collect_samples(partition, key_func):
+def task_collect_samples(partition, num_of_samples, key_func):
     """
     """
-    ret = list()
-    for index in range(len(partition)):
-        if not index % 100:
-            ret.append(key_func(partition[index][0]))
-
+    import random
+    samples = random.sample(partition, num_of_samples)
+    ret = [key_func(sample) for sample in samples]
     return ret
 

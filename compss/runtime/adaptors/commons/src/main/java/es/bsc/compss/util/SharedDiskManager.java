@@ -70,14 +70,19 @@ public class SharedDiskManager {
      * @param host containing resource
      */
     public static synchronized void addSharedToMachine(String diskName, String mountpoint, Resource host) {
-        machine2Shareds.get(host).addSharedDisk(diskName, mountpoint);
-        List<Resource> machines = shared2Machines.get(diskName);
-        if (machines == null) {
-            machines = new LinkedList<Resource>();
-            shared2Machines.put(diskName, machines);
-        }
-        synchronized (machines) {
-            machines.add(host);
+        Machine resource = machine2Shareds.get(host);
+        if (resource != null) {
+            resource.addSharedDisk(diskName, mountpoint);
+            List<Resource> machines = shared2Machines.get(diskName);
+            if (machines == null) {
+                machines = new LinkedList<Resource>();
+                shared2Machines.put(diskName, machines);
+            }
+            synchronized (machines) {
+                machines.add(host);
+            }
+        } else {
+            ErrorManager.warn("Host " + host.getName() + " not registered as machine in the Shared disk manager.");
         }
     }
 

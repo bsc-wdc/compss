@@ -1672,6 +1672,7 @@ launch() {
       if [ $? -ne 0 ]; then
         echo "Master execution failed. Exiting job."
         exit 1
+      fi
     else
       # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
       export PYTHONPATH=${jupyter_notebook_path}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH

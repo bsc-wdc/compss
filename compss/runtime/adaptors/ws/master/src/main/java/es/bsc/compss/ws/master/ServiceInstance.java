@@ -132,6 +132,12 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+        //Copy already done on obtainData()
+        listener.notifyEnd(null);
+    }
+
+    @Override
     public void updateTaskCount(int processorCoreCount) {
         // No need to do anything
     }

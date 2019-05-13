@@ -72,7 +72,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
 
-
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
         this.node = Comm.initWorker(name, conf);
@@ -193,58 +192,29 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         }
     }
 
-    /**
-     * Returns the node name
-     *
-     * @return
-     */
+    @Override
     public String getName() {
         return name;
     }
 
-    /**
-     * Returns the node associated to the resource
-     *
-     * @return
-     */
+    @Override
     public COMPSsNode getNode() {
         return node;
     }
 
-    /**
-     * Returns the internal URI representation of the given MultiURI
-     *
-     * @param u
-     * @throws UnstartedNodeException
-     */
+    @Override
     public void setInternalURI(MultiURI u) throws UnstartedNodeException {
         node.setInternalURI(u);
     }
 
-    /**
-     * Creates a new Job
-     *
-     * @param taskId
-     * @param taskParams
-     * @param impl
-     * @param slaveWorkersNodeNames
-     * @param listener
-     * @return
-     */
+    @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
             List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param dataId
-     * @param tgtDataId
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(String dataId, String tgtDataId, Transferable reason, EventListener listener) {
         LogicalData srcData = Comm.getData(dataId);
         LogicalData tgtData = null;
@@ -254,57 +224,26 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         getData(srcData, dataId, tgtData, reason, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param ld
-     * @param tgtData
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(LogicalData ld, LogicalData tgtData, Transferable reason, EventListener listener) {
         getData(ld, ld.getName(), tgtData, reason, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param dataId
-     * @param newName
-     * @param tgtDataId
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(String dataId, String newName, String tgtDataId, Transferable reason, EventListener listener) {
         LogicalData srcData = Comm.getData(dataId);
         LogicalData tgtData = Comm.getData(tgtDataId);
         this.getData(srcData, newName, tgtData, reason, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param dataId
-     * @param newName
-     * @param tgtData
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
             EventListener listener) {
         LogicalData ld = Comm.getData(dataId);
         this.getData(ld, newName, tgtData, reason, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param ld
-     * @param newName
-     * @param tgtData
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
             EventListener listener) {
         if (reason.getType() == DataType.BINDING_OBJECT_T) {
@@ -329,19 +268,13 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         getData(ld, target, tgtData, reason, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param dataId
-     * @param target
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(String dataId, DataLocation target, Transferable reason, EventListener listener) {
         LogicalData srcData = Comm.getData(dataId);
         getData(srcData, target, srcData, reason, listener);
     }
 
+    @Override
     public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason,
             EventListener listener) {
         LogicalData srcData = Comm.getData(dataId);
@@ -349,33 +282,22 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         getData(srcData, target, tgtData, reason, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param dataId
-     * @param target
-     * @param tgtData
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
         LogicalData ld = Comm.getData(dataId);
         getData(ld, target, tgtData, reason, listener);
     }
 
-    /**
-     * Retrieves a given data
-     *
-     * @param srcData
-     * @param target
-     * @param tgtData
-     * @param reason
-     * @param listener
-     */
+    @Override
     public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
         node.obtainData(srcData, null, target, tgtData, reason, listener);
+    }
+
+    @Override
+    public void enforceDataObtaning(Transferable t, EventListener listener) {
+        node.enforceDataObtaining(t, listener);
     }
 
     /**
@@ -385,6 +307,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      * @param name
      * @return
      */
+    @Override
     public SimpleURI getCompleteRemotePath(DataType type, String name) {
         return node.getCompletePath(type, name);
     }
@@ -394,6 +317,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      *
      * @param saveUniqueData
      */
+    @Override
     public void retrieveData(boolean saveUniqueData) {
         if (DEBUG) {
             LOGGER.debug("Retrieving data resource " + this.getName());
@@ -404,7 +328,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         Map<String, String> disks = SharedDiskManager.terminate(this);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
         for (LogicalData ld : lds) {
-            if (ld.getCopiesInProgress().size()>0) {
+            if (ld.getCopiesInProgress().size() > 0) {
                 ld.notifyToInProgressCopiesEnd(listener);
             }
             ld.lockHostRemoval();
@@ -442,7 +366,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         if (DEBUG) {
             LOGGER.debug("Waiting for finishing saving copies for " + this.getName());
         }
-        if (listener.getOperations()>0) {
+        if (listener.getOperations() > 0) {
             listener.enable();
             try {
                 sem.acquire();
@@ -475,18 +399,12 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         }
     }
 
-    /**
-     * Deletes the intermediate data
-     */
+    @Override
     public void deleteIntermediate() {
         node.deleteTemporary();
     }
 
-    /**
-     * Stops the resource
-     *
-     * @param sl
-     */
+    @Override
     public void stop(ShutdownListener sl) {
         this.deleteIntermediate();
         sl.addOperation();

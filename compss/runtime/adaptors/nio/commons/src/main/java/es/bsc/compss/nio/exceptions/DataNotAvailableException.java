@@ -14,26 +14,18 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.dataRequest;
+package es.bsc.compss.nio.exceptions;
 
-import es.bsc.compss.data.DataManager.FetchDataListener;
+public class DataNotAvailableException extends Exception {
 
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.types.annotations.parameter.DataType;
+    /**
+     * Exception Version UID are 2L in all Runtime
+     */
+    private static final long serialVersionUID = 2L;
 
 
-public class WorkerDataRequest extends DataRequest {
-
-    private final FetchDataListener listener;
-
-    public WorkerDataRequest(FetchDataListener task, DataType type, NIOData source, String target) {
-        super(type, source, target);
-        this.listener = task;
+    public DataNotAvailableException(String dataName) {
+        super(dataName);
     }
-
-    public FetchDataListener getListener() {
-        return this.listener;
-    }
-
 
 }

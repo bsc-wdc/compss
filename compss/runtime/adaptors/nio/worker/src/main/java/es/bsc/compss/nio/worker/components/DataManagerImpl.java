@@ -19,7 +19,10 @@ package es.bsc.compss.nio.worker.components;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
+import es.bsc.compss.data.MultiOperationFetchListener;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -29,6 +32,7 @@ import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -58,7 +62,6 @@ public class DataManagerImpl implements DataManager {
     private final String storageConf;
 
     private final HashMap<String, DataRegister> registry;
-
 
     /**
      * Instantiates a new Data Manager
@@ -164,8 +167,10 @@ public class DataManagerImpl implements DataManager {
     @Override
     public void fetchParam(InvocationParam param, int paramIdx, FetchDataListener tt) {
         switch (param.getType()) {
-            case OBJECT_T:
             case COLLECTION_T:
+                fetchCollection(param, paramIdx, tt);
+                break;
+            case OBJECT_T:
                 fetchObject(param, paramIdx, tt);
                 break;
             case PSCO_T:
@@ -179,10 +184,10 @@ public class DataManagerImpl implements DataManager {
                 break;
             case EXTERNAL_PSCO_T:
                 // Nothing to do since external parameters send their ID directly
-                tt.fetchedValue();
+                tt.fetchedValue(param.getDataMgmtId());
                 break;
             default:
-                // Nothing to do since basic type parameters require no action
+            // Nothing to do since basic type parameters require no action
         }
     }
 
@@ -217,7 +222,7 @@ public class DataManagerImpl implements DataManager {
                             if (loc.isHost(hostName)) {
                                 WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
                                         + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT "
-                                                : " BINDING OBJECT "));
+                                           : " BINDING OBJECT "));
                             }
                             break;
                         case SHARED_URI:
@@ -230,6 +235,50 @@ public class DataManagerImpl implements DataManager {
         }
 
         return originalRegister;
+    }
+
+
+    private class CollectionFetchOperationsListener extends MultiOperationFetchListener {
+
+        private final String collectionDataId;
+        private final FetchDataListener listener;
+
+        public CollectionFetchOperationsListener(String collectionDataId, FetchDataListener listener) {
+            this.collectionDataId = collectionDataId;
+            this.listener = listener;
+        }
+
+        @Override
+        public void doCompleted() {
+            listener.fetchedValue(collectionDataId);
+        }
+
+        @Override
+        public void doFailure(String failedDataId, Exception e) {
+            listener.errorFetchingValue(collectionDataId, e);
+        }
+    }
+
+    private void fetchCollection(InvocationParam param, int index, FetchDataListener listener) {
+        try {
+            String pathToWrite = (String) param.getValue();
+            PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");
+            NIOParamCollection npc = (NIOParamCollection) param;
+            List<NIOParam> elements = npc.getCollectionParameters();
+            WORKER_LOGGER.info("Checking NIOParamCollection (received " + elements.size() + " params)");
+            int subIndex = 0;
+            CollectionFetchOperationsListener cfol = new CollectionFetchOperationsListener(param.getDataMgmtId(), listener);
+            for (NIOParam subNioParam : npc.getCollectionParameters()) {
+                cfol.addOperation();
+                fetchParam(subNioParam, subIndex, cfol);
+                writer.println(subNioParam.getType().ordinal() + " " + subNioParam.getValue());
+                subIndex++;
+            }
+            writer.close();
+            cfol.enable();
+        } catch (Exception e) {
+            listener.errorFetchingValue(param.getDataMgmtId(), e);
+        }
     }
 
     private void fetchObject(InvocationParam param, int index, FetchDataListener tt) {
@@ -369,7 +418,7 @@ public class DataManagerImpl implements DataManager {
                     if (WORKER_LOGGER_DEBUG) {
                         WORKER_LOGGER.debug(
                                 "   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
-                                        + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
+                                + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
                     }
 
                     File inFile = new File(bo.getId());
@@ -447,7 +496,7 @@ public class DataManagerImpl implements DataManager {
         DataRegister dr = new DataRegister();
         dr.setStorageId(pscoId);
         registry.put(finalRename, dr);
-        tt.fetchedValue();
+        tt.fetchedValue(param.getDataMgmtId());
     }
 
     private void fetchFile(InvocationParam param, int index, FetchDataListener tt) {
@@ -474,7 +523,7 @@ public class DataManagerImpl implements DataManager {
                     try {
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
                                 + (param.isPreserveSourceData() ? "preserves sources. COPYING"
-                                        : "erases sources. MOVING"));
+                                   : "erases sources. MOVING"));
                         WORKER_LOGGER.debug("         Source: " + source);
                         WORKER_LOGGER.debug("         Target: " + target);
 
@@ -520,7 +569,7 @@ public class DataManagerImpl implements DataManager {
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
             default:
-                // Nothing to do since basic type parameters require no action
+            // Nothing to do since basic type parameters require no action
         }
     }
 
@@ -619,7 +668,8 @@ public class DataManagerImpl implements DataManager {
     /*
      * ****************************************************************************************************************
      * STORE METHODS
-     *****************************************************************************************************************/
+     ****************************************************************************************************************
+     */
     private void askForTransfer(boolean askTransfer, InvocationParam param, int index, FetchDataListener tt) {
         if (askTransfer) {
             transferParameter(param, index, tt);
@@ -630,7 +680,7 @@ public class DataManagerImpl implements DataManager {
 
     private void fetchedLocalParameter(InvocationParam param, int index, FetchDataListener tt) {
         WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
-        tt.fetchedValue();
+        tt.fetchedValue(param.getDataMgmtId());
     }
 
     private void transferParameter(InvocationParam param, int index, FetchDataListener tt) {

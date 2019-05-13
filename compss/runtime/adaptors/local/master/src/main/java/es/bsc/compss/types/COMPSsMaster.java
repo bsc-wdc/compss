@@ -901,6 +901,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+        //Copy already done on obtainData()
+        listener.notifyEnd(null);
+    }
+
+    @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
         return new LocalJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);

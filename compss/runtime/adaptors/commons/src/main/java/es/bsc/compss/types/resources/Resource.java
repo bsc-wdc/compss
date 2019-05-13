@@ -43,7 +43,6 @@ public interface Resource extends Comparable<Resource> {
         SERVICE // For services
     }
 
-
     /**
      * Starts a resource execution.
      *
@@ -210,6 +209,14 @@ public interface Resource extends Comparable<Resource> {
      */
     public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener);
+
+    /**
+     * Enforces the retrieval of data whose transfer is supposed to be already ordered.
+     *
+     * @param t Data already requested to be retrieved
+     * @param listener Listener to notify operation events
+     */
+    public void enforceDataObtaning(Transferable t, EventListener listener);
 
     /**
      * Returns the complete remote path of a given data .

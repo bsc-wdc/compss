@@ -807,6 +807,8 @@ public abstract class NIOAgent {
 
     public abstract void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteFiles);
 
+    public abstract void receivedNewDataFetchOrder(NIOParam data);
+
     public abstract Object getObject(String s) throws SerializedObjectException;
 
     public abstract String getObjectAsFile(String name);

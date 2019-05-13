@@ -111,6 +111,10 @@ public class FakeNode extends COMPSsWorker {
     }
 
     @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+    }
+
+    @Override
     public void stop(ShutdownListener sl) {
 
     }

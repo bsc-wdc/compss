@@ -25,6 +25,9 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.parameter.Parameter;
+
+import java.util.List;
+
 import org.json.JSONObject;
 
 
@@ -83,8 +86,8 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
     public long calculateResourceScore(TaskDescription params) {
         long resourceScore = 0;
         if (params != null) {
-            Parameter[] parameters = params.getParameters();
-            if (parameters.length == 0) {
+            List<Parameter> parameters = params.getParameters();
+            if (parameters.size() == 0) {
                 return 1;
             }
             resourceScore = 2 * Score.calculateDataLocalityScore(params, myWorker);

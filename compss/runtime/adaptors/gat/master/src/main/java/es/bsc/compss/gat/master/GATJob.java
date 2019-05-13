@@ -455,7 +455,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
         // Parameters
         int numReturns = taskParams.getNumReturns();
-        int numParams = taskParams.getParameters().length;
+        int numParams = taskParams.getParameters().size();
         numParams -= numReturns;
         if (taskParams.hasTargetObject()) {
             numParams--;

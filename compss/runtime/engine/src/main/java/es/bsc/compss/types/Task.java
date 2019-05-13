@@ -77,7 +77,8 @@ public class Task implements Comparable<Task> {
 
     // On failure behavior
     private final OnFailure onFailure;
-    
+
+
     /**
      * Creates a new METHOD task with the given parameters
      *
@@ -94,8 +95,9 @@ public class Task implements Comparable<Task> {
      * @param monitor
      */
     public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor, 
+            boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
             OnFailure onFailure) {
+
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
@@ -123,7 +125,8 @@ public class Task implements Comparable<Task> {
      * @param monitor
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
-            boolean hasTarget, int numReturns, Parameter[] parameters, TaskMonitor monitor, OnFailure onFailure) {
+            boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure) {
+
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
@@ -390,7 +393,7 @@ public class Task implements Comparable<Task> {
     public TaskMonitor getTaskMonitor() {
         return taskMonitor;
     }
-    
+
     public OnFailure getOnFailure() {
         return onFailure;
     }

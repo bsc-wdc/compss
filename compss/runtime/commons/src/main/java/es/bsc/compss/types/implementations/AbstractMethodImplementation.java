@@ -27,6 +27,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.List;
 
 
 public abstract class AbstractMethodImplementation extends Implementation implements Externalizable {
@@ -97,7 +98,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
      * @return The signature built from the given parameters.
      */
     public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns,
-            Parameter[] parameters) {
+            List<Parameter> parameters) {
 
         StringBuilder buffer = new StringBuilder();
         buffer.append(methodName).append("(");
@@ -105,17 +106,17 @@ public abstract class AbstractMethodImplementation extends Implementation implem
         switch (LANG) {
             case JAVA:
             case C:
-                int numPars = parameters.length;
+                int numPars = parameters.size();
                 if (hasTarget) {
                     numPars--;
                 }
                 numPars -= numReturns;
                 if (numPars > 0) {
-                    DataType type = parameters[0].getType();
-                    type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;
+                    DataType type = parameters.get(0).getType();
+                    type = (type == DataType.PSCO_T || type == DataType.STREAM_T) ? DataType.OBJECT_T : type;
                     buffer.append(type);
                     for (int i = 1; i < numPars; i++) {
-                        type = parameters[i].getType();
+                        type = parameters.get(i).getType();
                         type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;
                         buffer.append(",").append(type);
                     }

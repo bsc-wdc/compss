@@ -134,7 +134,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                 resScore++;
             }
         }
-        resScore = params.getParameters().length - resScore;
+        resScore = params.getParameters().size() - resScore;
         long lessTimeStamp = Long.MAX_VALUE;
         Gap g = gaps.peekFirst();
         if (g != null) {

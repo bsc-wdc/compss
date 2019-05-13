@@ -97,7 +97,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
     protected static final Lang DEFAULT_LANG = ((DEFAULT_LANG_STR == null) ? Lang.JAVA
-                                                : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
+            : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
 
     // Registries
     private static ObjectRegistry oReg;
@@ -144,6 +144,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init(new MasterResourceImpl());
     }
+
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -580,7 +581,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     public void registerCoreElement(CoreElementDefinition ced) {
-
         LOGGER.info("Registering CoreElement " + ced.getCeSignature());
         if (LOGGER.isDebugEnabled()) {
             int implId = 0;
@@ -599,13 +599,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public int executeTask(Long appId, String methodClass, String onFailure, String methodName, boolean isPrioritary,
             boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
+
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
-        return executeTask(
-                appId, null,
-                null, false, methodClass, methodName, null,
-                OnFailure.valueOf(onFailure), isPrioritary, Constants.SINGLE_NODE, isReplicated, isDistributed,
-                hasTarget, numReturns, parameterCount, parameters);
+        return executeTask(appId, null, null, false, methodClass, methodName, null, OnFailure.valueOf(onFailure),
+                isPrioritary, Constants.SINGLE_NODE, isReplicated, isDistributed, hasTarget, numReturns, parameterCount,
+                parameters);
     }
 
     /**
@@ -613,13 +612,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
 
-    public int executeTask(Long appId, String signature, String onFailure, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
-        return executeTask(
-                appId, null,
-                null, true, null, null, signature,
-                OnFailure.valueOf(onFailure), isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, parameterCount, parameters);
+    public int executeTask(Long appId, String signature, String onFailure, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
+            Object... parameters) {
+
+        return executeTask(appId, null, null, true, null, null, signature, OnFailure.valueOf(onFailure), isPrioritary,
+                numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
     }
 
     /**
@@ -630,11 +628,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
             int parameterCount, OnFailure onFailure, Object... parameters) {
 
-        return executeTask(
-                appId, monitor,
-                lang, false, methodClass, methodName, null,
-                onFailure, isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, null, parameterCount, parameters);
+        return executeTask(appId, monitor, lang, false, methodClass, methodName, null, onFailure, isPrioritary,
+                numNodes, isReplicated, isDistributed, hasTarget, null, parameterCount, parameters);
     }
 
     /**
@@ -642,8 +637,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      *
      * @param appId
      * @param monitor
-     * @param hasSignature   indicates whether the signature parameter is valid or must be constructed from the
-     *                       methodName and methodClass parameters
+     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
+     *            and methodClass parameters
      * @param methodClass
      * @param methodName
      * @param signature
@@ -656,14 +651,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param numReturns
      * @param parameterCount
      * @param parameters
-     *
      * @return
      */
-    private int executeTask(
-            Long appId, TaskMonitor monitor,
-            Lang lang, boolean hasSignature, String methodClass, String methodName, String signature,
-            OnFailure onFailure, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
+    private int executeTask(Long appId, TaskMonitor monitor, Lang lang, boolean hasSignature, String methodClass,
+            String methodName, String signature, OnFailure onFailure, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
+            Object... parameters) {
 
         // Tracing flag for task creation
         if (Tracer.extraeEnabled()) {
@@ -683,7 +676,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Process the parameters
-        Parameter[] pars = processParameters(parameterCount, parameters);
+        List<Parameter> pars = processParameters(parameterCount, parameters);
 
         if (numReturns == null) {
             numReturns = hasReturn(pars) ? 1 : 0;
@@ -718,17 +711,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns whether the method parameters define a return or not
      *
      * @param parameters
-     *
      * @return
      */
-    private boolean hasReturn(Parameter[] parameters) {
+    private boolean hasReturn(List<Parameter> parameters) {
         boolean hasReturn = false;
-        if (parameters.length != 0) {
-            Parameter lastParam = parameters[parameters.length - 1];
+        if (parameters.size() != 0) {
+            Parameter lastParam = parameters.get(parameters.size() - 1);
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
                     && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T
-                    || type == DataType.BINDING_OBJECT_T));
+                            || type == DataType.BINDING_OBJECT_T));
         }
 
         return hasReturn;
@@ -738,10 +730,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: services
      */
     @Override
-    public int executeTask(
-            Long appId, TaskMonitor monitor,
-            String namespace, String service, String port, String operation,
-            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+    public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
+            String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
             boolean hasTarget, int parameterCount, OnFailure onFailure, Object... parameters) {
 
         if (Tracer.extraeEnabled()) {
@@ -760,7 +750,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Process the parameters
-        Parameter[] pars = processParameters(parameterCount, parameters);
+        List<Parameter> pars = processParameters(parameterCount, parameters);
         boolean hasReturn = hasReturn(pars);
         int numReturns = hasReturn ? 1 : 0;
 
@@ -1175,7 +1165,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * remove Binding object
      *
      * @param fileName
-     *
      * @return
      */
     @Override
@@ -1206,6 +1195,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
             String name, ArrayList<Parameter> pars, int offset, String[] vals) {
+
         switch (type) {
             case FILE_T:
                 try {
@@ -1295,9 +1285,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 pars.add(cp);
                 return ret;
             default:
-                /*
-                 * Basic types (including String). The only possible direction is IN, warn otherwise
-                 */
+                // Basic types (including String)
+                // The only possible direction is IN, warn otherwise
                 if (direction != Direction.IN) {
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                             + " is a basic type, therefore it must have IN direction");
@@ -1313,7 +1302,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * *********************************** PRIVATE HELPER METHODS **********************************************
      * *********************************************************************************************************
      */
-    private Parameter[] processParameters(int parameterCount, Object[] parameters) {
+    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
         ArrayList<Parameter> pars = new ArrayList<>();
         // Parameter parsing needed, object is not serializable
         for (int i = 0; i < parameterCount; ++i) {
@@ -1331,13 +1320,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             }
             addParameter(content, type, direction, stream, prefix, name, pars, 0, null);
         }
-        // Method returned ARRAY, not ArrayList
-        // Convert it before returning
-        Parameter[] ret = new Parameter[pars.size()];
-        for (int i = 0; i < ret.length; ++i) {
-            ret[i] = pars.get(i);
-        }
-        return ret;
+
+        // Return parameters
+        return pars;
     }
 
     private int externalObjectHashcode(String id) {

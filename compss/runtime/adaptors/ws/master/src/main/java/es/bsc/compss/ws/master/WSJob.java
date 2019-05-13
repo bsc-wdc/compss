@@ -162,14 +162,13 @@ public class WSJob extends Job<ServiceInstance> {
                     ArrayList<Object> input = new ArrayList<>();
                     TaskDescription taskParams = job.taskParams;
                     ServiceImplementation service = (ServiceImplementation) job.impl;
-                    Parameter[] parameters = taskParams.getParameters();
-                    for (int i = 0; i < taskParams.getParameters().length; i++) {
-                        if (parameters[i].getDirection() == Direction.IN) {
-                            switch (parameters[i].getType()) {
+                    for (Parameter par : taskParams.getParameters()) {
+                        if (par.getDirection() == Direction.IN) {
+                            switch (par.getType()) {
                                 case OBJECT_T:
                                 case PSCO_T:
                                 case EXTERNAL_PSCO_T:
-                                    DependencyParameter dp = (DependencyParameter) parameters[i];
+                                    DependencyParameter dp = (DependencyParameter) par;
                                     Object o = getObjectValue(dp);
                                     input.add(o);
                                     break;
@@ -183,7 +182,7 @@ public class WSJob extends Job<ServiceInstance> {
                                     break;
                                 default:
                                     // Basic or String
-                                    BasicTypeParameter btParB = (BasicTypeParameter) parameters[i];
+                                    BasicTypeParameter btParB = (BasicTypeParameter) par;
                                     input.add(btParB.getValue());
                             }
                         }

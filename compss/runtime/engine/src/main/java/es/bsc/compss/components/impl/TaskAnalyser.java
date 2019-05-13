@@ -104,6 +104,7 @@ public class TaskAnalyser {
     private int synchronizationId;
     private boolean taskDetectedAfterSync;
 
+
     /**
      * Creates a new Task Analyser instance
      */
@@ -309,11 +310,12 @@ public class TaskAnalyser {
         // Check scheduling enforcing data
         int constrainingParam = -1;
         if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
-            constrainingParam = params.getParameters().length - 1 - params.getNumReturns();
+            constrainingParam = params.getParameters().size() - 1 - params.getNumReturns();
         }
-        Parameter[] parameters = params.getParameters();
-        for (int paramIdx = 0; paramIdx < parameters.length; paramIdx++) {
-            registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam, parameters[paramIdx]);
+        List<Parameter> parameters = params.getParameters();
+        for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
+            registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam,
+                    parameters.get(paramIdx));
         }
     }
 
@@ -394,7 +396,8 @@ public class TaskAnalyser {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
+                if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
+                        && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
                     this.DIP.dataAccessHasBeenCanceled(dAccId);
                 } else {
                     this.DIP.dataHasBeenAccessed(dAccId);
@@ -608,7 +611,6 @@ public class TaskAnalyser {
      * Returns the written files and deletes them
      *
      * @param appId
-     *
      * @return
      */
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {

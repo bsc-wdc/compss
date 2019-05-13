@@ -191,7 +191,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters, OnFailure onFailure) {
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure) {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
                 hasTarget, numReturns, parameters, monitor, onFailure);
@@ -220,7 +220,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
 
     public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
-            boolean priority, boolean hasTarget, int numReturns, Parameter[] parameters, OnFailure onFailure) {
+            boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure) {
 
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
                 parameters, monitor, onFailure);

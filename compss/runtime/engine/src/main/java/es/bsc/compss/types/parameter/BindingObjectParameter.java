@@ -36,6 +36,7 @@ public class BindingObjectParameter extends DependencyParameter {
 
     public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, BindingObject bo,
             int hashCode) {
+
         super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name);
         this.bo = bo;
         this.hashCode = hashCode;
@@ -67,15 +68,15 @@ public class BindingObjectParameter extends DependencyParameter {
             if (dataTarget.contains("#")) {
                 return dataTarget;
             } else {
-                return dataTarget + "#" + bo.getType() + "#" + bo.getElements();
+                return dataTarget + "#" + this.bo.getType() + "#" + this.bo.getElements();
             }
         } else {
-            return "null#" + bo.getType() + "#" + bo.getElements();
+            return "null#" + this.bo.getType() + "#" + this.bo.getElements();
         }
     }
 
     public BindingObject getBindingObject() {
-        return bo;
+        return this.bo;
     }
 
 }

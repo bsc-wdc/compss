@@ -42,6 +42,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.SimpleURI;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -64,7 +65,6 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
     public void submit() throws Exception {
         StartApplicationRequest sar = new StartApplicationRequest();
 
-        Resource executorResource = this.getResource();
         RemoteRESTAgent executorNode = this.getResourceNode();
 
         WebTarget wt = executorNode.getTarget();
@@ -83,13 +83,11 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         sar.setMethodName(methodName);
         sar.setCeiClass(null); // It is a task and we are not supporting Nested parallelism yet
 
-        Parameter[] params = taskParams.getParameters();
-        int numParams = params.length;
+        List<Parameter> params = taskParams.getParameters();
+        int numParams = params.size();
 
         boolean hasReturn = taskParams.getNumReturns() > 0;
-        Object retValue = null;
         boolean hasTarget = taskParams.hasTargetObject();
-        Object target = null;
 
         if (hasReturn) {
             sar.setHasResult(true);
@@ -98,7 +96,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
         if (hasTarget) {
             numParams--;
-            Parameter param = params[numParams];
+            Parameter param = params.get(numParams);
             DependencyParameter dPar = (DependencyParameter) param;
             DataAccessId faId = dPar.getDataAccessId();
             String renaming;
@@ -115,7 +113,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 RAccessId raId = (RAccessId) faId;
                 renaming = raId.getReadDataInstance().getRenaming();
             }
-            target = Comm.getData(renaming).getValue();
+            Object target = Comm.getData(renaming).getValue();
             throw new UnsupportedOperationException("Instance methods not supported yet.");
         }
 
@@ -123,7 +121,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
         System.out.println("SUBMISSION[" + this.getJobId() + "] Parameters:");
         for (int parIdx = 0; parIdx < numParams; parIdx++) {
             System.out.println("SUBMISSION[" + this.getJobId() + "]     * Parameter " + parIdx + ": ");
-            Parameter param = params[parIdx];
+            Parameter param = params.get(parIdx);
             DataType type = param.getType();
             System.out.println("SUBMISSION[" + this.getJobId() + "]         Type " + type);
             switch (type) {
@@ -134,19 +132,19 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     String inRenaming;
-                    String renaming;
+                    // String outRenaming;
                     if (dAccId instanceof WAccessId) {
                         throw new JobExecutionException("Target parameter is a Write access", null);
                     } else if (dAccId instanceof RWAccessId) {
                         // Read write mode
                         RWAccessId rwaId = (RWAccessId) dAccId;
                         inRenaming = rwaId.getReadDataInstance().getRenaming();
-                        renaming = rwaId.getWrittenDataInstance().getRenaming();
+                        // outRenaming = rwaId.getWrittenDataInstance().getRenaming();
                     } else {
                         // Read only mode
                         RAccessId raId = (RAccessId) dAccId;
                         inRenaming = raId.getReadDataInstance().getRenaming();
-                        renaming = inRenaming;
+                        // outRenaming = inRenaming;
                     }
 
                     if (inRenaming != null) {
@@ -214,15 +212,15 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
     }
 
     private void stageout(DataType[] paramTypes, String[] paramLocations) {
-        Parameter[] params = taskParams.getParameters();
-        int numParams = params.length;
+        List<Parameter> params = taskParams.getParameters();
+        int numParams = params.size();
 
         boolean hasReturn = taskParams.getNumReturns() > 0;
         boolean hasTarget = taskParams.hasTargetObject();
 
         if (hasReturn) {
             numParams--;
-            DependencyParameter returnParameter = (DependencyParameter) taskParams.getParameters()[numParams];
+            DependencyParameter returnParameter = (DependencyParameter) taskParams.getParameters().get(numParams);
             DataType type = paramTypes[numParams];
             String locString = paramLocations[numParams];
             System.out.println(
@@ -258,7 +256,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
         if (hasTarget) {
             numParams--;
-            DependencyParameter targetParameter = (DependencyParameter) taskParams.getParameters()[numParams];
+            DependencyParameter targetParameter = (DependencyParameter) taskParams.getParameters().get(numParams);
             DataType type = paramTypes[numParams];
             String locString = paramLocations[numParams];
             if (locString != null) {
@@ -297,8 +295,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 case EXTERNAL_PSCO_T:
                 case OBJECT_T:
                 case PSCO_T:
-
-                    DependencyParameter dp = (DependencyParameter) params[parIdx];
+                    DependencyParameter dp = (DependencyParameter) params.get(parIdx);
                     String locString = paramLocations[parIdx];
                     if (locString != null) {
                         SimpleURI uri = new SimpleURI(locString);
@@ -312,6 +309,9 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                                         break;
                                     case OBJECT_T:
                                         type = DataType.PSCO_T;
+                                        break;
+                                    default:
+                                        // Nothing to do
                                         break;
                                 }
                                 dp.setType(type);

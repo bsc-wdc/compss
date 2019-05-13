@@ -32,7 +32,9 @@ public class ObjectParameter extends DependencyParameter {
     private Object value;
 
 
-    public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value, int hashCode) {
+    public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
+            int hashCode) {
+
         super(DataType.OBJECT_T, direction, stream, prefix, name);
         this.value = value;
         this.hashCode = hashCode;

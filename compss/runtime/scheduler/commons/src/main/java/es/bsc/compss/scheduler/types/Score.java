@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import java.util.Set;
-
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -29,6 +27,8 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.Worker;
+
+import java.util.Set;
 
 
 /**
@@ -185,11 +185,9 @@ public class Score implements Comparable<Score> {
     public static long calculateDataLocalityScore(TaskDescription params, Worker<?> w) {
         long resourceScore = 0;
         if (params != null) {
-            Parameter[] parameters = params.getParameters();
-
             // Obtain the scores for the host: number of task parameters that
             // are located in the host
-            for (Parameter p : parameters) {
+            for (Parameter p : params.getParameters()) {
                 if (p instanceof DependencyParameter && p.getDirection() != Direction.OUT) {
                     DependencyParameter dp = (DependencyParameter) p;
                     DataInstanceId dId = null;

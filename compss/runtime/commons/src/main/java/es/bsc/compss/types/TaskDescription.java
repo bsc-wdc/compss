@@ -25,6 +25,7 @@ import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.Serializable;
+import java.util.List;
 
 
 public class TaskDescription implements Serializable {
@@ -44,7 +45,7 @@ public class TaskDescription implements Serializable {
     private final boolean mustReplicate;
     private final boolean mustDistribute;
 
-    private final Parameter[] parameters;
+    private final List<Parameter> parameters;
     private final boolean hasTarget;
     private final int numReturns;
 
@@ -63,7 +64,7 @@ public class TaskDescription implements Serializable {
      * @param parameters Number of parameters.
      */
     public TaskDescription(Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int numReturns, Parameter[] parameters) {
+            boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters) {
 
         this.type = TaskType.METHOD;
         this.lang = lang;
@@ -97,7 +98,7 @@ public class TaskDescription implements Serializable {
      * @param parameters Number of parameters.
      */
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary,
-            boolean hasTarget, int numReturns, Parameter[] parameters) {
+            boolean hasTarget, int numReturns, List<Parameter> parameters) {
 
         this.type = TaskType.SERVICE;
         this.lang = Lang.UNKNOWN;
@@ -200,7 +201,7 @@ public class TaskDescription implements Serializable {
      *
      * @return The task parameters.
      */
-    public Parameter[] getParameters() {
+    public List<Parameter> getParameters() {
         return this.parameters;
     }
 
@@ -243,15 +244,15 @@ public class TaskDescription implements Serializable {
         buffer.append(", [MustDistribute: ").append(this.mustDistribute).append("]");
 
         buffer.append(", [").append(getName()).append("(");
-        int numParams = this.parameters.length;
+        int numParams = this.parameters.size();
         if (this.hasTarget) {
             numParams--;
         }
         numParams -= numReturns;
         if (numParams > 0) {
-            buffer.append(this.parameters[0].getType());
+            buffer.append(this.parameters.get(0).getType());
             for (int i = 1; i < numParams; i++) {
-                buffer.append(", ").append(this.parameters[i].getType());
+                buffer.append(", ").append(this.parameters.get(i).getType());
             }
         }
         buffer.append(")]");

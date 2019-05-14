@@ -307,12 +307,29 @@ public class GraphGenerator {
      * 
      * @param src Source node.
      * @param tgt Target node.
+     * @param edgeType Edge Type.
      * @param label Edge label.
      */
-    public void addEdgeToGraph(String src, String tgt, String label) {
+    public void addEdgeToGraph(String src, String tgt, EdgeType edgeType, String label) {
         try {
+            // Build the edge properties tag
+            StringBuilder edgeProperties = new StringBuilder();
+            String edgeTypeProps = edgeType.getProperties();
+            if (!edgeTypeProps.isEmpty() || !label.isEmpty()) {
+                edgeProperties.append("[");
+                if (!edgeTypeProps.isEmpty()) {
+                    edgeProperties.append(edgeTypeProps).append(", ");
+                }
+                if (!label.isEmpty()) {
+                    edgeProperties.append("label=\"d").append(label).append("\"");
+                }
+                edgeProperties.append("]");
+            }
+            edgeProperties.append(";");
+
+            // Write entry
             full_graph.newLine();
-            full_graph.write(src + " -> " + tgt + (label.isEmpty() ? ";" : "[ label=\"d" + label + "\" ];"));
+            full_graph.write(src + " -> " + tgt + edgeProperties.toString());
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_EDGE, e);
         }

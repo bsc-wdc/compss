@@ -62,6 +62,10 @@ public class Task implements Comparable<Task> {
     private final List<Task> predecessors;
     private final List<Task> successors;
 
+    // Stream Dependencies
+    private final List<Task> streamDataProducers; // Previous tasks that produce a stream
+    private final List<Task> streamDataConsumers; // Next tasks that consumer a stream
+
     // Syncrhonization point to which the task belongs
     private int synchronizationId;
 
@@ -106,6 +110,8 @@ public class Task implements Comparable<Task> {
                 hasTarget, numReturns, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
+        this.streamDataProducers = new LinkedList<>();
+        this.streamDataConsumers = new LinkedList<>();
         this.executions = new LinkedList<>();
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
@@ -136,6 +142,8 @@ public class Task implements Comparable<Task> {
                 numReturns, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
+        this.streamDataProducers = new LinkedList<>();
+        this.streamDataConsumers = new LinkedList<>();
         this.executions = new LinkedList<>();
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
@@ -158,6 +166,16 @@ public class Task implements Comparable<Task> {
     public void addDataDependency(Task producer) {
         producer.successors.add(this);
         this.predecessors.add(producer);
+    }
+
+    /**
+     * Adds a stream dependency from the given producer task to this task.
+     * 
+     * @param producer Stream producer task.
+     */
+    public void addStreamDataDependency(Task producer) {
+        producer.streamDataConsumers.add(this);
+        this.streamDataProducers.add(producer);
     }
 
     /**

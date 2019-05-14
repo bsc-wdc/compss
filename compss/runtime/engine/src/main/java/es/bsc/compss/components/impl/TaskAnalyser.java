@@ -17,6 +17,7 @@
 package es.bsc.compss.components.impl;
 
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.components.monitor.impl.EdgeType;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
@@ -519,7 +520,7 @@ public class TaskAnalyser {
             toPass.add(dataId);
             DataInstanceId dii = dip.getLastVersions(toPass).get(0);
             int dataVersion = dii.getVersionId();
-            addEdgeFromTaskToMain(lastWriter, dataId, dataVersion);
+            addEdgeFromTaskToMain(lastWriter, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
         }
     }
 
@@ -750,8 +751,11 @@ public class TaskAnalyser {
      * @param lastWriter Last writer task.
      */
     private void drawEdges(Task currentTask, DependencyParameter dp, int dataId, Task lastWriter) {
-        int dataVersion = -1;
+        EdgeType edgeType = (dp.getType().equals(DataType.STREAM_T)) ? EdgeType.STREAM_DEPENDENCY
+                : EdgeType.DATA_DEPENDENCY;
+
         Direction d = dp.getDataAccessId().getDirection();
+        int dataVersion;
         switch (d) {
             case C:
             case R:
@@ -764,10 +768,11 @@ public class TaskAnalyser {
                 dataVersion = ((RWAccessId) dp.getDataAccessId()).getRVersionId();
                 break;
         }
+
         if (lastWriter != null && lastWriter != currentTask) {
-            addEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+            addEdgeFromTaskToTask(lastWriter, currentTask, edgeType, dataId, dataVersion);
         } else {
-            addEdgeFromMainToTask(currentTask, dataId, dataVersion);
+            addEdgeFromMainToTask(currentTask, edgeType, dataId, dataVersion);
         }
     }
 
@@ -867,19 +872,20 @@ public class TaskAnalyser {
      *
      * @param source Source task.
      * @param dest Destination task.
+     * @param edgeType Type of Edge for the DOT representation.
      * @param dataId Data causing the dependency.
      */
-    private void addEdgeFromTaskToTask(Task source, Task dest, int dataId, int dataVersion) {
+    private void addEdgeFromTaskToTask(Task source, Task dest, EdgeType edgeType, int dataId, int dataVersion) {
         if (source.getSynchronizationId() == dest.getSynchronizationId()) {
             String src = String.valueOf(source.getId());
             String dst = String.valueOf(dest.getId());
             String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-            this.gm.addEdgeToGraph(src, dst, dep);
+            this.gm.addEdgeToGraph(src, dst, edgeType, dep);
         } else {
             String src = "Synchro" + dest.getSynchronizationId();
             String dst = String.valueOf(dest.getId());
             String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-            this.gm.addEdgeToGraph(src, dst, dep);
+            this.gm.addEdgeToGraph(src, dst, edgeType, dep);
         }
     }
 
@@ -888,13 +894,15 @@ public class TaskAnalyser {
      * Add edge from sync to task
      *
      * @param dest Destination task.
+     * @param edgeType Type of edge for the DOT representation.
      * @param dataId Data causing the dependency.
+     * @param dataVersion Data version.
      */
-    private void addEdgeFromMainToTask(Task dest, int dataId, int dataVersion) {
+    private void addEdgeFromMainToTask(Task dest, EdgeType edgeType, int dataId, int dataVersion) {
         String src = "Synchro" + dest.getSynchronizationId();
         String dst = String.valueOf(dest.getId());
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-        this.gm.addEdgeToGraph(src, dst, dep);
+        this.gm.addEdgeToGraph(src, dst, edgeType, dep);
     }
 
     /**
@@ -902,9 +910,10 @@ public class TaskAnalyser {
      * task has been created Adds a dependency from task to synchronization.
      *
      * @param task Task that generated the value.
+     * @param edgeType Type of edge for the DOT representation.
      * @param dataId Data causing the dependency.
      */
-    private void addEdgeFromTaskToMain(Task task, int dataId, int dataVersion) {
+    private void addEdgeFromTaskToMain(Task task, EdgeType edgeType, int dataId, int dataVersion) {
         // Add Sync if any task has been created
         if (this.taskDetectedAfterSync) {
             this.taskDetectedAfterSync = false;
@@ -915,14 +924,14 @@ public class TaskAnalyser {
             if (this.synchronizationId > 1) {
                 String oldSync = "Synchro" + oldSyncId;
                 String currentSync = "Synchro" + this.synchronizationId;
-                this.gm.addEdgeToGraph(oldSync, currentSync, "");
+                this.gm.addEdgeToGraph(oldSync, currentSync, edgeType, "");
             }
         }
 
         // Add edge from task to sync
         String src = String.valueOf(task.getId());
         String dest = "Synchro" + this.synchronizationId;
-        this.gm.addEdgeToGraph(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
+        this.gm.addEdgeToGraph(src, dest, edgeType, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
     }
 
     /**
@@ -941,7 +950,7 @@ public class TaskAnalyser {
         // Add edge from last sync
         String newSyncStr = "Synchro" + this.synchronizationId;
         if (this.synchronizationId > 1) {
-            this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, "");
+            this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, EdgeType.USER_DEPENDENCY, "");
         }
 
         // Add edges from writers to barrier
@@ -949,7 +958,7 @@ public class TaskAnalyser {
         for (Task writer : uniqueWriters) {
             if (writer != null && writer.getSynchronizationId() == oldSync) {
                 String taskId = String.valueOf(writer.getId());
-                this.gm.addEdgeToGraph(taskId, newSyncStr, "");
+                this.gm.addEdgeToGraph(taskId, newSyncStr, EdgeType.USER_DEPENDENCY, "");
             }
         }
     }

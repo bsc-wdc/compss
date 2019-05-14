@@ -27,31 +27,32 @@ void yyerror(char *s);
 %token TOK_WCHAR TOK_BOOLEAN TOK_STRING TOK_WSTRING TOK_ANY
 %token TOK_ERROR
 %token TOK_EQUAL TOK_DBLQUOTE
+%token TOK_ENUM TOK_INCLUDE TOK_HEADER
 
 %token <name> TOK_IDENTIFIER
 %token <elements> NUMBER
-%type <dtype> data_type numeric_type array_type
+%type <dtype> data_type numeric_type array_type enum_type
 %type <dir> direction
-
 
 %%
 
 
 start:		/* Empty */
-		| start interface
+		| includes start interface
 ;
 
+includes: includes include
+
+include: TOK_INCLUDE TOK_HEADER { add_header($2); } TOK_SEMICOLON
 
 interface:	TOK_INTERFACE TOK_IDENTIFIER { begin_interface($2); } TOK_LEFT_CUR_BRAKET 
 		prototypes
 		TOK_RIGHT_CUR_BRAKET TOK_SEMICOLON { end_interface(); }
 ;
 
-
 prototypes:	/* Empty */
 		| prototypes prototype 
 ;
-
 
 prototype:	data_type TOK_IDENTIFIER {  begin_function($2); add_static(0); add_return_type($1, "", NULL); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
 		| array_type TOK_LEFT_BRAKET TOK_IDENTIFIER TOK_RIGHT_BRAKET TOK_IDENTIFIER {  begin_function($5); add_static(0); add_return_type($1, "", $3); } TOK_LEFT_PARENTHESIS { begin_arguments(); } arguments0 { end_arguments(); }	TOK_RIGHT_PARENTHESIS { end_function(); } TOK_SEMICOLON
@@ -81,6 +82,7 @@ argument:	direction data_type TOK_IDENTIFIER { add_argument($1, $2, "", $3, NULL
 		|	direction array_type TOK_LEFT_BRAKET TOK_IDENTIFIER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_argument($1, $2, "", $6, $4);}
 		|	direction array_type TOK_LEFT_BRAKET NUMBER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_argument($1, $2, "", $6, $4);}
 		|	direction TOK_IDENTIFIER TOK_IDENTIFIER { add_argument($1, object_dt, $2, $3, NULL); }
+        |   direction enum_type TOK_IDENTIFIER TOK_IDENTIFIER { add_argument($1, $2, $3, $4, NULL); }
 ;
 
 direction:	TOK_IN			{ $$ = in_dir; }
@@ -98,6 +100,9 @@ data_type:	TOK_UNSIGNED numeric_type	{ $$ = $2; }
 		| TOK_ANY			{ $$ = any_dt; }
 		| TOK_VOID			{ $$ = void_dt; }
 		| TOK_FILE			{ $$ = file_dt; }
+;
+
+enum_type: TOK_ENUM { $$ = enum_dt; }
 ;
 
 numeric_type:	TOK_SHORT	{ $$ = short_dt; }

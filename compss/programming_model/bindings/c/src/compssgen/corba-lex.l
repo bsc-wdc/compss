@@ -9,7 +9,9 @@ int line = 1;
 
 %x comment
 
-identifier [a-zA-Z][0-9a-zA-Z_:]*
+identifier [a-zA-Z][0-9a-zA-Z_:\*\+\-\/]*
+
+header_identfier [a-zA-Z][0-9a-zA-Z_]\.[a-z]
 %%
 
 [ \t]+		/* Don't output spaces */
@@ -52,6 +54,7 @@ boolean		return TOK_BOOLEAN;
 any			return TOK_ANY;
 string		return TOK_STRING;
 wstring		return TOK_WSTRING;
+enum        return TOK_ENUM;
 
 \#[^\n]*\n	line++; /* Ignore preprocessor directives */
 \@[^\n]*\n	line++; /* Ignore constraints directives */
@@ -65,6 +68,7 @@ wstring		return TOK_WSTRING;
 <comment>\n	line++;
 <comment>"*"+"/"	BEGIN(INITIAL);
 
+{header_identfier} yylval.name = strdup(yytext); return TOK_HEADER;
 {identifier}	yylval.name = strdup(yytext); return TOK_IDENTIFIER;
 [0-9]+  		yylval.name = strdup(yytext); return NUMBER;
 .			return TOK_ERROR;

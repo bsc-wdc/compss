@@ -61,6 +61,7 @@ static char *c_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
+    "enum",                 //enum_dt
     "error"		            // null_dt
 };
 
@@ -91,6 +92,7 @@ static char *c_out_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
+    "enum",                 //enum_dt
     "error"                 // null_dt
 };
 
@@ -181,6 +183,7 @@ void generate_nanos_initialization() {
     fprintf(workerFile, "\t\t#ifdef OMPSS2_ENABLED\n");
     fprintf(workerFile, "\t\t\t#error Only one of both OmpSs2 and OmpSs can be enabled.\n");
     fprintf(workerFile, "\t\t#endif\n");
+    fprintf(workerFile, " cout << \"DEBUG LOG: nanos ADMIT CURRENT THREAD\" << endl;\n");
     fprintf(workerFile, "\t\t nanos_admit_current_thread();\n");
     fprintf(workerFile, "#endif\n");
     fprintf(workerFile, "}\n");
@@ -194,6 +197,7 @@ void generate_nanos_shutdown() {
 
     //OmpSs Nanos++ shutdown
     fprintf(workerFile, "#ifdef OMPSS_ENABLED\n");
+    fprintf(workerFile, "cout << \"DEBUG LOG: nanos LEAVE TEAM CURRENT THREAD\" << endl;\n");
     fprintf(workerFile, "\t\t nanos_leave_team();\n");
     fprintf(workerFile, "\t\t nanos_expel_current_thread();\n");
     fprintf(workerFile, "#endif\n");
@@ -535,6 +539,7 @@ void generate_prolog() {
     generate_worker_prolog();
 
     generate_includes_prolog();
+
 }
 
 /*
@@ -660,6 +665,9 @@ static char* construct_type_and_name(argument* arg) {
             case array_double_dt:
                 //TODO Check if * or & is needed
                 printed_chars = asprintf(&ret, "%s *%s", c_out_types[arg->type], arg->name);
+                break;
+            case enum_dt:
+                printed_chars = asprintf(&ret, "%s %s %s", c_out_types[arg->type], arg->classname, arg->name);
                 break;
             case void_dt:
             case any_dt:
@@ -1130,10 +1138,28 @@ static void generate_deserializeFromFile_func(FILE *outFile, Types current_types
     fprintf(outFile, "\n");
 }
 
+static void include_header(include* current_include) {
+    fprintf(includeFile, "#include <%s>\n", current_include->name);
+}
+
+static void add_include_headers(include* first_include) {
+    include* include = first_include;
+
+    while (include != NULL) {
+        include_header(first_include);
+        include = include->next_include;
+    }
+}
+
 /*
  * Generate includes of task classes in header files
  */
 static void generate_class_includes_and_check_types(FILE *outFile, Types *current_types, function *current_function) {
+
+    //Check if there is any include in the .idl file
+    include* inc = get_first_include();
+    add_include_headers(inc);
+
     argument *current_argument;
     if (current_function->classname != NULL) {
         Type t;
@@ -2181,7 +2207,6 @@ static void generate_function_structs_nanos6(FILE *outFile, Types current_types,
     }
 }
 
-
 void generate_worker_executor(Types current_types) {
 
     fprintf(workerFile, "#ifdef OMPSS2_ENABLED\n");
@@ -2278,7 +2303,6 @@ void generate_worker_executor(Types current_types) {
     fprintf(workerFile, "\t switch(opCod)\n");
     fprintf(workerFile, "\t {\n"); //Open switch clause
 }
-
 
 void generate_body(void) {
     Types current_types;

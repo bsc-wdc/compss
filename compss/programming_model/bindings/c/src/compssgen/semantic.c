@@ -52,7 +52,8 @@ static int function_count = 0;
 static char *current_function_name = NULL;
 static int parsing_args = 0;
 static char const *filename = NULL;
-
+static include *current_include = NULL;
+static include *first_include = NULL;
 
 int exists_function(char *name) {
     function *curr;
@@ -83,6 +84,22 @@ int exists_argument(char *name) {
     return FALSE;
 }
 
+void add_header(char* name) {
+    debug_printf("Adding header %s\n", name);
+
+    if (current_include == NULL) {
+        current_include = (include*) malloc(sizeof(include));
+    }
+    else {
+        current_include->next_include = (include*) malloc(sizeof(include));
+        current_include = current_include->next_include;
+    }
+    current_include->name = name;
+
+    if (first_include == NULL) {
+        first_include = current_include;
+    }
+}
 
 void begin_interface(char *interface_name) {
     debug_printf("Begin interface %s\n", interface_name);
@@ -327,6 +344,11 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
         new_argument->classname = "File";
         new_argument->type = dt;
         break;
+    case enum_dt:
+        new_argument->elements = "0";
+        new_argument->type = dt;
+        new_argument->classname = strdup(classname);
+        break;
     case void_dt:
     case any_dt:
     case null_dt:
@@ -370,6 +392,9 @@ function *get_first_function() {
     return main_interface->first_function;
 }
 
+include* get_first_include() {
+    return first_include;
+}
 
 interface *get_main_interface() {
     return main_interface;

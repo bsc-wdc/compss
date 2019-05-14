@@ -23,6 +23,7 @@ typedef struct function function;
 typedef struct interface interface;
 typedef struct argument argument;
 typedef struct constraint constraint;
+typedef struct include include;
 
 struct argument {
     char *name;
@@ -39,6 +40,11 @@ struct argument {
 struct constraint {
     char *name;
     constraint *next_constraint;
+};
+
+struct include {
+    char *name; //Name of the header to include
+    include *next_include;
 };
 
 struct function {
@@ -59,8 +65,9 @@ struct function {
 struct interface {
         char *name;
         function *first_function;
-    };
+};
 
+void add_header(char* name);
 void add_static(int val);
 void begin_interface(char *interface_name);
 void end_interface();

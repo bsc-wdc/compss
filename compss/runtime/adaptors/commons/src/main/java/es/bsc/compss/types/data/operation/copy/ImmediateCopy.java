@@ -27,6 +27,7 @@ import es.bsc.compss.types.uri.MultiURI;
 
 import java.util.LinkedList;
 
+
 public abstract class ImmediateCopy extends Copy {
 
     public ImmediateCopy(LogicalData ld, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
@@ -38,7 +39,8 @@ public abstract class ImmediateCopy extends Copy {
     /**
      * Perform data copy.
      */
-    public void perform() {
+    @Override
+    public final void perform() {
         Resource targetHost = ((LinkedList<Resource>) tgtLoc.getHosts()).getFirst();
         LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - Copy file " + getName() + " to " + tgtLoc);
 

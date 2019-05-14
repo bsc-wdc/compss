@@ -26,7 +26,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 public class BindingObjectParameter extends DependencyParameter {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -34,6 +34,16 @@ public class BindingObjectParameter extends DependencyParameter {
     private final BindingObject bo;
 
 
+    /**
+     * Creates a new Stream Parameter.
+     * 
+     * @param direction Parameter direction.
+     * @param stream Standard IO Stream flags.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     * @param bo Parameter binding object.
+     * @param hashCode Parameter object hashcode.
+     */
     public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, BindingObject bo,
             int hashCode) {
 

@@ -29,7 +29,7 @@ import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.AccessParams.*;
+import es.bsc.compss.types.data.accessparams.AccessParams.*;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.*;
 import es.bsc.compss.types.data.operation.ResultListener;
@@ -41,6 +41,7 @@ import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
@@ -68,9 +69,15 @@ import storage.StubItf;
  */
 public class TaskAnalyser {
 
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String TASK_FAILED = "Task failed: ";
+    private static final String TASK_CANCELED = "Task canceled: ";
+
     // Components
-    private DataInfoProvider DIP;
-    private GraphGenerator GM;
+    private DataInfoProvider dip;
+    private GraphGenerator gm;
 
     // <File id, Last writer task> table
     private TreeMap<Integer, Task> writers;
@@ -92,12 +99,6 @@ public class TaskAnalyser {
     private Hashtable<Task, List<Semaphore>> waitedTasks;
     // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
     private TreeMap<Integer, List<Task>> concurrentAccessMap;
-
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-    private static final String TASK_FAILED = "Task failed: ";
-    private static final String TASK_CANCELED = "Task canceled: ";
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -132,7 +133,7 @@ public class TaskAnalyser {
      * @param DIP
      */
     public void setCoWorkers(DataInfoProvider DIP) {
-        this.DIP = DIP;
+        this.dip = DIP;
     }
 
     /**
@@ -141,7 +142,7 @@ public class TaskAnalyser {
      * @param GM
      */
     public void setGM(GraphGenerator GM) {
-        this.GM = GM;
+        this.gm = GM;
     }
 
     private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining,
@@ -168,25 +169,25 @@ public class TaskAnalyser {
         switch (p.getType()) {
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                daId = this.DIP.registerFileAccess(am, fp.getLocation());
+                daId = this.dip.registerFileAccess(am, fp.getLocation());
                 break;
             case PSCO_T:
                 ObjectParameter pscop = (ObjectParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 pscop.setType(DataType.PSCO_T);
-                daId = this.DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
+                daId = this.dip.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                daId = DIP.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                daId = dip.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
                 // Check if its Binding OBJ and register its access
                 bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
-                daId = DIP.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(),
+                daId = dip.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(),
                         bindingObjectparam.getCode());
                 break;
             case OBJECT_T:
@@ -195,14 +196,18 @@ public class TaskAnalyser {
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.DIP.registerObjectAccess(am, op.getValue(), op.getCode());
+                daId = this.dip.registerObjectAccess(am, op.getValue(), op.getCode());
+                break;
+            case STREAM_T:
+                StreamParameter sp = (StreamParameter) p;
+                daId = this.dip.registerStreamAccess(am, sp.getValue(), sp.getCode());
                 break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter content : cp.getParameters()) {
                     registerParameterAccessAndAddDependencies(currentTask, isConstraining, content);
                 }
-                daId = DIP.registerCollectionAccess(am, cp);
+                daId = dip.registerCollectionAccess(am, cp);
                 break;
             default:
                 // This is a basic type, there are no accesses to register
@@ -320,9 +325,9 @@ public class TaskAnalyser {
     }
 
     /**
-     * Registers the end of execution of task @task
+     * Registers the end of execution of task @{code task}.
      *
-     * @param task
+     * @param task Ended task.
      */
     public void endTask(Task task) {
         int taskId = task.getId();
@@ -392,15 +397,17 @@ public class TaskAnalyser {
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
             if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-                    || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
+                    || type == DataType.STREAM_T || type == DataType.EXTERNAL_PSCO_T
+                    || type == DataType.BINDING_OBJECT_T) {
+                
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
                 if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
                         && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
-                    this.DIP.dataAccessHasBeenCanceled(dAccId);
+                    this.dip.dataAccessHasBeenCanceled(dAccId);
                 } else {
-                    this.DIP.dataHasBeenAccessed(dAccId);
+                    this.dip.dataHasBeenAccessed(dAccId);
                 }
             }
         }
@@ -455,8 +462,8 @@ public class TaskAnalyser {
             for (DataInstanceId fileId : fileIds) {
                 try {
                     int id = fileId.getDataId();
-                    this.DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
-                    this.DIP.unblockDataId(id);
+                    this.dip.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
+                    this.dip.unblockDataId(id);
                 } catch (Exception e) {
                     LOGGER.error("Exception ordering transfer when task ends", e);
                 }
@@ -510,7 +517,7 @@ public class TaskAnalyser {
         if (IS_DRAW_GRAPH) {
             TreeSet<Integer> toPass = new TreeSet<>();
             toPass.add(dataId);
-            DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
+            DataInstanceId dii = dip.getLastVersions(toPass).get(0);
             int dataVersion = dii.getVersionId();
             addEdgeFromTaskToMain(lastWriter, dataId, dataVersion);
         }
@@ -574,7 +581,7 @@ public class TaskAnalyser {
             addNewBarrier();
 
             // We can draw the graph on a barrier while we wait for tasks
-            this.GM.commitGraph();
+            this.gm.commitGraph();
         }
 
         // Release the semaphore only if all application tasks have finished
@@ -596,7 +603,7 @@ public class TaskAnalyser {
         Integer count = this.appIdToTaskCount.get(appId);
 
         if (IS_DRAW_GRAPH) {
-            this.GM.commitGraph();
+            this.gm.commitGraph();
         }
 
         if (count == null || count == 0) {
@@ -699,19 +706,35 @@ public class TaskAnalyser {
         Task lastWriter = this.writers.get(dataId);
 
         if (lastWriter != null && lastWriter != currentTask) {
+            // There is a task writer, handle dependencies
             if (DEBUG) {
                 LOGGER.debug(
                         "Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
-                LOGGER.debug(
-                        "Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
-            // Add dependency
-            currentTask.addDataDependency(lastWriter);
+            if (dp.getType().equals(DataType.STREAM_T)) {
+                // Handle dependencies for Streams
+                if (DEBUG) {
+                    LOGGER.debug("Adding stream dependency between task " + lastWriter.getId() + " and task "
+                            + currentTask.getId());
+                }
+                // Add dependency
+                currentTask.addStreamDataDependency(lastWriter);
+            } else {
+                // Handle dependencies for other objects
+                if (DEBUG) {
+                    LOGGER.debug("Adding dependency between task " + lastWriter.getId() + " and task "
+                            + currentTask.getId());
+                }
+                // Add dependency
+                currentTask.addDataDependency(lastWriter);
+            }
         } else {
+            // Task is free
             if (DEBUG) {
                 LOGGER.debug("There is no last writer for datum " + dp.getDataAccessId().getDataId());
             }
         }
+
         // Handle when -g enabled
         if (IS_DRAW_GRAPH) {
             drawEdges(currentTask, dp, dataId, lastWriter);
@@ -758,7 +781,7 @@ public class TaskAnalyser {
         int dataId = dp.getDataAccessId().getDataId();
         List<Task> tasks = this.concurrentAccessMap.get(dataId);
 
-        if (concurrentAccessMap != null && tasks.contains(currentTask) == false) {
+        if (this.concurrentAccessMap != null && tasks.contains(currentTask) == false) {
             if (DEBUG) {
                 LOGGER.debug("There was a concurrent access for datum " + dataId);
                 LOGGER.debug("Adding dependency between list and task " + currentTask.getId());
@@ -831,7 +854,7 @@ public class TaskAnalyser {
      */
     private void addNewTask(Task task) {
         // Add task to graph
-        this.GM.addTaskToGraph(task);
+        this.gm.addTaskToGraph(task);
         // Set the syncId of the task
         task.setSynchronizationId(this.synchronizationId);
         // Update current sync status
@@ -851,12 +874,12 @@ public class TaskAnalyser {
             String src = String.valueOf(source.getId());
             String dst = String.valueOf(dest.getId());
             String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-            this.GM.addEdgeToGraph(src, dst, dep);
+            this.gm.addEdgeToGraph(src, dst, dep);
         } else {
             String src = "Synchro" + dest.getSynchronizationId();
             String dst = String.valueOf(dest.getId());
             String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-            this.GM.addEdgeToGraph(src, dst, dep);
+            this.gm.addEdgeToGraph(src, dst, dep);
         }
     }
 
@@ -871,7 +894,7 @@ public class TaskAnalyser {
         String src = "Synchro" + dest.getSynchronizationId();
         String dst = String.valueOf(dest.getId());
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-        this.GM.addEdgeToGraph(src, dst, dep);
+        this.gm.addEdgeToGraph(src, dst, dep);
     }
 
     /**
@@ -888,18 +911,18 @@ public class TaskAnalyser {
 
             int oldSyncId = this.synchronizationId;
             this.synchronizationId++;
-            this.GM.addSynchroToGraph(this.synchronizationId);
+            this.gm.addSynchroToGraph(this.synchronizationId);
             if (this.synchronizationId > 1) {
                 String oldSync = "Synchro" + oldSyncId;
                 String currentSync = "Synchro" + this.synchronizationId;
-                this.GM.addEdgeToGraph(oldSync, currentSync, "");
+                this.gm.addEdgeToGraph(oldSync, currentSync, "");
             }
         }
 
         // Add edge from task to sync
         String src = String.valueOf(task.getId());
         String dest = "Synchro" + this.synchronizationId;
-        this.GM.addEdgeToGraph(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
+        this.gm.addEdgeToGraph(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
     }
 
     /**
@@ -909,15 +932,16 @@ public class TaskAnalyser {
     private void addNewBarrier() {
         // Add barrier node
         int oldSync = this.synchronizationId;
+        String oldSyncStr = "Synchro" + oldSync;
+
         this.synchronizationId++;
         this.taskDetectedAfterSync = false;
-        this.GM.addBarrierToGraph(this.synchronizationId);
+        this.gm.addBarrierToGraph(this.synchronizationId);
 
         // Add edge from last sync
-        String newSync_str = "Synchro" + this.synchronizationId;
-        String oldSync_str = "Synchro" + oldSync;
+        String newSyncStr = "Synchro" + this.synchronizationId;
         if (this.synchronizationId > 1) {
-            this.GM.addEdgeToGraph(oldSync_str, newSync_str, "");
+            this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, "");
         }
 
         // Add edges from writers to barrier
@@ -925,7 +949,7 @@ public class TaskAnalyser {
         for (Task writer : uniqueWriters) {
             if (writer != null && writer.getSynchronizationId() == oldSync) {
                 String taskId = String.valueOf(writer.getId());
-                this.GM.addEdgeToGraph(taskId, newSync_str, "");
+                this.gm.addEdgeToGraph(taskId, newSyncStr, "");
             }
         }
     }

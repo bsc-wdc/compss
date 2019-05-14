@@ -481,11 +481,12 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 sb.append("Parameter ").append(i).append("\n");
                 DataType type = param.getType();
                 sb.append("\t Type: ").append(param.getType()).append("\n");
-                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.BINDING_OBJECT_T) {
+                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.STREAM_T
+                        || type == DataType.BINDING_OBJECT_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
-                    if (type == DataType.OBJECT_T || type == DataType.BINDING_OBJECT_T) {
+                    if (type == DataType.OBJECT_T || type == DataType.STREAM_T || type == DataType.BINDING_OBJECT_T) {
                         if (dAccId.isWrite()) {
                             // For the worker to know it must write the object to disk
                             sb.append("\t Direction: " + "W").append("\n");
@@ -610,6 +611,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                 break;
             case OBJECT_T:
+            case STREAM_T:
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 paramDesc.add(dPar.getDataTarget());

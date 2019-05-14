@@ -167,6 +167,7 @@ public class WSJob extends Job<ServiceInstance> {
                             switch (par.getType()) {
                                 case OBJECT_T:
                                 case PSCO_T:
+                                case STREAM_T:
                                 case EXTERNAL_PSCO_T:
                                     DependencyParameter dp = (DependencyParameter) par;
                                     Object o = getObjectValue(dp);

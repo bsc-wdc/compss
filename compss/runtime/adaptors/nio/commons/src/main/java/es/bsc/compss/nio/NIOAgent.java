@@ -172,9 +172,9 @@ public abstract class NIOAgent {
      * @return {@code true} if there are pending transfers, {@code false} otherwise.
      */
     public boolean hasPendingTransfers() {
-        LOGGER.debug("pending: " + !pendingRequests.isEmpty() + " sendTransfers: " + (sendTransfers != 0)
-                + " receiveTrasnfers: " + (receiveTransfers != 0) + "\n");
-        return !pendingRequests.isEmpty() || sendTransfers != 0 || receiveTransfers != 0;
+        LOGGER.debug("pending: " + !this.pendingRequests.isEmpty() + " sendTransfers: " + (this.sendTransfers != 0)
+                + " receiveTrasnfers: " + (this.receiveTransfers != 0) + "\n");
+        return !this.pendingRequests.isEmpty() || this.sendTransfers != 0 || this.receiveTransfers != 0;
     }
 
     /**
@@ -290,10 +290,10 @@ public abstract class NIOAgent {
      * @param dr Data Request to add.
      */
     public void addTransferRequest(DataRequest dr) {
-        List<DataRequest> list = dataToRequests.get(dr.getSource().getDataMgmtId());
+        List<DataRequest> list = this.dataToRequests.get(dr.getSource().getDataMgmtId());
         if (list == null) {
             list = new LinkedList<>();
-            dataToRequests.put(dr.getSource().getDataMgmtId(), list);
+            this.dataToRequests.put(dr.getSource().getDataMgmtId(), list);
             synchronized (this.pendingRequests) {
                 this.pendingRequests.add(dr);
             }

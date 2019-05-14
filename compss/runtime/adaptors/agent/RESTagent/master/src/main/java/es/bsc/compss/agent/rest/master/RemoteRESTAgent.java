@@ -205,6 +205,9 @@ public class RemoteRESTAgent extends COMPSsWorker {
             case OBJECT_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
                 break;
+            case STREAM_T:
+                path = Protocol.STREAM_URI.getSchema() + name;
+                break;
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;

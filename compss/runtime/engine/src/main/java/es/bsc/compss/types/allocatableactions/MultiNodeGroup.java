@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
+import es.bsc.compss.log.Loggers;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,11 +26,9 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.compss.log.Loggers;
-
 
 /**
- * Represents a group of Execution Actions that allow the multi-node execution
+ * Represents a group of Execution Actions that allow the multi-node execution.
  */
 public class MultiNodeGroup {
 
@@ -46,9 +46,9 @@ public class MultiNodeGroup {
 
 
     /**
-     * Creates a new group of @groupSize size
+     * Creates a new group of {@code groupSize} size.
      *
-     * @param groupSize
+     * @param groupSize Group size.
      */
     public MultiNodeGroup(int groupSize) {
         LOGGER.debug("[MultiNodeGroup] Creating new group of size " + groupSize);
@@ -60,10 +60,10 @@ public class MultiNodeGroup {
     }
 
     /**
-     * Registers a new process into the group and returns its assigned process Id
+     * Registers a new process into the group and returns its assigned process Id.
      *
-     * @param action
-     * @return
+     * @param action ExecutionAction to register into the group.
+     * @return The assigned process group Id.
      */
     public int registerProcess(MultiNodeExecutionAction action) {
         int actionId = this.nextProcessId--;
@@ -81,27 +81,27 @@ public class MultiNodeGroup {
     }
 
     /**
-     * Returns the group size
+     * Returns the group size.
      *
-     * @return
+     * @return The group size.
      */
     public int getGroupSize() {
         return this.groupSize;
     }
 
     /**
-     * Returns the action associated to the master of the group
+     * Returns the action associated to the master of the group.
      *
-     * @return
+     * @return The action associated to the master of the current group.
      */
     public MultiNodeExecutionAction getMasterAction() {
         return this.registeredMaster;
     }
 
     /**
-     * Returns the resources ' names of all the slaves registered into the group
+     * Returns the resources' names of all the slaves registered into the group.
      *
-     * @return
+     * @return A list of the resources' names of all the slaves registered into the group.
      */
     public List<String> getSlavesNames() {
         List<String> slavesNames = new ArrayList<>();
@@ -122,7 +122,7 @@ public class MultiNodeGroup {
     }
 
     /**
-     * Triggers an action completion to all the slaves registered into the group
+     * Triggers an action completion to all the slaves registered into the group.
      */
     public void actionCompletion() {
         LOGGER.debug("[MultiNodeGroup] Notify action completion to all slaves of group " + this);
@@ -132,7 +132,7 @@ public class MultiNodeGroup {
     }
 
     /**
-     * Triggers an action failure to all the slaves registered into the group
+     * Triggers an action failure to all the slaves registered into the group.
      */
     public void actionError() {
         LOGGER.debug("[MultiNodeGroup] Notify action error to all slaves of group " + this);

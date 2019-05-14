@@ -22,7 +22,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 
 
 public class WaitForConcurrentRequest extends APRequest {

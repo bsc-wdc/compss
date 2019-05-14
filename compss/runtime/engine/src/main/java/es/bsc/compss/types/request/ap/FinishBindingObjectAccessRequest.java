@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.AccessParams.BindingObjectAccessParams;
+import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 
@@ -29,6 +29,11 @@ public class FinishBindingObjectAccessRequest extends APRequest {
     private BindingObjectAccessParams boAP;
 
 
+    /**
+     * Creates a new FinishBindingObject access request.
+     * 
+     * @param boAP Associated BindingObjectAccessParams.
+     */
     public FinishBindingObjectAccessRequest(BindingObjectAccessParams boAP) {
         this.boAP = boAP;
     }
@@ -41,7 +46,8 @@ public class FinishBindingObjectAccessRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
             throws ShutdownException {
-        dip.finishBindingObjectAccess(boAP.getMode(), boAP.getCode());
+
+        dip.finishBindingObjectAccess(this.boAP.getMode(), this.boAP.getCode());
     }
 
 }

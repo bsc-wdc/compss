@@ -206,6 +206,7 @@ public class DataManagerImpl implements DataManager {
                 fetchCollection(param, paramIdx, tt);
                 break;
             case OBJECT_T:
+            case STREAM_T:
                 fetchObject(param, paramIdx, tt);
                 break;
             case PSCO_T:
@@ -604,6 +605,7 @@ public class DataManagerImpl implements DataManager {
 
         switch (param.getType()) {
             case OBJECT_T:
+            case STREAM_T:
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 loadObject(param);
                 break;
@@ -642,6 +644,7 @@ public class DataManagerImpl implements DataManager {
     public void storeParam(InvocationParam param) {
         switch (param.getType()) {
             case OBJECT_T:
+            case STREAM_T:
                 storeObject(param.getDataMgmtId(), param.getValue());
                 break;
             case PSCO_T:
@@ -738,7 +741,7 @@ public class DataManagerImpl implements DataManager {
     private void transferParameter(InvocationParam param, int index, FetchDataListener tt) {
         WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue()
                 + ") does not exist, requesting data transfer");
-        provider.askForTransfer(param, index, tt);
+        this.provider.askForTransfer(param, index, tt);
     }
 
 }

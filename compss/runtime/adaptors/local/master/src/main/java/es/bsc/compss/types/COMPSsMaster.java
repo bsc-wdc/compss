@@ -1000,6 +1000,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case COLLECTION_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
                 break;
+            case STREAM_T:
+                path = Protocol.STREAM_URI.getSchema() + name;
+                break;
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
@@ -1183,6 +1186,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 // No need to load anything. Value already on a file
                 break;
             case OBJECT_T:
+            case STREAM_T:
                 DependencyParameter dpar = (DependencyParameter) localParam.getParam();
                 String dataId = (String) localParam.getValue();
                 LogicalData ld = Comm.getData(dataId);
@@ -1211,14 +1215,14 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case FILE_T:
                 // No need to store anything. Already stored on disk
                 break;
-            case OBJECT_T: {
+            case OBJECT_T:
+            case STREAM_T:
                 String resultName = localParam.getDataMgmtId();
                 LogicalData ld = Comm.getData(resultName);
                 ld.setValue(invParam.getValue());
                 break;
-            }
             case BINDING_OBJECT_T:
-                //No need to store anything. Already stored on the binding
+                // No need to store anything. Already stored on the binding
                 break;
             default:
                 throw new UnsupportedOperationException("Not supported yet." + param.getType());

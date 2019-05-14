@@ -20,19 +20,16 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
-import es.bsc.compss.types.data.location.DataLocation;
 
-
-public class FileParameter extends DependencyParameter {
+public class StreamParameter extends DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // File parameter fields
-    private final DataLocation location;
-    private final String originalName;
+    private final int hashCode;
+    private Object value;
 
 
     /**
@@ -42,29 +39,33 @@ public class FileParameter extends DependencyParameter {
      * @param stream Standard IO Stream flags.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
-     * @param location File location.
+     * @param value Parameter object value.
+     * @param hashCode Parameter object hashcode.
      */
-    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, DataLocation location,
-            String originalName) {
+    public StreamParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
+            int hashCode) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name);
-        this.location = location;
-        this.originalName = originalName;
-
+        super(DataType.STREAM_T, direction, stream, prefix, name);
+        this.value = value;
+        this.hashCode = hashCode;
     }
 
-    public DataLocation getLocation() {
-        return this.location;
+    public Object getValue() {
+        return this.value;
     }
 
-    @Override
-    public String getOriginalName() {
-        return this.originalName;
+    public void setValue(Object value) {
+        this.value = value;
+    }
+
+    public int getCode() {
+        return this.hashCode;
     }
 
     @Override
     public String toString() {
-        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection();
+        return "StreamParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
+                + getDirection();
     }
 
 }

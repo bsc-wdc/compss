@@ -26,13 +26,15 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.data.AccessParams;
-import es.bsc.compss.types.data.AccessParams.AccessMode;
-import es.bsc.compss.types.data.AccessParams.FileAccessParams;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
+import es.bsc.compss.types.data.accessparams.FileAccessParams;
+import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ResultFile;
@@ -133,12 +135,21 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Sets the GraphGenerator co-worker
+     * Sets the GraphGenerator co-worker.
      *
-     * @param gm
+     * @param GraphGenerator co-worker.
      */
     public void setGM(GraphGenerator gm) {
         this.taskAnalyser.setGM(gm);
+    }
+
+    /**
+     * Returns the internal DataInfoProvider instance.
+     * 
+     * @return The internal DataInfoProvider instance.
+     */
+    public DataInfoProvider getDataInfoProvider() {
+        return this.dataInfoProvider;
     }
 
     @Override
@@ -191,7 +202,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return
      */
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure) {
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
+            OnFailure onFailure) {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
                 hasTarget, numReturns, parameters, monitor, onFailure);
@@ -241,7 +253,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
-    public void finishAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
+    public void finishAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
         if (!alreadyAccessed) {
@@ -268,8 +280,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param destDir
      * @return
      */
-    public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap,
-            String destDir) {
+    public DataLocation mainAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
         if (!alreadyAccessed) {
@@ -387,7 +398,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
 
         // Tell the DIP that the application wants to access an object
-        AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, obj, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, this.dataInfoProvider, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -433,7 +444,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
 
         // Tell the DIP that the application wants to access an object
-        AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, id, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, this.dataInfoProvider, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -492,7 +503,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Tell the DIP that the application wants to access an object
         // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
         // hashCode);
-        AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.R, bo,
+        BindingObjectAccessParams oap = new BindingObjectAccessParams(AccessMode.R, this.dataInfoProvider, bo,
                 hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
@@ -521,7 +532,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return bindingObjectID;
     }
 
-    private void finishBindingObjectAccess(AccessParams.BindingObjectAccessParams boAP) {
+    private void finishBindingObjectAccess(BindingObjectAccessParams boAP) {
         if (!requestQueue.offer(new FinishBindingObjectAccessRequest(boAP))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "finishing binding object access");
         }
@@ -735,29 +746,28 @@ public class AccessProcessor implements Runnable, TaskProducer {
         LOGGER.debug("Marking data " + loc + " for deletion");
         Semaphore sem = new Semaphore(0);
         Semaphore semWait = new Semaphore(0);
-       
-        WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc,sem,semWait);
+
+        WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc, sem, semWait);
         // Wait for data to be ready for deletion
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
         }
-        
+
         // Wait for response
         LOGGER.debug("Waiting for ready to delete request response...");
         sem.acquireUninterruptibly();
-        
-        int nPermits = request.getNumPermits(); 
-        if ( nPermits > 0 ) {
+
+        int nPermits = request.getNumPermits();
+        if (nPermits > 0) {
             LOGGER.debug("Waiting for " + nPermits + " tasks to finish...");
             semWait.acquireUninterruptibly(nPermits);
         }
-        
-        
+
         // Request to delete data
         if (!requestQueue.offer(new DeleteFileRequest(loc, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
-        
+
         LOGGER.debug("Waiting for delete request response...");
         // Wait for response
         sem.acquireUninterruptibly();

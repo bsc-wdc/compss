@@ -43,15 +43,25 @@ public class FileInfo extends DataInfo {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
 
+    /**
+     * Creates a new FileInfo instance with the given location {@code loc}.
+     * 
+     * @param loc File location.
+     */
     public FileInfo(DataLocation loc) {
         super();
         this.origLocation = loc;
     }
 
+    /**
+     * Returns the original file location.
+     * 
+     * @return The original file location.
+     */
     public DataLocation getOriginalLocation() {
-        return origLocation;
+        return this.origLocation;
     }
-    
+
     @Override
     public int waitForDataReadyToDelete(Semaphore semWait) {
         int nPermits = 1;
@@ -63,7 +73,7 @@ public class FileInfo extends DataInfo {
                 for (DataLocation loc : ld.getLocations()) {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
                     if (uri != null) {
-                        if (loc.equals(origLocation)) {
+                        if (loc.equals(this.origLocation)) {
                             if (loc.getType() != Type.SHARED) {
                                 nPermits = waitForEndingCopies(ld, loc, semWait);
                             } else {
@@ -90,7 +100,7 @@ public class FileInfo extends DataInfo {
         }
         return nPermits;
     }
-    
+
     @Override
     public boolean delete() {
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());

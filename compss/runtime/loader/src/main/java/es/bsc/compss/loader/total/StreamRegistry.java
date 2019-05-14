@@ -64,17 +64,17 @@ public class StreamRegistry {
     private static final String LINE_SEP = System.getProperty("line.separator");
 
     // API object used to invoke calls on the COMPSsRuntimeImpl
-    private LoaderAPI itApi;
+    private final LoaderAPI itApi;
 
     /*
      * Map: file absolute path -> list of opened streams of the file Only local files are accepted, since a java stream
      * cannot be opened on a remote file
      */
-    private Map<String, StreamList> fileToStreams;
+    private final Map<String, StreamList> fileToStreams;
 
-    private Set<String> taskFiles;
+    private final Set<String> taskFiles;
 
-    private boolean onWindows;
+    private final boolean onWindows;
 
 
     /**

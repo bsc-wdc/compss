@@ -47,5 +47,6 @@ public enum DataType {
     ARRAY_FLOAT_T, // Array float
     ARRAY_DOUBLE_T, // Array double
     COLLECTION_T, // Collection
+    STREAM_T, // Streams
     NULL_T; // Null
 }

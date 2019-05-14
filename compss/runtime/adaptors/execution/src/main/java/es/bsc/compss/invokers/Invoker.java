@@ -221,6 +221,7 @@ public abstract class Invoker {
                     break;
                 case OBJECT_T:
                 case COLLECTION_T:
+                case STREAM_T:
                 case PSCO_T:
                     // Get object
                     if (obj != null) {

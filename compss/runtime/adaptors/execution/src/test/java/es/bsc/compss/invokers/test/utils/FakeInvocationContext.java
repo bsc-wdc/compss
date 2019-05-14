@@ -132,6 +132,7 @@ public class FakeInvocationContext implements InvocationContext {
         Object o;
         switch (param.getType()) {
             case OBJECT_T:
+            case STREAM_T:
                 o = getObject(param.getDataMgmtId());
                 if (o != null) {
                     param.setValue(o);
@@ -173,6 +174,7 @@ public class FakeInvocationContext implements InvocationContext {
     public void storeParam(InvocationParam param) {
         switch (param.getType()) {
             case OBJECT_T:
+            case STREAM_T:
                 storeObject(param.getDataMgmtId(), param.getValue());
                 break;
             case PSCO_T:

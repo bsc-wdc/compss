@@ -31,5 +31,6 @@ public enum Type {
     FLOAT, // float
     DOUBLE, // double
     OBJECT, // object
+    STREAM, // stream
     UNSPECIFIED; // unspecified
 }

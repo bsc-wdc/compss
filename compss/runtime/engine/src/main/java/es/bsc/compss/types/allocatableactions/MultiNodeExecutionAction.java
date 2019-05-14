@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
-import java.util.List;
-
 import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
@@ -28,9 +26,11 @@ import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
+import java.util.List;
+
 
 /**
- * Representation of a multi-node execution action
+ * Representation of a multi-node execution action.
  */
 public class MultiNodeExecutionAction extends ExecutionAction {
 
@@ -39,13 +39,13 @@ public class MultiNodeExecutionAction extends ExecutionAction {
 
 
     /**
-     * Creates a new master action with a fixed amount of slaves
+     * Creates a new master action with a fixed amount of slaves.
      *
-     * @param schedulingInformation
-     * @param orchestrator
-     * @param producer
-     * @param task
-     * @param group
+     * @param schedulingInformation Scheduling information.
+     * @param orchestrator Task orchestrator.
+     * @param producer Task producer.
+     * @param task Associated task.
+     * @param group Multi-node group.
      */
     public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
             TaskProducer producer, Task task, MultiNodeGroup group) {

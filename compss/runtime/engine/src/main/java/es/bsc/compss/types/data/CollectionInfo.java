@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.types.data;
 
+import java.util.concurrent.Semaphore;
+
+
 /**
  * Information about a collection and its versions
  * 
@@ -28,18 +31,18 @@ public class CollectionInfo extends DataInfo {
 
 
     /**
-     * Default constructor
+     * Default constructor.
      * 
-     * @see DataInfo empty constructor
+     * @see DataInfo empty constructor.
      */
     public CollectionInfo() {
         super();
     }
 
     /**
-     * Constructor with collection identifier
+     * Constructor with a String representing the collection Id.
      * 
-     * @param collectionId Collection identifier
+     * @param collectionId String representing the collection Id.
      */
     public CollectionInfo(String collectionId) {
         super();
@@ -47,20 +50,26 @@ public class CollectionInfo extends DataInfo {
     }
 
     /**
-     * Get the collectionId
+     * Get the collectionId.
      * 
-     * @return String
+     * @return String representing the collection Id.
      */
     public String getCollectionId() {
         return collectionId;
     }
 
     /**
-     * Change the value of the collectionId
+     * Change the value of the collectionId.
      * 
-     * @param collectionId String
+     * @param collectionId String representing the collection Id.
      */
     public void setCollectionId(String collectionId) {
         this.collectionId = collectionId;
+    }
+
+    @Override
+    public int waitForDataReadyToDelete(Semaphore semWait) {
+        // Nothing to wait for
+        return 0;
     }
 }

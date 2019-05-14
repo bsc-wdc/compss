@@ -34,17 +34,17 @@ public class ObjectRegistry {
     private static final String EMPTY = "EMPTY";
 
     // Api object used to invoke calls on the Integrated Toolkit
-    private LoaderAPI itApi;
+    private final LoaderAPI itApi;
     // Temporary directory where the files containing objects will be stored (same as the stream registry dir)
-    private String serialDir;
+    private final String serialDir;
 
     // Map: hash code -> object
-    private Map<Integer, Object> appTaskObjects;
-    private Map<Integer, Object> internalObjects;
+    private final Map<Integer, Object> appTaskObjects;
+    private final Map<Integer, Object> internalObjects;
 
 
     /**
-     * Creates a new ObjectRegistry instance assocaited to a given LoaderAPI {@code api}.
+     * Creates a new ObjectRegistry instance associated to a given LoaderAPI {@code api}.
      * 
      * @param api LoaderAPI.
      */
@@ -64,6 +64,36 @@ public class ObjectRegistry {
      */
     public void newObjectAccess(Object o) {
         newObjectAccess(o, true);
+    }
+
+    /**
+     * Registers a new access to the given object {@code o} in mode {@code isWriter}.
+     * 
+     * @param o Object.
+     * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
+     */
+    public void newObjectAccess(Object o, boolean isWriter) {
+        if (o == null) {
+            return;
+        }
+        Integer hashCode = getObjectHashCode(o);
+        if (hashCode == null) {
+            return; // Not a task parameter object
+        }
+
+        /*
+         * The object has been accessed by a task before. Check with the API that the application has the last version,
+         * blocking if necessary.
+         */
+        if (DEBUG) {
+            LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: " + isWriter);
+        }
+
+        // Get the updated version of the object
+        Object oUpdated = this.itApi.getObject(o, hashCode, serialDir);
+        if (oUpdated != null) {
+            this.internalObjects.put(hashCode, oUpdated);
+        }
     }
 
     /**
@@ -107,36 +137,6 @@ public class ObjectRegistry {
         }
 
         return objHashCode;
-    }
-
-    /**
-     * Registers a new access to the given object {@code o} in mode {@code isWriter}.
-     * 
-     * @param o Object.
-     * @param isWriter {@code true} if its a writer access, {@code false} otherwise.
-     */
-    public void newObjectAccess(Object o, boolean isWriter) {
-        if (o == null) {
-            return;
-        }
-        Integer hashCode = getObjectHashCode(o);
-        if (hashCode == null) {
-            return; // Not a task parameter object
-        }
-
-        /*
-         * The object has been accessed by a task before. Check with the API that the application has the last version,
-         * blocking if necessary.
-         */
-        if (DEBUG) {
-            LOGGER.debug("New access to object with hash code " + hashCode + ", for writing: " + isWriter);
-        }
-
-        // Get the updated version of the object
-        Object oUpdated = this.itApi.getObject(o, hashCode, serialDir);
-        if (oUpdated != null) {
-            this.internalObjects.put(hashCode, oUpdated);
-        }
     }
 
     private Integer getObjectHashCode(Object o) {

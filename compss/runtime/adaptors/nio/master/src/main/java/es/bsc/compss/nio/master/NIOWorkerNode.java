@@ -587,6 +587,9 @@ public class NIOWorkerNode extends COMPSsWorker {
             case COLLECTION_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
                 break;
+            case STREAM_T:
+                path = Protocol.STREAM_URI.getSchema() + name;
+                break;
             case PSCO_T:
                 // Search for the PSCO id
                 String id = Comm.getData(name).getPscoId();

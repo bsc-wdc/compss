@@ -21,12 +21,6 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.Task;
-import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.Task.TaskState;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
@@ -34,23 +28,28 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.Task;
+import es.bsc.compss.types.Task.TaskState;
+import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.operation.JobTransfersListener;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -62,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,12 +86,12 @@ public class ExecutionAction extends AllocatableAction {
 
 
     /**
-     * Creates a new execution action
+     * Creates a new execution action.
      *
-     * @param schedulingInformation
-     * @param orchestrator
-     * @param producer
-     * @param task
+     * @param schedulingInformation Associated scheduling information.
+     * @param orchestrator Task orchestrator.
+     * @param producer Task producer.
+     * @param task Associated task.
      */
     public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
             TaskProducer producer, Task task) {
@@ -130,9 +130,9 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     /**
-     * Returns the associated task
+     * Returns the associated task.
      *
-     * @return
+     * @return The associated task.
      */
     public final Task getTask() {
         return this.task;
@@ -177,7 +177,9 @@ public class ExecutionAction extends AllocatableAction {
     private void transferInputData(JobTransfersListener listener) {
         TaskDescription taskDescription = task.getTaskDescription();
         for (Parameter p : taskDescription.getParameters()) {
-            JOB_LOGGER.debug("    * " + p);
+            if (DEBUG) {
+                JOB_LOGGER.debug("    * " + p);
+            }
             if (p instanceof DependencyParameter) {
                 DependencyParameter dp = (DependencyParameter) p;
                 switch (taskDescription.getType()) {
@@ -198,45 +200,86 @@ public class ExecutionAction extends AllocatableAction {
 
     // Private method that performs data transfers
     private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
-
-        if (param.getType() == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter) param;
-            JOB_LOGGER.debug("Detected CollectionParameter " + cp);
-            // TODO: Handle basic data types
-            for (Parameter p : cp.getParameters()) {
-                DependencyParameter dp = (DependencyParameter) p;
-                transferJobData(dp, listener);
-            }
+        switch (param.getType()) {
+            case COLLECTION_T:
+                CollectionParameter cp = (CollectionParameter) param;
+                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+                // Recursively send all the collection parameters
+                for (Parameter p : cp.getParameters()) {
+                    DependencyParameter dp = (DependencyParameter) p;
+                    transferJobData(dp, listener);
+                }
+                break;
+            case STREAM_T:
+                // Stream stubs are always transferred independently of their access
+                transferStreamParameter(param, listener);
+                break;
+            default:
+                transferSingleParameter(param, listener);
+                break;
         }
+    }
 
+    private void transferSingleParameter(DependencyParameter param, JobTransfersListener listener) {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
+
         if (access instanceof WAccessId) {
+            // Write access, fill information for the worker to generate the output data
             String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
+
             // Workaround for return objects in bindings converted to PSCOs inside tasks
-            if (param instanceof ExternalPSCOParameter) {
+            DataType type = param.getType();
+            if (type.equals(DataType.EXTERNAL_PSCO_T)) {
                 ExternalPSCOParameter epp = (ExternalPSCOParameter) param;
                 tgtName = epp.getId();
             }
             if (DEBUG) {
-                JOB_LOGGER.debug(
-                        "Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
+                JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
             }
-            JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
+            JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
             param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName).getPath());
-            return;
-        }
+        } else if (access instanceof RAccessId) {
+            // Read Access, transfer object
+            listener.addOperation();
 
-        listener.addOperation();
-        if (access instanceof RAccessId) {
             String srcName = ((RAccessId) access).getReadDataInstance().getRenaming();
             w.getData(srcName, srcName, param, listener);
         } else {
-            // Is RWAccess
+            // ReadWrite Access, transfer object
+            listener.addOperation();
+
             String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
             String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
             w.getData(srcName, tgtName, (LogicalData) null, param, listener);
         }
+    }
+
+    private void transferStreamParameter(DependencyParameter param, JobTransfersListener listener) {
+        DataAccessId access = param.getDataAccessId();
+        String source;
+        String target;
+        if (access instanceof WAccessId) {
+            WAccessId wAccess = (WAccessId) access;
+            source = wAccess.getWrittenDataInstance().getRenaming();
+            target = source;
+        } else if (access instanceof RAccessId) {
+            RAccessId rAccess = (RAccessId) access;
+            source = rAccess.getReadDataInstance().getRenaming();
+            target = source;
+        } else {
+            RWAccessId rwAccess = (RWAccessId) access;
+            source = rwAccess.getReadDataInstance().getRenaming();
+            target = rwAccess.getWrittenDataInstance().getRenaming();
+        }
+
+        // Ask for transfer
+        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
+        if (DEBUG) {
+            JOB_LOGGER.debug("Requesting stream transfer from " + source + " to " + target + " at " + w.getName());
+        }
+        listener.addOperation();
+        w.getData(source, target, param, listener);
     }
 
     /*
@@ -245,9 +288,9 @@ public class ExecutionAction extends AllocatableAction {
      * ***************************************************************************************************************
      */
     /**
-     * Code executed after some input transfers have failed
+     * Code executed after some input transfers have failed.
      *
-     * @param failedtransfers
+     * @param failedtransfers Number of failed transfers.
      */
     public final void failedTransfers(int failedtransfers) {
         JOB_LOGGER.debug("Received a notification for the transfers for task " + task.getId() + " with state FAILED");
@@ -264,9 +307,9 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     /**
-     * Code executed when all transfers have succeeded
+     * Code executed when all transfers have succeeded.
      *
-     * @param transferGroupId
+     * @param transferGroupId Transferring group Id.
      */
     public final void doSubmit(int transferGroupId) {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + task.getId() + " with state DONE");
@@ -301,10 +344,10 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     /**
-     * Code executed when the job execution has failed
+     * Code executed when the job execution has failed.
      *
-     * @param job
-     * @param endStatus
+     * @param job Failed job.
+     * @param endStatus Exit status.
      */
     public final void failedJob(Job<?> job, JobEndStatus endStatus) {
         profile.end();
@@ -331,9 +374,9 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     /**
-     * Code executed when the job execution has been completed
+     * Code executed when the job execution has been completed.
      *
-     * @param job
+     * @param job Completed job.
      */
     public final void completedJob(Job<?> job) {
         // End profile
@@ -348,13 +391,38 @@ public class ExecutionAction extends AllocatableAction {
         notifyCompleted();
     }
 
-    private final DataLocation storeOutputParameter(Job<?> job, Parameter p) {
-        Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
+    private final void doOutputTransfers(Job<?> job) {
+        switch (job.getType()) {
+            case METHOD:
+                doMethodOutputTransfers(job);
+                break;
+            case SERVICE:
+                doServiceOutputTransfers(job);
+                break;
+        }
+    }
+
+    private final void doMethodOutputTransfers(Job<?> job) {
+        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
+        TaskMonitor monitor = this.task.getTaskMonitor();
+
+        List<Parameter> params = job.getTaskParams().getParameters();
+        for (int i = 0; i < params.size(); ++i) {
+            Parameter p = params.get(i);
+            DataLocation outLoc = storeOutputParameter(job, w, p);
+            if (outLoc != null) {
+                monitor.valueGenerated(i, p.getType(), p.getName(), outLoc);
+            }
+        }
+    }
+
+    private final DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
+            Parameter p) {
+
         if (p instanceof DependencyParameter) {
-            // OUT or INOUT: we must tell the FTM about the
-            // generated/updated datum
-            DataInstanceId dId = null;
+            // Notify the FileTransferManager about the generated/updated OUT/INOUT datums
             DependencyParameter dp = (DependencyParameter) p;
+            DataInstanceId dId = null;
             switch (p.getDirection()) {
                 case CONCURRENT:
                 case IN:
@@ -365,76 +433,104 @@ public class ExecutionAction extends AllocatableAction {
                     break;
                 case INOUT:
                     dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    if (job.getType() == TaskType.SERVICE) {
-                        return null;
-                    }
                     break;
             }
+
+            // Retrieve parameter information
             String name = dId.getRenaming();
-            if (job.getType() == TaskType.METHOD) {
-                String targetProtocol = null;
-                switch (dp.getType()) {
-                    case FILE_T:
-                        targetProtocol = DataLocation.Protocol.FILE_URI.getSchema();
-                        break;
-                    case OBJECT_T:
-                        targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
-                        break;
-                    case COLLECTION_T:
-                        targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
-                        CollectionParameter cp = (CollectionParameter) p;
-                        for (Parameter elem : cp.getParameters()) {
-                            storeOutputParameter(job, elem);
-                        }
-                        break;
-                    case PSCO_T:
-                        targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
-                        break;
-                    case EXTERNAL_PSCO_T:
-                        // Its value is the PSCO Id
-                        targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
-                        break;
-                    case BINDING_OBJECT_T:
-                        // Its value is the PSCO Id
-                        targetProtocol = DataLocation.Protocol.BINDING_URI.getSchema();
-                        break;
-                    default:
-                        // Should never reach this point because only
-                        // DependencyParameter types are treated
-                        // Ask for any_uri just in case
-                        targetProtocol = DataLocation.Protocol.ANY_URI.getSchema();
-                        break;
-                }
-                DataLocation outLoc = null;
-                try {
-                    SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
-                    outLoc = DataLocation.createLocation(w, targetURI);
-                } catch (Exception e) {
-                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
-                }
-                Comm.registerLocation(name, outLoc);
-                return outLoc;
-            } else {
-                // Service
-                Object value = job.getReturnValue();
-                LogicalData ld = Comm.registerValue(name, value);
-                for (DataLocation loc : ld.getLocations()) {
-                    return loc;
-                }
+            String targetProtocol;
+            switch (dp.getType()) {
+                case FILE_T:
+                    targetProtocol = DataLocation.Protocol.FILE_URI.getSchema();
+                    break;
+                case OBJECT_T:
+                    targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
+                    break;
+                case STREAM_T:
+                    // FTM already knows about this datum
+                    return null;
+                case COLLECTION_T:
+                    targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
+                    CollectionParameter cp = (CollectionParameter) p;
+                    for (Parameter elem : cp.getParameters()) {
+                        storeOutputParameter(job, w, elem);
+                    }
+                    break;
+                case PSCO_T:
+                    targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                    break;
+                case EXTERNAL_PSCO_T:
+                    // Its value is the PSCO Id
+                    targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                    break;
+                case BINDING_OBJECT_T:
+                    // Its value is the PSCO Id
+                    targetProtocol = DataLocation.Protocol.BINDING_URI.getSchema();
+                    break;
+                default:
+                    // Should never reach this point because only DependencyParameter types are treated
+                    // Ask for any_uri just in case
+                    targetProtocol = DataLocation.Protocol.ANY_URI.getSchema();
+                    break;
             }
+
+            // Request transfer
+            DataLocation outLoc = null;
+            try {
+                SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
+                outLoc = DataLocation.createLocation(w, targetURI);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
+            }
+            Comm.registerLocation(name, outLoc);
+
+            // Return location
+            return outLoc;
         }
+
+        // If it is not a dependency parameter there is no transfer to request
         return null;
     }
 
-    private final void doOutputTransfers(Job<?> job) {
-        // Job finished, update info about the generated/updated data
+    private final void doServiceOutputTransfers(Job<?> job) {
+        TaskMonitor monitor = this.task.getTaskMonitor();
+
+        // Search for the return object
         List<Parameter> params = job.getTaskParams().getParameters();
-        for (int i = 0; i < params.size(); ++i) {
+        for (int i = params.size() - 1; i >= 0; --i) {
             Parameter p = params.get(i);
-            DataLocation outLoc = storeOutputParameter(job, p);
-            TaskMonitor monitor = this.task.getTaskMonitor();
-            if (outLoc != null) {
-                monitor.valueGenerated(i, p.getType(), p.getName(), outLoc);
+            if (p instanceof DependencyParameter) {
+                // Check parameter direction
+                DataInstanceId dId = null;
+                DependencyParameter dp = (DependencyParameter) p;
+                switch (p.getDirection()) {
+                    case IN:
+                    case CONCURRENT:
+                    case INOUT:
+                        // Return value is OUT, skip the current parameter
+                        continue;
+                    case OUT:
+                        dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                        break;
+                }
+
+                // Parameter found, store it
+                String name = dId.getRenaming();
+                Object value = job.getReturnValue();
+                LogicalData ld = Comm.registerValue(name, value);
+
+                // Monitor one of its locations
+                Set<DataLocation> locations = ld.getLocations();
+                if (!locations.isEmpty()) {
+                    for (DataLocation loc : ld.getLocations()) {
+                        if (loc != null) {
+                            monitor.valueGenerated(i, p.getType(), p.getName(), loc);
+                        }
+                    }
+                }
+
+                // If we reach this point the return value has been registered, we can end
+                return;
             }
         }
     }
@@ -731,11 +827,9 @@ public class ExecutionAction extends AllocatableAction {
                     + " with implementation " + (impl == null ? "null" : impl.getImplementationId()));
         }
 
-        if (// Resource is not compatible with the implementation
-        !targetWorker.getResource().canRun(impl)
-                // already ran on the resource
-                || this.getExecutingResources().contains(targetWorker)) {
-
+        if (!targetWorker.getResource().canRun(impl) // Resource is not compatible with the implementation
+                || this.getExecutingResources().contains(targetWorker)// already ran on the resource
+        ) {
             LOGGER.debug("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();
         }

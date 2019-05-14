@@ -197,7 +197,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         StringBuilder sb = new StringBuilder("[PARAM");
         sb.append("[MGMT ID = ").append(this.dataMgmtId).append("]");
         sb.append("[TYPE = ").append(this.type).append("]");
-        sb.append("[STREAM = ").append(this.stream).append("]");
+        sb.append("[IOSTREAM = ").append(this.stream).append("]");
         sb.append("[PREFIX = ").append(this.prefix).append("]");
         sb.append("[NAME = ").append(this.name).append("]");
         sb.append("[PRESERVE SOURCE DATA = ").append(this.preserveSourceData).append("]");

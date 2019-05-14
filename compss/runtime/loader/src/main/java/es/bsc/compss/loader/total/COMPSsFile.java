@@ -24,8 +24,8 @@ public class COMPSsFile extends File {
 
     private static final long serialVersionUID = 1L;
 
-    private LoaderAPI api;
-    private String pathname;
+    private final LoaderAPI api;
+    private final String pathname;
 
 
     /**

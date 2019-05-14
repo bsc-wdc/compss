@@ -189,6 +189,7 @@ public abstract class ExternalInvoker extends Invoker {
                 break;
             case OBJECT_T:
             case PSCO_T:
+            case STREAM_T:
             case EXTERNAL_PSCO_T:
                 paramArgs.add(np.getValue().toString());
                 paramArgs.add(np.isWriteFinalValue() ? "W" : "R");

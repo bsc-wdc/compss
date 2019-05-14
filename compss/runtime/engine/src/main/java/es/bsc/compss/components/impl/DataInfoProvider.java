@@ -23,11 +23,6 @@ import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
-import es.bsc.compss.types.data.AccessParams;
-import es.bsc.compss.types.data.AccessParams.AccessMode;
-import es.bsc.compss.types.data.AccessParams.BindingObjectAccessParams;
-import es.bsc.compss.types.data.AccessParams.FileAccessParams;
-import es.bsc.compss.types.data.AccessParams.ObjectAccessParams;
 import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInfo;
@@ -37,10 +32,13 @@ import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.ObjectInfo;
 import es.bsc.compss.types.data.ResultFile;
+import es.bsc.compss.types.data.StreamInfo;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.accessparams.AccessParams;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.operation.BindingObjectTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
@@ -98,11 +96,11 @@ public class DataInfoProvider {
      * New Data Info Provider instance
      */
     public DataInfoProvider() {
-        nameToId = new TreeMap<>();
-        collectionToId = new TreeMap<>();
-        codeToId = new TreeMap<>();
-        idToData = new TreeMap<>();
-        renamingToValue = new TreeMap<>();
+        this.nameToId = new TreeMap<>();
+        this.collectionToId = new TreeMap<>();
+        this.codeToId = new TreeMap<>();
+        this.idToData = new TreeMap<>();
+        this.renamingToValue = new TreeMap<>();
 
         LOGGER.info("Initialization finished");
     }
@@ -114,16 +112,9 @@ public class DataInfoProvider {
      * @return
      */
     public DataAccessId registerDataAccess(AccessParams access) {
-        if (access instanceof FileAccessParams) {
-            FileAccessParams fAccess = (FileAccessParams) access;
-            return registerFileAccess(fAccess.getMode(), fAccess.getLocation());
-        } else if (access instanceof BindingObjectAccessParams) {
-            BindingObjectAccessParams oAccess = (BindingObjectAccessParams) access;
-            return registerBindingObjectAccess(oAccess.getMode(), oAccess.getBindingObject(), oAccess.getCode());
-        } else {
-            ObjectAccessParams oAccess = (ObjectAccessParams) access;
-            return registerObjectAccess(oAccess.getMode(), oAccess.getValue(), oAccess.getCode());
-        }
+        // The abstract method comes back to this class and executes the corresponding
+        // registerFileAccess, registerObjectAccess, registerBindingObjectAccess or registerStreamAccess
+        return access.register();
     }
 
     /**
@@ -136,20 +127,20 @@ public class DataInfoProvider {
     public DataAccessId registerFileAccess(AccessMode mode, DataLocation location) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
-        Integer fileId = nameToId.get(locationKey);
+        Integer fileId = this.nameToId.get(locationKey);
 
         // First access to this file
         if (fileId == null) {
             if (DEBUG) {
                 LOGGER.debug("FIRST access to " + location.getLocationKey());
             }
-            
+
             // Update mappings
             fileInfo = new FileInfo(location);
             fileId = fileInfo.getDataId();
-            nameToId.put(locationKey, fileId);
-            idToData.put(fileId, fileInfo);
-            
+            this.nameToId.put(locationKey, fileId);
+            this.idToData.put(fileId, fileInfo);
+
             // Register the initial location of the file
             if (mode != AccessMode.W) {
                 Comm.registerLocation(fileInfo.getCurrentDataVersion().getDataInstanceId().getRenaming(), location);
@@ -159,51 +150,11 @@ public class DataInfoProvider {
             if (DEBUG) {
                 LOGGER.debug("Another access to " + location.getLocationKey());
             }
-            fileInfo = idToData.get(fileId);
+            fileInfo = this.idToData.get(fileId);
         }
 
         // Version management
         return willAccess(mode, fileInfo);
-    }
-
-    public void finishFileAccess(AccessMode mode, DataLocation location) {
-        DataInfo fileInfo;
-        String locationKey = location.getLocationKey();
-        Integer fileId = nameToId.get(locationKey);
-
-        // First access to this file
-        if (fileId == null) {
-            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
-            return;
-        }
-        fileInfo = idToData.get(fileId);
-        DataAccessId daid = getAccess(mode, fileInfo);
-        if (daid == null) {
-            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
-            return;
-        }
-        dataHasBeenAccessed(daid);
-
-    }
-
-    public void finishBindingObjectAccess(AccessMode mode, int code) {
-        DataInfo boInfo;
-
-        Integer aoId = codeToId.get(code);
-
-        // First access to this file
-        if (aoId == null) {
-            LOGGER.warn("Binding Object " + code + " has not been accessed before");
-            return;
-        }
-        boInfo = idToData.get(aoId);
-        DataAccessId daid = getAccess(mode, boInfo);
-        if (daid == null) {
-            LOGGER.warn("Binding Object " + code + " has not been accessed before");
-            return;
-        }
-        dataHasBeenAccessed(daid);
-
     }
 
     /**
@@ -227,8 +178,8 @@ public class DataInfoProvider {
             // Update mappings
             oInfo = new ObjectInfo(code);
             aoId = oInfo.getDataId();
-            codeToId.put(code, aoId);
-            idToData.put(aoId, oInfo);
+            this.codeToId.put(code, aoId);
+            this.idToData.put(aoId, oInfo);
 
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
@@ -244,7 +195,50 @@ public class DataInfoProvider {
                 LOGGER.debug("Another access to object " + code);
             }
 
-            oInfo = idToData.get(aoId);
+            oInfo = this.idToData.get(aoId);
+        }
+
+        // Version management
+        return willAccess(mode, oInfo);
+    }
+
+    /**
+     * DataAccess interface: registers a new object access
+     *
+     * @param mode
+     * @param value
+     * @param code
+     * @return
+     */
+    public DataAccessId registerStreamAccess(AccessMode mode, Object value, int code) {
+        DataInfo oInfo;
+        Integer aoId = this.codeToId.get(code);
+
+        // First access to this datum
+        if (aoId == null) {
+            if (DEBUG) {
+                LOGGER.debug("FIRST access to stream " + code);
+            }
+
+            // Update mappings
+            oInfo = new StreamInfo(code);
+            aoId = oInfo.getDataId();
+            this.codeToId.put(code, aoId);
+            this.idToData.put(aoId, oInfo);
+
+            // Serialize this first version of the object to a file
+            DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+
+            // Inform the File Transfer Manager about the new file containing the object
+            Comm.registerValue(renaming, value);
+        } else {
+            // The datum has already been accessed
+            if (DEBUG) {
+                LOGGER.debug("Another access to stream " + code);
+            }
+
+            oInfo = this.idToData.get(aoId);
         }
 
         // Version management
@@ -262,7 +256,7 @@ public class DataInfoProvider {
     public DataAccessId registerBindingObjectAccess(AccessMode mode, BindingObject bo, int code) {
         DataInfo oInfo;
 
-        Integer aoId = codeToId.get(code);
+        Integer aoId = this.codeToId.get(code);
 
         // First access to this datum
         if (aoId == null) {
@@ -273,8 +267,8 @@ public class DataInfoProvider {
             // Update mappings
             oInfo = new ObjectInfo(code);
             aoId = oInfo.getDataId();
-            codeToId.put(code, aoId);
-            idToData.put(aoId, oInfo);
+            this.codeToId.put(code, aoId);
+            this.idToData.put(aoId, oInfo);
 
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
@@ -290,7 +284,7 @@ public class DataInfoProvider {
                 LOGGER.debug("Another access to external object " + code);
             }
 
-            oInfo = idToData.get(aoId);
+            oInfo = this.idToData.get(aoId);
         }
 
         // Version management
@@ -307,7 +301,7 @@ public class DataInfoProvider {
      */
     public DataAccessId registerExternalPSCOAccess(AccessMode mode, String pscoId, int code) {
         DataInfo oInfo;
-        Integer aoId = codeToId.get(code);
+        Integer aoId = this.codeToId.get(code);
 
         // First access to this datum
         if (aoId == null) {
@@ -318,8 +312,8 @@ public class DataInfoProvider {
             // Update mappings
             oInfo = new ObjectInfo(code);
             aoId = oInfo.getDataId();
-            codeToId.put(code, aoId);
-            idToData.put(aoId, oInfo);
+            this.codeToId.put(code, aoId);
+            this.idToData.put(aoId, oInfo);
 
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = oInfo.getCurrentDataVersion().getDataInstanceId();
@@ -335,11 +329,51 @@ public class DataInfoProvider {
                 LOGGER.debug("Another access to external object " + code);
             }
 
-            oInfo = idToData.get(aoId);
+            oInfo = this.idToData.get(aoId);
         }
 
         // Version management
         return willAccess(mode, oInfo);
+    }
+
+    public void finishFileAccess(AccessMode mode, DataLocation location) {
+        DataInfo fileInfo;
+        String locationKey = location.getLocationKey();
+        Integer fileId = this.nameToId.get(locationKey);
+
+        // First access to this file
+        if (fileId == null) {
+            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+            return;
+        }
+        fileInfo = this.idToData.get(fileId);
+        DataAccessId daid = getAccess(mode, fileInfo);
+        if (daid == null) {
+            LOGGER.warn("File " + location.getLocationKey() + " has not been accessed before");
+            return;
+        }
+        dataHasBeenAccessed(daid);
+
+    }
+
+    public void finishBindingObjectAccess(AccessMode mode, int code) {
+        DataInfo boInfo;
+
+        Integer aoId = this.codeToId.get(code);
+
+        // First access to this file
+        if (aoId == null) {
+            LOGGER.warn("Binding Object " + code + " has not been accessed before");
+            return;
+        }
+        boInfo = this.idToData.get(aoId);
+        DataAccessId daid = getAccess(mode, boInfo);
+        if (daid == null) {
+            LOGGER.warn("Binding Object " + code + " has not been accessed before");
+            return;
+        }
+        dataHasBeenAccessed(daid);
+
     }
 
     private DataAccessId willAccess(AccessMode mode, DataInfo di) {
@@ -429,7 +463,7 @@ public class DataInfoProvider {
      */
     public void dataAccessHasBeenCanceled(DataAccessId dAccId) {
         Integer dataId = dAccId.getDataId();
-        DataInfo di = idToData.get(dataId);
+        DataInfo di = this.idToData.get(dataId);
         Integer rVersionId;
         Integer wVersionId;
         boolean deleted = false;
@@ -465,7 +499,7 @@ public class DataInfoProvider {
      */
     public void dataHasBeenAccessed(DataAccessId dAccId) {
         Integer dataId = dAccId.getDataId();
-        DataInfo di = idToData.get(dataId);
+        DataInfo di = this.idToData.get(dataId);
         Integer rVersionId;
         Integer wVersionId;
         boolean deleted = false;
@@ -514,8 +548,8 @@ public class DataInfoProvider {
      * @return
      */
     public String getLastRenaming(int code) {
-        Integer aoId = codeToId.get(code);
-        DataInfo oInfo = idToData.get(aoId);
+        Integer aoId = this.codeToId.get(code);
+        DataInfo oInfo = this.idToData.get(aoId);
         return oInfo.getCurrentDataVersion().getDataInstanceId().getRenaming();
     }
 
@@ -526,7 +560,7 @@ public class DataInfoProvider {
      * @return
      */
     public DataLocation getOriginalLocation(int fileId) {
-        FileInfo info = (FileInfo) idToData.get(fileId);
+        FileInfo info = (FileInfo) this.idToData.get(fileId);
         return info.getOriginalLocation();
     }
 
@@ -537,7 +571,7 @@ public class DataInfoProvider {
      * @param value
      */
     public void setObjectVersionValue(String renaming, Object value) {
-        renamingToValue.put(renaming, value);
+        this.renamingToValue.put(renaming, value);
         Comm.registerValue(renaming, value);
     }
 
@@ -548,7 +582,7 @@ public class DataInfoProvider {
      * @return
      */
     public boolean isHere(DataInstanceId dId) {
-        return renamingToValue.get(dId.getRenaming()) != null;
+        return this.renamingToValue.get(dId.getRenaming()) != null;
     }
 
     /**
@@ -558,7 +592,7 @@ public class DataInfoProvider {
      * @return
      */
     public Object getObject(String renaming) {
-        return renamingToValue.get(renaming);
+        return this.renamingToValue.get(renaming);
     }
 
     /**
@@ -568,7 +602,7 @@ public class DataInfoProvider {
      * @param wRenaming
      */
     public void newVersionSameValue(String rRenaming, String wRenaming) {
-        renamingToValue.put(wRenaming, renamingToValue.get(rRenaming));
+        this.renamingToValue.put(wRenaming, this.renamingToValue.get(rRenaming));
     }
 
     /**
@@ -578,8 +612,8 @@ public class DataInfoProvider {
      * @return
      */
     public DataInstanceId getLastDataAccess(int code) {
-        Integer aoId = codeToId.get(code);
-        DataInfo oInfo = idToData.get(aoId);
+        Integer aoId = this.codeToId.get(code);
+        DataInfo oInfo = this.idToData.get(aoId);
         return oInfo.getCurrentDataVersion().getDataInstanceId();
     }
 
@@ -592,7 +626,7 @@ public class DataInfoProvider {
     public List<DataInstanceId> getLastVersions(TreeSet<Integer> dataIds) {
         List<DataInstanceId> versionIds = new ArrayList<>(dataIds.size());
         for (Integer dataId : dataIds) {
-            DataInfo dataInfo = idToData.get(dataId);
+            DataInfo dataInfo = this.idToData.get(dataId);
             if (dataInfo != null) {
                 versionIds.add(dataInfo.getCurrentDataVersion().getDataInstanceId());
             } else {
@@ -608,10 +642,10 @@ public class DataInfoProvider {
      * @param dataId
      */
     public void unblockDataId(Integer dataId) {
-        DataInfo dataInfo = idToData.get(dataId);
+        DataInfo dataInfo = this.idToData.get(dataId);
         dataInfo.unblockDeletions();
     }
-    
+
     /**
      * Waits until data is ready for its safe deletion
      *
@@ -622,19 +656,19 @@ public class DataInfoProvider {
     public int waitForDataReadyToDelete(DataLocation loc, Semaphore semWait) {
         LOGGER.debug("Waiting for data to be ready for deletion: " + loc.getPath());
         String locationKey = loc.getLocationKey();
-        
-        Integer dataId = nameToId.get(locationKey);
+
+        Integer dataId = this.nameToId.get(locationKey);
         if (dataId == null) {
             LOGGER.debug("No data id found for this data location" + loc.getPath());
             semWait.release();
             return 0;
         }
 
-        DataInfo dataInfo = idToData.get(dataId);
+        DataInfo dataInfo = this.idToData.get(dataId);
         int nPermits = dataInfo.waitForDataReadyToDelete(semWait);
         return nPermits;
     }
-    
+
     /**
      * Gets the dataInfo of the location
      * 
@@ -642,14 +676,14 @@ public class DataInfoProvider {
      */
     public DataInfo getLocationDataInfo(DataLocation loc) {
         String locationKey = loc.getLocationKey();
-        if(nameToId.containsKey(locationKey)) {
-            Integer dataId = nameToId.get(locationKey);
-            DataInfo dataInfo = idToData.get(dataId);
+        if (this.nameToId.containsKey(locationKey)) {
+            Integer dataId = this.nameToId.get(locationKey);
+            DataInfo dataInfo = this.idToData.get(dataId);
             return dataInfo;
         }
         return null;
     }
-    
+
     /**
      * Marks a data Id for deletion
      *
@@ -659,21 +693,21 @@ public class DataInfoProvider {
     public DataInfo deleteData(DataLocation loc) {
         LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
-        Integer dataId = nameToId.get(locationKey);
+        Integer dataId = this.nameToId.get(locationKey);
 
         if (dataId == null) {
             LOGGER.debug("No data id found for this data location" + loc.getPath());
             return null;
         }
 
-        DataInfo dataInfo = idToData.get(dataId);
-        nameToId.remove(locationKey);
+        DataInfo dataInfo = this.idToData.get(dataId);
+        this.nameToId.remove(locationKey);
         if (dataInfo.delete()) {
             // idToData.remove(dataId);
         }
         return dataInfo;
     }
-    
+
     /**
      * Deletes the data associated with the code
      *
@@ -683,8 +717,8 @@ public class DataInfoProvider {
     public DataInfo deleteData(int code) {
         LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
 
-        Integer id = codeToId.get(code);
-        DataInfo dataInfo = idToData.get(id);
+        Integer id = this.codeToId.get(code);
+        DataInfo dataInfo = this.idToData.get(id);
 
         // We delete the data associated with all the versions of the same object
         dataInfo.delete();
@@ -826,7 +860,7 @@ public class DataInfoProvider {
      */
     public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
-        FileInfo fileInfo = (FileInfo) idToData.get(dataId);
+        FileInfo fileInfo = (FileInfo) this.idToData.get(dataId);
         if (fileInfo.hasBeenCanceled()) {
             if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
                 // transfer
@@ -925,13 +959,13 @@ public class DataInfoProvider {
      */
     public DataAccessId registerCollectionAccess(AccessMode am, CollectionParameter cp) {
         String collectionId = cp.getCollectionId();
-        Integer oId = collectionToId.get(collectionId);
+        Integer oId = this.collectionToId.get(collectionId);
         CollectionInfo cInfo;
         if (oId == null) {
             cInfo = new CollectionInfo(collectionId);
             oId = cInfo.getDataId();
-            collectionToId.put(collectionId, oId);
-            idToData.put(oId, cInfo);
+            this.collectionToId.put(collectionId, oId);
+            this.idToData.put(oId, cInfo);
             // Serialize this first version of the object to a file
             DataInstanceId lastDID = cInfo.getCurrentDataVersion().getDataInstanceId();
             String renaming = lastDID.getRenaming();
@@ -943,7 +977,7 @@ public class DataInfoProvider {
                 Comm.registerCollection(renaming, null);
             }
         } else {
-            cInfo = (CollectionInfo) idToData.get(oId);
+            cInfo = (CollectionInfo) this.idToData.get(oId);
         }
         return willAccess(am, cInfo);
     }

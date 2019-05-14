@@ -151,6 +151,7 @@ public abstract class ImplementationDefinition implements Invocation {
                     break;
                 case OBJECT_T:
                 case BINDING_OBJECT_T:
+                case STREAM_T:
                 case PSCO_T:
                     String fileLocation = (String) args[appArgsIdx++];
                     value = fileLocation;

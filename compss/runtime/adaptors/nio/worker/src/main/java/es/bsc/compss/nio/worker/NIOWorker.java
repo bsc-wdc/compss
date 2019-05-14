@@ -120,7 +120,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         boolean removeWDFlagDefined = removeWDFlag != null && !removeWDFlag.isEmpty();
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
 
-        // Set processes to captuer out/error
+        // Set processes to capturer out/error
         OUT = new ThreadedPrintStream(SUFFIX_OUT, System.out);
         ERR = new ThreadedPrintStream(SUFFIX_ERR, System.err);
         System.setErr(ERR);

@@ -24,7 +24,7 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 public class ObjectParameter extends DependencyParameter {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -32,6 +32,16 @@ public class ObjectParameter extends DependencyParameter {
     private Object value;
 
 
+    /**
+     * Creates a new Object Parameter.
+     * 
+     * @param direction Parameter direction.
+     * @param stream Standard IO Stream flags.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     * @param value Parameter object value.
+     * @param hashCode Parameter object hashcode.
+     */
     public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
             int hashCode) {
 

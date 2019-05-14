@@ -19,18 +19,18 @@ package es.bsc.compss.types.data;
 import java.util.concurrent.Semaphore;
 
 
-public class ObjectInfo extends DataInfo {
+public class StreamInfo extends DataInfo {
 
     // Hash code of the object
     private int code;
 
 
     /**
-     * Creates a new ObjectInfo instance with the given hashcode.
+     * Creates a new StreamInfo instance with the given hashcode.
      * 
      * @param code Object hashcode.
      */
-    public ObjectInfo(int code) {
+    public StreamInfo(int code) {
         super();
         this.code = code;
     }
@@ -42,6 +42,13 @@ public class ObjectInfo extends DataInfo {
      */
     public int getCode() {
         return this.code;
+    }
+
+    @Override
+    public void willBeWritten() {
+        // Do not increase version on write, since Stream just publish values
+        this.currentVersion.willBeWritten();
+        this.currentVersion.versionUsed();
     }
 
     @Override

@@ -312,6 +312,7 @@ public class GATWorker implements InvocationContext {
     public void loadParam(InvocationParam np) throws Exception {
         switch (np.getType()) {
             case OBJECT_T:
+            case STREAM_T:
                 String fileLocation = (String) np.getValue();
                 np.setOriginalName(fileLocation);
                 np.setValue(Serializer.deserialize(fileLocation));
@@ -333,6 +334,7 @@ public class GATWorker implements InvocationContext {
     public void storeParam(InvocationParam np) throws Exception {
         switch (np.getType()) {
             case OBJECT_T:
+            case STREAM_T:
                 String fileLocation = np.getOriginalName();
                 Serializer.serialize(np.getValue(), fileLocation);
                 break;

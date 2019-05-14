@@ -113,7 +113,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
                 numPars -= numReturns;
                 if (numPars > 0) {
                     DataType type = parameters.get(0).getType();
-                    type = (type == DataType.PSCO_T || type == DataType.STREAM_T) ? DataType.OBJECT_T : type;
+                    type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;
                     buffer.append(type);
                     for (int i = 1; i < numPars; i++) {
                         type = parameters.get(i).getType();

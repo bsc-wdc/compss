@@ -54,6 +54,7 @@ public class LocalParameter implements InvocationParam {
         switch (type) {
             case FILE_T:
             case OBJECT_T:
+            case STREAM_T:
             case PSCO_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:

@@ -27,27 +27,24 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 public class ActionUpdate extends TDRequest {
 
     /**
-     * The updated allocatable action
-     */
-    private final AllocatableAction action;
-
-
-    /**
      * Possible Updates applied to the action.
      */
     public static enum Update {
-
-        /**
-         * There has been an error during the execution of the action.
-         */
-        ERROR,
-        /**
-         * The action execution has succedded.
-         */
-        COMPLETED
+    /**
+     * There has been an error during the execution of the action.
+     */
+    ERROR,
+    /**
+     * The action execution has succedded.
+     */
+    COMPLETED
     }
 
 
+    /**
+     * The updated allocatable action.
+     */
+    private final AllocatableAction action;
     /**
      * Update to be notified.
      */
@@ -55,10 +52,10 @@ public class ActionUpdate extends TDRequest {
 
 
     /**
-     * Constructs a new NotifyAllocatableActionEnd for the task
+     * Constructs a new NotifyAllocatableActionEnd for the task.
      *
-     * @param action
-     * @param update update to be notified
+     * @param action Associated action.
+     * @param update Update to be notified.
      */
     public ActionUpdate(AllocatableAction action, Update update) {
         this.action = action;

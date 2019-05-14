@@ -17,6 +17,7 @@
 package es.bsc.compss.test.api.impl;
 
 import static org.junit.Assert.assertEquals;
+
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -30,7 +31,7 @@ import org.junit.Test;
 
 public class COMPSsRuntimeImplTest {
 
-    private static final String DUMMY_ADAPTOR_CLASS = "es.bsc.compss.test.dummyAdaptor.DummyAdaptor";
+    private static final String DUMMY_ADAPTOR_CLASS = "es.bsc.compss.test.dummyadaptor.DummyAdaptor";
     private COMPSsRuntimeImpl rt;
 
     static {
@@ -38,20 +39,25 @@ public class COMPSsRuntimeImplTest {
     }
 
 
+    /**
+     * Set up the JVM to execute the tests.
+     * 
+     * @throws Exception When a Runtime error occurs.
+     */
     @Before
     public void setUp() throws Exception {
         String resources = this.getClass().getResource("resources.xml").getPath();
-        String resources_xsd = this.getClass().getResource("resources_schema.xsd").getPath();
+        String resourcesXSD = this.getClass().getResource("resources_schema.xsd").getPath();
         String project = this.getClass().getResource("project.xml").getPath();
-        String project_xsd = this.getClass().getResource("project_schema.xsd").getPath();
+        String projectXSD = this.getClass().getResource("project_schema.xsd").getPath();
         System.setProperty(COMPSsConstants.LANG, COMPSsConstants.Lang.PYTHON.name());
         System.setProperty(COMPSsConstants.RES_FILE, resources);
-        System.setProperty(COMPSsConstants.RES_SCHEMA, resources_xsd);
+        System.setProperty(COMPSsConstants.RES_SCHEMA, resourcesXSD);
         System.setProperty(COMPSsConstants.PROJ_FILE, project);
-        System.setProperty(COMPSsConstants.PROJ_SCHEMA, project_xsd);
+        System.setProperty(COMPSsConstants.PROJ_SCHEMA, projectXSD);
 
-        rt = new COMPSsRuntimeImpl();
-        rt.startIT();
+        this.rt = new COMPSsRuntimeImpl();
+        this.rt.startIT();
     }
 
     @Test

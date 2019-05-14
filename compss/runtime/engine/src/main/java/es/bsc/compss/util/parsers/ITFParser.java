@@ -20,13 +20,13 @@ import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.ImplementationDefinition;
-import es.bsc.compss.types.annotations.parameter.Type;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.SchedulerHints;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
 import es.bsc.compss.types.annotations.task.Decaf;
@@ -91,14 +91,12 @@ public class ITFParser {
     }
 
     /**
-     * Parses a single ITF Method (can have multiple annotations)
+     * Parses a single ITF Method (can have multiple annotations).
      *
-     * @param m
-     * @return
+     * @param m Java lang method to parse.
+     * @return The core element definition.
      */
     private static CoreElementDefinition parseITFMethod(java.lang.reflect.Method m) {
-        CoreElementDefinition ced = new CoreElementDefinition();
-
         // Computes the callee method signature and checks parameter annotations
         LOGGER.info("Evaluating method " + m.getName());
 
@@ -121,6 +119,7 @@ public class ITFParser {
         if (DEBUG) {
             LOGGER.debug("   * Method method " + methodName + " has " + m.getAnnotations().length + " annotations");
         }
+        CoreElementDefinition ced = new CoreElementDefinition();
         checkDefinedImplementations(m, calleeMethodSignature, hasStreams, hasPrefixes, ced);
 
         // Register all implementations
@@ -131,9 +130,9 @@ public class ITFParser {
     }
 
     /**
-     * Checks if all the annotations present in method @m are valid or not
+     * Checks if all the annotations present in method {@code m} are valid or not.
      *
-     * @param m
+     * @param m Method.
      */
     private static void checkMethodAnnotation(java.lang.reflect.Method m) {
         /*
@@ -170,10 +169,10 @@ public class ITFParser {
     }
 
     /**
-     * Returns if the method @m has non native annotations or not
+     * Returns if the method {@code m} has non native annotations or not.
      *
-     * @param m
-     * @return
+     * @param m method.
+     * @return {@code true} if the method contains non-native annotation, {@code false} otherwise.
      */
     private static boolean checkNonNativeAnnotation(java.lang.reflect.Method m) {
         /*
@@ -204,13 +203,13 @@ public class ITFParser {
     }
 
     /**
-     * Constructs the signature of method @m and leaves the result in calleeMethodSignature. It also returns if the
-     * method has stream parameters or not
+     * Constructs the signature of method {@code m} and leaves the result in calleeMethodSignature. It also returns if
+     * the method has stream parameters or not.
      *
-     * @param m
-     * @param hasNonNative
-     * @param calleeMethodSignature
-     * @return
+     * @param m Method.
+     * @param hasNonNative Whether the method has non-native annotations or not.
+     * @param calleeMethodSignature Callee method signature.
+     * @return Two booleans indicating if the method contains StdIO Streams and prefixes.
      */
     private static boolean[] constructSignatureAndCheckParameters(java.lang.reflect.Method m, boolean hasNonNative,
             StringBuilder calleeMethodSignature) {
@@ -315,16 +314,17 @@ public class ITFParser {
     }
 
     /**
-     * Treats and display errors and warning related to the annotation of 1 parameter of a method/service
+     * Treats and display errors and warning related to the annotation of 1 parameter of a method/service.
      *
-     * @param m The method or service to be checked for warnings
-     * @param par The parameter to analyse
-     * @param i The position of the parameter (0 for the first parameter, 1 for the second, etc.)
-     * @param hasNonNative Indicates if the method has non-native annotations or not
+     * @param m The method or service to be checked for warnings.
+     * @param par The parameter to analyze.
+     * @param i The position of the parameter (0 for the first parameter, 1 for the second, etc.).
+     * @param hasNonNative Indicates if the method has non-native annotations or not.
      */
     private static void checkParameterAnnotation(java.lang.reflect.Method m, Parameter par, int i,
             boolean hasNonNative) {
-        final String WARNING_LOCATION = "In parameter number " + (i + 1) + " of method '" + m.getName()
+
+        final String warningLocation = "In parameter number " + (i + 1) + " of method '" + m.getName()
                 + "' in interface '" + m.getDeclaringClass().toString().replace("interface ", "") + "'.";
 
         Type annotType = par.type();
@@ -341,7 +341,7 @@ public class ITFParser {
             // Strings are immutable
             if (isOut || isInOut) {
                 ErrorManager.warn("Can't specify a String with direction OUT/INOUT since they are immutable."
-                        + ErrorManager.NEWLINE + WARNING_LOCATION + ErrorManager.NEWLINE
+                        + ErrorManager.NEWLINE + warningLocation + ErrorManager.NEWLINE
                         + "Using direction=IN instead.");
             }
         } else if (m.getParameterTypes()[i].isPrimitive()) {
@@ -349,14 +349,14 @@ public class ITFParser {
             if (isOut || isInOut) {
                 String primType = m.getParameterTypes()[i].getName();
                 ErrorManager.warn("Can't specify a primitive type ('" + primType + "') with direction OUT/INOUT, "
-                        + "since they are always passed by value. " + ErrorManager.NEWLINE + WARNING_LOCATION
+                        + "since they are always passed by value. " + ErrorManager.NEWLINE + warningLocation
                         + ErrorManager.NEWLINE + "Using direction=IN instead.");
             }
         } else if (annotType.equals(Type.OBJECT)) {
             // Objects are not supported as OUT parameters
             if (isOut) {
-                ErrorManager.warn("Can't specify an Object with direction OUT." + ErrorManager.NEWLINE
-                        + WARNING_LOCATION + ErrorManager.NEWLINE + "Using direction=INOUT instead.");
+                ErrorManager.warn("Can't specify an Object with direction OUT." + ErrorManager.NEWLINE + warningLocation
+                        + ErrorManager.NEWLINE + "Using direction=INOUT instead.");
             }
         }
 
@@ -365,7 +365,7 @@ public class ITFParser {
          */
         if (hasNonNative && !annotType.equals(Type.FILE) && (isOut || isInOut)) {
             ErrorManager.error("Non-Native tasks only supports " + annotType.name() + " types in mode IN"
-                    + ErrorManager.NEWLINE + WARNING_LOCATION);
+                    + ErrorManager.NEWLINE + warningLocation);
         }
 
         /*
@@ -375,26 +375,26 @@ public class ITFParser {
             // Stream parameters can only be files
             if (!annotType.equals(Type.FILE)) {
                 ErrorManager.error("Can't specify an Stream with type different than File." + ErrorManager.NEWLINE
-                        + WARNING_LOCATION);
+                        + warningLocation);
             }
 
             switch (stream) {
                 case STDIN:
                     if (isOut || isInOut) {
                         ErrorManager
-                                .error("Stream STDIN must have direction IN" + ErrorManager.NEWLINE + WARNING_LOCATION);
+                                .error("Stream STDIN must have direction IN" + ErrorManager.NEWLINE + warningLocation);
                     }
                     break;
                 case STDOUT:
                     if (!isOut && !isInOut) {
                         ErrorManager.error("Stream STDOUT must have direction OUT or INOUT" + ErrorManager.NEWLINE
-                                + WARNING_LOCATION);
+                                + warningLocation);
                     }
                     break;
                 case STDERR:
                     if (!isOut && !isInOut) {
                         ErrorManager.error("Stream STDERR must have direction OUT or INOUT" + ErrorManager.NEWLINE
-                                + WARNING_LOCATION);
+                                + warningLocation);
                     }
                     break;
                 case UNSPECIFIED:
@@ -406,13 +406,13 @@ public class ITFParser {
     }
 
     /**
-     * Check all the defined implementations of the same method
+     * Check all the defined implementations of the same method.
      *
-     * @param m
-     * @param calleeMethodSignature
-     * @param hasStreams
-     * @param hasPrefixes
-     * @param ced
+     * @param m Method.
+     * @param calleeMethodSignature Callee method signature.
+     * @param hasStreams Whether the method has StdIO Streams or not.
+     * @param hasPrefixes Whether the method has StdIO Prefixes or not.
+     * @param ced The CoreElement definition of the method.
      */
     private static void checkDefinedImplementations(java.lang.reflect.Method m, StringBuilder calleeMethodSignature,
             boolean hasStreams, boolean hasPrefixes, CoreElementDefinition ced) {

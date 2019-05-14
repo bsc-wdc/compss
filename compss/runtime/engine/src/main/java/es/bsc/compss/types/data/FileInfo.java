@@ -16,6 +16,15 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.data.listener.SafeCopyListener;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Type;
+import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.util.ErrorManager;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,15 +34,6 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.comm.Comm;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.listener.SafeCopyListener;
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Type;
-import es.bsc.compss.types.data.operation.copy.Copy;
-import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.util.ErrorManager;
 
 
 public class FileInfo extends DataInfo {

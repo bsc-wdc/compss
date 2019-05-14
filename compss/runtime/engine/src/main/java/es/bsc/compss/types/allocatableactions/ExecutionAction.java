@@ -108,7 +108,6 @@ public class ExecutionAction extends AllocatableAction {
         this.task.addExecution(this);
 
         // Register data dependencies events
-        //
         synchronized (this.task) {
             for (Task predecessor : this.task.getPredecessors()) {
                 for (ExecutionAction e : predecessor.getExecutions()) {
@@ -677,28 +676,28 @@ public class ExecutionAction extends AllocatableAction {
     @Override
     public final <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
             ResourceScheduler<T> r) {
-        return r.getExecutableImpls(task.getTaskDescription().getId());
+        return r.getExecutableImpls(this.task.getTaskDescription().getId());
     }
 
     @Override
     public final Integer getCoreId() {
-        return task.getTaskDescription().getId();
+        return this.task.getTaskDescription().getId();
     }
 
     @Override
     public final int getPriority() {
-        return task.getTaskDescription().hasPriority() ? 1 : 0;
+        return this.task.getTaskDescription().hasPriority() ? 1 : 0;
     }
 
     @Override
     public OnFailure getOnFailure() {
-        return task.getOnFailure();
+        return this.task.getOnFailure();
     }
 
     @Override
     public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {
-        Score computedScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
+        Score computedScore = targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
         // LOGGER.debug("Scheduling Score " + computedScore);
         return computedScore;
     }
@@ -728,6 +727,7 @@ public class ExecutionAction extends AllocatableAction {
     private <T extends WorkerResourceDescription> void schedule(Score actionScore,
             List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
             throws BlockedActionException, UnassignedActionException {
+        
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         ResourceScheduler<? extends WorkerResourceDescription> bestWorker = null;
@@ -818,6 +818,7 @@ public class ExecutionAction extends AllocatableAction {
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
             Implementation impl) throws BlockedActionException, UnassignedActionException {
+        
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
         }

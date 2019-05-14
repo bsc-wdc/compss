@@ -16,15 +16,15 @@
  */
 package es.bsc.compss.types.request.ap;
 
-import java.io.File;
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.FileInfo;
 import es.bsc.compss.types.data.location.DataLocation;
+
+import java.io.File;
+import java.util.concurrent.Semaphore;
 
 
 public class DeleteFileRequest extends APRequest {
@@ -33,23 +33,34 @@ public class DeleteFileRequest extends APRequest {
     private final Semaphore sem;
 
 
+    /**
+     * Creates a new request to delete a file.
+     * 
+     * @param loc File location.
+     * @param sem Waiting semaphore.
+     */
     public DeleteFileRequest(DataLocation loc, Semaphore sem) {
         this.loc = loc;
         this.sem = sem;
     }
 
+    /**
+     * Returns the file location.
+     * 
+     * @return The file location.
+     */
     public DataLocation getLocation() {
-        return loc;
+        return this.loc;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[DeleteFileRequest] Notify data delete " +loc.getPath() + " to DIP...");
-        FileInfo fileInfo = (FileInfo) dip.deleteData(loc);
+        LOGGER.info("[DeleteFileRequest] Notify data delete " + this.loc.getPath() + " to DIP...");
+        FileInfo fileInfo = (FileInfo) dip.deleteData(this.loc);
         if (fileInfo == null) {
             // File is not used by any task, we can erase it
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)
-            String filePath = loc.getURIs().get(0).getPath();
+            String filePath = this.loc.getURIs().get(0).getPath();
             File f = new File(filePath);
             if (f.exists()) {
                 if (f.delete()) {
@@ -65,7 +76,7 @@ public class DeleteFileRequest extends APRequest {
             LOGGER.info("[DeleteFileRequest] Deleting Data in Task Analyser");
             ta.deleteData(fileInfo);
         }
-        sem.release();
+        this.sem.release();
     }
 
     @Override

@@ -26,25 +26,37 @@ import java.util.concurrent.Semaphore;
 
 public class BarrierRequest extends APRequest {
 
-    private Semaphore sem;
-    private Long appId;
+    private final Semaphore sem;
+    private final Long appId;
 
 
+    /**
+     * Creates a new barrier request.
+     * 
+     * @param appId Application Id.
+     * @param sem Waiting semaphore.
+     */
     public BarrierRequest(Long appId, Semaphore sem) {
         this.appId = appId;
         this.sem = sem;
     }
 
+    /**
+     * Returns the application Id of the request.
+     * 
+     * @return The application Id of the request.
+     */
     public Long getAppId() {
         return this.appId;
     }
 
+    /**
+     * Returns the waiting semaphore of the request.
+     * 
+     * @return The waiting semaphore of the request.
+     */
     public Semaphore getSemaphore() {
         return this.sem;
-    }
-
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
     }
 
     @Override

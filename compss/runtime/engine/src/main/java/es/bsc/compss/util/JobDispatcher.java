@@ -17,12 +17,11 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobListener.JobEndStatus;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
 
 
 public class JobDispatcher {

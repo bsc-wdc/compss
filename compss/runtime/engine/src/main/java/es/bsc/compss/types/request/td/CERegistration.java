@@ -19,12 +19,10 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.util.CoreManager;
-
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.util.ResourceManager;
 
 import java.util.LinkedList;
+import java.util.concurrent.Semaphore;
 
 
 public class CERegistration extends TDRequest {
@@ -34,10 +32,10 @@ public class CERegistration extends TDRequest {
 
 
     /**
-     * Creates a new CoreElement registration request
+     * Creates a new CoreElement registration request.
      *
-     * @param ced
-     * @param sem
+     * @param ced CoreElementDefinition to register.
+     * @param sem Waiting semaphore.
      */
     public CERegistration(CoreElementDefinition ced, Semaphore sem) {
         this.ced = ced;
@@ -45,12 +43,12 @@ public class CERegistration extends TDRequest {
     }
 
     /**
-     * Returns the semaphore where to synchronize until the operation is done
+     * Returns the semaphore where to synchronize until the operation is done.
      *
-     * @return Semaphore where to synchronize until the operation is done
+     * @return Semaphore where to synchronize until the operation is done.
      */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
     @Override
@@ -65,7 +63,7 @@ public class CERegistration extends TDRequest {
         ts.coreElementsUpdated();
 
         LOGGER.debug("Data structures resized and CE-resources links updated");
-        sem.release();
+        this.sem.release();
     }
 
     @Override

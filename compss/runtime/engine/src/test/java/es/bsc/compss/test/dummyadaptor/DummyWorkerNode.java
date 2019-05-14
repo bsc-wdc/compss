@@ -14,16 +14,13 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.test.dummyAdaptor;
-
-import java.util.List;
+package es.bsc.compss.test.dummyadaptor;
 
 import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.exceptions.InitNodeException;
-
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -39,9 +36,11 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 
+import java.util.List;
+
 
 /**
- * Dummy Worker Node for integration tests
+ * Dummy Worker Node for integration tests.
  */
 public class DummyWorkerNode extends COMPSsWorker {
 

@@ -26,26 +26,32 @@ import es.bsc.compss.types.Task;
 
 public class TaskAnalysisRequest extends APRequest {
 
-    private Task task;
+    private final Task task;
 
 
+    /**
+     * Creates a new request to analyze a task.
+     * 
+     * @param task Task to analyze.
+     */
     public TaskAnalysisRequest(Task task) {
         this.task = task;
     }
 
+    /**
+     * Returns the task to analyze.
+     * 
+     * @return The task to analyze.
+     */
     public Task getTask() {
-        return task;
-    }
-
-    public void setTask(Task task) {
-        this.task = task;
+        return this.task;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.processTask(task);
-        td.executeTask(ap, task);
-        TaskMonitor monitor = task.getTaskMonitor();
+        ta.processTask(this.task);
+        td.executeTask(ap, this.task);
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onAccessesProcessed();
     }
 

@@ -25,41 +25,32 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- * This class represents a notification to end the execution
+ * This class represents a notification to end the execution.
  */
 public class ShutdownRequest extends TDRequest {
 
     /**
-     * Semaphore where to synchronize until the operation is done
+     * Semaphore where to synchronize until the operation is done.
      */
-    private Semaphore semaphore;
+    private final Semaphore semaphore;
 
 
     /**
-     * Constructs a new ShutdownRequest
+     * Constructs a new ShutdownRequest.
      *
-     * @param sem
+     * @param sem Waiting semaphore.
      */
     public ShutdownRequest(Semaphore sem) {
         this.semaphore = sem;
     }
 
     /**
-     * Returns the semaphore where to synchronize until the object can be read
+     * Returns the semaphore where to synchronize until the object can be read.
      *
-     * @return the semaphore where to synchronize until the object can be read
+     * @return the semaphore where to synchronize until the object can be read.
      */
     public Semaphore getSemaphore() {
-        return semaphore;
-    }
-
-    /**
-     * Sets the semaphore where to synchronize until the requested object can be read
-     *
-     * @param sem the semaphore where to synchronize until the requested object can be read
-     */
-    public void setSemaphore(Semaphore sem) {
-        this.semaphore = sem;
+        return this.semaphore;
     }
 
     @Override

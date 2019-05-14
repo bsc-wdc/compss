@@ -21,49 +21,40 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.location.DataLocation;
-
-import java.io.IOException;
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 
+import java.io.IOException;
+import java.util.concurrent.Semaphore;
+
 
 /**
  * The TransferRawFileRequest class represents a request to transfer a file located in a worker to be transferred to
- * another location without register the transfer
+ * another location without register the transfer.
  */
 public class TransferOpenFileRequest extends APRequest {
 
-    /**
-     * Data Id and version of the requested file
-     */
-    private DataAccessId faId;
-    /**
-     * Location where to leave the requested file
-     */
+    private final DataAccessId faId;
+    private final Semaphore sem;
+
     private DataLocation location;
-    /**
-     * Semaphore where to synchronize until the operation is done
-     */
-    private Semaphore sem;
 
 
     /**
-     * Constructs a new TransferOpenFileRequest
+     * Constructs a new TransferOpenFileRequest.
      *
-     * @param faId Data Id and version of the requested file
-     * @param sem Semaphore where to synchronize until the operation is done
+     * @param faId Data Id and version of the requested file.
+     * @param sem Semaphore where to synchronize until the operation is done.
      */
     public TransferOpenFileRequest(DataAccessId faId, Semaphore sem) {
         this.faId = faId;
@@ -71,54 +62,36 @@ public class TransferOpenFileRequest extends APRequest {
     }
 
     /**
-     * Returns the semaphore where to synchronize until the operation is done
+     * Returns the semaphore where to synchronize until the operation is done.
      *
-     * @return Semaphore where to synchronize until the operation is done
+     * @return Semaphore where to synchronize until the operation is done.
      */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
     /**
-     * Sets the semaphore where to synchronize until the operation is done
+     * Returns the data Id and version of the requested file.
      *
-     * @param sem Semaphore where to synchronize until the operation is done
-     */
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
-    /**
-     * Returns the data Id and version of the requested file
-     *
-     * @return Data Id and version of the requested file
+     * @return Data Id and version of the requested file.
      */
     public DataAccessId getFaId() {
-        return faId;
+        return this.faId;
     }
 
     /**
-     * Sets the data Id and version of the requested file
+     * Returns the location where to leave the requested file.
      *
-     * @param faId Data Id and version of the requested file
-     */
-    public void setFaId(DataAccessId faId) {
-        this.faId = faId;
-    }
-
-    /**
-     * Returns the location where to leave the requested file
-     *
-     * @return the location where to leave the requested file
+     * @return the location where to leave the requested file.
      */
     public DataLocation getLocation() {
-        return location;
+        return this.location;
     }
 
     /**
-     * Sets the location where to leave the requested file
+     * Sets the location where to leave the requested file.
      *
-     * @param location Location where to leave the requested file
+     * @param location Location where to leave the requested file.
      */
     public void setLocation(DataLocation location) {
         this.location = location;
@@ -131,20 +104,20 @@ public class TransferOpenFileRequest extends APRequest {
         // Get target information
         String targetName;
         String targetPath;
-        if (faId instanceof WAccessId) {
+        if (this.faId instanceof WAccessId) {
             // Write mode
-            WAccessId waId = (WAccessId) faId;
+            WAccessId waId = (WAccessId) this.faId;
             DataInstanceId targetFile = waId.getWrittenDataInstance();
             targetName = targetFile.getRenaming();
             targetPath = Comm.getAppHost().getTempDirPath() + targetName;
-        } else if (faId instanceof RWAccessId) {
+        } else if (this.faId instanceof RWAccessId) {
             // Read write mode
-            RWAccessId rwaId = (RWAccessId) faId;
+            RWAccessId rwaId = (RWAccessId) this.faId;
             targetName = rwaId.getWrittenDataInstance().getRenaming();
             targetPath = Comm.getAppHost().getTempDirPath() + targetName;
         } else {
             // Read only mode
-            RAccessId raId = (RAccessId) faId;
+            RAccessId raId = (RAccessId) this.faId;
             targetName = raId.getReadDataInstance().getRenaming();
             targetPath = Comm.getAppHost().getTempDirPath() + targetName;
         }
@@ -169,7 +142,7 @@ public class TransferOpenFileRequest extends APRequest {
             setLocation(targetLocation);
             LOGGER.debug("External object detected. Auto-release");
             Comm.registerLocation(targetName, targetLocation);
-            sem.release();
+            this.sem.release();
         } else {
             try {
                 SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
@@ -177,25 +150,25 @@ public class TransferOpenFileRequest extends APRequest {
             } catch (IOException ioe) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
             }
-            if (faId instanceof WAccessId) {
+            if (this.faId instanceof WAccessId) {
                 LOGGER.debug("Write only mode. Auto-release");
                 Comm.registerLocation(targetName, targetLocation);
                 // Register target location
                 LOGGER.debug("Setting target location to " + targetLocation);
                 setLocation(targetLocation);
-                sem.release();
-            } else if (faId instanceof RWAccessId) {
+                this.sem.release();
+            } else if (this.faId instanceof RWAccessId) {
                 LOGGER.debug("RW mode. Asking for transfer");
-                RWAccessId rwaId = (RWAccessId) faId;
+                RWAccessId rwaId = (RWAccessId) this.faId;
                 String srcName = rwaId.getReadDataInstance().getRenaming();
                 FileTransferable ft = new FileTransferable();
-                Comm.getAppHost().getData(srcName, targetName, (LogicalData) null, ft, new CopyListener(ft, sem));
+                Comm.getAppHost().getData(srcName, targetName, (LogicalData) null, ft, new CopyListener(ft, this.sem));
             } else {
                 LOGGER.debug("Read only mode. Asking for transfer");
-                RAccessId raId = (RAccessId) faId;
+                RAccessId raId = (RAccessId) this.faId;
                 String srcName = raId.getReadDataInstance().getRenaming();
                 FileTransferable ft = new FileTransferable();
-                Comm.getAppHost().getData(srcName, srcName, ft, new CopyListener(ft, sem));
+                Comm.getAppHost().getData(srcName, srcName, ft, new CopyListener(ft, this.sem));
             }
         }
     }
@@ -218,7 +191,7 @@ public class TransferOpenFileRequest extends APRequest {
 
         @Override
         public void notifyEnd(DataOperation fOp) {
-            String targetPath = reason.getDataTarget();
+            String targetPath = this.reason.getDataTarget();
             try {
                 SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
                 DataLocation targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);

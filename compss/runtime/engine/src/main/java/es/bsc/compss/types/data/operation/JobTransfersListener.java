@@ -17,37 +17,45 @@
 package es.bsc.compss.types.data.operation;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.allocatableactions.ExecutionAction;
+import es.bsc.compss.types.data.listener.EventListener;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.compss.types.allocatableactions.ExecutionAction;
-import es.bsc.compss.types.data.listener.EventListener;
-
 
 public class JobTransfersListener extends EventListener {
+
+    // Loggers
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private int operation = 0;
     private int errors = 0;
     private boolean enabled = false;
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-
     private final ExecutionAction execution;
 
 
+    /**
+     * New JobTransfersListener for a given execution action.
+     * 
+     * @param execution Associated ExecutionAction.
+     */
     public JobTransfersListener(ExecutionAction execution) {
         this.execution = execution;
     }
 
+    /**
+     * Activate the transfers listener.
+     */
     public void enable() {
         boolean finished;
         boolean failed;
         synchronized (this) {
-            enabled = true;
-            finished = (operation == 0);
-            failed = (errors > 0);
+            this.enabled = true;
+            finished = (this.operation == 0);
+            failed = (this.errors > 0);
         }
         if (finished) {
             if (failed) {
@@ -58,8 +66,11 @@ public class JobTransfersListener extends EventListener {
         }
     }
 
+    /**
+     * Adds a new operation to the listener.
+     */
     public synchronized void addOperation() {
-        operation++;
+        this.operation++;
     }
 
     @Override
@@ -68,9 +79,9 @@ public class JobTransfersListener extends EventListener {
         boolean finished;
         boolean failed;
         synchronized (this) {
-            operation--;
-            finished = operation == 0;
-            failed = errors > 0;
+            this.operation--;
+            finished = (this.operation == 0);
+            failed = this.errors > 0;
             enabled = this.enabled;
         }
         if (finished && enabled) {
@@ -99,9 +110,9 @@ public class JobTransfersListener extends EventListener {
         boolean enabled;
         boolean finished;
         synchronized (this) {
-            errors++;
-            operation--;
-            finished = operation == 0;
+            this.errors++;
+            this.operation--;
+            finished = this.operation == 0;
             enabled = this.enabled;
         }
         if (enabled && finished) {
@@ -110,11 +121,11 @@ public class JobTransfersListener extends EventListener {
     }
 
     private void doReady() {
-        execution.doSubmit(this.getId());
+        this.execution.doSubmit(this.getId());
     }
 
     private void doFailures() {
-        execution.failedTransfers(errors);
+        this.execution.failedTransfers(this.errors);
     }
 
 }

@@ -25,24 +25,30 @@ import es.bsc.compss.types.Task;
 
 public class TaskEndNotification extends APRequest {
 
-    private Task task;
+    private final Task task;
 
 
+    /**
+     * Creates a new request to end a task execution.
+     * 
+     * @param task Ended task.
+     */
     public TaskEndNotification(Task task) {
         this.task = task;
     }
 
+    /**
+     * Returns the associated ended task.
+     * 
+     * @return The associated ended task.
+     */
     public Task getTask() {
-        return task;
-    }
-
-    public void setTask(Task task) {
-        this.task = task;
+        return this.task;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.endTask(task);
+        ta.endTask(this.task);
     }
 
     @Override

@@ -26,7 +26,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 public class FinishFileAccessRequest extends APRequest {
 
-    private FileAccessParams fap;
+    private final FileAccessParams fap;
 
 
     /**

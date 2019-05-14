@@ -7,7 +7,7 @@ import es.bsc.compss.types.data.DataAccessId;
 public class StreamAccessParams extends ObjectAccessParams {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 

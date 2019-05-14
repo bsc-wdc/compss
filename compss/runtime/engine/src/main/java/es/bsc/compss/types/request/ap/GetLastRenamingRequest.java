@@ -25,45 +25,54 @@ import java.util.concurrent.Semaphore;
 
 public class GetLastRenamingRequest extends APRequest {
 
-    private int code;
-    private Semaphore sem;
+    private final int code;
+    private final Semaphore sem;
     private String response;
 
 
+    /**
+     * Returns the last renaming of the object with the given code.
+     * 
+     * @param code Object code.
+     * @param sem Waiting semaphore.
+     */
     public GetLastRenamingRequest(int code, Semaphore sem) {
         this.code = code;
         this.sem = sem;
     }
 
+    /**
+     * Returns the associated object code.
+     * 
+     * @return The associated object code.
+     */
     public int getCode() {
-        return code;
+        return this.code;
     }
 
-    public void setCode(int code) {
-        this.code = code;
-    }
-
+    /**
+     * Returns the waiting semaphore.
+     * 
+     * @return The waiting semaphore.
+     */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
+    /**
+     * Returns the request response.
+     * 
+     * @return The renaming associated with the requested object code.
+     */
     public String getResponse() {
-        return response;
-    }
-
-    public void setResponse(String response) {
-        this.response = response;
+        return this.response;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         String renaming = dip.getLastRenaming(this.code);
-        response = renaming;
-        sem.release();
+        this.response = renaming;
+        this.sem.release();
     }
 
     @Override

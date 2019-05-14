@@ -41,11 +41,11 @@ import org.apache.logging.log4j.Logger;
 public class GraphGenerator {
 
     // Boolean to enable GraphGeneration or not
-    private static final boolean monitorEnabled = System.getProperty(COMPSsConstants.MONITOR) != null
+    private static final boolean MONITOR_ENABLED = System.getProperty(COMPSsConstants.MONITOR) != null
             && !"0".equals(System.getProperty(COMPSsConstants.MONITOR)) ? true : false;
-    private static final boolean drawGraph = System.getProperty(COMPSsConstants.GRAPH) != null
+    private static final boolean DRAW_GRAPH = System.getProperty(COMPSsConstants.GRAPH) != null
             && "true".equals(System.getProperty(COMPSsConstants.GRAPH)) ? true : false;
-    private static final boolean graphGeneratorEnabled = monitorEnabled || drawGraph;
+    private static final boolean GRAPH_GENERATOR_ENABLED = MONITOR_ENABLED || DRAW_GRAPH;
 
     // Graph filenames constants
     private static final String CURRENT_GRAPH_FILENAME = "current_graph.dot";
@@ -65,7 +65,7 @@ public class GraphGenerator {
     private static BufferedWriter legend;
     private static HashSet<Integer> legendTasks;
 
-    private static final Logger logger = LogManager.getLogger(Loggers.ALL_COMP);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.ALL_COMP);
     private static final String ERROR_MONITOR_DIR = "ERROR: Cannot create monitor directory";
     private static final String ERROR_ADDING_DATA = "Error adding task to graph file";
     private static final String ERROR_ADDING_EDGE = "Error adding edge to graph file";
@@ -74,7 +74,7 @@ public class GraphGenerator {
     private static final String ERROR_COMMIT_FINAL_GRAPH = "Error commiting full graph to file";
 
     static {
-        if (graphGeneratorEnabled) {
+        if (GRAPH_GENERATOR_ENABLED) {
             // Set graph locations
             MONITOR_DIR_PATH = Comm.getAppHost().getAppLogDirPath() + "monitor" + File.separator;
             if (!new File(MONITOR_DIR_PATH).mkdir()) {
@@ -91,7 +91,7 @@ public class GraphGenerator {
                 emptyCurrentGraph();
                 current_graph.close();
             } catch (IOException ioe) {
-                logger.error("Error generating current graph file", ioe);
+                LOGGER.error("Error generating current graph file", ioe);
             }
 
             /* Final graph for drawGraph option ********************************************* */
@@ -100,7 +100,7 @@ public class GraphGenerator {
                 emptyFullGraph();
                 full_graph.close();
             } catch (IOException ioe) {
-                logger.error("Error generating full graph file", ioe);
+                LOGGER.error("Error generating full graph file", ioe);
             }
 
             // Open a full graph working copy
@@ -109,12 +109,12 @@ public class GraphGenerator {
                 openGraphFile(full_graph);
                 openDependenceGraph(full_graph);
             } catch (IOException ioe) {
-                logger.error("Error generating graph file", ioe);
+                LOGGER.error("Error generating graph file", ioe);
             }
             try {
                 legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE));
             } catch (IOException ioe) {
-                logger.error("Error generating full graph working copy file", ioe);
+                LOGGER.error("Error generating full graph working copy file", ioe);
             }
             legendTasks = new HashSet<>();
         } else {
@@ -128,7 +128,7 @@ public class GraphGenerator {
 
 
     /**
-     * Constructs a new Graph generator
+     * Constructs a new Graph generator.
      */
     public GraphGenerator() {
         // All attributes are initialized in the static block. Nothing to do
@@ -140,18 +140,18 @@ public class GraphGenerator {
      ****************************************************************************************************************/
 
     /**
-     * Returns whether the graph generator is enabled or not
+     * Returns whether the graph generator is enabled or not.
      * 
-     * @return
+     * @return {@code true} if the graph generator is enabled, {@code false} otherwise.
      */
     public static boolean isEnabled() {
-        return graphGeneratorEnabled;
+        return GRAPH_GENERATOR_ENABLED;
     }
 
     /**
-     * Returns the final monitor directory path
+     * Returns the final monitor directory path.
      * 
-     * @return
+     * @return The final monitor directory path.
      */
     public static String getMonitorDirPath() {
         return MONITOR_DIR_PATH;
@@ -162,14 +162,14 @@ public class GraphGenerator {
      * PUBLIC METHODS
      ****************************************************************************************************************/
     /**
-     * Opens and initializes the current graph buffer file
+     * Opens and initializes the current graph buffer file.
      */
     public BufferedWriter getAndOpenCurrentGraph() {
         try {
             current_graph = new BufferedWriter(new FileWriter(CURRENT_GRAPH_FILE));
             openGraphFile(current_graph);
         } catch (IOException e) {
-            logger.error(ERROR_OPEN_CURRENT_GRAPH);
+            LOGGER.error(ERROR_OPEN_CURRENT_GRAPH);
             return null;
         }
 
@@ -177,22 +177,22 @@ public class GraphGenerator {
     }
 
     /**
-     * Closes header and buffer file of current graph
+     * Closes header and buffer file of current graph.
      */
     public void closeCurrentGraph() {
         try {
             closeGraphFile(current_graph);
             current_graph.close();
         } catch (IOException e) {
-            logger.error(ERROR_CLOSE_CURRENT_GRAPH);
+            LOGGER.error(ERROR_CLOSE_CURRENT_GRAPH);
         }
     }
 
     /**
-     * Prints in a file the final task graph
+     * Prints in a file the final task graph.
      */
     public void commitGraph() {
-        logger.debug("Commiting graph to final location");
+        LOGGER.debug("Commiting graph to final location");
         try {
             // Move dependence graph content to final location
             full_graph.close();
@@ -249,14 +249,14 @@ public class GraphGenerator {
             closeGraphFile(finalGraph);
             finalGraph.close();
         } catch (IOException e) {
-            logger.error(ERROR_COMMIT_FINAL_GRAPH, e);
+            LOGGER.error(ERROR_COMMIT_FINAL_GRAPH, e);
         }
     }
 
     /**
-     * Adds a synchro node to the graph
+     * Adds a synchro node to the graph.
      * 
-     * @param synchId
+     * @param synchId New synchronization point.
      */
     public void addSynchroToGraph(int synchId) {
         try {
@@ -264,14 +264,14 @@ public class GraphGenerator {
             full_graph.write("Synchro" + synchId
                     + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
         } catch (IOException e) {
-            logger.error(ERROR_ADDING_DATA, e);
+            LOGGER.error(ERROR_ADDING_DATA, e);
         }
     }
 
     /**
-     * Adds a barrier node to the graph
+     * Adds a barrier node to the graph.
      * 
-     * @param synchId
+     * @param synchId New barrier point.
      */
     public void addBarrierToGraph(int synchId) {
         try {
@@ -279,14 +279,14 @@ public class GraphGenerator {
             full_graph.write("Synchro" + synchId
                     + "[label=\"barrier\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
         } catch (IOException e) {
-            logger.error(ERROR_ADDING_DATA, e);
+            LOGGER.error(ERROR_ADDING_DATA, e);
         }
     }
 
     /**
-     * Adds a task node to the graph
+     * Adds a task node to the graph.
      * 
-     * @param task
+     * @param task New task.
      */
     public void addTaskToGraph(Task task) {
         try {
@@ -298,35 +298,35 @@ public class GraphGenerator {
                 legend.write(task.getLegendDescription());
             }
         } catch (IOException e) {
-            logger.error(ERROR_ADDING_DATA, e);
+            LOGGER.error(ERROR_ADDING_DATA, e);
         }
     }
 
     /**
-     * Adds an edge to the graph from @src to @tgt with label @label
+     * Adds an edge to the graph from {@code src} to {@code tgt} with label {@code label}.
      * 
-     * @param src
-     * @param tgt
-     * @param label
+     * @param src Source node.
+     * @param tgt Target node.
+     * @param label Edge label.
      */
     public void addEdgeToGraph(String src, String tgt, String label) {
         try {
             full_graph.newLine();
             full_graph.write(src + " -> " + tgt + (label.isEmpty() ? ";" : "[ label=\"d" + label + "\" ];"));
         } catch (IOException e) {
-            logger.error(ERROR_ADDING_EDGE, e);
+            LOGGER.error(ERROR_ADDING_EDGE, e);
         }
     }
 
     /**
-     * Removes the temporary files
+     * Removes the temporary files.
      */
     public static void removeTemporaryGraph() {
         if (!new File(COMPLETE_GRAPH_TMP_FILE).delete()) {
-            logger.error("Cannot remove temporary graph file");
+            LOGGER.error("Cannot remove temporary graph file");
         }
         if (!new File(COMPLETE_LEGEND_TMP_FILE).delete()) {
-            logger.error("Cannot remove temporary legend file");
+            LOGGER.error("Cannot remove temporary legend file");
         }
     }
 

@@ -18,12 +18,12 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.parameter.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
- * Representation of a Task
+ * Representation of a Task.
  */
 public class Task implements Comparable<Task> {
 
@@ -41,7 +41,7 @@ public class Task implements Comparable<Task> {
 
 
     /**
-     * Task states
+     * Task states.
      */
     public enum TaskState {
         TO_ANALYSE, // Task is being analysed
@@ -80,19 +80,20 @@ public class Task implements Comparable<Task> {
 
 
     /**
-     * Creates a new METHOD task with the given parameters
+     * Creates a new METHOD task with the given parameters.
      *
-     * @param appId
-     * @param lang
-     * @param signature
-     * @param isPrioritary
-     * @param numNodes
-     * @param isReplicated
-     * @param isDistributed
-     * @param numReturns
-     * @param hasTarget
-     * @param parameters
-     * @param monitor
+     * @param appId Application Id.
+     * @param lang Application language.
+     * @param signature Task signature.
+     * @param isPrioritary Whether the task has priority or not.
+     * @param numNodes Number of nodes used by the task.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed round-robin or not.
+     * @param numReturns Number of returns of the task.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param parameters Task parameter values.
+     * @param monitor Task monitor.
+     * @param onFailure On failure mechanisms.
      */
     public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
@@ -111,18 +112,19 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Creates a new SERVICE task with the given parameters
+     * Creates a new SERVICE task with the given parameters.
      *
-     * @param appId
-     * @param namespace
-     * @param service
-     * @param port
-     * @param operation
-     * @param isPrioritary
-     * @param hasTarget
-     * @param numReturns
-     * @param parameters
-     * @param monitor
+     * @param appId Application Id.
+     * @param namespace Service namespace.
+     * @param service Service name.
+     * @param port Service port.
+     * @param operation Service operation.
+     * @param isPrioritary Whether the task has priority or not.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param numReturns Number of returns of the task.
+     * @param parameters Task parameter values.
+     * @param monitor Task monitor.
+     * @param onFailure On failure mechanisms.
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
             boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure) {
@@ -140,18 +142,18 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Returns the current number of generated tasks
+     * Returns the current number of generated tasks.
      *
-     * @return
+     * @return The number of generated tasks.
      */
     public static int getCurrentTaskCount() {
         return nextTaskId.get();
     }
 
     /**
-     * Adds a data dependency from the @producer to this task
+     * Adds a data dependency from the given task {@code producer} to this task.
      *
-     * @param producer
+     * @param producer Producer task.
      */
     public void addDataDependency(Task producer) {
         producer.successors.add(this);
@@ -159,7 +161,7 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Release all the tasks that are data dependent to this task
+     * Releases all the tasks that are data dependent to this task.
      */
     public void releaseDataDependents() {
         for (Task t : this.successors) {
@@ -171,142 +173,142 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Returns all the successor tasks
+     * Returns all the successor tasks.
      *
-     * @return
+     * @return A list containing the successor tasks of this task.
      */
     public List<Task> getSuccessors() {
-        return successors;
+        return this.successors;
     }
 
     /**
-     * Returns all the predecessor tasks
+     * Returns all the predecessor tasks.
      *
-     * @return
+     * @return A list containing the predecessor tasks of this task.
      */
     public List<Task> getPredecessors() {
-        return predecessors;
+        return this.predecessors;
     }
 
     /**
-     * Sets the synchronization id of the task to @syncId
+     * Sets the synchronization id of the task to the given synchronization Id {@code syncId}.
      *
-     * @param syncId
+     * @param syncId Task synchronization Id.
      */
     public void setSynchronizationId(int syncId) {
         this.synchronizationId = syncId;
     }
 
     /**
-     * Returns the syncrhonization Id of the task
+     * Returns the synchronization Id of the task.
      *
-     * @return
+     * @return Task synchronization Id.
      */
     public int getSynchronizationId() {
         return this.synchronizationId;
     }
 
     /**
-     * Returns the app id
+     * Returns the application Id.
      *
-     * @return
+     * @return The application Id.
      */
     public long getAppId() {
-        return appId;
+        return this.appId;
     }
 
     /**
-     * Returns the task id
+     * Returns the task Id.
      *
-     * @return
+     * @return The task Id.
      */
     public int getId() {
-        return taskId;
+        return this.taskId;
     }
 
     /**
-     * Returns the task status
+     * Returns the task status.
      *
-     * @return
+     * @return The task status.
      */
     public TaskState getStatus() {
-        return status;
+        return this.status;
     }
 
     /**
-     * Sets a new task status
+     * Sets a new task status.
      *
-     * @param status
+     * @param status New task status.
      */
     public void setStatus(TaskState status) {
         this.status = status;
     }
 
     /**
-     * Sets the task as enforcing
+     * Sets an associated enforcing task.
      *
-     * @param task
+     * @param task Associated enforcing task.
      */
     public void setEnforcingTask(Task task) {
         this.enforcingTask = task;
     }
 
     /**
-     * Returns whether the task is free or not
+     * Returns whether the task is free or not.
      *
-     * @return
+     * @return {@code true} if the task is free, {@code false} otherwise.
      */
     public boolean isFree() {
         return (this.executionCount == 0);
     }
 
     /**
-     * Sets a new execution count for the task
+     * Sets a new execution count for the task.
      *
-     * @param executionCount
+     * @param executionCount New execution count.
      */
     public void setExecutionCount(int executionCount) {
         this.executionCount = executionCount;
     }
 
     /**
-     * Decreases the execution count of the task
+     * Decreases the execution count of the task.
      */
     public void decreaseExecutionCount() {
         --this.executionCount;
     }
 
     /**
-     * Returns the task description
+     * Returns the task description.
      *
-     * @return
+     * @return The task description.
      */
     public TaskDescription getTaskDescription() {
-        return taskDescription;
+        return this.taskDescription;
     }
 
     /**
-     * Returns whether the task is scheduling forced or not
+     * Returns whether the task scheduling is forced or not.
      *
-     * @return
+     * @return {@code true} if the scheduling of this task is forced, {@code false} otherwise.
      */
     public boolean isSchedulingForced() {
         return this.enforcingTask != null;
     }
 
     /**
-     * Returns the associated enforcing task
+     * Returns the associated enforcing task.
      *
-     * @return
+     * @return The associated enforcing task.
      */
     public Task getEnforcingTask() {
         return this.enforcingTask;
     }
 
     /**
-     * Returns the DOT description of the task (only for monitoring)
+     * Returns the DOT description of the task (only for monitoring).
      *
-     * @return
+     * @return A string representing the description of the task in DOT format.
      */
     public String getDotDescription() {
         int monitorTaskId = taskDescription.getId() + 1; // Coherent with Trace.java
@@ -332,9 +334,9 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Returns the task legend description (only for monitoring)
+     * Returns the task legend description (only for monitoring).
      *
-     * @return
+     * @return A String containing the task legend description.
      */
     public String getLegendDescription() {
         StringBuilder information = new StringBuilder();
@@ -347,55 +349,60 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Returns the method name associated to this task
+     * Returns the method name associated to this task.
      *
-     * @return
+     * @return The associated method name.
      */
     public String getMethodName() {
-        String methodName = taskDescription.getName();
+        String methodName = this.taskDescription.getName();
         return methodName;
     }
 
     /**
-     * Returns the task color (only for monitoring)
+     * Returns the task color (only for monitoring).
      *
-     * @return
+     * @return The task color.
      */
     public String getColor() {
-        int monitorTaskId = taskDescription.getId() + 1; // Coherent with Trace.java
+        int monitorTaskId = this.taskDescription.getId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
         return color.getFillColor();
     }
 
     /**
-     * Adds a new execution to the task
+     * Adds a new execution to the task.
      *
-     * @param execution
+     * @param execution New task execution.
      */
     public void addExecution(ExecutionAction execution) {
         this.executions.add(execution);
     }
 
     /**
-     * Returns the executions of the task
+     * Returns the executions of the task.
      *
-     * @return
+     * @return List of executions of the task.
      */
     public List<ExecutionAction> getExecutions() {
         return executions;
     }
 
     /**
-     * Returns the monitor associated to the Task
+     * Returns the monitor associated to the Task.
      *
-     * @return
+     * @return The associated monitor to the task.
      */
     public TaskMonitor getTaskMonitor() {
-        return taskMonitor;
+        return this.taskMonitor;
     }
 
+    /**
+     * Returns the on-failure mechanisms.
+     * 
+     * @return The on-failure mechanisms.
+     */
     public OnFailure getOnFailure() {
-        return onFailure;
+        return this.onFailure;
     }
 
     @Override

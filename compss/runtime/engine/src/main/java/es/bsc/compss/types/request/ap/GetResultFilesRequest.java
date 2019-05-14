@@ -20,46 +20,59 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import java.util.LinkedList;
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.operation.ResultListener;
+
+import java.util.LinkedList;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 
 
 public class GetResultFilesRequest extends APRequest {
 
-    private Long appId;
-    private Semaphore sem;
+    private final Long appId;
+    private final Semaphore sem;
 
-    private LinkedList<ResultFile> blockedData;
+    private final LinkedList<ResultFile> blockedData;
 
 
+    /**
+     * Creates a new request to retrieve the result files.
+     * 
+     * @param appId Application Id.
+     * @param sem Waiting semaphore.
+     */
     public GetResultFilesRequest(Long appId, Semaphore sem) {
         this.appId = appId;
         this.sem = sem;
-        blockedData = new LinkedList<>();
+        this.blockedData = new LinkedList<>();
     }
 
+    /**
+     * Returns the application Id of the request.
+     * 
+     * @return The application Id of the request.
+     */
     public Long getAppId() {
-        return appId;
+        return this.appId;
     }
 
-    public void setAppId(Long appId) {
-        this.appId = appId;
-    }
-
+    /**
+     * Returns the waiting semaphore of the request.
+     * 
+     * @return The waiting semaphore of the request.
+     */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
+    /**
+     * Returns a list containing the blocked result files.
+     * 
+     * @return A list containing the blocked result files.
+     */
     public LinkedList<ResultFile> getBlockedData() {
-        return blockedData;
+        return this.blockedData;
     }
 
     @Override
@@ -73,11 +86,11 @@ public class GetResultFilesRequest extends APRequest {
                 if (rf == null) {
                     continue;
                 }
-                blockedData.add(rf);
+                this.blockedData.add(rf);
             }
             listener.enable();
         } else {
-            sem.release();
+            this.sem.release();
         }
 
     }

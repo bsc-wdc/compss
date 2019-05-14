@@ -20,7 +20,7 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- * Information about a collection and its versions
+ * Information about a collection and its versions.
  * 
  * @see DataInfo
  * @see es.bsc.compss.components.impl.DataInfoProvider registerCollectionAccess method

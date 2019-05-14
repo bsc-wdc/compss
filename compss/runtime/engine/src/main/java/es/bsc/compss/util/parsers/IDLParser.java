@@ -57,6 +57,11 @@ public class IDLParser {
     }
 
 
+    /**
+     * Parses the methods found in the IDL file.
+     * 
+     * @param constraintsFile IDL file location.
+     */
     public static void parseIDLMethods(String constraintsFile) {
         LOGGER.debug("Loading file " + constraintsFile);
 
@@ -177,8 +182,9 @@ public class IDLParser {
 
     private static void parseCFunction(String line, MethodResourceDescription currConstraints,
             CImplementation implementation) {
-        StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
-        StringBuilder implementationSignatureBuffer = new StringBuilder();
+        
+        final StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
+        final StringBuilder implementationSignatureBuffer = new StringBuilder();
         // TODO: Check isStatic and hasReturn information
         // boolean isStatic = false;
         // boolean hasReturn = false;
@@ -218,6 +224,7 @@ public class IDLParser {
          * implementationSignatureBuffer.append("FILE_T").append(",");
          */
         // }
+        
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
@@ -271,8 +278,8 @@ public class IDLParser {
         }
         implementationSignatureBuffer.append(declaringClass);
 
-        String taskSignature = implementedTaskSignatureBuffer.toString();
-        String implementationSignature = implementationSignatureBuffer.toString();
+        final String taskSignature = implementedTaskSignatureBuffer.toString();
+        final String implementationSignature = implementationSignatureBuffer.toString();
 
         // Create the core Element if it does not exist
         Integer coreId = CoreManager.registerNewCoreElement(taskSignature);

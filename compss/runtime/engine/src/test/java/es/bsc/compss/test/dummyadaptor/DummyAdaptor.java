@@ -14,15 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.test.dummyAdaptor;
-
-import java.util.LinkedList;
+package es.bsc.compss.test.dummyadaptor;
 
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+
+import java.util.LinkedList;
 
 
 /**
@@ -34,7 +34,7 @@ public class DummyAdaptor implements CommAdaptor {
 
 
     /**
-     * Instantiates a new Dummy Adaptor
+     * Instantiates a new Dummy Adaptor.
      */
     public DummyAdaptor() {
         // Nothing to do since there are no attributes to initialize
@@ -45,7 +45,7 @@ public class DummyAdaptor implements CommAdaptor {
     }
 
     @Override
-    public MethodConfiguration constructConfiguration(Object project_properties, Object resources_properties)
+    public MethodConfiguration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
 
         MethodConfiguration config = new MethodConfiguration(ID);

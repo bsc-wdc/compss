@@ -26,7 +26,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 public class FinishBindingObjectAccessRequest extends APRequest {
 
-    private BindingObjectAccessParams boAP;
+    private final BindingObjectAccessParams boAP;
 
 
     /**

@@ -25,29 +25,37 @@ import java.util.concurrent.Semaphore;
 
 public class EndOfAppRequest extends APRequest {
 
-    private Long appId;
-    private Semaphore sem;
+    private final Long appId;
+    private final Semaphore sem;
 
 
+    /**
+     * Creates a new request to end the application.
+     * 
+     * @param appId Application Id.
+     * @param sem Waiting semaphore.
+     */
     public EndOfAppRequest(Long appId, Semaphore sem) {
         this.appId = appId;
         this.sem = sem;
     }
 
+    /**
+     * Returns the application Id of the request.
+     * 
+     * @return The application Id of the request.
+     */
     public Long getAppId() {
-        return appId;
+        return this.appId;
     }
 
-    public void setAppId(Long appId) {
-        this.appId = appId;
-    }
-
+    /**
+     * Returns the waiting semaphore of the request.
+     * 
+     * @return The waiting semaphore of the request.
+     */
     public Semaphore getSemaphore() {
-        return sem;
-    }
-
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
+        return this.sem;
     }
 
     @Override

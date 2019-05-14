@@ -68,21 +68,20 @@ public abstract class APRequest extends Request {
 
 
     /**
-     * Returns the type of request for this instance
+     * Returns the type of request for this instance.
      *
-     * @return returns the request type name of this instance
-     * @result returns the request type name of this instance
+     * @return The request type name of this instance.
      */
     public abstract APRequestType getRequestType();
 
     /**
-     * Processes the Request
+     * Processes the Request.
      *
-     * @param ap AccessProcessor processing the request
-     * @param ta Task Analyser of the processing AccessProcessor
-     * @param dip DataInfoProvider of the processing AccessProcessor
-     * @param td Task Dispatcher attached to the processing AccessProcessor
-     * @throws compss.types.request.exceptions.ShutdownException
+     * @param ap AccessProcessor processing the request.
+     * @param ta Task Analyser of the processing AccessProcessor.
+     * @param dip DataInfoProvider of the processing AccessProcessor.
+     * @param td Task Dispatcher attached to the processing AccessProcessor.
+     * @throws ShutdownException If the component has been shutdown unexpectedly.
      */
     public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
             throws ShutdownException;

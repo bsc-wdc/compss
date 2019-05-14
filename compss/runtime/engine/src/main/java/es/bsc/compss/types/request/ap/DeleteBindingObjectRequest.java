@@ -27,9 +27,13 @@ public class DeleteBindingObjectRequest extends APRequest {
     private final int code;
 
 
+    /**
+     * Creates a new request to delete a binding object.
+     * 
+     * @param code Binding Object code.
+     */
     public DeleteBindingObjectRequest(int code) {
         this.code = code;
-
     }
 
     @Override

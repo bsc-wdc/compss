@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.types.data;
 
+import es.bsc.compss.comm.Comm;
+
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
-
-import es.bsc.compss.comm.Comm;
 
 
 // Information about a datum and its versions
@@ -217,8 +217,9 @@ public abstract class DataInfo {
                 String sourceName = version.getDataInstanceId().getRenaming();
                 if (version.markToDelete()) {
                     LogicalData ld = Comm.getData(sourceName);
-                    if (ld != null)
+                    if (ld != null) {
                         ld.removeValue();
+                    }
 
                     Comm.removeData(sourceName);
                     removedVersions.add(version.getDataInstanceId().getVersionId());

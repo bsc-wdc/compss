@@ -22,11 +22,13 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataInstanceId;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
@@ -35,38 +37,36 @@ import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
-import es.bsc.compss.types.data.DataInstanceId;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.request.ap.APRequest;
+import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
+import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
+import es.bsc.compss.types.request.ap.DeleteFileRequest;
+import es.bsc.compss.types.request.ap.DeregisterObject;
+import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.FinishBindingObjectAccessRequest;
 import es.bsc.compss.types.request.ap.FinishFileAccessRequest;
-import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
-import es.bsc.compss.types.request.ap.TransferRawFileRequest;
-import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
-import es.bsc.compss.types.request.ap.GetResultFilesRequest;
-import es.bsc.compss.types.request.ap.DeleteFileRequest;
-import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.GetLastRenamingRequest;
-import es.bsc.compss.types.request.ap.TaskEndNotification;
+import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.NewVersionSameValueRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
 import es.bsc.compss.types.request.ap.ShutdownRequest;
-import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.TaskAnalysisRequest;
+import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
+import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
+import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
-import es.bsc.compss.types.request.ap.BarrierRequest;
-import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.types.request.ap.WaitForDataReadyToDeleteRequest;
-import es.bsc.compss.types.request.ap.DeregisterObject;
+import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -81,7 +81,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Component to handle the tasks accesses to files and object
+ * Component to handle the tasks accesses to files and object.
  */
 public class AccessProcessor implements Runnable, TaskProducer {
 
@@ -89,7 +89,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object from storage (file or PSCO)";
+    private static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object"
+            + " from storage (file or PSCO)";
     private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
 
     // Other super-components
@@ -108,9 +109,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
 
     /**
-     * Creates a new Access Processor instance
+     * Creates a new Access Processor instance.
      *
-     * @param td
+     * @param td Associated TaskDispatcher component.
      */
     public AccessProcessor(TaskDispatcher td) {
         taskDispatcher = td;
@@ -137,7 +138,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Sets the GraphGenerator co-worker.
      *
-     * @param GraphGenerator co-worker.
+     * @param gm co-worker.
      */
     public void setGM(GraphGenerator gm) {
         this.taskAnalyser.setGM(gm);
@@ -157,13 +158,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
         while (keepGoing) {
             APRequest request = null;
             try {
-                request = requestQueue.take();
+                request = this.requestQueue.take();
 
                 if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.getAcessProcessorRequestEvent(request.getRequestType().name()).getId(),
                             Tracer.getRuntimeEventsType());
                 }
-                request.process(this, taskAnalyser, dataInfoProvider, taskDispatcher);
+                request.process(this, this.taskAnalyser, this.dataInfoProvider, this.taskDispatcher);
                 if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
@@ -186,20 +187,21 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * App : new Method Task
+     * Application: new Method Task.
      *
-     * @param appId
-     * @param monitor
-     * @param lang
-     * @param signature
-     * @param isPrioritary
-     * @param numNodes
-     * @param isReplicated
-     * @param isDistributed
-     * @param numReturns
-     * @param hasTarget
-     * @param parameters
-     * @return
+     * @param appId Application Id.
+     * @param monitor Task monitor.
+     * @param lang Application language.
+     * @param signature Task signature.
+     * @param isPrioritary Whether the task has priority or not.
+     * @param numNodes Number of nodes.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed round-robin or not.
+     * @param numReturns Number of task returns.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param parameters Task parameters.
+     * @param onFailure OnFailure mechanisms.
+     * @return Task Id.
      */
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
@@ -216,21 +218,21 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * App : new Service task
+     * Application: new Service task.
      *
-     * @param appId
-     * @param monitor
-     * @param namespace
-     * @param service
-     * @param port
-     * @param operation
-     * @param priority
-     * @param hasTarget
-     * @param numReturns
-     * @param parameters
-     * @return
+     * @param appId Application Id.
+     * @param monitor Task monitor.
+     * @param namespace Service namespace.
+     * @param service Service name.
+     * @param port Service port.
+     * @param operation Service operation.
+     * @param priority Whether the task has priority or not.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param numReturns Number of returns of the task.
+     * @param parameters Task parameters.
+     * @param onFailure OnFailure mechanisms.
+     * @return Task Id.
      */
-
     public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
             boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure) {
 
@@ -253,6 +255,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
+    /**
+     * Marks an access to a file as finished.
+     * 
+     * @param sourceLocation File location.
+     * @param fap File Access parameters.
+     * @param destDir Destination file location.
+     */
     public void finishAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
@@ -273,12 +282,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Notifies a main access to a given file @sourceLocation in mode @fap
+     * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
      *
-     * @param sourceLocation
-     * @param fap
-     * @param destDir
-     * @return
+     * @param sourceLocation File location.
+     * @param fap File Access Parameters.
+     * @param destDir Destination file.
+     * @return Final location.
      */
     public DataLocation mainAccessToFile(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
@@ -355,10 +364,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Returns if the value with hashCode @hashCode is valid or obsolete
+     * Returns whether the value with hashCode {@code hashCode} is valid or obsolete.
      *
-     * @param hashCode
-     * @return
+     * @param hashCode Object hashcode.
+     * @return {@code true} if the object is valid, {@code false} otherwise.
      */
     public boolean isCurrentRegisterValueValid(int hashCode) {
         LOGGER.debug("Checking if value of object with hashcode " + hashCode + " is valid");
@@ -386,11 +395,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Notifies a main access to an object @obj
+     * Notifies a main access to an object {@code obj}.
      *
-     * @param obj
-     * @param hashCode
-     * @return
+     * @param obj Object.
+     * @param hashCode Object hashcode.
+     * @return Synchronized object.
      */
     public Object mainAcessToObject(Object obj, int hashCode) {
         if (DEBUG) {
@@ -431,12 +440,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Notifies a main access to an external PSCO {@code id}
+     * Notifies a main access to an external PSCO {@code id}.
      *
-     * @param fileName
-     * @param id
-     * @param hashCode
-     * @return
+     * @param id PSCO Id.
+     * @param hashCode Object hashcode.
+     * @return Location containing final the PSCO Id.
      */
     public String mainAcessToExternalPSCO(String id, int hashCode) {
         if (DEBUG) {
@@ -487,12 +495,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Notifies a main access to an external PSCO {@code id}
+     * Notifies a main access to an external binding object.
      *
-     * @param fileName
-     * @param id
-     * @param hashCode
-     * @return
+     * @param bo Binding object.
+     * @param hashCode Binding object's hashcode.
+     * @return Location containing the binding's object final path.
      */
     public String mainAcessToBindingObject(BindingObject bo, int hashCode) {
         if (DEBUG) {
@@ -539,9 +546,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Notification for no more tasks
+     * Notification for no more tasks.
      *
-     * @param appId
+     * @param appId Application Id.
      */
     public void noMoreTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
@@ -556,10 +563,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Returns whether the @loc has already been accessed or not
+     * Returns whether the @{code loc} has already been accessed or not.
      *
-     * @param loc
-     * @return
+     * @param loc Location.
+     * @return {@code true} if the location has been accessed, {@code false} otherwise.
      */
     private boolean alreadyAccessed(DataLocation loc) {
         Semaphore sem = new Semaphore(0);
@@ -575,9 +582,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Barrier
+     * Barrier.
      *
-     * @param appId
+     * @param appId Application Id.
      */
     public void barrier(Long appId) {
         Semaphore sem = new Semaphore(0);
@@ -592,10 +599,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Synchronism for an specific task
+     * Synchronism for an specific data.
      *
-     * @param dataId
-     * @param mode
+     * @param dataId Data Id.
+     * @param mode Access mode.
      */
     private void waitForTask(int dataId, AccessMode mode) {
         Semaphore sem = new Semaphore(0);
@@ -610,10 +617,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Synchronism for a concurrent task
+     * Synchronism for a concurrent task.
      *
-     * @param dataId
-     * @param accessMode
+     * @param dataId Data Id.
+     * @param accessMode Access mode.
      */
     private void waitForConcurrent(int dataId, AccessMode accessMode) {
         Semaphore sem = new Semaphore(0);
@@ -631,10 +638,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Registers a new data access
+     * Registers a new data access.
      *
-     * @param access
-     * @return
+     * @param access Access parameters.
+     * @return The registered access Id.
      */
     private DataAccessId registerDataAccess(AccessParams access) {
         Semaphore sem = new Semaphore(0);
@@ -650,10 +657,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Registers a new version of file/object with the same value
+     * Registers a new version of file/object with the same value.
      *
-     * @param rRenaming
-     * @param wRenaming
+     * @param rRenaming Read renaming path.
+     * @param wRenaming Write renaming path.
      */
     public void newVersionSameValue(String rRenaming, String wRenaming) {
         NewVersionSameValueRequest request = new NewVersionSameValueRequest(rRenaming, wRenaming);
@@ -663,10 +670,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Sets a new value to a specific version of a file/object
+     * Sets a new value to a specific version of a file/object.
      *
-     * @param renaming
-     * @param value
+     * @param renaming Renaming version.
+     * @param value New value.
      */
     public void setObjectVersionValue(String renaming, Object value) {
         SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
@@ -676,10 +683,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Returns the last version of a file/object with code @code
+     * Returns the last version of a file/object with code {@code code}.
      *
-     * @param code
-     * @return
+     * @param code File code.
+     * @return Renaming of the last version.
      */
     public String getLastRenaming(int code) {
         Semaphore sem = new Semaphore(0);
@@ -695,9 +702,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Unblock result files
+     * Unblock result files.
      *
-     * @param resFiles
+     * @param resFiles List of result files to unblock.
      */
     public void unblockResultFiles(List<ResultFile> resFiles) {
         UnblockResultFilesRequest request = new UnblockResultFilesRequest(resFiles);
@@ -707,7 +714,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Shutdown request
+     * Shutdown request.
      */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
@@ -720,9 +727,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Returns a string with the description of the tasks in the graph
+     * Returns a string with the description of the tasks in the graph.
      *
-     * @return description of the current tasks in the graph
+     * @return The description of the current tasks in the graph.
      */
     public String getCurrentTaskState() {
         Semaphore sem = new Semaphore(0);
@@ -738,9 +745,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Marks a location for deletion
+     * Marks a location for deletion.
      *
-     * @param loc
+     * @param loc Location to delete.
      */
     public void markForDeletion(DataLocation loc) {
         LOGGER.debug("Marking data " + loc + " for deletion");
@@ -775,9 +782,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Marks a location for deletion
+     * Marks a BindingObject for its deletion.
      *
-     * @param loc
+     * @param code BindingObject code.
      */
     public void markForBindingObjectDeletion(int code) {
         if (!requestQueue.offer(new DeleteBindingObjectRequest(code))) {
@@ -786,10 +793,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Adds a request for file raw transfer
+     * Adds a request for file raw transfer.
      *
-     * @param faId
-     * @param location
+     * @param faId Data Access Id.
+     * @param location File location.
      */
     private void transferFileRaw(DataAccessId faId, DataLocation location) {
         Semaphore sem = new Semaphore(0);
@@ -806,10 +813,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Adds a request for open file transfer
+     * Adds a request for open file transfer.
      *
-     * @param faId
-     * @return
+     * @param faId Data Access Id.
+     * @return Location of the transferred open file.
      */
     private DataLocation transferFileOpen(DataAccessId faId) {
         Semaphore sem = new Semaphore(0);
@@ -826,10 +833,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Adds a request to obtain an object from a worker to the master
+     * Adds a request to obtain an object from a worker to the master.
      *
-     * @param oaId
-     * @return
+     * @param oaId Data Access Id.
+     * @return The synchronized object value.
      */
     private Object obtainObject(DataAccessId oaId) {
         // Ask for the object
@@ -863,9 +870,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Adds a request to retrieve the result files from the workers to the master
+     * Adds a request to retrieve the result files from the workers to the master.
      *
-     * @param appId
+     * @param appId Application Id.
      */
     public void getResultFiles(Long appId) {
         Semaphore sem = new Semaphore(0);
@@ -884,9 +891,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Deregister the given object
+     * Unregisters the given object.
      *
-     * @param o
+     * @param o Object to unregister.
      */
     public void deregisterObject(Object o) {
 

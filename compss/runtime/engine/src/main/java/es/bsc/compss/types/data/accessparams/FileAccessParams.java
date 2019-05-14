@@ -8,7 +8,7 @@ import es.bsc.compss.types.data.location.DataLocation;
 public class FileAccessParams extends AccessParams {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 

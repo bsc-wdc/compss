@@ -20,15 +20,20 @@ import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import es.bsc.compss.types.execution.InvocationContext;
 import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class PersistentMirror implements ExecutionPlatformMirror<Void> {
 
     private InvocationContext context;
 
+    Set<String> registeredThread;
+
 
     public PersistentMirror(InvocationContext context, int size) {
         this.context = context;
+        this.registeredThread = new HashSet<String>();
     }
 
     @Override
@@ -38,14 +43,26 @@ public class PersistentMirror implements ExecutionPlatformMirror<Void> {
 
     @Override
     public void unregisterExecutor(String id) {
-        PrintStream out = context.getThreadOutStream();
-        // WARNING: Do not remove this log, is used for runtime testing
-        out.println("[PersistentMirror] Thread unregistration has been done.");
-        PersistentInvoker.finishThread();
+
+        if (this.registeredThread.contains(id)) {
+            PrintStream out = context.getThreadOutStream();
+            // WARNING: Do not remove this log, is used for runtime testing
+            out.println("[PersistentMirror] Thread unregistration has been done.");
+            PersistentInvoker.finishThread();
+
+            synchronized (this.registeredThread) {
+                this.registeredThread.remove(id);
+            }
+        }
+
     }
 
     @Override
     public Void registerExecutor(String id) {
+        synchronized (this.registeredThread) {
+            this.registeredThread.add(id);
+        }
+
         PrintStream out = context.getThreadOutStream();
         // WARNING: Do not remove this log, is used for runtime testing
         out.println("[PersistentMirror] Thread registration has been done.");

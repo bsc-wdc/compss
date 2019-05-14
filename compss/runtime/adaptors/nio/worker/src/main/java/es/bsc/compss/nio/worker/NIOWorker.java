@@ -276,8 +276,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void receivedNewDataFetchOrder(NIOParam data) {
-        FetchDataOperationListener listener = new FetchDataOperationListener();
+    public void receivedNewDataFetchOrder(NIOParam data, int transferId) {
+        FetchDataOperationListener listener = new FetchDataOperationListener(transferId);
 
         if (data != null) {
             // Parameter has associated data
@@ -299,7 +299,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void askForTransfer(InvocationParam param, int index, FetchDataListener listener) {
-        System.out.println("Requesting a transfer for file " + param.getDataMgmtId());
         DataRequest dr = new WorkerDataRequest(listener, param.getType(), ((NIOParam) param).getData(), (String) param.getValue());
         addTransferRequest(dr);
     }
@@ -898,9 +897,18 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     public class FetchDataOperationListener extends MultiOperationFetchListener {
 
+        private final int transferId;
+
+        public FetchDataOperationListener(int transferId) {
+            this.transferId = transferId;
+        }
+
         @Override
         public void doCompleted() {
-
+            CommandDataReceived cdr = new CommandDataReceived(NIOWorker.this, transferId);
+            Connection c = TM.startConnection(masterNode);
+            c.sendCommand(cdr);
+            c.finishConnection();
         }
 
         @Override

@@ -314,7 +314,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void receivedNewDataFetchOrder(NIOParam data) {
+    public void receivedNewDataFetchOrder(NIOParam data, int transferId) {
         //Only the master commands other nodes to fetch a data value
     }
 
@@ -351,27 +351,27 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Update running jobs
         NIOJob nj = RUNNING_JOBS.remove(jobId);
-        int taskId = nj.getTaskId();
-
-        // Update information
-        List<DataType> taskResultTypes = tr.getParamTypes();
-        for (int i = 0; i < taskResultTypes.size(); ++i) {
-            DataType newType = taskResultTypes.get(i);
-            switch (newType) {
-                case PSCO_T:
-                case EXTERNAL_PSCO_T:
-                    String pscoId = (String) tr.getParamValue(i);
-                    DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
-                    updateParameter(newType, pscoId, dp);
-                    break;
-                default:
-                    // We only update information about PSCOs or EXTERNAL_PSCO
-                    break;
-            }
-        }
-
-        // Update NIO Job
         if (nj != null) {
+            int taskId = nj.getTaskId();
+
+            // Update information
+            List<DataType> taskResultTypes = tr.getParamTypes();
+            for (int i = 0; i < taskResultTypes.size(); ++i) {
+                DataType newType = taskResultTypes.get(i);
+                switch (newType) {
+                    case PSCO_T:
+                    case EXTERNAL_PSCO_T:
+                        String pscoId = (String) tr.getParamValue(i);
+                        DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
+                        updateParameter(newType, pscoId, dp);
+                        break;
+                    default:
+                        // We only update information about PSCOs or EXTERNAL_PSCO
+                        break;
+                }
+            }
+
+            // Update NIO Job
             // Mark task as finished and release waiters
             JobHistory prevJobHistory = nj.getHistory();
             nj.taskFinished(successful);
@@ -612,13 +612,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void completeMasterURI(MultiURI u) {
         u.setInternalURI(ID, new NIOURI(masterNode, u.getPath(), u.getProtocol()));
-    }
-
-    public void requestData(Copy c, DataType paramType, NIOData d, String path) {
-        DataRequest dr = new MasterDataRequest(c, paramType, d, path);
-        addTransferRequest(dr);
-        requestTransfers();
-
     }
 
     public void shuttingDown(NIOWorkerNode worker, Connection c, ShutdownListener listener) {

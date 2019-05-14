@@ -281,7 +281,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
-    private void fetchObject(InvocationParam param, int index, FetchDataListener tt) {
+    private void fetchObject(InvocationParam param, int index, FetchDataListener listener) {
         final String finalRename = param.getDataMgmtId();
         final String originalRename = param.getSourceDataId();
         WORKER_LOGGER.debug("   - " + finalRename + " registered as object.");
@@ -295,6 +295,7 @@ public class DataManagerImpl implements DataManager {
                         originalRegister.loadValue();
                     } catch (Exception e) {
                         WORKER_LOGGER.error(e);
+                        listener.errorFetchingValue(param.getDataMgmtId(), e);
                     }
                 } else {
                     try {
@@ -310,11 +311,12 @@ public class DataManagerImpl implements DataManager {
                         registry.put(finalRename, dr);
                     } catch (Exception e) {
                         WORKER_LOGGER.error(e);
+                        listener.errorFetchingValue(param.getDataMgmtId(), e);
                     }
                 }
-                fetchedLocalParameter(param, index, tt);
+                fetchedLocalParameter(param, index, listener);
             } else {
-                transferParameter(param, index, tt);
+                transferParameter(param, index, listener);
             }
         }
     }

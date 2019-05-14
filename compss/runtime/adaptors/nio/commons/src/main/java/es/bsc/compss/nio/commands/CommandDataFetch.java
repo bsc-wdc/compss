@@ -22,19 +22,19 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import es.bsc.comm.Connection;
-import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.nio.NIOParam;
 
 
 public class CommandDataFetch extends Command implements Externalizable {
 
     private NIOParam param;
+    private int transferId;
 
     public CommandDataFetch() {
         super();
     }
 
-    public CommandDataFetch(NIOParam p) {
+    public CommandDataFetch(NIOParam p, int transferId) {
         super();
         this.param = p;
     }
@@ -46,7 +46,7 @@ public class CommandDataFetch extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.receivedNewDataFetchOrder(param);
+        agent.receivedNewDataFetchOrder(param, transferId);
         c.finishConnection();
     }
 
@@ -54,11 +54,13 @@ public class CommandDataFetch extends Command implements Externalizable {
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.param = (NIOParam) in.readObject();
+        this.transferId = in.readInt();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(param);
+        out.writeInt(transferId);
     }
 
     @Override

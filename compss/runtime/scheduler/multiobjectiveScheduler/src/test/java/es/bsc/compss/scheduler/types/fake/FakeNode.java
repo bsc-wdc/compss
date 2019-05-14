@@ -59,6 +59,10 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+    }
+
+    @Override
     public Job<?> newJob(int i, TaskDescription tp, Implementation i1, Resource rsrc,
             List<String> slaveWorkersNodeNames, JobListener jl) {
 

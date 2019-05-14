@@ -31,6 +31,7 @@ import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOMessageHandler;
+import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
@@ -310,6 +311,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteFiles) {
         // Can not run any task. Do nothing
+    }
+
+    @Override
+    public void receivedNewDataFetchOrder(NIOParam data) {
+        //Only the master commands other nodes to fetch a data value
     }
 
     @Override

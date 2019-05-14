@@ -1,0 +1,387 @@
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package es.bsc.compss.types.allocatableactions;
+
+import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.scheduler.exceptions.BlockedActionException;
+import es.bsc.compss.scheduler.exceptions.FailedActionException;
+import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.ActionOrchestrator;
+import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.SchedulingInformation;
+import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.Worker;
+import es.bsc.compss.types.resources.WorkerResourceDescription;
+
+import es.bsc.compss.util.ErrorManager;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
+public class TransferValueAction extends AllocatableAction {
+
+    // LOGGER
+    private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
+    private static final Implementation impl = new MethodImplementation("", "", null, null, null);
+
+    private final DependencyParameter dataToTransfer;
+    private final ResourceScheduler receiver;
+
+    /**
+     * Creates a new execution action
+     *
+     * @param schedulingInformation
+     * @param orchestrator
+     * @param dp
+     * @param receiver
+     *
+     */
+    public TransferValueAction(
+            SchedulingInformation schedulingInformation,
+            ActionOrchestrator orchestrator,
+            DependencyParameter dp,
+            ResourceScheduler receiver) {
+
+        super(schedulingInformation, orchestrator);
+        this.receiver = receiver;
+        this.dataToTransfer = dp;
+    }
+
+
+    /*
+     * ***************************************************************************************************************
+     * EXECUTION AND LIFECYCLE MANAGEMENT
+     * ***************************************************************************************************************
+     */
+    @Override
+    public boolean isToReserveResources() {
+        return false;
+    }
+
+    @Override
+    public boolean isToReleaseResources() {
+        return false;
+    }
+
+    @Override
+    public boolean isToStopResource() {
+        return false;
+    }
+
+    @Override
+    protected void doAction() {
+        JOB_LOGGER.info("Ordering transfers of " + this.dataToTransfer.getName() + " to " + receiver.getName());
+        ObtainDataListener listener = new ObtainDataListener();
+        transferData(this.dataToTransfer, listener);
+        listener.enable();
+    }
+
+    // Private method that performs data transfers
+    private void transferData(DependencyParameter dataToTransfer, ObtainDataListener listener) {
+
+        if (dataToTransfer.getType() == DataType.COLLECTION_T) {
+            CollectionParameter cp = (CollectionParameter) dataToTransfer;
+            JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+            // TODO: Handle basic data types
+            for (Parameter p : cp.getParameters()) {
+                DependencyParameter dp = (DependencyParameter) p;
+                transferData(dp, listener);
+            }
+        }
+
+        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
+        DataAccessId access = dataToTransfer.getDataAccessId();
+        if (access instanceof WAccessId) {
+            String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
+            // Workaround for return objects in bindings converted to PSCOs inside tasks
+            if (dataToTransfer instanceof ExternalPSCOParameter) {
+                ExternalPSCOParameter epp = (ExternalPSCOParameter) dataToTransfer;
+                tgtName = epp.getId();
+            }
+            if (DEBUG) {
+                JOB_LOGGER.debug("Setting data target job transfer: "
+                        + w.getCompleteRemotePath(dataToTransfer.getType(), tgtName));
+            }
+            dataToTransfer.setDataTarget(w.getCompleteRemotePath(dataToTransfer.getType(), tgtName).getPath());
+            return;
+        }
+        listener.addOperation();
+        if (access instanceof RAccessId) {
+            String srcName = ((RAccessId) access).getReadDataInstance().getRenaming();
+            w.getData(srcName, srcName, dataToTransfer, listener);
+        } else {
+            // Is RWAccess
+            String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
+            String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+            w.getData(srcName, tgtName, (LogicalData) null, dataToTransfer, listener);
+        }
+    }
+
+    /*
+     * ***************************************************************************************************************
+     * EXECUTED SUPPORTING THREAD ON JOB_TRANSFERS_LISTENER
+     * ***************************************************************************************************************
+     */
+    public void flushCopies() {
+        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
+        FlushCopyListener listener = new FlushCopyListener();
+        w.enforceDataObtaning(dataToTransfer, listener);
+    }
+
+    /**
+     * Code executed when the value transfer has been completed
+     *
+     */
+    public final void completedTransfer() {
+        // Notify completion
+        notifyCompleted();
+    }
+
+    /*
+     * ***************************************************************************************************************
+     * EXECUTION TRIGGERS
+     * ***************************************************************************************************************
+     */
+    @Override
+    protected void doCompleted() {
+
+    }
+
+    @Override
+    protected void doError() throws FailedActionException {
+        throw new FailedActionException();
+    }
+
+    @Override
+    protected void doAbort() {
+        // Do nothing
+    }
+
+    @Override
+    protected void doFailed() {
+        ErrorManager.warn("Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has failed.");
+    }
+
+    @Override
+    protected void doCanceled() {
+        ErrorManager.warn("Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has been cancelled.");
+    }
+
+    @Override
+    protected void doFailIgnored() {
+        // Failed log message
+        ErrorManager.warn("Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has failed.");
+    }
+
+
+    /*
+     * ***************************************************************************************************************
+     * SCHEDULING MANAGEMENT
+     * ***************************************************************************************************************
+     */
+    @Override
+    public final List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
+        List<ResourceScheduler<? extends WorkerResourceDescription>> compatible = new LinkedList<>();
+        compatible.add(receiver);
+        return compatible;
+    }
+
+    @Override
+    public final Implementation[] getImplementations() {
+
+        return new Implementation[]{impl};
+    }
+
+    @Override
+    public <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r) {
+        return r == this.receiver.getResource();
+    }
+
+    @Override
+    public final <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r) {
+        List<Implementation> impls = new LinkedList<>();
+        impls.add(impl);
+        return impls;
+    }
+
+    @Override
+    public final Integer getCoreId() {
+        return null;
+    }
+
+    @Override
+    public final int getPriority() {
+        return 1;
+    }
+
+    @Override
+    public OnFailure getOnFailure() {
+        return OnFailure.IGNORE;
+    }
+
+    @Override
+    public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore) {
+        if (targetWorker == this.receiver) {
+            return actionScore;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+        schedule(this.receiver, impl);
+    }
+
+    @Override
+    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
+            throws BlockedActionException, UnassignedActionException {
+        schedule(targetWorker, impl);
+    }
+
+    @Override
+    public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException {
+
+        if (targetWorker != this.receiver) {
+            throw new UnassignedActionException();
+        }
+        // WARN: Parameter impl is ignored
+        assignResource(targetWorker);
+        assignImplementation(impl);
+        targetWorker.scheduleAction(this);
+    }
+
+
+    /*
+     * ***************************************************************************************************************
+     * OTHER
+     * ***************************************************************************************************************
+     */
+    @Override
+    public String toString() {
+        return "TransferAction ( Data " + this.dataToTransfer.getName() + ", receiver " + this.receiver.getName() + ")";
+    }
+
+
+    private class ObtainDataListener extends EventListener {
+
+        private int operation = 0;
+        private int errors = 0;
+        private boolean enabled = false;
+
+        public ObtainDataListener() {
+        }
+
+        @Override
+        public void notifyEnd(DataOperation d) {
+            boolean enabled;
+            boolean finished;
+            boolean failed;
+            synchronized (this) {
+                operation--;
+                finished = operation == 0;
+                failed = errors > 0;
+                enabled = this.enabled;
+            }
+            if (finished && enabled) {
+                if (failed) {
+                    TransferValueAction.this.notifyError();
+                } else {
+                    flushCopies();
+                }
+            }
+        }
+
+        @Override
+        public void notifyFailure(DataOperation d, Exception excptn) {
+            ErrorManager.warn("Transfer for data " + TransferValueAction.this.dataToTransfer + " to "
+                    + TransferValueAction.this.receiver.getName() + " has failed.");
+
+            boolean enabled;
+            boolean finished;
+            synchronized (this) {
+                errors++;
+                operation--;
+                finished = operation == 0;
+                enabled = this.enabled;
+            }
+            if (enabled && finished) {
+                TransferValueAction.this.notifyError();
+            }
+        }
+
+        public void enable() {
+            boolean finished;
+            boolean failed;
+            synchronized (this) {
+                enabled = true;
+                finished = (operation == 0);
+                failed = (errors > 0);
+            }
+            if (finished) {
+                if (failed) {
+                    TransferValueAction.this.notifyError();
+                } else {
+                    flushCopies();
+                }
+            }
+        }
+
+        public synchronized void addOperation() {
+            operation++;
+        }
+    }
+
+
+    private class FlushCopyListener extends EventListener {
+
+        @Override
+        public void notifyEnd(DataOperation d) {
+            TransferValueAction.this.completedTransfer();
+        }
+
+        @Override
+        public void notifyFailure(DataOperation d, Exception excptn) {
+            TransferValueAction.this.notifyError();
+        }
+
+    }
+}

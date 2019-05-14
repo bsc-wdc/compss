@@ -177,6 +177,12 @@ public class RemoteRESTAgent extends COMPSsWorker {
     }
 
     @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+        //Copy already done on obtainData()
+        listener.notifyEnd(null);
+    }
+
+    @Override
     public void stop(ShutdownListener sl) {
         //Demon should be stopped
         sl.notifyEnd();

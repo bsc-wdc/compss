@@ -64,7 +64,6 @@ public class GATWorkerNode extends COMPSsWorker {
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
 
-
     /**
      * New GAT Worker Node with name @name and configuration @config
      *
@@ -304,6 +303,12 @@ public class GATWorkerNode extends COMPSsWorker {
 
         Copy c = new GATCopy(ld, source, target, tgtData, reason, listener);
         GATAdaptor.enqueueCopy(c);
+    }
+
+    @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+        //Copy already done on obtainData()
+        listener.notifyEnd(null);
     }
 
     @Override

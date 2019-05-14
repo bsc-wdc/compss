@@ -108,6 +108,10 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+    }
+
+    @Override
     public void updateTaskCount(int processorCoreCount) {
     }
 

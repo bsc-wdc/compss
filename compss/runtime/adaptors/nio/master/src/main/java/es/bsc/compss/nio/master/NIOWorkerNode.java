@@ -23,9 +23,11 @@ import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOURI;
+import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandResourcesIncrease;
@@ -37,6 +39,7 @@ import es.bsc.compss.nio.commands.workerFiles.CommandGenerateWorkerDebugFiles;
 import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.dataRequest.MasterDataRequest;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
+import es.bsc.compss.nio.master.utils.NIOParamFactory;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.job.Job;
@@ -58,6 +61,7 @@ import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
@@ -453,6 +457,15 @@ public class NIOWorkerNode extends COMPSsWorker {
             commManager.registerCopy(c);
         }
         c.end(DataOperation.OpEndState.OP_OK);
+    }
+
+    @Override
+    public void enforceDataObtaining(Transferable reason, EventListener listener) {
+        NIOParam param = NIOParamFactory.fromParameter((Parameter) reason);
+        CommandDataFetch cmd = new CommandDataFetch(param);
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        c.sendCommand(cmd);
+        c.finishConnection();
     }
 
     @Override

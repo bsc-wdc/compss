@@ -15,6 +15,7 @@
  *
  */
 package es.bsc.compss.types;
+
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
@@ -96,10 +97,10 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
             List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
-     * Sends an specific data to the node.
+     * Commands the worker to send a data value.
      *
-     * @param srcData source logical data 
-     * @param loc  source location
+     * @param srcData source logical data
+     * @param loc source location
      * @param target target location
      * @param tgtData target logical data
      * @param reason Transferable action type
@@ -109,17 +110,25 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
             Transferable reason, EventListener listener);
 
     /**
-     * Retrieves an specific data from the node. 
+     * Orders the worker to retrieve a data value.
      *
      * @param srcData source logical data
-     * @param source source location 
-     * @param target target location 
+     * @param source source location
+     * @param target target location
      * @param tgtData Target logical data
      * @param reason Transferable action type
      * @param listener Event listener
      */
     public abstract void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
             Transferable reason, EventListener listener);
+
+    /**
+     * Orders the complete a data value retrieval already commanded.
+     *
+     * @param reason Transferable action type
+     * @param listener Event listener
+     */
+    public abstract void enforceDataObtaining(Transferable reason, EventListener listener);
 
     /**
      * Stops the node process.
@@ -158,7 +167,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     public abstract void shutdownExecutionManager(ExecutorShutdownListener sl);
 
     /**
-     * Generates the debug information in the node. 
+     * Generates the debug information in the node.
      *
      * @return true is generate correctly, false otherwise
      */

@@ -13,16 +13,14 @@ public interface MainItf {
     @Constraints(processorArchitecture = "Intel")
     @Method(declaringClass = "fileStreamTest.Tasks")
     void writeFiles(
-        //@Parameter(type = Type.STREAM, direction = Direction.OUT) FileDistroStream fds,
-        @Parameter(type = Type.OBJECT, direction = Direction.IN) FileDistroStream fds,
+        @Parameter(type = Type.STREAM, direction = Direction.OUT) FileDistroStream fds,
         @Parameter() int sleepTime
     );
 
     @Constraints(processorArchitecture = "AMD")
     @Method(declaringClass = "fileStreamTest.Tasks")
     Integer readFiles(
-        //@Parameter(type = Type.STREAM, direction = Direction.IN) FileDistroStream fds,
-        @Parameter(type = Type.OBJECT, direction = Direction.IN) FileDistroStream fds,
+        @Parameter(type = Type.STREAM, direction = Direction.IN) FileDistroStream fds,
         @Parameter() int sleepTime
     );
     

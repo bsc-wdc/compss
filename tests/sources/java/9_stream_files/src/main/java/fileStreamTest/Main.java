@@ -18,6 +18,8 @@ public class Main {
     private static final int SLEEP_TIME2 = 1_000; // ms
     private static final int SLEEP_TIME3 = 2_000; // ms
 
+    private static final int MAX_ENTRIES = 100; // Maximum number of entries for task consumer spawn
+
 
     public static void main(String[] args) throws RegistrationException, IOException, BackendException {
         // One producer, One consumer. ConsumerTime < ProducerTime
@@ -58,14 +60,17 @@ public class Main {
         }
 
         // Create consumer task
-        Integer totalFiles = 0;
+        Integer[] totalFiles = new Integer[numConsumers];
         for (int i = 0; i < numConsumers; ++i) {
-            Integer partialFiles = Tasks.readFiles(fds, consumerSleep);
-            totalFiles = totalFiles + partialFiles;
+            totalFiles[i] = Tasks.readFiles(fds, consumerSleep);
+        }
+        Integer total = 0;
+        for (Integer partial : totalFiles) {
+            total = total + partial;
         }
 
         // Wait for tasks completion
-        System.out.println("[LOG] TOTAL NUMBER OF PROCESSED FILES: " + totalFiles);
+        System.out.println("[LOG] TOTAL NUMBER OF PROCESSED FILES: " + total);
     }
 
     private static void produceSpawnConsumers(int numProducers, int producerSleep, int consumerSleep)
@@ -84,10 +89,19 @@ public class Main {
         }
 
         // Check stream status and generate consumers
-        Integer totalFiles = 0;
+        Integer[] totalFiles = new Integer[MAX_ENTRIES];
+        int pos = 0;
         while (!fds.isClosed()) {
-            Integer polledFiles = pollNewFilesAndSpawnConsumer(fds);
-            totalFiles = totalFiles + polledFiles;
+            // Poll new files
+            List<String> newFiles = fds.poll();
+
+            // Process their content
+            for (String fileName : newFiles) {
+                System.out.println("Sending " + fileName + " to a process task");
+                totalFiles[pos] = Tasks.processFile(fileName);
+                pos = pos + 1;
+            }
+
             // Sleep between polls
             try {
                 Thread.sleep(consumerSleep);
@@ -95,25 +109,27 @@ public class Main {
                 Thread.currentThread().interrupt();
             }
         }
+
         // Although the stream is closed, there can still be pending events to process
-        Integer polledFiles = pollNewFilesAndSpawnConsumer(fds);
-        totalFiles = totalFiles + polledFiles;
-
-        // Wait for tasks completion
-        System.out.println("[LOG] TOTAL NUMBER OF PROCESSED FILES: " + totalFiles);
-    }
-
-    private static Integer pollNewFilesAndSpawnConsumer(FileDistroStream fds) throws IOException, BackendException {
-        Integer polledFiles = 0;
-        // Poll new files
         List<String> newFiles = fds.poll();
         // Process their content
         for (String fileName : newFiles) {
             System.out.println("Sending " + fileName + " to a process task");
-            Integer numProcessed = Tasks.processFile(fileName);
-            polledFiles = polledFiles + numProcessed;
+            totalFiles[pos] = Tasks.processFile(fileName);
+            pos = pos + 1;
         }
-        return polledFiles;
+
+        // Count total
+        Integer total = 0;
+        for (int i = 0; i < pos; i++) {
+            Integer partial = totalFiles[i];
+            if (partial != null) {
+                total = total + partial;
+            }
+        }
+
+        // Wait for tasks completion
+        System.out.println("[LOG] TOTAL NUMBER OF PROCESSED FILES: " + total);
     }
 
 }

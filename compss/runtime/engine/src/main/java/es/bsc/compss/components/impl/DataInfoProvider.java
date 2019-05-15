@@ -799,7 +799,7 @@ public class DataInfoProvider {
             LOGGER.debug("Requesting tranfers binding object " + sourceName + " to " + Comm.getAppHost().getName());
         }
         BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
-        BindingObject tgtBO = new BindingObject(Comm.getAppHost().getTempDirPath() + sourceName, srcBO.getType(),
+        BindingObject tgtBO = new BindingObject(sourceName, srcBO.getType(),
                 srcBO.getElements());
         /*
          * if (tgtLd == null){ Comm.registerBindingObject(targetName, tgtBO ); }

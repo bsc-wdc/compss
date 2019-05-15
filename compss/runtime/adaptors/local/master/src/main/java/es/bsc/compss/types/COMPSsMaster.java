@@ -460,22 +460,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
                                     + tgtBO.getName());
                         }
-                        BindingObject bo = BindingObject.generate(copy.getFinalTarget());
-                        if (ld.getName().equals(tgtBO.getName())) {
-                            LOGGER.debug(
-                                    "Current transfer is the same as expected. Nothing to do setting data target to "
-                                    + copy.getFinalTarget());
-                            reason.setDataTarget(copy.getFinalTarget());
-                        } else {
-                            LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
-                            BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                            if (tgtData != null) {
-                                tgtData.addLocation(target);
+                        try {
+                            if (persistentEnabled) {
+                                manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
+                            }else {
+                                manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
                             }
-                            LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
-                            reason.setDataTarget(copy.getFinalTarget());
+                            listener.notifyEnd(null);
+                        }catch(Exception e){
+                            LOGGER.error("ERROR: managing obtain binding object at cache", e);
+                            listener.notifyFailure(null, e);
                         }
-                        listener.notifyEnd(null);
                         ld.releaseHostRemoval();
                         return;
 
@@ -488,24 +483,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                 LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
                                         + tgtBO.getName());
                             }
-                            BindingObject bo = BindingObject.generate(copy.getFinalTarget());
-                            if (ld.getName().equals(tgtBO.getName())) {
-
-                                LOGGER.debug(
-                                        "Current transfer is the same as expected. Nothing to do setting data target to "
-                                        + bo.getName());
-                                reason.setDataTarget(copy.getFinalTarget());
-                            } else {
-                                LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
-                                BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                                if (tgtData != null) {
-                                    tgtData.addLocation(target);
+                            try {
+                                if (persistentEnabled) {
+                                    manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
+                                }else {
+                                    manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
                                 }
-                                LOGGER.debug("File copied set dataTarget " + copy.getFinalTarget());
-                                reason.setDataTarget(copy.getFinalTarget());
+                                listener.notifyEnd(null);
+                            }catch(Exception e){
+                                LOGGER.error("ERROR: managing obtain binding object at cache", e);
+                                listener.notifyFailure(null, e);
                             }
-
-                            listener.notifyEnd(null);
                             ld.releaseHostRemoval();
                             return;
 
@@ -535,22 +523,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                             + tgtBO.getName());
                 }
-                BindingObject bo = BindingObject.generate(u.getPath());
-                if (ld.getName().equals(tgtBO.getName())) {
-                    LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to "
-                            + u.getPath());
-                    reason.setDataTarget(u.getPath());
-                } else {
-                    LOGGER.debug("Making cache copy from " + u.getPath() + " to " + tgtBO.getName());
-                    BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                    if (tgtData != null) {
-                        tgtData.addLocation(target);
+                try {
+                    if(persistentEnabled) {
+                        manageObtainBindingObjectInCache(u.getPath(), tgtBO, tgtData, target, reason);
+                    }else {
+                        manageObtainBindingObjectAsFile(u.getPath(), tgtBO, tgtData, target, reason);
                     }
-                    LOGGER.debug("File copied set dataTarget " + u.getPath());
-                    reason.setDataTarget(u.getPath());
+                    listener.notifyEnd(null);
+                }catch(Exception e){
+                    LOGGER.error("ERROR: managing obtain binding object at cache", e);
+                    listener.notifyFailure(null, e);
                 }
-
-                listener.notifyEnd(null);
                 ld.releaseHostRemoval();
                 return;
             } else {
@@ -582,21 +565,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     ld.releaseHostRemoval();
                     return;
                 } else {
-                    BindingObject bo = BindingObject.generate(sourcePath);
-                    if (ld.getName().equals(tgtBO.getName())) {
-                        LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to "
-                                + bo.getName());
-                        reason.setDataTarget(sourcePath);
-                    } else {
-                        LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
-                        BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName());
-                        if (tgtData != null) {
-                            tgtData.addLocation(target);
+                    try {
+                        if(persistentEnabled) {
+                            manageObtainBindingObjectInCache(sourcePath, tgtBO, tgtData, target, reason);
+                        }else {
+                            manageObtainBindingObjectAsFile(sourcePath, tgtBO, tgtData, target, reason);
                         }
-                        LOGGER.debug("File copied set dataTarget " + tgtBO.getName());
-                        reason.setDataTarget(sourcePath);
+                        listener.notifyEnd(null);
+                    }catch(Exception e){
+                        LOGGER.error("ERROR: managing obtain binding object at cache", e);
+                        listener.notifyFailure(null, e);
                     }
-                    listener.notifyEnd(null);
                     ld.releaseHostRemoval();
                     return;
                 }
@@ -630,6 +609,99 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName() + " and nothing done. Releasing listeners and locks");
         listener.notifyEnd(null);
         ld.releaseHostRemoval();
+    }
+
+    private void manageObtainBindingObjectInCache(String initialPath, BindingObject tgtBO, LogicalData tgtData,
+            DataLocation target, Transferable reason) throws Exception {
+        BindingObject bo = BindingObject.generate(initialPath);
+        
+        if (bo.getName().equals(tgtBO.getName())) {
+            if (BindingDataManager.isInBinding(tgtBO.getName())) {
+                LOGGER.debug(
+                    "Current transfer is the same as expected. Nothing to do setting data target to "
+                    + initialPath);
+                reason.setDataTarget(initialPath);
+            }else {
+                String tgtPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
+                LOGGER.debug("Data " + tgtBO.getName() + " not in cache loading from file " + tgtPath);
+                if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(), tgtBO.getElements())!=0) {
+                    throw(new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
+                }   
+                reason.setDataTarget(target.getPath());
+            }
+        } else {
+            if (BindingDataManager.isInBinding(tgtBO.getName())) {
+                LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
+                if (reason.isSourcePreserved()) {
+                    if(BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName())!=0){
+                        throw(new Exception("Error copying cache from " + bo.getName() + " to "+ tgtBO.getName()));
+                    }
+                } else {
+                    if(BindingDataManager.moveCachedData(bo.getName(), tgtBO.getName())!=0){
+                        throw(new Exception("Error moved cache from " + bo.getName() + " to "+ tgtBO.getName()));
+                    }
+                }
+            }else {
+                String tgtPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
+                LOGGER.debug("Data "+ tgtBO.getName()+" not in cache loading from file " + tgtPath);
+                if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(), tgtBO.getElements())!=0) {
+                    throw(new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
+                }
+            }
+            if (tgtData != null) {
+                tgtData.addLocation(target);
+            }
+            LOGGER.debug("BindingObject copied/moved set data target as " + target.getPath());
+            reason.setDataTarget(target.getPath());
+        }
+        
+        
+    }
+    
+    private void manageObtainBindingObjectAsFile(String initialPath, BindingObject tgtBO, LogicalData tgtData,
+            DataLocation target, Transferable reason) throws Exception {
+        BindingObject bo = BindingObject.generate(initialPath);
+        if (bo.getName().equals(tgtBO.getName())) {
+            LOGGER.debug(
+                    "Current transfer is the same as expected. Nothing to do setting data target to "
+                    + initialPath);
+            reason.setDataTarget(initialPath);
+        }else {
+            String iPath = getCompletePath(DataType.BINDING_OBJECT_T, bo.getName()).getPath();
+            String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
+            if (reason.isSourcePreserved()) {
+                if (DEBUG) {
+                    LOGGER.debug("Master local copy " + bo.getName() + " from " + iPath + " to "
+                        + tPath);
+                }
+                Files.copy(new File(iPath).toPath(), new File(tPath).toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            } else {
+                if (DEBUG) {
+                LOGGER.debug("Master local move " + bo.getName() + " from " + iPath + " to "
+                        + tPath);
+                }
+                Files.move(new File(iPath).toPath(), new File(tPath).toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            if (tgtData != null) {
+                tgtData.addLocation(target);
+            }
+            
+            LOGGER.debug("BindingObject as file copied/moved set data target as " + target.getPath());
+            reason.setDataTarget(target.getPath());
+        }
+        // If path is relative push to cache. If not keep as file (master_in_worker)
+        LOGGER.debug(" Checking if BindingObject " + tgtBO.getId() + " has relative path");
+        if (!tgtBO.getId().startsWith(File.separator)) {
+            LOGGER.debug("Loading BindingObject " + tgtBO.getName() + " to cache...");
+            String tgtPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
+            if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(), tgtBO.getElements()) != 0) {
+                throw (new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
+            }
+        }
     }
 
     public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
@@ -835,15 +907,15 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 LOGGER.debug("Reason: " + reason.getType());
             }
             if (source != null) {
-                LOGGER.debug("Source Data location" + source.getType().toString() + " "
+                LOGGER.debug("Source Data location: " + source.getType().toString() + " "
                         + source.getProtocol().toString() + " " + source.getURIs().get(0));
             }
             if (target != null) {
                 if (target.getProtocol() != Protocol.PERSISTENT_URI) {
-                    LOGGER.debug("Target Data location" + target.getType().toString() + " "
+                    LOGGER.debug("Target Data location: " + target.getType().toString() + " "
                             + target.getProtocol().toString() + " " + target.getURIs().get(0));
                 } else {
-                    LOGGER.debug("Target Data location" + target.getType().toString() + " "
+                    LOGGER.debug("Target Data location: " + target.getType().toString() + " "
                             + target.getProtocol().toString());
                 }
             }
@@ -930,7 +1002,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = Protocol.BINDING_URI.getSchema() + name;
+                path = Protocol.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             default:
                 return null;

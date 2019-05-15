@@ -33,6 +33,9 @@ public class ActionSet {
     private int totalActions;
 
 
+    /**
+     * Creates a new ActionSet instance.
+     */
     @SuppressWarnings("unchecked")
     public ActionSet() {
         int coreCount = CoreManager.getCoreCount();
@@ -44,9 +47,14 @@ public class ActionSet {
             this.coreIndexed[coreId] = new LinkedList<>();
             this.counts[coreId] = 0;
         }
-        totalActions = 0;
+        this.totalActions = 0;
     }
 
+    /**
+     * Updates the number of cores of the ActionSet.
+     * 
+     * @param newCoreCount New core count.
+     */
     @SuppressWarnings("unchecked")
     public void updateCoreCount(int newCoreCount) {
         int oldCoreCount = coreIndexed.length;
@@ -68,6 +76,11 @@ public class ActionSet {
         }
     }
 
+    /**
+     * Adds a new action to the action set.
+     * 
+     * @param aa AllocatableAction to add.
+     */
     public void addAction(AllocatableAction aa) {
         Integer core = aa.getCoreId();
         if (core == null) {
@@ -80,17 +93,33 @@ public class ActionSet {
             this.coreIndexed[core].add(aa);
             this.counts[core]++;
         }
-        totalActions++;
+        this.totalActions++;
     }
 
+    /**
+     * Returns the total number of actions of the action set.
+     * 
+     * @return The total number of actions of the action set.
+     */
     public int getNumberTotalActions() {
         return this.totalActions;
     }
 
+    /**
+     * Returns the number of counts of each action of the action set.
+     * 
+     * @return The number of counts of each action of the action set.
+     */
     public int[] getActionCounts() {
         return this.counts;
     }
 
+    /**
+     * Returns the actions of the action set associated with the given core Id.
+     * 
+     * @param coreId Core Id.
+     * @return Actions of the action set associated with the given core Id.
+     */
     public List<AllocatableAction> getActions(Integer coreId) {
         if (coreId == null) {
             return this.noCore;
@@ -99,6 +128,11 @@ public class ActionSet {
         }
     }
 
+    /**
+     * Returns all the actions of the action set.
+     * 
+     * @return All the actions of the action set.
+     */
     public List<AllocatableAction> getAllActions() {
         List<AllocatableAction> runnable = new LinkedList<>();
         runnable.addAll(this.noCore);
@@ -109,6 +143,11 @@ public class ActionSet {
         return runnable;
     }
 
+    /**
+     * Removes an action from the action set.
+     * 
+     * @param action AllocatableAction to remove.
+     */
     public void removeAction(AllocatableAction action) {
         Integer coreId = action.getCoreId();
         if (coreId == null) {
@@ -120,6 +159,12 @@ public class ActionSet {
         totalActions--;
     }
 
+    /**
+     * Remove from the action set all the compatible actions with the given worker {@code r}.
+     * 
+     * @param r Worker.
+     * @return List of removed actions.
+     */
     public <T extends WorkerResourceDescription> List<AllocatableAction> removeAllCompatibleActions(Worker<T> r) {
         List<AllocatableAction> runnable = new LinkedList<>();
         Iterator<AllocatableAction> actions = this.noCore.iterator();
@@ -143,6 +188,11 @@ public class ActionSet {
         return runnable;
     }
 
+    /**
+     * Removes all actions from the action set.
+     * 
+     * @return List of removed actions.
+     */
     public List<AllocatableAction> removeAllActions() {
         List<AllocatableAction> runnable = new LinkedList<>();
         Iterator<AllocatableAction> actions = this.noCore.iterator();

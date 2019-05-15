@@ -17,11 +17,11 @@
 package es.bsc.compss.types.fake;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import java.util.LinkedList;
-
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+
+import java.util.LinkedList;
 
 
 public class FakeSI extends SchedulingInformation {
@@ -35,49 +35,49 @@ public class FakeSI extends SchedulingInformation {
 
     public <T extends WorkerResourceDescription> FakeSI(ResourceScheduler<T> enforcedTargetResource) {
         super(enforcedTargetResource);
-        resourcePredecessors = new LinkedList<>();
-        resourceSuccessors = new LinkedList<>();
+        this.resourcePredecessors = new LinkedList<>();
+        this.resourceSuccessors = new LinkedList<>();
     }
 
     public void addPredecessor(AllocatableAction predecessor) {
-        resourcePredecessors.add(predecessor);
+        this.resourcePredecessors.add(predecessor);
     }
 
     public boolean hasPredecessors() {
-        return !resourcePredecessors.isEmpty();
+        return !this.resourcePredecessors.isEmpty();
     }
 
     @Override
     public final boolean isExecutable() {
-        return resourcePredecessors.isEmpty();
+        return this.resourcePredecessors.isEmpty();
     }
 
     public LinkedList<AllocatableAction> getPredecessors() {
-        return resourcePredecessors;
+        return this.resourcePredecessors;
     }
 
     public void removePredecessor(AllocatableAction successor) {
-        resourcePredecessors.remove(successor);
+        this.resourcePredecessors.remove(successor);
     }
 
     public void clearPredecessors() {
-        resourcePredecessors.clear();
+        this.resourcePredecessors.clear();
     }
 
     public void addSuccessor(AllocatableAction successor) {
-        resourceSuccessors.add(successor);
+        this.resourceSuccessors.add(successor);
     }
 
     public LinkedList<AllocatableAction> getSuccessors() {
-        return resourceSuccessors;
+        return this.resourceSuccessors;
     }
 
     public synchronized void removeSuccessor(AllocatableAction successor) {
-        resourceSuccessors.remove(successor);
+        this.resourceSuccessors.remove(successor);
     }
 
     public void clearSuccessors() {
-        resourceSuccessors.clear();
+        this.resourceSuccessors.clear();
     }
 
 }

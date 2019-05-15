@@ -16,10 +16,9 @@
  */
 package es.bsc.compss.types.fake;
 
-import java.util.List;
-
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -29,11 +28,12 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.resources.ResourceDescription;
+
+import java.util.List;
 
 
 public class FakeNode extends COMPSsNode {

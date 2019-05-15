@@ -52,8 +52,17 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
+    /**
+     * Creates a new ReduceWorkerAction to update the worker information.
+     * 
+     * @param schedulingInformation Associated scheduling information.
+     * @param worker Worker to reduce.
+     * @param ts Associated Task scheduler.
+     * @param modification Modification to perform.
+     */
     public ReduceWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
             TaskScheduler ts, ResourceUpdate<T> modification) {
+
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         this.ru = (PendingReduction<T>) modification;
@@ -94,8 +103,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
             public void run() {
                 Thread.currentThread().setName(worker.getName() + " stopper");
                 DynamicMethodWorker w = (DynamicMethodWorker) worker.getResource();
-                PendingReduction<WorkerResourceDescription> reduction = (PendingReduction<WorkerResourceDescription>) ru;
-                ResourceManager.reduceDynamicWorker(w, reduction);
+                PendingReduction<WorkerResourceDescription> red = (PendingReduction<WorkerResourceDescription>) ru;
+                ResourceManager.reduceDynamicWorker(w, red);
                 w.endTask((MethodResourceDescription) getResourceConsumption());
                 try {
                     ru.waitForCompletion();
@@ -158,7 +167,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[]{impl};
+        Implementation[] impls = new Implementation[] { impl };
         return impls;
     }
 

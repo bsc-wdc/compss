@@ -16,16 +16,9 @@
  */
 package es.bsc.compss.util;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.resources.CloudMethodWorker;
@@ -33,44 +26,30 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONObject;
+
 import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class JSONStateManager {
 
-    // private static final String JSON_DATA = "{}";
-    // private static final String JSON_DATA =
-    // "{\"resources\":{},\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":590,\"minTime\":590}}}";
-    // private static final String JSON_DATA =
-    // "{\"resources\":{\"COMPSsWorker02\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}},\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}";
-    // private static final String JSON_DATA =
-    // "{\"resources\":{},\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"extraInfo\":35,\"maxTime\":620,\"executions\":2,\"avgTime\":590,\"minTime\":590}}}";
-    // private static final String JSON_DATA =
-    // "{\"resources\":{\"COMPSsWorker01\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}},\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}";
-    // private static final String JSON_DATA =
-    // "{\"resources\":{\"COMPSsWorker01\":{\"implementations\":{\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}},\"implementations\":{\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}";
-    // private static final String JSON_DATA = "{}";
-    // private static final String JSON_DATA = "{" + "\"cloud\":{" + "\"BSC\":{"
-    // +
-    // "\"small\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}},"
-    // +
-    // "\"big\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":62,\"executions\":2,\"avgTime\":60,\"minTime\":59},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":62,\"executions\":2,\"avgTime\":60,\"minTime\":59}}},"
-    // + "}" + "}," + "\"resources\":{"
-    // +
-    // "\"COMPSsWorker02\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}},"
-    // +
-    // "\"COMPSsWorker01\":{\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":2,\"avgTime\":600,\"minTime\":590}}}"
-    // + "},"
-    // +
-    // "\"implementations\":{\"increment(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":4,\"avgTime\":600,\"minTime\":590},\"reduce(FILE_T)simple.SimpleImpl\":{\"maxTime\":620,\"executions\":4,\"avgTime\":600,\"minTime\":590}}}";
-
-    private final JSONObject jsonRepresentation;
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
+    private final JSONObject jsonRepresentation;
 
+
+    /**
+     * Creates a new JSONStateManager instance.
+     */
     public JSONStateManager() {
         String objectStr = "{}";
         String inputProfile = System.getProperty(COMPSsConstants.INPUT_PROFILE);
@@ -79,7 +58,7 @@ public class JSONStateManager {
             objectStr = manageInputProfile(inputProfile);
         }
 
-        jsonRepresentation = new JSONObject(objectStr);
+        this.jsonRepresentation = new JSONObject(objectStr);
         init();
     }
 
@@ -117,34 +96,46 @@ public class JSONStateManager {
 
     private JSONObject addResources() {
         JSONObject resources = new JSONObject();
-        jsonRepresentation.put("resources", resources);
+        this.jsonRepresentation.put("resources", resources);
         return resources;
     }
 
     private JSONObject addImplementations() {
         JSONObject implementations = new JSONObject();
-        jsonRepresentation.put("implementations", implementations);
+        this.jsonRepresentation.put("implementations", implementations);
         return implementations;
     }
 
     private JSONObject addCloud() {
         JSONObject cloud = new JSONObject();
-        jsonRepresentation.put("cloud", cloud);
+        this.jsonRepresentation.put("cloud", cloud);
         return cloud;
     }
 
+    /**
+     * Returns a JSON Object representation for the implementations.
+     * 
+     * @return A JSON Object representation for the implementations.
+     */
     public JSONObject getJSONForImplementations() {
         try {
-            return jsonRepresentation.getJSONObject("implementations");
+            return this.jsonRepresentation.getJSONObject("implementations");
         } catch (JSONException je) {
             // Do nothing it will return null
         }
         return null;
     }
 
+    /**
+     * Returns a JSON Object representation for the implementation with the given core Id and implementation Id.
+     * 
+     * @param coreId Core Id.
+     * @param implId Implementation Id.
+     * @return A JSON Object representation for the implementation with the given core Id and implementation Id.
+     */
     public JSONObject getJSONForImplementation(int coreId, int implId) {
         try {
-            JSONObject implsJSON = jsonRepresentation.getJSONObject("implementations");
+            JSONObject implsJSON = this.jsonRepresentation.getJSONObject("implementations");
             String signature = CoreManager.getSignature(coreId, implId);
             return implsJSON.getJSONObject(signature);
         } catch (JSONException je) {
@@ -153,17 +144,50 @@ public class JSONStateManager {
         return null;
     }
 
-    public <T extends WorkerResourceDescription> JSONObject getJSONForResources() {
+    /**
+     * Returns a JSON Object representation for the given cloud implementation.
+     * 
+     * @param cp Cloud Provider.
+     * @param citd Cloud Instance Type.
+     * @param coreId Core Id.
+     * @param implId Implementation Id.
+     * @return A JSON Object representation for the given cloud implementation.
+     */
+    public JSONObject getJSONForImplementation(CloudProvider cp, CloudInstanceTypeDescription citd, int coreId,
+            int implId) {
         try {
-            return jsonRepresentation.getJSONObject("resources");
+            JSONObject citdJSON = getJSONForCloudInstanceTypeDescription(cp, citd);
+            if (citdJSON != null) {
+                String signature = CoreManager.getSignature(coreId, implId);
+                return citdJSON.getJSONObject(signature);
+            }
         } catch (JSONException je) {
             // Do nothing it will return null
         }
         return null;
     }
 
-    public <T extends WorkerResourceDescription> JSONObject getJSONForResource(Worker<T> resource) {
+    /**
+     * Returns a JSON Object representation for the resources.
+     * 
+     * @return A JSON Object representation for the resources.
+     */
+    public <T extends WorkerResourceDescription> JSONObject getJSONForResources() {
+        try {
+            return this.jsonRepresentation.getJSONObject("resources");
+        } catch (JSONException je) {
+            // Do nothing it will return null
+        }
+        return null;
+    }
 
+    /**
+     * Returns a JSON Object representation for the given resource {@code resource}.
+     * 
+     * @param resource Worker resource.
+     * @return A JSON Object representation for the given resource {@code resource}.
+     */
+    public <T extends WorkerResourceDescription> JSONObject getJSONForResource(Worker<T> resource) {
         JSONObject resourcesJSON = getJSONForResources();
         if (resourcesJSON != null) {
             try {
@@ -182,15 +206,26 @@ public class JSONStateManager {
         return null;
     }
 
+    /**
+     * Returns a JSON Object representation for the cloud.
+     * 
+     * @return A JSON Object representation for the cloud.
+     */
     public JSONObject getJSONForCloud() {
         try {
-            return jsonRepresentation.getJSONObject("cloud");
+            return this.jsonRepresentation.getJSONObject("cloud");
         } catch (JSONException je) {
             // Do nothing it will return null
         }
         return null;
     }
 
+    /**
+     * Returns a JSON Object representation for the given cloud provider.
+     * 
+     * @param cp Cloud provider.
+     * @return A JSON Object representation for the cloud.
+     */
     public JSONObject getJSONForCloudProvider(CloudProvider cp) {
         try {
             JSONObject cloudJSON = getJSONForCloud();
@@ -203,6 +238,13 @@ public class JSONStateManager {
         return null;
     }
 
+    /**
+     * Returns a JSON Object representation for the given cloud instance type.
+     * 
+     * @param cp Cloud Provider.
+     * @param citd Cloud Instance Type.
+     * @return A JSON Object representation for the given cloud instance type.
+     */
     public JSONObject getJSONForCloudInstanceTypeDescription(CloudProvider cp, CloudInstanceTypeDescription citd) {
         try {
             JSONObject cpJSON = getJSONForCloudProvider(cp);
@@ -215,20 +257,11 @@ public class JSONStateManager {
         return null;
     }
 
-    public JSONObject getJSONForImplementation(CloudProvider cp, CloudInstanceTypeDescription citd, int coreId,
-            int implId) {
-        try {
-            JSONObject citdJSON = getJSONForCloudInstanceTypeDescription(cp, citd);
-            if (citdJSON != null) {
-                String signature = CoreManager.getSignature(coreId, implId);
-                return citdJSON.getJSONObject(signature);
-            }
-        } catch (JSONException je) {
-            // Do nothing it will return null
-        }
-        return null;
-    }
-
+    /**
+     * Adds the given resource to the JSON Object.
+     * 
+     * @param rs ResourceScheduler to add.
+     */
     public void addResourceJSON(ResourceScheduler<? extends WorkerResourceDescription> rs) {
         // Increasing Implementation stats
         int coreCount = CoreManager.getCoreCount();
@@ -248,26 +281,54 @@ public class JSONStateManager {
         resources.put(rs.getName(), rs.toJSONObject());
     }
 
+    /**
+     * Updates the given resource information on the JSON Object.
+     * 
+     * @param rs ResourceSchedulr to update.
+     * @return Updated JSON Object.
+     */
     public JSONObject updateResourceJSON(ResourceScheduler<? extends WorkerResourceDescription> rs) {
         JSONObject oldResource = getJSONForResource(rs.getResource());
         return rs.updateJSON(oldResource);
     }
 
+    /**
+     * Adds a new implementation to the JSON Object.
+     * 
+     * @param coreId Core Id.
+     * @param implId Implementation Id.
+     * @param profile Execution profile.
+     */
     public void addImplementationJSON(int coreId, int implId, Profile profile) {
         String signature = CoreManager.getSignature(coreId, implId);
         JSONObject implsJSON = this.getJSONForImplementations();
         implsJSON.put(signature, profile.toJSONObject());
     }
 
+    /**
+     * Accumulates the given profile of the given implementation into the JSON Object.
+     * 
+     * @param coreId Core Id.
+     * @param implId Implementation Id.
+     * @param profile Execution profile to accumulate.
+     */
     public void accumulateImplementationJSON(int coreId, int implId, Profile profile) {
         JSONObject oldImplJSON = this.getJSONForImplementation(coreId, implId);
         profile.accumulateJSON(oldImplJSON);
     }
 
+    /**
+     * Returns a String representation of the internal JSON Object.
+     * 
+     * @return A String representation of the internal JSON Object.
+     */
     public String getString() {
-        return jsonRepresentation.toString();
+        return this.jsonRepresentation.toString();
     }
 
+    /**
+     * Dumps the internal JSON Object into file.
+     */
     public void write() {
         String outputProfile = System.getProperty(COMPSsConstants.OUTPUT_PROFILE);
         if (outputProfile != null && !outputProfile.isEmpty()) {
@@ -276,20 +337,16 @@ public class JSONStateManager {
         }
     }
 
+    /**
+     * Dumps the internal JSON Object into the given file path {@code filename}.
+     * 
+     * @param filename File path.
+     */
     public void writeOutputProfile(String filename) {
-        BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(filename));
-            writer.write(jsonRepresentation.toString());
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename));) {
+            writer.write(this.jsonRepresentation.toString());
         } catch (IOException e) {
             ErrorManager.warn("Error loading profile. Exception reading " + filename + ".", e);
-        } finally {
-            try {
-                if (writer != null)
-                    writer.close();
-            } catch (IOException e) {
-                // Nothing to do
-            }
         }
     }
 }

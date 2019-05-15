@@ -28,20 +28,23 @@ import org.json.JSONObject;
  * start method is invoked to obtain the necessary measurements to characterize the execution. Upon the end of the
  * execution, the end() method is called and the Profile class collects the necessary values, and analyzes their initial
  * value to prepare the execution summary.
+ * </p>
  * <p>
  * To obtain the statistic report of several executions, their profiles need to be merged using the accumulate method.
  * (Accumulate overrides the internal values of the Profile, it is recommended to accumulate all the values on an empty
  * Profile). To generate a Profile instance with customized values, Profile.Builder enables the creation of a new
  * profile instance and set its initial values.
+ * </p>
  * <p>
  * Data currently provided:
  * <ul>
  * <li>Execution time
  * </ul>
+ * </p>
  */
 public class Profile {
 
-    private static final long DEFAULT_EXECUTION_TIME = 100l;
+    private static final long DEFAULT_EXECUTION_TIME = 100L;
 
     private long executions;
     private long startTime;
@@ -50,6 +53,9 @@ public class Profile {
     private long maxTime;
 
 
+    /**
+     * Creates a new profile instance.
+     */
     public Profile() {
         this.executions = 0;
         this.minTime = Long.MAX_VALUE;
@@ -57,6 +63,11 @@ public class Profile {
         this.maxTime = Long.MIN_VALUE;
     }
 
+    /**
+     * Creates a new profile instance copying the given profile.
+     * 
+     * @param p Profile to copy.
+     */
     public Profile(Profile p) {
         this.executions = p.executions;
         this.minTime = p.minTime;
@@ -64,27 +75,32 @@ public class Profile {
         this.maxTime = p.maxTime;
     }
 
+    /**
+     * Creates a new profile instance loading the values from the given JSONObject.
+     * 
+     * @param json JSONObject containing the profile information.
+     */
     public Profile(JSONObject json) {
         if (json != null) {
             try {
-                executions = json.getLong("executions");
+                this.executions = json.getLong("executions");
             } catch (JSONException je) {
-                executions = 0;
+                this.executions = 0;
             }
             try {
-                minTime = json.getLong("minTime");
+                this.minTime = json.getLong("minTime");
             } catch (JSONException je) {
-                minTime = Long.MAX_VALUE;
+                this.minTime = Long.MAX_VALUE;
             }
             try {
-                averageTime = json.getLong("avgTime");
+                this.averageTime = json.getLong("avgTime");
             } catch (JSONException je) {
-                averageTime = DEFAULT_EXECUTION_TIME;
+                this.averageTime = DEFAULT_EXECUTION_TIME;
             }
             try {
-                maxTime = json.getLong("maxTime");
+                this.maxTime = json.getLong("maxTime");
             } catch (JSONException je) {
-                maxTime = Long.MIN_VALUE;
+                this.maxTime = Long.MIN_VALUE;
             }
         } else {
             this.executions = 0;
@@ -94,87 +110,140 @@ public class Profile {
         }
     }
 
+    /**
+     * Marks the profile start.
+     */
     public void start() {
-        startTime = System.currentTimeMillis();
+        this.startTime = System.currentTimeMillis();
     }
 
+    /**
+     * Marks the profile end.
+     */
     public void end() {
-        executions = 1;
-        averageTime = System.currentTimeMillis() - startTime;
-        minTime = averageTime;
-        maxTime = averageTime;
+        this.executions = 1;
+        this.averageTime = System.currentTimeMillis() - startTime;
+        this.minTime = this.averageTime;
+        this.maxTime = this.averageTime;
     }
 
+    /**
+     * Returns the number of executions.
+     * 
+     * @return The number of executions.
+     */
     public long getExecutionCount() {
-        return executions;
+        return this.executions;
     }
 
+    /**
+     * Returns the start time.
+     * 
+     * @return The start time.
+     */
     public long getStartTime() {
-        return startTime;
+        return this.startTime;
     }
 
+    /**
+     * Returns the minimum execution time.
+     * 
+     * @return The minimum execution time.
+     */
     public long getMinExecutionTime() {
-        return minTime;
+        return this.minTime;
     }
 
+    /**
+     * Returns the average execution time.
+     * 
+     * @return The average execution time.
+     */
     public long getAverageExecutionTime() {
-        return averageTime;
+        return this.averageTime;
     }
 
+    /**
+     * Returns the maximum execution time.
+     * 
+     * @return The maximum execution time.
+     */
     public long getMaxExecutionTime() {
-        return maxTime;
+        return this.maxTime;
     }
 
+    /**
+     * Clears the number of executions.
+     */
+    public void clearExecutionCount() {
+        this.executions = 0;
+    }
+
+    /**
+     * Accumulates the given profile into the current one.
+     * 
+     * @param p Profile to accumulate.
+     */
     public <P extends Profile> void accumulate(P p) {
         Profile profile = (Profile) p;
-        long totalExecutions = executions + profile.executions;
+        long totalExecutions = this.executions + profile.executions;
         if (totalExecutions > 0) {
-            if (executions == 0) {
-                minTime = profile.minTime;
-                maxTime = profile.maxTime;
+            if (this.executions == 0) {
+                this.minTime = profile.minTime;
+                this.maxTime = profile.maxTime;
             } else {
-                minTime = Math.min(minTime, profile.minTime);
-                maxTime = Math.max(maxTime, profile.maxTime);
+                this.minTime = Math.min(this.minTime, profile.minTime);
+                this.maxTime = Math.max(this.maxTime, profile.maxTime);
             }
-            averageTime = (profile.averageTime * profile.executions + executions * averageTime) / totalExecutions;
-            executions = totalExecutions;
+            this.averageTime = (profile.averageTime * profile.executions + this.executions * this.averageTime)
+                    / totalExecutions;
+            this.executions = totalExecutions;
         }
     }
 
+    /**
+     * Dumps the current profile to a JSON object.
+     * 
+     * @return A JSONObject containing the information of the current profile.
+     */
     public JSONObject toJSONObject() {
         JSONObject jo = new JSONObject();
-        jo.put("executions", executions);
-        jo.put("minTime", minTime);
-        jo.put("avgTime", averageTime);
-        jo.put("maxTime", maxTime);
+        jo.put("executions", this.executions);
+        jo.put("minTime", this.minTime);
+        jo.put("avgTime", this.averageTime);
+        jo.put("maxTime", this.maxTime);
         return jo;
     }
 
+    /**
+     * Updates the given JSON object with the information in the current profile.
+     * 
+     * @param jo JSONObject representing a profile.
+     * @return The updated JSON Object with the information in the current profile.
+     */
     public JSONObject updateJSON(JSONObject jo) {
-        JSONObject difference = new JSONObject();
-
         long oldExecutions = 0;
-        long oldAvg = 0;
-
         if (jo.has("executions")) {
             oldExecutions = jo.getLong("executions");
         }
 
+        long oldAvg = 0;
         if (jo.has("avgTime")) {
             oldAvg = jo.getLong("avgTime");
         }
 
-        long newExecutions = this.executions - oldExecutions;
         jo.put("executions", this.executions);
         jo.put("minTime", this.minTime);
         jo.put("avgTime", this.averageTime);
         jo.put("maxTime", this.maxTime);
 
-        difference.put("executions", executions - oldExecutions);
+        JSONObject difference = new JSONObject();
+        difference.put("executions", this.executions - oldExecutions);
         difference.put("minTime", this.minTime);
         difference.put("avgTime", this.averageTime);
         long oldTime = oldAvg * oldExecutions;
         long newTime = this.averageTime * this.executions;
+        long newExecutions = this.executions - oldExecutions;
         if (newExecutions > 0) {
             difference.put("avgTime", (newTime - oldTime) / newExecutions);
         } else {
@@ -184,6 +253,11 @@ public class Profile {
         return difference;
     }
 
+    /**
+     * Accumulates the information in the given JSONObject.
+     * 
+     * @param jo JSONObject representing a profile.
+     */
     public void accumulateJSON(JSONObject jo) {
         long oldExecutions = 0;
         long oldMin = Long.MAX_VALUE;
@@ -213,8 +287,22 @@ public class Profile {
 
     }
 
+    /**
+     * Copies the current profile.
+     * 
+     * @return A copy of the current profile.
+     */
     public Profile copy() {
         return new Profile(this);
+    }
+
+    /**
+     * Returns a string representing the profile content.
+     * 
+     * @return A string representing the profile content.
+     */
+    protected String getContent() {
+        return "executions=" + executions + " minTime=" + minTime + " avgTime=" + averageTime + " maxTime=" + maxTime;
     }
 
     @Override
@@ -222,16 +310,8 @@ public class Profile {
         return "[Profile " + getContent() + "]";
     }
 
-    protected String getContent() {
-        return "executions=" + executions + " minTime=" + minTime + " avgTime=" + averageTime + " maxTime=" + maxTime;
-    }
 
-    public void clearExecutionCount() {
-        this.executions = 0;
-    }
-
-
-    public static class Builder {
+    public static class ProfileBuilder {
 
         private long minExecutionTime = Long.MAX_VALUE;
         private long maxExecutionTime = Long.MIN_VALUE;
@@ -239,25 +319,53 @@ public class Profile {
         private long executions = 0;
 
 
-        public Builder() {
+        /**
+         * Builds a new ProfileBuilder.
+         */
+        public ProfileBuilder() {
         }
 
+        /**
+         * Sets a new number of executions.
+         * 
+         * @param executions New number of executions.
+         */
         public void setExecutions(long executions) {
             this.executions = executions;
         }
 
+        /**
+         * Sets a new minimum execution time.
+         * 
+         * @param minExecutionTime The new minimum execution time.
+         */
         public void setMinExecutionTime(long minExecutionTime) {
             this.minExecutionTime = minExecutionTime;
         }
 
+        /**
+         * Sets a new average execution time.
+         * 
+         * @param avgExecutionTime The new average execution time.
+         */
         public void setAvgExecutionTime(long avgExecutionTime) {
             this.avgExecutionTime = avgExecutionTime;
         }
 
+        /**
+         * Sets a new maximum execution time.
+         * 
+         * @param maxExecutionTime The new maximum execution time.
+         */
         public void setMaxExecutionTime(long maxExecutionTime) {
             this.maxExecutionTime = maxExecutionTime;
         }
 
+        /**
+         * Builds a profile from the currently registered information.
+         * 
+         * @return The built profile.
+         */
         public Profile build() {
             Profile p = new Profile();
             update(p);
@@ -266,10 +374,11 @@ public class Profile {
 
         protected <P extends Profile> void update(P p) {
             Profile profile = (Profile) p;
-            profile.executions = executions;
-            profile.minTime = minExecutionTime;
-            profile.averageTime = avgExecutionTime;
-            profile.maxTime = maxExecutionTime;
+            profile.executions = this.executions;
+            profile.minTime = this.minExecutionTime;
+            profile.averageTime = this.avgExecutionTime;
+            profile.maxTime = this.maxExecutionTime;
         }
+
     }
 }

@@ -200,11 +200,16 @@ public abstract class AllocatableAction {
      * @return {@code true} if there are data predecessors, {@code false} otherwise.
      */
     public final boolean hasDataPredecessors() {
-        return this.dataPredecessors.isEmpty();
+        return !this.dataPredecessors.isEmpty();
     }
 
+    /**
+     * Returns whether there are stream producers or not.
+     * 
+     * @return {@code true} if there are stream producers, {@code false} otherwise.
+     */
     public final boolean hasStreamProducers() {
-        return this.streamDataProducers.isEmpty();
+        return !this.streamDataProducers.isEmpty();
     }
 
     /**

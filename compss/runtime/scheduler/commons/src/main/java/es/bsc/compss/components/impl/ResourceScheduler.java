@@ -30,12 +30,12 @@ import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 
-import java.util.LinkedList;
-import java.util.PriorityQueue;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,9 +44,9 @@ import org.json.JSONObject;
 
 
 /**
- * Scheduler representation for a given worker
+ * Scheduler representation for a given worker.
  *
- * @param <T>
+ * @param <T> WorkerResourceDescription.
  */
 public class ResourceScheduler<T extends WorkerResourceDescription> {
 
@@ -71,10 +71,11 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
 
     /**
-     * Constructs a new Resource Scheduler associated to the worker @w
+     * Constructs a new Resource Scheduler associated to the worker {@code w}.
      *
-     * @param w
-     * @param defaultResource
+     * @param w Associated worker.
+     * @param defaultResource JSON description of the resource.
+     * @param defaultImplementations JSON description of the implementations.
      */
     public ResourceScheduler(Worker<T> w, JSONObject defaultResource, JSONObject defaultImplementations) {
         this.running = new LinkedList<>();
@@ -110,85 +111,85 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Returns the worker name
+     * Returns the worker name.
      *
-     * @return
+     * @return The worker name.
      */
     public final String getName() {
         return this.myWorker.getName();
     }
 
     /**
-     * Returns the worker resource
+     * Returns the worker resource.
      *
-     * @return
+     * @return The worker resource.
      */
     public final Worker<T> getResource() {
         return this.myWorker;
     }
 
     /**
-     * Returns the coreElements that can be executed by the resource
+     * Returns the coreElements that can be executed by the resource.
      *
-     * @return
+     * @return The coreElements that can be executed by the resource.
      */
     public final List<Integer> getExecutableCores() {
         return this.myWorker.getExecutableCores();
     }
 
     /**
-     * Returns the implementations that can be executed by the resource
+     * Returns the implementations that can be executed by the resource.
      *
-     * @return
+     * @return The implementations that can be executed by the resource.
      */
     public final List<Implementation>[] getExecutableImpls() {
         return this.myWorker.getExecutableImpls();
     }
 
     /**
-     * Returns the implementations of the core @id that can be executed by the resource
+     * Returns the implementations of the core {@code id} that can be executed by the resource.
      *
-     * @param coreId
-     * @return
+     * @param coreId Core Id.
+     * @return The implementations of the core {@code id} that can be executed by the resource.
      */
     public final List<Implementation> getExecutableImpls(int coreId) {
         return this.myWorker.getExecutableImpls(coreId);
     }
 
     /**
-     * Adds a pending modification on the resource features
+     * Adds a pending modification on the resource features.
      *
-     * @param modification
+     * @param modification Pending modification.
      */
     public final void pendingModification(ResourceUpdate<T> modification) {
-        pendingModifications.add(modification);
+        this.pendingModifications.add(modification);
     }
 
     /**
-     * Returns if there are pending modification on the resources
+     * Returns whether there are pending modifications on the resource or not.
      *
-     * @return
+     * @return {@literal true} if there are pending modifications, {@literal false} otherwise.
      */
     public final boolean hasPendingModifications() {
-        return !pendingModifications.isEmpty();
+        return !this.pendingModifications.isEmpty();
     }
 
     /**
-     * Returns if the pending modifications on the resources
+     * Returns the pending modifications on the resource.
      *
-     * @return
+     * @return The pending modifications on the resource.
      */
     public final List<ResourceUpdate<T>> getPendingModifications() {
-        return pendingModifications;
+        return this.pendingModifications;
     }
 
     /**
-     * Removes a pending modification on the resource features
+     * Removes a pending modification on the resource features.
      *
-     * @param modification
+     * @param modification Modification to remove.
      */
     public final void completedModification(ResourceUpdate<T> modification) {
-        pendingModifications.remove(modification);
+        this.pendingModifications.remove(modification);
     }
 
     /*
@@ -197,11 +198,11 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Prepares the default profiles for each implementation cores
+     * Prepares the default profiles for each implementation cores.
      *
-     * @param resMap default profile values for the resource
-     * @param implMap default profile values for the implementation
-     * @return default profile structure
+     * @param resMap default profile values for the resource.
+     * @param implMap default profile values for the implementation.
+     * @return default profile structure.
      */
     protected final Profile[][] loadProfiles(JSONObject resMap, JSONObject implMap) {
         Profile[][] profiles;
@@ -239,10 +240,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Updates the coreElement structures
+     * Updates the coreElement structures.
      *
-     * @param newCoreCount
-     * @param resourceJSON
+     * @param newCoreCount New core count.
+     * @param resourceJSON JSON description of the implementations.
      */
     public void updatedCoreElements(int newCoreCount, JSONObject resourceJSON) {
         int oldCoreCount = this.profiles.length;
@@ -295,8 +296,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Generates a Profile for an action.
      *
-     * @param impl
-     * @param jsonImpl
+     * @param impl Implementation.
+     * @param jsonImpl JSON representation of the implementation.
      * @return a profile object for an action.
      */
     public Profile generateProfileForImplementation(Implementation impl, JSONObject jsonImpl) {
@@ -306,30 +307,30 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     /**
      * Generates a Profile for an action.
      *
-     * @param <T>
-     * @param action
-     * @return a profile object for an action.
+     * @param <R> WorkerResourceDescription.
+     * @param action Allocatable Action.
+     * @return A profile object for an action.
      */
     public <R extends WorkerResourceDescription> Profile generateProfileForRun(AllocatableAction action) {
         return new Profile();
     }
 
     /**
-     * Returns the profile for a given implementation @impl
+     * Returns the profile for a given implementation {@code impl}.
      *
-     * @param coreId
-     * @param implId
-     * @return
+     * @param coreId Core Id.
+     * @param implId Implementation id.
+     * @return Associated profile.
      */
     public final Profile getProfile(int coreId, int implId) {
         return profiles[coreId][implId];
     }
 
     /**
-     * Returns the profile for a given implementation @impl
+     * Returns the profile for a given implementation {@code impl}.
      *
-     * @param impl
-     * @return
+     * @param impl Implementation.
+     * @return Associated profile.
      */
     public final Profile getProfile(Implementation impl) {
         if (impl != null) {
@@ -341,10 +342,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Updates the execution profile of implementation @impl by accumulating the profile @profile
+     * Updates the execution profile of implementation {@code impl} by accumulating the profile {@code profile}.
      *
-     * @param impl
-     * @param profile
+     * @param impl Implementation.
+     * @param profile Profile to update.
      */
     public final void profiledExecution(Implementation impl, Profile profile) {
         if (impl != null) {
@@ -361,10 +362,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Returns the number of tasks of type @taskId that this resource is running
+     * Returns the number of tasks of type {@code taskId} that this resource is running.
      *
-     * @param coreId
-     * @return
+     * @param coreId Core Id.
+     * @return Number of tasks of the given core Id.
      */
     public final int getNumTasks(int coreId) {
         int taskCount = -1;
@@ -380,18 +381,18 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns all the hosted actions
+     * Returns all the hosted actions.
      *
-     * @return
+     * @return All the hosted actions.
      */
     public final AllocatableAction[] getHostedActions() {
         return this.running.toArray(new AllocatableAction[running.size()]);
     }
 
     /**
-     * Adds a new running action on the resource
+     * Adds a new running action on the resource.
      *
-     * @param action
+     * @param action AllocatableAction to add to the resource.
      */
     public final void hostAction(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Host action " + action);
@@ -400,9 +401,9 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Removes a running action
+     * Removes a running action.
      *
-     * @param action
+     * @param action AllocatableAction to remove from the resource.
      */
     public final void unhostAction(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Unhost action " + action + " on resource " + getName());
@@ -415,9 +416,9 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Adds a blocked action on this worker
+     * Adds a blocked action on this worker.
      *
-     * @param action
+     * @param action Blocked AllocatableAction.
      */
     public final void waitOnResource(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Block action " + action + " on resource " + getName());
@@ -436,34 +437,34 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns if there are blocked actions or not
+     * Returns whether there are blocked actions or not.
      *
-     * @return
+     * @return {@literal true} if there are blocked actions, {@literal false} otherwise.
      */
     public final boolean hasBlockedActions() {
-        return this.blocked.size() > 0;
+        return !this.blocked.isEmpty();
     }
 
     /**
-     * Returns all the blocked actions
+     * Returns all the blocked actions.
      *
-     * @return
+     * @return All the blocked actions.
      */
     public PriorityQueue<AllocatableAction> getBlockedActions() {
         return this.blocked;
     }
 
     /**
-     * Returns the first blocked action without removing it
+     * Returns the first blocked action without removing it.
      *
-     * @return
+     * @return The first blocked action.
      */
     public final AllocatableAction getFirstBlocked() {
         return this.blocked.peek();
     }
 
     /**
-     * Removes the first blocked action
+     * Removes the first blocked action.
      */
     public final void removeFirstBlocked() {
         this.blocked.poll();
@@ -498,9 +499,9 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Assigns an initial Schedule for action @action
+     * Assigns an initial Schedule for the given action {@code action}.
      *
-     * @param action
+     * @param action AllocatableAction.
      */
     public void scheduleAction(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Schedule action " + action + " on resource " + getName());
@@ -509,11 +510,11 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Unschedules the action assigned to this worker
+     * Unschedules the action assigned to this worker.
      *
-     * @param action
-     * @return
-     * @throws es.bsc.compss.scheduler.exceptions.ActionNotFoundException
+     * @param action AllocatableAction to unschedule.
+     * @return List of freed actions.
+     * @throws ActionNotFoundException When the action is not found.
      */
     public List<AllocatableAction> unscheduleAction(AllocatableAction action) throws ActionNotFoundException {
         LOGGER.debug("[ResourceScheduler] Unschedule action " + action + " on resource " + getName());
@@ -521,10 +522,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Cancels an action execution
+     * Cancels an action execution.
      *
-     * @param action
-     * @throws es.bsc.compss.scheduler.exceptions.ActionNotFoundException
+     * @param action AllocatableAction to cancel.
+     * @throws ActionNotFoundException When the action is not found.
      */
     public final void cancelAction(AllocatableAction action) throws ActionNotFoundException {
         LOGGER.debug("[ResourceScheduler] Cancel action " + action + " on resource " + getName());
@@ -538,10 +539,10 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Returns the score for the action when it is blocked
+     * Returns the score for the action when it is blocked.
      *
-     * @param action
-     * @return
+     * @param action AllocatableAction.
+     * @return Blocked score.
      */
     public Score generateBlockedScore(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Generate blocked score for action " + action);
@@ -549,12 +550,12 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns the resource score of action @action
+     * Returns the resource score of action {@code action}.
      *
-     * @param action
-     * @param params
-     * @param actionScore
-     * @return
+     * @param action AllocatableAction.
+     * @param params Task parameters.
+     * @param actionScore Scheduling action score.
+     * @return Resource score.
      */
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
         // LOGGER.debug("[ResourceScheduler] Generate resource score for action " + action);
@@ -569,13 +570,14 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
-     * Returns the score of a given implementation @impl for action @action with a fixed resource score @resourceScore
+     * Returns the score of a given implementation {@code impl} for action {@code action} with a fixed resource score
+     * {@code resourceScore}.
      *
-     * @param action
-     * @param params
-     * @param impl
-     * @param resourceScore
-     * @return
+     * @param action AllocatableAction.
+     * @param params Task parameters.
+     * @param impl Task implementation to use.
+     * @param resourceScore Resource score.
+     * @return Implementation score.
      */
     @SuppressWarnings("unchecked")
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
@@ -597,7 +599,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * ***************************************************************************************************************
      */
     /**
-     * Clear internal structures
+     * Clear internal structures.
      */
     public void clear() {
         LOGGER.debug("[ResourceScheduler] Clear resource scheduler " + getName());
@@ -607,6 +609,11 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         this.myWorker.releaseAllResources();
     }
 
+    /**
+     * Dumps the cores and implementations information into a JSON object.
+     * 
+     * @return A dump of the cores and implementations information in JSON format.
+     */
     public JSONObject toJSONObject() {
         JSONObject jsonObject = new JSONObject();
         int coreCount = CoreManager.getCoreCount();
@@ -624,6 +631,12 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         return jsonObject;
     }
 
+    /**
+     * Updates the given JSON object with the current information.
+     * 
+     * @param oldResource JSON object.
+     * @return Updated JSON object containing a dump of the cores and implementations.
+     */
     public JSONObject updateJSON(JSONObject oldResource) {
         JSONObject difference = new JSONObject();
         JSONObject implsDiff = new JSONObject();
@@ -651,6 +664,24 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         return difference;
     }
 
+    /**
+     * Marks the removed flag in the resource scheduler.
+     * 
+     * @param b Boolean indicating the removed state.
+     */
+    public void setRemoved(boolean b) {
+        this.removed = true;
+    }
+
+    /**
+     * Returns whether the RS is removed or not.
+     * 
+     * @return {@literal true} if the RS is removed, {@literal false} otherwise.
+     */
+    public boolean isRemoved() {
+        return this.removed;
+    }
+
     @Override
     public String toString() {
         try {
@@ -658,15 +689,6 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         } catch (NullPointerException ne) {
             return super.toString();
         }
-    }
-
-    public void setRemoved(boolean b) {
-        removed = true;
-
-    }
-
-    public boolean isRemoved() {
-        return removed;
     }
 
 }

@@ -32,7 +32,7 @@ import java.util.Set;
 
 
 /**
- * Action score representation
+ * Action score representation.
  */
 public class Score implements Comparable<Score> {
 
@@ -43,12 +43,12 @@ public class Score implements Comparable<Score> {
 
 
     /**
-     * Constructor
+     * Creates a new score instance.
      *
-     * @param actionScore
-     * @param waiting
-     * @param res
-     * @param impl
+     * @param actionScore The priority of the action.
+     * @param waiting The estimated time of wait in the resource.
+     * @param res The score of the resource (number of data in that resource)
+     * @param impl Implementation score.
      */
     public Score(long actionScore, long res, long waiting, long impl) {
         this.actionScore = actionScore;
@@ -58,9 +58,9 @@ public class Score implements Comparable<Score> {
     }
 
     /**
-     * Clone
+     * Clones the given score.
      *
-     * @param clone
+     * @param clone Score to clone.
      */
     public Score(Score clone) {
         this.actionScore = clone.actionScore;
@@ -70,47 +70,47 @@ public class Score implements Comparable<Score> {
     }
 
     /**
-     * Returns the action priority
+     * Returns the action priority.
      *
-     * @return
+     * @return The action priority.
      */
     public long getActionScore() {
         return this.actionScore;
     }
 
     /**
-     * Returns the estimated time of wait in the resource
+     * Returns the estimated time of wait in the resource.
      *
-     * @return
+     * @return The estimated time of wait in the resource.
      */
     public long getWaitingScore() {
         return this.waitingScore;
     }
 
     /**
-     * Returns the score of the resource (number of data in that resource)
+     * Returns the score of the resource (number of data in that resource).
      *
-     * @return
+     * @return The score of the resource (number of data in that resource).
      */
     public long getResourceScore() {
         return this.resourceScore;
     }
 
     /**
-     * Returns the implementation score
+     * Returns the implementation score.
      *
-     * @return
+     * @return The implementation score.
      */
     public long getImplementationScore() {
         return this.implementationScore;
     }
 
     /**
-     * Checks whether a score is better than another. Returns true if @a is better than @b
+     * Checks whether a score is better than another.
      *
-     * @param a
-     * @param b
-     * @return
+     * @param a Score to compare.
+     * @param b Score to compare.
+     * @return Returns {@literal true} if {@code a} is better than {@code b}, {@literal false} otherwise.
      */
     public static final boolean isBetter(Score a, Score b) {
         if (a == null) {
@@ -123,11 +123,10 @@ public class Score implements Comparable<Score> {
     }
 
     /**
-     * Checks if the current score is better than the given. Returns true if
+     * Checks if the current score is better than the given.
      *
-     * @implicit is better than @other
-     * @param other
-     * @return
+     * @param other Score to compare.
+     * @return Returns {@literal true} if {@code this} is better than {@code other}, {@literal false} otherwise.
      */
     public boolean isBetter(Score other) {
         if (this.actionScore != other.actionScore) {
@@ -176,11 +175,11 @@ public class Score implements Comparable<Score> {
     }
 
     /**
-     * Calculates the number of Parameters in @params located in a given worker @w.
+     * Calculates the number of Parameters in {@code params} located in a given worker {@code w}.
      *
-     * @param params
-     * @param w
-     * @return
+     * @param params Task parameters.
+     * @param w Target worker.
+     * @return Number of paramters already located in a given worker.
      */
     public static long calculateDataLocalityScore(TaskDescription params, Worker<?> w) {
         long resourceScore = 0;

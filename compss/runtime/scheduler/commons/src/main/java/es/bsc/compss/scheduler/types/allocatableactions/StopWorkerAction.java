@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.scheduler.types.allocatableactions;
 
+import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
@@ -26,18 +28,17 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource.Type;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.components.impl.TaskScheduler;
-import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
+import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
+
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
@@ -54,6 +55,14 @@ public class StopWorkerAction extends AllocatableAction {
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
+    /**
+     * Creates a new StopWorkerAction instance.
+     * 
+     * @param schedulingInformation Associated scheduling information.
+     * @param worker Associated worker ResourceScheduler.
+     * @param ts Associated TaskScheduler.
+     * @param modification Stop modification.
+     */
     @SuppressWarnings("unchecked")
     public StopWorkerAction(SchedulingInformation schedulingInformation,
             ResourceScheduler<? extends WorkerResourceDescription> worker, TaskScheduler ts,
@@ -63,9 +72,9 @@ public class StopWorkerAction extends AllocatableAction {
         this.worker = worker;
         this.ru = (PerformedReduction<WorkerResourceDescription>) modification;
         if (worker.getResource().getType() == Type.WORKER) {
-            impl = new MethodImplementation("", "", null, null, new MethodResourceDescription());
+            this.impl = new MethodImplementation("", "", null, null, new MethodResourceDescription());
         } else {
-            impl = new ServiceImplementation(null, "", "", "", "");
+            this.impl = new ServiceImplementation(null, "", "", "", "");
         }
     }
 
@@ -172,28 +181,28 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
         LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> workers = new LinkedList<>();
-        workers.add(worker);
+        workers.add(this.worker);
         return workers;
     }
 
     @Override
     public Implementation[] getImplementations() {
         Implementation[] impls = new Implementation[1];
-        impls[0] = impl;
+        impls[0] = this.impl;
         return impls;
     }
 
     @Override
     public <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r) {
-        return (r == worker.getResource());
+        return (r == this.worker.getResource());
     }
 
     @Override
     public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
             ResourceScheduler<T> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
-        if (r == worker) {
-            impls.add(impl);
+        if (r == this.worker) {
+            impls.add(this.impl);
         }
         return impls;
     }
@@ -201,25 +210,28 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {
+
         return null;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        schedule((ResourceScheduler<WorkerResourceDescription>) worker, impl);
+        schedule((ResourceScheduler<WorkerResourceDescription>) this.worker, this.impl);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-        schedule((ResourceScheduler<WorkerResourceDescription>) targetWorker, impl);
+
+        schedule((ResourceScheduler<WorkerResourceDescription>) targetWorker, this.impl);
     }
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
             throws BlockedActionException, UnassignedActionException {
+
         if (targetWorker != getEnforcedTargetResource()) {
             throw new UnassignedActionException();
         }

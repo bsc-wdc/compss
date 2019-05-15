@@ -35,8 +35,8 @@ public class MOProfile extends Profile {
 
     public MOProfile() {
         super();
-        power = DEFAULT_POWER;
-        price = DEFAULT_PRICE;
+        this.power = DEFAULT_POWER;
+        this.price = DEFAULT_PRICE;
     }
 
     private MOProfile(MOProfile p) {
@@ -49,32 +49,32 @@ public class MOProfile extends Profile {
         super(json);
         if (json != null) {
             try {
-                power = json.getDouble("power");
+                this.power = json.getDouble("power");
             } catch (JSONException je) {
-                power = DEFAULT_POWER;
+                this.power = DEFAULT_POWER;
             }
             try {
-                price = json.getDouble("price");
+                this.price = json.getDouble("price");
             } catch (JSONException je) {
-                price = DEFAULT_PRICE;
+                this.price = DEFAULT_PRICE;
             }
         } else {
-            power = DEFAULT_POWER;
-            price = DEFAULT_PRICE;
+            this.power = DEFAULT_POWER;
+            this.price = DEFAULT_PRICE;
         }
     }
 
     public <T extends WorkerResourceDescription> MOProfile(Implementation impl, Worker<T> resource) {
-        power = 0;
-        price = 0;
+        this.power = 0;
+        this.price = 0;
     }
 
     public double getPower() {
-        return power;
+        return this.power;
     }
 
     public double getPrice() {
-        return price;
+        return this.price;
     }
 
     public void accumulate(MOProfile profile) {
@@ -121,17 +121,17 @@ public class MOProfile extends Profile {
 
     @Override
     protected String getContent() {
-        return super.getContent() + " power=" + power + " price=" + price;
+        return super.getContent() + " power=" + this.power + " price=" + this.price;
     }
 
 
-    public static class Builder extends Profile.Builder {
+    public static class MOProfileBuilder extends Profile.ProfileBuilder {
 
         private double power = DEFAULT_POWER;
         private double price = DEFAULT_PRICE;
 
 
-        public Builder() {
+        public MOProfileBuilder() {
             super();
         }
 

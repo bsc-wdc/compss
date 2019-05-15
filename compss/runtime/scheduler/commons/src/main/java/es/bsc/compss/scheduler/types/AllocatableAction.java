@@ -124,18 +124,29 @@ public abstract class AllocatableAction {
      * ORCHESTRATOR OPERATIONS
      * ***************************************************************************************************************
      */
+
     /**
-     * Notify action completed to orchestrator.
+     * Notify action running to the orchestrator.
+     */
+    protected void notifyRunning() {
+        if (DEBUG) {
+            LOGGER.debug("Notify running " + this + " to orchestrator " + this.orchestrator);
+        }
+        this.orchestrator.actionRunning(this);
+    }
+
+    /**
+     * Notify action completed to the orchestrator.
      */
     protected void notifyCompleted() {
         if (DEBUG) {
             LOGGER.debug("Notify completed of " + this + " to orchestrator " + this.orchestrator);
         }
-        orchestrator.actionCompletion(this);
+        this.orchestrator.actionCompletion(this);
     }
 
     /**
-     * Notify action failed to orchestrator.
+     * Notify action failed to the orchestrator.
      */
     protected void notifyError() {
         LOGGER.warn("Notify error of " + this + " to orchestrator " + this.orchestrator);
@@ -234,11 +245,17 @@ public abstract class AllocatableAction {
      * @param predecessor Stream producer Allocatable Action.
      */
     public final void addStreamProducer(AllocatableAction predecessor) {
-        if (predecessor.isPending()) {
+        if (predecessor.state.equals(State.RUNNABLE) || predecessor.state.equals(State.WAITING)) {
             if (!this.streamDataProducers.contains(predecessor)) {
+                if (DEBUG) {
+                    LOGGER.debug("Adding stream producer " + predecessor.getId() + " to " + this.getId());
+                }
                 this.streamDataProducers.add(predecessor);
             }
             if (!predecessor.streamDataConsumers.contains(this)) {
+                if (DEBUG) {
+                    LOGGER.debug("Adding stream consumer " + this.getId() + " to " + predecessor.getId());
+                }
                 predecessor.streamDataConsumers.add(this);
             }
         }
@@ -270,6 +287,9 @@ public abstract class AllocatableAction {
         while (it.hasNext()) {
             AllocatableAction aa = it.next();
             if (aa == finishedAction) {
+                if (DEBUG) {
+                    LOGGER.debug("Removing stream poducer " + aa.getId() + " from " + this.getId());
+                }
                 it.remove();
                 break;
             }
@@ -547,16 +567,16 @@ public abstract class AllocatableAction {
         this.state = State.RUNNING;
         // Allow other threads to execute the task (complete and error executor)
         this.lock.unlock();
-        // Allow stream consumers to schedule them-selves
-        for (AllocatableAction aa : this.streamDataConsumers) {
-            aa.streamDataProducerDone(this);
-        }
 
+        // Run
         reserveResources();
         this.profile = this.selectedResource.generateProfileForRun(this);
         this.selectedResource.hostAction(this);
 
         doAction();
+
+        // Notify the orchestrator that task is running (to free the stream data consumers if necessary)
+        notifyRunning();
     }
 
     /**
@@ -667,12 +687,30 @@ public abstract class AllocatableAction {
         List<AllocatableAction> freeTasks = new LinkedList<>();
         for (AllocatableAction aa : this.dataSuccessors) {
             aa.dataPredecessorDone(this);
-            if (!aa.hasDataPredecessors()) {
+            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                 freeTasks.add(aa);
             }
         }
         this.dataSuccessors.clear();
         return freeTasks;
+    }
+
+    /**
+     * Operations to perform when AA's execution has started.
+     * 
+     * @return Freed stream dependency actions.
+     */
+    public final List<AllocatableAction> executionStarted() {
+        // Release producer from consumers and check if stream consumers are free
+        List<AllocatableAction> freeActions = new LinkedList<>();
+        for (AllocatableAction aa : this.streamDataConsumers) {
+            aa.streamDataProducerDone(this);
+            if (!aa.hasStreamProducers() && !aa.hasDataPredecessors()) {
+                freeActions.add(aa);
+            }
+        }
+
+        return freeActions;
     }
 
     /**

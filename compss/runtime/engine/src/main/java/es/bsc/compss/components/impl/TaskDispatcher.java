@@ -203,6 +203,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     // Notification thread
     @Override
+    public void actionRunning(AllocatableAction action) {
+        ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.RUNNING);
+        addRequest(request);
+    }
+
+    // Notification thread
+    @Override
     public void actionCompletion(AllocatableAction action) {
         ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
         addRequest(request);

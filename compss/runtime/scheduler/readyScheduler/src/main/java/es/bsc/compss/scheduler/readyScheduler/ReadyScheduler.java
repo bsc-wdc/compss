@@ -45,6 +45,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
     protected final ActionSet unassignedReadyActions;
 
+
     /**
      * Constructs a new Ready Scheduler instance
      */
@@ -66,10 +67,8 @@ public abstract class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker,
-            T modification,
-            List<AllocatableAction> unblockedActions,
-            List<AllocatableAction> blockedCandidates) {
+    public <T extends WorkerResourceDescription> void workerFeaturesUpdate(ResourceScheduler<T> worker, T modification,
+            List<AllocatableAction> unblockedActions, List<AllocatableAction> blockedCandidates) {
         List<AllocatableAction> dataFreeActions = new LinkedList<>();
         List<AllocatableAction> resourceFreeActions = unblockedActions;
         purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, worker);
@@ -88,7 +87,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
      */
     @Override
     protected void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
-        if (!action.hasDataPredecessors()) {
+        if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
             try {
                 action.schedule(actionScore);
             } catch (UnassignedActionException ex) {
@@ -100,7 +99,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
     protected <T extends WorkerResourceDescription> void scheduleAction(AllocatableAction action,
             ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-        if (!action.hasDataPredecessors()) {
+        if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
             action.schedule(targetWorker, actionScore);
         }
     }

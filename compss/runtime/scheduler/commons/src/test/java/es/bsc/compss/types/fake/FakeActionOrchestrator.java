@@ -33,14 +33,20 @@ public class FakeActionOrchestrator implements ActionOrchestrator {
 
     // Notification thread
     @Override
+    public void actionRunning(AllocatableAction action) {
+        this.ts.actionRunning(action);
+    }
+
+    // Notification thread
+    @Override
     public void actionCompletion(AllocatableAction action) {
-        ts.actionCompleted(action);
+        this.ts.actionCompleted(action);
     }
 
     // Notification thread
     @Override
     public void actionError(AllocatableAction action) {
-        ts.errorOnAction(action);
+        this.ts.errorOnAction(action);
     }
 
 }

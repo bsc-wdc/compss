@@ -30,14 +30,9 @@ public class ActionUpdate extends TDRequest {
      * Possible Updates applied to the action.
      */
     public static enum Update {
-    /**
-     * There has been an error during the execution of the action.
-     */
-    ERROR,
-    /**
-     * The action execution has succedded.
-     */
-    COMPLETED
+    RUNNING, // The action has begin to run
+    ERROR, // There has been an error during the execution
+    COMPLETED // The action execution has succeeded.
     }
 
 
@@ -69,10 +64,16 @@ public class ActionUpdate extends TDRequest {
 
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
-        if (update == Update.COMPLETED) {
-            ts.actionCompleted(action);
-        } else {
-            ts.errorOnAction(action);
+        switch (this.update) {
+            case RUNNING:
+                ts.actionRunning(this.action);
+                break;
+            case COMPLETED:
+                ts.actionCompleted(this.action);
+                break;
+            case ERROR:
+                ts.errorOnAction(this.action);
+                break;
         }
     }
 

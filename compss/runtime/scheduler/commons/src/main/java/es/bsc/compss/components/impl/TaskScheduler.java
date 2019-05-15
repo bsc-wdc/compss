@@ -53,7 +53,6 @@ import es.bsc.compss.util.Tracer;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -229,6 +228,7 @@ public class TaskScheduler {
      */
     public <T extends WorkerResourceDescription> ResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
             JSONObject defaultResources, JSONObject defaultImplementations) {
+
         // LOGGER.info("[TaskScheduler] Generate scheduler for resource " + w.getName());
         return new ResourceScheduler<>(w, defaultResources, defaultImplementations);
     }
@@ -374,7 +374,7 @@ public class TaskScheduler {
      */
     public final void newAllocatableAction(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Registering new AllocatableAction " + action);
-        if (!action.hasDataPredecessors()) {
+        if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
             addToReady(action);
         }
 
@@ -387,6 +387,33 @@ public class TaskScheduler {
                 removeFromReady(action);
             }
             addToBlocked(action);
+        }
+    }
+
+    /**
+     * Registers an action as running and releases its stream dependencies.
+     * 
+     * @param action Running AllocatableAction.
+     */
+    public final void actionRunning(AllocatableAction action) {
+        LOGGER.info("[TaskScheduler] Action running " + action);
+
+        // Check if stream consumers are free
+        List<AllocatableAction> freeActions = action.executionStarted();
+        for (AllocatableAction fAction : freeActions) {
+            addToReady(fAction);
+        }
+
+        // Schedule data free actions
+        List<AllocatableAction> blockedCandidates = new LinkedList<>();
+        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
+        // and those that remain unassigned must be added to the unassigned list
+        handleDependencyFreeActions(freeActions, new LinkedList<>(), blockedCandidates, action.getAssignedResource());
+        for (AllocatableAction aa : blockedCandidates) {
+            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
+                removeFromReady(aa);
+            }
+            addToBlocked(aa);
         }
     }
 
@@ -413,11 +440,10 @@ public class TaskScheduler {
 
         // Get the data free actions and mark them as ready
         List<AllocatableAction> dataFreeActions = action.completed();
-        Iterator<AllocatableAction> dataFreeIter = dataFreeActions.iterator();
-        while (dataFreeIter.hasNext()) {
-            AllocatableAction dataFreeAction = dataFreeIter.next();
+        for (AllocatableAction dataFreeAction : dataFreeActions) {
             addToReady(dataFreeAction);
         }
+
         // We update the worker load
         workerLoadUpdate(resource);
 
@@ -427,7 +453,7 @@ public class TaskScheduler {
         // and those that remain unassigned must be added to the unassigned list
         handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
         for (AllocatableAction aa : blockedCandidates) {
-            if (!aa.hasDataPredecessors()) {
+            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                 removeFromReady(aa);
             }
             addToBlocked(aa);
@@ -506,7 +532,7 @@ public class TaskScheduler {
         if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS) {
             handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
             for (AllocatableAction aa : blockedCandidates) {
-                if (!aa.hasDataPredecessors()) {
+                if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                     removeFromReady(aa);
                 }
                 addToBlocked(aa);
@@ -569,6 +595,7 @@ public class TaskScheduler {
     protected <T extends WorkerResourceDescription> void handleDependencyFreeActions(
             List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
             List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+
         LOGGER.debug("[TaskScheduler] Treating dependency free actions on resource " + resource.getName());
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
@@ -771,7 +798,7 @@ public class TaskScheduler {
             unblockedActions = this.blockedActions.removeAllCompatibleActions(worker.getResource());
 
             for (AllocatableAction action : unblockedActions) {
-                if (!action.hasDataPredecessors()) {
+                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
                     addToReady(action);
                 }
             }
@@ -793,7 +820,7 @@ public class TaskScheduler {
         LinkedList<AllocatableAction> blockedActions = new LinkedList<>();
         this.workerFeaturesUpdate(worker, modification.getModification(), unblockedActions, blockedActions);
         for (AllocatableAction action : blockedActions) {
-            if (!action.hasDataPredecessors()) {
+            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
                 removeFromReady(action);
             }
             addToBlocked(action);
@@ -863,7 +890,7 @@ public class TaskScheduler {
                 scheduleAction(action, actionScore);
                 tryToLaunch(action);
             } catch (BlockedActionException bae) {
-                if (!action.hasDataPredecessors()) {
+                if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
                     removeFromReady(action);
                 }
                 addToBlocked(action);
@@ -949,7 +976,7 @@ public class TaskScheduler {
             Score actionScore = obj.getScore();
             AllocatableAction action = obj.getObject();
 
-            if (!action.hasDataPredecessors()) {
+            if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
                 addToReady(action);
             }
 

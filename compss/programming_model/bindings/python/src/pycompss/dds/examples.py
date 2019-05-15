@@ -227,7 +227,7 @@ def run_terasort():
             print("FAILED")
             break
         temp = i
-
+    print(dds[-1:])
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 

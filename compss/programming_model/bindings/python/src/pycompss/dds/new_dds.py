@@ -624,6 +624,22 @@ class DDS(object):
         :return:
         """
 
+        if num_of_parts is None:
+            num_of_parts = len(self.partitions)
+
+        # Collect everything to take samples
+        col_parts = self.collect(future_objects=True)
+
+        samples = list()
+        for _part in col_parts:
+            samples.append(task_collect_samples(_part, 20, key_func))
+
+        samples = sorted(list(
+            itertools.chain.from_iterable(compss_wait_on(samples))))
+
+        bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
+                  for i in range(0, num_of_parts - 1)]
+
         def range_partitioner(key):
             p = bisect.bisect_left(bounds, key_func(key))
             if ascending:

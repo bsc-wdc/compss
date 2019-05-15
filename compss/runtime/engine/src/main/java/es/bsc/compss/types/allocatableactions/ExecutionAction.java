@@ -107,12 +107,23 @@ public class ExecutionAction extends AllocatableAction {
         // Add execution to task
         this.task.addExecution(this);
 
-        // Register data dependencies events
+        // Register data dependencies
         synchronized (this.task) {
             for (Task predecessor : this.task.getPredecessors()) {
                 for (ExecutionAction e : predecessor.getExecutions()) {
                     if (e != null && e.isPending()) {
                         addDataPredecessor(e);
+                    }
+                }
+            }
+        }
+
+        // Register stream producers
+        synchronized (this.task) {
+            for (Task predecessor : this.task.getStreamProducers()) {
+                for (ExecutionAction e : predecessor.getExecutions()) {
+                    if (e != null && e.isPending()) {
+                        addStreamProducer(e);
                     }
                 }
             }
@@ -317,13 +328,13 @@ public class ExecutionAction extends AllocatableAction {
         Job<?> job = submitJob(transferGroupId, listener);
 
         // Register job
-        jobs.add(job.getJobId());
+        this.jobs.add(job.getJobId());
         JOB_LOGGER.info((this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
                 + " (Task: " + task.getId() + ")");
         JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
         JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
 
-        profile.start();
+        this.profile.start();
         JobDispatcher.dispatch(job);
     }
 
@@ -349,22 +360,23 @@ public class ExecutionAction extends AllocatableAction {
      * @param endStatus Exit status.
      */
     public final void failedJob(Job<?> job, JobEndStatus endStatus) {
-        profile.end();
+        this.profile.end();
 
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
 
-        ++executionErrors;
-        if (transferErrors + executionErrors < SUBMISSION_CHANCES && task.getOnFailure() == OnFailure.RETRY) {
-            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
+        ++this.executionErrors;
+        if (this.transferErrors + this.executionErrors < SUBMISSION_CHANCES
+                && this.task.getOnFailure() == OnFailure.RETRY) {
+            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
-            ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker "
+            ErrorManager.warn("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             job.setHistory(Job.JobHistory.RESUBMITTED);
-            profile.start();
+            this.profile.start();
             JobDispatcher.dispatch(job);
         } else {
-            if (task.getOnFailure() == OnFailure.IGNORE) {
+            if (this.task.getOnFailure() == OnFailure.IGNORE) {
                 // Delete versions that can not be sent
                 doOutputTransfers(job);
             }
@@ -379,11 +391,12 @@ public class ExecutionAction extends AllocatableAction {
      */
     public final void completedJob(Job<?> job) {
         // End profile
-        profile.end();
+        this.profile.end();
+
         // Notify end
         int jobId = job.getJobId();
         JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK (avg. duration: "
-                + profile.getAverageExecutionTime() + ")");
+                + this.profile.getAverageExecutionTime() + ")");
         // Job finished, update info about the generated/updated data
         doOutputTransfers(job);
         // Notify completion
@@ -544,49 +557,50 @@ public class ExecutionAction extends AllocatableAction {
         // Profile the resource
         this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), profile);
 
-        TaskMonitor monitor = task.getTaskMonitor();
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSuccesfulExecution();
 
         // Decrease the execution counter and set the task as finished and notify the producer
-        task.decreaseExecutionCount();
-        task.setStatus(TaskState.FINISHED);
-        producer.notifyTaskEnd(task);
+        this.task.decreaseExecutionCount();
+        this.task.setStatus(TaskState.FINISHED);
+        this.producer.notifyTaskEnd(task);
     }
 
     @Override
     protected void doError() throws FailedActionException {
-        TaskMonitor monitor = task.getTaskMonitor();
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onErrorExecution();
 
-        if (task.getOnFailure() == OnFailure.RETRY) {
+        if (this.task.getOnFailure() == OnFailure.RETRY) {
             if (this.getExecutingResources().size() >= SCHEDULING_CHANCES) {
-                LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
-                ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
+                LOGGER.warn("Task " + this.task.getId() + " has already been rescheduled; notifying task failure.");
+                ErrorManager
+                        .warn("Task " + this.task.getId() + " has already been rescheduled; notifying task failure.");
                 throw new FailedActionException();
             } else {
-                ErrorManager
-                        .warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
+                ErrorManager.warn(
+                        "Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
                                 + " has failed; rescheduling task execution. (changing worker)");
-                LOGGER.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
+                LOGGER.warn("Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
                         + " has failed; rescheduling task execution. (changing worker)");
             }
         } else {
-            LOGGER.warn("Notifying task " + task.getId() + " failure");
-            ErrorManager.warn("Notifying task " + task.getId() + " failure");
+            LOGGER.warn("Notifying task " + this.task.getId() + " failure");
+            ErrorManager.warn("Notifying task " + this.task.getId() + " failure");
             throw new FailedActionException();
         }
     }
 
     @Override
     protected void doAbort() {
-        TaskMonitor monitor = task.getTaskMonitor();
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onAbortedExecution();
     }
 
     @Override
     protected void doFailed() {
         // Failed log message
-        String taskName = task.getTaskDescription().getName();
+        String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("Task '").append(taskName).append("' TOTALLY FAILED.\n");
         sb.append("Possible causes:\n");
@@ -595,7 +609,7 @@ public class ExecutionAction extends AllocatableAction {
         sb.append("     -Could not provide nor retrieve needed data between master and worker.\n");
         sb.append("\n");
         sb.append("Check files '").append(Comm.getAppHost().getJobsDirPath()).append("job[");
-        Iterator<Integer> j = jobs.iterator();
+        Iterator<Integer> j = this.jobs.iterator();
         while (j.hasNext()) {
             sb.append(j.next());
             if (!j.hasNext()) {
@@ -607,43 +621,43 @@ public class ExecutionAction extends AllocatableAction {
         sb.append(" \n");
 
         ErrorManager.warn(sb.toString());
-        TaskMonitor monitor = task.getTaskMonitor();
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onFailedExecution();
 
         // Notify task failure
-        task.decreaseExecutionCount();
-        task.setStatus(TaskState.FAILED);
-        producer.notifyTaskEnd(task);
+        this.task.decreaseExecutionCount();
+        this.task.setStatus(TaskState.FAILED);
+        this.producer.notifyTaskEnd(this.task);
     }
 
     @Override
     protected void doCanceled() {
         // Cancelled log message
-        String taskName = task.getTaskDescription().getName();
+        String taskName = this.task.getTaskDescription().getName();
         ErrorManager.warn("Task " + taskName + " has been cancelled.");
 
         // Notify task cancellation
-        task.decreaseExecutionCount();
-        task.setStatus(TaskState.CANCELED);
-        producer.notifyTaskEnd(task);
+        this.task.decreaseExecutionCount();
+        this.task.setStatus(TaskState.CANCELED);
+        this.producer.notifyTaskEnd(this.task);
     }
 
     @Override
     protected void doFailIgnored() {
         // Failed log message
-        String taskName = task.getTaskDescription().getName();
+        String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("Task failure: Task ").append(taskName).append(" has failed. Successors keep running.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
 
-        TaskMonitor monitor = task.getTaskMonitor();
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onFailedExecution();
 
         // Notify task completion despite the failure
-        task.decreaseExecutionCount();
-        task.setStatus(TaskState.FINISHED);
-        producer.notifyTaskEnd(task);
+        this.task.decreaseExecutionCount();
+        this.task.setStatus(TaskState.FINISHED);
+        this.producer.notifyTaskEnd(this.task);
     }
 
     /*
@@ -653,12 +667,12 @@ public class ExecutionAction extends AllocatableAction {
      */
     @Override
     public final List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
-        return getCoreElementExecutors(task.getTaskDescription().getId());
+        return getCoreElementExecutors(this.task.getTaskDescription().getId());
     }
 
     @Override
     public final Implementation[] getImplementations() {
-        List<Implementation> coreImpls = CoreManager.getCoreImplementations(task.getTaskDescription().getId());
+        List<Implementation> coreImpls = CoreManager.getCoreImplementations(this.task.getTaskDescription().getId());
 
         int coreImplsSize = coreImpls.size();
         Implementation[] impls = (Implementation[]) new Implementation[coreImplsSize];
@@ -670,7 +684,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r) {
-        return r.canRun(task.getTaskDescription().getId());
+        return r.canRun(this.task.getTaskDescription().getId());
     }
 
     @Override
@@ -727,7 +741,7 @@ public class ExecutionAction extends AllocatableAction {
     private <T extends WorkerResourceDescription> void schedule(Score actionScore,
             List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
             throws BlockedActionException, UnassignedActionException {
-        
+
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         ResourceScheduler<? extends WorkerResourceDescription> bestWorker = null;
@@ -818,7 +832,7 @@ public class ExecutionAction extends AllocatableAction {
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
             Implementation impl) throws BlockedActionException, UnassignedActionException {
-        
+
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
         }

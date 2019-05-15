@@ -209,6 +209,24 @@ public class Task implements Comparable<Task> {
     }
 
     /**
+     * Returns all the tasks producing stream elements used by the current task.
+     * 
+     * @return All the tasks producing stream elements used by the current task.
+     */
+    public List<Task> getStreamProducers() {
+        return this.streamDataProducers;
+    }
+
+    /**
+     * Returns all the tasks consuming stream elements from the current task.
+     * 
+     * @return All the tasks consuming stream elements from the current task.
+     */
+    public List<Task> getStreamConsumers() {
+        return this.streamDataConsumers;
+    }
+
+    /**
      * Sets the synchronization id of the task to the given synchronization Id {@code syncId}.
      *
      * @param syncId Task synchronization Id.

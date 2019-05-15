@@ -139,18 +139,6 @@ def reduce_partition(f, partition):
     return res
 
 
-@task(returns=list)
-def filter_partition(partition, filter_func, nop, bucket_number):
-    """
-    """
-    filtered_list = list()
-    for k, v in partition:
-        if (filter_func(k) % nop) == bucket_number:
-            filtered_list.append((k, v))
-
-    return filtered_list
-
-
 @task(returns=1)
 def reduce_multiple(f, *args):
     """
@@ -172,7 +160,7 @@ def reduce_multiple(f, *args):
 def combine_lists(*args):
     ret = list()
     for _list in args:
-        ret.extend(_list)
+        ret.extend(_list[1])
     return ret
 
 

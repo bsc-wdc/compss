@@ -27,6 +27,24 @@ from pycompss.dds import heapq3
 from operator import add
 
 
+@task(returns="NUMBER_OF_SUB_PARTITIONS")
+def distribute_partition(partition, filter_func, nop):
+    """
+    """
+    global NUMBER_OF_SUB_PARTITIONS
+
+    from collections import defaultdict
+    buckets = defaultdict(list)
+
+    for _i in range(nop):
+        buckets[_i] = list()
+
+    for k, v in partition:
+        buckets[filter_func(k) % nop].append((k, v))
+
+    return buckets.items()
+
+
 def default_hash(x):
     """
     :param x:
@@ -490,16 +508,19 @@ class DDS(object):
 
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions
+        collected = self.collect(keep_partitions=True, future_objects=True)
 
-        collected = self.collect(future_objects=True)
-        buckets = defaultdict(list)
-        for bucket in range(nop):
-            for partition in collected:
-                buckets[bucket].append(
-                    filter_partition(partition, partition_func, nop, bucket))
+        grouped = defaultdict(list)
+        global NUMBER_OF_SUB_PARTITIONS
+        NUMBER_OF_SUB_PARTITIONS = nop
+
+        for partition in collected:
+            temp = distribute_partition(partition, partition_func, nop)
+            for _i in range(nop):
+                grouped[_i].append(temp[_i])
 
         future_partitions = list()
-        for bucket in buckets.values():
+        for bucket in grouped.values():
             future_partitions.append(combine_lists(*bucket))
 
         return DDS().load(future_partitions, -1)
@@ -631,22 +652,6 @@ class DDS(object):
 
             return heapq3.merge(chunks, key=lambda kv: key_func(kv[0]),
                                 reverse=not ascending)
-
-        if num_of_parts is None:
-            num_of_parts = len(self.partitions)
-
-        # Collect everything to take samples
-        col_parts = self.collect(True)
-
-        samples = list()
-        for _part in col_parts:
-            samples.append(task_collect_samples(_part, 20, key_func))
-
-        samples = sorted(list(
-            itertools.chain.from_iterable(compss_wait_on(samples))))
-
-        bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
-                  for i in range(0, num_of_parts - 1)]
 
         partitioned = DDS().load(col_parts, -1).partition_by(range_partitioner)
         return partitioned.map_partitions(sort_partition)

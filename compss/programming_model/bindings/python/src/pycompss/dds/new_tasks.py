@@ -168,8 +168,11 @@ def combine_lists(*args):
 def task_collect_samples(partition, num_of_samples, key_func):
     """
     """
-    import random
-    samples = random.sample(partition, num_of_samples)
-    ret = [key_func(sample) for sample in samples]
+    ret = list()
+    total = len(partition)
+    step = max(total / num_of_samples, 1)
+    for _i in range(0, total, step):
+        ret.append(key_func(partition[_i][0]))
+
     return ret
 

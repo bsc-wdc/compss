@@ -8,6 +8,7 @@
 #if 0
 #define YYERROR_VERBOSE
 #endif
+#define YYERROR_VERBOSE
 
 int yylex(void);
 void yyerror(char *s);
@@ -21,31 +22,32 @@ void yyerror(char *s);
 	enum direction	dir;
 }
 
+%define parse.error verbose
+
 %token TOK_INTERFACE TOK_LEFT_CUR_BRAKET TOK_RIGHT_CUR_BRAKET TOK_LEFT_PARENTHESIS TOK_LEFT_BRAKET TOK_RIGHT_BRAKET
 %token TOK_RIGHT_PARENTHESIS TOK_COMMA TOK_SEMICOLON TOK_IN TOK_OUT TOK_INOUT TOK_FILE
 %token TOK_STATIC TOK_UNSIGNED TOK_VOID TOK_SHORT TOK_LONG TOK_LONGLONG TOK_INT TOK_FLOAT TOK_DOUBLE TOK_CHAR
 %token TOK_WCHAR TOK_BOOLEAN TOK_STRING TOK_WSTRING TOK_ANY
 %token TOK_ERROR
 %token TOK_EQUAL TOK_DBLQUOTE
-%token TOK_ENUM TOK_INCLUDE TOK_HEADER
+%token TOK_ENUM TOK_INCLUDE 
 
-%token <name> TOK_IDENTIFIER
+%token <name> TOK_IDENTIFIER TOK_HEADER 
 %token <elements> NUMBER
 %type <dtype> data_type numeric_type array_type enum_type
 %type <dir> direction
 
 %%
 
-
 start:		/* Empty */
-		| includes start interface
+		| start includes interface
 ;
 
-includes: includes include
+includes: 
+        | includes TOK_INCLUDE TOK_HEADER { add_header($3); } TOK_SEMICOLON
+;
 
-include: TOK_INCLUDE TOK_HEADER { add_header($2); } TOK_SEMICOLON
-
-interface:	TOK_INTERFACE TOK_IDENTIFIER { begin_interface($2); } TOK_LEFT_CUR_BRAKET 
+interface: TOK_INTERFACE TOK_IDENTIFIER { begin_interface($2); } TOK_LEFT_CUR_BRAKET 
 		prototypes
 		TOK_RIGHT_CUR_BRAKET TOK_SEMICOLON { end_interface(); }
 ;
@@ -76,7 +78,6 @@ arguments1:	argument
 		| arguments1 TOK_COMMA error
 		| error
 ;
-		
 
 argument:	direction data_type TOK_IDENTIFIER { add_argument($1, $2, "", $3, NULL); }
 		|	direction array_type TOK_LEFT_BRAKET TOK_IDENTIFIER TOK_RIGHT_BRAKET TOK_IDENTIFIER { add_argument($1, $2, "", $6, $4);}

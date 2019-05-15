@@ -11,7 +11,7 @@ int line = 1;
 
 identifier [a-zA-Z][0-9a-zA-Z_:\*\+\-\/]*
 
-header_identfier [a-zA-Z][0-9a-zA-Z_]\.[a-z]
+header_identfier [a-zA-Z][0-9a-zA-Z_]*\.[a-z]*
 %%
 
 [ \t]+		/* Don't output spaces */
@@ -55,6 +55,7 @@ any			return TOK_ANY;
 string		return TOK_STRING;
 wstring		return TOK_WSTRING;
 enum        return TOK_ENUM;
+include     return TOK_INCLUDE;
 
 \#[^\n]*\n	line++; /* Ignore preprocessor directives */
 \@[^\n]*\n	line++; /* Ignore constraints directives */

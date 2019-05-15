@@ -61,30 +61,30 @@ static char *c_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
-    "enum",                 //enum_dt
-    "error"		            // null_dt
+    "error",		            // null_dt
+    "enum"                 //enum_dt
 };
 
 static char *c_out_types[] = {
-    "int",                  // boolean_dt
-    "char",                 // char_dt
-    "unsigned char",        // byte_dt
-    "short",                // short_dt
-    "int",                  // int_dt
-    "long",                 // long_dt
-    "float",                // float_dt
-    "double",               // double_dt
-    "char *",               // string_dt
-    "file",                 // file_dt
-    "void *",               // object_dt
-    "void *",               // psco_dt
-    "void *",               // external_psco_dt
-    "void *",				// binding_object_dt
-    "char",                 // wchar_dt
-    "char *",               // wstring_dt
-    "long long",            // longlong_dt
-    "void",                 // void_dt
-    "void",                 // any_dt
+    "int",			        // boolean_dt
+    "char",			        // char_dt
+    "unsigned char",	    // byte_dt
+    "short",			    // short_dt
+    "int",			        // int_dt
+    "long",			        // long_dt
+    "float",			    // float_dt
+    "double",			    // double_dt
+    "char *",			    // string_dt
+    "file",			        // file_dt
+    "void *",			    // object_dt
+    "void *",			    // psco_dt
+    "void *",			    // external_psco_dt
+    "void *",			    // binding_object_dt
+    "char", 			    // wchar_dt
+    "char *", 		        // wstring_dt
+    "long long", 		    // longlong_dt
+    "void", 			    // void_dt
+    "void",			        // any_dt
     "char",	  	  	        //array_char_dt,
     "unsigned char",        //array_byte_dt,
     "short",		        //array_short_dt,
@@ -92,8 +92,8 @@ static char *c_out_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
-    "enum",                 //enum_dt
-    "error"                 // null_dt
+    "error",		            // null_dt
+    "enum"                 //enum_dt
 };
 
 void asprintf_error(char* pointer, char* error) {
@@ -1155,10 +1155,6 @@ static void add_include_headers(include* first_include) {
  * Generate includes of task classes in header files
  */
 static void generate_class_includes_and_check_types(FILE *outFile, Types *current_types, function *current_function) {
-
-    //Check if there is any include in the .idl file
-    include* inc = get_first_include();
-    add_include_headers(inc);
 
     argument *current_argument;
     if (current_function->classname != NULL) {
@@ -2309,6 +2305,10 @@ void generate_body(void) {
     initTypes(&current_types);
     function *current_function;
     generate_worker_executor(current_types);
+
+    //Check if there is any include in the .idl file
+    include* inc = get_first_include();
+    add_include_headers(inc);
 
     generate_enum(includeFile, get_first_function());
 

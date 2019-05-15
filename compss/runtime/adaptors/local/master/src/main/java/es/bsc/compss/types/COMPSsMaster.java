@@ -667,23 +667,31 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     + initialPath);
             reason.setDataTarget(initialPath);
         }else {
-            String iPath = getCompletePath(DataType.BINDING_OBJECT_T, bo.getName()).getPath();
-            String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
-            if (reason.isSourcePreserved()) {
-                if (DEBUG) {
-                    LOGGER.debug("Master local copy " + bo.getName() + " from " + iPath + " to "
-                        + tPath);
-                }
-                Files.copy(new File(iPath).toPath(), new File(tPath).toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
+            if(bo.getId().startsWith(File.separator)) {
+                String iPath = getCompletePath(DataType.BINDING_OBJECT_T, bo.getName()).getPath();
+                String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
+                if (reason.isSourcePreserved()) {
+                        if (DEBUG) {
+                            LOGGER.debug("Master local copy of data" + bo.getName() + " from " + iPath + " to "
+                                + tPath);
+                        }
+                        Files.copy(new File(iPath).toPath(), new File(tPath).toPath(),
+                            StandardCopyOption.REPLACE_EXISTING);
 
-            } else {
-                if (DEBUG) {
-                LOGGER.debug("Master local move " + bo.getName() + " from " + iPath + " to "
+                } else {
+                    if (DEBUG) {
+                        LOGGER.debug("Master local move of data " + bo.getName() + " from " + iPath + " to "
                         + tPath);
+                    }
+                    Files.move(new File(iPath).toPath(), new File(tPath).toPath(),
+                            StandardCopyOption.REPLACE_EXISTING);
                 }
-                Files.move(new File(iPath).toPath(), new File(tPath).toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
+            } else if (BindingDataManager.isInBinding(bo.getName())) {
+                String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
+                LOGGER.debug("Storing object data " + bo.getName() + " from cache to " + tPath);
+                BindingDataManager.storeInFile(bo.getName(), tPath);
+            } else {
+                throw new Exception("Data " + bo.getName() + "not a filepath and its not in cache");
             }
 
             if (tgtData != null) {

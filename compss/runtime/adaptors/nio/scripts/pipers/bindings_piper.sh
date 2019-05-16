@@ -45,7 +45,9 @@
         # Get virtual environment
         virtualEnvironment=$1
         propagateVirtualEnvironment=$2
-        shift 2
+        mpiWorker=$3
+        numThreads=$4
+        shift 4
     fi
 
   }
@@ -90,6 +92,14 @@
     source ${virtualEnvironment}/bin/activate
   fi
 
+  # If MPI worker override SLURM variable to allow process 0 + N workers:
+  # NOTE: The MPI worker only works in local and in SCs with SLURM
+  if [ "$mpiWorker" == "true" ]; then
+    export SLURM_TASKS_PER_NODE=${numThreads}
+    # Force to spawn the MPI processes in the same node
+    export SLURM_NODELIST=${SLURM_STEP_NODELIST}
+  fi
+
   # Export tracing
   if [ "$tracing" -gt "0" ]; then
     echo "Initializing python tracing with extrae..."
@@ -102,13 +112,11 @@
 
     export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
     export EXTRAE_CONFIG_FILE=${workerConfigFile}
-   elif [ "$tracing" -lt "-1" ]; then
+  elif [ "$tracing" -lt "-1" ]; then
     # exporting variables required by map & ddt
     export ALLINEA_MPI_INIT=MPI_Init_thread
     export ALLINEA_MPI_INIT_PENDING=1
-    export SLURM_TASKS_PER_NODE=${numThreads}
-    export SLURM_NODELIST=${SLURM_STEP_NODELIST}
-   fi
+  fi
 
   if [ "$tracing" -eq "-1" ]; then # scorep
     echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"

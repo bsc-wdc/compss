@@ -90,6 +90,8 @@ public class PythonInvoker extends PipedInvoker {
             cmd.append(COMPSsConstants.Lang.PYTHON).append(TOKEN_SEP);
             cmd.append(this.pyParams.getPythonVirtualEnvironment()).append(TOKEN_SEP);
             cmd.append(this.pyParams.getPythonPropagateVirtualEnvironment()).append(TOKEN_SEP);
+            cmd.append(this.pyParams.usePythonMpiWorker()).append(TOKEN_SEP);
+            cmd.append(this.size + 1).append(TOKEN_SEP);  // Number of MPI threads if using MPI worker.
 
             return cmd.toString();
         }

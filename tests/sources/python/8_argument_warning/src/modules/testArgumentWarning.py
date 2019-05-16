@@ -99,6 +99,15 @@ def task2_task(i):
 def task3_task(i):
     return 1
 
+# The user uses kwargs: MUST NOT THROW WARNING
+@task(returns=1, i=IN)
+def task_kwarg(i, **kwargs):
+    return 1
+
+# The user uses args: MUST NOT THROW WARNING
+@task(returns=1, i=IN)
+def task_args(i, *args):
+    return 1
 
 class testArgumentWarning(unittest.TestCase):
 
@@ -157,3 +166,15 @@ class testArgumentWarning(unittest.TestCase):
         o = compss_wait_on(o)
         p = compss_wait_on(p)
         self.assertEqual(o, p)
+
+    def testTaskKwargWarn(self):
+        kw = {'i': 1, 'j':2}
+        o = task_kwarg(**kw)
+        o = compss_wait_on(o)
+        self.assertEqual(o, 1)
+
+    def testTaskArgsWarn(self):
+        args = [1, 2]
+        o = task_args(*args)
+        o = compss_wait_on(o)
+        self.assertEqual(o, 1)

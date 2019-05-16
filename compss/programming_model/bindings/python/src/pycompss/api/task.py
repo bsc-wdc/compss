@@ -791,7 +791,6 @@ class task(object):
         """
         from collections import OrderedDict
         parameter_values = OrderedDict()
-        parameter_names = []
         # If we have an MPI, COMPSs or MultiNode decorator above us we should have computing_nodes
         # as a kwarg, we should detect it and remove it. Otherwise we set it to 1
         self.computing_nodes = kwargs.pop('computing_nodes', 1)
@@ -806,7 +805,6 @@ class task(object):
             if self.first_arg_name is None:
                 self.first_arg_name = var_name
             parameter_values[var_name] = var_value
-            parameter_names.append(var_name)
         num_defaults = len(self.param_defaults)
         # Give default values to all the parameters that have a
         # default value and are not already set
@@ -857,7 +855,7 @@ class task(object):
                 self.parameters[var_name].object = parameter_values[var_name]
 
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_args = SUPPORTED_ARGUMENTS + parameter_names
+        supported_args = SUPPORTED_ARGUMENTS + self.param_args
         check_arguments(MANDATORY_ARGUMENTS, supported_args, list(self.decorator_arguments.keys()), "@task")
 
     def get_parameter_direction(self, name):

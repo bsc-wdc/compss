@@ -36,6 +36,7 @@ from pycompss.worker.pipe_constants import PING_TAG
 from pycompss.worker.pipe_constants import PONG_TAG
 from pycompss.worker.pipe_constants import QUIT_TAG
 
+
 def shutdown_handler(signal, frame):
     """
     Shutdown handler (do not remove the parameters).
@@ -66,12 +67,15 @@ class Pipe(object):
         """
         Returns the first command on the pipe
 
-        :param retry_period: time (ms) that the thread sleeps if EOF is read from pipe
-
+        :param retry_period: time (ms) that the thread sleeps if EOF is read
+                             from pipe
         :return: the first command available on the pipe
         """
         if self.input_pipe_open is None:
             self.input_pipe_open = open(self.input_pipe, 'r')
+            # Non blocking open:
+            # fd = os.open(self.input_pipe, os.O_RDWR)
+            # self.input_pipe_open = os.fdopen(fd, 'r')
 
         line = self.input_pipe_open.readline()
         if line == "":
@@ -380,6 +384,10 @@ def executor(queue, process_name, pipe, conf):
                 if __debug__:
                     logger.debug("[PYTHON EXECUTOR] [%s] Received quit." % str(process_name))
                 return False
+            else:
+                if __debug__:
+                    logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" % (str(process_name), str(current_line)))
+                raise Exception("Unexpected message: %s" % str(current_line))
             return True
 
         command = pipe.read_command(retry_period=0.5)

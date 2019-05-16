@@ -25,7 +25,6 @@ PyCOMPSs Persistent Worker
 import signal
 
 from pycompss.worker.pipe_constants import *
-from pycompss.worker.piper_executor import Pipe
 from pycompss.worker.piper_executor import ExecutorConf
 from pycompss.worker.piper_executor import executor
 from pycompss.worker.piper_worker import load_loggers
@@ -38,7 +37,8 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-PROCESSES = {} # IN_PIPE -> PROCESS ID
+PROCESSES = {}  # IN_PIPE -> PROCESS ID
+
 
 def is_worker():
     """
@@ -47,6 +47,7 @@ def is_worker():
     :return: the process should act as a worker
     """
     return rank == 0
+
 
 def shutdown_handler(signal, frame):
     """
@@ -79,7 +80,6 @@ def compss_persistent_worker(config):
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-
     # Set the binding in worker mode
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
@@ -94,7 +94,8 @@ def compss_persistent_worker(config):
     logger, storage_loggers = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] piper_worker.py wake up")
+        logger.debug("[PYTHON WORKER] mpi_piper_worker.py rank: " + str(rank)
+                     + " wake up")
         config.print_on_logger(logger)
 
     if persistent_storage:
@@ -107,6 +108,10 @@ def compss_persistent_worker(config):
         child_pid = pids[i+1]
         PROCESSES[child_in_pipe] = child_pid
 
+    if __debug__:
+        logger.debug("[PYTHON WORKER] Starting alive")
+        logger.debug("[PYTHON WORKER] Control pipe: " +
+                     str(config.control_pipe))
     # Read command from control pipe
     alive = True
     control_pipe = config.control_pipe
@@ -119,13 +124,18 @@ def compss_persistent_worker(config):
                 out_pipe = line[2]
 
                 pid = PROCESSES.pop(in_pipe, None)
-                control_pipe.write(REMOVED_EXECUTOR_TAG +" "+out_pipe+" "+in_pipe)
+                control_pipe.write(REMOVED_EXECUTOR_TAG +
+                                   " " + out_pipe +
+                                   " " + in_pipe)
 
             elif line[0] == QUERY_EXECUTOR_ID_TAG:
                 in_pipe = line[1]
                 out_pipe = line[2]
                 pid = PROCESSES.get(in_pipe)
-                control_pipe.write(REPLY_EXECUTOR_ID_TAG+" "+out_pipe+" "+in_pipe+" "+str(pid))
+                control_pipe.write(REPLY_EXECUTOR_ID_TAG +
+                                   " " + out_pipe +
+                                   " " + in_pipe +
+                                   " " + str(pid))
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
@@ -133,7 +143,9 @@ def compss_persistent_worker(config):
             elif line[0] == QUIT_TAG:
                 alive = False
             else:
-                logger.debug("UNKNOWN COMMAND "+ command)
+                logger.debug("[PYTHON WORKER] ERROR: UNKNOWN COMMAND: " +
+                             command)
+                alive = False
 
     if persistent_storage:
         # Finish storage
@@ -182,6 +194,7 @@ def compss_persistent_executor(config):
     conf = ExecutorConf(TRACING, config.storage_conf, logger, storage_loggers)
     executor(None, process_name, config.pipes[rank-1], conf)
 
+
 ############################
 # Main -> Calls main method
 ############################
@@ -198,4 +211,3 @@ if __name__ == '__main__':
         compss_persistent_worker(WORKER_CONF)
     else:
         compss_persistent_executor(WORKER_CONF)
-

@@ -11,6 +11,7 @@ PyCOMPSs Testbench
 
 # Imports
 from pycompss.api.api import compss_open, compss_wait_on
+from modules.test_tasks import empty_task
 from modules.test_tasks import function_primitives, function_files, function_objects, function_return_primitive
 from modules.test_tasks import function_return_object, MyClass, par_func
 from modules.test_tasks import function_function_parameter, formula2
@@ -25,6 +26,12 @@ from modules.test_tasks import multireturn, power, merge
 from modules.test_tasks import function_moduleObject, Foo
 from modules.test_tasks import create_block, update_block
 from modules.test_tasks import empty_string, char_to_int
+
+
+def test_empty_function():
+    print("test_empty_function")
+    for i in range(8):
+        empty_task()
 
 
 def test_function_primitives():
@@ -708,6 +715,7 @@ def test_character():
         assert result == ord(mychar)
 
 def main_program():
+    test_empty_function()
     test_function_primitives()
     test_function_files()
     test_function_objects()

@@ -102,6 +102,11 @@ class MyClass(object):
 # #### FUNCTIONS #####
 
 @task()
+def empty_task():
+    print("EMPTY_TASK")
+
+
+@task()
 def function_primitives(i, l, f, b, s):
     print("TEST")
     print("- Static Function")

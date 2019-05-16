@@ -316,9 +316,12 @@ public class GraphGenerator {
             StringBuilder edgeProperties = new StringBuilder();
             String edgeTypeProps = edgeType.getProperties();
             if (!edgeTypeProps.isEmpty() || !label.isEmpty()) {
-                edgeProperties.append("[");
+                edgeProperties.append(" [");
                 if (!edgeTypeProps.isEmpty()) {
-                    edgeProperties.append(edgeTypeProps).append(", ");
+                    edgeProperties.append(edgeTypeProps);
+                    if (!label.isEmpty()) {
+                        edgeProperties.append(", ");
+                    }
                 }
                 if (!label.isEmpty()) {
                     edgeProperties.append("label=\"d").append(label).append("\"");

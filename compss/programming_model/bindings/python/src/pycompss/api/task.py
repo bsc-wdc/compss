@@ -1016,7 +1016,7 @@ class task(object):
         # Save the self object type and value before executing the task
         # (it could be persisted inside if its a persistent object)
         has_self = False
-        if not isinstance(args[0], parameter.TaskParameter):
+        if args and not isinstance(args[0], parameter.TaskParameter):
             # Then the first arg is self
             has_self = True
             self_type = parameter.get_compss_type(args[0])

@@ -71,6 +71,7 @@ public class OnFailureCancelSuccessors {
             file.delete();
         }
         // Create the file and directories if required
+	file.getParentFile().mkdirs();
         boolean createdFile = file.createNewFile();
         if (!createdFile) {
             throw new IOException("[ERROR] Cannot create test file");

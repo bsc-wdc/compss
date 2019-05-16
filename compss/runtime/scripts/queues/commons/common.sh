@@ -136,7 +136,7 @@ EOT
                                             type_Y(){
                                               ...
                                             }
-    --master=<master_node_type>             Node type for the master 
+    --master=<master_node_type>             Node type for the master
                                             (Node type descriptions are provided in the --type_cfg flag)
     --workers=type_X:nodes,type_Y:nodes     Node type and number of nodes per type for the workers
                                             (Node type descriptions are provided in the --type_cfg flag)
@@ -623,6 +623,15 @@ EOT
     fi
   fi
 
+  # QoS
+  if [ -n "${QARG_OVERCOMMIT}" ]; then
+      if [ -z "${DISABLE_QARG_OVERCOMMIT}" ] || [ "${DISABLE_QARG_OVERCOMMIT}" == "false" ]; then
+        cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_OVERCOMMIT}
+EOT
+      fi
+  fi
+
   # Constraints
   if [ -n "${QARG_CONSTRAINTS}" ]; then
     if [ "${constraints}" != "disabled" ]; then
@@ -790,4 +799,3 @@ ${SCRIPT_DIR}/../../user/launch_compss --master_node="\${master_node}" --worker_
 EOT
   fi
 }
-

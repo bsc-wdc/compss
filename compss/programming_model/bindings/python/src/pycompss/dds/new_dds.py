@@ -65,9 +65,14 @@ class DDS(object):
         self.partitions = list()
         self.func = None
 
-    def load(self, iterator, num_of_parts=10):
+        # Partition As A Future Object
+        # If partitions are not Future Objects but list of Future Objects
+        self.paafo = False
+
+    def load(self, iterator, num_of_parts=10, something=False):
         """
         """
+        self.paafo = something
         if num_of_parts == -1:
             self.partitions = iterator
             return self
@@ -437,7 +442,7 @@ class DDS(object):
         processed = list()
         if self.func:
             for _p in self.partitions:
-                processed.append(map_partition(self.func, _p))
+                processed.append(map_partition(self.func, _p, self.paafo))
             # Reset the function!
             self.func = None
         else:
@@ -684,6 +689,8 @@ class ChildDDS(DDS):
         :param func:
         """
         super(ChildDDS, self).__init__()
+        self.paafo = parent.paafo
+
         if not isinstance(parent, ChildDDS):
             self.func = func
             if isinstance(parent, DDS):

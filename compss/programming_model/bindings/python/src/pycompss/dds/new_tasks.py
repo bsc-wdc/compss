@@ -175,14 +175,6 @@ def reduce_multiple(f, *args):
 
 
 @task(returns=list)
-def combine_lists(*args):
-    ret = list()
-    for _list in args:
-        ret.extend(_list[1])
-    return ret
-
-
-@task(returns=list)
 def task_collect_samples(partition, num_of_samples, key_func):
     """
     """

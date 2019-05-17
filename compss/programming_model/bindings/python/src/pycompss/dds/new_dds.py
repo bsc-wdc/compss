@@ -511,6 +511,12 @@ class DDS(object):
         [[(0, 0), (3, 3)], [(1, 1), (4, 4)], [(2, 2), (5, 5)]]
         """
 
+        def combine_lists(args):
+            ret = list()
+            for _list in args:
+                ret.extend(_list[1])
+            return ret
+
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions
         collected = self.collect(keep_partitions=True, future_objects=True)
@@ -526,9 +532,10 @@ class DDS(object):
 
         future_partitions = list()
         for bucket in grouped.values():
-            future_partitions.append(combine_lists(*bucket))
+            future_partitions.append(bucket)
 
-        return DDS().load(future_partitions, -1)
+        return DDS().load(future_partitions, -1, True)\
+            .map_partitions(combine_lists)
 
     def map_values(self, f):
         """

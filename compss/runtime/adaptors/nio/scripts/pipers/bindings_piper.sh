@@ -112,6 +112,9 @@
 
     export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
     export EXTRAE_CONFIG_FILE=${workerConfigFile}
+    if [ "$mpiWorker" == "true" ]; then
+      export LD_PRELOAD="${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/libmpitrace.so"
+    fi
   elif [ "$tracing" -lt "-1" ]; then
     # exporting variables required by map & ddt
     export ALLINEA_MPI_INIT=MPI_Init_thread

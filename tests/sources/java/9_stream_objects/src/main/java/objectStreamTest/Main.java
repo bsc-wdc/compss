@@ -6,7 +6,6 @@ import es.bsc.distrostreamlib.exceptions.RegistrationException;
 import es.bsc.distrostreamlib.types.ConsumerMode;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -18,6 +17,8 @@ public class Main {
     private static final int SLEEP_TIME1 = 400; // ms
     private static final int SLEEP_TIME2 = 1_000; // ms
     private static final int SLEEP_TIME3 = 2_000; // ms
+
+    private static final int MAX_ENTRIES = 100; // Maximum number of entries for task consumer spawn
 
 
     public static void main(String[] args) throws RegistrationException, IOException, BackendException {
@@ -115,10 +116,16 @@ public class Main {
         }
 
         // Check stream status and generate consumers
-        List<Integer> partialObjects = new ArrayList<>();
+        Integer[] partialObjects = new Integer[MAX_ENTRIES];
+        int pos = 0;
         while (!ods.isClosed()) {
-            Integer polledObjects = pollNewObjectsAndSpawnConsumer(ods);
-            partialObjects.add(polledObjects);
+            List<MyObject> newObjects = ods.poll();
+            for (MyObject obj : newObjects) {
+                System.out.println("Sending " + obj.hashCode() + ":" + obj.getName() + ":" + obj.getValue()
+                        + " to a process task");
+                partialObjects[pos] = Tasks.processObject(obj);
+                pos = pos + 1;
+            }
 
             // Sleep between polls
             try {
@@ -128,34 +135,24 @@ public class Main {
             }
         }
         // Although the stream is closed, there can still be pending events to process
-        Integer polledObjects = pollNewObjectsAndSpawnConsumer(ods);
-        partialObjects.add(polledObjects);
+        List<MyObject> newObjects = ods.poll();
+        for (MyObject obj : newObjects) {
+            System.out.println(
+                    "Sending " + obj.hashCode() + ":" + obj.getName() + ":" + obj.getValue() + " to a process task");
+            partialObjects[pos] = Tasks.processObject(obj);
+            pos = pos + 1;
+        }
 
         // Get all processed values
         Integer totalObjects = 0;
-        for (Integer p : partialObjects) {
-            totalObjects = totalObjects + p;
+        for (int i = 0; i < pos; ++i) {
+            if (partialObjects[i] != null) {
+                totalObjects = totalObjects + partialObjects[i];
+            }
         }
 
         // Wait for tasks completion
         System.out.println("[LOG] TOTAL NUMBER OF PROCESSED OBJECTS: " + totalObjects);
-    }
-
-    private static Integer pollNewObjectsAndSpawnConsumer(ObjectDistroStream<MyObject> ods)
-            throws IOException, BackendException {
-
-        System.out.println("[LOG] Polling from main");
-        Integer polledObjects = 0;
-        // Poll new files
-        List<MyObject> newObjects = ods.poll();
-        // Process their content
-        for (MyObject obj : newObjects) {
-            System.out.println(
-                    "Sending " + obj.hashCode() + ":" + obj.getName() + ":" + obj.getValue() + " to a process task");
-            Integer numProcessed = Tasks.processObject(obj);
-            polledObjects = polledObjects + numProcessed;
-        }
-        return polledObjects;
     }
 
 }

@@ -12,8 +12,8 @@
   
   # Global variables
   exit_value=1
-  jar_name="9_stream_files.jar"
-  app_name="fileStreamTest.Main"
+  jar_name="9_stream_non_native.jar"
+  app_name="nonNativeStreamTest.Main"
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -27,10 +27,12 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING JAVA APPLICATION FILE STREAMS"
-  output_log="${target_log_folder}/fileStreams_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/fileStreams_0${retry_num}.errorlog"
+  echo "*** RUNNING JAVA APPLICATION NON-NATIVE STREAMS"
+  output_log="${target_log_folder}/nonNativeStreams_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/nonNativeStreams_0${retry_num}.errorlog"
   expectedTime=120s
+  
+  export WRITE_BINARY="${base_app_dir}"/write_files.sh
 
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

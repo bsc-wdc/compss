@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>9_stream_objects</artifactId>
+	<artifactId>9_stream_non_native</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
@@ -14,9 +14,9 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>Test - Java - Stream Objects</name>
-	<description>Stream Objects application</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/stream-objects</url>
+	<name>Test - Java - Stream Non-native</name>
+	<description>Stream Non-native application</description>
+	<url>http://compss.bsc.es/projects/bar/wiki/stream-non-native</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>

@@ -27,9 +27,9 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING JAVA APPLICATION STREAMS"
-  output_log="${target_log_folder}/fileStreams_0${retry_num}.outputlog"
-  error_log="${target_log_folder}/fileStreams_0${retry_num}.errorlog"
+  echo "*** RUNNING JAVA APPLICATION OBJECT STREAMS"
+  output_log="${target_log_folder}/objectStreams_0${retry_num}.outputlog"
+  error_log="${target_log_folder}/objectStreams_0${retry_num}.errorlog"
   expectedTime=120s
 
   # shellcheck disable=SC2086

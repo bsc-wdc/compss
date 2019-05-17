@@ -33,7 +33,7 @@ public interface MainItf {
     
     @Method(declaringClass = "objectStreamTest.Tasks")
     Integer processObject(
-        @Parameter(type = Type.STREAM, direction = Direction.IN) ObjectDistroStream<MyObject> ods
+        @Parameter(type = Type.OBJECT, direction = Direction.IN) MyObject obj
     );
 
 }

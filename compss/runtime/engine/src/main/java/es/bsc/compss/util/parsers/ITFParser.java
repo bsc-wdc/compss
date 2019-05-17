@@ -52,6 +52,7 @@ import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 
 import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -80,12 +81,16 @@ public class ITFParser {
             LOGGER.debug("Detected methods " + coreCount);
         }
 
+        // Check registered methods
         for (java.lang.reflect.Method m : annotItfClass.getDeclaredMethods()) {
             CoreElementDefinition ced = parseITFMethod(m);
             if (!ced.getImplementations().isEmpty()) {
                 updatedMethods.add(ced);
             }
         }
+
+        // Sort them alphabetically to avoid different core colors in the same execution
+        Collections.sort(updatedMethods);
 
         return updatedMethods;
     }

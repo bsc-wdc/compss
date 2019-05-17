@@ -151,7 +151,7 @@ public class LocalParameter implements InvocationParam {
     }
 
     @Override
-    public StdIOStream getStream() {
+    public StdIOStream getStdIOStream() {
         return this.param.getStream();
     }
 

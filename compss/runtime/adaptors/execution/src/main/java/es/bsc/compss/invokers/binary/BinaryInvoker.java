@@ -39,12 +39,14 @@ public class BinaryInvoker extends Invoker {
     private final String binary;
 
 
-    /** Binary Invoker constructor.
-     * @param context Task execution context
-     * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources Assigned resources
-     * @throws JobExecutionException Error creating the binary invoker
+    /**
+     * Binary Invoker constructor.
+     * 
+     * @param context Task execution context.
+     * @param invocation Task execution description.
+     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param assignedResources Assigned resources.
+     * @throws JobExecutionException Error creating the binary invoker.
      */
     public BinaryInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
@@ -65,6 +67,8 @@ public class BinaryInvoker extends Invoker {
     @Override
     public void invokeMethod() throws JobExecutionException {
         LOGGER.info("Invoked " + this.binary + " in " + this.context.getHostName());
+
+        // Execute binary
         Object retValue;
         try {
             retValue = runInvocation();
@@ -72,6 +76,11 @@ public class BinaryInvoker extends Invoker {
             LOGGER.error("Exception running binary", iee);
             throw new JobExecutionException(iee);
         }
+
+        // Close out streams if any
+        BinaryRunner.closeStreams(this.invocation.getParams());
+
+        // Update binary results
         for (InvocationParam np : this.invocation.getResults()) {
             if (np.getType() == DataType.FILE_T) {
                 serializeBinaryExitValue(np, retValue);
@@ -86,9 +95,9 @@ public class BinaryInvoker extends Invoker {
         // Command similar to
         // ./exec args
         // Convert binary parameters and calculate binary-streams redirection
-        BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
-                invocation.getTarget(), streamValues);
+        BinaryRunner.StdIOStream streamValues = new BinaryRunner.StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+                this.invocation.getTarget(), streamValues);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
@@ -113,8 +122,8 @@ public class BinaryInvoker extends Invoker {
             outLog.println("[BINARY INVOKER] Binary STDERR: " + streamValues.getStdErr());
         }
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(),
-                context.getThreadErrStream());
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+                this.context.getThreadErrStream());
     }
 
 }

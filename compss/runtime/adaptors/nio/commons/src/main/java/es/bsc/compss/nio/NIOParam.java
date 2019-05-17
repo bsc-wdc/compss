@@ -70,7 +70,7 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
-    public StdIOStream getStream() {
+    public StdIOStream getStdIOStream() {
         return this.stream;
     }
 

@@ -170,7 +170,7 @@ public abstract class ExternalInvoker extends Invoker {
 
         DataType type = np.getType();
         paramArgs.add(Integer.toString(type.ordinal()));
-        paramArgs.add(Integer.toString(np.getStream().ordinal()));
+        paramArgs.add(Integer.toString(np.getStdIOStream().ordinal()));
         paramArgs.add(np.getPrefix());
         paramArgs.add(np.getName());
         switch (type) {

@@ -162,10 +162,10 @@ public abstract class Invoker {
 
             out.print("  * Parameter streams:");
             for (InvocationParam p : invocation.getParams()) {
-                out.print(" " + p.getStream());
+                out.print(" " + p.getStdIOStream());
             }
             if (invocation.getTarget() != null) {
-                out.print(" " + invocation.getTarget().getStream());
+                out.print(" " + invocation.getTarget().getStdIOStream());
             }
             out.println("");
 

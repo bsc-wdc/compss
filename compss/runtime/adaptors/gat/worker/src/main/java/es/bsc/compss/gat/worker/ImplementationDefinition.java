@@ -368,7 +368,7 @@ public abstract class ImplementationDefinition implements Invocation {
         }
 
         @Override
-        public StdIOStream getStream() {
+        public StdIOStream getStdIOStream() {
             return this.stream;
         }
 

@@ -107,8 +107,8 @@ public class InvocationParameterAssertion {
                         + ")", param.getPrefix(), value);
                 break;
             case STREAM:
-                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got " + param.getStream()
-                        + ")", param.getStream(), value);
+                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got " + param.getStdIOStream()
+                        + ")", param.getStdIOStream(), value);
                 break;
             case ORIGINAL_NAME:
                 assertEquals("Unexpected name for " + caseId + " (expected " + value + " and got "

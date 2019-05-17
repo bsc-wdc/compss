@@ -366,15 +366,19 @@ public class ITFParser {
         }
 
         /*
-         * Non native tasks only support FILES as INOUT
+         * Non native tasks only support FILES and STREAMS as INOUT/OUT parameters
          */
-        if (hasNonNative && !annotType.equals(Type.FILE) && (isOut || isInOut)) {
-            ErrorManager.error("Non-Native tasks only supports " + annotType.name() + " types in mode IN"
-                    + ErrorManager.NEWLINE + warningLocation);
+        if (hasNonNative) {
+            if (!annotType.equals(Type.FILE) && !annotType.equals(Type.STREAM)) {
+                if (isOut || isInOut) {
+                    ErrorManager.error("Non-Native tasks only supports " + annotType.name() + " types in mode IN"
+                            + ErrorManager.NEWLINE + warningLocation);
+                }
+            }
         }
 
         /*
-         * Stream checks
+         * Std IO Stream checks
          */
         if (!stream.equals(StdIOStream.UNSPECIFIED)) {
             // Stream parameters can only be files

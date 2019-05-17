@@ -24,6 +24,8 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
+import es.bsc.distrostreamlib.DistroStream;
+import es.bsc.distrostreamlib.api.files.FileDistroStream;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +43,7 @@ import org.apache.logging.log4j.LogManager;
 public class BinaryRunner {
 
     private static final String ERROR_PARAM_NOT_STRING = "ERROR: Binary parameter cannot be serialized to string";
+    private static final String ERROR_STREAM = "ERROR: Object and PSCO streams are not supported in non-native tasks";
     private static final String ERROR_OUTPUTREADER = "ERROR: Cannot retrieve command output";
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
@@ -56,7 +59,8 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error creating command.
      */
     public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters,
-            InvocationParam target, StreamSTD streamValues) throws InvokeExecutionException {
+            InvocationParam target, StdIOStream streamValues) throws InvokeExecutionException {
+
         ArrayList<String> binaryParams = new ArrayList<>();
         for (InvocationParam param : parameters) {
             binaryParams.addAll(processParam(param, streamValues));
@@ -67,10 +71,11 @@ public class BinaryRunner {
         return binaryParams;
     }
 
-    private static ArrayList<String> processParam(InvocationParam param, StreamSTD streamValues)
+    private static ArrayList<String> processParam(InvocationParam param, StdIOStream streamValues)
             throws InvokeExecutionException {
-        ArrayList<String> binaryParam = new ArrayList<>();
-        switch (param.getStream()) {
+
+        ArrayList<String> binaryParamFields = new ArrayList<>();
+        switch (param.getStdIOStream()) {
             case STDIN:
                 streamValues.setStdIn((String) param.getValue());
                 break;
@@ -83,62 +88,91 @@ public class BinaryRunner {
             case UNSPECIFIED:
                 if (!param.getPrefix().equals(Constants.PREFIX_SKIP)) {
                     if (param.getValue() != null && param.getValue().getClass().isArray()) {
-                        try {
-                            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
-                                binaryParam.add(param.getPrefix());
-                            }
-                            binaryParam.addAll(serializeArrayParam(param.getValue()));
-                        } catch (Exception e) {
-                            // Exception serializing to string the object
-                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                        }
+                        addArrayParam(param, binaryParamFields);
                     } else if (param.getValue() != null && param.getValue() instanceof Collection<?>) {
-                        try {
-                            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
-                                binaryParam.add(param.getPrefix());
-                            }
-                            binaryParam.addAll(serializeCollectionParam((Collection<?>) param.getValue()));
-                        } catch (Exception e) {
-                            // Exception serializing to string the object
-                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                        }
+                        addCollectionParam(param, binaryParamFields);
                     } else {
-                        // The value can be serialized to string directly
-                        if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
-                            if (param.getType().equals(DataType.FILE_T)) {
-                                binaryParam.add(param.getPrefix() + String.valueOf(param.getOriginalName()));
-                            } else {
-                                binaryParam.add(param.getPrefix() + String.valueOf(param.getValue()));
-                            }
-                        } else {
-                            if (param.getType().equals(DataType.FILE_T)) {
-                                binaryParam.add(String.valueOf(param.getOriginalName()));
-                            } else {
-                                binaryParam.add(String.valueOf(param.getValue()));
-                            }
-                        }
+                        // The value can be serialized directly
+                        addDirectParam(param, binaryParamFields);
                     }
                 }
                 break;
         }
-        return binaryParam;
+        return binaryParamFields;
+    }
+
+    private static void addArrayParam(InvocationParam param, ArrayList<String> binaryParamFields)
+            throws InvokeExecutionException {
+        try {
+            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+                binaryParamFields.add(param.getPrefix());
+            }
+            binaryParamFields.addAll(serializeArrayParam(param.getValue()));
+        } catch (Exception e) {
+            // Exception serializing to string the object
+            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
+        }
+    }
+
+    private static void addCollectionParam(InvocationParam param, ArrayList<String> binaryParamFields)
+            throws InvokeExecutionException {
+
+        try {
+            if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+                binaryParamFields.add(param.getPrefix());
+            }
+            binaryParamFields.addAll(serializeCollectionParam((Collection<?>) param.getValue()));
+        } catch (Exception e) {
+            // Exception serializing to string the object
+            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
+        }
+    }
+
+    private static void addDirectParam(InvocationParam param, ArrayList<String> binaryParamFields)
+            throws InvokeExecutionException {
+
+        // Add prefix if any
+        if (param.getPrefix() != null && !param.getPrefix().isEmpty()
+                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+            binaryParamFields.add(param.getPrefix());
+        }
+
+        // Add value
+        switch (param.getType()) {
+            case FILE_T:
+                binaryParamFields.add(String.valueOf(param.getOriginalName()));
+                break;
+            case STREAM_T:
+                DistroStream<?> ds = (DistroStream<?>) param.getValue();
+                switch (ds.getStreamType()) {
+                    case FILE:
+                        FileDistroStream fds = (FileDistroStream) ds;
+                        binaryParamFields.add(fds.getBaseDir());
+                        break;
+                    default:
+                        throw new InvokeExecutionException(ERROR_STREAM);
+                }
+                break;
+            default:
+                binaryParamFields.add(String.valueOf(param.getValue()));
+                break;
+        }
     }
 
     /**
-     * Executes a given command @cmd with the stream redirections @streamValues.
+     * Executes a given command {@code cmd} with the stream redirections {@code streamValues}.
      *
-     * @param cmd Command to execute
-     * @param streamValues Stream values
-     * @param taskSandboxWorkingDir Execution sandbox
-     * @param outLog Execution output stream
-     * @param errLog Execution error stream
-     * @return Exit value as object 
-     * @throws InvokeExecutionException Error execution the binary
+     * @param cmd Command to execute.
+     * @param stdIOStreamValues Stream values.
+     * @param taskSandboxWorkingDir Execution sandbox.
+     * @param outLog Execution output stream.
+     * @param errLog Execution error stream.
+     * @return Exit value as object.
+     * @throws InvokeExecutionException Error execution the binary.
      */
-    public static Object executeCMD(String[] cmd, StreamSTD streamValues, File taskSandboxWorkingDir,
+    public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
             PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {
 
         // Prepare command working dir, environment and STD redirections
@@ -151,15 +185,15 @@ public class BinaryRunner {
         builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
         builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
 
-        String fileInPath = streamValues.getStdIn();
+        String fileInPath = stdIOStreamValues.getStdIn();
         if (fileInPath != null) {
             builder.redirectInput(new File(fileInPath));
         }
-        String fileOutPath = streamValues.getStdOut();
+        String fileOutPath = stdIOStreamValues.getStdOut();
         if (fileOutPath != null) {
             builder.redirectOutput(Redirect.appendTo(new File(fileOutPath)));
         }
-        String fileErrPath = streamValues.getStdErr();
+        String fileErrPath = stdIOStreamValues.getStdErr();
         if (fileErrPath != null) {
             builder.redirectError(Redirect.appendTo(new File(fileErrPath)));
         }
@@ -196,6 +230,7 @@ public class BinaryRunner {
 
     private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
             PrintStream errLog) throws InvokeExecutionException {
+
         StreamGobbler errorGobbler = null;
         StreamGobbler outputGobbler = null;
         outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
@@ -253,6 +288,16 @@ public class BinaryRunner {
             }
         }
         errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+    }
+
+    public static void closeStreams(List<? extends InvocationParam> parameters) {
+        for (InvocationParam p : parameters) {
+            if (p.getType().equals(DataType.STREAM_T) && p.isWriteFinalValue()) {
+                // OUT Stream
+                DistroStream<?> ds = (DistroStream<?>) p.getValue();
+                ds.close();
+            }
+        }
     }
 
     private static ArrayList<String> serializeArrayParam(Object value) throws Exception {
@@ -366,14 +411,14 @@ public class BinaryRunner {
     }
 
 
-    public static class StreamSTD {
+    public static class StdIOStream {
 
         private String stdIn = null;
         private String stdOut = null;
         private String stdErr = null;
 
 
-        public StreamSTD() {
+        public StdIOStream() {
             // Nothing to do since all attributes have been initialized
         }
 

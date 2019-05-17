@@ -40,7 +40,9 @@ public class FakeInvocationParam implements InvocationParam {
     private final String dataMgmtId;
 
 
-    /** Fake Invocation parameter constructor.
+    /**
+     * Fake Invocation parameter constructor.
+     * 
      * @param type Type
      * @param prefix Prefix
      * @param name Name
@@ -91,7 +93,7 @@ public class FakeInvocationParam implements InvocationParam {
     }
 
     @Override
-    public StdIOStream getStream() {
+    public StdIOStream getStdIOStream() {
         return this.stream;
     }
 

@@ -123,7 +123,7 @@ public class NIOParamFactory {
     private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam) {
         LOGGER.debug("COLLECTION_T detected");
         NIOParamCollection npc = new NIOParamCollection(collNioParam.getDataMgmtId(), collNioParam.getType(),
-                collNioParam.getStream(), collNioParam.getPrefix(), collNioParam.getName(),
+                collNioParam.getStdIOStream(), collNioParam.getPrefix(), collNioParam.getName(),
                 collNioParam.isPreserveSourceData(), collNioParam.isWriteFinalValue(), collNioParam.getValue(),
                 collNioParam.getData(), collNioParam.getOriginalName());
 

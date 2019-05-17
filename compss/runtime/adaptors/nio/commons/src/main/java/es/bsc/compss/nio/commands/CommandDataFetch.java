@@ -30,6 +30,7 @@ public class CommandDataFetch extends Command implements Externalizable {
     private NIOParam param;
     private int transferId;
 
+
     public CommandDataFetch() {
         super();
     }
@@ -50,7 +51,6 @@ public class CommandDataFetch extends Command implements Externalizable {
         c.finishConnection();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.param = (NIOParam) in.readObject();

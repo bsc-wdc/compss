@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.nio.datarequest;
 
-import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.data.FetchDataListener;
+import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.types.annotations.parameter.DataType;
 

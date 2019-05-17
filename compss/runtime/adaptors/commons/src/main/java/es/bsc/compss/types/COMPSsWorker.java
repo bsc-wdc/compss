@@ -25,7 +25,7 @@ import es.bsc.compss.exceptions.AnnounceException;
 public abstract class COMPSsWorker extends COMPSsNode {
 
     /**
-     * New worker
+     * New worker.
      */
     public COMPSsWorker() {
         super();

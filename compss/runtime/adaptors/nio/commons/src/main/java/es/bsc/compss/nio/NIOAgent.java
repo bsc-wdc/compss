@@ -103,7 +103,6 @@ public abstract class NIOAgent {
     protected HashMap<Connection, Integer> connection2partner;
 
 
-
     /**
      * Constructor
      *
@@ -207,7 +206,7 @@ public abstract class NIOAgent {
                             + dr.getTarget() + " stored in " + nn + " with name " + dr.getSource().getDataMgmtId());
                 }
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
-                CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
+                CommandDataDemand cdd = new CommandDataDemand(this, remoteData, this.tracingId);
                 this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
@@ -311,7 +310,7 @@ public abstract class NIOAgent {
     public void sendData(Connection c, NIOData d, int receiverID) {
         if (NIOTracer.extraeEnabled()) {
             int tag = abs(d.getDataMgmtId().hashCode());
-            CommandTracingID cmd = new CommandTracingID(this.tracingID, tag);
+            CommandTracingID cmd = new CommandTracingID(this.tracingId, tag);
             c.sendCommand(cmd);
             NIOTracer.emitDataTransferEvent(d.getDataMgmtId());
             NIOTracer.emitCommEvent(true, receiverID, tag);
@@ -499,8 +498,8 @@ public abstract class NIOAgent {
         if (NIOTracer.extraeEnabled()) {
             int tag = abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId);
-            NIOTracer.emitCommEvent(false, this.connection2Partner.get(c), tag, t.getSize());
-            this.connection2Partner.remove(c);
+            NIOTracer.emitCommEvent(false, this.connection2partner.get(c), tag, t.getSize());
+            this.connection2partner.remove(c);
         }
 
         // Get all data requests for this source data_id/filename, and group by the target(final) data_id/filename

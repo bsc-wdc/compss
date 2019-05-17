@@ -38,8 +38,8 @@ public interface CommAdaptor {
     /**
      * Creates a configuration instance for the specific adaptor.
      * 
-     * @param project_properties Properties from the project.xml file.
-     * @param resources_properties Properties from the resources.xml file.
+     * @param projectProperties Properties from the project.xml file.
+     * @param resourcesProperties Properties from the resources.xml file.
      * @return Adaptor configuration.
      * @throws ConstructConfigurationException When cannot load the adaptor jar files.
      */

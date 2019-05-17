@@ -330,7 +330,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void receivedNewDataFetchOrder(NIOParam data, int transferId) {
-        //Only the master commands other nodes to fetch a data value
+        // Only the master commands other nodes to fetch a data value
     }
 
     @Override
@@ -377,7 +377,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     case PSCO_T:
                     case EXTERNAL_PSCO_T:
                         String pscoId = (String) tr.getParamValue(i);
-                        DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
+                        DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters().get(i);
                         updateParameter(newType, pscoId, dp);
                         break;
                     default:
@@ -754,30 +754,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         PENDING_MODIFICATIONS.put(c, sem);
     }
 
-
-    private class ClosingWorker {
-
-        private final NIOWorkerNode worker;
-        private final ShutdownListener listener;
-
-
-        public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
-            worker = w;
-            listener = l;
-        }
-    }
-
-    private class ClosingExecutor {
-
-        private final ExecutorShutdownListener listener;
-
-
-        public ClosingExecutor(ExecutorShutdownListener l) {
-            listener = l;
-        }
-    }
-
-
     @Override
     public void receivedBindingObjectAsFile(String filename, String target) {
         // Load from file
@@ -797,6 +773,29 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     protected boolean isMaster() {
         return true;
+    }
+
+
+    private class ClosingWorker {
+
+        private final NIOWorkerNode worker;
+        private final ShutdownListener listener;
+
+
+        public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
+            this.worker = w;
+            this.listener = l;
+        }
+    }
+
+    private class ClosingExecutor {
+
+        private final ExecutorShutdownListener listener;
+
+
+        public ClosingExecutor(ExecutorShutdownListener l) {
+            this.listener = l;
+        }
     }
 
 }

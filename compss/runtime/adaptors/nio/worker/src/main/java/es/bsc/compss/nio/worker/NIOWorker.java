@@ -223,7 +223,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
                 computingUnitsFPGA, fpgaMap, limitOfTasks);
 
-        if (tracingLevel == Tracer.BASIC_MODE) {
+        if (this.tracingLevel == Tracer.BASIC_MODE) {
             Tracer.enablePThreads();
         }
 
@@ -233,7 +233,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
-        if (tracingLevel == Tracer.BASIC_MODE) {
+        if (this.tracingLevel == Tracer.BASIC_MODE) {
             Tracer.disablePThreads();
         }
     }
@@ -245,8 +245,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void setMaster(NIONode master) {
-        if (masterNode == null) {
-            masterNode = new NIONode(master.getIp(), masterPort);
+        if (this.masterNode == null) {
+            this.masterNode = new NIONode(master.getIp(), this.masterPort);
         }
     }
 
@@ -288,7 +288,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Demand files
         WORKER_LOGGER.info("Checking parameters");
-        TaskFetchOperationsListener listener = new TaskFetchOperationsListener(task);
+        TaskFetchOperationsListener listener = new TaskFetchOperationsListener(task, this);
         int paramIdx = 0;
         for (NIOParam param : task.getParams()) {
             WORKER_LOGGER.info("Checking parameter " + param);
@@ -325,7 +325,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         final long paramsDuration = paramsEnd - obsolEnd;
         WORKER_LOGGER.info("[Profile] Obsolete Processing: " + obsolDuration + " Processing " + paramsDuration);
         WORKER_LOGGER.info("[Profile] Pending parameters: " + listener.getMissingOperations());
-        times.put(task.getJobId(), paramsEnd);
+        this.times.put(task.getJobId(), paramsEnd);
         listener.enable();
 
         if (Tracer.extraeEnabled()) {
@@ -335,13 +335,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void receivedNewDataFetchOrder(NIOParam data, int transferId) {
-        FetchDataOperationListener listener = new FetchDataOperationListener(transferId);
+        FetchDataOperationListener listener = new FetchDataOperationListener(transferId, this);
 
         if (data != null) {
             // Parameter has associated data
             WORKER_LOGGER.debug("- Checking transfers for data " + data.getDataMgmtId());
             listener.addOperation();
-            dataManager.fetchParam(data, -1, listener);
+            this.dataManager.fetchParam(data, -1, listener);
         }
 
         // Request the transfers
@@ -384,7 +384,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     // and notifies the worker in this case.
     @Override
     public void handleRequestedDataNotAvailableError(List<DataRequest> failedRequests, String dataId) {
-        for (DataRequest dr : failedRequests) { // For every task pending on this request, flag it as an error
+        for (DataRequest dr : failedRequests) {
+            // For every task pending on this request, flag it as an error
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
             // Mark as an error task. When all the params've been consumed, sendTaskDone unsuccessful
             wdr.getListener().errorFetchingValue(dataId, new DataNotAvailableException(dataId));
@@ -396,10 +397,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void receivedValue(Destination type, String dataId, Object object, List<DataRequest> achievedRequests) {
         if (type == Transfer.Destination.OBJECT) {
             WORKER_LOGGER.info("Received data " + dataId + " with associated object " + object);
-            dataManager.storeValue(dataId, object);
+            this.dataManager.storeValue(dataId, object);
         } else {
             WORKER_LOGGER.info("Received data " + dataId);
-            dataManager.storeFile(dataId, (String) object);
+            this.dataManager.storeFile(dataId, (String) object);
         }
         for (DataRequest dr : achievedRequests) {
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
@@ -408,18 +409,22 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
             if (WORKER_LOGGER_DEBUG) {
-            WORKER_LOGGER.debug(
-                    "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
+                WORKER_LOGGER.debug("Pending parameters: "
+                        + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
             }
         }
     }
 
-    private void sendTaskDone(Invocation invocation, boolean successful) {
+    protected Connection startConnection() {
+        return TM.startConnection(this.masterNode);
+    }
+
+    protected void sendTaskDone(Invocation invocation, boolean successful) {
         NIOTask nt = (NIOTask) invocation;
         int jobId = nt.getJobId();
         int taskId = nt.getTaskId();
         // Notify task done
-        Connection c = TM.startConnection(masterNode);
+        Connection c = TM.startConnection(this.masterNode);
 
         NIOTaskResult tr = new NIOTaskResult(jobId, nt.getParams(), nt.getTarget(), nt.getResults());
         if (WORKER_LOGGER_DEBUG) {
@@ -429,7 +434,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         CommandNIOTaskDone cmd = new CommandNIOTaskDone(this, tr, successful);
         c.sendCommand(cmd);
 
-        if (transferLogs || !successful) {
+        if (this.transferLogs || !successful) {
             // Check that output files already exists. If not exists generate an empty one.
             String taskFileOutName = this.getStandardStreamsPath(invocation) + ".out";
             checkStreamFileExistence(taskFileOutName, "out",
@@ -454,7 +459,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
     }
 
-    private void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
+    protected void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
         File taskFile = new File(taskFileName);
         if (!taskFile.exists()) {
             try (FileOutputStream stream = new FileOutputStream(taskFile)) {
@@ -467,7 +472,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     // Check if this task is ready to execute
-    private void executeTask(NIOTask task) {
+    protected void executeTask(NIOTask task) {
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("Enqueueing job " + task.getJobId() + " for execution.");
         }
@@ -480,7 +485,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 sendTaskDone(invocation, success);
             }
         });
-        executionManager.enqueue(e);
+        this.executionManager.enqueue(e);
 
         // Notify the master that the data has been transfered
         // The message is sent after the task enqueue because the connection can
@@ -502,14 +507,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param obsolete List of obsolete objects.
      */
     public void removeObsolete(List<String> obsolete) {
-        dataManager.removeObsoletes(obsolete);
+        this.dataManager.removeObsoletes(obsolete);
     }
 
     @Override
     public void shutdownExecutionManager(Connection closingConnection) {
         // Stop the Execution Manager
         WORKER_LOGGER.debug("Stopping Execution Manager...");
-        executionManager.stop();
+        this.executionManager.stop();
 
         if (closingConnection != null) {
             closingConnection.sendCommand(new CommandExecutorShutdownACK());
@@ -528,7 +533,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         WORKER_LOGGER.debug("Entering shutdown method on worker");
 
         // Stop the NIOData Manager
-        dataManager.stop();
+        this.dataManager.stop();
 
         // Finish the main thread
         if (closingConnection != null) {
@@ -637,28 +642,163 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             try {
                 Files.copy(source.toPath(), new File(targetPath).toPath());
             } catch (Exception e) {
-                WORKER_LOGGER.error("Exception", e);
+                WORKER_LOGGER.error("Exception copying source to target file", e);
             }
         } else {
             // TODO: Sending a file with "Empty file" is a patch because the comm library fails when transferring an
             // empty file
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(targetPath);
+            try (FileOutputStream fos = new FileOutputStream(targetPath)) {
                 fos.write("Empty file".getBytes());
-                fos.close();
             } catch (Exception e) {
-                WORKER_LOGGER.error("Exception", e);
-            } finally {
-                if (fos != null) {
-                    try {
-                        fos.close();
-                    } catch (Exception e) {
-                        WORKER_LOGGER.error("Exception", e);
-                    }
-                }
+                WORKER_LOGGER.error("Exception writing empty file", e);
             }
         }
+    }
+
+    @Override
+    public void receivedBindingObjectAsFile(String filename, String target) {
+        // Nothing to do at worker
+    }
+
+    @Override
+    protected boolean isMaster() {
+        return false;
+    }
+
+    // ********************************************************************
+    // *************** INVOCATION CONTEXT IMPLEMENTATIONS *****************
+    // ********************************************************************
+    // WORKER CONFIGURATION
+    @Override
+    public String getHostName() {
+        return this.hostName;
+    }
+
+    @Override
+    public long getTracingHostID() {
+        return Long.parseLong(NIOTracer.getHostID());
+    }
+
+    @Override
+    public String getAppDir() {
+        return this.appDir;
+    }
+
+    @Override
+    public String getInstallDir() {
+        return this.installDir;
+    }
+
+    @Override
+    public String getWorkingDir() {
+        return this.workingDir;
+    }
+
+    @Override
+    public boolean isPersistentCEnabled() {
+        return this.persistentC;
+    }
+
+    public long getTimes(Integer jobId) {
+        return this.times.get(jobId);
+    }
+
+    // EXECUTION CONFIGURATION
+    @Override
+    public COMPSsConstants.TaskExecution getExecutionType() {
+        return this.executionType;
+    }
+
+    @Override
+    public LanguageParams getLanguageParams(Lang lang) {
+        WORKER_LOGGER
+                .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
+        return this.langParams[lang.ordinal()];
+    }
+
+    // EXECUTION MANAGEMENT
+    @Override
+    public void registerOutputs(String path) {
+        ERR.registerThread(path);
+        OUT.registerThread(path);
+    }
+
+    @Override
+    public void unregisterOutputs() {
+        ERR.unregisterThread();
+        OUT.unregisterThread();
+    }
+
+    @Override
+    public String getStandardStreamsPath(Invocation invocation) {
+        // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
+        return this.getWorkingDir() + "jobs" + File.separator + "job" + invocation.getJobId() + "_"
+                + invocation.getHistory();
+    }
+
+    /**
+     * Get the Std Err stream assigned to this computing thread.
+     *
+     * @return The Std Err stream assigned to this computing thread.
+     */
+    @Override
+    public PrintStream getThreadErrStream() {
+        return ERR.getStream();
+    }
+
+    /**
+     * Get the Std Out stream assigned to this computing thread.
+     *
+     * @return The Std Out stream assigned to this computing thread.
+     */
+    @Override
+    public PrintStream getThreadOutStream() {
+        return OUT.getStream();
+    }
+
+    // DATA MANAGEMENT
+    @Override
+    public String getStorageConf() {
+        return this.dataManager.getStorageConf();
+    }
+
+    @Override
+    public void loadParam(InvocationParam param) throws Exception {
+        this.dataManager.loadParam(param);
+    }
+
+    @Override
+    public void storeParam(InvocationParam param) {
+        this.dataManager.storeParam(param);
+    }
+
+    @Override
+    public Object getObject(String name) {
+        String realName = name.substring(name.lastIndexOf('/') + 1);
+        return this.dataManager.getObject(realName);
+    }
+
+    @Override
+    public void increaseResources(MethodResourceDescription description) {
+        int cpuCount = description.getTotalCPUComputingUnits();
+        int gpuCount = description.getTotalGPUComputingUnits();
+        int fpgaCount = description.getTotalFPGAComputingUnits();
+        int otherCount = description.getTotalOTHERComputingUnits();
+        this.executionManager.increaseCapabilities(cpuCount, gpuCount, fpgaCount, otherCount);
+    }
+
+    @Override
+    public void reduceResources(MethodResourceDescription description) {
+        int cpuCount = description.getTotalCPUComputingUnits();
+        int gpuCount = description.getTotalGPUComputingUnits();
+        int fpgaCount = description.getTotalFPGAComputingUnits();
+        int otherCount = description.getTotalOTHERComputingUnits();
+        this.executionManager.reduceCapabilities(cpuCount, gpuCount, fpgaCount, otherCount);
+    }
+
+    @Override
+    public void performedResourceUpdate(Connection c) {
+        // Should never request a resourceModification
     }
 
     // **************************************
@@ -827,210 +967,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.warn("TransferManager interrupted", ie);
             Thread.currentThread().interrupt();
         }
-    }
-
-    @Override
-    public void receivedBindingObjectAsFile(String filename, String target) {
-        // Nothing to do at worker
-    }
-
-    @Override
-    protected boolean isMaster() {
-        return false;
-    }
-
-    // ********************************************************************
-    // *************** INVOCATION CONTEXT IMPLEMENTATIONS *****************
-    // ********************************************************************
-    // WORKER CONFIGURATION
-    @Override
-    public String getHostName() {
-        return this.host;
-    }
-
-    @Override
-    public long getTracingHostID() {
-        return Long.parseLong(NIOTracer.getHostID());
-    }
-
-    @Override
-    public String getAppDir() {
-        return this.appDir;
-    }
-
-    @Override
-    public String getInstallDir() {
-        return this.installDir;
-    }
-
-    @Override
-    public String getWorkingDir() {
-        return workingDir;
-    }
-
-    // EXECUTION CONFIGURATION
-    @Override
-    public COMPSsConstants.TaskExecution getExecutionType() {
-        return executionType;
-    }
-
-    @Override
-    public LanguageParams getLanguageParams(Lang lang) {
-        WORKER_LOGGER
-                .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
-        return this.langParams[lang.ordinal()];
-    }
-
-    // EXECUTION MANAGEMENT
-    @Override
-    public void registerOutputs(String path) {
-        err.registerThread(path);
-        out.registerThread(path);
-    }
-
-    @Override
-    public void unregisterOutputs() {
-        err.unregisterThread();
-        out.unregisterThread();
-    }
-
-    @Override
-    public String getStandardStreamsPath(Invocation invocation) {
-        // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
-        return this.getWorkingDir() + "jobs" + File.separator + "job" + invocation.getJobId() + "_"
-                + invocation.getHistory();
-    }
-
-    /**
-     * Get the stderr stream assigned to this computing thread
-     *
-     * @return
-     */
-    @Override
-    public PrintStream getThreadErrStream() {
-        return err.getStream();
-    }
-
-    /**
-     * Get the stdout stream assigned to this computing thread
-     *
-     * @return
-     */
-    @Override
-    public PrintStream getThreadOutStream() {
-        return out.getStream();
-    }
-
-    // DATA MANAGEMENT
-    @Override
-    public String getStorageConf() {
-        return dataManager.getStorageConf();
-    }
-
-    @Override
-    public void loadParam(InvocationParam param) throws Exception {
-        dataManager.loadParam(param);
-    }
-
-    @Override
-    public void storeParam(InvocationParam param) {
-        dataManager.storeParam(param);
-    }
-
-    @Override
-    public Object getObject(String name) {
-        String realName = name.substring(name.lastIndexOf('/') + 1);
-        return dataManager.getObject(realName);
-    }
-
-    @Override
-    public void increaseResources(MethodResourceDescription description) {
-        int cpuCount = description.getTotalCPUComputingUnits();
-        int GPUCount = description.getTotalGPUComputingUnits();
-        int FPGACount = description.getTotalFPGAComputingUnits();
-        int otherCount = description.getTotalOTHERComputingUnits();
-        executionManager.increaseCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
-    }
-
-    @Override
-    public void reduceResources(MethodResourceDescription description) {
-        int cpuCount = description.getTotalCPUComputingUnits();
-        int GPUCount = description.getTotalGPUComputingUnits();
-        int FPGACount = description.getTotalFPGAComputingUnits();
-        int otherCount = description.getTotalOTHERComputingUnits();
-        executionManager.reduceCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
-    }
-
-    @Override
-    public void performedResourceUpdate(Connection c) {
-        // Should never request a resourceModification
-    }
-
-
-    public class FetchDataOperationListener extends MultiOperationFetchListener {
-
-        private final int transferId;
-
-
-        public FetchDataOperationListener(int transferId) {
-            this.transferId = transferId;
-        }
-
-        @Override
-        public void doCompleted() {
-            CommandDataReceived cdr = new CommandDataReceived(NIOWorker.this, transferId);
-            Connection c = TM.startConnection(masterNode);
-            c.sendCommand(cdr);
-            c.finishConnection();
-        }
-
-        @Override
-        public void doFailure(String failedDataId, Exception cause) {
-
-        }
-
-    }
-
-    public class TaskFetchOperationsListener extends MultiOperationFetchListener {
-
-        private final NIOTask task;
-
-
-        public TaskFetchOperationsListener(NIOTask task) {
-            super();
-            this.task = task;
-        }
-
-        public NIOTask getTask() {
-            return this.task;
-        }
-
-        @Override
-        public void doCompleted() {
-            Long stTime = times.get(task.getJobId());
-            if (stTime != null) {
-                long duration = System.currentTimeMillis() - stTime;
-                WORKER_LOGGER.info(" [Profile] Transfer: " + duration);
-            }
-            executeTask(task);
-        }
-
-        @Override
-        public void doFailure(String failedDataId, Exception cause) {
-            // Create job*_[NEW|RESUBMITTED|RESCHEDULED].[out|err]
-            // If we don't create this when the task fails to retrieve a value,
-            // the master will try to get the out of this job, and it will get blocked.
-            // Same for the worker when sending, throwing an error when trying
-            // to read the job out, which wouldn't exist
-            String baseJobPath = getStandardStreamsPath(task);
-            String errorMessage = "Worker closed because the data " + failedDataId + " couldn't be retrieved.";
-            String taskFileOutName = baseJobPath + ".out";
-            checkStreamFileExistence(taskFileOutName, "out", errorMessage);
-            String taskFileErrName = baseJobPath + ".err";
-            checkStreamFileExistence(taskFileErrName, "err", errorMessage);
-            sendTaskDone(task, false);
-        }
-
     }
 
 }

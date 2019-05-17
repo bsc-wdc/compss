@@ -95,8 +95,8 @@ public class JobTransfersListener extends EventListener {
 
     @Override
     public void notifyFailure(DataOperation fOp, Exception e) {
-        String fOpName = "None"; 
-        if (fOp!=null) {
+        String fOpName = "None";
+        if (fOp != null) {
             fOpName = fOp.getName();
         }
         if (DEBUG) {

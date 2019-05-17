@@ -18,8 +18,6 @@ package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
@@ -27,11 +25,13 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
-import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.implementations.Implementation;
@@ -52,35 +52,32 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class TransferValueAction extends AllocatableAction {
+public class TransferValueAction<T extends WorkerResourceDescription> extends AllocatableAction {
 
     // LOGGER
     private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
-    private static final Implementation impl = new MethodImplementation("", "", null, null, null);
+
+    private static final Implementation DUMMY_IMPL = new MethodImplementation("", "", null, null, null);
 
     private final DependencyParameter dataToTransfer;
-    private final ResourceScheduler receiver;
+    private final ResourceScheduler<T> receiver;
+
 
     /**
-     * Creates a new execution action
+     * Creates a new transfer value action.
      *
-     * @param schedulingInformation
-     * @param orchestrator
-     * @param dp
-     * @param receiver
-     *
+     * @param schedulingInformation Associated scheduling information.
+     * @param orchestrator Task orchestrator.
+     * @param dp Dependency parameter to transfer.
+     * @param receiver ResourceScheduler representing the worker receiver.
      */
-    public TransferValueAction(
-            SchedulingInformation schedulingInformation,
-            ActionOrchestrator orchestrator,
-            DependencyParameter dp,
-            ResourceScheduler receiver) {
+    public TransferValueAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+            DependencyParameter dp, ResourceScheduler<T> receiver) {
 
         super(schedulingInformation, orchestrator);
         this.receiver = receiver;
         this.dataToTransfer = dp;
     }
-
 
     /*
      * ***************************************************************************************************************
@@ -156,15 +153,17 @@ public class TransferValueAction extends AllocatableAction {
      * EXECUTED SUPPORTING THREAD ON JOB_TRANSFERS_LISTENER
      * ***************************************************************************************************************
      */
+    /**
+     * Flushes the current copies.
+     */
     public void flushCopies() {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         FlushCopyListener listener = new FlushCopyListener();
-        w.enforceDataObtaning(dataToTransfer, listener);
+        w.enforceDataObtaning(this.dataToTransfer, listener);
     }
 
     /**
-     * Code executed when the value transfer has been completed
-     *
+     * Code executed when the value transfer has been completed.
      */
     public final void completedTransfer() {
         // Notify completion
@@ -207,7 +206,6 @@ public class TransferValueAction extends AllocatableAction {
         ErrorManager.warn("Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has failed.");
     }
 
-
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT
@@ -222,8 +220,7 @@ public class TransferValueAction extends AllocatableAction {
 
     @Override
     public final Implementation[] getImplementations() {
-
-        return new Implementation[]{impl};
+        return new Implementation[] { DUMMY_IMPL };
     }
 
     @Override
@@ -232,10 +229,11 @@ public class TransferValueAction extends AllocatableAction {
     }
 
     @Override
-    public final <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r) {
+    public final <W extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
+            ResourceScheduler<W> r) {
+
         List<Implementation> impls = new LinkedList<>();
-        impls.add(impl);
+        impls.add(DUMMY_IMPL);
         return impls;
     }
 
@@ -255,7 +253,7 @@ public class TransferValueAction extends AllocatableAction {
     }
 
     @Override
-    public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+    public final <W extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<W> targetWorker,
             Score actionScore) {
         if (targetWorker == this.receiver) {
             return actionScore;
@@ -263,16 +261,15 @@ public class TransferValueAction extends AllocatableAction {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        schedule(this.receiver, impl);
+        schedule(this.receiver, DUMMY_IMPL);
     }
 
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-        schedule(targetWorker, impl);
+        schedule(targetWorker, DUMMY_IMPL);
     }
 
     @Override
@@ -287,7 +284,6 @@ public class TransferValueAction extends AllocatableAction {
         assignImplementation(impl);
         targetWorker.scheduleAction(this);
     }
-
 
     /*
      * ***************************************************************************************************************
@@ -305,6 +301,7 @@ public class TransferValueAction extends AllocatableAction {
         private int operation = 0;
         private int errors = 0;
         private boolean enabled = false;
+
 
         public ObtainDataListener() {
         }
@@ -368,7 +365,6 @@ public class TransferValueAction extends AllocatableAction {
             operation++;
         }
     }
-
 
     private class FlushCopyListener extends EventListener {
 

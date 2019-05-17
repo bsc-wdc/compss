@@ -172,8 +172,8 @@ public class Comm {
      * Initializes the internal adaptor and constructs a comm configuration.
      *
      * @param adaptorName Adaptor name.
-     * @param project_properties Properties from the project.xml file.
-     * @param resources_properties Properties from the resources.xml file.
+     * @param projectProperties Properties from the project.xml file.
+     * @param resourcesProperties Properties from the resources.xml file.
      * @return An adaptor configuration.
      * @throws ConstructConfigurationException When adaptor class cannot be instantiated.
      */

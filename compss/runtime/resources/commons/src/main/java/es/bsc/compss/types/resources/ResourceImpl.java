@@ -120,7 +120,9 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         for (String diskName : sharedDisks) {
             Set<LogicalData> sharedData = SharedDiskManager.getAllSharedFiles(diskName);
             if (sharedData != null) {
-                data.addAll(sharedData);
+                synchronized(sharedData) {
+                    data.addAll(sharedData);
+                }
             }
         }
 

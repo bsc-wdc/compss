@@ -945,7 +945,12 @@ class task(object):
                 # This field is exclusive for COLLECTION_T parameters, so make sure you have checked this
                 # parameter is a collection before consulting it
                 arg.collection_content = []
-                for (i, line) in enumerate(open(arg.file_name.split(':')[-1], 'r')):
+
+                col_f_name = arg.file_name.split(':')[-1]
+                if not os.path.exists(col_f_name):
+                    col_f_name = "../" + col_f_name
+
+                for (i, line) in enumerate(open(col_f_name, 'r')):
                     content_type, content_file = line.strip().split(' ')
                     # Same naming convention as in COMPSsRuntimeImpl.java
                     sub_name = "%s.%d" % (arg.name, i)

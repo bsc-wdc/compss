@@ -259,7 +259,11 @@ public class IDLParser {
                 type = "LONG_T";
             } else if (paramType.compareTo("string") == 0) {
                 type = "STRING_T";
+            } else if (paramType.compareTo("enum") == 0) {
+                type = "INT_T";
+                i++;
             }
+            
             implementedTaskSignatureBuffer.append(type).append(",");
             implementationSignatureBuffer.append(type).append(",");
         }

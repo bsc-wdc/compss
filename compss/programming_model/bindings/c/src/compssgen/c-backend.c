@@ -15,6 +15,10 @@
  *
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
@@ -641,6 +645,7 @@ static char* construct_type_and_name(argument* arg) {
             case short_dt:
             case long_dt:
             case longlong_dt:
+            case enum_dt:
             case int_dt:
             case float_dt:
             case double_dt:
@@ -734,16 +739,20 @@ static char* construct_returntype(function* func) {
     char* ret;
     int printed_chars = -1;
 
-    if (func->return_type != void_dt) {
-
-        if(func->return_type == object_dt ||
-           (func->return_type >= array_char_dt && func->return_type <= array_double_dt)) {
+    if (func->return_type == int_dt) {
+        printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
+        printed_chars = asprintf(&ret, "int");
+    }
+    else if (func->return_type != void_dt) {
+        if(func->return_type == object_dt || 
+          (func->return_type >= array_char_dt && func->return_type <= array_double_dt)) {
             printed_chars = asprintf(&ret, "%s*", func->return_typename);
-        } else {
+        } 
+        else {
             printed_chars = asprintf(&ret, "%s", func->return_typename);
         }
-
-    } else {
+    } 
+    else {
         printed_chars = asprintf(&ret, "%s", c_types[func->return_type]);
     }
 
@@ -1310,17 +1319,17 @@ static void treat_master_argument(FILE *outFile, argument *arg, int i, Types cur
     case short_dt:
     case long_dt:
     case longlong_dt:
+    case enum_dt:
     case int_dt:
     case float_dt:
     case double_dt:
     case string_dt:
     case wstring_dt:
         if ( arg->dir == in_dir) {
-            //TODO: Check if correct
             fprintf(outFile, "\t // Add treatment for argument %s;\n", arg->name);
             add_parameter_to_taskbuffer(outFile, arg->name, arg->type, arg->dir, 3, "\"null\"", i, "\t");
         } else {
-            add_object_or_array_arg_master_treatment(outFile,arg,i, current_types);
+            add_object_or_array_arg_master_treatment(outFile, arg, i, current_types);
         }
         break;
     case file_dt:
@@ -1385,7 +1394,10 @@ static void generate_parameter_marshalling(FILE *outFile, function *func, Types 
 
     fprintf(outFile, "\n");
 
-    if (func->return_type != void_dt) {
+    if (func->return_type == int_dt) {
+        printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
+    }
+    else if (func->return_type != void_dt) {
         i = j*BUFF_ELEMENTS;
 
         argument ret;
@@ -1430,9 +1442,12 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
         }
     }
 
-    if ( func->return_type != void_dt ) {
+    if (func->return_type == int_dt) {
+        printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
+    }
+    else if (func->return_type != void_dt) {
         arg_count++;
-	num_returns = 1;
+    	num_returns = 1;
     }
 
     fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
@@ -1444,7 +1459,10 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     fprintf(outFile, "\t free(method_name);\n");
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  End of task submission.\\n\");\n");
 
-    if ( func->return_type != void_dt ) {
+    if (func->return_type == int_dt) {
+        printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
+    }
+    else if (func->return_type != void_dt) {
         fprintf(outFile, "\n\t return return_obj;\n");
         fprintf(outFile, "\n");
     }
@@ -1673,6 +1691,9 @@ static void add_other_arg_worker_treatment(FILE *outFile, argument *arg, Types c
         case boolean_dt:
             fprintf(outFile, "\t\t\t %s = argv[arg_offset]? 1 : 0;\n", arg->name);
             break;
+        case enum_dt:
+            fprintf(outFile, "\t\t\t %s = static_cast<%s>(atoi(argv[arg_offset]));\n", arg->name, arg->classname);
+            break;
         case int_dt:
         case short_dt:
             fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
@@ -1724,6 +1745,8 @@ static void add_other_arg_worker_treatment(FILE *outFile, argument *arg, Types c
 }
 
 static void treat_worker_argument(FILE *outFile, argument *arg, Types current_types, bool is_return) {
+    char* enum_name;
+    int printed_chars = 0;
     switch (arg->type) {
     case char_dt:
     case wchar_dt:
@@ -1731,6 +1754,20 @@ static void treat_worker_argument(FILE *outFile, argument *arg, Types current_ty
     case short_dt:
     case long_dt:
     case longlong_dt:
+    case enum_dt:
+
+        printed_chars = asprintf(&enum_name, "%s %s", c_out_types[arg->type], arg->classname);
+         
+        if (printed_chars < 0) {
+            printf("ERROR: Not possible to generate enum name and type.\n");
+            free(enum_name);
+            exit(1);
+        }
+
+        fprintf(outFile, "\t\t\t %s %s;\n", enum_name, arg->name);
+        add_other_arg_worker_treatment(outFile, arg, current_types, is_return);
+        break;
+
     case int_dt:
     case float_dt:
     case double_dt:
@@ -1774,6 +1811,7 @@ static void add_argument_worker_taskcall(FILE *outFile, argument *arg) {
         case short_dt:
         case long_dt:
         case longlong_dt:
+        case enum_dt:
         case int_dt:
         case float_dt:
         case double_dt:
@@ -1812,6 +1850,7 @@ static void add_argument_worker_taskcall(FILE *outFile, argument *arg) {
         case short_dt:
         case long_dt:
         case longlong_dt:
+        case enum_dt:
         case int_dt:
         case float_dt:
         case double_dt:
@@ -1854,6 +1893,7 @@ static void add_argument_serialization_worker(FILE *outFile, argument *arg, char
         case short_dt:
         case long_dt:
         case longlong_dt:
+        case enum_dt:
         case int_dt:
         case float_dt:
         case double_dt:
@@ -1894,6 +1934,7 @@ static void add_argument_free(FILE *outFile, argument *arg) {
     case short_dt:
     case long_dt:
     case longlong_dt:
+    case enum_dt:
     case int_dt:
     case float_dt:
     case double_dt:
@@ -1994,7 +2035,10 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     }
     fprintf(outFile, "\t\t\t \n");
 
-    if (func->return_type != void_dt) {
+    if (func->return_type == int_dt) {
+        printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
+    }
+    else if (func->return_type != void_dt) {
         ret.name="return_obj";
         ret.type=func->return_type;
         ret.dir=out_dir;
@@ -2032,10 +2076,13 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     } else if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type != void_dt)) {
         if (func->return_type == object_dt) {
             printed_chars = asprintf(&func_to_execute, "\t\t\t *%s = %s->%s(", ret.name, th.name, func->methodname);
+        } else if (func->return_type == int_dt) {
+            printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s(", th.name, func->methodname);
         } else {
             printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s->%s(", ret.name, th.name, func->methodname);
         }
-    } else if ( func->return_type != void_dt ) {
+    }
+    else if ( func->return_type != void_dt && !func->return_type == int_dt) {
         printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s(", ret.name, func->name);
     } else {
         printed_chars = asprintf(&func_to_execute, "\t\t\t %s(", func->name);
@@ -2094,7 +2141,10 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 
     fprintf(outFile, "\t\t\twait_condition_variable(&cond_var);\n");
 
-    if (func->return_type != void_dt && func->return_type != NULL) {
+    if (func->return_type == int_dt && func->return_type != NULL) {
+        printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
+    }
+    else if (func->return_type != void_dt && func->return_type != NULL) {
         char* return_var;
         printed_chars = asprintf(&return_var, "return_obj = %s_struct.ret;\n", func->methodname);
 
@@ -2108,7 +2158,10 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     fprintf(outFile, "#endif\n");
 
     //Add return_type store in cache
-    if (func->return_type != void_dt) {
+    if (func->return_type == int_dt) {
+        printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
+    }
+    else if (func->return_type != void_dt) {
         add_return_object_store(outFile, &ret, current_types);
     }
     printf("\t\t Adding out parameter marshalling...\n");

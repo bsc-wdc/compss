@@ -27,7 +27,7 @@
   echo
   echo "*** RUNNING PYTHON APPLICATION COLLECTION IN"
 
-  tf="true false"
+  tfvalue="true false"
 
   for tfvalue in ${tf}; do
     for python_interpreter in ${execution_envs}; do

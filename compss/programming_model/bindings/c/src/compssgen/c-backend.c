@@ -65,8 +65,8 @@ static char *c_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
-    "error",		            // null_dt
-    "enum"                 //enum_dt
+    "error",		        // null_dt
+    "enum"                  //enum_dt
 };
 
 static char *c_out_types[] = {
@@ -96,8 +96,8 @@ static char *c_out_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
-    "error",		            // null_dt
-    "enum"                 //enum_dt
+    "error",		        // null_dt
+    "enum"                  //enum_dt
 };
 
 void asprintf_error(char* pointer, char* error) {
@@ -1312,7 +1312,8 @@ static void add_object_or_array_arg_master_treatment(FILE *outFile, argument *ar
 }
 
 static void treat_master_argument(FILE *outFile, argument *arg, int i, Types current_types) {
-    switch (arg->type) {
+    enum datatype t = arg->type; //Used only in the enum_dt, wstring_dt case...
+    switch (t) {
     case char_dt:
     case wchar_dt:
     case boolean_dt:
@@ -1320,14 +1321,16 @@ static void treat_master_argument(FILE *outFile, argument *arg, int i, Types cur
     case long_dt:
     case longlong_dt:
     case enum_dt:
+        t = int_dt;
     case int_dt:
     case float_dt:
     case double_dt:
     case string_dt:
     case wstring_dt:
+        //Entrar con GDB aqui!!!
         if ( arg->dir == in_dir) {
             fprintf(outFile, "\t // Add treatment for argument %s;\n", arg->name);
-            add_parameter_to_taskbuffer(outFile, arg->name, arg->type, arg->dir, 3, "\"null\"", i, "\t");
+            add_parameter_to_taskbuffer(outFile, arg->name, t, arg->dir, 3, "\"null\"", i, "\t");
         } else {
             add_object_or_array_arg_master_treatment(outFile, arg, i, current_types);
         }

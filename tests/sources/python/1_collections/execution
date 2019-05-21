@@ -27,7 +27,7 @@
   echo
   echo "*** RUNNING PYTHON APPLICATION COLLECTION IN"
 
-  tfvalue="true false"
+  tf="true false"
 
   for tfvalue in ${tf}; do
     for python_interpreter in ${execution_envs}; do
@@ -43,10 +43,12 @@
       if [ "$python_interpreter" == 'python2_mpi' ]; then
           python_interpreter="python2"
           python_mpi_worker="--python_mpi_worker=true"
+          tfvalue="false"
       fi
       if [ "$python_interpreter" == 'python3_mpi' ]; then
           python_interpreter="python3"
           python_mpi_worker="--python_mpi_worker=true"
+          tfvalue="false"
       fi
 
       # shellcheck disable=SC2086

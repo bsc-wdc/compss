@@ -34,9 +34,17 @@
   expectedTime=180s
   
   export RUNCOMPSS=${COMPSs_exec}
+
   export TEST_WORKING_DIR=${base_app_dir}/wd
+  if [ -d "${TEST_WORKING_DIR}" ]; then
+    rm -rf "${TEST_WORKING_DIR}"
+  fi
   mkdir -p "${TEST_WORKING_DIR}"
+
   export TEST_LOG_DIR=${base_app_dir}/ld
+  if [ -d "${TEST_LOG_DIR}" ]; then
+      rm -rf "${TEST_LOG_DIR}"
+    fi
   mkdir -p "${TEST_LOG_DIR}"
   
   # shellcheck disable=SC2086

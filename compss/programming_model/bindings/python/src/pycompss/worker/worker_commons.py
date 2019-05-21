@@ -142,7 +142,7 @@ def get_input_params(num_params, logger, args, process_name):
         if __debug__:
             logger.debug("Parameter : %s" % str(i))
             logger.debug("\t * Type : %s" % str(p_type))
-            logger.debug("\t * Stream : %s" % str(p_stream))
+            logger.debug("\t * Std IO Stream : %s" % str(p_stream))
             logger.debug("\t * Prefix : %s" % str(p_prefix))
             logger.debug("\t * Name : %s" % str(p_name))
             logger.debug("\t * Value: %r" % p_value)

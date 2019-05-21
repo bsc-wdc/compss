@@ -31,7 +31,6 @@ from pycompss.worker.piper_worker import load_loggers
 from pycompss.worker.piper_worker import PiperWorkerConfiguration
 from mpi4py import MPI
 
-
 # Persistent worker global variables
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
@@ -98,14 +97,16 @@ def compss_persistent_worker(config):
                      + " wake up")
         config.print_on_logger(logger)
 
+    # Start storage
     if persistent_storage:
         # Initialize storage
+        logger.debug("[PYTHON WORKER] Starting persistent storage")
         from storage.api import initWorker as initStorageAtWorker
         initStorageAtWorker(config_file_path=config.storage_conf)
 
     for i in range(0, config.tasks_x_node):
         child_in_pipe = config.pipes[i].input_pipe
-        child_pid = pids[i+1]
+        child_pid = pids[i + 1]
         PROCESSES[child_in_pipe] = child_pid
 
     if __debug__:
@@ -147,8 +148,10 @@ def compss_persistent_worker(config):
                              command)
                 alive = False
 
+    # Stop storage
     if persistent_storage:
         # Finish storage
+        logger.debug("[PYTHON WORKER] Stopping persistent storage")
         from storage.api import finishWorker as finishStorageAtWorker
         finishStorageAtWorker()
 
@@ -191,8 +194,11 @@ def compss_persistent_executor(config):
         initStorageAtWorker(config_file_path=config.storage_conf)
 
     process_name = 'Rank-' + str(rank)
-    conf = ExecutorConf(TRACING, config.storage_conf, logger, storage_loggers)
-    executor(None, process_name, config.pipes[rank-1], conf)
+    conf = ExecutorConf(TRACING,
+                        config.storage_conf, logger, storage_loggers,
+                        config.stream_backend, config.stream_master_name, config.stream_master_port)
+    executor(None, process_name, config.pipes[rank - 1], conf)
+
 
 
 ############################
@@ -201,6 +207,7 @@ def compss_persistent_executor(config):
 
 if __name__ == '__main__':
     import sys
+
     # Get args
     global TRACING
     TRACING = (sys.argv[2] == 'true')

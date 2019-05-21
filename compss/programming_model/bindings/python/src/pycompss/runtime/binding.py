@@ -131,6 +131,7 @@ _runtime_id = str(uuid.uuid1())
 # to their filenames
 _addr2id2obj = {}
 
+
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
     """
     Gets the identifier of an object. If not found or we are forced to,
@@ -172,6 +173,7 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
         _current_id += 1
         return new_id
     return None
+
 
 def pop_object_id(obj):
     """
@@ -308,6 +310,7 @@ def delete_file(file_name):
         else:
             logger.error("Failed to remove file %s." % file_name)
     return result
+
 
 def get_file(file_name):
     """
@@ -868,7 +871,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns, code_strings)
     return values, names, compss_types, compss_directions, compss_streams, compss_prefixes
 
 
-def _extract_parameter(param, code_strings, collection_depth = 0):
+def _extract_parameter(param, code_strings, collection_depth=0):
     """Extract the information of a single parameter
 
     :param param: Parameter object
@@ -886,7 +889,7 @@ def _extract_parameter(param, code_strings, collection_depth = 0):
             param.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
     # If the Parameter type is file, then the object must have been serialized
     # and the Parameter must have the file_name where the object is.
-    if param.type == TYPE.FILE or param.type == TYPE.OBJECT or param.is_future:
+    if param.type == TYPE.FILE or param.type == TYPE.OBJECT or param.type == TYPE.STREAM or param.is_future:
         value = param.file_name
         typ = TYPE.FILE
     # An object will be considered a collection if at least one of the following is true:
@@ -911,7 +914,13 @@ def _extract_parameter(param, code_strings, collection_depth = 0):
         value = param.object
         typ = param.type
     # Get direction, stream and prefix
-    direction = param.direction
+    if param.type == TYPE.STREAM:
+        # Direction on Stream parameters is always IN (because the runtime registers them as FILES)
+        direction = DIRECTION.IN
+    else:
+        direction = param.direction
+
+    # Get stream and prefix
     stream = param.stream
     prefix = param.prefix
     return value, typ, direction, stream, prefix
@@ -935,7 +944,8 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
         # serializing the object.
         # Warning: calculate the size of a python object can be difficult
         # in terms of time and precision
-        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
+        if (p.type == TYPE.OBJECT or p.type == TYPE.STREAM or p.type == TYPE.STRING) \
+                and not is_future and p.direction == DIRECTION.IN:
             if not isinstance(p.object, basestring) and isinstance(p.object,
                                                                    (list, dict, tuple, deque, set, frozenset)):
                 # check object size
@@ -974,7 +984,8 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
         from cPickle import PicklingError
         # Check if the object is small in order to serialize it.
         # This alternative evaluates the size after serializing the parameter
-        if (p.type == TYPE.OBJECT or p.type == TYPE.STRING) and not is_future and p.direction == DIRECTION.IN:
+        if (p.type == TYPE.OBJECT or p.type == TYPE.STREAM or p.type == TYPE.STRING) \
+                and not is_future and p.direction == DIRECTION.IN:
             if not isinstance(p.object, basestring):
                 real_value = p.object
                 try:
@@ -1075,7 +1086,7 @@ def _serialize_object_into_file(name, p):
     :param p: Object wrapper
     :return: p (whose type and value might be modified)
     """
-    if p.type == TYPE.OBJECT or p.is_future:
+    if p.type == TYPE.OBJECT or p.type == TYPE.STREAM or p.is_future:
         # 2nd condition: real type can be primitive, but now it's acting as a future (object)
         try:
             val_type = type(p.object)
@@ -1123,10 +1134,10 @@ def _serialize_object_into_file(name, p):
             _serialize_object_into_file(
                 name,
                 Parameter(
-                    p_type = get_compss_type(x, p.depth - 1),
-                    p_direction = p.direction,
-                    p_object = x,
-                    depth = p.depth - 1
+                    p_type=get_compss_type(x, p.depth - 1),
+                    p_direction=p.direction,
+                    p_object=x,
+                    depth=p.depth - 1
                 )
             )
             for x in p.object

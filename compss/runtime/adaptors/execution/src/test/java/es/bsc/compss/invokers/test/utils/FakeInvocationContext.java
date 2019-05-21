@@ -23,6 +23,9 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
+import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
+
 import java.io.PrintStream;
 import storage.StorageException;
 import storage.StubItf;
@@ -128,7 +131,22 @@ public class FakeInvocationContext implements InvocationContext {
     }
 
     @Override
-    public void loadParam(InvocationParam param) throws StorageException {
+    public StreamBackend getStreamingBackend() {
+        return StreamBackend.NONE;
+    }
+
+    @Override
+    public String getStreamingMasterName() {
+        return null;
+    }
+
+    @Override
+    public int getStreamingMasterPort() {
+        return -1;
+    }
+
+    @Override
+    public void loadParam(InvocationParam param) throws UnloadableValueException {
         Object o;
         switch (param.getType()) {
             case OBJECT_T:
@@ -137,8 +155,12 @@ public class FakeInvocationContext implements InvocationContext {
                 if (o != null) {
                     param.setValue(o);
                 } else {
-                    //Checking if initial object is now a persistent object
-                    o = getPersistentObject(param.getDataMgmtId());
+                    // Checking if initial object is now a persistent object
+                    try {
+                        o = getPersistentObject(param.getDataMgmtId());
+                    } catch (StorageException se) {
+                        throw new UnloadableValueException(se);
+                    }
                     if (o != null) {
                         param.setType(DataType.PSCO_T);
                         param.setValue(o);
@@ -146,7 +168,11 @@ public class FakeInvocationContext implements InvocationContext {
                 }
                 break;
             case PSCO_T:
-                o = getPersistentObject(param.getDataMgmtId());
+                try {
+                    o = getPersistentObject(param.getDataMgmtId());
+                } catch (StorageException se) {
+                    throw new UnloadableValueException(se);
+                }
                 if (o != null) {
                     param.setType(DataType.PSCO_T);
                     param.setValue(o);
@@ -154,6 +180,7 @@ public class FakeInvocationContext implements InvocationContext {
                 break;
             default:
         }
+
     }
 
     private Object getObject(String rename) {
@@ -186,7 +213,9 @@ public class FakeInvocationContext implements InvocationContext {
         }
     }
 
-    /** Store Object.
+    /**
+     * Store Object.
+     * 
      * @param renaming renaming
      * @param value value
      */
@@ -196,7 +225,9 @@ public class FakeInvocationContext implements InvocationContext {
         }
     }
 
-    /** Store persistenst object.
+    /**
+     * Store persistenst object.
+     * 
      * @param id PSCO Id
      * @param obj Object
      */

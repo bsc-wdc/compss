@@ -29,6 +29,8 @@ DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 DEFAULT_STORAGE_CONF="null"
 
 DEFAULT_STREAMING="null"
+BASE_STREAMING_PORT=49049
+STREAMING_PORT_RAND_RANGE=100
 
 DEFAULT_TASK_COUNT=50
 
@@ -799,6 +801,11 @@ check_args() {
     fi
   fi
 
+  # MASTER
+  if [ -z "${master_name}" ]; then
+    master_name=${DEFAULT_MASTER_NAME}
+  fi
+
   # Storage configuration
   if [ -z "$storageConf" ]; then
     storageConf=${DEFAULT_STORAGE_CONF}
@@ -807,6 +814,17 @@ check_args() {
   # Streaming
   if [ -z "${streaming}" ]; then
     streaming=${DEFAULT_STREAMING}
+  fi
+  if [ "${streaming}" != "null" ] && [ "${streaming}" != "NONE" ]; then
+    if [ -z "${master_name}" ]; then
+      streaming_master_name="null"
+    else
+      streaming_master_name=${master_name}
+    fi
+    streaming_master_port=$((BASE_STREAMING_PORT + RANDOM % STREAMING_PORT_RAND_RANGE))
+  else
+    streaming_master_name="null"
+    streaming_master_port="null"
   fi
 
   # Master log level
@@ -882,11 +900,6 @@ check_args() {
     if [ -z "$uuid" ]; then
       uuid=$(cat /proc/sys/kernel/random/uuid)
     fi
-  fi
-
-  # MASTER
-  if [ -z "${master_name}" ]; then
-    master_name=${DEFAULT_MASTER_NAME}
   fi
 
   # JVM
@@ -1123,6 +1136,8 @@ ${jvm_debugger_opts}
 -Dcompss.comm=${comm}
 -Dcompss.conn=${conn}
 -Dcompss.streaming=${streaming}
+-Dcompss.streaming.masterName=${streaming_master_name}
+-Dcompss.streaming.masterPort=${streaming_master_port}
 -Dcompss.masterName=${master_name}
 -Dcompss.masterPort=${master_port}
 -Dcompss.scheduler=${scheduler}
@@ -1293,7 +1308,7 @@ exec_python() {
   fi
 
   # shellcheck disable=SC2086
-  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
+  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${log_level} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD

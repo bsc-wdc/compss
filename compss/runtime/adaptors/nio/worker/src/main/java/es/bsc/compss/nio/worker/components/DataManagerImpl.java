@@ -20,17 +20,17 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
-import es.bsc.compss.data.MultiOperationFetchListener;
-import es.bsc.compss.exceptions.UnloadableValueException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
+import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -101,6 +101,7 @@ public class DataManagerImpl implements DataManager {
      */
     public DataManagerImpl(String hostName, String masterName, int streamingPort, String baseFolder,
             DataProvider provider) {
+
         this.hostName = hostName;
         this.masterName = masterName;
         this.streamingPort = streamingPort;
@@ -141,6 +142,21 @@ public class DataManagerImpl implements DataManager {
     @Override
     public String getStorageConf() {
         return STORAGE_CONF;
+    }
+
+    @Override
+    public StreamBackend getStreamingBackend() {
+        return STREAMING_BACKEND;
+    }
+
+    @Override
+    public String getStreamingMasterName() {
+        return this.masterName;
+    }
+
+    @Override
+    public int getStreamingMasterPort() {
+        return this.streamingPort;
     }
 
     @Override
@@ -273,30 +289,6 @@ public class DataManagerImpl implements DataManager {
 
         return originalRegister;
     }
-
-
-    private class CollectionFetchOperationsListener extends MultiOperationFetchListener {
-
-        private final String collectionDataId;
-        private final FetchDataListener listener;
-
-
-        public CollectionFetchOperationsListener(String collectionDataId, FetchDataListener listener) {
-            this.collectionDataId = collectionDataId;
-            this.listener = listener;
-        }
-
-        @Override
-        public void doCompleted() {
-            listener.fetchedValue(collectionDataId);
-        }
-
-        @Override
-        public void doFailure(String failedDataId, Exception e) {
-            listener.errorFetchingValue(collectionDataId, e);
-        }
-    }
-
 
     private void fetchCollection(InvocationParam param, int index, FetchDataListener listener) {
         try {

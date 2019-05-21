@@ -540,6 +540,23 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
             exit(1);
         }
         break;
+    case stream_dt:
+        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+
+        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Stream: %s\n", *(char **)parVal);
+
+        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("STREAM_T"));
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+        break;
     case external_psco_dt:
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {
@@ -637,7 +654,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     }
 
     // Add param stream
-    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM STREAM: %d\n", (enum stream) parStream);
+    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM STD IO STREAM: %d\n", (enum stream) parStream);
     switch ((enum stream) parStream) {
     case STD_IN:
         m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);

@@ -101,7 +101,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static boolean initialized = false;
 
     // Number of fields per parameter
-    private static int NUM_FIELDS_PER_PARAM = 6;
+    private static final int NUM_FIELDS_PER_PARAM = 6;
 
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);

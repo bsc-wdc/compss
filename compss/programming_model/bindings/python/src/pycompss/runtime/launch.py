@@ -24,14 +24,17 @@ This file contains the __main__ method.
 It is called from pycompssext script with the user and environment parameters.
 """
 
+# Imports
 import os
 import sys
 import logging
 import traceback
 from tempfile import mkdtemp
 
+# Project imports
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
+
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
@@ -42,12 +45,16 @@ from pycompss.util.launcher import prepare_tracing_environment
 from pycompss.util.launcher import check_infrastructure_variables
 from pycompss.util.launcher import create_init_config_file
 from pycompss.util.launcher import setup_logger
-from pycompss.util.persistent_storage import init_storage
-from pycompss.util.persistent_storage import stop_storage
 from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
 
+# Storage imports
+from pycompss.util.persistent_storage import init_storage
+from pycompss.util.persistent_storage import stop_storage
+
+# Streaming imports
+from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
 
 # Global variable also used within decorators
 app_path = None
@@ -89,14 +96,44 @@ def parse_arguments():
     parser.add_argument('log_level', help='Logging level [debug|info|off]')
     parser.add_argument('object_conversion', help='Object_conversion [true|false]')
     parser.add_argument('storage_configuration', help='Storage configuration [null|*]')
+    parser.add_argument('streaming_backend', help='Streaming Backend [null|*]')
+    parser.add_argument('streaming_master_name', help='Streaming Master Name [*]')
+    parser.add_argument('streaming_master_port', help='Streaming Master Port [*]')
     parser.add_argument('app_path', help='Application path')
     return parser.parse_args()
+
+
+def init_streaming(streaming_backend, streaming_master_name, streaming_master_port, logger):
+    # Fix options if necessary
+    if streaming_master_name is None or not streaming_master_name or streaming_master_name == "null":
+        streaming_master_name = "localhost"
+
+    # Check if the stream backend is enabled
+    streaming_enabled = streaming_backend is not None \
+                        and streaming_backend \
+                        and streaming_backend != "null" \
+                        and streaming_backend != "NONE"
+
+    # Init stream backend if needed
+    if streaming_enabled:
+        logger.debug("Starting DistroStream library")
+        DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,
+                                                 master_port=int(streaming_master_port))
+
+    # Return whether the streaming backend is enabled or not
+    return streaming_enabled
+
+
+def stop_streaming(logger):
+    logger.debug("Stopping DistroStream library")
+    DistroStreamClientHandler.set_stop()
 
 
 def compss_main():
     """
     General call:
-    python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storage_conf $fullAppPath $application_args
+    python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storage_conf
+           $streaming_backend $streaming_master_name $streaming_master_port $fullAppPath $application_args
 
     :return: None
     """
@@ -112,8 +149,8 @@ def compss_main():
     # See parse_arguments, defined above
     # In order to avoid parsing user arguments, we are going to remove user
     # args from sys.argv
-    user_sys_argv = sys.argv[5:]
-    sys.argv = sys.argv[:5]
+    user_sys_argv = sys.argv[8:]
+    sys.argv = sys.argv[:8]
     args = parse_arguments()
     # We are done, now sys.argv must contain user args only
     sys.argv = [args.app_path] + user_sys_argv
@@ -151,16 +188,39 @@ def compss_main():
         if __debug__:
             logger.debug('--- START ---')
             logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
+
+        # Start persistent storage
+        logger.debug("[LOG] Starting storage")
         persistent_storage = init_storage(storage_conf, logger)
+
+        # Start streaming
+        logger.debug("[LOG] Starting streaming")
+        streaming = init_streaming(args.streaming_backend,
+                                   args.streaming_master_name,
+                                   args.streaming_master_port,
+                                   logger)
+
+        # Show module warnings
         if __debug__:
             show_optional_module_warnings()
+
         # MAIN EXECUTION
         if IS_PYTHON3:
             exec (compile(open(app_path).read(), app_path, 'exec'), globals())
         else:
             execfile(app_path, globals())  # MAIN EXECUTION
+
+        # Stop streaming
+        logger.debug("[LOG] Stopping streaming")
+        if streaming:
+            stop_streaming(logger)
+
+        # Stop persistent storage
+        logger.debug("[LOG] Stopping storage")
         if persistent_storage:
             stop_storage()
+
+        # End
         if __debug__:
             logger.debug('--- END ---')
     except SystemExit as e:
@@ -200,6 +260,9 @@ def launch_pycompss_application(app, func,
                                 task_execution='compss',
                                 storage_impl=None,
                                 storage_conf=None,
+                                streaming_backend=None,
+                                streaming_master_name=None,
+                                streaming_master_port=None,
                                 task_count=50,
                                 app_name=None,
                                 uuid=None,
@@ -242,6 +305,9 @@ def launch_pycompss_application(app, func,
     :param task_execution: Task execution (default: 'compss')
     :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
+    :param streaming_backend: Streaming backend
+    :param streaming_master_name: Streaming master name
+    :param streaming_master_port: Streaming master port
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
     :param uuid: UUId
@@ -290,6 +356,9 @@ def launch_pycompss_application(app, func,
                 'task_execution': task_execution,
                 'storage_impl': storage_impl,
                 'storage_conf': storage_conf,
+                'streaming_backend': streaming_backend,
+                'streaming_master_name': streaming_master_name,
+                'streaming_master_port': streaming_master_port,
                 'task_count': task_count,
                 'app_name': app_name,
                 'uuid': uuid,
@@ -352,7 +421,14 @@ def launch_pycompss_application(app, func,
 
     logger.debug('--- START ---')
     logger.debug('PyCOMPSs Log path: %s' % log_path)
+
+    logger.debug("[LOG] Starting storage")
     persistent_storage = init_storage(all_vars['storage_conf'], logger)
+
+    logger.debug("[LOG] Starting streaming")
+    streaming = init_streaming(all_vars['streaming_backend'],
+                               all_vars['streaming_master_name'],
+                               all_vars['streaming_master_port'])
 
     saved_argv = sys.argv
     sys.argv = args
@@ -369,7 +445,12 @@ def launch_pycompss_application(app, func,
     sys.argv = saved_argv
 
     if persistent_storage:
+        logger.debug("[LOG] Stopping persistent storage")
         stop_storage()
+
+    if streaming:
+        logger.debug("[LOG] Stopping streaming")
+        stop_streaming()
 
     logger.debug('--- END ---')
 

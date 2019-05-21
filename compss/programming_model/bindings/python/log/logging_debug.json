@@ -73,8 +73,10 @@
     "pycompss.util.translators.scop2pscop2py.translator_scop2pscop2py":   { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
     "pycompss.util.translators.py2pycompss.translator_py2pycompss":       { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
     "pycompss.util.translators.py2pycompss.components.loop_taskificator": { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
-    "pycompss.util.translators.py2pycompss.components.calculator":        { "level": "DEBUG", "handlers": ["console"], "propagate": "no" }
+    "pycompss.util.translators.py2pycompss.components.calculator":        { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
 
+    "pycompss.streams.distro_stream_client": { "level": "DEBUG", "handlers": ["console"], "propagate": "no" },
+    "pycompss.streams.distro_stream":        { "level": "DEBUG", "handlers": ["console"], "propagate": "no" }
   },
   "root": {
     "level": "DEBUG"

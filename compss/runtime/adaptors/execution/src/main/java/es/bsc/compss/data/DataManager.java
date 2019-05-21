@@ -17,9 +17,11 @@
 
 package es.bsc.compss.data;
 
-import es.bsc.compss.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
+
 import java.util.List;
 
 
@@ -43,6 +45,27 @@ public interface DataManager {
      * @return The storage configuration file path. {@code null} if none was provided.
      */
     public String getStorageConf();
+
+    /**
+     * Returns the streaming backend.
+     * 
+     * @return The streaming backend.
+     */
+    public StreamBackend getStreamingBackend();
+
+    /**
+     * Returns the streaming master name.
+     * 
+     * @return The streaming master name.
+     */
+    public String getStreamingMasterName();
+
+    /**
+     * Returns the streaming master port.
+     * 
+     * @return The streaming master port.
+     */
+    public int getStreamingMasterPort();
 
     /**
      * Removes the given obsolete objects.

@@ -125,6 +125,9 @@ public class PythonInvoker extends PipedInvoker {
             cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
             cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
             cmd.append(context.getStorageConf()).append(TOKEN_SEP);
+            cmd.append(context.getStreamingBackend().name()).append(TOKEN_SEP);
+            cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);
+            cmd.append(context.getStreamingMasterPort()).append(TOKEN_SEP);
             cmd.append(this.size).append(TOKEN_SEP);
             String computePipes = this.basePipePath + "compute";
 

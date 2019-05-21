@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,8 +72,7 @@ public class Comm {
 
     // Streaming
     private static final StreamBackend STREAMING_BACKEND;
-    private static final int BASE_STREAMING_PORT = 49_049;
-    private static final int STREAMING_PORT_RAND_RANGE = 100;
+    private static final int DEFAULT_STREAMING_PORT = 49_049;
     private static final int STREAMING_PORT;
 
     // Storage
@@ -93,9 +91,14 @@ public class Comm {
     static {
         String streamBackendProperty = System.getProperty(COMPSsConstants.STREAMING_BACKEND);
         String streamBackendPropertyFixed = (streamBackendProperty == null || streamBackendProperty.isEmpty()
-                || streamBackendProperty.equals("null")) ? "NONE" : streamBackendProperty.toUpperCase();
+                || streamBackendProperty.toLowerCase().equals("null")
+                || streamBackendProperty.toLowerCase().equals("none")) ? "NONE" : streamBackendProperty.toUpperCase();
         STREAMING_BACKEND = StreamBackend.valueOf(streamBackendPropertyFixed);
-        STREAMING_PORT = BASE_STREAMING_PORT + new Random().nextInt(STREAMING_PORT_RAND_RANGE);
+
+        String streamMasterPortProperty = System.getProperty(COMPSsConstants.STREAMING_MASTER_PORT);
+        STREAMING_PORT = (streamMasterPortProperty == null || streamMasterPortProperty.isEmpty()
+                || streamMasterPortProperty.equals("null")) ? DEFAULT_STREAMING_PORT
+                        : Integer.parseInt(streamMasterPortProperty);
 
         String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
         STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))

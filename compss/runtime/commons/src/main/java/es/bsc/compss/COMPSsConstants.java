@@ -132,6 +132,7 @@ public class COMPSsConstants {
 
     // Streaming properties
     public static final String STREAMING_BACKEND = "compss.streaming";
+    public static final String STREAMING_MASTER_PORT = "compss.streaming.masterPort";
 
     // Persistent worker c property
     public static final String WORKER_PERSISTENT_C = "compss.worker.persistent.c";

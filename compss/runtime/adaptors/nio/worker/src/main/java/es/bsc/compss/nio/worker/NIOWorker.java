@@ -51,15 +51,19 @@ import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.dataRequest.DataRequest;
 import es.bsc.compss.nio.datarequest.WorkerDataRequest;
 import es.bsc.compss.nio.exceptions.DataNotAvailableException;
+import es.bsc.compss.nio.listeners.FetchDataOperationListener;
+import es.bsc.compss.nio.listeners.TaskFetchOperationsListener;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -415,11 +419,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
     }
 
-    protected Connection startConnection() {
+    public Connection startConnection() {
         return TM.startConnection(this.masterNode);
     }
 
-    protected void sendTaskDone(Invocation invocation, boolean successful) {
+    public void sendTaskDone(Invocation invocation, boolean successful) {
         NIOTask nt = (NIOTask) invocation;
         int jobId = nt.getJobId();
         int taskId = nt.getTaskId();
@@ -459,7 +463,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
     }
 
-    protected void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
+    public void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
         File taskFile = new File(taskFileName);
         if (!taskFile.exists()) {
             try (FileOutputStream stream = new FileOutputStream(taskFile)) {
@@ -472,7 +476,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     // Check if this task is ready to execute
-    protected void executeTask(NIOTask task) {
+    public void executeTask(NIOTask task) {
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("Enqueueing job " + task.getJobId() + " for execution.");
         }
@@ -763,7 +767,22 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void loadParam(InvocationParam param) throws Exception {
+    public StreamBackend getStreamingBackend() {
+        return this.dataManager.getStreamingBackend();
+    }
+
+    @Override
+    public String getStreamingMasterName() {
+        return this.dataManager.getStreamingMasterName();
+    }
+
+    @Override
+    public int getStreamingMasterPort() {
+        return this.dataManager.getStreamingMasterPort();
+    }
+
+    @Override
+    public void loadParam(InvocationParam param) throws UnloadableValueException {
         this.dataManager.loadParam(param);
     }
 

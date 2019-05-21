@@ -68,6 +68,7 @@ class DIRECTION(object):
     INOUT = 2
     CONCURRENT = 3
 
+
 # Numbers match both C and Java enums
 class STREAM(object):
     """
@@ -93,7 +94,7 @@ class Parameter(object):
     """
 
     def __init__(self, p_type=None, p_direction=DIRECTION.IN, p_stream=STREAM.UNSPECIFIED,
-                 p_prefix=PREFIX.PREFIX, p_object=None, file_name=None, is_future=False, depth = 1):
+                 p_prefix=PREFIX.PREFIX, p_object=None, file_name=None, is_future=False, depth=1):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -101,7 +102,7 @@ class Parameter(object):
         self.object = p_object  # placeholder for parameter object
         self.file_name = file_name  # placeholder for object's serialized file path
         self.is_future = is_future
-        self.depth     = depth # Recursive depth for collections
+        self.depth = depth  # Recursive depth for collections
 
     def __repr__(self):
         return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
@@ -255,6 +256,14 @@ _param_conversion_dict_ = {
     'COLLECTION_INOUT': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.INOUT
+    },
+    'STREAM_IN': {
+        'p_type': TYPE.STREAM,
+        'p_direction': DIRECTION.IN
+    },
+    'STREAM_OUT': {
+        'p_type': TYPE.STREAM,
+        'p_direction': DIRECTION.OUT
     }
 }
 
@@ -313,12 +322,12 @@ def get_parameter_from_dictionary(d):
     p = d[Type]
     if Direction in d:
         p.direction = d.get[Direction]
-    if Stream in d:
-        p.stream = d[Stream]
+    if StdIOStream in d:
+        p.stream = d[StdIOStream]
     if Prefix in d:
         p.prefix = d[Prefix]
-    if Depth  in d:
-        p.depth  = d[Depth]
+    if Depth in d:
+        p.depth = d[Depth]
     return p
 
 
@@ -468,7 +477,7 @@ class _param_(object):
         self.key = key
 
 
-def get_compss_type(value, depth = 0):
+def get_compss_type(value, depth=0):
     """
     Retrieve the value type mapped to COMPSs types.
     :param value: Value to analyse
@@ -552,7 +561,11 @@ COLLECTION = _param_('COLLECTION')
 COLLECTION_IN = _param_('COLLECTION_IN')
 COLLECTION_INOUT = _param_('COLLECTION_INOUT')
 
-# Aliases for streams (just stream direction)
+# Aliases for streams
+STREAM_IN = _param_("STREAM_IN")
+STREAM_OUT = _param_("STREAM_OUT")
+
+# Aliases for std IO streams (just stream direction)
 STDIN = STREAM.STDIN
 STDOUT = STREAM.STDOUT
 STDERR = STREAM.STDERR
@@ -560,9 +573,9 @@ STDERR = STREAM.STDERR
 # Aliases for parameter definition as dictionary
 Type = 'type'  # parameter type
 Direction = 'direction'  # parameter type
-Stream = 'stream'  # parameter stream
+StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
-Depth  = 'depth' # collection recursive depth
+Depth = 'depth'  # collection recursive depth
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

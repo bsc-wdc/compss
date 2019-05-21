@@ -37,6 +37,8 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
+import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
@@ -45,6 +47,7 @@ import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.Semaphore;
 
@@ -86,6 +89,9 @@ public class GATWorker implements InvocationContext {
     private final String installDir;
     private final String workingDir;
     private final String storageConf;
+    private final StreamBackend streamBackend;
+    private final String streamMasterName;
+    private final int streamMasterPort;
 
     private final ExecutionManager executionManager;
 
@@ -113,12 +119,12 @@ public class GATWorker implements InvocationContext {
         String streaming = (streamingArg == null || streamingArg.isEmpty() || streamingArg.equals("null")) ? "NONE"
                 : streamingArg.toUpperCase();
         StreamBackend streamBackend = StreamBackend.valueOf(streaming);
-        String masterName = args[STREAMING_MASTER_IDX];
-        int streamingPort = Integer.parseInt(args[STREAMING_PORT_IDX]);
+        String streamMasterName = args[STREAMING_MASTER_IDX];
+        int streamMasterPort = Integer.parseInt(args[STREAMING_PORT_IDX]);
 
         if (!streamBackend.equals(StreamBackend.NONE)) {
             try {
-                DistroStreamClient.initAndStart(masterName, streamingPort);
+                DistroStreamClient.initAndStart(streamMasterName, streamMasterPort);
             } catch (DistroStreamClientInitException dscie) {
                 ErrorManager.fatal(ERROR_STREAMING_INIT, dscie);
             }
@@ -142,8 +148,8 @@ public class GATWorker implements InvocationContext {
         ImplementationDefinition implDef = parseArguments(args);
 
         // Initialize GAT Worker
-        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf,
-                implDef.getComputingUnits());
+        GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, streamBackend,
+                streamMasterName, streamMasterPort, implDef.getComputingUnits());
 
         // Run task
         boolean success = worker.runTask(implDef);
@@ -178,7 +184,8 @@ public class GATWorker implements InvocationContext {
     }
 
     public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir,
-            String storageConf, int computingUnitsCPU) {
+            String storageConf, StreamBackend streamBackend, String streamMasterName, int streamMasterPort,
+            int computingUnitsCPU) {
 
         this.hostName = workerName;
         this.debug = debug;
@@ -186,6 +193,9 @@ public class GATWorker implements InvocationContext {
         this.installDir = installDir;
         this.workingDir = workingDir;
         this.storageConf = storageConf;
+        this.streamBackend = streamBackend;
+        this.streamMasterName = streamMasterName;
+        this.streamMasterPort = streamMasterPort;
 
         // Prepare execution Manager
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0,
@@ -308,18 +318,39 @@ public class GATWorker implements InvocationContext {
         return this.storageConf;
     }
 
+    public StreamBackend getStreamingBackend() {
+        return this.streamBackend;
+    }
+
+    public String getStreamingMasterName() {
+        return this.streamMasterName;
+    }
+
+    public int getStreamingMasterPort() {
+        return this.streamMasterPort;
+    }
+
     @Override
-    public void loadParam(InvocationParam np) throws Exception {
+    public void loadParam(InvocationParam np) throws UnloadableValueException {
         switch (np.getType()) {
             case OBJECT_T:
             case STREAM_T:
                 String fileLocation = (String) np.getValue();
                 np.setOriginalName(fileLocation);
-                np.setValue(Serializer.deserialize(fileLocation));
+                try {
+                    Object o = Serializer.deserialize(fileLocation);
+                    np.setValue(o);
+                } catch (ClassNotFoundException | IOException e) {
+                    throw new UnloadableValueException(e);
+                }
                 break;
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 String pscoId = (String) np.getValue();
-                StorageItf.getByID(pscoId);
+                try {
+                    StorageItf.getByID(pscoId);
+                } catch (StorageException se) {
+                    throw new UnloadableValueException(se);
+                }
                 break;
             case FILE_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
@@ -331,12 +362,16 @@ public class GATWorker implements InvocationContext {
     }
 
     @Override
-    public void storeParam(InvocationParam np) throws Exception {
+    public void storeParam(InvocationParam np) throws UnwritableValueException {
         switch (np.getType()) {
             case OBJECT_T:
             case STREAM_T:
                 String fileLocation = np.getOriginalName();
-                Serializer.serialize(np.getValue(), fileLocation);
+                try {
+                    Serializer.serialize(np.getValue(), fileLocation);
+                } catch (IOException ioe) {
+                    throw new UnwritableValueException(ioe);
+                }
                 break;
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 throw new UnsupportedOperationException("Output PSCOs are not suported with the GAT adaptor");

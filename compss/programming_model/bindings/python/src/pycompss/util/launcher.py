@@ -245,6 +245,9 @@ def create_init_config_file(compss_home,
                             summary,
                             task_execution,
                             storage_conf,
+                            streaming_backend,
+                            streaming_master_name,
+                            streaming_master_port,
                             task_count,
                             app_name,
                             uuid,
@@ -288,6 +291,9 @@ def create_init_config_file(compss_home,
     :param summary: <Boolean> Enable/Disable summary (True|False)
     :param task_execution: <String> Who performs the task execution (normally "compss")
     :param storage_conf: None|<String> Storage configuration file path
+    :param streaming_backend: Streaming backend
+    :param streaming_master_name: Streaming master name
+    :param streaming_master_port: Streaming master port
     :param task_count: <Integer> Number of tasks (for structure initialization purposes)
     :param app_name: <String> Application name
     :param uuid: None|<String> Application UUID
@@ -332,16 +338,21 @@ def create_init_config_file(compss_home,
     jvm_options_file.write('-XX:+UseThreadPriorities\n')
     jvm_options_file.write('-XX:ThreadPriorityPolicy=42\n')
     if debug or log_level == 'debug':
-        jvm_options_file.write('-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
+        jvm_options_file.write(
+            '-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
     elif monitor is not None or log_level == 'info':
-        jvm_options_file.write('-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j.info\n')  # INFO
+        jvm_options_file.write(
+            '-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j.info\n')  # INFO
     else:
-        jvm_options_file.write('-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG
+        jvm_options_file.write(
+            '-Dlog4j.configurationFile=' + compss_home + '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG
     jvm_options_file.write('-Dcompss.to.file=false\n')
     jvm_options_file.write('-Dcompss.project.file=' + project_xml + '\n')
     jvm_options_file.write('-Dcompss.resources.file=' + resources_xml + '\n')
-    jvm_options_file.write('-Dcompss.project.schema=' + compss_home + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
-    jvm_options_file.write('-Dcompss.resources.schema=' + compss_home + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
+    jvm_options_file.write(
+        '-Dcompss.project.schema=' + compss_home + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
+    jvm_options_file.write(
+        '-Dcompss.resources.schema=' + compss_home + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
     jvm_options_file.write('-Dcompss.lang=python\n')
     if summary:
         jvm_options_file.write('-Dcompss.summary=true\n')
@@ -378,6 +389,7 @@ def create_init_config_file(compss_home,
 
     jvm_options_file.write('-Dcompss.appLogDir=/tmp/' + my_uuid + '/\n')
 
+    # TOOLS JVM FLAGS
     if graph:
         jvm_options_file.write('-Dcompss.graph=true\n')
     else:
@@ -409,6 +421,12 @@ def create_init_config_file(compss_home,
     else:
         jvm_options_file.write('-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor\n')
 
+    # Add streaming properties
+    jvm_options_file.write('-Dcompss.streaming=' + str(streaming_backend) + '\n')
+    jvm_options_file.write('-Dcompss.streaming.masterName=' + str(streaming_master_name) + '\n')
+    jvm_options_file.write('-Dcompss.streaming.masterPort=' + str(streaming_master_port) + '\n')
+
+    # INTERNAL COMPONENTS JVM FLAGS
     jvm_options_file.write('-Dcompss.conn=' + conn + '\n')
     jvm_options_file.write('-Dcompss.masterName=' + master_name + '\n')
     jvm_options_file.write('-Dcompss.masterPort=' + master_port + '\n')
@@ -420,7 +438,8 @@ def create_init_config_file(compss_home,
         jvm_options_file.write('-Dgat.debug=false\n')
     jvm_options_file.write('-Dgat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dgat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write('-Dcompss.worker.cp=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
+    jvm_options_file.write(
+        '-Dcompss.worker.cp=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
     jvm_options_file.write('-Dcompss.worker.jvm_opts=' + jvm_workers + '\n')
     jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + cpu_affinity + '\n')
     jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + gpu_affinity + '\n')
@@ -432,7 +451,8 @@ def create_init_config_file(compss_home,
     jvm_options_file.write('-Dcompss.external.adaptation=' + external_adaptation + '\n')
 
     # JVM OPTIONS - PYTHON
-    jvm_options_file.write('-Djava.class.path=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
+    jvm_options_file.write(
+        '-Djava.class.path=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
     jvm_options_file.write('-Djava.library.path=' + ld_library_path + '\n')
     jvm_options_file.write('-Dcompss.worker.pythonpath=' + cp + ':' + pythonpath + '\n')
     jvm_options_file.write('-Dcompss.python.interpreter=' + python_interpreter + '\n')

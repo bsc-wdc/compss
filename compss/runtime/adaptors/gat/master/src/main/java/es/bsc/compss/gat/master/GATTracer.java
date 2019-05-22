@@ -158,7 +158,15 @@ public class GATTracer extends Tracer {
             LOGGER.error("Error deleting tracing host", e);
             return false;
         }
-        String pars = "package " + workingDir + " " + host;
+        String mode = "package";
+        if (Tracer.extraeEnabled()) {
+            mode = "package";
+        }else if (Tracer.scorepEnabled()) {
+            mode = "package-scorep";
+        }else if (Tracer.mapEnabled()) {
+            mode = "package-map";
+        }
+        String pars = mode + " " + workingDir + " " + host;
 
         traceParams.add(pars);
 

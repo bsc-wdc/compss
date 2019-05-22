@@ -87,11 +87,15 @@ public class PythonInvoker extends PipedInvoker {
         public String getPipeBuilderContext() {
             StringBuilder cmd = new StringBuilder();
 
+            // Binding
             cmd.append(COMPSsConstants.Lang.PYTHON).append(TOKEN_SEP);
+
+            // Specific parameters
             cmd.append(this.pyParams.getPythonVirtualEnvironment()).append(TOKEN_SEP);
             cmd.append(this.pyParams.getPythonPropagateVirtualEnvironment()).append(TOKEN_SEP);
             cmd.append(this.pyParams.usePythonMpiWorker()).append(TOKEN_SEP);
             cmd.append(this.size + 1).append(TOKEN_SEP);  // Number of MPI threads if using MPI worker.
+            cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP);
 
             return cmd.toString();
         }

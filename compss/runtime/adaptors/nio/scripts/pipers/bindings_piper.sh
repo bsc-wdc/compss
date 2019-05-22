@@ -42,14 +42,15 @@
 
     # Get tracing and virtual environment if python
     if [ "$binding" == "PYTHON" ]; then
-        # Get virtual environment
+        # Get virtual environment parameters
         virtualEnvironment=$1
         propagateVirtualEnvironment=$2
+        # Get Information for the mpi worker
         mpiWorker=$3
         numThreads=$4
-        shift 4
+        pythonInterpreter=$5
+        shift 5
     fi
-
   }
 
   create_pipe() {
@@ -113,55 +114,21 @@
     export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
     export EXTRAE_CONFIG_FILE=${workerConfigFile}
     if [ "$mpiWorker" == "true" ]; then
+      # exporting preload needed to enable tracing with extrae and the mpi worker
+      # Requires extrae to be compiled with mpi (otherwise libmpitrace.so will not exist).
       export LD_PRELOAD="${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/libmpitrace.so"
     fi
   elif [ "$tracing" -lt "-1" ]; then
-    # exporting variables required by map & ddt
-    export ALLINEA_MPI_INIT=MPI_Init_thread
-    export ALLINEA_MPI_INIT_PENDING=1
-  fi
-
-  if [ "$tracing" -eq "-1" ]; then # scorep
-    echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
-    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-    source ${TRACE_SCRIPTS_PATH}/scorep.sh
-
-    app_path=$(pwd)
-    app_name=piper_worker.py
-    rm -rf $PWD/.scorep_preload
-    ${TRACE_SCRIPTS_PATH}/scorep_preload.sh build $app_path --user --io=runtime:posix --mpp=mpi --nocompiler
-    ld_preload=$(${TRACE_SCRIPTS_PATH}/scorep_preload.sh print $app_path)
-    bindingArgs=${bindingArgs#-np }
-    threads=$(expr match "$bindingArgs" '\(.[0-9]*\)')
-    bindingArgs=${bindingArgs#$numThreads python -u}
-    bindingArgs="-x LD_PRELOAD=$ld_preload -np ${numThreads} /usr/bin/python -u -m scorep --mpi $bindingArgs"
-    echo "[BINDINGS PIPER] Preload done"
-    echo "[SCOREP:BINDING-ARGS] $bindingArgs"
-
-  elif [ "$tracing" -eq "-2" ]; then # arm-map
-
-    echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
-    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-    source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
-    # Set path to the application - this even better because the submission is independent of the current working directory
-
-    bindingArgs=${bindingArgs#-np }
-    bindingExecutable="map"
-    bindingArgs=" --profile -o $(pwd)/$(hostname).map --mpi=generic -n ${numThreads} /usr/bin/python $bindingArgs"
-    echo "[BINDINGS PIPER] Arm setup for MAP done"
-
-  elif [ "$tracing" -eq "-3" ]; then # arm-ddt
-
-    echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
-    TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-    source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
-    # Set path to the application - this even better because the submission is independent of the current working directory
-
-    bindingArgs=${bindingArgs#-np }
-    bindingArgs=${bindingArgs#$numThreads python}
-    bindingExecutable="ddt"
-    bindingArgs=" --connect --mpi=generic -n ${numThreads} /usr/bin/python $bindingArgs"
-    echo "[BINDINGS PIPER] Arm setup for DDT done"
+    # exporting variables required by any other tracing option (map/ddt/scorep)
+    if [ "$binding" == "PYTHON" ]; then
+      export ALLINEA_MPI_INIT=MPI_Init_thread
+      export ALLINEA_MPI_INIT_PENDING=1
+    else
+      # Only tracing with extrae is supported for other bindings
+      echo "ERROR: Unsupported tracing mode for this binding."
+      echo "QUIT" >> "${controlRESULTpipe}"
+      exit 1
+    fi
   fi
 
   stop_received=false
@@ -188,7 +155,53 @@
         workerRESULTpipe=$(echo "$line" | tr " " "\t" | awk '{ print $2 }')
         create_pipe ${workerRESULTpipe}
 
-        workerCMD=$(echo ${line} | cut -d' ' -f3-) 
+        workerCMD=$(echo ${line} | cut -d' ' -f3-)
+
+        if [ "$binding" == "PYTHON" ] && [ "$mpiWorker" == "true" ]; then
+          # delimiter example: "python -u"
+          delimiter="${pythonInterpreter} -u"
+          bindingExecutable="${workerCMD%%"$delimiter"*}"
+          bindingArgs=${workerCMD#*"$delimiter"}
+
+          # Get full path of the binary
+          pythonInterpreter=$(which ${pythonInterpreter})
+
+          if [ "$tracing" -eq "-1" ]; then # scorep
+            echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
+            TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
+            source ${TRACE_SCRIPTS_PATH}/scorep.sh
+            # Set path to the application - this even better because the submission is independent of the current working directory
+            app_path=$(pwd)
+            app_name=piper_worker.py
+            rm -rf $app_path/.scorep_preload
+            ld_preload=$(scorep-preload-init --value-only --user --nocompiler --mpp=mpi --io=none --thread=pthread --io=runtime:posix ${app_path}/${app_name})
+            bindingArgs=" -x LD_PRELOAD=$ld_preload ${pythonInterpreter} -u -m scorep $bindingArgs"
+            echo "[BINDINGS PIPER] ScoreP setup done"
+
+          elif [ "$tracing" -eq "-2" ]; then # arm-map
+            echo "[BINDINGS PIPER] Setting up arm-map tracing in folder $(pwd)"
+            TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
+            source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
+            # Set path to the application - this even better because the submission is independent of the current working directory
+            bindingExecutable="map"
+            bindingArgs=" --profile -o $(pwd)/$(hostname).map --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
+            echo "[BINDINGS PIPER] Arm setup for MAP done"
+
+          elif [ "$tracing" -eq "-3" ]; then # arm-ddt
+            echo "[BINDINGS PIPER] Setting up arm-ddt tracing in folder $(pwd)"
+            TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
+            source ${TRACE_SCRIPTS_PATH}/arm-forge.sh
+            # Set path to the application - this even better because the submission is independent of the current working directory
+            bindingExecutable="ddt"
+            bindingArgs=" --connect --mpi=generic -n ${numThreads} ${pythonInterpreter} $bindingArgs"
+            echo "[BINDINGS PIPER] Arm setup for DDT done"
+
+          else
+            bindingExecutable="${workerCMD%%"$delimiter"*}$delimiter"
+          fi
+          workerCMD="${bindingExecutable} ${bindingArgs}"
+        fi
+
         eval ${workerCMD} </dev/null 3>/dev/null &
         bindingPID=$!
         echo "WORKER_STARTED ${bindingPID}" >> "${controlRESULTpipe}"

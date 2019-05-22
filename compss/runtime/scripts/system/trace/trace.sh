@@ -51,7 +51,7 @@
 
   elif [ "$action" == "package" ]; then
     node=$1
-    #echo "trace::packaging ${node}_compss_trace.tar.gz"
+    # echo "trace::packaging ${node}_compss_trace.tar.gz"
     files="TRACE.mpits set-*"
     if [ "$node" != "master" ] && [ -d "./python" ] ; then
         hostID=$2
@@ -65,6 +65,44 @@
     fi
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
+    fi
+    # shellcheck disable=SC2086
+    tar czf "${node}_compss_trace.tar.gz" ${files}
+    echo "Package created $(ls -la  ${node}_compss_trace.tar.gz)"
+    endCode=$?
+    # shellcheck disable=SC2086
+    rm -rf ${files}
+
+  elif [ "$action" == "package-scorep" ]; then
+    node=$1
+    # echo "trace::packaging ${node}_compss_trace.tar.gz"
+    files=""
+    if [ "$node" != "master" ] && [ -d "./python" ] ; then
+        if [ -f ./python/pycompss.log ]; then
+            rm -f ./python/pycompss.log
+        fi
+        mv ./python ./python_${node}
+        files+=" ./python_${node}"
+    fi
+    # shellcheck disable=SC2086
+    tar czf "${node}_compss_trace.tar.gz" ${files}
+    echo "Package created $(ls -la  ${node}_compss_trace.tar.gz)"
+    endCode=$?
+    # shellcheck disable=SC2086
+    rm -rf ${files}
+
+  elif [ "$action" == "package-map" ]; then
+    node=$1
+    # echo "trace::packaging ${node}_compss_trace.tar.gz"
+    files=""
+    if [ "$node" != "master" ] && [ -d "./python" ] ; then
+        sleep 5 # The processes must have been killed. This waits for them.
+                # Otherwise, it raises an exception (piped mirror) - suspect map interaction.
+        if [ -f ./python/pycompss.log ]; then
+            rm -f ./python/pycompss.log
+        fi
+        mv ./python ./python_${node}
+        files+=" ./python_${node}"
     fi
     # shellcheck disable=SC2086
     tar czf "${node}_compss_trace.tar.gz" ${files}

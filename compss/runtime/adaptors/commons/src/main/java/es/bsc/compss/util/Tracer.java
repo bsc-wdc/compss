@@ -72,6 +72,9 @@ public abstract class Tracer {
 
     public static final int BASIC_MODE = 1;
 
+    public static final int SCOREP_MODE = -1;
+    public static final int MAP_MODE = -2;
+
     public static final String LD_PRELOAD = "LD_PRELOAD";
     public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
 
@@ -220,6 +223,14 @@ public abstract class Tracer {
             }
             Wrapper.SetTaskID(0);
             Wrapper.SetNumTasks(1);
+        }else if (Tracer.scorepEnabled()) {
+            if (DEBUG) {
+                LOGGER.debug("Initializing scorep.");
+            }
+        }else if (Tracer.mapEnabled()) {
+            if (DEBUG) {
+                LOGGER.debug("Initializing arm-map.");
+            }
         }
     }
 
@@ -230,6 +241,24 @@ public abstract class Tracer {
      */
     public static boolean extraeEnabled() {
         return tracingLevel > 0;
+    }
+
+    /**
+     * Returns if the current execution is being instrumented by scorep.
+     *
+     * @return true if currently instrumented by scorep
+     */
+    public static boolean scorepEnabled() {
+        return tracingLevel == Tracer.SCOREP_MODE;
+    }
+
+    /**
+     * Returns if the current execution is being instrumented by arm-map.
+     *
+     * @return true if currently instrumented by arm-map
+     */
+    public static boolean mapEnabled() {
+        return tracingLevel == Tracer.MAP_MODE;
     }
 
     /**
@@ -422,7 +451,6 @@ public abstract class Tracer {
             LOGGER.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId
                     + "]");
         }
-
     }
 
     /**
@@ -435,18 +463,19 @@ public abstract class Tracer {
         }
 
         synchronized (Tracer.class) {
-            defineEvents();
+            if (extraeEnabled()){
+                defineEvents();
 
-            Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
-            Wrapper.Fini();
-            Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
+                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
+                Wrapper.Fini();
+                Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
 
-            generateMasterPackage();
-            transferMasterPackage();
-            generateTrace();
-            cleanMasterPackage();
+                generateMasterPackage("package");
+                transferMasterPackage();
+                generateTrace();
+                cleanMasterPackage();
+            }
         }
-
     }
 
     /**
@@ -607,14 +636,21 @@ public abstract class Tracer {
 
     /**
      * Generate the tracing package for the master.
+     * The mode parameter enables to use different packaging methods.
+     * The currently supported modes are:
+     *     "package" --------> for Extrae
+     *     "package-scorep" -> for ScoreP
+     *     "package-map" ----> for Map
+     *
+     * @param mode of the packaging (see trace.sh)
      */
-    private static void generateMasterPackage() {
+    private static void generateMasterPackage(String mode) {
         if (DEBUG) {
-            LOGGER.debug("Tracing: generating master package");
+            LOGGER.debug("Tracing: generating master package: " + mode);
         }
 
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
-        ProcessBuilder pb = new ProcessBuilder(script, "package", ".", "master");
+        ProcessBuilder pb = new ProcessBuilder(script, mode, ".", "master");
         pb.environment().remove(LD_PRELOAD);
         Process p;
         try {

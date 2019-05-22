@@ -65,9 +65,11 @@ public class NIOTracer extends Tracer {
         NIOTracer.nodeName = nodeName;
         NIOTracer.hostID = String.valueOf(hostID);
 
-        synchronized (Tracer.class) {
-            Wrapper.SetTaskID(hostID);
-            Wrapper.SetNumTasks(hostID + 1);
+        if (NIOTracer.extraeEnabled()) {
+            synchronized (Tracer.class) {
+                Wrapper.SetTaskID(hostID);
+                Wrapper.SetNumTasks(hostID + 1);
+            }
         }
 
         if (DEBUG) {
@@ -163,35 +165,51 @@ public class NIOTracer extends Tracer {
      * Generates the tracing package on the worker side
      */
     public static void generatePackage() {
-        emitEvent(Event.STOP.getId(), Event.STOP.getType());
+        String mode = "package";
         if (DEBUG) {
             LOGGER.debug("[NIOTracer] Generating trace package of " + nodeName);
         }
-        emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        if (Tracer.extraeEnabled()) {
+            emitEvent(Event.STOP.getId(), Event.STOP.getType());
+            emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
 
-        // Stopping Extrae
-        synchronized (Tracer.class) {
-            LOGGER.debug("[NIOTracer] Disabling pthreads");
-            Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
+            // Stopping Extrae
+            synchronized (Tracer.class) {
+                LOGGER.debug("[NIOTracer] Disabling pthreads");
+                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
 
-            // End wrapper
-            LOGGER.debug("[NIOTracer] Finishing extrae");
-            Wrapper.Fini();
+                // End wrapper
+                if (DEBUG) {
+                    LOGGER.debug("[NIOTracer] Finishing extrae");
+                }
+                Wrapper.Fini();
+            }
+            mode = "package";
+        } else if (Tracer.scorepEnabled()) {
+            mode = "package-scorep";
+            if (DEBUG) {
+                LOGGER.debug("[NIOTracer] Finishing scorep");
+            }
+        } else if (Tracer.mapEnabled()) {
+            mode = "package-map";
+            if (DEBUG) {
+                LOGGER.debug("[NIOTracer] Finishing map");
+            }
         }
 
         // Generate package
         if (DEBUG) {
-            LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " package " + workingDir
-                    + " " + nodeName + " " + hostID);
+            LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " " + mode
+                    + " " + workingDir + " " + nodeName + " " + hostID);
         }
 
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, "package", workingDir, nodeName, hostID);
+        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, mode, workingDir, nodeName, hostID);
         pb.environment().remove(LD_PRELOAD);
         Process p = null;
         try {

@@ -698,7 +698,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         NIOTracer.init(tracing_level);
         if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
-
+        }
+        if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
             try {
                 tracingID = Integer.parseInt(host);
                 NIOTracer.setWorkerInfo(installDir, workerIP, workingDir, tracingID);

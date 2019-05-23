@@ -57,6 +57,13 @@ def files_to_pairs(element):
     return tuples
 
 
+def _invert_files(pair):
+    res = dict()
+    for word in pair[1].split():
+        res[word] = [pair[0]]
+    return res.items()
+
+
 def word_count():
 
     path_file = sys.argv[1]
@@ -66,7 +73,6 @@ def word_count():
         map_and_flatten(lambda x: x[1].split())\
         .count_by_value(arity=4, as_dict=True)
 
-    print(results)
     print("Elapsed Time: ", time.time()-start)
     return
 
@@ -231,6 +237,16 @@ def run_terasort():
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
+def inverted_indexing():
+
+    path = sys.argv[1]
+    start_time = time.time()
+    result = DDS().load_files_from_dir(path).map_and_flatten(_invert_files)\
+        .reduce_by_key(lambda a, b: a + b).collect()
+
+    print("Elapsed Time {} (s)".format(time.time() - start_time))
+
+
 def test_new_dds():
 
     path_file = sys.argv[1]
@@ -261,8 +277,9 @@ def main_program():
     # word_count()
     # reduce_example()
     # load_n_map_example()
-    run_terasort()
+    # run_terasort()
     # test_new_dds()
+    inverted_indexing()
 
 
 if __name__ == '__main__':

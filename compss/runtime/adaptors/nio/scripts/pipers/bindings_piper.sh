@@ -169,7 +169,7 @@
           if [ "$tracing" -eq "-1" ]; then # scorep
             echo "[BINDINGS PIPER] Making preload call in folder $(pwd)"
             TRACE_SCRIPTS_PATH=${SCRIPT_DIR}/../../../../../scripts/system/trace
-            python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])" )
+            python_version=$( ${pythonInterpreter} -c "import sys; print(sys.version_info[:][0])" )
             source ${TRACE_SCRIPTS_PATH}/scorep.sh $python_version
             # Set path to the application - this even better because the submission is independent of the current working directory
             app_path=$(pwd)

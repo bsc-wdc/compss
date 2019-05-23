@@ -25,41 +25,41 @@
     <Logger name="es.bsc.comm" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Communication" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- es.bsc.compss.Components.Tracing: DEFAULT = ERROR -->
-    <Logger name="es.bsc.compss.Components.Tracing" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Components.Tracing" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- WORKER -->
     <!-- IntegratedToolkit.Worker: DEFAULT = ERROR -->
-    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="info">
+    <Logger name="es.bsc.compss.Worker" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- WORKER SUBCOMPONENTS. DEFAULT = OFF -->
-    <Logger name="es.bsc.compss.Worker.ExecManager" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Worker.ExecManager" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="es.bsc.compss.Worker.DataManager" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Worker.DataManager" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="es.bsc.compss.Worker.ThreadPool" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Worker.ThreadPool" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="es.bsc.compss.Worker.Executor" additivity="FALSE" level="info">
+    <Logger name="es.bsc.compss.Worker.Executor" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="es.bsc.compss.Worker.ThreadBinder" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Worker.ThreadBinder" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- STORAGE -->
     <!-- es.bsc.compss.Storage: DEFAULT = OFF -->
-    <Logger name="es.bsc.compss.Storage" additivity="FALSE" level="error">
+    <Logger name="es.bsc.compss.Storage" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
 

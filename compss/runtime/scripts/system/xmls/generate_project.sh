@@ -352,6 +352,11 @@ create_simple_project() {
 #
 
 if [ $# -ne 0 ]; then
-  create_simple_project "$@"
+  #to check if it is sourced or executed
+  if [[ $_ != $0 ]]; then
+	echo "Sourcing generate_project.sh"
+  else
+      create_simple_project "$@"
+  fi
 fi
 

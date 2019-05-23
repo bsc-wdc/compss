@@ -3,8 +3,9 @@
 #
 # SCRIPT CONSTANTS
 #
-
-GENERATORS_DIR=$(dirname "$0")/../system/docker/generators
+DOCKER_DEFAULT_PORT=2376
+DOCKER_DEFAULT_PROTOCOL="tcp"
+GENERATORS_DIR=$(dirname "$0")/../system/docker/
 GENERATE_COMPOSE_YML=$GENERATORS_DIR/generate-compose-yml
 
 
@@ -73,29 +74,42 @@ OPTIONAL ARGUMENTS:
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 "
 }
+get_master_hostname_ip(){
+    master_hostname=$(docker stack ps ${IMG_NAME_WITHOUT_USERNAME}-docker | grep ${IMG_NAME_WITHOUT_USERNAME}-docker_master | awk '{ print $4 }' | xargs)
+    master_ip=$(docker node inspect -f "{{print .Status.Addr}}" ${master_hostname})
+}
 
+
+get_master_status(){
+    wait_before=$1
+    if [ -n ${wait_before} ]; then
+      sleep ${wait_before}
+    fi 
+    master_status=$(docker stack ps ${IMG_NAME_WITHOUT_USERNAME}-docker | grep ${IMG_NAME_WITHOUT_USERNAME}-docker_master | awk '{ print $5 }' | xargs)
+}
 retrieveResults() {
     cd "${TMP_DIR}/.."
 
     ECHO "Retrieving results from master..."
 
     # Copying results from master container to this machine... (docker cp)
-    IMG_NAME_WITHOUT_USERNAME="$(echo "$IMAGE_NAME" | sed -e 's|[A-Za-z0-9_]*/||g')"
+    #IMG_NAME_WITHOUT_USERNAME="$(echo "$IMAGE_NAME" | sed -e 's|[A-Za-z0-9_]*/||g')"
     RESULTS_DIR="./${IMG_NAME_WITHOUT_USERNAME}-results"
     DEBUG_DIR="$RESULTS_DIR/debug"
     rm -rf "$RESULTS_DIR" &> /dev/null
     mkdir -p "$DEBUG_DIR"
-  
+    get_master_hostname_ip
     # We obtain Master container hash id by grepping the *_master container from a docker ps on the swarm manager.
-    export DOCKER_HOST="$SWARM_MANAGER_IP"
+    export DOCKER_HOST="${DOCKER_DEFAULT_PROTOCOL}://${master_ip}:${DOCKER_DEFAULT_PORT}"
  
-    DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | grep "runcompss-docker_master" | awk '{ print $1 }')
+    DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | grep "${IMG_NAME_WITHOUT_USERNAME}-docker_master" | awk '{ print $1 }')
     docker cp "${DOCKER_CONTAINER_MASTER_HASH}:${ABS_CONTEXT}" "${RESULTS_DIR}" ;
     ASSERT "Results could not be retrieved...Master container unreachable"
   
     docker cp "${DOCKER_CONTAINER_MASTER_HASH}:/root/.COMPSs"  "${DEBUG_DIR}" # &> /dev/null
     #ASSERT "Results could not be retrieved...Master container unreachable"
-  
+    
+    docker logs ${DOCKER_CONTAINER_MASTER_HASH} 1> "${RESULTS_DIR}"/application_log.out 2>"${RESULTS_DIR}"/application_log.err
     # No .COMPSs hidden directory
     mv "${DEBUG_DIR}"/.COMPSs/* "${DEBUG_DIR}"
     rm -rf "${DEBUG_DIR}"/.COMPSs
@@ -116,7 +130,7 @@ COMPUTING_UNITS=4
 MEMORY=8
 CREATION_TIME=60
 MIN_VMS=0
-MAX_VMS=4
+MAX_VMS=0
 RUNCOMPSS_ARGS=$* # this loop will strip from RUNCOMPSS_ARGS all the runcomps-docker args
 
 # Retrieve parameters
@@ -213,13 +227,13 @@ if [ "$ALL_GOOD" = "0" ]; then
     echo
     exit 1
 fi
-
+IMG_NAME_WITHOUT_USERNAME="$(echo "$IMAGE_NAME" | sed -e 's|[A-Za-z0-9_]*/||g'| sed -e 's|[:.]|_|g')"
 # Regular workflow
-TMP_DIR="$PWD/.runcompss-docker"
+TMP_DIR="$PWD/${IMG_NAME_WITHOUT_USERNAME}-compose"
 rm -rf "$TMP_DIR" &> /dev/null
 mkdir "$TMP_DIR" &> /dev/null
 
-ECHO "Generating docker-compose.yml file into '.runcompss-docker' hidden directory..." ; echo
+ECHO "Generating docker-compose.yml file into '${TMP_DIR}' ..." ; echo
 $GENERATE_COMPOSE_YML "$NUM_WORKER_CONTAINERS" "$IMAGE_NAME" "$ABS_CONTEXT" "$COMPUTING_UNITS" "$MEMORY" "$SWARM_MANAGER_IP" "$CREATION_TIME" "$MIN_VMS" "$MAX_VMS" "$RUNCOMPSS_ARGS" > "${TMP_DIR}"/docker-compose.yml
 ASSERT "There was an error creating the docker compose yml file."
 
@@ -228,10 +242,10 @@ trap "retrieveResults ; exit 1" SIGINT ERR
 
 ECHO "Cleaning environment from previous executions..." ; echo
 # docker-compose down --remove-orphans
-docker stack rm runcompss-docker
+docker stack rm ${IMG_NAME_WITHOUT_USERNAME}-docker
 # Sometimes, although the stack is removed, the previously stopped containers remain.
 # The next command is to delete all previous containers.
-RESIDUAL_CONTAINERS=$(docker ps -a | grep runcompss-docker | awk '{ print $1 }' | xargs)
+RESIDUAL_CONTAINERS=$(docker ps -a | grep ${IMG_NAME_WITHOUT_USERNAME}-docker | awk '{ print $1 }' | xargs)
 if [ ! -z "$RESIDUAL_CONTAINERS" ]; then
     docker rm -f $RESIDUAL_CONTAINERS > /dev/null
 fi
@@ -244,11 +258,15 @@ sleep 5
 
 ECHO "Executing application in swarm manager..." ; echo
 # docker-compose up --force-recreate
-docker stack deploy -c docker-compose.yml runcompss-docker
+docker stack deploy -c ${TMP_DIR}/docker-compose.yml ${IMG_NAME_WITHOUT_USERNAME}-docker
 #docker-compose scale master=1 worker=$NUM_WORKER_CONTAINERS #--force-recreate
 ASSERT "There was an error executing the application. Check the logs or the docker-compose output."
 echo
-
+ECHO "Waiting application to finish..."
+get_master_status 5
+while [[ "${master_status}" == "Running" ]]; do
+	get_master_status 5
+done
 ECHO "Application finished!"
 retrieveResults
 exit 0

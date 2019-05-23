@@ -175,7 +175,7 @@
             app_path=$(pwd)
             app_name=piper_worker.py
             rm -rf $app_path/.scorep_preload
-            ld_preload=$(scorep-preload-init --value-only --user --nocompiler --mpp=mpi --io=none --thread=pthread --io=runtime:posix ${app_path}/${app_name})
+            ld_preload=$(scorep-preload-init --value-only --user --nocompiler --mpp=mpi --thread=pthread --io=runtime:posix ${app_path}/${app_name})
             bindingArgs=" -x LD_PRELOAD=$ld_preload ${pythonInterpreter} -u -m scorep $bindingArgs"
             echo "[BINDINGS PIPER] ScoreP setup done"
 

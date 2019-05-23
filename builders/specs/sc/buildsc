@@ -40,7 +40,7 @@ install_adaptor() {
   echo " "
   echo "* Compiling sources..."
   cd ${trunk_rel_path}
-  mvn -U clean install
+  mvn -U -DskipTests clean install
   cd -
 
   echo " "
@@ -98,13 +98,17 @@ install_adaptor() {
   path_source=${trunk_rel_path}/compss/runtime/adaptors
   path_target=${COMPSs_target}/Runtime/adaptors
   for adaptor in ${path_source}/*; do
-      adaptor_name=$(basename "${adaptor}")
-    if [ "$adaptor_name" != "commons" ] && [ "$adaptor_name" != "execution" ] && [ "$adaptor_name" != "pom.xml" ]; then
+    adaptor_name=$(basename "${adaptor}")
+    echo " -- Copying adaptor $adaptor_name"
+    if [ "$adaptor_name" != "commons" ] && [ "$adaptor_name" != "execution" ] && [ "$adaptor_name" != "pom.xml" ] && [ "$adaptor_name" != "target" ]; then
       if [ "${adaptor_name}" != "agent" ]; then
           install_adaptor "${adaptor}" "${path_target}"
       else
           for agent in ${adaptor}/*; do
-              install_adaptor "${agent}" "${path_target}"
+              agent_name=$(basename "$agent")
+	      if [ "${agent_name}" != "pom.xml" ] && [ "${agent_name}" != "target" ]; then
+                 install_adaptor "${agent}" "${path_target}"
+              fi
           done
       fi
     fi
@@ -117,7 +121,7 @@ install_adaptor() {
   for scheduler in $schedulers; do
     cp "$scheduler" ${COMPSs_target}/Runtime/scheduler/
   done
-  rm ${COMPSs_target}/Runtime/scheduler/es.bsc.compss.scheduler-commons.jar
+  rm ${COMPSs_target}/Runtime/scheduler/compss-scheduler-commons.jar
   
   # Storage
   echo "--- Copy storage implementations"
@@ -170,7 +174,7 @@ install_adaptor() {
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
 
   # Clean git files
-  find "${COMPSs_target}" -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
+  find "${COMPSs_target}" -name ".git*" -print0 | xargs -0 rm -rf # Clean git files
 
   #---------------------------------------------------------------------------
   # Add specific SC install and env files

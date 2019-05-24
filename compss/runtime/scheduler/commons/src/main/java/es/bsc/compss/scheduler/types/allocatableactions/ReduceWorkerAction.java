@@ -38,6 +38,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -176,8 +177,15 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
     
     @Override
-    public void tryToSchedule(Score actionScore, Set<ResourceScheduler<? extends WorkerResourceDescription>> availableResources) throws BlockedActionException, UnassignedActionException {
+    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<? extends WorkerResourceDescription>> availableResources) throws BlockedActionException, UnassignedActionException {
         this.schedule(actionScore);
+        List<ResourceScheduler<?>> uselessWorkers = new LinkedList<ResourceScheduler<?>>();
+        for (ResourceScheduler<?> resource : availableResources) {
+        	if (!resource.canRunSomething()) {
+        		uselessWorkers.add(resource);
+        	}
+        }
+        return uselessWorkers;
     }
 
     @SuppressWarnings("unchecked")

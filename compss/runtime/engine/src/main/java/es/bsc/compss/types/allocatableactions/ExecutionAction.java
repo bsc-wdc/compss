@@ -515,9 +515,10 @@ public class ExecutionAction extends AllocatableAction {
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
+    public final List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
         // COMPUTE RESOURCE CANDIDATES
         List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
+        List<ResourceScheduler<? extends WorkerResourceDescription>> uselessWorkers = new LinkedList<>();
         if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
             candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
@@ -537,6 +538,8 @@ public class ExecutionAction extends AllocatableAction {
                 	if (availableResources.contains(currentWorker)) {
                 		candidates.add(currentWorker);
                 	}
+                } else {
+                	uselessWorkers.add(currentWorker);
                 }
             }
             if (candidates.size() == 0) {
@@ -545,6 +548,7 @@ public class ExecutionAction extends AllocatableAction {
         }
         Collections.shuffle(candidates);
         this.schedule(actionScore, candidates);
+        return uselessWorkers;
     }
 
     private final <T extends WorkerResourceDescription> void schedule(Score actionScore,

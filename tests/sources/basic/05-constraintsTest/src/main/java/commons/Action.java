@@ -104,8 +104,8 @@ public class Action extends AllocatableAction {
     }
     
     @Override
-    public void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException {
-
+    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException {
+    	return null;
     }
 
     @Override

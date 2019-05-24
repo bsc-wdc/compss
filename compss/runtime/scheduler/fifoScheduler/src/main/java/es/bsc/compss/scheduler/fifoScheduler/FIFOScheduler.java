@@ -125,7 +125,10 @@ public class FIFOScheduler extends TaskScheduler {
 				if (DEBUG) {
 					LOGGER.debug("[ReadyScheduler] Trying to schedule action " + action);
 				}
-				action.tryToSchedule(actionScore, this.availableWorkers);
+	        	List<ResourceScheduler<?>> uselessWorkers = action.tryToSchedule(generateActionScore(action), this.availableWorkers);
+	        	for (ResourceScheduler<?> worker:uselessWorkers) {
+	        		this.availableWorkers.remove(worker);
+	        	}
 				ResourceScheduler<? extends WorkerResourceDescription> resource = action.getAssignedResource();
 				if (!resource.canRunSomething()) {
 					this.availableWorkers.remove(resource);
@@ -231,7 +234,10 @@ public class FIFOScheduler extends TaskScheduler {
 		while (executableActionsIterator.hasNext() && !this.availableWorkers.isEmpty()) {
 			AllocatableAction freeAction = executableActionsIterator.next();
 			try {
-				freeAction.tryToSchedule(generateActionScore(freeAction), this.availableWorkers);
+	        	List<ResourceScheduler<?>> uselessWorkers = freeAction.tryToSchedule(generateActionScore(freeAction), this.availableWorkers);
+	        	for (ResourceScheduler<?> worker:uselessWorkers) {
+	        		this.availableWorkers.remove(worker);
+	        	}
 				ResourceScheduler<? extends WorkerResourceDescription> assignedResource = freeAction
 						.getAssignedResource();
 				tryToLaunch(freeAction);

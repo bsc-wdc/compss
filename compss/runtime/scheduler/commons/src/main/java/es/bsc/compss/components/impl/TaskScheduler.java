@@ -370,7 +370,7 @@ public class TaskScheduler {
      * @param action
      *            Action to be scheduled.
      */
-    public final void newAllocatableAction(AllocatableAction action) {
+    public void newAllocatableAction(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Registering new AllocatableAction " + action);
         if (!action.hasDataPredecessors()) {
             addToReady(action);

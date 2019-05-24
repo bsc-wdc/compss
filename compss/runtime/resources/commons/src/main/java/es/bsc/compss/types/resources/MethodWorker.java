@@ -294,14 +294,34 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public boolean canRunNow(MethodResourceDescription consumption) {
+        if (DEBUG) {
+        	LOGGER.debug("Can run now");
+        }
         boolean canRun = super.canRunNow(consumption);
-
+        if (DEBUG) {
+        	LOGGER.debug(canRun);
+        }
         // Available slots
         canRun = canRun && this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU();
+        if (DEBUG) {
+        	LOGGER.debug(canRun);
+        }
         canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !consumption.containsGPU());
+        if (DEBUG) {
+        	LOGGER.debug(canRun);
+        }
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !consumption.containsFPGA());
+        if (DEBUG) {
+        	LOGGER.debug(canRun);
+        }
         canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
+        if (DEBUG) {
+        	LOGGER.debug(canRun);
+        }
         canRun = canRun && this.hasAvailable(consumption);
+        if (DEBUG) {
+        	LOGGER.debug(canRun);
+        }
         return canRun;
     }
 

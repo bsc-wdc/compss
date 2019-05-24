@@ -201,4 +201,10 @@ public class Processor implements Serializable {
 	public boolean isModified() {
 		return modified;
 	}
+	
+    @Override
+    public String toString() {
+        return "Processor " + name + " with " + computingUnits + " computing units, speed of " + speed +", architecture " + architecture
+        		+ ", type " + type + " internal memory of " + internalMemory + ", propName " + propName + " and propValue of " + propValue;
+    }
 }

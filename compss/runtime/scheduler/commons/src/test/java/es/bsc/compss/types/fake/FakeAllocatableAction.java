@@ -28,6 +28,7 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -140,8 +141,8 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
     
     @Override
-    public void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException {
-
+    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
+    	return null;
     }
 
     @Override

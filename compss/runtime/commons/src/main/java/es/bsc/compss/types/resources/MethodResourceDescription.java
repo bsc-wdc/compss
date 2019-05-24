@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.implementations.Implementation;
@@ -31,12 +32,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MethodResourceDescription extends WorkerResourceDescription {
 
     // Constant for weight difference (dynamic increase/decrease)
     private static final int DIFFERENCE_WEIGHT = 10_000;
     private static final int OTHER_PROC_DIFFERENCE_WEIGHT = 1_000;
+    
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Empty Resource Description
     public static final MethodResourceDescription EMPTY_FOR_RESOURCE = new MethodResourceDescription();
@@ -1070,18 +1076,33 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         contained = contained && checkProcessors(rc2);
         contained = contained && checkMemory(rc2);
         contained = contained && checkStorage(rc2);
-
+        LOGGER.debug("Check constraints for " + rc2 + " and the result is " + contained);
         return contained;
     }
 
     public boolean containsDynamic(MethodResourceDescription rc2) {
+    	if (DEBUG) {
+    		LOGGER.debug("containsDynamic");
+    	}
         boolean contained = checkProcessors(rc2);
+    	if (DEBUG) {
+    		LOGGER.debug(contained);
+    	}
         contained = contained && checkMemory(rc2);
+    	if (DEBUG) {
+    		LOGGER.debug(contained);
+    	}
+    	if (DEBUG) {
+    		LOGGER.debug("end containsDynamic");
+    	}
         return contained;
     }
 
     private boolean checkProcessors(MethodResourceDescription rc2) {
         for (Processor p : rc2.processors) {
+        	if (DEBUG) {
+        		LOGGER.debug("Looking for processor " + p);
+        	}
             if (!checkProcessor(p)) {
                 return false;
             }
@@ -1092,30 +1113,70 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkProcessor(Processor p) {
         for (Processor pThis : this.processors) {
+        	if (DEBUG) {
+        		LOGGER.debug("Look if " + this + " consins " + p);
+        	}
             if (checkProcessorContains(pThis, p)) {
                 // Satisfies all
                 return true;
             }
         }
-
+    	if (DEBUG) {
+    		LOGGER.debug("Negative for all processors");
+    	}
         return false;
     }
 
     private boolean checkProcessorContains(Processor pThis, Processor pRc2) {
-        boolean contains = checkProcessorCompatibility(pThis, pRc2) && checkInclusion(pThis.getComputingUnits(), pRc2.getComputingUnits());
-
+    	if (DEBUG) {
+    		LOGGER.debug("Entering in checkProcessorContains");
+    	}
+        boolean contains = checkProcessorCompatibility(pThis, pRc2);
+    	if (DEBUG) {
+    		LOGGER.debug(contains);
+    	}
+        contains = contains && checkInclusion(pThis.getComputingUnits(), pRc2.getComputingUnits());
+    	if (DEBUG) {
+    		LOGGER.debug(contains);
+    	}
         return contains;
     }
 
     private boolean checkProcessorCompatibility(Processor pThis, Processor pRc2) {
+    	if (DEBUG) {
+    		LOGGER.debug("Entering in checkProcessorCompatibility with values " + pThis + " and " + pRc2);
+    	}
         boolean compatible = checkCompatibility(pThis.getName(), pRc2.getName());
+    	if (DEBUG) {
+    		LOGGER.debug(compatible);
+    	}
         compatible = compatible && checkCompatibility(pThis.getArchitecture(), pRc2.getArchitecture());
+    	if (DEBUG) {
+    		LOGGER.debug(compatible);
+    	}
         compatible = compatible && checkInclusion(pThis.getSpeed(), pRc2.getSpeed());
+    	if (DEBUG) {
+    		LOGGER.debug(compatible);
+    	}
         compatible = compatible && checkCompatibility(pThis.getType(), pRc2.getType());
+    	if (DEBUG) {
+    		LOGGER.debug(compatible);
+    	}
         compatible = compatible && checkInclusion(pThis.getInternalMemory(), pRc2.getInternalMemory());
+    	if (DEBUG) {
+    		LOGGER.debug(compatible);
+    	}
         compatible = compatible && checkCompatibility(pThis.getPropName(), pRc2.getPropName());
+    	if (DEBUG) {
+    		LOGGER.debug(compatible);
+    	}
         compatible = compatible && checkCompatibility(pThis.getPropValue(), pRc2.getPropValue());
-
+    	if (DEBUG) {
+    		LOGGER.debug(compatible);
+    	}
+    	if (DEBUG) {
+    		LOGGER.debug("End of checkProcessorCompatibility");
+    	}
         return compatible;
     }
 
@@ -1133,10 +1194,16 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkInclusion(int value1, int value2) {
         // If the value1 (implicit) is unassigned (in terms of CUs) it cannot run anything
+    	if (DEBUG) {
+    		LOGGER.debug("Entering in checkInclusion with values " + value1 + " and " + value2);
+    	}
         return value1 >= value2 || value2 == UNASSIGNED_INT;
     }
 
     private boolean checkInclusion(float value1, float value2) {
+    	if (DEBUG) {
+    		LOGGER.debug("Entering in checkInclusion with values " + value1 + " and " + value2);
+    	}
         return value1 >= value2 || value1 == UNASSIGNED_FLOAT || value2 == UNASSIGNED_FLOAT;
     }
 

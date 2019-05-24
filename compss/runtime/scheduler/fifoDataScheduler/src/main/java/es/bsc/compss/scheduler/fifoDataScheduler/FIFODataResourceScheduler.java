@@ -75,6 +75,9 @@ public class FIFODataResourceScheduler<T extends WorkerResourceDescription> exte
         // LOGGER.debug("[FIFODataResourceScheduler] Generate implementation score for action " + action);
         if (this.hasBlockedActions()){
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks? 
+        	if (DEBUG) {
+        		LOGGER.debug("[FIFODataResourceScheduler] The current resource has blocked actions");
+        	}
             return null;
         }     
         

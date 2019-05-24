@@ -95,7 +95,11 @@ public class FIFODataScheduler extends ReadyScheduler {
                 scheduleAction(freeAction, resource, obj.getScore());
                 tryToLaunch(freeAction);
                 */
-				freeAction.tryToSchedule(obj.getScore(), this.availableWorkers);
+				
+	        	List<ResourceScheduler<?>> uselessWorkers = freeAction.tryToSchedule(obj.getScore(), this.availableWorkers);
+	        	for (ResourceScheduler<?> worker:uselessWorkers) {
+	        		this.availableWorkers.remove(worker);
+	        	}
 				ResourceScheduler<? extends WorkerResourceDescription> assignedResource = freeAction
 						.getAssignedResource();
 				tryToLaunch(freeAction);

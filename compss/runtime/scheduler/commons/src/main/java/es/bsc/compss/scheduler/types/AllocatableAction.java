@@ -543,6 +543,10 @@ public abstract class AllocatableAction {
         if (isToReleaseResources()) {
             Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) selectedResource.getResource();
             w.endTask(resourceConsumption);
+        } else {
+        	if (DEBUG) {
+        		LOGGER.debug("The resources are not being released");
+        	}
         }
     }
 
@@ -750,8 +754,10 @@ public abstract class AllocatableAction {
      * @param actionScore
      * @throws BlockedActionException
      * @throws UnassignedActionException
+     * 
+     * returns the workers that were in the available input list but that cannot run nothing
      */
-    public abstract void tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException;
+    public abstract List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException;
 
     /**
      * Schedules the action to a given @targetWorker with score @actionScore

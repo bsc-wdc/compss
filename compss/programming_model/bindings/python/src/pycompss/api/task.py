@@ -1127,6 +1127,7 @@ class task(object):
         def get_file_name(file_path):
             return file_path.split(':')[-1]
 
+
         # Deal with INOUTs
         from pycompss.util.persistent_storage import is_psco
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
@@ -1138,15 +1139,15 @@ class task(object):
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
                 from pycompss.util.serializer import serialize_to_file
                 if arg.type == parameter.TYPE.COLLECTION:
-                    def get_collection_objects(arg):
+                    def get_collection_objects(content, arg):
                         if arg.type == parameter.TYPE.COLLECTION:
-                            for elem in arg.collection_content:
-                                for sub_elem in get_collection_objects(elem):
+                            for (new_content, elem) in zip(arg.content, arg.collection_content):
+                                for sub_elem in get_collection_objects(new_content, elem):
                                     yield sub_elem
                         else:
-                            yield arg
-                    for elem in get_collection_objects(arg):
-                        serialize_to_file(elem.content, get_file_name(elem.file_name))
+                            yield (content, arg)
+                    for (content, elem) in get_collection_objects(arg.content, arg):
+                        serialize_to_file(content, get_file_name(elem.file_name))
                 else:
                     from pycompss.util.serializer import serialize_to_file
                     serialize_to_file(arg.content, get_file_name(arg.file_name))

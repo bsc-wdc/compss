@@ -60,6 +60,7 @@ public class NIOParamFactory {
             case OBJECT_T:
             case PSCO_T:
             case STREAM_T:
+            case EXTERNAL_STREAM_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
                 np = buildNioDependencyParam(param);

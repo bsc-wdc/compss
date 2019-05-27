@@ -1009,6 +1009,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case STREAM_T:
                 path = Protocol.STREAM_URI.getSchema() + name;
                 break;
+            case EXTERNAL_STREAM_T:
+                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                break;
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
@@ -1242,6 +1245,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         Parameter param = localParam.getParam();
         switch (param.getType()) {
             case FILE_T:
+            case EXTERNAL_STREAM_T:
                 // No need to store anything. Already stored on disk
                 break;
             case OBJECT_T:

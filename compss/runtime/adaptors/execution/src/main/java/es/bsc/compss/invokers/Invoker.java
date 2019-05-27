@@ -68,6 +68,7 @@ public abstract class Invoker {
 
     /**
      * Invoker constructor.
+     * 
      * @param context Invocation context
      * @param invocation task execution invocation description (job)
      * @param taskSandboxWorkingDir task execution sandboxed working dir
@@ -216,6 +217,7 @@ public abstract class Invoker {
                 case STRING_T:
                 case FILE_T:
                 case BINDING_OBJECT_T:
+                case EXTERNAL_STREAM_T:
                 case EXTERNAL_PSCO_T:
                     np.setValueClass(String.class);
                     break;
@@ -238,6 +240,7 @@ public abstract class Invoker {
 
     /**
      * Perform the task execution (job).
+     * 
      * @throws JobExecutionException Error execution the task
      */
     public void processTask() throws JobExecutionException {
@@ -251,7 +254,8 @@ public abstract class Invoker {
     }
 
     /**
-     *  Serialize the exit value in the task execution return parameter location.
+     * Serialize the exit value in the task execution return parameter location.
+     * 
      * @param returnParam Task execution return parameter
      * @param exitValue Exit value
      * @throws JobExecutionException Exception serializing the exist value.
@@ -329,7 +333,7 @@ public abstract class Invoker {
         // TRACING: Emit start task
         if (Tracer.extraeEnabled()) {
             // +1 Because Invocation ID can't be 0 (0 signals end task)
-            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; 
+            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1;
             int taskId = this.invocation.getTaskId();
             Tracer.emitEventAndCounters(coreId, Tracer.getTaskEventsType());
             Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());
@@ -350,7 +354,7 @@ public abstract class Invoker {
      * Writes the given list of workers to a hostfile inside the given task sandbox.
      *
      * @param taskSandboxWorkingDir task execution sandbox directory
-     * @param workers Strig with the list of workers in mpi hostfile style 
+     * @param workers Strig with the list of workers in mpi hostfile style
      * @return Returns the generated hostfile location inside the task sandbox
      * @throws InvokeExecutionException Exception writting hostfile
      */

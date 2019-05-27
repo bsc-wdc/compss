@@ -232,6 +232,7 @@ public class DataManagerImpl implements DataManager {
                 fetchBindingObject(param, paramIdx, tt);
                 break;
             case FILE_T:
+            case EXTERNAL_STREAM_T:
                 fetchFile(param, paramIdx, tt);
                 break;
             case EXTERNAL_PSCO_T:
@@ -598,11 +599,13 @@ public class DataManagerImpl implements DataManager {
         switch (param.getType()) {
             case OBJECT_T:
             case STREAM_T:
-            case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
+            case PSCO_T:
+                // Fetch stage already set the value on the param, but we make sure to collect the last version
                 loadObject(param);
                 break;
-            case COLLECTION_T:
+            case COLLECTION_T: // value corresponds to the collection ID
             case FILE_T: // value already contains the path
+            case EXTERNAL_STREAM_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
@@ -647,6 +650,7 @@ public class DataManagerImpl implements DataManager {
                 // Already stored on the binding
                 break;
             case FILE_T:
+            case EXTERNAL_STREAM_T:
                 // Already stored
                 break;
             default:

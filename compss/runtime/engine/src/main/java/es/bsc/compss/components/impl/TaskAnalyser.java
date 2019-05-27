@@ -39,6 +39,7 @@ import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -205,6 +206,10 @@ public class TaskAnalyser {
                 StreamParameter sp = (StreamParameter) p;
                 daId = this.dip.registerStreamAccess(am, sp.getValue(), sp.getCode());
                 break;
+            case EXTERNAL_STREAM_T:
+                ExternalStreamParameter esp = (ExternalStreamParameter) p;
+                daId = this.dip.registerExternalStreamAccess(am, esp.getLocation());
+                break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter content : cp.getParameters()) {
@@ -241,6 +246,7 @@ public class TaskAnalyser {
                             if (wi != null) {
                                 switch (wi.getDataType()) {
                                     case STREAM_T:
+                                    case EXTERNAL_STREAM_T:
                                         // Retrieve all the stream writers and enforce the execution to be near any
                                         List<Task> lastWriters = wi.getStreamWriters();
                                         if (!lastWriters.isEmpty()) {
@@ -436,8 +442,8 @@ public class TaskAnalyser {
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
             if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-                    || type == DataType.STREAM_T || type == DataType.EXTERNAL_PSCO_T
-                    || type == DataType.BINDING_OBJECT_T) {
+                    || type == DataType.STREAM_T || type == DataType.EXTERNAL_STREAM_T
+                    || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
 
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
@@ -482,6 +488,7 @@ public class TaskAnalyser {
                             if (wi != null) {
                                 switch (wi.getDataType()) {
                                     case STREAM_T:
+                                    case EXTERNAL_STREAM_T:
                                         // Streams have no result files regarding their direction
                                         break;
                                     default:
@@ -548,6 +555,7 @@ public class TaskAnalyser {
         if (wi != null) {
             switch (wi.getDataType()) {
                 case STREAM_T:
+                case EXTERNAL_STREAM_T:
                     // Mark the data accesses
                     List<Task> lastStreamWriters = wi.getStreamWriters();
                     for (Task lastWriter : lastStreamWriters) {
@@ -593,6 +601,7 @@ public class TaskAnalyser {
             if (wi != null) {
                 switch (wi.getDataType()) {
                     case STREAM_T:
+                    case EXTERNAL_STREAM_T:
                         // Nothing to do, we do not reset the writers because of the main access
                         break;
                     default:
@@ -765,6 +774,7 @@ public class TaskAnalyser {
         if (wi != null) {
             switch (wi.getDataType()) {
                 case STREAM_T:
+                case EXTERNAL_STREAM_T:
                     // No data to delete
                     break;
                 default:
@@ -817,6 +827,7 @@ public class TaskAnalyser {
         if (wi != null) {
             switch (wi.getDataType()) {
                 case STREAM_T:
+                case EXTERNAL_STREAM_T:
                     addStreamDependency(currentTask, dp, wi);
                     break;
                 default:
@@ -930,6 +941,7 @@ public class TaskAnalyser {
         // Add edges on graph depending on the dependency type
         switch (dp.getType()) {
             case STREAM_T:
+            case EXTERNAL_STREAM_T:
                 addStreamEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
                 break;
             default:
@@ -989,6 +1001,7 @@ public class TaskAnalyser {
         // Update global last writers
         switch (dp.getType()) {
             case STREAM_T:
+            case EXTERNAL_STREAM_T:
                 WritersInfo wi = this.writers.get(dataId);
                 if (wi != null) {
                     wi.addStreamWriter(currentTask);

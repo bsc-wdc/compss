@@ -19,18 +19,16 @@ package es.bsc.compss.types.parameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
-
 import es.bsc.compss.types.data.location.DataLocation;
 
 
-public class FileParameter extends DependencyParameter {
+public class ExternalStreamParameter extends DependencyParameter {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    // File parameter fields
     private final DataLocation location;
     private final String originalName;
 
@@ -45,13 +43,12 @@ public class FileParameter extends DependencyParameter {
      * @param location File location.
      * @param originalName Original file name.
      */
-    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, DataLocation location,
-            String originalName) {
+    public ExternalStreamParameter(Direction direction, StdIOStream stream, String prefix, String name,
+            DataLocation location, String originalName) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name);
+        super(DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name);
         this.location = location;
         this.originalName = originalName;
-
     }
 
     public DataLocation getLocation() {
@@ -65,7 +62,7 @@ public class FileParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection();
+        return "ExternalStreamParameter with location " + this.location + ", direction " + getDirection();
     }
 
 }

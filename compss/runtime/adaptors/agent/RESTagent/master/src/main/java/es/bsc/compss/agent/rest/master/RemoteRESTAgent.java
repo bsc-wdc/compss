@@ -184,7 +184,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
-        //Copy already done on obtainData()
+        // Copy already done on obtainData()
         listener.notifyEnd(null);
     }
 
@@ -208,9 +208,10 @@ public class RemoteRESTAgent extends COMPSsWorker {
             case STREAM_T:
                 path = Protocol.STREAM_URI.getSchema() + name;
                 break;
-            case PSCO_T:
-                path = Protocol.PERSISTENT_URI.getSchema() + name;
+            case EXTERNAL_STREAM_T:
+                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
+            case PSCO_T:
             case EXTERNAL_PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;

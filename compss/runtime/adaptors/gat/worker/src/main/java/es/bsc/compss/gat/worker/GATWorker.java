@@ -353,6 +353,7 @@ public class GATWorker implements InvocationContext {
                 }
                 break;
             case FILE_T: // value already contains the path
+            case EXTERNAL_STREAM_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;
@@ -376,6 +377,7 @@ public class GATWorker implements InvocationContext {
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
                 throw new UnsupportedOperationException("Output PSCOs are not suported with the GAT adaptor");
             case FILE_T: // value already contains the path
+            case EXTERNAL_STREAM_T: // value already contains the path
             case BINDING_OBJECT_T: // value corresponds to the ID of the object on the binding (already set)
             case EXTERNAL_PSCO_T: // value corresponds to the ID of the
                 break;

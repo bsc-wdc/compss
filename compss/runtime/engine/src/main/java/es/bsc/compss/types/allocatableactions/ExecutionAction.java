@@ -221,6 +221,7 @@ public class ExecutionAction extends AllocatableAction {
                 }
                 break;
             case STREAM_T:
+            case EXTERNAL_STREAM_T:
                 // Stream stubs are always transferred independently of their access
                 transferStreamParameter(param, listener);
                 break;
@@ -459,6 +460,7 @@ public class ExecutionAction extends AllocatableAction {
                     targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
                     break;
                 case STREAM_T:
+                case EXTERNAL_STREAM_T:
                     // FTM already knows about this datum
                     return null;
                 case COLLECTION_T:

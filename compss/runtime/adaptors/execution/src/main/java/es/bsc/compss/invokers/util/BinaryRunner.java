@@ -20,15 +20,16 @@ import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.DistroStream;
 import es.bsc.distrostreamlib.api.files.FileDistroStream;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
@@ -44,6 +45,7 @@ public class BinaryRunner {
 
     private static final String ERROR_PARAM_NOT_STRING = "ERROR: Binary parameter cannot be serialized to string";
     private static final String ERROR_STREAM = "ERROR: Object and PSCO streams are not supported in non-native tasks";
+    private static final String ERROR_EXTERNAL_STREAM = "ERROR: Invalid serialized content of the external stream";
     private static final String ERROR_OUTPUTREADER = "ERROR: Cannot retrieve command output";
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
@@ -142,7 +144,7 @@ public class BinaryRunner {
         // Add value
         switch (param.getType()) {
             case FILE_T:
-                binaryParamFields.add(String.valueOf(param.getOriginalName()));
+                binaryParamFields.add(param.getOriginalName());
                 break;
             case STREAM_T:
                 DistroStream<?> ds = (DistroStream<?>) param.getValue();
@@ -155,6 +157,25 @@ public class BinaryRunner {
                         throw new InvokeExecutionException(ERROR_STREAM);
                 }
                 break;
+            case EXTERNAL_STREAM_T:
+                String serializedFile = param.getOriginalName();
+                String baseDir = null;
+                try (BufferedReader reader = new BufferedReader(new FileReader(serializedFile))) {
+                    String line = reader.readLine();
+                    while (line != null) {
+                        if (line.startsWith("S'/")) {
+                            baseDir = line.trim().substring(2, line.length() - 1);
+                            break;
+                        }
+                        line = reader.readLine();
+                    }
+                } catch (IOException ioe) {
+                    throw new InvokeExecutionException(ERROR_EXTERNAL_STREAM, ioe);
+                }
+                if (baseDir == null || baseDir.isEmpty()) {
+                    throw new InvokeExecutionException(ERROR_EXTERNAL_STREAM);
+                }
+                binaryParamFields.add(baseDir);
             default:
                 binaryParamFields.add(String.valueOf(param.getValue()));
                 break;
@@ -292,10 +313,21 @@ public class BinaryRunner {
 
     public static void closeStreams(List<? extends InvocationParam> parameters) {
         for (InvocationParam p : parameters) {
-            if (p.getType().equals(DataType.STREAM_T) && p.isWriteFinalValue()) {
-                // OUT Stream
-                DistroStream<?> ds = (DistroStream<?>) p.getValue();
-                ds.close();
+            if (p.isWriteFinalValue()) {
+                switch (p.getType()) {
+                    case STREAM_T:
+                        // OUT Stream
+                        DistroStream<?> ds = (DistroStream<?>) p.getValue();
+                        ds.close();
+                        break;
+                    case EXTERNAL_STREAM_T:
+                        // External streams cannot be closed for the moment
+                        // TODO: Close them somehow
+                        break;
+                    default:
+                        // Nothing to do
+                        break;
+                }
             }
         }
     }

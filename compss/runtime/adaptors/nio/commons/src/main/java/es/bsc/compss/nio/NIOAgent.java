@@ -215,6 +215,7 @@ public abstract class NIOAgent {
                 }
                 switch (dr.getType()) {
                     case FILE_T:
+                    case EXTERNAL_STREAM_T:
                         c.receiveDataFile(dr.getTarget());
                         c.finishConnection();
                         break;
@@ -225,9 +226,12 @@ public abstract class NIOAgent {
                             receiveBindingObjectAsFile(c, dr);
                         }
                         break;
+                    case STRING_T:
+                    case OBJECT_T:
+                    case STREAM_T:
                     case COLLECTION_T:
-                        c.receiveDataObject();
-                        c.finishConnection();
+                    case EXTERNAL_PSCO_T:
+                    case PSCO_T:
                     default:
                         c.receiveDataObject();
                         c.finishConnection();
@@ -320,6 +324,8 @@ public abstract class NIOAgent {
         Protocol scheme = d.getFirstURI().getProtocol();
         switch (scheme) {
             case FILE_URI:
+            case SHARED_URI:
+            case EXTERNAL_STREAM_URI:
                 sendFile(c, path, d);
                 break;
             case BINDING_URI:
@@ -329,7 +335,10 @@ public abstract class NIOAgent {
                     sendBindingObjectAsFile(c, path, d);
                 }
                 break;
-            default:
+            case OBJECT_URI:
+            case STREAM_URI:
+            case PERSISTENT_URI:
+            case ANY_URI:
                 sendObject(c, path, d);
                 break;
         }

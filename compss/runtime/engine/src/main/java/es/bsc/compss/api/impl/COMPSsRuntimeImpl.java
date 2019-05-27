@@ -50,6 +50,7 @@ import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -1164,6 +1165,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 pars.add(new StreamParameter(direction, stream, prefix, name, content,
                         oReg.newObjectParameter(content)));
                 break;
+            case EXTERNAL_STREAM_T:
+                try {
+                    String fileName = (String) content;
+                    String canonicalPath = new File(fileName).getCanonicalPath();
+                    String locationPath = Protocol.EXTERNAL_STREAM_URI.getSchema() + canonicalPath;
+                    DataLocation location = createLocation(locationPath);
+                    String originalName = new File(fileName).getName();
+                    pars.add(new ExternalStreamParameter(direction, stream, prefix, name, location, originalName));
+                } catch (Exception e) {
+                    LOGGER.error(ERROR_FILE_NAME, e);
+                    ErrorManager.fatal(ERROR_FILE_NAME, e);
+                }
+                break;
             case EXTERNAL_PSCO_T:
                 String id = (String) content;
                 pars.add(new ExternalPSCOParameter(direction, stream, prefix, name, id, externalObjectHashcode(id)));
@@ -1267,7 +1281,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             // This function call is isolated for better readability and to easily
             // allow recursion in the case of collections
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + (NUM_FIELDS_PER_PARAM * i + 1) + " has type " + type.name());
+                LOGGER.debug("  Parameter " + i + " has type " + type.name());
             }
             addParameter(content, type, direction, stream, prefix, name, pars, 0, null);
         }

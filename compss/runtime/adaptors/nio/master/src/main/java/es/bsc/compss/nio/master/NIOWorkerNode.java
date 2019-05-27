@@ -573,7 +573,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + config.getSandboxWorkingDir() + name;
+                path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case OBJECT_T:
             case COLLECTION_T:
@@ -581,6 +581,9 @@ public class NIOWorkerNode extends COMPSsWorker {
                 break;
             case STREAM_T:
                 path = Protocol.STREAM_URI.getSchema() + name;
+                break;
+            case EXTERNAL_STREAM_T:
+                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case PSCO_T:
                 // Search for the PSCO id
@@ -592,7 +595,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = Protocol.BINDING_URI.getSchema() + config.getSandboxWorkingDir() + name;
+                path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;

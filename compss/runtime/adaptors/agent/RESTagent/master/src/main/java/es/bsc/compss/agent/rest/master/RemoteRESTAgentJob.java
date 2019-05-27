@@ -128,6 +128,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 case FILE_T:
                 case OBJECT_T:
                 case STREAM_T:
+                case EXTERNAL_STREAM_T:
                 case EXTERNAL_PSCO_T:
                 case PSCO_T:
                     DependencyParameter dPar = (DependencyParameter) param;

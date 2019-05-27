@@ -56,6 +56,7 @@ public class LocalParameter implements InvocationParam {
             case OBJECT_T:
             case STREAM_T:
             case PSCO_T:
+            case EXTERNAL_STREAM_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
                 DependencyParameter dPar = (DependencyParameter) param;
@@ -85,11 +86,11 @@ public class LocalParameter implements InvocationParam {
                     // Read only mode
                     RAccessId raId = (RAccessId) faId;
                     this.sourceDataMgmtId = raId.getReadDataInstance().getRenaming();
-                    dataMgmtId = this.sourceDataMgmtId;
+                    this.dataMgmtId = this.sourceDataMgmtId;
                 } else {
                     WAccessId waId = (WAccessId) faId;
                     this.sourceDataMgmtId = null;
-                    dataMgmtId = waId.getWrittenDataInstance().getRenaming();
+                    this.dataMgmtId = waId.getWrittenDataInstance().getRenaming();
                 }
                 if (this.sourceDataMgmtId != null) {
                     String pscoId = Comm.getData(this.sourceDataMgmtId).getPscoId();

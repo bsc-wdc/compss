@@ -33,7 +33,7 @@ enum direction {
 
 // MATCHED JAVA COMPSsRuntime PARAMETER API Enum
 // Adds stream representations
-enum stream {
+enum io_stream {
     STD_IN = 0,
     STD_OUT,
     STD_ERR,

@@ -167,19 +167,23 @@ public class WSJob extends Job<ServiceInstance> {
                             switch (par.getType()) {
                                 case OBJECT_T:
                                 case PSCO_T:
-                                case STREAM_T:
                                 case EXTERNAL_PSCO_T:
                                     DependencyParameter dp = (DependencyParameter) par;
                                     Object o = getObjectValue(dp);
                                     input.add(o);
                                     break;
                                 case FILE_T:
-                                    LOGGER.error("Error: WS CAN'T USE BINDING FILES AS A PARAMETER!");
-                                    // CAN'T USE A FILE AS A PARAMETER
-                                    // SKIP!
+                                    LOGGER.error("Error: WS CAN'T USE BINDING FILES AS PARAMETERS!");
+                                    // Skip
+                                    break;
+                                case STREAM_T:
+                                case EXTERNAL_STREAM_T:
+                                    LOGGER.error("Error: WS CAN'T USE STREAMS AS PARAMETERS!");
+                                    // Skip
                                     break;
                                 case BINDING_OBJECT_T:
-                                    LOGGER.error("Error: WS CAN'T USE BINDING OBJECTS AS A PARAMETER!");
+                                    LOGGER.error("Error: WS CAN'T USE BINDING OBJECTS AS PARAMETERS!");
+                                    // Skip
                                     break;
                                 default:
                                     // Basic or String

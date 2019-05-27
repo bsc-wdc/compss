@@ -48,5 +48,6 @@ public enum DataType {
     ARRAY_DOUBLE_T, // Array double
     COLLECTION_T, // Collection
     STREAM_T, // Streams
+    EXTERNAL_STREAM_T, // Binding Streams
     NULL_T; // Null
 }

@@ -134,7 +134,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
-        //Copy already done on obtainData()
+        // Copy already done on obtainData()
         listener.notifyEnd(null);
     }
 
@@ -171,6 +171,9 @@ public class ServiceInstance extends COMPSsWorker {
                 break;
             case STREAM_T:
                 path = Protocol.STREAM_URI.getSchema() + name;
+                break;
+            case EXTERNAL_STREAM_T:
+                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;

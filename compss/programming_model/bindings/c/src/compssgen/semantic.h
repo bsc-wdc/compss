@@ -30,7 +30,7 @@ struct argument {
     char *classname;
     enum datatype	type;
     enum direction	dir;
-    enum stream     stream;
+    enum io_stream     stream;
     int passing_in_order;
     int passing_out_order;
     char *elements;

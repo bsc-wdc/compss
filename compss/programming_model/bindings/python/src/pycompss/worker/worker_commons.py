@@ -21,27 +21,37 @@ from pycompss.util.serializer import SerializerException
 from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.api.parameter as parameter
 
-def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args = None, pos = None):
 
+def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args=None, pos=None):
     from pycompss.api.parameter import TaskParameter
     if p_type in [parameter.TYPE.FILE, parameter.TYPE.COLLECTION]:
         # Maybe the file is a object, we dont care about this here
         # We will decide whether to deserialize or to forward the value
         # when processing parameters in the task decorator
         return TaskParameter(
-            p_type = p_type,
-            stream = p_stream,
-            prefix = p_prefix,
-            name = p_name,
-            file_name = p_value
+            p_type=p_type,
+            stream=p_stream,
+            prefix=p_prefix,
+            name=p_name,
+            file_name=p_value
         ), 0
     elif p_type == parameter.TYPE.EXTERNAL_PSCO:
+        # Next position contains R/W but we do not need it. Currently skipped.
         return TaskParameter(
-            p_type = p_type,
-            stream = p_stream,
-            prefix = p_prefix,
-            name = p_name,
-            key = p_value
+            p_type=p_type,
+            stream=p_stream,
+            prefix=p_prefix,
+            name=p_name,
+            key=p_value
+        ), 1
+    elif p_type == parameter.TYPE.EXTERNAL_STREAM:
+        # Next position contains R/W but we do not need it. Currently skipped.
+        return TaskParameter(
+            p_type=p_type,
+            stream=p_stream,
+            prefix=p_prefix,
+            name=p_name,
+            file_name=p_value
         ), 1
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
@@ -329,7 +339,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" % process_name)
         logger.exception(''.join(line for line in lines))
-        logger.exception("Check that all parameters have been defined with an absolute import path (even if in the same file)")
+        logger.exception(
+            "Check that all parameters have been defined with an absolute import path (even if in the same file)")
         # If exception is raised during the task execution, new_types and
         # new_values are empty
         return 1, new_types, new_values
@@ -390,7 +401,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                     obj = deserialize_from_file(file_name)
                     if __debug__:
                         logger.debug('Deserialized self object is: %s' % self_elem.content)
-                        logger.debug("Processing callee, a hidden object of %s in file %s" % (file_name, type(self_elem.content)))
+                        logger.debug("Processing callee, a hidden object of %s in file %s" % (
+                            file_name, type(self_elem.content)))
             values.insert(0, obj)
             types.insert(0,
                          parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)

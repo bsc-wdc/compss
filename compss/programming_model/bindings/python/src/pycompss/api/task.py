@@ -940,7 +940,7 @@ class task(object):
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
             return self.decorator_arguments[original_name].type in [parameter.TYPE.COLLECTION,
-                                                                    parameter.TYPE.STREAM,
+                                                                    parameter.TYPE.EXTERNAL_STREAM,
                                                                     None]
         # The parameter is not annotated in the decorator, so (by default) return True
         return True
@@ -988,6 +988,9 @@ class task(object):
                 else:
                     # The object is a FILE, just forward the path of the file as a string parameter
                     arg.content = arg.file_name.split(':')[-1]
+            elif arg.type == parameter.TYPE.EXTERNAL_STREAM:
+                from pycompss.util.serializer import deserialize_from_file
+                arg.content = deserialize_from_file(arg.file_name)
             elif arg.type == parameter.TYPE.COLLECTION:
                 arg.content = []
                 # This field is exclusive for COLLECTION_T parameters, so make sure you have checked this

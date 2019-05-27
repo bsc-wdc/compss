@@ -600,6 +600,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
         switch (type) {
             case FILE_T:
+            case EXTERNAL_STREAM_T:
                 DependencyParameter dFilePar = (DependencyParameter) param;
                 String originalName = dFilePar.getOriginalName();
                 paramDesc.add(originalName);

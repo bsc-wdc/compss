@@ -132,7 +132,7 @@ public class DataInfoProvider {
         // First access to this file
         if (fileId == null) {
             if (DEBUG) {
-                LOGGER.debug("FIRST access to " + location.getLocationKey());
+                LOGGER.debug("FIRST access to file " + location.getLocationKey());
             }
 
             // Update mappings
@@ -143,12 +143,14 @@ public class DataInfoProvider {
 
             // Register the initial location of the file
             if (mode != AccessMode.W) {
-                Comm.registerLocation(fileInfo.getCurrentDataVersion().getDataInstanceId().getRenaming(), location);
+                DataInstanceId lastDID = fileInfo.getCurrentDataVersion().getDataInstanceId();
+                String renaming = lastDID.getRenaming();
+                Comm.registerLocation(renaming, location);
             }
         } else {
             // The file has already been accessed, all location are already registered
             if (DEBUG) {
-                LOGGER.debug("Another access to " + location.getLocationKey());
+                LOGGER.debug("Another access to file " + location.getLocationKey());
             }
             fileInfo = this.idToData.get(fileId);
         }
@@ -243,6 +245,46 @@ public class DataInfoProvider {
 
         // Version management
         return willAccess(mode, oInfo);
+    }
+
+    /**
+     * DataAccess interface: registers a new file access.
+     *
+     * @param mode File Access Mode.
+     * @param location File location.
+     * @return The registered access Id.
+     */
+    public DataAccessId registerExternalStreamAccess(AccessMode mode, DataLocation location) {
+        DataInfo externalStreamInfo;
+        int locationKey = location.getLocationKey().hashCode();
+        Integer externalStreamId = this.codeToId.get(locationKey);
+
+        // First access to this file
+        if (externalStreamId == null) {
+            if (DEBUG) {
+                LOGGER.debug("FIRST access to external stream " + locationKey);
+            }
+
+            // Update mappings
+            externalStreamInfo = new StreamInfo(locationKey);
+            externalStreamId = externalStreamInfo.getDataId();
+            this.codeToId.put(locationKey, externalStreamId);
+            this.idToData.put(externalStreamId, externalStreamInfo);
+
+            // Register the initial location of the stream
+            DataInstanceId lastDID = externalStreamInfo.getCurrentDataVersion().getDataInstanceId();
+            String renaming = lastDID.getRenaming();
+            Comm.registerLocation(renaming, location);
+        } else {
+            // The external stream has already been accessed, all location are already registered
+            if (DEBUG) {
+                LOGGER.debug("Another access to external stream " + locationKey);
+            }
+            externalStreamInfo = this.idToData.get(externalStreamId);
+        }
+
+        // Version management
+        return willAccess(mode, externalStreamInfo);
     }
 
     /**
@@ -837,8 +879,7 @@ public class DataInfoProvider {
 
         Semaphore sem = toRequest.getSemaphore();
         BindingObject srcBO = BindingObject.generate(srcLd.getURIs().get(0).getPath());
-        BindingObject tgtBO = new BindingObject(sourceName, srcBO.getType(),
-                srcBO.getElements());
+        BindingObject tgtBO = new BindingObject(sourceName, srcBO.getType(), srcBO.getElements());
         LogicalData tgtLd = srcLd;
         DataLocation targetLocation = new BindingObjectLocation(Comm.getAppHost(), tgtBO);
         Transferable transfer = new BindingObjectTransferable(toRequest);

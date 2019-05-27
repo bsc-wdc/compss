@@ -146,6 +146,7 @@ public abstract class ImplementationDefinition implements Invocation {
 
             switch (argType) {
                 case FILE_T:
+                case EXTERNAL_STREAM_T:
                     originalName = args[appArgsIdx++];
                     value = args[appArgsIdx++];
                     break;

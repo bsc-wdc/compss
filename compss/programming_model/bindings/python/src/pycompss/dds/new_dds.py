@@ -567,10 +567,9 @@ class DDS(object):
         return self.map_and_flatten(dummy)
 
     def combine_by_key(self, creator_func, combiner_func, merger_function,
-                       total_parts=-1, collect=False):
+                       total_parts=-1):
         """
         """
-        total_parts = len(self.partitions) if total_parts < 0 else total_parts
 
         def combine_partition(partition):
             """
@@ -579,42 +578,31 @@ class DDS(object):
             for key, val in partition:
                 res[key] = combiner_func(res[key], val) if key in res \
                                                         else creator_func(val)
-            return res
+            return res.items()
 
-        locally_combined = self.map_partitions(combine_partition)\
-            .collect(future_objects=True)
+        def merge_partition(partition):
+            """
+            """
+            res = dict()
+            for key, val in partition:
+                res[key] = merger_function(res[key], val) if key in res \
+                                                        else val
+            return res.items()
 
-        future_objects = deque(locally_combined)
-        while future_objects:
-            first = future_objects.popleft()
-            if future_objects:
-                second = future_objects.popleft()
-                merge_dicts(first, second, merger_function)
-                future_objects.append(first)
-            else:
-                # If it's the last item in the queue, retrieve it:
-                if collect:
-                    # As a dict if necessary
-                    ret = compss_wait_on(first)
-                    return ret
+        ret = self.map_partitions(combine_partition)\
+            .partition_by(num_of_partitions=total_parts)\
+            .map_partitions(merge_partition)
 
-                # As a list of future objects
-                # TODO: Implement 'dict' --> 'lists on nodes'
-                new_partitions = list()
-                for i in range(total_parts):
-                    new_partitions.append(task_dict_to_list(first, total_parts, i))
+        return ret
 
-                return DDS().load(new_partitions, -1)
-
-    def reduce_by_key(self, f, collect=False):
+    def reduce_by_key(self, f):
         """ Reduce values for each key.
         :param f: a reducer function which takes two parameters and returns one.
-        :param collect: if should retrieve results
 
         >>> DDS().load([("a",1), ("a",2)]).reduce_by_key((lambda a, b: a+b), collect=True)
         {'a': 3}
         """
-        return self.combine_by_key((lambda x: x), f, f, collect=collect)
+        return self.combine_by_key((lambda x: x), f, f)
 
     def count_by_key(self, as_dict=False):
         """

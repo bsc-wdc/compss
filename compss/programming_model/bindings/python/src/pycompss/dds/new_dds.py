@@ -632,8 +632,8 @@ class DDS(object):
         """ Reduce values for each key.
         :param f: a reducer function which takes two parameters and returns one.
 
-        >>> DDS().load([("a",1), ("a",2)]).reduce_by_key((lambda a, b: a+b), collect=True)
-        {'a': 3}
+        >>> DDS().load([("a",1), ("a",2)]).reduce_by_key((lambda a, b: a+b)).collect()
+        [('a', 3)]
         """
         return self.combine_by_key((lambda x: x), f, f)
 

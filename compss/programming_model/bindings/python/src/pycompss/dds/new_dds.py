@@ -28,9 +28,15 @@ from operator import add
 
 
 @task(returns="NUMBER_OF_SUB_PARTITIONS")
-def distribute_partition(partition, filter_func, nop):
+def distribute_partition(partition, partition_func, nop, func=None):
     """
     """
+    if isinstance(partition, IPartitionGenerator):
+        partition = partition.retrieve_data()
+
+    if func:
+        partition = func(partition)
+
     global NUMBER_OF_SUB_PARTITIONS
 
     from collections import defaultdict
@@ -40,7 +46,29 @@ def distribute_partition(partition, filter_func, nop):
         buckets[_i] = list()
 
     for k, v in partition:
-        buckets[filter_func(k) % nop].append((k, v))
+        buckets[partition_func(k) % nop].append((k, v))
+
+    return buckets.items()
+
+
+@task(returns="NUMBER_OF_SUB_PARTITIONS")
+def distribute_collection(partition_func, nop, func=None, *args):
+    """
+    """
+    partition = list(args)
+    if func:
+        partition = func(partition)
+
+    global NUMBER_OF_SUB_PARTITIONS
+
+    from collections import defaultdict
+    buckets = defaultdict(list)
+
+    for _i in range(nop):
+        buckets[_i] = list()
+
+    for k, v in partition:
+        buckets[partition_func(k) % nop].append((k, v))
 
     return buckets.items()
 
@@ -69,10 +97,10 @@ class DDS(object):
         # If partitions are not Future Objects but list of Future Objects
         self.paafo = False
 
-    def load(self, iterator, num_of_parts=10, something=False):
+    def load(self, iterator, num_of_parts=10, paafo=False):
         """
         """
-        self.paafo = something
+        self.paafo = paafo
         if num_of_parts == -1:
             self.partitions = iterator
             return self
@@ -519,14 +547,19 @@ class DDS(object):
 
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions
-        collected = self.collect(keep_partitions=True, future_objects=True)
 
         grouped = defaultdict(list)
         global NUMBER_OF_SUB_PARTITIONS
         NUMBER_OF_SUB_PARTITIONS = nop
 
-        for partition in collected:
-            temp = distribute_partition(partition, partition_func, nop)
+        for partition in self.partitions:
+            if self.paafo:
+                temp = distribute_collection(
+                    partition_func, nop, self.func, *partition)
+            else:
+                temp = distribute_partition(
+                    partition, partition_func, nop, self.func)
+
             for _i in range(nop):
                 grouped[_i].append(temp[_i])
 

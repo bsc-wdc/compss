@@ -67,6 +67,8 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -81,6 +83,7 @@ import storage.StorageItf;
 public class NIOWorkerNode extends COMPSsWorker {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private NIONode node;
     private final NIOConfiguration config;
@@ -250,21 +253,25 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
             Transferable reason, EventListener listener) {
-
+        if (DEBUG) {
+            LOGGER.debug("Sending data " + ld.getName() + " from worker node " +this.getName());
+        }
         if (target.getHosts().contains(Comm.getAppHost())) {
             // Request to master
 
             // Order petition directly
-            if (tgtData != null) {
-                MultiURI u = ld.alreadyAvailable(Comm.getAppHost());
-                if (u != null) { // Already present at the master
+            /*if (tgtData != null) {
+                MultiURI u = tgtData.alreadyAvailable(Comm.getAppHost());
+                if (u != null) { 
+                    if (DEBUG) {
+                        LOGGER.debug("Data " + ld.getName() + " already present at the master.");
+                    }
                     reason.setDataTarget(u.getPath());
                     listener.notifyEnd(null);
                     return;
                 }
-            }
-
-            Copy c = new DeferredCopy(ld, null, target, tgtData, reason, listener);
+            }*/
+                       
             NIOData d = new NIOData(ld);
             if (source != null) {
                 for (MultiURI uri : source.getURIs()) {
@@ -277,8 +284,10 @@ public class NIOWorkerNode extends COMPSsWorker {
                         // Ignore internal URI
                     }
                 }
+            } else {
+                LOGGER.warn(" Source location for data " + ld.getName() + " is null.");    
             }
-
+            Copy c = new DeferredCopy(ld, null, target, tgtData, reason, listener);
             String path = target.getURIInHost(Comm.getAppHost()).getPath();
             c.setFinalTarget(path);
             ld.startCopy(c, c.getTargetLoc());
@@ -287,6 +296,9 @@ public class NIOWorkerNode extends COMPSsWorker {
             commManager.requestTransfers();
         } else {
             // Request to any other
+            if (DEBUG) {
+                LOGGER.debug(" Ordering deferred copy for data " + ld.getName());
+            }
             orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
         }
     }
@@ -296,10 +308,11 @@ public class NIOWorkerNode extends COMPSsWorker {
             Transferable reason, EventListener listener) {
 
         if (ld == null) {
+            LOGGER.debug("Logical data to obtain is null");
             return;
         }
 
-        if (LOGGER.isDebugEnabled()) {
+        if (DEBUG) {
             LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
         }
 
@@ -307,7 +320,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (ld.getPscoId() != null) {
             orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
         } else {
-            if (LOGGER.isDebugEnabled()) {
+            if (DEBUG) {
                 LOGGER.debug("Ordering deferred copy " + ld.getName());
             }
             orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
@@ -316,7 +329,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     private void orderStorageCopy(StorageCopy sc) {
         LOGGER.info("Order PSCO Copy for " + sc.getSourceData().getName());
-        if (LOGGER.isDebugEnabled()) {
+        if (DEBUG) {
             LOGGER.debug("LD Target " + sc.getTargetData());
             LOGGER.debug("FROM: " + sc.getPreferredSource());
             LOGGER.debug("TO: " + sc.getTargetLoc());
@@ -439,8 +452,9 @@ public class NIOWorkerNode extends COMPSsWorker {
         LogicalData ld = c.getSourceData();
         String path;
         synchronized (ld) {
-            if (c.getTargetData() != null) {
-                MultiURI u = ld.alreadyAvailable(tgtRes);
+            LogicalData tgtData = c.getTargetData();
+            if (tgtData != null) {
+                MultiURI u = tgtData.alreadyAvailable(tgtRes);
                 if (u != null) {
                     path = u.getPath();
                 } else {

@@ -346,7 +346,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         switch (absImpl.getMethodType()) {
             case METHOD:
                 Lang lang = getLang();
-                lArgs.add(lang.toString());
+                lArgs.add(lang.toString().toLowerCase());
                 switch (lang) {
                     case JAVA:
                         lArgs.add(getClasspath());

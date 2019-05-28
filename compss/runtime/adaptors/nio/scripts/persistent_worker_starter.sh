@@ -34,7 +34,7 @@
   if [ "$debug" == "true" ]; then
       export COMPSS_BINDINGS_DEBUG=1
       export NX_ARGS="--summary"
-      echo "Calling NIOWorker"
+      echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
@@ -45,7 +45,7 @@
 
   # Exit with the worker status (last command)
   if [ "$debug" == "true" ]; then
-    echo "Exit NIOWorker"
+    echo "[persistent_worker.sh] Exit NIOWorker of host ${hostName} with exit value ${exitValue}"
   fi
   exit $exitValue
 

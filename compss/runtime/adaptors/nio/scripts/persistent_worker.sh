@@ -43,7 +43,7 @@
   if [ "$debug" == "true" ]; then
       export COMPSS_BINDINGS_DEBUG=1
       export NX_ARGS="--summary"
-      echo "Calling NIOWorker"
+      echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
@@ -56,7 +56,7 @@
   if [ $endCode -eq 0 ]; then
 	exit 0
   else
-	echo 1>&2 "Worker could not be initalized"
+	echo 1>&2 "[persistent_worker.sh] Worker could not be initalized"
 	exit 7
   fi
 

@@ -1751,12 +1751,6 @@ static void treat_worker_argument(FILE *outFile, argument *arg, Types current_ty
     char* enum_name;
     int printed_chars = 0;
     switch (arg->type) {
-    case char_dt:
-    case wchar_dt:
-    case boolean_dt:
-    case short_dt:
-    case long_dt:
-    case longlong_dt:
     case enum_dt:
 
         printed_chars = asprintf(&enum_name, "%s %s", c_out_types[arg->type], arg->classname);
@@ -1770,7 +1764,12 @@ static void treat_worker_argument(FILE *outFile, argument *arg, Types current_ty
         fprintf(outFile, "\t\t\t %s %s;\n", enum_name, arg->name);
         add_other_arg_worker_treatment(outFile, arg, current_types, is_return);
         break;
-
+    case char_dt:
+    case wchar_dt:
+    case boolean_dt:
+    case short_dt:
+    case long_dt:
+    case longlong_dt:
     case int_dt:
     case float_dt:
     case double_dt:

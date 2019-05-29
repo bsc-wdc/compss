@@ -254,7 +254,7 @@ show_flower() {
 
 Elderflower (Sambucus)
 
-Elderflowers are the flowers of European Elderberry. They are hermaphrodite flowers with five stamens and are borne in large, flat corymbs 10–25 cm diameter in late spring to mid summer, the individual flowers ivory white, 5–6 mm diameter, with five petals; they are pollinated by flies. 
+Elderflowers are the flowers of European Elderberry. They are hermaphrodite flowers with five stamens and are borne in large, flat corymbs 10–25 cm diameter in late spring to mid summer, the individual flowers ivory white, 5–6 mm diameter, with five petals; they are pollinated by flies.
 
 Check more information:
    https://en.wikipedia.org/wiki/Sambucus_nigra
@@ -265,7 +265,7 @@ EOF
 show_recipe() {
   cat << EOF
 
-Elderflower - Liqueur 
+Elderflower - Liqueur
 
   10 to 20 Elderflower heads
   1 quart vodka
@@ -903,6 +903,15 @@ check_args() {
     else
       # Adds execution dir by default to pythonpath
       pythonpath=$pythonpath":${DEFAULT_PYTHONPATH}"
+    fi
+
+    # Add application folder to PYTHONPATH
+    module_name=$(basename ${fullAppPath})
+    if [ -e ${DEFAULT_APPDIR}/${module_name} ]; then
+      pythonpath=${DEFAULT_APPDIR}:${pythonpath}
+    else
+      module_folder=$(readlink -f ${fullAppPath} | xargs dirname)
+      pythonpath=${module_folder}:${pythonpath}
     fi
 
     # Deal with storage implementation

@@ -17,6 +17,7 @@
 package es.bsc.compss.invokers.util;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
+import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.Constants;
@@ -25,12 +26,14 @@ import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.DistroStream;
 import es.bsc.distrostreamlib.api.files.FileDistroStream;
+import es.bsc.distrostreamlib.client.DistroStreamClient;
+import es.bsc.distrostreamlib.requests.CloseStreamRequest;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
@@ -39,16 +42,28 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
+import org.python.core.PyException;
+import org.python.core.PyFile;
+import org.python.core.PyObjectDerived;
+import org.python.core.PyString;
+import org.python.modules.cPickle;
 
 
 public class BinaryRunner {
 
     private static final String ERROR_PARAM_NOT_STRING = "ERROR: Binary parameter cannot be serialized to string";
     private static final String ERROR_STREAM = "ERROR: Object and PSCO streams are not supported in non-native tasks";
-    private static final String ERROR_EXTERNAL_STREAM = "ERROR: Invalid serialized content of the external stream";
+
     private static final String ERROR_OUTPUTREADER = "ERROR: Cannot retrieve command output";
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
+
+    private static final String ERROR_EXT_STREAM_COPY = "ERROR: Exception removing the External Stream header";
+    private static final String ERROR_EXT_STREAM_LOAD = "ERROR: Exception deserializing python External Stream";
+    private static final String ERROR_EXT_STREAM_GET = "ERROR: Exception retrieving property from External Stream";
+    private static final String ERROR_EXT_STREAM_BASE_DIR = "ERROR: Cannot retrieve base_dir from External Stream";
+    private static final String WARN_EXT_STREAM_CLOSURE = "WARN: Cannot close External Stream due to internal error";
+    private static final String WARN_EXT_STREAM_GET_ID = "WARN: Cannot close External Stream due to innvalid Id";
 
 
     /**
@@ -61,19 +76,19 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error creating command.
      */
     public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters,
-            InvocationParam target, StdIOStream streamValues) throws InvokeExecutionException {
+            InvocationParam target, StdIOStream streamValues, String pyCompssHome) throws InvokeExecutionException {
 
         ArrayList<String> binaryParams = new ArrayList<>();
         for (InvocationParam param : parameters) {
-            binaryParams.addAll(processParam(param, streamValues));
+            binaryParams.addAll(processParam(param, streamValues, pyCompssHome));
         }
         if (target != null) {
-            binaryParams.addAll(processParam(target, streamValues));
+            binaryParams.addAll(processParam(target, streamValues, pyCompssHome));
         }
         return binaryParams;
     }
 
-    private static ArrayList<String> processParam(InvocationParam param, StdIOStream streamValues)
+    private static ArrayList<String> processParam(InvocationParam param, StdIOStream streamValues, String pyCompssHome)
             throws InvokeExecutionException {
 
         ArrayList<String> binaryParamFields = new ArrayList<>();
@@ -95,7 +110,7 @@ public class BinaryRunner {
                         addCollectionParam(param, binaryParamFields);
                     } else {
                         // The value can be serialized directly
-                        addDirectParam(param, binaryParamFields);
+                        addDirectParam(param, binaryParamFields, pyCompssHome);
                     }
                 }
                 break;
@@ -132,7 +147,7 @@ public class BinaryRunner {
         }
     }
 
-    private static void addDirectParam(InvocationParam param, ArrayList<String> binaryParamFields)
+    private static void addDirectParam(InvocationParam param, ArrayList<String> binaryParamFields, String pyCompssHome)
             throws InvokeExecutionException {
 
         // Add prefix if any
@@ -158,28 +173,58 @@ public class BinaryRunner {
                 }
                 break;
             case EXTERNAL_STREAM_T:
-                String serializedFile = param.getOriginalName();
-                String baseDir = null;
-                try (BufferedReader reader = new BufferedReader(new FileReader(serializedFile))) {
-                    String line = reader.readLine();
-                    while (line != null) {
-                        if (line.startsWith("S'/")) {
-                            baseDir = line.trim().substring(2, line.length() - 1);
-                            break;
-                        }
-                        line = reader.readLine();
-                    }
-                } catch (IOException ioe) {
-                    throw new InvokeExecutionException(ERROR_EXTERNAL_STREAM, ioe);
-                }
+                String serializedFile = (String) param.getValue();
+                String baseDir = getExternalStreamProperty(serializedFile, "base_dir", pyCompssHome);
                 if (baseDir == null || baseDir.isEmpty()) {
-                    throw new InvokeExecutionException(ERROR_EXTERNAL_STREAM);
+                    throw new InvokeExecutionException(ERROR_EXT_STREAM_BASE_DIR);
                 }
                 binaryParamFields.add(baseDir);
+                break;
             default:
                 binaryParamFields.add(String.valueOf(param.getValue()));
                 break;
         }
+    }
+
+    private static String getExternalStreamProperty(String fileName, String property, String pyCompssHome)
+            throws InvokeExecutionException {
+        // Load PyCOMPSs into the Jython python path
+        System.setProperty("python.path", pyCompssHome);
+
+        // Remove the first 4 bytes (serialized id by pycompss)
+        final String tmpName = fileName + ".streamClose";
+        try (InputStream is = new FileInputStream(fileName); FileOutputStream os = new FileOutputStream(tmpName)) {
+            // Skip 4 bytes
+            for (int i = 0; i < 4; ++i) {
+                is.read();
+            }
+            // Write the rest
+            int nb = is.read();
+            while (nb != -1) {
+                os.write(nb);
+                nb = is.read();
+            }
+        } catch (IOException ioe) {
+            throw new InvokeExecutionException(ERROR_EXT_STREAM_COPY, ioe);
+        }
+
+        // Retrieve the serialized object
+        PyObjectDerived loadedObj = null;
+        try (InputStream fs = new FileInputStream(tmpName)) {
+            PyFile pickleFile = new PyFile(fs);
+            loadedObj = (PyObjectDerived) cPickle.load(pickleFile);
+        } catch (PyException | IOException e) {
+            throw new InvokeExecutionException(ERROR_EXT_STREAM_LOAD, e);
+        }
+
+        // Retrieve the object property
+        String propertyValue = null;
+        try {
+            propertyValue = loadedObj.__getattr__(new PyString(property)).asString();
+        } catch (Exception e) {
+            throw new InvokeExecutionException(ERROR_EXT_STREAM_GET, e);
+        }
+        return propertyValue;
     }
 
     /**
@@ -311,24 +356,55 @@ public class BinaryRunner {
         errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
     }
 
-    public static void closeStreams(List<? extends InvocationParam> parameters) {
+    public static void closeStreams(List<? extends InvocationParam> parameters, String pyCompssHome)
+            throws StreamCloseException {
         for (InvocationParam p : parameters) {
             if (p.isWriteFinalValue()) {
                 switch (p.getType()) {
                     case STREAM_T:
                         // OUT Stream
-                        DistroStream<?> ds = (DistroStream<?>) p.getValue();
-                        ds.close();
+                        closeStream(p);
                         break;
                     case EXTERNAL_STREAM_T:
-                        // External streams cannot be closed for the moment
-                        // TODO: Close them somehow
+                        // External OUT stream
+                        closeExternalStream(p, pyCompssHome);
                         break;
                     default:
                         // Nothing to do
                         break;
                 }
             }
+        }
+    }
+
+    private static void closeStream(InvocationParam p) {
+        DistroStream<?> ds = (DistroStream<?>) p.getValue();
+        ds.close();
+    }
+
+    private static void closeExternalStream(InvocationParam p, String pyCompssHome) throws StreamCloseException {
+        // External OUT stream
+        String serializedFile = p.getValue().toString();
+        String streamId = null;
+        try {
+            streamId = getExternalStreamProperty(serializedFile, "id", pyCompssHome);
+        } catch (InvokeExecutionException e) {
+            throw new StreamCloseException(WARN_EXT_STREAM_GET_ID);
+        }
+
+        // Close stream
+        if (streamId != null) {
+            CloseStreamRequest req = new CloseStreamRequest(streamId);
+            DistroStreamClient.request(req);
+
+            req.waitProcessed();
+            int error = req.getErrorCode();
+            if (error != 0) {
+                throw new StreamCloseException(WARN_EXT_STREAM_CLOSURE);
+            }
+            // No need to process the answer message. Checking the error is enough.
+        } else {
+            throw new StreamCloseException(WARN_EXT_STREAM_GET_ID);
         }
     }
 
@@ -440,44 +516,6 @@ public class BinaryRunner {
         }
 
         return serializedValue;
-    }
-
-
-    public static class StdIOStream {
-
-        private String stdIn = null;
-        private String stdOut = null;
-        private String stdErr = null;
-
-
-        public StdIOStream() {
-            // Nothing to do since all attributes have been initialized
-        }
-
-        public String getStdIn() {
-            return stdIn;
-        }
-
-        public String getStdOut() {
-            return stdOut;
-        }
-
-        public String getStdErr() {
-            return stdErr;
-        }
-
-        public void setStdIn(String stdIn) {
-            this.stdIn = stdIn;
-        }
-
-        public void setStdOut(String stdOut) {
-            this.stdOut = stdOut;
-        }
-
-        public void setStdErr(String stdErr) {
-            this.stdErr = stdErr;
-        }
-
     }
 
 }

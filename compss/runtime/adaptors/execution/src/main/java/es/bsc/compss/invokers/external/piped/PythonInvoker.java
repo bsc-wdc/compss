@@ -17,23 +17,17 @@
 
 package es.bsc.compss.invokers.external.piped;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
-import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.executor.external.piped.commands.ExecuteTaskPipeCommand;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
-import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
+
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class PythonInvoker extends PipedInvoker {
@@ -57,129 +51,4 @@ public class PythonInvoker extends PipedInvoker {
         return new PythonMirror(context, threads);
     }
 
-
-    private static class PythonMirror extends PipedMirror {
-
-        protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator
-                + "bindings-common" + File.separator + "lib";
-        public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
-        private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
-                + File.separator + "piper_worker.py";
-        private static final String MPI_WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator
-                + "worker" + File.separator + "mpi_piper_worker.py";
-
-        private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
-        private static final String ENV_PYTHONPATH = "PYTHONPATH";
-
-        private final PythonParams pyParams;
-        private final String pyCOMPSsHome;
-
-
-        public PythonMirror(InvocationContext context, int size) {
-            super(context, size);
-            this.pyParams = (PythonParams) context.getLanguageParams(COMPSsConstants.Lang.PYTHON);
-            String installDir = context.getInstallDir();
-            this.pyCOMPSsHome = installDir + PYCOMPSS_RELATIVE_PATH + File.separator + pyParams.getPythonVersion();
-            init(context);
-        }
-
-        @Override
-        public String getPipeBuilderContext() {
-            StringBuilder cmd = new StringBuilder();
-
-            // Binding
-            cmd.append(COMPSsConstants.Lang.PYTHON).append(TOKEN_SEP);
-
-            // Specific parameters
-            cmd.append(this.pyParams.getPythonVirtualEnvironment()).append(TOKEN_SEP);
-            cmd.append(this.pyParams.getPythonPropagateVirtualEnvironment()).append(TOKEN_SEP);
-            cmd.append(this.pyParams.usePythonMpiWorker()).append(TOKEN_SEP);
-            cmd.append(this.size + 1).append(TOKEN_SEP);  // Number of MPI threads if using MPI worker.
-            cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP);
-
-            return cmd.toString();
-        }
-
-        @Override
-        public String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe) {
-            // Specific launch command is of the form: binding bindingExecutor bindingArgs
-            // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads <cmdPipes>
-            // <resultPipes> controlPipeCMD controlPipeRESULT
-            StringBuilder cmd = new StringBuilder();
-            // TODO check if this call is no longer necessary with Francesc changes
-            // cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
-
-            if (this.pyParams.usePythonMpiWorker()) {
-                // Rank 0 acts as the Piper Worker. Other processes act as piped executors
-                cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size + 1)
-                        .append(TOKEN_SEP);
-            }
-            cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
-            cmd.append(this.pyCOMPSsHome);
-
-            if (this.pyParams.usePythonMpiWorker()) {
-                cmd.append(MPI_WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
-            } else {
-                cmd.append(WORKER_PY_RELATIVE_PATH).append(TOKEN_SEP);
-            }
-            cmd.append(LOGGER.isDebugEnabled()).append(TOKEN_SEP);
-            cmd.append(Tracer.getLevel()).append(TOKEN_SEP);
-            cmd.append(context.getStorageConf()).append(TOKEN_SEP);
-            cmd.append(context.getStreamingBackend().name()).append(TOKEN_SEP);
-            cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);
-            cmd.append(context.getStreamingMasterPort()).append(TOKEN_SEP);
-            cmd.append(this.size).append(TOKEN_SEP);
-            String computePipes = this.basePipePath + "compute";
-
-            for (int i = 0; i < this.size; ++i) {
-                cmd.append(computePipes).append(i).append(".outbound").append(TOKEN_SEP);
-            }
-
-            for (int i = 0; i < this.size; ++i) {
-                cmd.append(computePipes).append(i).append(".inbound").append(TOKEN_SEP);
-            }
-
-            cmd.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
-            cmd.append(pipe.getInboundPipe());
-            return cmd.toString();
-        }
-
-        @Override
-        public Map<String, String> getEnvironment(InvocationContext context) {
-            // PyCOMPSs HOME
-            Map<String, String> env = new HashMap<>();
-            env.put("PYCOMPSS_HOME", this.pyCOMPSsHome);
-
-            // PYTHONPATH
-            String pythonPath = System.getenv(ENV_PYTHONPATH);
-            if (pythonPath == null) {
-                pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir();
-            } else {
-                pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir()
-                        + pythonPath;
-            }
-
-            env.put(ENV_PYTHONPATH, pythonPath);
-
-            // LD_LIBRARY_PATH
-            String ldLibraryPath = System.getenv(ENV_LD_LIBRARY_PATH);
-            String bindingsHome = context.getInstallDir() + BINDINGS_RELATIVE_PATH;
-            ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);
-            env.put(ENV_LD_LIBRARY_PATH, ldLibraryPath);
-
-            return env;
-        }
-
-        @Override
-        protected String getPBWorkingDir(InvocationContext context) {
-            String workingDir = super.getPBWorkingDir(context);
-            if (Tracer.isActivated()) {
-                workingDir += "python";
-                if (!new File(workingDir).mkdirs()) {
-                    ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
-                }
-            }
-            return workingDir;
-        }
-    }
 }

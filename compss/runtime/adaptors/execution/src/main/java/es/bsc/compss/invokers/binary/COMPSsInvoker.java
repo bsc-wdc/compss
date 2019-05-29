@@ -18,11 +18,12 @@ package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.exceptions.InvokeExecutionException;
+import es.bsc.compss.exceptions.StreamCloseException;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.util.BinaryRunner;
-import es.bsc.compss.invokers.util.BinaryRunner.StdIOStream;
+import es.bsc.compss.invokers.util.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -117,7 +118,12 @@ public class COMPSsInvoker extends Invoker {
         }
 
         // Close out streams if any
-        BinaryRunner.closeStreams(this.invocation.getParams());
+        try {
+            BinaryRunner.closeStreams(this.invocation.getParams(), this.jythonPycompssHome);
+        } catch (StreamCloseException se) {
+            LOGGER.error("Exception closing binary streams", se);
+            throw new JobExecutionException(se);
+        }
 
         // Update binary results
         for (InvocationParam np : this.invocation.getResults()) {
@@ -263,8 +269,8 @@ public class COMPSsInvoker extends Invoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
-                invocation.getTarget(), streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+                this.invocation.getTarget(), streamValues, this.jythonPycompssHome);
 
         // Prepare command (the +1 is for the appName)
         String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + binaryParams.size()];

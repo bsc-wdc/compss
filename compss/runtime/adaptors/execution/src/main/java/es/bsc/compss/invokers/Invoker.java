@@ -18,6 +18,7 @@ package es.bsc.compss.invokers;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.invokers.external.piped.PythonMirror;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
@@ -64,6 +65,7 @@ public abstract class Invoker {
     protected final int computingUnits;
     protected final String workers;
     protected final int numWorkers;
+    protected final String jythonPycompssHome;
 
 
     /**
@@ -120,6 +122,10 @@ public abstract class Invoker {
             }
         }
         this.workers = hostnamesSTR.toString();
+
+        // Jython default pyCOMPSs home
+        this.jythonPycompssHome = this.context.getInstallDir() + PythonMirror.PYCOMPSS_RELATIVE_PATH + File.separator
+                + "2";
 
         /* Parse the parameters ************************************ */
         AbstractMethodImplementation impl = invocation.getMethodImplementation();

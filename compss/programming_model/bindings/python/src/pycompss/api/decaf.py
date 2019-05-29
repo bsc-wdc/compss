@@ -40,6 +40,11 @@ SUPPORTED_ARGUMENTS = {'computing_nodes',
                        'df_executor',
                        'df_lib',
                        'df_script'}
+DEPRECATED_ARGUMENTS = {'computingNodes',
+                        'workingDir',
+                        'dfExecutor',
+                        'dfLib',
+                        'dfScript'}
 
 
 class Decaf(object):
@@ -68,13 +73,19 @@ class Decaf(object):
                 logger.debug("Init @decaf decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@decaf")
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                            list(kwargs.keys()),
+                            "@decaf")
 
             # Get the computing nodes: This parameter will have to go down
             # until execution when invoked.
-            if 'computing_nodes' not in self.kwargs:
+            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
+                if 'computingNodes' in self.kwargs:
+                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
                 computing_nodes = kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     self.kwargs['computing_nodes'] = kwargs['computing_nodes']
@@ -146,21 +157,35 @@ class Decaf(object):
                     self.registered = True
                     # Update the core element information with the mpi information
                     core_element.set_impl_type("DECAF")
+
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
+                    elif 'workingDir' in self.kwargs:
+                        working_dir = self.kwargs['workingDir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
+
                     if 'runner' in self.kwargs:
                         runner = self.kwargs['runner']
                     else:
                         runner = 'mpirun'
-                    df_script = self.kwargs['df_script']
+
+                    if 'dfScript' in self.kwargs:
+                        df_script = self.kwargs['dfScript']
+                    else:
+                        df_script = self.kwargs['df_script']
+
                     if 'df_executor' in self.kwargs:
                         df_executor = self.kwargs['df_executor']
+                    elif 'dfExecutor' in self.kwargs:
+                        df_executor = self.kwargs['dfExecutor']
                     else:
                         df_executor = '[unassigned]'  # Empty or '[unassigned]'
+
                     if 'df_lib' in self.kwargs:
                         df_lib = self.kwargs['df_lib']
+                    elif 'dfLib' in self.kwargs:
+                        df_lib = self.kwargs['dfLib']
                     else:
                         df_lib = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'DECAF.' + df_script

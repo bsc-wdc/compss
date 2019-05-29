@@ -35,6 +35,7 @@ if __debug__:
 
 MANDATORY_ARGUMENTS = {}
 SUPPORTED_ARGUMENTS = {'computing_nodes'}
+DEPRECATED_ARGUMENTS = {'computingNodes'}
 
 
 class MultiNode(object):
@@ -63,13 +64,19 @@ class MultiNode(object):
                 logger.debug("Init @multinode decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@multinode")
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                            list(kwargs.keys()),
+                            "@multinode")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
-            if 'computing_nodes' not in self.kwargs:
+            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
+                if 'computingNodes' in self.kwargs:
+                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
                 computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do

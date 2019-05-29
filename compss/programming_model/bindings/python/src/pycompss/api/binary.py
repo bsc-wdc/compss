@@ -36,6 +36,7 @@ if __debug__:
 MANDATORY_ARGUMENTS = {'binary'}
 SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir'}
+DEPRECATED_ARGUMENTS = {'workingDir'}
 
 
 class Binary(object):
@@ -60,14 +61,19 @@ class Binary(object):
         self.scope = context.in_pycompss()
         self.registered = False
         # This enables the decorator to get info from the caller
-        # (e.g. self.source_frame_info.filename or self.source_frame_info.lineno)
+        # (e.g. self.source_frame_info.filename or
+        #  self.source_frame_info.lineno)
         # self.source_frame_info = inspect.getframeinfo(inspect.stack()[1][0])
         if self.scope:
             if __debug__:
                 logger.debug("Init @binary decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@binary")
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                            list(kwargs.keys()),
+                            "@binary")
 
     def __call__(self, func):
         """
@@ -128,6 +134,8 @@ class Binary(object):
                     _binary = self.kwargs['binary']
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
+                    elif 'workingDir' in self.kwargs:
+                        working_dir = self.kwargs['workingDir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'BINARY.' + _binary

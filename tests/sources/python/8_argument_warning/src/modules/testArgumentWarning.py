@@ -29,8 +29,8 @@ from pycompss.api.ompss import ompss
 # So they must raise a WARNING message through stderr which is
 # checked in the result script.
 
-# Wrong working dir argument (must be working_dir)
-@binary(binary="date", workingDir="/tmp")  # the correct way is working_dir
+# Wrong working dir argument (must be working_dir or workingDir)
+@binary(binary="date", WorkingDir="/tmp")  # the correct way is working_dir
 @task()
 def binary_task(dprefix, param):
     pass
@@ -59,8 +59,8 @@ def slow_task(value):
 def better_task(value):
     return value ** 3
 
-# Wrong working dir argument (must be working_dir)
-@mpi(binary="date", workingDir="/tmp", runner="mpirun")
+# Wrong working dir argument (must be working_dir or workingDir)
+@mpi(binary="date", WorkingDir="/tmp", runner="mpirun")
 @task()
 def mpi_task(dprefix, param):
     pass
@@ -72,14 +72,14 @@ def mpi_task(dprefix, param):
 def multi_node_task():
     return 0
 
-# Wrong working dir argument (must be working_dir)
-@ompss(binary="date", workingDir="/tmp")
+# Wrong working dir argument (must be working_dir or workingDir)
+@ompss(binary="date", WorkingDir="/tmp")
 @task()
 def ompss_task(dprefix, param):
     pass
 
-# # Wrong working dir argument (must be working_dir)
-# @opencl(kernel="date", workingDir="/tmp")
+# # Wrong working dir argument (must be working_dir or workingDir)
+# @opencl(kernel="date", WorkingDir="/tmp")
 # @task()
 # def opencl_task(dprefix, param):
 #     pass

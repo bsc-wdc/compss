@@ -40,6 +40,10 @@ SUPPORTED_ARGUMENTS = {'computing_nodes',
                        'worker_in_master',
                        'app_name',
                        'working_dir'}
+DEPRECATED_ARGUMENTS = {'computingNodes',
+                        'workerInMaster',
+                        'appName',
+                        'workingDir'}
 
 
 class COMPSs(object):
@@ -68,13 +72,19 @@ class COMPSs(object):
                 logger.debug("Init @compss decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@compss")
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                            list(kwargs.keys()),
+                            "@compss")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
-            if 'computing_nodes' not in self.kwargs:
+            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
+                if 'computingNodes' in self.kwargs:
+                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
                 computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do
@@ -166,13 +176,20 @@ class COMPSs(object):
 
                     if 'worker_in_master' in self.kwargs:
                         worker_in_master = self.kwargs['worker_in_master']
+                    elif 'workerInMaster' in self.kwargs:
+                        worker_in_master = self.kwargs['workerInMaster']
                     else:
                         worker_in_master = 'true'  # Empty or '[unassigned]'
 
-                    app_name = self.kwargs['app_name']
+                    if 'appName' in self.kwargs:
+                        app_name = self.kwargs['appName']
+                    else:
+                        app_name = self.kwargs['app_name']
 
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
+                    elif 'workingDir' in self.kwargs:
+                        working_dir = self.kwargs['workingDir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
 

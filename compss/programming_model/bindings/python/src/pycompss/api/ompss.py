@@ -37,6 +37,8 @@ MANDATORY_ARGUMENTS = {'binary'}
 SUPPORTED_ARGUMENTS = {'computing_nodes',
                        'working_dir',
                        'binary'}
+DEPRECATED_ARGUMENTS = {'computingNodes',
+                        'workingDir'}
 
 
 class Ompss(object):
@@ -65,13 +67,19 @@ class Ompss(object):
                 logger.debug("Init @ompss decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@ompss")
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                            list(kwargs.keys()),
+                            "@ompss")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
-            if 'computing_nodes' not in self.kwargs:
+            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
+                if 'computingNodes' in self.kwargs:
+                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
                 computing_nodes = kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     self.kwargs['computing_nodes'] = kwargs['computing_nodes']
@@ -146,6 +154,8 @@ class Ompss(object):
                     binary = self.kwargs['binary']
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
+                    elif 'workingDir' in self.kwargs:
+                        working_dir = self.kwargs['workingDir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'OMPSS.' + binary

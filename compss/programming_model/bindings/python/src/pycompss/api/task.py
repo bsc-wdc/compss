@@ -54,6 +54,11 @@ SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
                        'numba_signature',
                        'numba_declaration',
                        'tracing_hook']
+# Deprecated arguments. Still supported but shows a message when used.
+DEPRECATED_ARGUMENTS = ['isReplicated',
+                        'isDistributed',
+                        'varargsType',
+                        'targetDirection']
 
 # This lock allows tasks to be launched with the Threading module while
 # ensuring that no attribute is overwritten
@@ -179,7 +184,7 @@ class task(object):
         self.param_kwargs = None
         self.param_defaults = None
         self.first_arg_name = None
-        # Add functon related attributed that will be useful later
+        # Add function related attributed that will be useful later
         self.module_name = None
         self.function_name = None
         self.function_type = None
@@ -711,27 +716,31 @@ class task(object):
         # This lock makes this decorator able to handle various threads
         # calling the same task concurrently
         master_lock.acquire()
-        # Inspect the user function, get information about the arguments and their names
-        # This defines self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults
-        # And gives non-None default values to them if necessary
+        # Inspect the user function, get information about the arguments and
+        # their names. This defines self.param_args, self.param_varargs,
+        # self.param_kwargs, self.param_defaults. And gives non-None default
+        # values to them if necessary
         self.inspect_user_function_arguments()
         # Process the parameters, give them a proper direction
         self.process_master_parameters(*args, **kwargs)
         # Compute the function path, class (if any), and name
         self.compute_user_function_information()
         # Process the decorators to get the core element information
-        # It is necessary to decide whether to register or not (the task may be inherited,
-        # and in this case it has to be registered again with the new implementation signature).
-        impl_signature = self.prepare_core_element_information(self.user_function)
+        # It is necessary to decide whether to register or not (the task may
+        # be inherited, and in this case it has to be registered again with
+        # the new implementation signature).
+        impl_signature = self.prepare_core_element_information(
+            self.user_function)
         if not self.registered or self.signature != impl_signature:
             self.register_task(self.user_function)
             self.registered = True
             self.signature = impl_signature
-        # Reset the global core element to a full-None status, ready for the next task!
-        # (Note that this region is locked, so no race conditions will ever happen here).
+        # Reset the global core element to a full-None status, ready for the
+        # next task! (Note that this region is locked, so no race conditions
+        # will ever happen here).
         current_core_element.reset()
-        # Did we call this function to only register the associated core element?
-        # (This can happen when trying)
+        # Did we call this function to only register the associated core
+        # element? (This can happen when trying)
         if register_only:
             master_lock.release()
             return
@@ -740,6 +749,16 @@ class task(object):
         if not self.returns:
             self.update_return_if_no_returns(self.user_function)
         from pycompss.runtime.binding import process_task
+        # Get deprecated arguments if exist
+        if 'isReplicated' in self.decorator_arguments:
+            is_replicated = self.decorator_arguments['isReplicated']
+        else:
+            is_replicated = self.decorator_arguments['is_replicated']
+        if 'isDistributed' in self.decorator_arguments:
+            is_distributed = self.decorator_arguments['isDistributed']
+        else:
+            is_distributed = self.decorator_arguments['is_distributed']
+        # Process the task
         ret = process_task(
             self.user_function,
             self.module_name,
@@ -749,8 +768,8 @@ class task(object):
             self.returns,
             self.decorator_arguments,
             self.computing_nodes,
-            self.decorator_arguments['is_replicated'],
-            self.decorator_arguments['is_distributed'],
+            is_replicated,
+            is_distributed,
             self.decorator_arguments['on_failure']
         )
         master_lock.release()
@@ -764,7 +783,11 @@ class task(object):
         varargs_type = dir (for legacy reasons)
         """
         if self.param_varargs not in self.decorator_arguments:
-            return self.decorator_arguments['varargs_type']
+            if 'varargsType' in self.decorator_arguments:
+                self.param_varargs = 'varargsType'
+                return self.decorator_arguments['varargsType']
+            else:
+                return self.decorator_arguments['varargs_type']
         return self.decorator_arguments[self.param_varargs]
 
     def get_default_direction(self, var_name):
@@ -773,12 +796,18 @@ class task(object):
         :return: An identifier of the direction
         """
 
-        # We are the 'self' or 'cls' in an instance or classmethod that modifies the given class
-        # so we are an INOUT or CONCURRENT
+        # We are the 'self' or 'cls' in an instance or classmethod that
+        # modifies the given class, so we are an INOUT or CONCURRENT
         self_dirs = [parameter.DIRECTION.INOUT, parameter.DIRECTION.CONCURRENT]
-        if self.decorator_arguments['target_direction'].direction in self_dirs and var_name in ['self', 'cls'] and \
-                self.param_args and self.param_args[0] == var_name:
-            return self.decorator_arguments['target_direction']
+        if 'targetDirection' in self.decorator_arguments:
+            target_label = 'targetDirection'
+        else:
+            target_label = 'target_direction'
+        if self.decorator_arguments[target_label].direction in self_dirs and \
+                var_name in ['self', 'cls'] and \
+                self.param_args and \
+                self.param_args[0] == var_name:
+            return self.decorator_arguments[target_label]
         return parameter.get_new_parameter('IN')
 
     def process_master_parameters(self, *args, **kwargs):
@@ -855,8 +884,14 @@ class task(object):
                 self.parameters[var_name].object = parameter_values[var_name]
 
         # Check the arguments - Look for mandatory and unexpected arguments
-        supported_args = SUPPORTED_ARGUMENTS + self.param_args
-        check_arguments(MANDATORY_ARGUMENTS, supported_args, list(self.decorator_arguments.keys()), "@task")
+        supported_args = SUPPORTED_ARGUMENTS + \
+                         DEPRECATED_ARGUMENTS + \
+                         self.param_args
+        check_arguments(MANDATORY_ARGUMENTS,
+                        DEPRECATED_ARGUMENTS,
+                        supported_args,
+                        list(self.decorator_arguments.keys()),
+                        "@task")
 
     def get_parameter_direction(self, name):
         """
@@ -1202,9 +1237,15 @@ class task(object):
                     new_types.append(arg.type)
                     new_values.append('null')
 
+        # Check old targetDirection
+        if 'targetDirection' in self.decorator_arguments:
+            target_label = 'targetDirection'
+        else:
+            target_label = 'target_direction'
+
         # Add self type and value if exist
         if has_self:
-            if self.decorator_arguments['target_direction'].direction == parameter.DIRECTION.INOUT:
+            if self.decorator_arguments[target_label].direction == parameter.DIRECTION.INOUT:
                 # Check if self is a PSCO that has been persisted inside the task and isModifier
                 # Update self type and value
                 self_type = parameter.get_compss_type(args[0])
@@ -1233,7 +1274,7 @@ class task(object):
                 new_types.append(ret_type)
                 new_values.append(ret_value)
 
-        return new_types, new_values, self.decorator_arguments['target_direction']
+        return new_types, new_values, self.decorator_arguments[target_label]
 
     def sequential_call(self, *args, **kwargs):
         """

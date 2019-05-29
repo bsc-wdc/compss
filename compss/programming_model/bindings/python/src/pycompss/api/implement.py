@@ -37,6 +37,7 @@ MANDATORY_ARGUMENTS = {'source_class',
                        'method'}
 SUPPORTED_ARGUMENTS = {'source_class',
                        'method'}
+DEPRECATED_ARGUMENTS = {'sourceClass'}
 
 
 class Implement(object):
@@ -66,7 +67,11 @@ class Implement(object):
                 logger.debug("Init @implement decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@implement")
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                            list(kwargs.keys()),
+                            "@implement")
 
     def __call__(self, func):
         """
@@ -124,7 +129,10 @@ class Implement(object):
                     self.registered = True
                     from pycompss.api.task import current_core_element as core_element
                     # Update the core element information with the mpi information
-                    another_class = self.kwargs['source_class']
+                    if 'sourceClass' in self.kwargs:
+                        another_class = self.kwargs['sourceClass']
+                    else:
+                        another_class = self.kwargs['source_class']
                     another_method = self.kwargs['method']
                     ce_signature = another_class + '.' + another_method
                     core_element.set_ce_signature(ce_signature)

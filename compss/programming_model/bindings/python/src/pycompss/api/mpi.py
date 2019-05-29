@@ -39,6 +39,8 @@ SUPPORTED_ARGUMENTS = {'computing_nodes',
                        'working_dir',
                        'binary',
                        'runner'}
+DEPRECATED_ARGUMENTS = {'computingNodes',
+                        'workingDir'}
 
 
 class Mpi(object):
@@ -67,13 +69,19 @@ class Mpi(object):
                 logger.debug("Init @mpi decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, SUPPORTED_ARGUMENTS, list(kwargs.keys()), "@mpi")
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
+                            list(kwargs.keys()),
+                            "@mpi")
 
             # Get the computing nodes: This parameter will have to go down until
             # execution when invoked.
-            if 'computing_nodes' not in self.kwargs:
+            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
+                if 'computingNodes' in self.kwargs:
+                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
                 computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do

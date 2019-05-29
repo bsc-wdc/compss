@@ -892,7 +892,7 @@ def _extract_parameter(param, code_strings, collection_depth = 0):
     # An object will be considered a collection if at least one of the following is true:
     # 1) We said it is a collection in the task decorator
     # 2) It is part of some collection object, it is iterable and we are inside the specified depth radius
-    elif param.type == TYPE.COLLECTION or (collection_depth > 0 and is_basic_iterable(param.obj)):
+    elif param.type == TYPE.COLLECTION or (collection_depth > 0 and is_basic_iterable(param.obj - 1)):
         # The content of a collection is sent via JNI to the master, and the format is the following
         # collectionId numberOfElements
         # type1 Id1
@@ -1123,7 +1123,7 @@ def _serialize_object_into_file(name, p):
             _serialize_object_into_file(
                 name,
                 Parameter(
-                    p_type = get_compss_type(x, p.depth),
+                    p_type = get_compss_type(x, p.depth - 1),
                     p_direction = p.direction,
                     p_object = x,
                     depth = p.depth - 1

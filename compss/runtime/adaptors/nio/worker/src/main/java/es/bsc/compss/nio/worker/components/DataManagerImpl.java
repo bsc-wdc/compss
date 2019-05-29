@@ -523,11 +523,13 @@ public class DataManagerImpl implements DataManager {
                 for (String path : files) {
                     File source = new File(path);
                     try {
-                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
+                        if (WORKER_LOGGER_DEBUG) {
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
                                 + (param.isPreserveSourceData() ? "preserves sources. COPYING"
                                    : "erases sources. MOVING"));
-                        WORKER_LOGGER.debug("         Source: " + source);
-                        WORKER_LOGGER.debug("         Target: " + target);
+                            WORKER_LOGGER.debug("         Source: " + source);
+                            WORKER_LOGGER.debug("         Target: " + target);
+                        }
 
                         if (param.isPreserveSourceData()) {
                             Files.copy(source.toPath(), target.toPath());
@@ -560,6 +562,9 @@ public class DataManagerImpl implements DataManager {
 
     @Override
     public void loadParam(InvocationParam param) throws Exception {
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("[Thread "+Thread.currentThread().getName() +" ] Loading parameter: " +param);
+        }
         switch (param.getType()) {
             case OBJECT_T:
             case PSCO_T: // fetch stage already set the value on the param, but we make sure to collect the last version
@@ -581,6 +586,9 @@ public class DataManagerImpl implements DataManager {
         DataRegister register;
         synchronized (registry) {
             register = registry.get(rename);
+        }
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("[Thread "+Thread.currentThread().getName() +" ] Loading value: " +rename);
         }
         synchronized (register) {
             o = register.loadValue();

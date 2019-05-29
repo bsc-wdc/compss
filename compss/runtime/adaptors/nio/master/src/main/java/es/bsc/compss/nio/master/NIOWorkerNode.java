@@ -45,6 +45,7 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.data.Transferable;
@@ -299,7 +300,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (DEBUG) {
                 LOGGER.debug(" Ordering deferred copy for data " + ld.getName());
             }
-            orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
+            orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener), Comm.getAppHost().getNode());
         }
     }
 
@@ -323,7 +324,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (DEBUG) {
                 LOGGER.debug("Ordering deferred copy " + ld.getName());
             }
-            orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
+            orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener), this);
         }
     }
 
@@ -445,15 +446,23 @@ public class NIOWorkerNode extends COMPSsWorker {
         sc.end(OpEndState.OP_OK);
     }
 
-    private void orderCopy(DeferredCopy c) {
+    private void orderCopy(DeferredCopy c, COMPSsNode tgtNode) {
         LOGGER.info("Order Copy for " + c.getSourceData());
 
-        Resource tgtRes = ((LinkedList<Resource>) c.getTargetLoc().getHosts()).getFirst();
+        Resource tgtRes = null;
+        for (Resource r : c.getTargetLoc().getHosts()) {
+            if ( r.getNode().equals(tgtNode)) {
+                tgtRes=r;
+                break;
+            }
+        }
         LogicalData ld = c.getSourceData();
         String path;
         synchronized (ld) {
             LogicalData tgtData = c.getTargetData();
             if (tgtData != null) {
+                LOGGER.debug("tgtResName:" + tgtRes.getNode().getName());
+                LOGGER.debug("tgtData: " + tgtData.toString());
                 MultiURI u = tgtData.alreadyAvailable(tgtRes);
                 if (u != null) {
                     path = u.getPath();

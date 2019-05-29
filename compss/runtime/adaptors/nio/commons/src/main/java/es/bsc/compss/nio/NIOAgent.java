@@ -527,13 +527,15 @@ public abstract class NIOAgent {
             if (DEBUG) {
                 LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + targetName);
             }
-            if (t.isFile() || t.isObject()) {
+            if (t.isFile()) {
                 if (!isPersistentEnabled() && isBindingType) {
                     // When worker binding is not persistent binding objects can be transferred as files
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
                 receivedValue(t.getDestination(), targetName, t.getObject(), requests);
-
+            }else if (t.isObject()) {
+                receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
+                    
             } else {
                 if (t.isByteBuffer()) {
                     BindingObject bo = getTargetBindingObject(targetName,
@@ -575,7 +577,7 @@ public abstract class NIOAgent {
                     if (DEBUG) {
                         LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + dataId);
                     }
-                    receivedValue(t.getDestination(), dataId, t.getObject(), byTarget.remove(dataId));
+                    receivedValue(t.getDestination(), getName(dataId), t.getObject(), byTarget.remove(dataId));
                 } else {
                     if (t.isByteBuffer()) {
                         BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
@@ -621,7 +623,7 @@ public abstract class NIOAgent {
                     } else {
                         if (t.isObject()) {
                             Object o = Serializer.deserialize(t.getArray());
-                            receivedValue(t.getDestination(), targetName, o, reqs);
+                            receivedValue(t.getDestination(), getName(targetName), o, reqs);
                         } else {
                             BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
                             NIOBindingDataManager.copyCachedData(dataId, bo.getName());
@@ -641,6 +643,15 @@ public abstract class NIOAgent {
             shutdown(closingConnection);
         }
 
+    }
+    
+    private String getName(String path) {
+        int index = path.lastIndexOf(File.separator);
+        if (index > 0) {
+            return path.substring(index + 1);
+        } else {
+            return path;
+        }
     }
 
     private BindingObject getTargetBindingObject(String target, String origin_path) {

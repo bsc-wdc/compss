@@ -97,6 +97,33 @@ def _map_collection(f, *partition):
     return res
 
 
+@task(col=COLLECTION_INOUT)
+def distribute_partition(partition, partition_func, col, func=None):
+    """
+    """
+    if isinstance(partition, IPartitionGenerator):
+        partition = partition.retrieve_data()
+
+    if func:
+        partition = func(partition)
+    nop = len(col)
+    for k, v in partition:
+        col[partition_func(k) % nop].append((k, v))
+
+
+@task(col=COLLECTION_INOUT)
+def distribute_collection(partition_func, col, func=None, *args):
+    """
+    """
+    partition = list(args)
+    if func:
+        partition = func(partition)
+
+    nop = len(col)
+    for k, v in partition:
+        col[partition_func(k) % nop].append((k, v))
+
+
 @task(first=INOUT)
 def reduce_dicts(first, *args):
     dicts = iter(args)

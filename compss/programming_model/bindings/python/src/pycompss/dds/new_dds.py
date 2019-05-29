@@ -23,53 +23,6 @@ from pycompss.api.api import compss_wait_on as cwo, compss_barrier
 from pycompss.dds.new_tasks import *
 from pycompss.dds.partition_generators import *
 from pycompss.dds import heapq3
-from operator import add
-
-
-@task(returns="NUMBER_OF_SUB_PARTITIONS")
-def distribute_partition(partition, partition_func, nop, func=None):
-    """
-    """
-    if isinstance(partition, IPartitionGenerator):
-        partition = partition.retrieve_data()
-
-    if func:
-        partition = func(partition)
-
-    global NUMBER_OF_SUB_PARTITIONS
-
-    from collections import defaultdict
-    buckets = defaultdict(list)
-
-    for _i in range(nop):
-        buckets[_i] = list()
-
-    for k, v in partition:
-        buckets[partition_func(k) % nop].append((k, v))
-
-    return buckets.items()
-
-
-@task(returns="NUMBER_OF_SUB_PARTITIONS")
-def distribute_collection(partition_func, nop, func=None, *args):
-    """
-    """
-    partition = list(args)
-    if func:
-        partition = func(partition)
-
-    global NUMBER_OF_SUB_PARTITIONS
-
-    from collections import defaultdict
-    buckets = defaultdict(list)
-
-    for _i in range(nop):
-        buckets[_i] = list()
-
-    for k, v in partition:
-        buckets[partition_func(k) % nop].append((k, v))
-
-    return buckets.items()
 
 
 def default_hash(x):
@@ -538,29 +491,33 @@ class DDS(object):
         [[(0, 0), (3, 3)], [(1, 1), (4, 4)], [(2, 2), (5, 5)]]
         """
 
-        def combine_lists(args):
-            ret = list()
-            for _list in args:
-                ret.extend(_list[1])
-            return ret
+        def combine_lists(_partition):
+            # Elements of the partition are grouped by their previous partitions
+            ret = defaultdict(list)
+            for list_of_pp in _partition:
+                # Attention!
+                if not list_of_pp:
+                    continue
+                for element in list_of_pp:
+                    ret[element[0]].extend(element[1])
+            return ret.items()
 
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions
 
         grouped = defaultdict(list)
-        global NUMBER_OF_SUB_PARTITIONS
-        NUMBER_OF_SUB_PARTITIONS = nop
 
         for partition in self.partitions:
+            col = [[] for _ in range(nop)]
             if self.paafo:
-                temp = distribute_collection(
-                    partition_func, nop, self.func, *partition)
+                distribute_collection(
+                    partition_func, col, self.func, *partition)
             else:
-                temp = distribute_partition(
-                    partition, partition_func, nop, self.func)
+                distribute_partition(
+                    partition, partition_func, col, self.func)
 
             for _i in range(nop):
-                grouped[_i].append(temp[_i])
+                grouped[_i].append(col[_i])
 
         future_partitions = list()
         for bucket in grouped.values():

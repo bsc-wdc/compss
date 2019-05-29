@@ -17,9 +17,8 @@ import bisect
 import itertools
 import os
 from collections import deque, defaultdict
-from itertools import chain
 
-from pycompss.api.api import compss_wait_on, compss_barrier
+from pycompss.api.api import compss_wait_on as cwo, compss_barrier
 
 from pycompss.dds.new_tasks import *
 from pycompss.dds.partition_generators import *
@@ -338,7 +337,7 @@ class DDS(object):
                 branch.append(temp)
 
             if len(branch) == 1:
-                branch = compss_wait_on(branch[0])
+                branch = cwo(branch[0])
                 break
 
             temp = reduce_multiple(f, *branch)
@@ -399,7 +398,7 @@ class DDS(object):
             future_objects.append(branch[0])
 
         if as_dict:
-            branch[0] = compss_wait_on(branch[0])
+            branch[0] = cwo(branch[0])
             return dict(branch[0])
 
         length = self.num_of_partitions()
@@ -484,7 +483,7 @@ class DDS(object):
         if future_objects:
             return processed
 
-        processed = compss_wait_on(processed)
+        processed = cwo(processed)
 
         ret = list()
         if not keep_partitions:
@@ -668,7 +667,7 @@ class DDS(object):
             samples.append(task_collect_samples(_part, 20, key_func))
 
         samples = sorted(list(
-            itertools.chain.from_iterable(compss_wait_on(samples))))
+            itertools.chain.from_iterable(cwo(samples))))
 
         bounds = [samples[int(len(samples) * (i + 1) / num_of_parts)]
                   for i in range(0, num_of_parts - 1)]
@@ -748,7 +747,7 @@ def tree_reduce_dicts(initial, reduce_function, collect, total_parts=-1):
             # If it's the last item in the queue, retrieve it:
             if collect:
                 # As a dict if necessary
-                ret = compss_wait_on(first)
+                ret = cwo(first)
                 return ret
             # As a list of future objects
             # TODO: Implement 'dict' --> 'lists on nodes'

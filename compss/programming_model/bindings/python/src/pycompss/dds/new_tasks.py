@@ -13,8 +13,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from pycompss.api.api import compss_wait_on
-from pycompss.api.parameter import INOUT, IN
+
+from pycompss.api.api import compss_wait_on as cwo
+from pycompss.api.parameter import INOUT, IN, COLLECTION_INOUT
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 

@@ -28,10 +28,10 @@ BUNDLE_PATH="${SCRIPT_DIR}/${BUNDLE_NAME}"
 main() {
   # Move to root folder
   cd "${SCRIPT_DIR}"
-
-  # Compile JAVA sources
-  mvn -U clean package
-
+  if [ ! -f "${SCRIPT_DIR}/target/compss-redisPSCO.jar" ]; then
+     # Compile JAVA sources
+     mvn -U clean package
+  fi
   # Clean and create bundle directory
   rm -rf "${BUNDLE_PATH}"
   mkdir -p "${BUNDLE_PATH}"

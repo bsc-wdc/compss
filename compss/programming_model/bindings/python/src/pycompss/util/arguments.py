@@ -109,6 +109,13 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
     :return: None
     """
     for argument in arguments:
+        if argument == 'isModifier':
+            message = "ERROR: Unsupported argument: isModifier Found in " + \
+                      str(where) + ".\n" + \
+                      "       Please, use: target_direction"
+            print(message, file=sys.stderr)  # also show the warn through stderr
+            raise Exception("Unsupported argument: " + str(argument))
+
         if argument in deprecated_arguments:
             current_argument = re.sub('([A-Z]+)', r'_\1', argument).lower()
             message = "WARNING: Deprecated argument: " + str(argument) + \

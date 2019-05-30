@@ -211,11 +211,14 @@
   path_target=${targetDir}/Runtime/adaptors
   for adaptor in ${path_source}/*; do
     adaptor_name=$(basename "${adaptor}")
-    if [ "${adaptor_name}" != "agent" ]; then
+    if [ "${adaptor_name}" != "agent" ] && [ "${adaptor_name}" != "target" ]; then
       install_adaptor "${adaptor}" "${path_target}"
     else
       for agent in ${adaptor}/*; do
-          install_adaptor "${agent}" "${path_target}"
+          agent_name=$(basename "$agent")
+          if [ "${agent_name}" != "target" ]; then
+             install_adaptor "${agent}" "${path_target}"
+          fi
       done
     fi
   done

@@ -483,7 +483,13 @@ def get_compss_type(value, depth = 0):
         # The difference among them is defined by the parameter decoration as FILE.
         return TYPE.STRING
     elif isinstance(value, int):
-        return TYPE.INT
+        if IS_PYTHON3:
+            if value < PYTHON_MAX_INT:
+                return TYPE.INT
+            else:
+                return TYPE.LONG
+        else:
+            return TYPE.INT
     elif isinstance(value, PYCOMPSS_LONG):
         return TYPE.LONG
     elif isinstance(value, float):

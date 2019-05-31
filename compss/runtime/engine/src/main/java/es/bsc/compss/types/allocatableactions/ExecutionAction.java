@@ -219,6 +219,8 @@ public class ExecutionAction extends AllocatableAction {
                     DependencyParameter dp = (DependencyParameter) p;
                     transferJobData(dp, listener);
                 }
+                // Send the collection parameter itself
+                transferSingleParameter(param, listener);
                 break;
             case STREAM_T:
             case EXTERNAL_STREAM_T:

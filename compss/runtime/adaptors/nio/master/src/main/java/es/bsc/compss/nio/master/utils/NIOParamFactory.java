@@ -122,21 +122,20 @@ public class NIOParamFactory {
     }
 
     private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam) {
-        LOGGER.debug("COLLECTION_T detected");
-        NIOParamCollection npc = new NIOParamCollection(collNioParam.getDataMgmtId(), collNioParam.getType(),
-                collNioParam.getStdIOStream(), collNioParam.getPrefix(), collNioParam.getName(),
-                collNioParam.isPreserveSourceData(), collNioParam.isWriteFinalValue(), collNioParam.getValue(),
-                collNioParam.getData(), collNioParam.getOriginalName());
-
-        CollectionParameter cp = (CollectionParameter) param;
-        for (Parameter subParam : cp.getParameters()) {
-            if (DEBUG) {
-                LOGGER.debug("Adding " + subParam);
-            }
-            npc.getCollectionParameters().add(NIOParamFactory.fromParameter(subParam));
-        }
         if (DEBUG) {
-            LOGGER.debug("NIOParamCollection contains " + npc.getCollectionParameters().size() + " parameters.");
+            LOGGER.debug("Detected COLLECTION_T parameter");
+        }
+
+        NIOParamCollection npc = new NIOParamCollection(collNioParam);
+
+        CollectionParameter collParam = (CollectionParameter) param;
+        for (Parameter subParam : collParam.getParameters()) {
+            npc.addParameter(NIOParamFactory.fromParameter(subParam));
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("NIOParamCollection with id = " + npc.getDataMgmtId() + " contains " + npc.getSize()
+                    + " parameters.");
         }
 
         return npc;

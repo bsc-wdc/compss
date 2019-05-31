@@ -292,7 +292,7 @@ public class Comm {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.fini();
-        }else if (Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+        } else if (Tracer.scorepEnabled() || Tracer.mapEnabled()) {
             Tracer.fini();
         }
     }

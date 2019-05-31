@@ -28,6 +28,9 @@ import java.io.ObjectOutput;
 import java.util.List;
 
 
+/**
+ * Representation of a data parameter for the NIO Adaptor.
+ */
 public class NIOParam implements Externalizable, InvocationParam {
 
     private String dataMgmtId;
@@ -46,12 +49,30 @@ public class NIOParam implements Externalizable, InvocationParam {
     private Class<?> valueClass;
 
 
+    /**
+     * Creates a new NIOParam instance for externalization.
+     */
     public NIOParam() {
         // Only executed by externalizable
     }
 
+    /**
+     * Creates a new NIOParam instance with the given information.
+     * 
+     * @param dataMgmtId Renaming Id.
+     * @param type Data Type.
+     * @param stream Std IO stream type.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     * @param preserveSourceData Whether to keep the source data or not.
+     * @param writeFinalValue Whether to write the output value or not.
+     * @param value The original value.
+     * @param data The original data.
+     * @param originalName The original parameter name.
+     */
     public NIOParam(String dataMgmtId, DataType type, StdIOStream stream, String prefix, String name,
             boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
+
         this.dataMgmtId = dataMgmtId;
         this.type = type;
         this.stream = stream;
@@ -62,6 +83,24 @@ public class NIOParam implements Externalizable, InvocationParam {
         this.writeFinalValue = writeFinalValue;
         this.source = data;
         this.originalName = originalName;
+    }
+
+    /**
+     * Creates a new NIOParam instance copying the given NIOParam internal fields.
+     * 
+     * @param p NIOParam to copy.
+     */
+    public NIOParam(NIOParam p) {
+        this.dataMgmtId = p.dataMgmtId;
+        this.type = p.type;
+        this.stream = p.stream;
+        this.prefix = p.prefix;
+        this.name = p.name;
+        this.value = p.value;
+        this.preserveSourceData = p.preserveSourceData;
+        this.writeFinalValue = p.writeFinalValue;
+        this.source = p.source;
+        this.originalName = p.originalName;
     }
 
     @Override
@@ -92,10 +131,6 @@ public class NIOParam implements Externalizable, InvocationParam {
     @Override
     public boolean isWriteFinalValue() {
         return this.writeFinalValue;
-    }
-
-    public NIOData getData() {
-        return this.source;
     }
 
     @Override
@@ -139,6 +174,20 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
+    public Class<?> getValueClass() {
+        return this.valueClass;
+    }
+
+    /**
+     * Returns the source data.
+     * 
+     * @return The source data.
+     */
+    public NIOData getData() {
+        return this.source;
+    }
+
+    @Override
     public void setType(DataType type) {
         this.type = type;
     }
@@ -151,11 +200,6 @@ public class NIOParam implements Externalizable, InvocationParam {
     @Override
     public void setValueClass(Class<?> valueClass) {
         this.valueClass = valueClass;
-    }
-
-    @Override
-    public Class<?> getValueClass() {
-        return valueClass;
     }
 
     @Override
@@ -192,9 +236,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         }
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("[PARAM");
+    public void dumpInternalInfo(StringBuilder sb) {
         sb.append("[MGMT ID = ").append(this.dataMgmtId).append("]");
         sb.append("[TYPE = ").append(this.type).append("]");
         sb.append("[IOSTREAM = ").append(this.stream).append("]");
@@ -205,6 +247,12 @@ public class NIOParam implements Externalizable, InvocationParam {
         sb.append("[ORIGINAL NAME = ").append(this.originalName).append("]");
         sb.append("[VALUE = ").append(this.value).append("]");
         sb.append("[DATA ").append(this.source).append("]");
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[PARAM");
+        dumpInternalInfo(sb);
         sb.append("]");
 
         return sb.toString();

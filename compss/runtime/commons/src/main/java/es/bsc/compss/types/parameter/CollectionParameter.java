@@ -56,8 +56,9 @@ public class CollectionParameter extends DependencyParameter {
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
-    public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction, StdIOStream stream,
-            String prefix, String name) {
+    public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction,
+            StdIOStream stream, String prefix, String name) {
+
         // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
         super(DataType.COLLECTION_T, direction, stream, prefix, name);
@@ -71,7 +72,7 @@ public class CollectionParameter extends DependencyParameter {
      * @return String
      */
     public String getCollectionId() {
-        return collectionId;
+        return this.collectionId;
     }
 
     /**
@@ -92,7 +93,7 @@ public class CollectionParameter extends DependencyParameter {
     public String toString() {
         // Stringbuilder adds less overhead when creating a string
         StringBuilder sb = new StringBuilder();
-        sb.append("Collection ").append(collectionId).append("\n");
+        sb.append("CollectionParameter ").append(this.collectionId).append("\n");
         sb.append("Name: ").append(getName()).append("\n");
         sb.append("Contents:\n");
         for (Parameter s : parameters) {
@@ -105,7 +106,7 @@ public class CollectionParameter extends DependencyParameter {
      * @return List of Parameter
      */
     public List<Parameter> getParameters() {
-        return parameters;
+        return this.parameters;
     }
 
     /**

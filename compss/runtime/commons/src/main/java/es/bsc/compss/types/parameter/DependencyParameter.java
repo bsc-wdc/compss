@@ -39,6 +39,7 @@ public class DependencyParameter extends Parameter implements Transferable {
     private Object dataSource;
     private String dataTarget; // Full path with PROTOCOL
 
+
     /**
      * Creates a new DependencyParameter instance from the given parameters.
      *
@@ -70,6 +71,15 @@ public class DependencyParameter extends Parameter implements Transferable {
         this.daId = daId;
     }
 
+    /**
+     * Returns the parameter's original name.
+     *
+     * @return The parameter's original name.
+     */
+    public String getOriginalName() {
+        return NO_NAME;
+    }
+
     @Override
     public Object getDataSource() {
         return this.dataSource;
@@ -95,24 +105,15 @@ public class DependencyParameter extends Parameter implements Transferable {
         return "DependencyParameter";
     }
 
-    /**
-     * Returns the parameter's original name.
-     *
-     * @return The parameter's original name.
-     */
-    public String getOriginalName() {
-        return NO_NAME;
-    }
-
     @Override
     public boolean isSourcePreserved() {
         boolean preserveSourceData;
-        if (daId instanceof RAccessId) {
+        if (this.daId instanceof RAccessId) {
             // Parameter is a R, has sources
-            preserveSourceData = ((RAccessId) daId).isPreserveSourceData();
-        } else if (daId instanceof RWAccessId) {
+            preserveSourceData = ((RAccessId) this.daId).isPreserveSourceData();
+        } else if (this.daId instanceof RWAccessId) {
             // Parameter is a RW, has sources
-            preserveSourceData = ((RWAccessId) daId).isPreserveSourceData();
+            preserveSourceData = ((RWAccessId) this.daId).isPreserveSourceData();
         } else {
             // Parameter is a W, it has no sources
             preserveSourceData = false;

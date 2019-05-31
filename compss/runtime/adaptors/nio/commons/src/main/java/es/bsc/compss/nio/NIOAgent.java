@@ -538,14 +538,14 @@ public abstract class NIOAgent {
                 LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + targetName);
             }
             if (t.isFile()) {
-                if (!isPersistentEnabled() && isBindingType) {
+                if (!isPersistentCEnabled() && isBindingType) {
                     // When worker binding is not persistent binding objects can be transferred as files
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
                 receivedValue(t.getDestination(), targetName, t.getObject(), requests);
-            }else if (t.isObject()) {
+            } else if (t.isObject()) {
                 receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
-                    
+
             } else {
                 if (t.isByteBuffer()) {
                     BindingObject bo = getTargetBindingObject(targetName,
@@ -655,7 +655,7 @@ public abstract class NIOAgent {
         }
 
     }
-    
+
     private String getName(String path) {
         int index = path.lastIndexOf(File.separator);
         if (index > 0) {

@@ -57,7 +57,7 @@ public class BasicTypeParameter extends Parameter {
      * @return The parameter value.
      */
     public Object getValue() {
-        return value;
+        return this.value;
     }
 
     /**
@@ -71,7 +71,7 @@ public class BasicTypeParameter extends Parameter {
 
     @Override
     public String toString() {
-        return value + " " + getType() + " " + getDirection();
+        return this.value + " " + getType() + " " + getDirection();
     }
 
 }

@@ -22,5 +22,10 @@ class example(object):
     def increment(self, value):
         self.v = self.v + 1 + external(value)
 
+    @constraint(computing_units="2")
+    @task()
+    def subtract(self, value):
+        self.v = self.v - 1 - externalc(value)
+
     def get_v(self):
         return self.v

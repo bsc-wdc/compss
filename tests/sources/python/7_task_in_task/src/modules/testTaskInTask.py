@@ -88,6 +88,20 @@ def ext_task_c(value):
     return value / externalc(value)
 
 
+@task(returns=1)
+def class_task_inc(value):
+    o = example(value)
+    o.increment(value)
+    return o.get_v()
+
+
+@task(returns=1)
+def class_task_sub(value):
+    o = example(value)
+    o.subtract(value)
+    return o.get_v()
+
+
 class testTaskInTask(unittest.TestCase):
 
     def testTaskInTask(self):
@@ -125,3 +139,19 @@ class testTaskInTask(unittest.TestCase):
         o.increment(20)
         o = compss_wait_on(o)
         self.assertEqual(o.get_v(), 15)
+
+    def testTaskInTaskClassConstraint(self):
+        o = example(8)
+        o.subtract(20)
+        o = compss_wait_on(o)
+        self.assertEqual(o.get_v(), 2)
+
+    def testTaskInTaskClass2(self):
+        result = class_task_inc(10)
+        result = compss_wait_on(result)
+        self.assertEqual(result, 16)
+
+    def testTaskInTaskClass2Constraint(self):
+        result = class_task_sub(40)
+        result = compss_wait_on(result)
+        self.assertEqual(result, 24)

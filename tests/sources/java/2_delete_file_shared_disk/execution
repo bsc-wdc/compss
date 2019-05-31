@@ -25,8 +25,14 @@
   mkdir -p /tmp/COMPSsWorker02/
   mkdir -p /tmp/COMPSsWorker03/
   mkdir -p /tmp/sharedDisk/
+
+  # Add trap to clean shared folder
+  clean() {
+    rm -rf /tmp/sharedDisk/
+  }
+  trap clean EXIT
   
-   #----------------------------------------------------------------------------------
+  #----------------------------------------------------------------------------------
   # Run application
   echo
   echo "*** RUNNING JAVA APPLICATION SHARED DISKS"
@@ -55,15 +61,11 @@
      
      # Report time out
      echo "[WARNING] Java Application timed out" >> "${output_log}"
-     rm -rf /tmp/sharedDisk
      exit_value=124
   else
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   
-     # Remove shared folder
-     rm -rf /tmp/sharedDisk
-     
      # Check result
      "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
      exit_value=$?

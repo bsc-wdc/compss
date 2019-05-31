@@ -22,6 +22,12 @@
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
 
+  # Add trap to clean shared folder
+  clean() {
+    rm -rf /tmp/sharedDisk/
+  }
+  trap clean EXIT
+
   #----------------------------------------------------------------------------------
   # Run application
   echo

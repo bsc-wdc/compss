@@ -20,7 +20,11 @@
 
   #----------------------------------------------------------------------------------
   # Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/elasticity/
+  clean() {
+    rm -rf /tmp/elasticity/
+  }
+  trap clean EXIT
 
   #----------------------------------------------------------------------------------
   # Run application

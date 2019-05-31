@@ -6,31 +6,38 @@ COMP Superscalar (COMPSs) is a programming model which aims to ease the developm
 such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number: 2.4 Elderflower
-Release date: November-2018
+Release number: 2.5 F*
+Release date: June-2019
 -------------------------------
 New features:
          * Runtime:
-                 - New supercomputers supported Power9 (OpenPower) and ThunderX (ARM 64)
+		 - New task property "targetDirection" to indicate direction of the target object in object methods. Substitutes the "isModifier" task property.
+                 - New Concurrent direction type for task parameter.
+		 - Multi node tasks support for native (Java, Python) tasks. Previously, multi-node tasks were only posible with @mpi or @decaf tasks.
+                 - @Compss decorator for executing compss applications as tasks.
+		 - New runtime api to synchronize files without opening them.
+		 - Customizable task failure mangement with the "onFailure" task property. 
+		 - Enabled master node to execute tasks.
 
          * Python:
-                 - Autoparallel Module to automatically taskify affine loop nests
-                 - Support for Python notebook execution in Supercomputers
-                 - Distributed Data Set lightweight library that eases development of PyCOMPSs applications by distributing data, and/or providing most common data operations such as map, filter, reduce, etc.  
+                 - Partial support of numba in tasks.
+                 - Support for collection as task parameter.
+		 - Warnings for deprecated or incorrect task parameters.
 
          * C:
-                 - Multi-architecture and Cross-compiling build support 
+                 - Support for task without parameters and applictions without src folder.
 
 Improvements:
-         - New example applications distributed on Github
-         - Reduced overhead of c-binding 
-         - Task sandbox reuse to reduce execution overheads
-         - Script to clean COMPSs zombie processes
-         - Several bug fixes
+         - Improvements in Jupyter for SC.
+         - Upgrade of runcompss_docker script to docker stack interface.
+         - Several bug fixes.
 
 Known Limitations:
          - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
          - C++ Objects declared as arguments in a coarse-grain tasks must be passed in the task methods as object pointers in order to have a proper dependency management.
+         - Master as worker is not working for executions with persistent worker in C++.
+	 - Coherence and concurrent writting in parameters annotated with the "Concurrent" direction mush be managed by the underlaying distributed storage system.
+	 - Delete file calls for files used as input can produce a significant synchronization of the main code.  
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 

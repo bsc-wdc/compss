@@ -11,7 +11,7 @@
 
   # Install on each enabled supercomputer
   ENABLED_SCS=("mn" "mt" "nord")
-  SCS_SCRIPT_NAMES=("buildMN" "buildMT" "buildNord")
+  SCS_SCRIPT_NAMES=("buildMN" "buildMT" "buildNord" "buildP9")
 
   echo "Installing COMPSs at SCs"
 

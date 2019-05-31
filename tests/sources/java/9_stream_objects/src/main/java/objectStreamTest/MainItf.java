@@ -31,6 +31,14 @@ public interface MainItf {
         @Parameter() int sleepTime
     );
     
+    @Constraints(processorArchitecture = "AMD")
+    @Method(declaringClass = "objectStreamTest.Tasks")
+    Integer readObjectsTimeout(
+        @Parameter(type = Type.STREAM, direction = Direction.IN) ObjectDistroStream<MyObject> ods,
+        @Parameter() long timeout,
+        @Parameter() int sleepTime
+    );
+    
     @Method(declaringClass = "objectStreamTest.Tasks")
     Integer processObject(
         @Parameter(type = Type.OBJECT, direction = Direction.IN) MyObject obj

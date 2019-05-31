@@ -85,7 +85,7 @@ public class Tasks {
         Integer totalObjects = 0;
         while (!ods.isClosed()) {
             System.out.println("Polling new objects");
-            Integer numNewObjects = pollNewObjects(ods);
+            Integer numNewObjects = pollObjects(ods);
             totalObjects = totalObjects + numNewObjects;
 
             // Sleep between polls
@@ -96,15 +96,56 @@ public class Tasks {
             }
         }
         // Although the stream is closed, there can still be pending events to process
-        Integer numNewObjects = pollNewObjects(ods);
+        Integer numNewObjects = pollObjects(ods);
         totalObjects = totalObjects + numNewObjects;
 
         return totalObjects;
     }
 
-    private static Integer pollNewObjects(ObjectDistroStream<MyObject> ods) throws IOException, BackendException {
+    public static Integer readObjectsTimeout(ObjectDistroStream<MyObject> ods, long timeout, int sleepTime)
+            throws IOException, BackendException {
+
+        // Process events until stream is closed
+        Integer totalObjects = 0;
+        while (!ods.isClosed()) {
+            System.out.println("Polling new objects");
+            Integer numNewObjects = pollWithTimeout(ods, timeout);
+            totalObjects = totalObjects + numNewObjects;
+
+            // Sleep between polls
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        // Although the stream is closed, there can still be pending events to process
+        Integer numNewObjects = pollWithTimeout(ods, timeout);
+        totalObjects = totalObjects + numNewObjects;
+
+        return totalObjects;
+    }
+
+    private static Integer pollObjects(ObjectDistroStream<MyObject> ods) throws IOException, BackendException {
         // Poll new files
         List<MyObject> newObjects = ods.poll();
+
+        // Process their content
+        for (MyObject obj : newObjects) {
+            System.out.println("RECEIVED OBJECT: " + obj.hashCode());
+            System.out.println(" - Name: " + obj.getName());
+            System.out.println(" - Value: " + obj.getValue());
+        }
+
+        // Return the number of processed objects
+        return newObjects.size();
+    }
+
+    private static Integer pollWithTimeout(ObjectDistroStream<MyObject> ods, long timeout)
+            throws IOException, BackendException {
+
+        // Poll new files
+        List<MyObject> newObjects = ods.poll(timeout);
 
         // Process their content
         for (MyObject obj : newObjects) {

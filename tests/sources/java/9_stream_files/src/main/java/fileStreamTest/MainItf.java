@@ -28,5 +28,12 @@ public interface MainItf {
     Integer processFile(
         @Parameter(type = Type.FILE, direction = Direction.IN) String fileName
     );
+    
+    @Constraints(processorArchitecture = "Intel")
+    @Method(declaringClass = "fileStreamTest.Tasks")
+    void writeFilesAlias(
+        @Parameter(type = Type.STREAM, direction = Direction.OUT) FileDistroStream fds,
+        @Parameter() int sleepTime
+    );
 
 }

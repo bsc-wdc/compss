@@ -17,9 +17,25 @@ public class Tasks {
 
     public static void writeFiles(FileDistroStream fds, int sleepTime) {
         // Create several new files and add them to the stream when written
+        writeFilesToPath(Main.TEST_PATH, sleepTime);
+
+        // Send end event when finished
+        fds.close();
+    }
+
+    public static void writeFilesAlias(FileDistroStream fds, int sleepTime) {
+        // Create several new files and add them to the stream when written
+        writeFilesToPath(Main.TEST_PATH_ALIAS, sleepTime);
+
+        // Send end event when finished
+        fds.close();
+    }
+
+    public static void writeFilesToPath(String basePath, int sleepTime) {
+        // Create several new files and add them to the stream when written
         for (int i = 0; i < Main.NUM_FILES; ++i) {
             // File name
-            String fileName = Main.TEST_PATH + File.separator + Main.BASE_FILENAME + UUID.randomUUID();
+            String fileName = basePath + File.separator + Main.BASE_FILENAME + UUID.randomUUID();
             // Add content
             try (PrintWriter writer = new PrintWriter(fileName)) {
                 System.out.println("WRITING FILE: " + fileName);
@@ -37,9 +53,6 @@ public class Tasks {
                 Thread.currentThread().interrupt();
             }
         }
-
-        // Send end event when finished
-        fds.close();
     }
 
     public static Integer readFiles(FileDistroStream fds, int sleepTime) throws IOException, BackendException {

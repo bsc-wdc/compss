@@ -46,7 +46,7 @@
   #----------------------------------------------------------------------------------
   # Compute result status
   filesPerTest=$(grep "\\[LOG\\]" "${output_file}" | awk '{ print $NF }' | tr "\\n" " ")
-  expectedFilesPerTest="10 10 20 10 20 10 "
+  expectedFilesPerTest="10 10 20 10 20 10 10 "
   if [ "${filesPerTest}" != "${expectedFilesPerTest}" ]; then
     echo "ERROR: Stream processed files are not as expected"
     echo " - GOT: ${filesPerTest}"

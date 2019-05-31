@@ -23,6 +23,9 @@ New features:
                  - Partial support of numba in tasks.
                  - Support for collection as task parameter.
 		 - Warnings for deprecated or incorrect task parameters.
+                 - Supported task inheritance.
+                 - New persistent MPI worker mode (alternative to subprocess).
+                 - Support to ARM MAP and DDT tools (with MPI worker mode).
 
          * C:
                  - Support for task without parameters and applictions without src folder.

@@ -784,11 +784,18 @@ add_launch(){
 storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
 storage_master_node="\${master_node}"
 
-${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
+# The storage_init.sh can put environment variables in the temporary file which will be sourced afterwards
+variables_to_be_sourced=$(mktemp)
+${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props} ${variables_to_be_sourced}
+
+if [ -f \$${variables_to_be_sourced} ]; then
+    source \$${variables_to_be_sourced}
+    rm \$${variables_to_be_sourced}
+fi
 
 ${SCRIPT_DIR}/../../user/launch_compss --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --storage_conf=\${storage_conf} ${args_pass}
 
-${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network}
+${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 
 EOT
   else

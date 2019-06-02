@@ -58,8 +58,8 @@ usage() {
     echo "- Committing modifications to master"
     if git commit -am "Update to version ${newVersion}"; then
         git push http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git master
-        git tag ${version} -f
-        git push -f http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git ${version}
+        git tag ${newVersion} -f
+        git push -f http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git ${newVersion}
     fi
   fi
 

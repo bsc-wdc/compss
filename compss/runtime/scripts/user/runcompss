@@ -223,18 +223,18 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.4 Elderflower"
+  echo "COMPSs version 2.5 Freesia"
   echo " "
 }
 
 show_full_version() {
   cat << EOF
-        .-~~-.--.            ____        _    _
-       :         )          |___ \\      | |  | |
- .~ ~ -.\\       /.- ~~ .      __) |     | |__| |
- >       \`.   .'       <     / __/   _  |____  |
-(         .- -.         )   |_____| |_|      |_|
- \`- -.-~  \`- -'  ~-.- -'
+        .-~~-.--.            _____        _____
+       :         )          |____ \      | ____|
+ .~ ~ -.\\       /.- ~~ .     ___) |     | |___
+ >       \`.   .'       <    / ___/      |____ \
+(         .- -.         )   | |____   _   ____) |
+ \`- -.-~  \`- -'  ~-.- -'  |______| |_| |_____/
    (        :        )           _ _ .-:
     ~--.    :    .--~        .-~  .-~  }
         ~-.-^-.-~ \\       .~  .-~   .~
@@ -252,12 +252,12 @@ EOF
 show_flower() {
   cat << EOF
 
-Elderflower (Sambucus)
+Freesia
 
-Elderflowers are the flowers of European Elderberry. They are hermaphrodite flowers with five stamens and are borne in large, flat corymbs 10–25 cm diameter in late spring to mid summer, the individual flowers ivory white, 5–6 mm diameter, with five petals; they are pollinated by flies.
+Freesia is a genus of herbaceous perennial flowering plants in the family Iridaceae, first described as a genus in 1866 by Christian Friedrich Ecklon (1886) and named after the German botanist and medical practitioner, Friedrich Freese (1795-1876). They are herbaceous plants which grow from a conical corm 1–2.5 cm diameter, which sends up a tuft of narrow leaves 10–30 cm long, and a sparsely branched stem 10–40 cm tall bearing a few leaves and a loose one-sided spike of flowers with six tepals. Many species have fragrant narrowly funnel-shaped flowers, although those formerly placed in the genus Anomatheca, such as F. laxa, have flat flowers.
 
 Check more information:
-   https://en.wikipedia.org/wiki/Sambucus_nigra
+   https://en.wikipedia.org/wiki/Freesia
 
 EOF
 }
@@ -265,13 +265,15 @@ EOF
 show_recipe() {
   cat << EOF
 
-Elderflower - Liqueur
+Freesia  - Cocktail
 
-  10 to 20 Elderflower heads
-  1 quart vodka
-  1/4 to 1/2 cup sugar
+  3 Oz. Freesia infused Vya Whisper Dry
+  2 Oz. Cucumber-mint juice
+  1/2 oz Freshly squeezed lemon juice
+  1/2 oz Agave Nectar
 
-  Snip the flowers off the stalks into a quart Mason jar. Cover flowers with vodka. Keep in a cool, dark place for as long as you like, but at least a few days. Strain twice. Add between 1/4 cup and 1/2 cup sugar, depending on how sweet you want it. Seal the jar again and shake well to combine.
+Puree your cucumber with the mint leaves. In a cocktail shaker, combine cucumber-mint juice, lemon juice, agave nectar, Freesia Vya Whisper Dry Vermouth and ice. Shake and then strain. Serve over ice, garnish with Freesia bud and a mint sprig.
+
 EOF
 }
 

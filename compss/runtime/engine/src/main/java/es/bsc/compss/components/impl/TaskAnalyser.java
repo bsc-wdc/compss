@@ -409,12 +409,10 @@ public class TaskAnalyser {
                 registeredMonitor.onCompletion();
         }
 
-        /*
-         * Treat end of task
-         */
-        LOGGER.debug("Ending task " + taskId);
-
-        // Free dependencies
+        // Free barrier dependencies
+        if (DEBUG) {
+            LOGGER.debug("Freeing barriers for task " + taskId);
+        }
         Long appId = task.getAppId();
         Integer taskCount = this.appIdToTaskCount.get(appId) - 1;
         this.appIdToTaskCount.put(appId, taskCount);
@@ -431,7 +429,10 @@ public class TaskAnalyser {
             }
         }
 
-        // Check if task is being waited
+        // Free task data dependencies
+        if (DEBUG) {
+            LOGGER.debug("Releasing waiting tasks for task " + taskId);
+        }
         List<Semaphore> sems = this.waitedTasks.remove(task);
         if (sems != null) {
             for (Semaphore sem : sems) {
@@ -439,6 +440,10 @@ public class TaskAnalyser {
             }
         }
 
+        // Mark parameter accesses
+        if (DEBUG) {
+            LOGGER.debug("Marking accessed parameters for task " + taskId);
+        }
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
             if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
@@ -447,7 +452,9 @@ public class TaskAnalyser {
 
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
-                LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
+                if (DEBUG) {
+                    LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
+                }
                 if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
                         && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
                     this.dip.dataAccessHasBeenCanceled(dAccId);
@@ -456,13 +463,20 @@ public class TaskAnalyser {
                 }
             }
         }
+
         // Check if the finished task was the last writer of a file, but only if task generation has finished
         // Task generation is finished if we are on noMoreTasks but we are not on a barrier
+        if (DEBUG) {
+            LOGGER.debug("Checking result file transfers for task " + taskId);
+        }
         if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
             checkResultFileTransfer(task);
         }
 
         // Release data dependent tasks
+        if (DEBUG) {
+            LOGGER.debug("Releasing data dependant tasks for task " + taskId);
+        }
         task.releaseDataDependents();
     }
 
@@ -523,20 +537,21 @@ public class TaskAnalyser {
                     break;
             }
         }
+
         // Order the transfer of the result files
         final int numFT = fileIds.size();
         if (numFT > 0) {
-            // List<ResultFile> resFiles = new ArrayList<ResultFile>(numFT);
-            for (DataInstanceId fileId : fileIds) {
-                try {
-                    int id = fileId.getDataId();
-                    this.dip.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
-                    this.dip.unblockDataId(id);
-                } catch (Exception e) {
-                    LOGGER.error("Exception ordering transfer when task ends", e);
-                }
+            if (DEBUG) {
+                LOGGER.debug("Ordering transfers for result files of task " + t.getId());
             }
-
+            for (DataInstanceId fileId : fileIds) {
+                int id = fileId.getDataId();
+                if (DEBUG) {
+                    LOGGER.debug("- Requesting result file " + id + " because of task " + t.getId());
+                }
+                this.dip.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
+                this.dip.unblockDataId(id);
+            }
         }
     }
 
@@ -578,12 +593,15 @@ public class TaskAnalyser {
                         List<Semaphore> list = this.waitedTasks.get(lastWriter);
                         if (list == null) {
                             list = new LinkedList<>();
-                            this.waitedTasks.put(lastWriter, list);
                         }
                         list.add(sem);
+                        this.waitedTasks.put(lastWriter, list);
                     }
                     break;
             }
+        } else {
+            // No writer registered, release
+            sem.release();
         }
     }
 
@@ -659,12 +677,12 @@ public class TaskAnalyser {
             treatDataAccess(task, am, dataId);
             if (task.getStatus() != TaskState.FINISHED) {
                 n++;
-                List<Semaphore> list = waitedTasks.get(task);
+                List<Semaphore> list = this.waitedTasks.get(task);
                 if (list == null) {
                     list = new LinkedList<>();
-                    this.waitedTasks.put(task, list);
                 }
                 list.add(semTasks);
+                this.waitedTasks.put(task, list);
             }
         }
         request.setNumWaitedTasks(n);

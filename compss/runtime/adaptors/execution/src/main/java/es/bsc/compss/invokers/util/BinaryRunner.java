@@ -150,39 +150,72 @@ public class BinaryRunner {
     private static void addDirectParam(InvocationParam param, ArrayList<String> binaryParamFields, String pyCompssHome)
             throws InvokeExecutionException {
 
-        // Add prefix if any
         if (param.getPrefix() != null && !param.getPrefix().isEmpty()
                 && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
-            binaryParamFields.add(param.getPrefix());
-        }
 
-        // Add value
-        switch (param.getType()) {
-            case FILE_T:
-                binaryParamFields.add(param.getOriginalName());
-                break;
-            case STREAM_T:
-                DistroStream<?> ds = (DistroStream<?>) param.getValue();
-                switch (ds.getStreamType()) {
-                    case FILE:
-                        FileDistroStream fds = (FileDistroStream) ds;
-                        binaryParamFields.add(fds.getBaseDir());
-                        break;
-                    default:
-                        throw new InvokeExecutionException(ERROR_STREAM);
-                }
-                break;
-            case EXTERNAL_STREAM_T:
-                String serializedFile = (String) param.getValue();
-                String baseDir = getExternalStreamProperty(serializedFile, "base_dir", pyCompssHome);
-                if (baseDir == null || baseDir.isEmpty()) {
-                    throw new InvokeExecutionException(ERROR_EXT_STREAM_BASE_DIR);
-                }
-                binaryParamFields.add(baseDir);
-                break;
-            default:
-                binaryParamFields.add(String.valueOf(param.getValue()));
-                break;
+            // Add parameters with prefix
+            switch (param.getType()) {
+                case FILE_T:
+                    // Add prefix and file name
+                    binaryParamFields.add(param.getPrefix() + param.getOriginalName());
+                    break;
+                case STREAM_T:
+                    // No need to check prefix
+                    DistroStream<?> ds = (DistroStream<?>) param.getValue();
+                    switch (ds.getStreamType()) {
+                        case FILE:
+                            FileDistroStream fds = (FileDistroStream) ds;
+                            binaryParamFields.add(param.getPrefix() + fds.getBaseDir());
+                            break;
+                        default:
+                            throw new InvokeExecutionException(ERROR_STREAM);
+                    }
+                    break;
+                case EXTERNAL_STREAM_T:
+                    // No need
+                    String serializedFile = (String) param.getValue();
+                    String baseDir = getExternalStreamProperty(serializedFile, "base_dir", pyCompssHome);
+                    if (baseDir == null || baseDir.isEmpty()) {
+                        throw new InvokeExecutionException(ERROR_EXT_STREAM_BASE_DIR);
+                    }
+                    binaryParamFields.add(param.getPrefix() + baseDir);
+                    break;
+                default:
+                    binaryParamFields.add(param.getPrefix() + String.valueOf(param.getValue()));
+                    break;
+            }
+        } else {
+            // Add parameters without prefix
+            switch (param.getType()) {
+                case FILE_T:
+                    // Add file name
+                    binaryParamFields.add(param.getOriginalName());
+                    break;
+                case STREAM_T:
+                    // No need to check prefix
+                    DistroStream<?> ds = (DistroStream<?>) param.getValue();
+                    switch (ds.getStreamType()) {
+                        case FILE:
+                            FileDistroStream fds = (FileDistroStream) ds;
+                            binaryParamFields.add(fds.getBaseDir());
+                            break;
+                        default:
+                            throw new InvokeExecutionException(ERROR_STREAM);
+                    }
+                    break;
+                case EXTERNAL_STREAM_T:
+                    // No need
+                    String serializedFile = (String) param.getValue();
+                    String baseDir = getExternalStreamProperty(serializedFile, "base_dir", pyCompssHome);
+                    if (baseDir == null || baseDir.isEmpty()) {
+                        throw new InvokeExecutionException(ERROR_EXT_STREAM_BASE_DIR);
+                    }
+                    binaryParamFields.add(baseDir);
+                    break;
+                default:
+                    binaryParamFields.add(String.valueOf(param.getValue()));
+                    break;
+            }
         }
     }
 

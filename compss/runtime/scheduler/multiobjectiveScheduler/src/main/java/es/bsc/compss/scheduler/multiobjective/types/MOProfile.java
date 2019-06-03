@@ -26,25 +26,38 @@ import org.json.JSONObject;
 
 public class MOProfile extends Profile {
 
-    private static final double DEFAULT_PRICE = 0;
-    private static final double DEFAULT_POWER = 0;
+    protected static final double DEFAULT_PRICE = 0;
+    protected static final double DEFAULT_POWER = 0;
 
     private double power;
     private double price;
 
 
+    /**
+     * Creates a new MOProfile instance.
+     */
     public MOProfile() {
         super();
         this.power = DEFAULT_POWER;
         this.price = DEFAULT_PRICE;
     }
 
+    /**
+     * Creates a copy of the given profile {@code p}.
+     * 
+     * @param p Profile to copy.
+     */
     private MOProfile(MOProfile p) {
         super(p);
         this.power = p.power;
         this.price = p.price;
     }
 
+    /**
+     * Creates a new profile instance from the given JSON information.
+     * 
+     * @param json JSONObject containing the profile information.
+     */
     public MOProfile(JSONObject json) {
         super(json);
         if (json != null) {
@@ -64,19 +77,58 @@ public class MOProfile extends Profile {
         }
     }
 
+    /**
+     * Creates a new profile instance for the given implementation and resource.
+     * 
+     * @param impl Associated implementation.
+     * @param resource Associated resource.
+     */
     public <T extends WorkerResourceDescription> MOProfile(Implementation impl, Worker<T> resource) {
         this.power = 0;
         this.price = 0;
     }
 
+    /**
+     * Returns the consumed power.
+     * 
+     * @return The consumer power.
+     */
     public double getPower() {
         return this.power;
     }
 
+    /**
+     * Returns the consumed price.
+     * 
+     * @return The consumed price.
+     */
     public double getPrice() {
         return this.price;
     }
 
+    /**
+     * Sets a new power value.
+     * 
+     * @param power New power value.
+     */
+    public void setPower(double power) {
+        this.power = power;
+    }
+
+    /**
+     * Sets a new price value.
+     * 
+     * @param price New price value.
+     */
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    /**
+     * Accumulates the given profile into this one.
+     * 
+     * @param profile Profile to accumulate.
+     */
     public void accumulate(MOProfile profile) {
         super.accumulate(profile);
     }
@@ -124,36 +176,4 @@ public class MOProfile extends Profile {
         return super.getContent() + " power=" + this.power + " price=" + this.price;
     }
 
-
-    public static class MOProfileBuilder extends Profile.ProfileBuilder {
-
-        private double power = DEFAULT_POWER;
-        private double price = DEFAULT_PRICE;
-
-
-        public MOProfileBuilder() {
-            super();
-        }
-
-        public MOProfile build() {
-            MOProfile p = new MOProfile();
-            update(p);
-            return p;
-        }
-
-        public void setPower(double power) {
-            this.power = power;
-        }
-
-        public void setPrice(double price) {
-            this.price = price;
-        }
-
-        protected <P extends MOProfile> void update(P p) {
-            super.update(p);
-            MOProfile prof = (MOProfile) p;
-            prof.power = this.power;
-            prof.price = this.price;
-        }
-    }
 }

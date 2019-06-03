@@ -6,7 +6,7 @@ COMP Superscalar (COMPSs) is a programming model which aims to ease the developm
 such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of 
 applications at execution time.
 
-Release number: 2.5 F*
+Release number: 2.5 Freesia
 Release date: June-2019
 -------------------------------
 New features:

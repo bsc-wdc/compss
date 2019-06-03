@@ -9,20 +9,20 @@ digraph {
 2[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-2 -> Synchro1;
-3 -> Synchro1;
-1 -> Synchro1;
+2 -> Synchro1 [color=grey];
+1 -> Synchro1 [color=grey];
+3 -> Synchro1 [color=grey];
 4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro1 -> 4[ label="d1v2" ];
+Synchro1 -> 4 [label="d1v2"];
 5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro1 -> 5[ label="d2v2" ];
+Synchro1 -> 5 [label="d2v2"];
 6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro1 -> 6[ label="d3v2" ];
+Synchro1 -> 6 [label="d3v2"];
 Synchro2[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro1 -> Synchro2;
-4 -> Synchro2[ label="d1v4" ];
-5 -> Synchro2[ label="d2v4" ];
-6 -> Synchro2[ label="d3v4" ];  }
+4 -> Synchro2 [label="d1v4"];
+5 -> Synchro2 [label="d2v4"];
+6 -> Synchro2 [label="d3v4"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

@@ -7,13 +7,13 @@ digraph {
 
 1[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-1 -> 2[ label="d1v2" ];
+1 -> 2 [label="d1v2"];
 3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-2 -> 3[ label="d1v3" ];
+2 -> 3 [label="d1v3"];
 4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-3 -> 4[ label="d1v4" ];
+3 -> 4 [label="d1v4"];
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-4 -> Synchro1[ label="d1v6" ];  }
+4 -> Synchro1 [label="d1v6"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

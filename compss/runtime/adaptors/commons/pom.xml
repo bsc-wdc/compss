@@ -29,51 +29,42 @@
         <url>http://www.bsc.es</url>
     </organization>
 
-	<!-- DEPENDENCIES -->
-	<dependencies>
-		<!-- Extrae -->
-		<dependency>
-			<groupId>es.bsc.cepbatools</groupId>
-			<artifactId>extrae</artifactId>
-		</dependency>
+    <!-- DEPENDENCIES -->
+    <dependencies>       
+        <!-- COMPSs Dependencies -->
+        <!-- Common Runtime Dependencies -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+               
+        <!-- Storage -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-storage</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-		<!-- Streaming -->
-		<dependency>
-			<groupId>es.bsc.distro-stream-lib</groupId>
-			<artifactId>distro-stream</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.distro-stream-lib</groupId>
-			<artifactId>server</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.distro-stream-lib</groupId>
-			<artifactId>client</artifactId>
-		</dependency>
-
-		<!-- Storage -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-storage</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<!-- Common Runtime Dependencies -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-commons</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-resources-schema</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-project-schema</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+        <!-- Extrae -->
+        <dependency>
+            <groupId>es.bsc.cepbatools</groupId>
+            <artifactId>extrae</artifactId>
+        </dependency>
+        
+        <!-- Streaming -->
+        <dependency>
+            <groupId>es.bsc.distro-stream-lib</groupId>
+            <artifactId>distro-stream</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.distro-stream-lib</groupId>
+            <artifactId>server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.distro-stream-lib</groupId>
+            <artifactId>client</artifactId>
+        </dependency>
 
         <!-- Log4j -->
         <dependency>
@@ -93,6 +84,7 @@
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <!-- Compile Java code -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>

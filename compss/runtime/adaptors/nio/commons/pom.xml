@@ -31,11 +31,15 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
+        <!-- COMPSs Dependencies -->
+        <!-- Common Adaptor classes -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!-- Comm Library -->
         <dependency>
             <groupId>es.bsc.comm</groupId>
             <artifactId>comm-all</artifactId>
@@ -46,6 +50,7 @@
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <!-- Compile Java code -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
@@ -54,61 +59,6 @@
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
-
-            <!-- Copia les dependencies a la carpeta lib -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy</id>
-                        <phase>packaging</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <silent>true</silent>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Crea el Jar amb les dependencies -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>${project.artifactId}</finalName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!--Remove final.jar to project basedir -->
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>${maven-clean-plugin.version}</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${basedir}</directory>
-                            <includes>
-                                <include>${project.artifactId}.jar</include>
-                                <include>dependency-reduced-pom.xml</include>
-                            </includes>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 </project>

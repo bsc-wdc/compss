@@ -1,121 +1,130 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-adaptors-local-master</artifactId>
-	<packaging>jar</packaging>
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-adaptors-local</artifactId>
-		<version>2.5.rc1906</version>
-		<relativePath>..</relativePath>
-	</parent>
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-adaptors-local-master</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-adaptors-local</artifactId>
+        <version>2.5.rc1906</version>
+        <relativePath>..</relativePath>
+    </parent>
 
-	<!-- PROJECT INFORMATION -->
-	<name>COMPSs Back-end Local Master</name>
-	<description>Required classes to handle the master node and run task on it.</description>
-	<url>http://www.bsc.es</url>
-	<inceptionYear>2015</inceptionYear>
-	<licenses>
-		<license>
-			<name>Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-		</license>
-	</licenses>
-	<organization>
-		<name>BSC</name>
-		<url>http://www.bsc.es</url>
-	</organization>
+    <!-- PROJECT INFORMATION -->
+    <name>COMPSs Back-end Local Master</name>
+    <description>Required classes to handle the master node and run task on it.</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2015</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
 
-	<!-- DEPENDENCIES -->
-	<dependencies>
-		<!-- Common Runtime Dependencies -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-commons</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-adaptors-commons</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-adaptors-execution</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+    <!-- DEPENDENCIES -->
+    <dependencies>
+        <!-- Common Runtime Dependencies -->
+        <!-- Common Adaptor classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-commons</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Classes to host task executions-->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-execution</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-		<!-- Log4j -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-		</dependency>
+        <!-- Log4j -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
 
-		<!-- jUnit -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+        <!-- jUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-	<!-- BUILD -->
-	<build>
-		<finalName>${project.artifactId}</finalName>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
-				</configuration>
-			</plugin>
+    <!-- BUILD -->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <!-- Compile Java code -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
 
-            <!-- Copy dependencies to lib folder -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>packaging</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
-							<silent>true</silent>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <!-- Copy dependencies into lib folder -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>packaging</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <silent>true</silent>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-            <!-- Create JAR with dependencies -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven-shade-plugin.version}</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<finalName>${project.artifactId}</finalName>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <!-- Create jar with dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.artifactId}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-            <!-- Copy compss-adaptors-gat-master.jar to adaptor basedir -->
+            <!--Copy jar file to adaptor basedir -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+                <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-final-jar</id>
@@ -138,7 +147,7 @@
                 </executions>
             </plugin>
 			
-            <!-- Remove final.jar to project basedir -->
+            <!-- Remove final *.jar from project basedir -->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>${maven-clean-plugin.version}</version>
@@ -152,6 +161,17 @@
                             </includes>
                         </fileset>
                     </filesets>
+                </configuration>
+            </plugin>
+            
+            <!-- Run unit tests-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <reuseForks>false</reuseForks>
+                    <forkCount>1</forkCount>
                 </configuration>
             </plugin>
         </plugins>

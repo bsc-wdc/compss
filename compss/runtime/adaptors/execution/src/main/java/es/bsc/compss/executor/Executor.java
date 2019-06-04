@@ -55,11 +55,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -69,10 +71,10 @@ public class Executor implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_OUT_FILES = 
-            "ERROR: One or more OUT files have not been created by task with Method Definition [";
-    private static final String WARN_ATOMIC_MOVE = 
-            "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic";
+    private static final String ERROR_OUT_FILES
+            = "ERROR: One or more OUT files have not been created by task with Method Definition [";
+    private static final String WARN_ATOMIC_MOVE
+            = "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic";
 
     // Attached component NIOWorker
     private final InvocationContext context;
@@ -85,16 +87,15 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
-
     /**
      * Instantiates a new Executor.
      *
      * @param context
-     *            Invocation context
+     * Invocation context
      * @param platform
-     *            Executor context (Execution Platform
+     * Executor context (Execution Platform
      * @param executorId
-     *            Executor Identifier
+     * Executor Identifier
      */
     public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
         LOGGER.info("Executor init");
@@ -187,7 +188,7 @@ public class Executor implements Runnable {
         }
         return execute(invocation);
     }
-    
+
     private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
             throws JobExecutionException {
         /* Register outputs **************************************** */
@@ -404,7 +405,7 @@ public class Executor implements Runnable {
             if (workingDir != null && workingDir.exists() && workingDir.isDirectory()) {
                 try {
                     LOGGER.debug("Deleting sandbox " + workingDir.toPath());
-                    FileUtils.deleteDirectory(workingDir);
+                    deleteDirectory(workingDir);
                 } catch (IOException e) {
                     LOGGER.warn("Error deleting sandbox " + e.getMessage(), e);
                 }
@@ -416,11 +417,11 @@ public class Executor implements Runnable {
      * Check whether file1 corresponds to a file with a higher version than file2.
      *
      * @param file1
-     *            first file name
+     * first file name
      * @param file2
-     *            second file name
+     * second file name
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
-     *         is not correct)
+     * is not correct)
      */
     private boolean isMajorVersion(String file1, String file2) {
         String[] version1array = file1.split("_")[0].split("v");
@@ -447,11 +448,11 @@ public class Executor implements Runnable {
      * Create symbolic links from files with the original name in task sandbox to the renamed file.
      *
      * @param invocation
-     *            task description
+     * task description
      * @param sandbox
-     *            created sandbox
+     * created sandbox
      * @throws IOException
-     *             returns exception is a problem occurs during creation
+     * returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -487,13 +488,15 @@ public class Executor implements Runnable {
                         LOGGER.debug(
                                 "Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
                         Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
-                    } else if (Files.isSymbolicLink(inSandboxFile.toPath())) {
-                        Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
-                        LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to "
-                                + oldRenamed.getFileName().toString());
-                        if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
-                            Files.delete(inSandboxFile.toPath());
-                            Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+                    } else {
+                        if (Files.isSymbolicLink(inSandboxFile.toPath())) {
+                            Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
+                            LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to "
+                                    + oldRenamed.getFileName().toString());
+                            if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
+                                Files.delete(inSandboxFile.toPath());
+                                Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
+                            }
                         }
                     }
                 }
@@ -505,7 +508,7 @@ public class Executor implements Runnable {
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file.
      *
      * @param invocation
-     *            task description
+     * task description
      * @throws IOException Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
@@ -616,7 +619,6 @@ public class Executor implements Runnable {
 
     }
 
-
     private void createEmptyFile(Invocation invocation) {
         PrintStream out = context.getThreadOutStream();
         out.println("[EXECUTOR] executeTask - Checking if a blank file needs to be created");
@@ -701,12 +703,37 @@ public class Executor implements Runnable {
         }
     }
 
+    /**
+     * Delete a file or a directory and its children.
+     *
+     * @param directory The directory to delete.
+     * @throws IOException Exception when problem occurs during deleting the directory.
+     */
+    private static void deleteDirectory(File directory) throws IOException {
+
+        Path dPath = directory.toPath();
+        Files.walkFileTree(dPath, new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                    throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
 
     private class TaskWorkingDir {
 
         private final File workingDir;
         private final boolean isSpecific;
-
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

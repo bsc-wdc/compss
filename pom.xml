@@ -34,7 +34,7 @@
 		<streaming.version>1.0-16</streaming.version>
 
 		<!-- Log4j version -->
-		<log4j.version>2.9.1</log4j.version>
+		<log4j.version>2.11.2</log4j.version>
 
 		<!-- JUNIT -->
 		<junit.version>4.12</junit.version>
@@ -48,20 +48,20 @@
 		<javassist.version>3.21.0-GA</javassist.version>
 
 		<!-- Checkstyle -->
-		<maven-checkstyle-plugin.version>3.0.0</maven-checkstyle-plugin.version>
+		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
 		<puppycrawl-tools-checkstyle.version>8.18</puppycrawl-tools-checkstyle.version>
 
 		<!-- Maven Plugins -->
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven-compiler-plugin.version>3.6.0</maven-compiler-plugin.version>
-		<maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
-		<maven-resources-plugin.version>3.0.1</maven-resources-plugin.version>
-		<maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
-		<maven-war-plugin.version>3.0.0</maven-war-plugin.version>
-		<tomcat7-maven-plugin.version>2.1</tomcat7-maven-plugin.version>
-		<maven-jaxb2-plugin.version>0.12.1</maven-jaxb2-plugin.version>
-		<maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
+		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
+		<maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
+		<maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+		<maven-war-plugin.version>3.2.3</maven-war-plugin.version>
+        <tomcat7-maven-plugin.version>2.1</tomcat7-maven-plugin.version>
+		<maven-jaxb2-plugin.version>0.14.0</maven-jaxb2-plugin.version>
+		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 
 		<!-- Project encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -94,6 +94,14 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+        <repository>
+            <id>ZK CE</id>
+            <name>ZK CE Repository</name>
+            <url>https://mavensync.zkoss.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
 		<repository>
 			<id>compss-repo</id>
 			<name>BSC Workflows and Distributed Computing group</name>

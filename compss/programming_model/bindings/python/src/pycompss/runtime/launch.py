@@ -169,6 +169,7 @@ def compss_main():
             print('\t\tShutting down runtime...')
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
+        print("[ ERROR ]: Serialization exception")
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         for line in lines:

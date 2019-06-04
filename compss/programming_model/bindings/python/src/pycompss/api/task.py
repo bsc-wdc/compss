@@ -22,6 +22,7 @@ PyCOMPSs API - Task
 This file contains the class task, needed for the task definition.
 """
 
+from __future__ import print_function
 import os
 import sys
 import threading
@@ -285,7 +286,18 @@ class task(object):
             if context.in_master():
                 return self.master_call(*args, **kwargs)
             elif context.in_worker():
-                return self.worker_call(*args, **kwargs)
+                if 'compss_key' in kwargs.keys():
+                    return self.worker_call(*args, **kwargs)
+                else:
+                    # Called from another task within the worker
+                    # Ignore the @task decorator and run it sequentially
+                    message = "WARNING: Calling task: "
+                    message += str(user_function.__name__)
+                    message += " from this task.\n"
+                    message += "         It will be executed sequentially "
+                    message += "within the caller task."
+                    print(message, file=sys.stderr)
+                    return self.sequential_call(*args, **kwargs)
             # We are neither in master nor in the worker, or the user has
             # stopped the interactive session.
             # Therefore, the user code is being executed with no

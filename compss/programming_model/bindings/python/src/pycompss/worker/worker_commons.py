@@ -414,18 +414,18 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                 # If exception is raised during the task execution, new_types and new_values are empty
                 return 1, new_types, new_values
 
-            # Depending on the target_direction option, it is necessary to serialize again self or not.
-            # Since this option is only visible within the task decorator, the task_execution returns
-            # the value of isModifier in order to know here if self has to be serialized.
-            # This solution avoids to use inspect.
+            # Depending on the target_direction option, it is necessary to
+            # serialize again self or not. Since this option is only visible
+            # within the task decorator, the task_execution returns the value
+            # of target_direction in order to know here if self has to be
+            # serialized. This solution avoids to use inspect.
             if target_direction.direction == parameter.DIRECTION.INOUT:
                 from pycompss.util.persistent_storage import is_psco
-                if is_psco(self_elem):
+                if is_psco(obj):
                     # There is no explicit update if self is a PSCO.
-                    # Consequently, the changes on the PSCO must have been pushed into the storage automatically
-                    # on each PSCO modification.
-                    # This may lead to errors if isModifier=False, because it will not happen. The changes will
-                    # be made, and the storage must deal with concurrent modifications.
+                    # Consequently, the changes on the PSCO must have been
+                    # pushed into the storage automatically on each PSCO
+                    # modification.
                     if __debug__:
                         logger.debug("The changes on the PSCO must have been automatically updated by the storage.")
                     pass
@@ -434,12 +434,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                         logger.debug("Serializing self to file: %s" % file_name)
                     from pycompss.util.serializer import serialize_to_file
                     serialize_to_file(obj, file_name)
-                if __debug__:
-                    logger.debug("Serializing self to file.")
-                from pycompss.util.serializer import serialize_to_file
-                serialize_to_file(obj, file_name)
-                if __debug__:
-                    logger.debug("Obj: %r" % obj)
+                    if __debug__:
+                        logger.debug("Obj: %r" % obj)
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.append(None)  # class must be first type

@@ -140,6 +140,24 @@ def makePersistent(obj, *args):
         pass
 
 
+def updatePersistent(obj, *args):
+    if obj.id is not None:
+        # The psco is already persistent
+        # Update PSCO file
+        file_name = str(obj.id) + '.PSCO'
+        file_path = storage_path + file_name
+        # Remove old file
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            raise Exception("Can not delete the file %s doesn't exists" % str(file_path))
+        # Create a new one
+        serialize_to_file(obj, file_path)
+    else:
+        # The obj is not persistent
+        pass
+
+
 def removeById(obj):
     if obj.id is not None:
         # Remove ID file from /tmp/PSCO

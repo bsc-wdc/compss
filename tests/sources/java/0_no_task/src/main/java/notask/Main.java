@@ -1,7 +1,12 @@
-package noTask;
+package notask;
 
 public class Main {
 
+    /**
+     * Test main entry.
+     * 
+     * @param args System arguments.
+     */
     public static void main(String[] args) {
         // Check and get parameters
         if (args.length != 0) {

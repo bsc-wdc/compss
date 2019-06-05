@@ -1,15 +1,23 @@
-package basicTasks;
+package basic.tasks;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 
 
 public class SimpleImpl {
 
-    public static void increment(String counterFile) throws Exception {
+    /**
+     * Increases the value of a given counter.
+     * 
+     * @param counterFile File path to the counter file.
+     * @throws FileNotFoundException When file is not found.
+     * @throws IOException When file cannot be read or written.
+     * @throws Exception When filename is different from the original name
+     */
+    public static void increment(String counterFile) throws FileNotFoundException, IOException, Exception {
         // Checking if fileName is the original
         File f = new File(counterFile);
         if (!f.getName().equals(Simple.COUNTER_NAME)) {

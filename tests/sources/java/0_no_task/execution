@@ -13,7 +13,7 @@
   # Global variables
   exit_value=1
   jar_name="0_no_task.jar"
-  app_name="noTask.Main"
+  app_name="notask.Main"
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system

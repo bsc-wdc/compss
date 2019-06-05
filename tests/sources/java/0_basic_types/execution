@@ -13,7 +13,7 @@
   # Global variables
   exit_value=1
   jar_name="0_basic_types.jar"
-  app_name="basicTypes.BasicTypes"
+  app_name="basic.types.BasicTypes"
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system

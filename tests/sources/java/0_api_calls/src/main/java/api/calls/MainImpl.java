@@ -1,4 +1,4 @@
-package javaApiCalls;
+package api.calls;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

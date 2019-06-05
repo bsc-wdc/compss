@@ -1,4 +1,4 @@
-package javaApiCalls;
+package api.calls;
 
 import es.bsc.compss.api.COMPSs;
 
@@ -16,33 +16,22 @@ public class Main {
      * HELPER METHODS
      */
 
-    private static void initCounter(String counterName, int value) {
+    private static void initCounter(String counterName, int value) throws IOException {
         // Write value
         try (FileOutputStream fos = new FileOutputStream(counterName)) {
             fos.write(value);
             System.out.println("Initial " + counterName + " value is " + value);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
         }
     }
 
-    private static void printCounter(String counterName) {
+    private static void printCounter(String counterName) throws IOException {
         System.out.println("After Sending task");
         try (FileInputStream fis = new FileInputStream(counterName)) {
             System.out.println("Final " + counterName + " value is " + fis.read());
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
         }
     }
 
-    /**
-     * API Test.
-     * 
-     * @param initialValue Initial test value
-     */
-    public static void testBarrier(int initialValue) {
+    private static void testBarrier(int initialValue) throws IOException {
         // Initialize independent counters
         String counterName1 = "counter1";
         String counterName2 = "counter2";
@@ -75,8 +64,9 @@ public class Main {
      * Test main method.
      * 
      * @param args System arguments
+     * @throws IOException When processing test files.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Check and get parameters
         if (args.length != 1) {
             System.out.println("[ERROR] Bad number of parameters");

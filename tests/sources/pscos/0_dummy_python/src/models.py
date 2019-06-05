@@ -9,6 +9,8 @@ PyCOMPSs Testbench PSCO Models
 
 # Imports
 from storage.Object import SCO
+from pycompss.api.task import task
+from pycompss.api.parameter import INOUT
 
 
 def updateFile(obj):
@@ -33,6 +35,11 @@ class mySO(SCO):
     def put(self, v):
         self.value = v
         updateFile(self)
+
+    @task(target_direction=INOUT)
+    def increment(self):
+        self.value += 1
+        self.updatePersistent()
 
 
 # For Wordcount Test

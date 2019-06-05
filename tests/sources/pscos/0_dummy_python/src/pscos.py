@@ -142,6 +142,33 @@ def basic2Test():
         return False
 
 
+def basic3Test():
+    '''
+    This Test:
+        - Instantiates a SCO.
+        - Makes it persistent.
+        - Calls a task within that PSCO -> self INOUT
+            - The task increments its value.
+        - Calls it again.
+        - Calls it again.
+        - Waits for the self result.
+    '''
+    from pycompss.api.api import compss_wait_on
+    p = mySO(1)
+    p.makePersistent()
+    p.increment()
+    p.increment()
+    p.increment()
+    p = compss_wait_on(p)
+    print("p: " + str(p.get()))
+    if p.get() == 4:
+        print("- Complex Test Python PSCOs: OK")
+        return True
+    else:
+        print("- Complex Test Python PSCOs: ERROR")
+        return False
+
+
 def WordCount():
     from pycompss.api.api import compss_wait_on
     '''
@@ -442,6 +469,7 @@ def main():
     results = {}
     results['basic'] = basicTest()
     results['basic2'] = basic2Test()
+    results['basic3'] = basic3Test()
     results['wordcount'] = WordCount()
     results['wordcount2'] = WordCount2()
     results['tiramisu'] = TiramisuMockup()

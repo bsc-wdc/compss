@@ -46,3 +46,5 @@ class SCO(object):
     def deletePersistent(self):
         api.removeById(self)
 
+    def updatePersistent(self):
+        api.updatePersistent(self)

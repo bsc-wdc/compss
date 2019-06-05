@@ -1,5 +1,5 @@
 %define name	 	compss-storage
-%define version		2.5
+%define version		2.5.rc1906
 %define release		1
 
 Requires: compss-engine

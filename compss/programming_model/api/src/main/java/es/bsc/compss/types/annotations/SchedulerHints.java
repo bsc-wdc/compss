@@ -30,16 +30,16 @@ import java.lang.annotation.Target;
 public @interface SchedulerHints {
 
     /**
-     * Returns if the task must be replicated to all active workers
+     * Returns if the task must be replicated to all active workers.
      * 
-     * @return if the task must be replicated to all active workers
+     * @return if the task must be replicated to all active workers.
      */
     String isReplicated() default Constants.IS_NOT_REPLICATED_TASK;
 
     /**
-     * Returns if the task must be evenly distributed among workers
+     * Returns if the task must be evenly distributed among workers.
      * 
-     * @return if the task must be evenly distributed among workers
+     * @return if the task must be evenly distributed among workers.
      */
     String isDistributed() default Constants.IS_NOT_DISTRIBUTED_TASK;
 

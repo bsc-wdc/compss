@@ -16,49 +16,49 @@
  */
 package es.bsc.compss.types.annotations;
 
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.annotations.parameter.Type;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import es.bsc.compss.types.annotations.parameter.Type;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.StdIOStream;
-
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 /**
- * Parameters description
+ * Parameters description.
  */
 public @interface Parameter {
 
     /**
-     * Returns the type of the parameter
+     * Returns the type of the parameter.
      * 
-     * @return the type of the parameter
+     * @return the type of the parameter.
      */
     Type type() default Type.UNSPECIFIED;
 
     /**
-     * Returns the direction of the parameter
+     * Returns the direction of the parameter.
      * 
-     * @return the direction of the parameter
+     * @return the direction of the parameter.
      */
     // Set default direction=IN for basic types
     Direction direction() default Direction.IN;
 
     /**
-     * Returns if the parameter has been annotated as an stream entry
+     * Returns if the parameter has been annotated as an stream entry.
      * 
-     * @return the stream entry of the parameter
+     * @return the stream entry of the parameter.
      */
     StdIOStream stream() default StdIOStream.UNSPECIFIED;
 
     /**
-     * Returns the prefix of the parameter
+     * Returns the prefix of the parameter.
      * 
-     * @return the prefix of the parameter
+     * @return the prefix of the parameter.
      */
     String prefix() default Constants.PREFIX_EMPTY;
 

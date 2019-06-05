@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.annotations.task.repeatables;
 
+import es.bsc.compss.types.annotations.task.Decaf;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.task.Decaf;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -31,6 +31,11 @@ import es.bsc.compss.types.annotations.task.Decaf;
  */
 public @interface Decafs {
 
+    /**
+     * Returns the list of Decaf annotations.
+     * 
+     * @return The list of Decaf annotations.
+     */
     Decaf[] value();
 
 }

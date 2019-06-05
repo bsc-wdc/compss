@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.annotations.task.repeatables;
 
+import es.bsc.compss.types.annotations.task.MPI;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.task.MPI;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -31,6 +31,11 @@ import es.bsc.compss.types.annotations.task.MPI;
  */
 public @interface MPIs {
 
+    /**
+     * Returns the list of MPI annotations.
+     * 
+     * @return The list of MPI annotations.
+     */
     MPI[] value();
 
 }

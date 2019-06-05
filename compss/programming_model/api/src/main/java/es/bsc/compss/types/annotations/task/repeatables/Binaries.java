@@ -16,21 +16,26 @@
  */
 package es.bsc.compss.types.annotations.task.repeatables;
 
+import es.bsc.compss.types.annotations.task.Binary;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import es.bsc.compss.types.annotations.task.Binary;
-
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 /**
- * Methods definition
+ * Methods definition.
  */
 public @interface Binaries {
 
+    /**
+     * Returns the list of Binary annotations.
+     * 
+     * @return The list of Binary annotations.
+     */
     Binary[] value();
 
 }

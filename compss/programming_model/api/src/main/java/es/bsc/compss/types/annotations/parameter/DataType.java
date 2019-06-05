@@ -17,7 +17,7 @@
 package es.bsc.compss.types.annotations.parameter;
 
 /**
- * Parameter types (for bindings and internal java)
+ * Parameter types (for bindings and internal java).
  */
 public enum DataType {
     BOOLEAN_T, // Boolean

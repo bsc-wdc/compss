@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.annotations.task.repeatables;
 
+import es.bsc.compss.types.annotations.task.MultiNode;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.task.MultiNode;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -31,6 +31,11 @@ import es.bsc.compss.types.annotations.task.MultiNode;
  */
 public @interface MultiMultiNode {
 
+    /**
+     * Returns the list of MultiNode annotations.
+     * 
+     * @return The list of MultiNode annotations.
+     */
     MultiNode[] value();
 
 }

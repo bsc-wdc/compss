@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.types.annotations.task;
 
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.task.repeatables.Services;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.task.repeatables.Services;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -39,16 +39,16 @@ public @interface Service {
      */
 
     /**
-     * Returns the namespace of the Service
+     * Returns the namespace of the Service.
      * 
-     * @return the namespace of the Service
+     * @return the namespace of the Service.
      */
     String namespace();
 
     /**
-     * Returns the name of the Service
+     * Returns the name of the Service.
      * 
-     * @return the name of the Service
+     * @return the name of the Service.
      */
     String name();
 
@@ -58,16 +58,16 @@ public @interface Service {
      */
 
     /**
-     * Returns the port of the Service
+     * Returns the port of the Service.
      * 
-     * @return the port of the Service
+     * @return the port of the Service.
      */
     String port();
 
     /**
-     * Returns the operation name of the Service
+     * Returns the operation name of the Service.
      * 
-     * @return the operation name of the Service
+     * @return the operation name of the Service.
      */
     String operation() default Constants.UNASSIGNED;
 
@@ -77,9 +77,9 @@ public @interface Service {
      */
 
     /**
-     * Returns if the method has priority or not
+     * Returns if the method has priority or not.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 

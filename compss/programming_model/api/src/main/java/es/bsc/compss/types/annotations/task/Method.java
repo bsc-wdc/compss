@@ -16,17 +16,17 @@
  */
 package es.bsc.compss.types.annotations.task;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -43,16 +43,16 @@ public @interface Method {
      */
 
     /**
-     * Returns the declaring class of the method
+     * Returns the declaring class of the method.
      * 
-     * @return method's declaring class
+     * @return method's declaring class.
      */
     String declaringClass();
 
     /**
-     * Returns the name of the method
+     * Returns the name of the method.
      * 
-     * @return method's name
+     * @return method's name.
      */
     String name() default Constants.UNASSIGNED;
 
@@ -62,9 +62,9 @@ public @interface Method {
      */
 
     /**
-     * Returns the access mode of the target object
+     * Returns the access mode of the target object.
      * 
-     * @return Direction object indicating the access mode of the target object
+     * @return Direction object indicating the access mode of the target object.
      */
     Direction targetDirection() default Direction.INOUT;
 
@@ -74,23 +74,23 @@ public @interface Method {
      */
 
     /**
-     * Returns if the method has priority or not
+     * Returns if the method has priority or not.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 
     /**
-     * Returns the method specific constraints
+     * Returns the method specific constraints.
      * 
-     * @return the method specific constraints
+     * @return the method specific constraints.
      */
     Constraints constraints() default @Constraints();
 
     /**
-     * Returns the method behavior on failure
+     * Returns the method behavior on failure.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     OnFailure onFailure() default OnFailure.RETRY;
 

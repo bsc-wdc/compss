@@ -506,7 +506,12 @@ public abstract class Tracer {
             values[i] = methodId + 1;
             LOGGER.debug("Tracing debug: " + signature);
             String methodName = signature.substring(signature.indexOf('.') + 1, signature.length());
-            descriptionValues[i] = methodName;
+            String mN = methodName.replace("(", "(["). replace(")", "])");
+            if (mN.contains(".")) {
+                int start = mN.lastIndexOf(".");
+                mN = "[" + mN.substring(0, start) + ".]" + mN.substring(start + 1);
+            }
+            descriptionValues[i] = mN;
             if (DEBUG) {
                 LOGGER.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: "
                     + values[i] + ", Desc: " + descriptionValues[i]);

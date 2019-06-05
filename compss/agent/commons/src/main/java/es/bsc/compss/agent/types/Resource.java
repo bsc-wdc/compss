@@ -33,16 +33,17 @@ public class Resource<P, R> {
     private P projectConf;
     private R resourceConf;
 
+
     public Resource() {
     }
 
     /**
      * Constructs a new resource description.
      *
-     * @param name         Name of the node
-     * @param description  Description of the resources available
-     * @param adaptor      Name of the adaptor to use to interact with the node
-     * @param projectConf  Project configuration file content related to the node
+     * @param name Name of the node
+     * @param description Description of the resources available
+     * @param adaptor Name of the adaptor to use to interact with the node
+     * @param projectConf Project configuration file content related to the node
      * @param resourceConf Resources configuration file content related to the node
      */
     public Resource(String name, MethodResourceDescription description, String adaptor, P projectConf, R resourceConf) {

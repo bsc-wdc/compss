@@ -32,7 +32,7 @@ import java.util.List;
 public class CollectionParameter extends DependencyParameter {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -67,28 +67,23 @@ public class CollectionParameter extends DependencyParameter {
     }
 
     /**
-     * Get the identifier of the collection
+     * Get the identifier of the collection.
      * 
-     * @return String
+     * @return The collection identifier.
      */
     public String getCollectionId() {
         return this.collectionId;
     }
 
     /**
-     * Set the identifier of the collection
+     * Set the identifier of the collection.
      * 
-     * @param collectionId String
+     * @param collectionId The collection Id.
      */
     public void setCollectionId(String collectionId) {
         this.collectionId = collectionId;
     }
 
-    /**
-     * Representable print format of the collection
-     * 
-     * @return String
-     */
     @Override
     public String toString() {
         // Stringbuilder adds less overhead when creating a string
@@ -103,14 +98,18 @@ public class CollectionParameter extends DependencyParameter {
     }
 
     /**
-     * @return List of Parameter
+     * Returns the collection parameters.
+     * 
+     * @return List of the internal parameters of the collection.
      */
     public List<Parameter> getParameters() {
         return this.parameters;
     }
 
     /**
-     * @param parameters List of Parameter
+     * Sets the internal parameters of the collection.
+     * 
+     * @param parameters New internal parameters of the collection.
      */
     public void setParameters(List<Parameter> parameters) {
         this.parameters = parameters;

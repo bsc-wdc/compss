@@ -57,9 +57,9 @@ public interface Transferable {
     public DataType getType();
 
     /**
-     * Return whether the source should be preserved on the transfer
+     * Return whether the source should be preserved on the transfer.
      *
-     * @return <code>true</code> if source is to be preserved; <code>false</code> otherwise
+     * @return {@literal true} if source is to be preserved, {@literal false} otherwise.
      */
     public boolean isSourcePreserved();
 }

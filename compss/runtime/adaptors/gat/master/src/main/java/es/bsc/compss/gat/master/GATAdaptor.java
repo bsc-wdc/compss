@@ -16,15 +16,6 @@
  */
 package es.bsc.compss.gat.master;
 
-import java.net.URISyntaxException;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.gridlab.gat.GAT;
-import org.gridlab.gat.GATContext;
-
-import java.util.LinkedList;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.comm.Dispatcher;
@@ -40,6 +31,13 @@ import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.util.LinkedList;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.gridlab.gat.GAT;
+import org.gridlab.gat.GATContext;
 
 
 public class GATAdaptor implements CommAdaptor {
@@ -77,12 +75,13 @@ public class GATAdaptor implements CommAdaptor {
         // NOthing to do
     }
 
+    /**
+     * Starts the GAT Adaptor.
+     */
     public void init() {
         // Create request queues
         copyQueue = new RequestQueue<DataOperation>();
         safeQueue = new RequestQueue<DataOperation>();
-
-        String adaptor = System.getProperty(COMPSsConstants.GAT_FILE_ADAPTOR);
 
         if (DEBUG) {
             LOGGER.debug("Initializing GAT");
@@ -111,22 +110,23 @@ public class GATAdaptor implements CommAdaptor {
          * We need to try the local adaptor when both source and target hosts are local, because ssh file adaptor cannot
          * perform local operations
          */
+        final String adaptor = System.getProperty(COMPSsConstants.GAT_FILE_ADAPTOR);
         transferContext.addPreference("File.adaptor.name", adaptor + ", srcToLocalToDestCopy, local");
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
 
         String brokerAdaptorName = System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR);
-        String project_brokerAdaptor = (String) project_properties;
-        String resources_brokerAdaptor = (String) resources_properties;
-        if (project_brokerAdaptor != null) {
-            if (resources_brokerAdaptor != null) {
+        String projectBrokerAdaptor = (String) projectProperties;
+        String resourcesBrokerAdaptor = (String) resourcesProperties;
+        if (projectBrokerAdaptor != null) {
+            if (resourcesBrokerAdaptor != null) {
                 // Both
-                if (project_brokerAdaptor.equals(resources_brokerAdaptor)) {
+                if (projectBrokerAdaptor.equals(resourcesBrokerAdaptor)) {
                     // Equal, set any of them
-                    brokerAdaptorName = project_brokerAdaptor;
+                    brokerAdaptorName = projectBrokerAdaptor;
                 } else {
                     // Specified Broker adaptors don't match
                     throw new ConstructConfigurationException(
@@ -134,12 +134,12 @@ public class GATAdaptor implements CommAdaptor {
                 }
             } else {
                 // Only project
-                brokerAdaptorName = project_brokerAdaptor;
+                brokerAdaptorName = projectBrokerAdaptor;
             }
         } else {
-            if (resources_brokerAdaptor != null) {
+            if (resourcesBrokerAdaptor != null) {
                 // Only resources
-                brokerAdaptorName = resources_brokerAdaptor;
+                brokerAdaptorName = resourcesBrokerAdaptor;
             } else {
                 // No broker adaptor specified, load default
                 LOGGER.debug("GAT Broker Adaptor not specified. Setting default value " + brokerAdaptorName);
@@ -160,10 +160,19 @@ public class GATAdaptor implements CommAdaptor {
         return node;
     }
 
+    /**
+     * Adds the transfer context preferences to the Adaptor.
+     * 
+     * @param name Context name.
+     * @param value Context value.
+     */
     public static void addTransferContextPreferences(String name, String value) {
         transferContext.addPreference(name, value);
     }
 
+    /**
+     * Returns the pending operations of the adaptor.
+     */
     public LinkedList<DataOperation> getPending() {
         LinkedList<DataOperation> l = new LinkedList<>();
 

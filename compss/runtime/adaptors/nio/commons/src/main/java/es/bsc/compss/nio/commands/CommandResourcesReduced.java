@@ -16,18 +16,32 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
+import es.bsc.compss.nio.NIOAgent;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import es.bsc.comm.Connection;
-
 
 public class CommandResourcesReduced extends Command implements Externalizable {
 
+    /**
+     * Creates a new CommandResourcesReduced for externalization.
+     */
     public CommandResourcesReduced() {
         super();
+    }
+
+    /**
+     * Creates a new CommandResourcesReduced instance.
+     * 
+     * @param agent Associated NIOAgent.
+     */
+    public CommandResourcesReduced(NIOAgent agent) {
+        super(agent);
     }
 
     @Override
@@ -37,17 +51,17 @@ public class CommandResourcesReduced extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.performedResourceUpdate(c);
+        this.agent.performedResourceUpdate(c);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
+        // Nohting to do
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-
+        // Nohting to do
     }
 
     @Override

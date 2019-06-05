@@ -14,10 +14,10 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.dataRequest;
+package es.bsc.compss.nio.requests;
 
+import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.nio.commands.NIOData;
 
 
 public abstract class DataRequest {
@@ -27,22 +27,44 @@ public abstract class DataRequest {
     private final String target;
 
 
+    /**
+     * Creates a new DataRequest instance.
+     * 
+     * @param type Data type.
+     * @param source Source data.
+     * @param target Target data.
+     */
     public DataRequest(DataType type, NIOData source, String target) {
         this.source = source;
         this.target = target;
         this.type = type;
     }
 
+    /**
+     * Returns the associated source.
+     * 
+     * @return The associated source.
+     */
     public NIOData getSource() {
-        return source;
+        return this.source;
     }
 
+    /**
+     * Returns the associated target.
+     * 
+     * @return The associated target.
+     */
     public String getTarget() {
-        return target;
+        return this.target;
     }
 
+    /**
+     * Returns the data type.
+     * 
+     * @return The data type.
+     */
     public DataType getType() {
-        return type;
+        return this.type;
     }
 
 }

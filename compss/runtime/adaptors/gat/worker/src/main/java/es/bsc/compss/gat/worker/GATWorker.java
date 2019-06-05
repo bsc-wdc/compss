@@ -22,13 +22,13 @@ import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.ExecutionListener;
-import es.bsc.compss.gat.worker.implementations.JavaMethodDefinition;
 import es.bsc.compss.gat.executor.types.ExecutionEnd;
 import es.bsc.compss.gat.worker.implementations.BinaryDefinition;
-import es.bsc.compss.gat.worker.implementations.MPIDefinition;
-import es.bsc.compss.gat.worker.implementations.MultiNodeDefinition;
 import es.bsc.compss.gat.worker.implementations.COMPSsDefinition;
 import es.bsc.compss.gat.worker.implementations.DecafDefinition;
+import es.bsc.compss.gat.worker.implementations.JavaMethodDefinition;
+import es.bsc.compss.gat.worker.implementations.MPIDefinition;
+import es.bsc.compss.gat.worker.implementations.MultiNodeDefinition;
 import es.bsc.compss.gat.worker.implementations.OMPSsDefinition;
 import es.bsc.compss.gat.worker.implementations.OpenCLDefinition;
 import es.bsc.compss.types.execution.Invocation;
@@ -101,15 +101,15 @@ public class GATWorker implements InvocationContext {
      * deserializing Read/creating empty ones for Write. Invokes the desired method by reflection. and serializes all
      * the objects that has been modified and the result.
      *
-     * @param args
-     * @throws java.lang.Exception
+     * @param args System arguments.
+     * @throws Exception If any error occurs executing the worker or the task.
      */
-    public static void main(String args[]) throws Exception {
-        String workerName = args[WORKER_NAME_IDX];
-        String workingDir = args[WORKING_DIR_IDX];
-        boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
-        String installDir = args[INSTALL_DIR_IDX];
-        String appDir = args[APP_DIR_IDX];
+    public static void main(String[] args) throws Exception {
+        final String workerName = args[WORKER_NAME_IDX];
+        final String workingDir = args[WORKING_DIR_IDX];
+        final boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
+        final String installDir = args[INSTALL_DIR_IDX];
+        final String appDir = args[APP_DIR_IDX];
 
         // Prepares the Loggers according to the worker debug parameter
         GATLog.init(debug);
@@ -183,6 +183,20 @@ public class GATWorker implements InvocationContext {
         }
     }
 
+    /**
+     * Creates a new GATWorker instance with the given parameters.
+     * 
+     * @param workerName Worker name.
+     * @param workingDir Worker working directory.
+     * @param debug Whether the debug mode is enabled or not.
+     * @param installDir Worker installation directory.
+     * @param appDir Application directory in the worker machine.
+     * @param storageConf Path to the storage configuration.
+     * @param streamBackend Streaming backend.
+     * @param streamMasterName Streaming master name.
+     * @param streamMasterPort Streaming master port.
+     * @param computingUnitsCPU Number of worker computing units.
+     */
     public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir,
             String storageConf, StreamBackend streamBackend, String streamMasterName, int streamMasterPort,
             int computingUnitsCPU) {
@@ -212,14 +226,14 @@ public class GATWorker implements InvocationContext {
     }
 
     /**
-     * Parses the all the arguments except the application parameters
+     * Parses the all the arguments except the application parameters.
      *
      * @param args args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration
      *            arg[2]: Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames
      *            arg[3+N+1]: Number of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method
      *            dependant parameters Others
      */
-    private static ImplementationDefinition parseArguments(String args[]) {
+    private static ImplementationDefinition parseArguments(String[] args) {
         // Default flags
         int argPosition = DEFAULT_FLAGS_SIZE;
         boolean debug = Boolean.valueOf(args[DEBUG_IDX]);
@@ -318,14 +332,17 @@ public class GATWorker implements InvocationContext {
         return this.storageConf;
     }
 
+    @Override
     public StreamBackend getStreamingBackend() {
         return this.streamBackend;
     }
 
+    @Override
     public String getStreamingMasterName() {
         return this.streamMasterName;
     }
 
+    @Override
     public int getStreamingMasterPort() {
         return this.streamMasterPort;
     }
@@ -404,7 +421,7 @@ public class GATWorker implements InvocationContext {
         try {
             sem.acquire();
         } catch (InterruptedException ex) {
-
+            Thread.currentThread().interrupt();
         }
 
         // Stop and log execution result

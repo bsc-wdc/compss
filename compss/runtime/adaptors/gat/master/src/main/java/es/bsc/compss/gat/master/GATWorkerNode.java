@@ -23,6 +23,7 @@ import es.bsc.compss.gat.master.utils.GATScriptExecutor;
 import es.bsc.compss.gat.master.utils.SSHManager;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -32,16 +33,12 @@ import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.resources.ResourceDescription;
-
-import org.gridlab.gat.GATContext;
-import org.gridlab.gat.URI;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,9 +47,12 @@ import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.gridlab.gat.GATContext;
+import org.gridlab.gat.URI;
+
 
 /**
- * Representation of a GAT Worker node for the Runtime
+ * Representation of a GAT Worker node for the Runtime.
  */
 public class GATWorkerNode extends COMPSsWorker {
 
@@ -63,6 +63,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
+
 
     /**
      * New GAT Worker Node with name @name and configuration @{code config}.
@@ -147,36 +148,36 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     /**
-     * Returns the hostname
+     * Returns the hostname.
      *
-     * @return
+     * @return The hostname.
      */
     public String getHost() {
         return this.config.getHost();
     }
 
     /**
-     * Returns the installation dir
+     * Returns the installation directory.
      *
-     * @return
+     * @return The installation directory.
      */
     public String getInstallDir() {
         return this.config.getInstallDir();
     }
 
     /**
-     * Returns the working dir
+     * Returns the working directory.
      *
-     * @return
+     * @return The working directory.
      */
     public String getWorkingDir() {
         return this.config.getSandboxWorkingDir();
     }
 
     /**
-     * Returns the application dir
+     * Returns the application directory.
      *
-     * @return
+     * @return The application directory.
      */
     public String getAppDir() {
         String appDir = this.config.getAppDir();
@@ -186,9 +187,9 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     /**
-     * Returns the library path
-     *
-     * @return
+     * Returns the library path.
+     * 
+     * @return The library path
      */
     public String getLibPath() {
         String libPath = this.config.getLibraryPath();
@@ -198,36 +199,36 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     /**
-     * Returns the total number of computing units
+     * Returns the total number of computing units.
      *
-     * @return
+     * @return The total number of computing units
      */
     public int getTotalComputingUnits() {
         return this.config.getTotalComputingUnits();
     }
 
     /**
-     * Returns the GAT context
+     * Returns the GAT context.
      *
-     * @return
+     * @return The GAT context
      */
     public GATContext getContext() {
         return this.config.getContext();
     }
 
     /**
-     * Returns if globus is enabled or not
+     * Returns whether globus is enabled or not.
      *
-     * @return
+     * @return {@literal true} if globus is enabled, {@literal false} otherwise.
      */
     public boolean isUsingGlobus() {
         return this.config.isUsingGlobus();
     }
 
     /**
-     * Returns if user is needed to login the worker or not
+     * Returns whether the user is needed to login the worker or not.
      *
-     * @return
+     * @return {@literal true} if the user is needed to login the worker, {@literal false} otherwise.
      */
     public boolean isUserNeeded() {
         return this.config.isUserNeeded();
@@ -306,7 +307,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
-        //Copy already done on obtainData()
+        // Copy already done on obtainData()
         listener.notifyEnd(null);
     }
 

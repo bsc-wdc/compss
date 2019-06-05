@@ -33,18 +33,26 @@ public class MPIDefinition extends ImplementationDefinition {
     private final MPIImplementation impl;
 
 
+    /**
+     * Creates a new MPI definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
     public MPIDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + MPIImplementation.NUM_PARAMS);
 
         this.mpiRunner = args[execArgsIdx++];
         this.mpiBinary = args[execArgsIdx++];
+        
         String wDir = args[execArgsIdx++];
         if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;
         }
-
+        
         this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, null, null, null);
     }
 

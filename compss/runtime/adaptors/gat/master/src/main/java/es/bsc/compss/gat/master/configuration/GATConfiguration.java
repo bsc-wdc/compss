@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.gat.master.configuration;
 
-import java.util.Map.Entry;
-
-import org.gridlab.gat.GATContext;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.GATAdaptor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+
+import java.util.Map.Entry;
+
+import org.gridlab.gat.GATContext;
 
 
 public class GATConfiguration extends MethodConfiguration {
@@ -33,6 +33,12 @@ public class GATConfiguration extends MethodConfiguration {
     private String queue = "";
 
 
+    /**
+     * Creates a new GATConfiguration instance with the associated adaptor name and broker adaptor.
+     * 
+     * @param adaptorName Adaptor name.
+     * @param brokerAdaptorName Broker adaptor name.
+     */
     public GATConfiguration(String adaptorName, String brokerAdaptorName) {
         super(adaptorName);
 
@@ -52,6 +58,11 @@ public class GATConfiguration extends MethodConfiguration {
         }
     }
 
+    /**
+     * Copies the given GATConfiguration.
+     * 
+     * @param clone The GATConfiguration to copy.
+     */
     public GATConfiguration(GATConfiguration clone) {
         super(clone);
         this.context = clone.context; // TODO: check if context should be cloned or this assignation is OK
@@ -74,38 +85,85 @@ public class GATConfiguration extends MethodConfiguration {
         this.userNeeded = brokerAdaptor.regionMatches(true, 0, "ssh", 0, 3);
     }
 
+    /**
+     * Returns the GAT context.
+     * 
+     * @return The GAT context.
+     */
     public GATContext getContext() {
-        return context;
+        return this.context;
     }
 
+    /**
+     * Sets a new GAT context.
+     * 
+     * @param context The new GAT context.
+     */
     public void setContext(GATContext context) {
         this.context = context;
     }
 
+    /**
+     * Adds a preference to the current context.
+     * 
+     * @param key Preference key.
+     * @param value Preference value.
+     */
     public void addContextPreference(String key, String value) {
         this.context.addPreference(key, value);
     }
 
+    /**
+     * Returns whether the configuration requires globus or not.
+     * 
+     * @return {@literal true} if the configuration requires globus, {@literal false} otherwise.
+     */
     public boolean isUsingGlobus() {
-        return usingGlobus;
+        return this.usingGlobus;
     }
 
+    /**
+     * Sets a new value for the globus property.
+     * 
+     * @param usingGlobus New globus property.
+     */
     public void setUsingGlobus(boolean usingGlobus) {
         this.usingGlobus = usingGlobus;
     }
 
+    /**
+     * Returns whether the configuration requires a user to login the worker node or not.
+     * 
+     * @return {@literal true} if the configuration requires a user to login the worker node, {@literal false}
+     *         otherwise.
+     */
     public boolean isUserNeeded() {
-        return userNeeded;
+        return this.userNeeded;
     }
 
+    /**
+     * Sets a new value for the user property.
+     * 
+     * @param userNeeded New user property.
+     */
     public void setUserNeeded(boolean userNeeded) {
         this.userNeeded = userNeeded;
     }
 
+    /**
+     * Returns the queue system value.
+     * 
+     * @return The queue system value.
+     */
     public String getQueue() {
-        return queue;
+        return this.queue;
     }
 
+    /**
+     * Sets a new queue system value.
+     * 
+     * @param queue New queue system value.
+     */
     public void setQueue(String queue) {
         this.queue = queue;
     }

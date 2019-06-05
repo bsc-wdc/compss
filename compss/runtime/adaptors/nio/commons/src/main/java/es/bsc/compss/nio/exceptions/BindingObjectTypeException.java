@@ -14,25 +14,23 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.dataRequest;
+package es.bsc.compss.nio.exceptions;
 
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.types.data.operation.DataOperation;
+public class BindingObjectTypeException extends Exception {
 
-
-public class MasterDataRequest extends DataRequest {
-
-    private final DataOperation fOp;
+    /**
+     * Exception Version UID are 2L in all Runtime.
+     */
+    private static final long serialVersionUID = 2L;
 
 
-    public MasterDataRequest(DataOperation fOp, DataType type, NIOData source, String target) {
-        super(type, source, target);
-        this.fOp = fOp;
-    }
-
-    public DataOperation getOperation() {
-        return this.fOp;
+    /**
+     * Creates a new DataNotAvailableException with the given message.
+     * 
+     * @param msg Exception message.
+     */
+    public BindingObjectTypeException(String msg) {
+        super(msg);
     }
 
 }

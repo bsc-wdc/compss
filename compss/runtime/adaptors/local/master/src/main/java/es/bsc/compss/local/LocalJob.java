@@ -47,6 +47,16 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     private final List<String> slaveWorkersNodeNames;
 
 
+    /**
+     * Creates a new LocalJob instance.
+     * 
+     * @param taskId Associated task Id.
+     * @param task Associated task description.
+     * @param impl Task implementation.
+     * @param res Resource.
+     * @param slaveWorkersNodeNames List of slave nodes for multi-node tasks.
+     * @param listener Task listener.
+     */
     public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
 

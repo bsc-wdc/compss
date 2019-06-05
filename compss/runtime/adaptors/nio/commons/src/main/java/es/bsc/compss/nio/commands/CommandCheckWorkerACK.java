@@ -16,12 +16,14 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
+import es.bsc.compss.nio.NIOAgent;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.comm.Connection;
 
 
 public class CommandCheckWorkerACK extends Command implements Externalizable {
@@ -30,12 +32,22 @@ public class CommandCheckWorkerACK extends Command implements Externalizable {
     private String nodeName;
 
 
+    /**
+     * Creates a new CommandCheckWorkerACK for externalization.
+     */
     public CommandCheckWorkerACK() {
         super();
     }
 
-    public CommandCheckWorkerACK(String uuid, String nodeName) {
-        super();
+    /**
+     * Creates a new CommandCheckWorkerACK instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param uuid Associated application UUID.
+     * @param nodeName Worker node name.
+     */
+    public CommandCheckWorkerACK(NIOAgent agent, String uuid, String nodeName) {
+        super(agent);
         this.uuid = uuid;
         this.nodeName = nodeName;
     }
@@ -47,24 +59,24 @@ public class CommandCheckWorkerACK extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.setWorkerIsReady(nodeName);
+        this.agent.setWorkerIsReady(this.nodeName);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        uuid = (String) in.readUTF();
-        nodeName = (String) in.readUTF();
+        this.uuid = (String) in.readUTF();
+        this.nodeName = (String) in.readUTF();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeUTF(uuid);
-        out.writeUTF(nodeName);
+        out.writeUTF(this.uuid);
+        out.writeUTF(this.nodeName);
     }
 
     @Override
     public String toString() {
-        return "CommandCheckWorkerACK for deployment ID " + uuid;
+        return "CommandCheckWorkerACK for deployment ID " + this.uuid;
     }
 
 }

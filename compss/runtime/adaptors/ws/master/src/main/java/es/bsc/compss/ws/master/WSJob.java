@@ -16,27 +16,27 @@
  */
 package es.bsc.compss.ws.master;
 
-import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.util.RequestDispatcher;
-import es.bsc.compss.util.RequestQueue;
-import es.bsc.compss.util.ThreadPool;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.ServiceImplementation;
-import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.parameter.BasicTypeParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.util.RequestDispatcher;
+import es.bsc.compss.util.RequestQueue;
+import es.bsc.compss.util.ThreadPool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,9 +56,8 @@ import org.apache.logging.log4j.Logger;
 public class WSJob extends Job<ServiceInstance> {
 
     // Logger
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-    private static final String THREAD_POOL_ERR = "Error starting pool of threads";
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+
     private static final String SUBMIT_ERROR = "Error calling Web Service";
 
     // Class structures
@@ -76,7 +75,10 @@ public class WSJob extends Job<ServiceInstance> {
     private Object returnValue;
 
 
-    public static void init() throws Exception {
+    /**
+     * Initializes the WSJob structures.
+     */
+    public static void init() {
         // Create thread that will handle job submission requests
         if (callerQueue == null) {
             callerQueue = new RequestQueue<>();
@@ -85,23 +87,28 @@ public class WSJob extends Job<ServiceInstance> {
         }
         caller = new WSCaller(callerQueue);
         callerPool = new ThreadPool(POOL_SIZE, POOL_NAME, caller);
-        try {
-            callerPool.startThreads();
-        } catch (Exception e) {
-            LOGGER.error(THREAD_POOL_ERR, e);
-            throw e;
-        }
+        callerPool.startThreads();
     }
 
+    /**
+     * Stops the WSJob structures.
+     */
     public static void end() {
-        try {
-            callerPool.stopThreads();
-        } catch (Exception e) {
-        }
+        callerPool.stopThreads();
     }
 
+    /**
+     * Creates a new WSJob instance.
+     * 
+     * @param taskId Associated task Id.
+     * @param taskParams Associated task parameters.
+     * @param impl Task implementation.
+     * @param res Resource.
+     * @param listener Task listener.
+     */
     public WSJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener) {
         super(taskId, taskParams, impl, res, listener);
+
         this.returnValue = null;
     }
 

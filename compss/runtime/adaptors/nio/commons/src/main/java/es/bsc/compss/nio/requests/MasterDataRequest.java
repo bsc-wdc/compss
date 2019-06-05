@@ -14,39 +14,38 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.datarequest;
+package es.bsc.compss.nio.requests;
 
-import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.nio.NIOData;
-import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.operation.DataOperation;
 
 
-public class WorkerDataRequest extends DataRequest {
+public class MasterDataRequest extends DataRequest {
 
-    private final FetchDataListener listener;
+    private final DataOperation fOp;
 
 
     /**
-     * Creates a new WorkerDataRequest instance.
+     * Creates a new MasterDataRequest instance.
      * 
-     * @param task FetchDataListener task.
+     * @param fOp Data operation.
      * @param type Data type.
-     * @param source NIO source data.
-     * @param target Target path.
+     * @param source Data source.
+     * @param target Data target.
      */
-    public WorkerDataRequest(FetchDataListener task, DataType type, NIOData source, String target) {
+    public MasterDataRequest(DataOperation fOp, DataType type, NIOData source, String target) {
         super(type, source, target);
-        this.listener = task;
+        this.fOp = fOp;
     }
 
     /**
-     * Returns the associated fetch data listener task.
-     *
-     * @return The associated fetch data listener task.
+     * Returns the data operation.
+     * 
+     * @return The data operation.
      */
-    public FetchDataListener getListener() {
-        return this.listener;
+    public DataOperation getOperation() {
+        return this.fOp;
     }
 
 }

@@ -57,7 +57,14 @@ public abstract class ImplementationDefinition implements Invocation {
     private final LinkedList<Param> results = new LinkedList<>();
 
 
-    public ImplementationDefinition(boolean enableDebug, String args[], int appArgsIdx) {
+    /**
+     * Creates a new ImplementationDefinition instance.
+     * 
+     * @param enableDebug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param appArgsIdx Application arguments parsing index.
+     */
+    public ImplementationDefinition(boolean enableDebug, String[] args, int appArgsIdx) {
         this.jobId = Integer.parseInt(args[appArgsIdx++]);
         this.taskId = Integer.parseInt(args[appArgsIdx++]);
         this.history = JobHistory.NEW;
@@ -77,7 +84,7 @@ public abstract class ImplementationDefinition implements Invocation {
 
         int numParams = Integer.parseInt(args[appArgsIdx++]);
         // Get if has target or not
-        hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
+        this.hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
 
         int numReturns = Integer.parseInt(args[appArgsIdx++]);
 
@@ -91,15 +98,15 @@ public abstract class ImplementationDefinition implements Invocation {
 
         Iterator<Param> paramsItr = paramsTmp.descendingIterator();
         for (int i = 0; i < numReturns; i++) {
-            results.addFirst(paramsItr.next());
+            this.results.addFirst(paramsItr.next());
         }
-        if (hasTarget) {
-            target = paramsItr.next();
+        if (this.hasTarget) {
+            this.target = paramsItr.next();
         } else {
-            target = null;
+            this.target = null;
         }
         while (paramsItr.hasNext()) {
-            arguments.addFirst(paramsItr.next());
+            this.arguments.addFirst(paramsItr.next());
         }
     }
 
@@ -111,12 +118,6 @@ public abstract class ImplementationDefinition implements Invocation {
 
         int totalParams = numParams + numReturns + (hasTarget ? 1 : 0);
         for (int paramIdx = 0; paramIdx < totalParams; paramIdx++) {
-            DataType argType;
-
-            StdIOStream stream;
-            String prefix;
-            String name;
-
             // Object and primitiveTypes
             Object value = null;
             // File
@@ -126,20 +127,20 @@ public abstract class ImplementationDefinition implements Invocation {
             if (argTypeIdx >= dataTypesEnum.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_DATA_TYPE + argTypeIdx);
             }
-            argType = dataTypesEnum[argTypeIdx];
+            final DataType argType = dataTypesEnum[argTypeIdx];
 
             int argStreamIdx = Integer.parseInt(args[appArgsIdx++]);
             if (argStreamIdx >= dataStream.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStreamIdx);
             }
-            stream = dataStream[argStreamIdx];
+            final StdIOStream stream = dataStream[argStreamIdx];
 
-            prefix = args[appArgsIdx++];
+            String prefix = args[appArgsIdx++];
             if (prefix == null || prefix.isEmpty()) {
                 prefix = Constants.PREFIX_EMPTY;
             }
 
-            name = args[appArgsIdx++];
+            String name = args[appArgsIdx++];
             if (name.compareTo("null") == 0) {
                 name = "";
             }

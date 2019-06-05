@@ -48,6 +48,11 @@ public class LocalParameter implements InvocationParam {
     private Class<?> valueClass;
 
 
+    /**
+     * Creates a new LocalParameter instance from the given parameter information.
+     * 
+     * @param param Parameter information.
+     */
     public LocalParameter(Parameter param) {
         this.param = param;
         DataType type = param.getType();

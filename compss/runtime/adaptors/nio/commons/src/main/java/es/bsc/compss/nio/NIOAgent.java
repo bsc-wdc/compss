@@ -16,10 +16,7 @@
  */
 package es.bsc.compss.nio;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import static java.lang.Math.abs;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.TransferManager;
@@ -30,17 +27,16 @@ import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.commands.CommandDataDemand;
+import es.bsc.compss.nio.commands.CommandTracingID;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
+import es.bsc.compss.nio.exceptions.SerializedObjectException;
+import es.bsc.compss.nio.requests.DataRequest;
+import es.bsc.compss.nio.utils.NIOBindingDataManager;
+import es.bsc.compss.nio.utils.NIOBindingObjectStream;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.nio.commands.CommandDataDemand;
-import es.bsc.compss.nio.commands.CommandTracingID;
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
-import es.bsc.compss.nio.dataRequest.DataRequest;
-import es.bsc.compss.nio.exceptions.SerializedObjectException;
-import es.bsc.compss.nio.utils.NIOBindingDataManager;
-import es.bsc.compss.nio.utils.NIOBindingObjectStream;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
@@ -48,14 +44,16 @@ import es.bsc.compss.util.Serializer;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import static java.lang.Math.abs;
 
 
 public abstract class NIOAgent {
@@ -104,11 +102,11 @@ public abstract class NIOAgent {
 
 
     /**
-     * Constructor
+     * Creates a NIOAgent instance.
      *
-     * @param snd
-     * @param rcv
-     * @param port
+     * @param snd Maximum simultaneous sends.
+     * @param rcv Maximum simultaneous receives.
+     * @param port Communication port.
      */
     public NIOAgent(int snd, int rcv, int port) {
         this.sendTransfers = 0;
@@ -188,7 +186,7 @@ public abstract class NIOAgent {
         }
         while (dr != null) {
             NIOData source = dr.getSource();
-            NIOURI uri = source.getFirstURI();
+            NIOUri uri = source.getFirstURI();
 
             if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId());
@@ -379,8 +377,8 @@ public abstract class NIOAgent {
                             + d.getDataMgmtId());
                 }
                 c.sendDataFile(path);
-            } else // Not found check if it has been moved to the target name (renames
-            {
+            } else {
+                // Not found check if it has been moved to the target name (renames
                 if (!f.getName().equals(d.getDataMgmtId())) {
                     File renamed;
                     if (isMaster()) { // renamed will be in the masters file path
@@ -665,13 +663,13 @@ public abstract class NIOAgent {
         }
     }
 
-    private BindingObject getTargetBindingObject(String target, String origin_path) {
+    private BindingObject getTargetBindingObject(String target, String originPath) {
         BindingObject bo;
         if (target.contains("#")) {
             bo = BindingObject.generate(target);
         } else {
-            BindingObject bo_or = BindingObject.generate(origin_path);
-            bo = new BindingObject(target, bo_or.getType(), bo_or.getElements());
+            BindingObject boOr = BindingObject.generate(originPath);
+            bo = new BindingObject(target, boOr.getType(), boOr.getElements());
         }
         return bo;
     }

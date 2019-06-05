@@ -31,12 +31,19 @@ public class MultiNodeDefinition extends ImplementationDefinition {
     private final MultiNodeImplementation impl;
 
 
+    /**
+     * Creates a new MultiNode definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
     public MultiNodeDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + MultiNodeImplementation.NUM_PARAMS);
 
         this.methodClass = args[execArgsIdx++];
         this.methodName = args[execArgsIdx++];
-
+        
         this.impl = new MultiNodeImplementation(this.methodClass, this.methodName, null, null, null);
     }
 

@@ -389,6 +389,13 @@ public class BinaryRunner {
         errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
     }
 
+    /**
+     * Closes any stream parameter of the task.
+     * 
+     * @param parameters Task parameters.
+     * @param pyCompssHome A valid PyCOMPSs home path (used to compile only).
+     * @throws StreamCloseException When an internal error occurs when closing the stream.
+     */
     public static void closeStreams(List<? extends InvocationParam> parameters, String pyCompssHome)
             throws StreamCloseException {
         for (InvocationParam p : parameters) {

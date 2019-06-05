@@ -1,12 +1,5 @@
 package es.bsc.compss.invokers.external.piped;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
@@ -15,6 +8,13 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class PythonMirror extends PipedMirror {
@@ -40,6 +40,12 @@ public class PythonMirror extends PipedMirror {
     private final String pyCOMPSsHome;
 
 
+    /**
+     * Creates a new PythonMirror instance with the given context and size.
+     * 
+     * @param context Context.
+     * @param size Mirror thread size.
+     */
     public PythonMirror(InvocationContext context, int size) {
         super(context, size);
         this.pyParams = (PythonParams) context.getLanguageParams(COMPSsConstants.Lang.PYTHON);

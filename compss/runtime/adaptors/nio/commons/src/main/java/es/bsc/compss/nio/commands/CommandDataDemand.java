@@ -16,13 +16,15 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
+import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.nio.NIOAgent;
-import es.bsc.comm.Connection;
 
 
 public class CommandDataDemand extends Command implements Externalizable {
@@ -31,12 +33,22 @@ public class CommandDataDemand extends Command implements Externalizable {
     private int id;
 
 
+    /**
+     * Creates a new CommandDataDemand for externalization.
+     */
     public CommandDataDemand() {
         super();
     }
 
-    public CommandDataDemand(NIOAgent ng, NIOData d, int receiverID) {
-        super(ng);
+    /**
+     * Creates a new CommandDataDemand instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param d Data to request.
+     * @param receiverID Receiver Id.
+     */
+    public CommandDataDemand(NIOAgent agent, NIOData d, int receiverID) {
+        super(agent);
         this.d = d;
         this.id = receiverID;
     }
@@ -48,31 +60,33 @@ public class CommandDataDemand extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        boolean slot = agent.tryAcquireSendSlot(c);
-        if (!slot) {// There are no slots available
+        boolean slot = this.agent.tryAcquireSendSlot(c);
+        if (!slot) {
+            // There are no slots available
             // TODO: ENABLE DATA NEGATE COMMANDS
-            agent.sendData(c, d, id);
+            this.agent.sendData(c, this.d, this.id);
             // agent.sendDataNegate(c, d, true);
-        } else { // There is a slot and the data exists
-            agent.sendData(c, d, id);
+        } else {
+            // There is a slot and the data exists
+            this.agent.sendData(c, this.d, this.id);
         }
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        d = (NIOData) in.readObject();
-        id = in.readInt();
+        this.d = (NIOData) in.readObject();
+        this.id = in.readInt();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(d);
-        out.writeInt(id);
+        out.writeObject(this.d);
+        out.writeInt(this.id);
     }
 
     @Override
     public String toString() {
-        return "Request for sending data " + d;
+        return "Request for sending data " + this.d;
     }
 
 }

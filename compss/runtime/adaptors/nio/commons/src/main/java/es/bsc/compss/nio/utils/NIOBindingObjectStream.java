@@ -16,15 +16,15 @@
  */
 package es.bsc.compss.nio.utils;
 
-import java.io.IOException;
+import es.bsc.comm.nio.NIOConnection;
+import es.bsc.comm.stage.Transfer;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.exceptions.BindingObjectTypeException;
+
 import java.nio.ByteBuffer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.comm.nio.NIOConnection;
-import es.bsc.comm.stage.Transfer;
-import es.bsc.compss.log.Loggers;
 
 
 public class NIOBindingObjectStream {
@@ -38,12 +38,23 @@ public class NIOBindingObjectStream {
     private final NIOBindingObjectTransferListener ncl;
 
 
+    /**
+     * New NIOBindingObjectStream instance.
+     * 
+     * @param c Receiving connection.
+     * @param ncl Transfer listener.
+     */
     public NIOBindingObjectStream(NIOConnection c, NIOBindingObjectTransferListener ncl) {
         this.c = c;
         this.ncl = ncl;
     }
 
-    public void push(ByteBuffer b) throws IOException {
+    /**
+     * Sends the given bytes through the connection.
+     * 
+     * @param b Bytes to send.
+     */
+    public void push(ByteBuffer b) {
         if (ncl == null) {
             if (b != null) {
                 if (b.hasArray()) {
@@ -60,7 +71,13 @@ public class NIOBindingObjectStream {
         }
     }
 
-    public byte[] pull() throws Exception {
+    /**
+     * Receives some bytes from the connection.
+     * 
+     * @return Read bytes.
+     * @throws BindingObjectTypeException When the transfer cannot be converted to array.
+     */
+    public byte[] pull() throws BindingObjectTypeException {
         LOGGER.debug(DBG_PREFIX + "Pulling byte array");
         ncl.addOperation();
         c.receiveDataArray();
@@ -74,7 +91,7 @@ public class NIOBindingObjectStream {
             return bArray;
         } else {
             LOGGER.debug(DBG_PREFIX + "Error is not an Array");
-            throw new Exception("Transfer is not an array");
+            throw new BindingObjectTypeException("Transfer is not an array");
         }
     }
 

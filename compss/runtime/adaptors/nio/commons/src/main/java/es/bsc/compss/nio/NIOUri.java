@@ -27,68 +27,94 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class NIOURI implements Externalizable, InvocationParamURI {
+/**
+ * Class to represent internal URIs in NIO.
+ */
+public class NIOUri implements Externalizable, InvocationParamURI {
 
     private NIONode host;
     private String path;
     private Protocol protocol;
 
 
-    public NIOURI() {
+    public NIOUri() {
+        // Only for externalization
     }
 
-    public NIOURI(NIONode host, String path, Protocol schema) {
+    /**
+     * Creates a new NIOUri instance with the given information.
+     * 
+     * @param host NIONode hosting the URI.
+     * @param path Path.
+     * @param schema Schema.
+     */
+    public NIOUri(NIONode host, String path, Protocol schema) {
         this.host = host;
         this.path = path;
         this.protocol = schema;
     }
 
+    /**
+     * Returns the internal URI.
+     * 
+     * @return The internal URI.
+     */
     public String getInternalURI() {
         return toString();
     }
 
     @Override
     public Protocol getProtocol() {
-        return protocol;
+        return this.protocol;
     }
 
+    /**
+     * Returns the URI host.
+     * 
+     * @return The URI host.
+     */
     public NIONode getHost() {
-        return host;
+        return this.host;
     }
 
     @Override
     public boolean isHost(String hostname) {
-        String hostAndPort = host.toString();
+        String hostAndPort = this.host.toString();
         String hostName = hostAndPort.substring(0, hostAndPort.indexOf(":"));
         return hostName.equals(hostname);
     }
 
     @Override
     public String getPath() {
-        return path;
+        return this.path;
     }
 
+    /**
+     * Returns the URI scheme.
+     * 
+     * @return The URI scheme.
+     */
     public String getScheme() {
-        return protocol.getSchema();
+        return this.protocol.getSchema();
     }
 
     @Override
     public String toString() {
-        return protocol.getSchema() + host + File.separator + path;
+        return this.protocol.getSchema() + this.host + File.separator + this.path;
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(host);
-        out.writeUTF(path);
-        out.writeUTF(protocol.getSchema());
+        out.writeObject(this.host);
+        out.writeUTF(this.path);
+        out.writeUTF(this.protocol.getSchema());
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        host = (NIONode) in.readObject();
-        path = in.readUTF();
-        protocol = Protocol.getBySchema(in.readUTF());
+        this.host = (NIONode) in.readObject();
+        this.path = in.readUTF();
+        this.protocol = Protocol.getBySchema(in.readUTF());
     }
 
 }

@@ -37,19 +37,19 @@ public class NIOTaskResult implements Externalizable {
 
 
     /**
-     * Only for externalization
+     * Only for externalization.
      */
     public NIOTaskResult() {
         // All attributes are initialized statically
     }
 
     /**
-     * New task result from a given set of {@code params}
+     * New task result with the given information.
      *
-     * @param jobId
-     * @param arguments
-     * @param target
-     * @param results
+     * @param jobId Job Id.
+     * @param arguments Job arguments.
+     * @param target Job target.
+     * @param results Job results.
      */
     public NIOTaskResult(int jobId, List<NIOParam> arguments, NIOParam target, List<NIOParam> results) {
         this.jobId = jobId;
@@ -118,28 +118,28 @@ public class NIOTaskResult implements Externalizable {
     }
 
     /**
-     * Returns the task id associated to the result
+     * Returns the job id associated to the result.
      *
-     * @return
+     * @return The job Id associated to the result.
      */
     public int getJobId() {
         return this.jobId;
     }
 
     /**
-     * Returns the parameter types
+     * Returns the parameter types.
      *
-     * @return
+     * @return The parameter types
      */
     public List<DataType> getParamTypes() {
         return this.paramTypes;
     }
 
     /**
-     * Returns the value of the parameter {@code i}
+     * Returns the value of the parameter {@code i}.
      *
-     * @param i
-     * @return
+     * @param i Parameter index.
+     * @return The value of the parameter {@code i}.
      */
     public Object getParamValue(int i) {
         return this.paramValues.get(i);

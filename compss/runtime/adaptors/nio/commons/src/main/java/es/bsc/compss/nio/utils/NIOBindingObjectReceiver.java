@@ -35,6 +35,14 @@ public class NIOBindingObjectReceiver implements Runnable {
     private final NIOConnection c;
 
 
+    /**
+     * New NIOBindingObjectReceiver instance.
+     * 
+     * @param c Receiving connection.
+     * @param id Object Id.
+     * @param type Object type.
+     * @param nbos Binding Object stream.
+     */
     public NIOBindingObjectReceiver(NIOConnection c, String id, int type, NIOBindingObjectStream nbos) {
         this.nbos = nbos;
         this.id = id;
@@ -42,6 +50,7 @@ public class NIOBindingObjectReceiver implements Runnable {
         this.c = c;
     }
 
+    @Override
     public void run() {
         int res = NIOBindingDataManager.receiveNativeObject(id, type, nbos);
         if (res != 0) {

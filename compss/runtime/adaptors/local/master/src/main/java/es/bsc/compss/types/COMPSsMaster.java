@@ -32,13 +32,13 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.DataLocation.Type;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -52,11 +52,11 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.BindingDataManager;
@@ -79,7 +79,7 @@ import storage.StorageItf;
 
 
 /**
- * Representation of the COMPSs Master Node Only 1 instance per execution
+ * Representation of the COMPSs Master Node Only 1 instance per execution.
  */
 public final class COMPSsMaster extends COMPSsWorker implements InvocationContext {
 
@@ -89,7 +89,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private static final String ERROR_TEMP_DIR = "ERROR: Cannot create temp directory";
     private static final String ERROR_JOBS_DIR = "ERROR: Cannot create jobs directory";
     private static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
-    private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this application. To avoid this warning please clean .COMPSs folder";
+    private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this"
+            + " application. To avoid this warning please clean .COMPSs folder";
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
 
     private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
@@ -100,7 +101,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final TaskExecution executionType;
 
     private final String userExecutionDirPath;
-    private final String COMPSsLogBaseDirPath;
+    private final String compssLogBaseDirPath;
     private final String appLogDirPath;
 
     private final String installDirPath;
@@ -119,9 +120,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
 
     /**
-     * New COMPSs Master
-     *
-     * @param hostName
+     * New COMPSs Master.
      */
     public COMPSsMaster() {
         super();
@@ -134,7 +133,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // Checks if specific log base dir has been given
         String specificOpt = System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR);
         if (specificOpt != null && !specificOpt.isEmpty()) {
-            this.COMPSsLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt
+            this.compssLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt
                     : specificOpt + File.separator;
             mustCreateExecutionSandbox = false; // This is the only case where
             // the sandbox is provided
@@ -143,17 +142,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             String baseOpt = System.getProperty(COMPSsConstants.BASE_LOG_DIR);
             if (baseOpt != null && !baseOpt.isEmpty()) {
                 baseOpt = baseOpt.endsWith(File.separator) ? baseOpt : baseOpt + File.separator;
-                this.COMPSsLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
+                this.compssLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
             } else {
                 // No option given - load default (user home)
-                this.COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs"
+                this.compssLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs"
                         + File.separator;
             }
         }
 
-        if (!new File(this.COMPSsLogBaseDirPath).exists()) {
-            if (!new File(this.COMPSsLogBaseDirPath).mkdir()) {
-                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR + " at " + COMPSsLogBaseDirPath);
+        if (!new File(this.compssLogBaseDirPath).exists()) {
+            if (!new File(this.compssLogBaseDirPath).mkdir()) {
+                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR + " at " + compssLogBaseDirPath);
             }
         }
 
@@ -168,7 +167,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                  */
                 String serviceName = System.getProperty(COMPSsConstants.SERVICE_NAME);
                 int overloadCode = 1;
-                String appLog = this.COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
+                String appLog = this.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
                         + File.separator;
                 String oldest = appLog;
                 while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
@@ -179,10 +178,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     // Next step
                     overloadCode = overloadCode + 1;
                     if (overloadCode < 10) {
-                        appLog = this.COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
+                        appLog = this.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
                                 + File.separator;
                     } else {
-                        appLog = this.COMPSsLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode)
+                        appLog = this.compssLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode)
                                 + File.separator;
                     }
                 }
@@ -211,7 +210,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                  * raises warning - Changes working directory to appName !!!!
                  */
                 int overloadCode = 1;
-                String appLog = this.COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
+                String appLog = this.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
                         + File.separator;
                 String oldest = appLog;
                 while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
@@ -222,10 +221,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     // Next step
                     overloadCode = overloadCode + 1;
                     if (overloadCode < 10) {
-                        appLog = this.COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
+                        appLog = this.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
                                 + File.separator;
                     } else {
-                        appLog = this.COMPSsLogBaseDirPath + appName + "_" + String.valueOf(overloadCode)
+                        appLog = this.compssLogBaseDirPath + appName + "_" + String.valueOf(overloadCode)
                                 + File.separator;
                     }
                 }
@@ -251,7 +250,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
         } else {
             // The option specific_log_dir has been given. NO sandbox created
-            this.appLogDirPath = this.COMPSsLogBaseDirPath;
+            this.appLogDirPath = this.compssLogBaseDirPath;
         }
 
         // Set the environment property (for all cases) and reload logger
@@ -448,8 +447,19 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
     }
 
+    /**
+     * Retrieves a binding data.
+     * 
+     * @param ld Source LogicalData.
+     * @param source Preferred source location.
+     * @param target Preferred target location.
+     * @param tgtData Target LogicalData.
+     * @param reason Transfer reason.
+     * @param listener Transfer listener.
+     */
     public void obtainBindingData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
             Transferable reason, EventListener listener) {
+
         BindingObject tgtBO = ((BindingObjectLocation) target).getBindingObject();
         ld.lockHostRemoval();
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
@@ -719,6 +729,16 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
     }
 
+    /**
+     * Retrieves a file data.
+     * 
+     * @param ld Source LogicalData.
+     * @param source Preferred source location.
+     * @param target Preferred target location.
+     * @param tgtData Target LogicalData.
+     * @param reason Transfer reason.
+     * @param listener Transfer listener.
+     */
     public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
             Transferable reason, EventListener listener) {
 
@@ -1097,6 +1117,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // No need to do it. The master no it's always up
     }
 
+    /**
+     * Starts the execution of a local job.
+     * 
+     * @param job Local job to run.
+     */
     public void runJob(LocalJob job) {
         Execution exec = new Execution(job, new ExecutionListener() {
 
@@ -1233,6 +1258,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 } catch (StorageException se) {
                     throw new UnloadableValueException(se);
                 }
+                break;
             default:
                 // Already contains the proper value on the param
                 break;
@@ -1263,7 +1289,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     public String getCOMPSsLogBaseDirPath() {
-        return this.COMPSsLogBaseDirPath;
+        return this.compssLogBaseDirPath;
     }
 
     public String getWorkingDirectory() {
@@ -1292,21 +1318,21 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void increaseComputingCapabilities(ResourceDescription descr) {
-        MethodResourceDescription description = (MethodResourceDescription) descr;
-        int cpuCount = description.getTotalCPUComputingUnits();
-        int GPUCount = description.getTotalGPUComputingUnits();
-        int FPGACount = description.getTotalFPGAComputingUnits();
-        int otherCount = description.getTotalOTHERComputingUnits();
-        executionManager.increaseCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
+        final MethodResourceDescription description = (MethodResourceDescription) descr;
+        final int cpuCount = description.getTotalCPUComputingUnits();
+        final int gpuCount = description.getTotalGPUComputingUnits();
+        final int fpgaCount = description.getTotalFPGAComputingUnits();
+        final int otherCount = description.getTotalOTHERComputingUnits();
+        this.executionManager.increaseCapabilities(cpuCount, gpuCount, fpgaCount, otherCount);
     }
 
     @Override
     public void reduceComputingCapabilities(ResourceDescription descr) {
-        MethodResourceDescription description = (MethodResourceDescription) descr;
-        int cpuCount = description.getTotalCPUComputingUnits();
-        int GPUCount = description.getTotalGPUComputingUnits();
-        int FPGACount = description.getTotalFPGAComputingUnits();
-        int otherCount = description.getTotalOTHERComputingUnits();
-        executionManager.reduceCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
+        final MethodResourceDescription description = (MethodResourceDescription) descr;
+        final int cpuCount = description.getTotalCPUComputingUnits();
+        final int gpuCount = description.getTotalGPUComputingUnits();
+        final int fpgaCount = description.getTotalFPGAComputingUnits();
+        final int otherCount = description.getTotalOTHERComputingUnits();
+        this.executionManager.reduceCapabilities(cpuCount, gpuCount, fpgaCount, otherCount);
     }
 }

@@ -34,7 +34,7 @@ import java.util.List;
 
 
 /**
- * Representation of a Task *
+ * Representation of a Task.
  */
 public class NIOTask implements Externalizable, Invocation {
 
@@ -56,7 +56,7 @@ public class NIOTask implements Externalizable, Invocation {
 
 
     /**
-     * New NIO Task
+     * New NIO Task.
      */
     public NIOTask() {
         // Only for externalization

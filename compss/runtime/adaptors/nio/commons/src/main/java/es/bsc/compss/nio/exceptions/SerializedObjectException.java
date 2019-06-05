@@ -19,11 +19,16 @@ package es.bsc.compss.nio.exceptions;
 public class SerializedObjectException extends Exception {
 
     /**
-     * Exception Version UID are 2L in all Runtime
+     * Exception Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
 
+    /**
+     * Creates a new SerializedObjectException for the given data.
+     * 
+     * @param dataName Name of the data causing the serialization error.
+     */
     public SerializedObjectException(String dataName) {
         super(dataName);
     }

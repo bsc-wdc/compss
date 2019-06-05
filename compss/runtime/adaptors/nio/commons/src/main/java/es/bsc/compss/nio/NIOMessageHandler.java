@@ -16,18 +16,18 @@
  */
 package es.bsc.compss.nio;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.comm.Connection;
 import es.bsc.comm.MessageHandler;
-import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.exceptions.CommException.ErrorType;
 import es.bsc.comm.nio.exceptions.NIOException;
+import es.bsc.comm.stage.Transfer;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class NIOMessageHandler implements MessageHandler {
@@ -38,9 +38,9 @@ public class NIOMessageHandler implements MessageHandler {
 
 
     /**
-     * Instantiates a NIO Message Handler associated to a given NIOAgent @agent
+     * Instantiates a NIO Message Handler associated to a given NIOAgent {@code agent}.
      * 
-     * @param agent
+     * @param agent Associated NIO Agent.
      */
     public NIOMessageHandler(NIOAgent agent) {
         this.agent = agent;
@@ -67,7 +67,7 @@ public class NIOMessageHandler implements MessageHandler {
                 + "\n";
         LOGGER.error(errorText, ce);
 
-        agent.receivedRequestedDataNotAvailableError(c, t);
+        this.agent.receivedRequestedDataNotAvailableError(c, t);
 
         // Handle FINISH_CONNECTION and CLOSED CONNECTION errors
         /*
@@ -81,9 +81,9 @@ public class NIOMessageHandler implements MessageHandler {
         LOGGER.debug("Received data " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection "
                 + c.hashCode());
         if (t.isArray()) {
-            agent.receivedPartialBindingObjects(c, t);
+            this.agent.receivedPartialBindingObjects(c, t);
         } else {
-            agent.receivedData(c, t);
+            this.agent.receivedData(c, t);
         }
     }
 
@@ -92,7 +92,7 @@ public class NIOMessageHandler implements MessageHandler {
         try {
             Command cmd = (Command) t.getObject();
             LOGGER.debug("Received Command " + cmd + " through connection " + c.hashCode());
-            cmd.setAgent(agent);
+            cmd.setAgent(this.agent);
             cmd.handle(c);
         } catch (Exception e) {
             LOGGER.error("Error receving command. Finishing connection.", e);
@@ -104,7 +104,7 @@ public class NIOMessageHandler implements MessageHandler {
     public void writeFinished(Connection c, Transfer t) {
         LOGGER.debug("Finished sending " + (t.isFile() ? t.getFileName() : t.getObject()) + " through connection "
                 + c.hashCode());
-        agent.releaseSendSlot(c);
+        this.agent.releaseSendSlot(c);
     }
 
     @Override

@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.nio.utils;
 
-import java.util.concurrent.Semaphore;
-
 import es.bsc.comm.stage.Transfer;
 import es.bsc.compss.nio.NIOAgent;
+
+import java.util.concurrent.Semaphore;
 
 
 public class NIOBindingObjectTransferListener {
@@ -33,18 +33,27 @@ public class NIOBindingObjectTransferListener {
     private Transfer transfer;
 
 
+    /**
+     * Creates a NIOBindingObjectTransferListener.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param sem Waiting semaphore.
+     */
     public NIOBindingObjectTransferListener(NIOAgent agent, Semaphore sem) {
         this.agent = agent;
         this.sem = sem;
     }
 
+    /**
+     * Enables the listener.
+     */
     public void enable() {
         boolean finished;
         boolean failed;
         synchronized (this) {
-            enabled = true;
-            finished = operation == 0;
-            failed = errors > 0;
+            this.enabled = true;
+            finished = (this.operation == 0);
+            failed = (this.errors > 0);
         }
         if (finished) {
             if (failed) {
@@ -55,18 +64,24 @@ public class NIOBindingObjectTransferListener {
         }
     }
 
+    /**
+     * Adds a new operation to the listener.
+     */
     public synchronized void addOperation() {
-        operation++;
+        this.operation++;
     }
 
+    /**
+     * Notifies the end of the operations.
+     */
     public void notifyEnd() {
         boolean enabled;
         boolean finished;
         boolean failed;
         synchronized (this) {
-            operation--;
-            finished = operation == 0;
-            failed = errors > 0;
+            this.operation--;
+            finished = (this.operation == 0);
+            failed = (this.errors > 0);
             enabled = this.enabled;
         }
         if (finished && enabled) {
@@ -78,47 +93,70 @@ public class NIOBindingObjectTransferListener {
         }
     }
 
+    /**
+     * Notifies a failure in one of the internal operations.
+     * 
+     * @param e Failure exception.
+     */
     public void notifyFailure(Exception e) {
         boolean enabled;
         boolean finished;
         synchronized (this) {
-            errors++;
-            operation--;
-            finished = operation == 0;
+            this.errors++;
+            this.operation--;
+            finished = (this.operation == 0);
             enabled = this.enabled;
         }
+
         if (enabled && finished) {
             doFailures();
         }
     }
 
     private void doReady() {
-        sem.release();
+        this.sem.release();
     }
 
     private void doFailures() {
-        sem.release();
+        this.sem.release();
     }
 
+    /**
+     * Waits for the listener.
+     */
     public void aquire() {
         try {
-            sem.acquire();
+            this.sem.acquire();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
+    /**
+     * Returns the associated transfer.
+     * 
+     * @return The associated transfer.
+     */
     public Transfer getTransfer() {
-        return transfer;
+        return this.transfer;
     }
 
+    /**
+     * Sets a new associated transfer.
+     * 
+     * @param t The new associated transfer.
+     */
     public void setTransfer(Transfer t) {
         this.transfer = t;
     }
 
+    /**
+     * Returns the associated NIOAgent.
+     * 
+     * @return The associated NIOAgent.
+     */
     public NIOAgent getAgent() {
-        return agent;
+        return this.agent;
     }
 
 }

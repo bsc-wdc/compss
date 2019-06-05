@@ -16,21 +16,19 @@
  */
 package es.bsc.compss.ws.master;
 
-import java.util.List;
-
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.types.COMPSsNode;
-import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
+import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
@@ -40,6 +38,8 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.ws.master.configuration.WSConfiguration;
+
+import java.util.List;
 
 
 public class ServiceInstance extends COMPSsWorker {

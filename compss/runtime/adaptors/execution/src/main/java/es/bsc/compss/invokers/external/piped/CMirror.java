@@ -1,14 +1,14 @@
 package es.bsc.compss.invokers.external.piped;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.external.piped.ControlPipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.types.execution.InvocationContext;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class CMirror extends PipedMirror {
@@ -22,6 +22,12 @@ public class CMirror extends PipedMirror {
             + File.separator + "lib";
 
 
+    /**
+     * Creates a new CMirror instance with the given context and size.
+     * 
+     * @param context Context.
+     * @param size Thread size.
+     */
     public CMirror(InvocationContext context, int size) {
         super(context, size);
         init(context);

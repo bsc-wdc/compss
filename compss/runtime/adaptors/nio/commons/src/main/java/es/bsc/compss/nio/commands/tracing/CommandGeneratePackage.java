@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.nio.commands.tracing;
 
+import es.bsc.comm.Connection;
+
 import es.bsc.compss.nio.commands.Command;
 
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.comm.Connection;
 
 
 public class CommandGeneratePackage extends Command implements Externalizable {

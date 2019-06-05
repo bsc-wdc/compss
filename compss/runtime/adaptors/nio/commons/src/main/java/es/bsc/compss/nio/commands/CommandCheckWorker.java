@@ -16,13 +16,15 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+import es.bsc.comm.nio.NIONode;
+
+import es.bsc.compss.nio.NIOAgent;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.comm.Connection;
-import es.bsc.comm.nio.NIONode;
 
 
 public class CommandCheckWorker extends Command implements Externalizable {
@@ -31,12 +33,22 @@ public class CommandCheckWorker extends Command implements Externalizable {
     private String nodeName;
 
 
+    /**
+     * Creates a new CommandCheckWorker for externalization.
+     */
     public CommandCheckWorker() {
         super();
     }
 
-    public CommandCheckWorker(String uuid, String nodeName) {
-        super();
+    /**
+     * Creates a new CommandCheckWorker instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param uuid Associated application UUID.
+     * @param nodeName Worker node name.
+     */
+    public CommandCheckWorker(NIOAgent agent, String uuid, String nodeName) {
+        super(agent);
         this.uuid = uuid;
         this.nodeName = nodeName;
     }
@@ -48,11 +60,11 @@ public class CommandCheckWorker extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        if (agent.isMyUuid(this.uuid, this.nodeName)) {
-            if (agent.getMaster() == null) {
-                agent.setMaster((NIONode) c.getNode());
+        if (this.agent.isMyUuid(this.uuid, this.nodeName)) {
+            if (this.agent.getMaster() == null) {
+                this.agent.setMaster((NIONode) c.getNode());
             }
-            CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(uuid, nodeName);
+            CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(this.agent, this.uuid, this.nodeName);
             c.sendCommand(cmd);
         }
 
@@ -61,19 +73,19 @@ public class CommandCheckWorker extends Command implements Externalizable {
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        uuid = (String) in.readUTF();
-        nodeName = (String) in.readUTF();
+        this.uuid = (String) in.readUTF();
+        this.nodeName = (String) in.readUTF();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeUTF(uuid);
-        out.writeUTF(nodeName);
+        out.writeUTF(this.uuid);
+        out.writeUTF(this.nodeName);
     }
 
     @Override
     public String toString() {
-        return "CommandCheckWorker for deployment ID " + uuid + " on nodeName " + nodeName;
+        return "CommandCheckWorker for deployment ID " + this.uuid + " on nodeName " + this.nodeName;
     }
 
 }

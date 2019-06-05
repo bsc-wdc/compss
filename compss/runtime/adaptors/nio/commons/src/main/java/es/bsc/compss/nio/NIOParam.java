@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -144,7 +143,7 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
-    public List<NIOURI> getSources() {
+    public List<NIOUri> getSources() {
         return source.getSources();
     }
 
@@ -236,6 +235,11 @@ public class NIOParam implements Externalizable, InvocationParam {
         }
     }
 
+    /**
+     * Dumps the internal information into the given StringBuilder.
+     * 
+     * @param sb StringBuilder where to dump the internal information.
+     */
     public void dumpInternalInfo(StringBuilder sb) {
         sb.append("[MGMT ID = ").append(this.dataMgmtId).append("]");
         sb.append("[TYPE = ").append(this.type).append("]");

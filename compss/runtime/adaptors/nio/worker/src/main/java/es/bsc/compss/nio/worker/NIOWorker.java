@@ -37,6 +37,7 @@ import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
@@ -46,13 +47,12 @@ import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
-import es.bsc.compss.nio.dataRequest.DataRequest;
+import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.datarequest.WorkerDataRequest;
 import es.bsc.compss.nio.exceptions.DataNotAvailableException;
 import es.bsc.compss.nio.listeners.FetchDataOperationListener;
 import es.bsc.compss.nio.listeners.TaskFetchOperationsListener;
+import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -419,10 +419,21 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
     }
 
+    /**
+     * Starts a new connection.
+     * 
+     * @return The new connection.
+     */
     public Connection startConnection() {
         return TM.startConnection(this.masterNode);
     }
 
+    /**
+     * Sends a task done notification for the given invocation and with the given result.
+     * 
+     * @param invocation Associated Invocation.
+     * @param successful Whether the task has ended successfully or not.
+     */
     public void sendTaskDone(Invocation invocation, boolean successful) {
         NIOTask nt = (NIOTask) invocation;
         int jobId = nt.getJobId();
@@ -463,6 +474,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
     }
 
+    /**
+     * Checks whether a STD IO stream file (OUT / ERR) exists or not.
+     * 
+     * @param taskFileName Task file name.
+     * @param streamName Stream name.
+     * @param errorMessage Error message.
+     */
     public void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
         File taskFile = new File(taskFileName);
         if (!taskFile.exists()) {
@@ -475,7 +493,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
     }
 
-    // Check if this task is ready to execute
+    /**
+     * Executes the given task.
+     * 
+     * @param task Task to execute.
+     */
     public void executeTask(NIOTask task) {
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("Enqueueing job " + task.getJobId() + " for execution.");

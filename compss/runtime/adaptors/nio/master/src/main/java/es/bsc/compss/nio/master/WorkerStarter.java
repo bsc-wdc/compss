@@ -292,7 +292,7 @@ public class WorkerStarter {
     private void checkWorker(NIONode n, String name) {
         long delay = WAIT_TIME_UNIT;
         long totalWait = 0;
-        CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, name);
+        CommandCheckWorker cmd = new CommandCheckWorker(this.nw.getCommManager(), DEPLOYMENT_ID, name);
 
         do {
             if (DEBUG) {

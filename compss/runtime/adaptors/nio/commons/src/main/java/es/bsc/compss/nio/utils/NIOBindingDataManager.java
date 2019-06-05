@@ -16,6 +16,12 @@
  */
 package es.bsc.compss.nio.utils;
 
+import es.bsc.comm.nio.NIOConnection;
+import es.bsc.comm.stage.Transfer;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.util.BindingDataManager;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -23,29 +29,34 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.comm.nio.NIOConnection;
-import es.bsc.comm.stage.Transfer;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.nio.NIOAgent;
-import es.bsc.compss.util.BindingDataManager;
-
 
 public class NIOBindingDataManager extends BindingDataManager {
 
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private static final Map<NIOConnection, NIOBindingObjectTransferListener> LISTENERS = new ConcurrentHashMap<NIOConnection, NIOBindingObjectTransferListener>();
+    // Listeners
+    private static final Map<NIOConnection, NIOBindingObjectTransferListener> LISTENERS;
 
     static {
+        LISTENERS = new ConcurrentHashMap<NIOConnection, NIOBindingObjectTransferListener>();
         System.loadLibrary("bindings_common");
     }
 
 
-    public native static int sendNativeObject(String id, NIOBindingObjectStream nioStrm);
+    public static native int sendNativeObject(String id, NIOBindingObjectStream nioStrm);
 
-    public native static int receiveNativeObject(String id, int type, NIOBindingObjectStream nioStream);
+    public static native int receiveNativeObject(String id, int type, NIOBindingObjectStream nioStream);
 
+    /**
+     * Receive a binding object.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param c Receiving connection.
+     * @param sourceId Source Id.
+     * @param type Type.
+     */
     public static void receiveBindingObject(NIOAgent agent, NIOConnection c, String sourceId, int type) {
         Semaphore sem = new Semaphore(0);
         NIOBindingObjectTransferListener nbol = new NIOBindingObjectTransferListener(agent, sem);
@@ -58,12 +69,23 @@ public class NIOBindingDataManager extends BindingDataManager {
         t.start();
     }
 
+    /**
+     * Receive a partial binding object.
+     * 
+     * @param c Receiving connection.
+     * @param t Transfer.
+     */
     public static void receivedPartialBindingObject(NIOConnection c, Transfer t) {
         NIOBindingObjectTransferListener nbol = LISTENERS.get(c);
         nbol.setTransfer(t);
         nbol.notifyEnd();
     }
 
+    /**
+     * Mark an object received through the given connection.
+     * 
+     * @param c Received connection.
+     */
     public static void objectReceived(NIOConnection c) {
         NIOBindingObjectTransferListener nbol = LISTENERS.remove(c);
         nbol.getAgent().receivedData(c, nbol.getTransfer());

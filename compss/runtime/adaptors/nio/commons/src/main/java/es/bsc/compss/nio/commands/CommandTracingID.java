@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.comm.Connection;
 
 
 public class CommandTracingID extends Command implements Externalizable {
@@ -30,10 +30,19 @@ public class CommandTracingID extends Command implements Externalizable {
     private int tag;
 
 
+    /**
+     * Creates a new CommandTracingID for externalization.
+     */
     public CommandTracingID() {
         super();
     }
 
+    /**
+     * Creates a new CommandTracingID instance.
+     * 
+     * @param id Trancing Id.
+     * @param tag Tracing tag.
+     */
     public CommandTracingID(int id, int tag) {
         super();
         this.id = id;
@@ -47,24 +56,24 @@ public class CommandTracingID extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.addConnectionAndPartner(c, id, tag);
+        this.agent.addConnectionAndPartner(c, this.id, this.tag);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        id = in.readInt();
-        tag = in.readInt();
+        this.id = in.readInt();
+        this.tag = in.readInt();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeInt(id);
-        out.writeInt(tag);
+        out.writeInt(this.id);
+        out.writeInt(this.tag);
     }
 
     @Override
     public String toString() {
-        return "Request with sender ID: " + id;
+        return "Request with sender ID: " + this.id;
     }
 
 }

@@ -30,12 +30,19 @@ public class JavaMethodDefinition extends ImplementationDefinition {
 
     private final MethodImplementation impl;
 
-
+    /**
+     * Creates a new Java definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
     public JavaMethodDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + MethodImplementation.NUM_PARAMS);
+        
         this.className = args[execArgsIdx++];
         this.methodName = args[execArgsIdx];
-
+        
         this.impl = new MethodImplementation(this.className, this.methodName, null, null, null);
     }
 

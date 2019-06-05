@@ -27,18 +27,18 @@ import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.NIOURI;
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
-import es.bsc.compss.nio.dataRequest.DataRequest;
-import es.bsc.compss.nio.dataRequest.MasterDataRequest;
+import es.bsc.compss.nio.NIOUri;
+import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
+import es.bsc.compss.nio.requests.DataRequest;
+import es.bsc.compss.nio.requests.MasterDataRequest;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -186,8 +186,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
-        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties;
-        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties;
+        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject 
+            = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties;
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources 
+            = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties;
 
         // Get ports
         int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
@@ -622,7 +624,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void completeMasterURI(MultiURI u) {
-        u.setInternalURI(ID, new NIOURI(masterNode, u.getPath(), u.getProtocol()));
+        u.setInternalURI(ID, new NIOUri(masterNode, u.getPath(), u.getProtocol()));
     }
 
     /**

@@ -32,9 +32,18 @@ public class BinaryDefinition extends ImplementationDefinition {
     private final BinaryImplementation impl;
 
 
-    public BinaryDefinition(boolean enableDebug, String[] args, int execArgsIdx) {
-        super(enableDebug, args, execArgsIdx + BinaryImplementation.NUM_PARAMS);
+    /**
+     * Creates a new binary definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
+    public BinaryDefinition(boolean debug, String[] args, int execArgsIdx) {
+        super(debug, args, execArgsIdx + BinaryImplementation.NUM_PARAMS);
+        
         this.binary = args[execArgsIdx++];
+        
         String wDir = args[execArgsIdx];
         if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
             this.workingDir = null;

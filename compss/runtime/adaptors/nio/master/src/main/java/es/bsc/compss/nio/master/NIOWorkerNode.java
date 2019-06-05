@@ -23,23 +23,23 @@ import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.NIOURI;
+import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandResourcesReduce;
 import es.bsc.compss.nio.commands.CommandShutdown;
-import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
-import es.bsc.compss.nio.commands.workerFiles.CommandGenerateWorkerDebugFiles;
-import es.bsc.compss.nio.dataRequest.DataRequest;
-import es.bsc.compss.nio.dataRequest.MasterDataRequest;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
 import es.bsc.compss.nio.master.utils.NIOParamFactory;
+import es.bsc.compss.nio.requests.DataRequest;
+import es.bsc.compss.nio.requests.MasterDataRequest;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
@@ -131,6 +131,15 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public String getUser() {
         return this.config.getUser();
+    }
+
+    /**
+     * Returns the associated communication adaptor.
+     * 
+     * @return The associated communication adaptor.
+     */
+    public NIOAdaptor getCommManager() {
+        return this.commManager;
     }
 
     /**
@@ -247,7 +256,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (node == null) {
             throw new UnstartedNodeException();
         }
-        NIOURI nio = new NIOURI(node, uri.getPath(), uri.getProtocol());
+        NIOUri nio = new NIOUri(node, uri.getPath(), uri.getProtocol());
         uri.setInternalURI(NIOAdaptor.ID, nio);
     }
 
@@ -330,7 +339,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (source != null) {
                 for (MultiURI uri : source.getURIs()) {
                     try {
-                        NIOURI nURI = (NIOURI) uri.getInternalURI(NIOAdaptor.ID);
+                        NIOUri nURI = (NIOUri) uri.getInternalURI(NIOAdaptor.ID);
                         if (nURI != null) {
                             d.getSources().add(nURI);
                         }
@@ -483,7 +492,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (targetLD != null) {
                 targetLD.setPscoId(newId);
             }
-            NIOURI uri = new NIOURI(null, pscoId, Protocol.PERSISTENT_URI);
+            NIOUri uri = new NIOUri(null, pscoId, Protocol.PERSISTENT_URI);
             NIOData nd = new NIOData(srcLD.getName(), uri);
             sc.setProposedSource(nd);
         } catch (Exception e) {
@@ -538,7 +547,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
         NIOParam param = NIOParamFactory.fromParameter((Parameter) reason);
-        CommandDataFetch cmd = new CommandDataFetch(param, listener.getId());
+        CommandDataFetch cmd = new CommandDataFetch(this.commManager, param, listener.getId());
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
@@ -662,7 +671,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             throw new UnstartedNodeException();
         }
         NIOTask t = job.prepareJob();
-        CommandNewTask cmd = new CommandNewTask(t, obsolete);
+        CommandNewTask cmd = new CommandNewTask(this.commManager, t, obsolete);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
@@ -680,9 +689,10 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public void increaseComputingCapabilities(ResourceDescription description) {
         Semaphore sem = new Semaphore(0);
-        CommandResourcesIncrease cmd = new CommandResourcesIncrease((MethodResourceDescription) description);
-        Connection c = NIOAgent.getTransferManager().startConnection(node);
-        commManager.registerPendingResourceUpdateConfirmation(c, sem);
+        MethodResourceDescription mrd = (MethodResourceDescription) description;
+        CommandResourcesIncrease cmd = new CommandResourcesIncrease(this.commManager, mrd);
+        Connection c = NIOAgent.getTransferManager().startConnection(this.node);
+        this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);
         c.receive();
         try {
@@ -695,9 +705,10 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public void reduceComputingCapabilities(ResourceDescription description) {
         Semaphore sem = new Semaphore(0);
-        CommandResourcesReduce cmd = new CommandResourcesReduce((MethodResourceDescription) description);
-        Connection c = NIOAgent.getTransferManager().startConnection(node);
-        commManager.registerPendingResourceUpdateConfirmation(c, sem);
+        MethodResourceDescription mrd = (MethodResourceDescription) description;
+        CommandResourcesReduce cmd = new CommandResourcesReduce(this.commManager, mrd);
+        Connection c = NIOAgent.getTransferManager().startConnection(this.node);
+        this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);
         c.receive();
         try {

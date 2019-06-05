@@ -555,8 +555,8 @@ public class DataManagerImpl implements DataManager {
                     try {
                         if (WORKER_LOGGER_DEBUG) {
                             WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
-                                + (param.isPreserveSourceData() ? "preserves sources. COPYING"
-                                   : "erases sources. MOVING"));
+                                    + (param.isPreserveSourceData() ? "preserves sources. COPYING"
+                                            : "erases sources. MOVING"));
                             WORKER_LOGGER.debug("         Source: " + source);
                             WORKER_LOGGER.debug("         Target: " + target);
                         }
@@ -623,7 +623,7 @@ public class DataManagerImpl implements DataManager {
             register = this.registry.get(rename);
         }
         if (WORKER_LOGGER_DEBUG) {
-            WORKER_LOGGER.debug("[Thread "+Thread.currentThread().getName() +" ] Loading value: " +rename);
+            WORKER_LOGGER.debug("[Thread " + Thread.currentThread().getName() + " ] Loading value: " + rename);
         }
         synchronized (register) {
             try {

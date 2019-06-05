@@ -19,11 +19,16 @@ package es.bsc.compss.nio.exceptions;
 public class DataNotAvailableException extends Exception {
 
     /**
-     * Exception Version UID are 2L in all Runtime
+     * Exception Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
 
+    /**
+     * Creates a new DataNotAvailableException for the given data.
+     * 
+     * @param dataName Name of the unavailable data.
+     */
     public DataNotAvailableException(String dataName) {
         super(dataName);
     }

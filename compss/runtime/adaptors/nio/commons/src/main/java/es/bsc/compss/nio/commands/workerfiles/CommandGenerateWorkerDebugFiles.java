@@ -14,7 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.nio.commands.workerFiles;
+package es.bsc.compss.nio.commands.workerfiles;
+
+import es.bsc.comm.Connection;
 
 import es.bsc.compss.nio.commands.Command;
 
@@ -22,8 +24,6 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.comm.Connection;
 
 
 public class CommandGenerateWorkerDebugFiles extends Command implements Externalizable {
@@ -33,26 +33,28 @@ public class CommandGenerateWorkerDebugFiles extends Command implements External
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    }
-
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-    }
-
-    @Override
     public CommandType getType() {
         return CommandType.GEN_WORKERS_INFO;
     }
 
     @Override
     public void handle(Connection c) {
-        agent.generateWorkersDebugInfo(c);
+        this.agent.generateWorkersDebugInfo(c);
     }
 
     @Override
     public String toString() {
         return "GenerateWorkerDebugFiles";
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        // Nothing to do
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        // Nothing to do
     }
 
 }

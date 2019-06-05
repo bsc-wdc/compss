@@ -27,9 +27,18 @@ import java.io.ObjectOutput;
 
 public class CommandExecutorShutdown extends Command implements Externalizable {
 
+    /**
+     * Creates a new CommandExecutorShutdown for externalization.
+     */
     public CommandExecutorShutdown() {
+        super();
     }
 
+    /**
+     * Creates a new CommandExecutorShutdown instance.
+     * 
+     * @param agent Associated NIOAgent.
+     */
     public CommandExecutorShutdown(NIOAgent agent) {
         super(agent);
     }
@@ -41,15 +50,17 @@ public class CommandExecutorShutdown extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.shutdownExecutionManager(c);
+        this.agent.shutdownExecutionManager(c);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        // Nothing to do
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
+        // Nothing to do
     }
 
     @Override

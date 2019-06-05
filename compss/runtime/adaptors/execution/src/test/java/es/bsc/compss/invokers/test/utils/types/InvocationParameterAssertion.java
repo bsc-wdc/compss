@@ -37,7 +37,9 @@ public class InvocationParameterAssertion {
     private final Object value;
 
 
-    /** Invocation Parameter Assertion constructor.
+    /**
+     * Invocation Parameter Assertion constructor.
+     * 
      * @param role Role
      * @param paramIdx Param Identifier
      * @param field Field
@@ -62,7 +64,9 @@ public class InvocationParameterAssertion {
         return value;
     }
 
-    /** Validate.
+    /**
+     * Validate.
+     * 
      * @param inv Invocation
      */
     public void validate(Invocation inv) {
@@ -107,8 +111,8 @@ public class InvocationParameterAssertion {
                         + ")", param.getPrefix(), value);
                 break;
             case STREAM:
-                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got " + param.getStdIOStream()
-                        + ")", param.getStdIOStream(), value);
+                assertEquals("Unexpected stream for " + caseId + " (expected " + value + " and got "
+                        + param.getStdIOStream() + ")", param.getStdIOStream(), value);
                 break;
             case ORIGINAL_NAME:
                 assertEquals("Unexpected name for " + caseId + " (expected " + value + " and got "

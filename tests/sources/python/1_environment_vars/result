@@ -70,15 +70,15 @@
     pricesExpected="PRICE TIME_UNIT=-1 PRICE_PER_TIME=-1.0"
     wallclockExpected="WALLCLOCK=10"
 
-    processorGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 10 | head -n 1 | tr "]" "\\n" | head -n 1)
-    generalGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 9 | head -n 1 | tr "]" "\\n" | head -n 1)
-    memoryGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 8 | head -n 1 | tr "]" "\\n" | head -n 1)
-    storageGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 7 | head -n 1 | tr "]" "\\n" | head -n 1)
-    osGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 6 | head -n 1 | tr "]" "\\n" | head -n 1)
-    softwareGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 5 | head -n 1 | tr "]" "\\n" | head -n 1)
-    queuesGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 4 | head -n 1 | tr "]" "\\n" | head -n 1)
-    pricesGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 3 | head -n 1 | tr "]" "\\n" | head -n 1)
-    wallclockGot=$(grep "Finished sending new Task" "${runtime_log}" | tr "[" "\\n" | tail -n 2 | head -n 1 | tr "]" "\\n" | head -n 1)
+    processorGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 10 | head -n 1 | tr "]" "\\n" | head -n 1)
+    generalGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 9 | head -n 1 | tr "]" "\\n" | head -n 1)
+    memoryGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 8 | head -n 1 | tr "]" "\\n" | head -n 1)
+    storageGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 7 | head -n 1 | tr "]" "\\n" | head -n 1)
+    osGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 6 | head -n 1 | tr "]" "\\n" | head -n 1)
+    softwareGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 5 | head -n 1 | tr "]" "\\n" | head -n 1)
+    queuesGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 4 | head -n 1 | tr "]" "\\n" | head -n 1)
+    pricesGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 3 | head -n 1 | tr "]" "\\n" | head -n 1)
+    wallclockGot=$(grep "Finished sending New Task" "${runtime_log}" | tr "[" "\\n" | tail -n 2 | head -n 1 | tr "]" "\\n" | head -n 1)
 
     if [ "${processorGot}" != "${processorExpected}" ]; then
       echo "ERROR: Processor constraints do not match" | tee -a "${output_file}"

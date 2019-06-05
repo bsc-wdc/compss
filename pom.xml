@@ -28,7 +28,7 @@
 
 	<!-- PROPERTIES -->
 	<properties>
-		<compss.version>2.4.rc1906</compss.version>
+		<compss.version>2.5.rc1906</compss.version>
 
 		<!-- BSC Streaming Component version -->
 		<streaming.version>1.0-16</streaming.version>

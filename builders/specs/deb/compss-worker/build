@@ -45,15 +45,17 @@
   path_target="${COMPSs_target}/Runtime/adaptors"
   adaptors=$(ls ${path_source})
   for adaptor in $adaptors; do
-    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "execution" ] && [ "$adaptor" != "local" ] && [ "$adaptor" != "pom.xml" ] && [ "$adaptor" != "target" ]; then
+    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "execution" ] && [ "$adaptor" != "local" ] && ["$adaptor" != "ws" ] && [ "$adaptor" != "pom.xml" ] && [ "$adaptor" != "target" ]; then
       if [ "$adaptor" != "agent" ]; then
         #Regular adaptor: Copying only worker part
         mkdir ${path_target}/$adaptor
-        mkdir ${path_target}/$adaptor/worker
-        #Installing worker jars and properties
-        cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
-        if [ -f ${path_source}/$adaptor/worker/properties ]; then
-          cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+        if [ -d "${path_source}/$adaptor/worker" ]; then
+          mkdir ${path_target}/$adaptor/worker
+          #Installing worker jars and properties
+          cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
+          if [ -f ${path_source}/$adaptor/worker/properties ]; then
+            cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+          fi
         fi
         #Installing scripts
         if [ -d "${path_source}/$adaptor/scripts/" ]; then

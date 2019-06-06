@@ -2,15 +2,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-adaptors-execution</artifactId>
-	<packaging>jar</packaging>
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-adaptors</artifactId>
-<version>2.5.rc1906</version>
-		<relativePath>..</relativePath>
-	</parent>
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-adaptors-execution</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-adaptors</artifactId>
+        <version>2.5.rc1906</version>
+        <relativePath>..</relativePath>
+    </parent>
 
 
     <!-- PROJECT INFORMATION -->
@@ -62,6 +62,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Apache commons -> FileUtils-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        
         <!-- Log4j -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

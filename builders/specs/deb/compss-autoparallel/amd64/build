@@ -6,5 +6,4 @@
   cp -r ${trunk_rel_path}/dependencies/autoparallel "${COMPSs_target}"/Dependencies/autoparallel
   cp -r ${trunk_rel_path}/dependencies/pluto "${COMPSs_target}"/Dependencies/pluto_install
 
-  find "${COMPSs_target}"/Dependencies -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
-
+  find "${COMPSs_target}"/Dependencies -depth -print0 | xargs -0 rm -rf # Clean git files

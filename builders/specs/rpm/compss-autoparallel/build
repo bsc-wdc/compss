@@ -30,7 +30,7 @@
   cp -rf ${trunk_rel_path}/RELEASE_NOTES "${target}"
 
   cd tmp/SOURCES/
-  find . -name ".git*" -print0 -exec rm -rf {} \; # Clean git files
+  find . -depth -name ".git*" -print0 | xargs -0 rm -rf # Clean git files
   tar czf ${package_name}-"${COMPSS_VERSION}".tar.gz ${package_name}-"${COMPSS_VERSION}"
   ev=$?
   if [ $ev -ne 0 ]; then

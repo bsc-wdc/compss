@@ -174,7 +174,8 @@ install_adaptor() {
   cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
 
   # Clean git files
-  find "${COMPSs_target}" -name ".git*" -print0 | xargs -0 rm -rf # Clean git files
+  find "${COMPSs_target}" -depth -name ".git*" -print0 | xargs -0 rm -rf # Clean git files
+
 
   #---------------------------------------------------------------------------
   # Add specific SC install and env files

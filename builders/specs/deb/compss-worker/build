@@ -45,7 +45,7 @@
   path_target="${COMPSs_target}/Runtime/adaptors"
   adaptors=$(ls ${path_source})
   for adaptor in $adaptors; do
-    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "execution" ] && [ "$adaptor" != "pom.xml" ] && [ "$adaptor" != "target" ]; then
+    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "execution" ] && [ "$adaptor" != "local" ] && [ "$adaptor" != "pom.xml" ] && [ "$adaptor" != "target" ]; then
       if [ "$adaptor" != "agent" ]; then
         #Regular adaptor: Copying only worker part
         mkdir ${path_target}/$adaptor

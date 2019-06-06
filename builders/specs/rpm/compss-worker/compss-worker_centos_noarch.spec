@@ -57,17 +57,19 @@ adaptors=$(ls ${path_source})
 for adaptor in $adaptors; do
   if [ "$adaptor" != "agent" ]; then
     #Regular adaptor: Copying only worker part
-    mkdir ${path_target}/$adaptor
-    mkdir ${path_target}/$adaptor/worker
-    #Installing worker jars and properties
-    cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
-    if [ -f ${path_source}/$adaptor/worker/properties ]; then
-      cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
-    fi
-    #Installing scripts
-    if [ -d "${path_source}/$adaptor/scripts/" ]; then
-      mkdir -p ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
-      cp -r ${path_source}/$adaptor/scripts/* ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
+    if [ -d "${path_source}/$adaptor/worker/" ]; then
+      mkdir ${path_target}/$adaptor
+      mkdir ${path_target}/$adaptor/worker
+      #Installing worker jars and properties
+      cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
+      if [ -f ${path_source}/$adaptor/worker/properties ]; then
+        cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+      fi
+      #Installing scripts
+      if [ -d "${path_source}/$adaptor/scripts/" ]; then
+        mkdir -p ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
+        cp -r ${path_source}/$adaptor/scripts/* ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
+      fi
     fi
   else
     # Agents adaptors

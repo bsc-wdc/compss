@@ -92,6 +92,14 @@
             </snapshots>
         </repository>
         <repository>
+            <id>ZK</id>
+            <name>ZK Repository</name>
+            <url>http://mavensync.zkoss.org/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>compss-repo</id>
             <name>BSC Workflows and Distributed Computing group</name>
             <url>http://compss.bsc.es/artifactory/libs-release</url>

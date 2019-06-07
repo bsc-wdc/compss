@@ -182,6 +182,21 @@ def kernel_slow(a):
 def kernel_fast(a):
     return 0.25 * (a[0, 1] + a[1, 0] + a[0, -1] + a[-1, 0])
 
+@constraint(computing_units="100")  # force to choose the implementation
+@task(returns=1)
+def integrand_slow(t):
+     return -1 # wrong result if chooses this
+
+@implement(source_class="modules.testSyntaxWImplementsNumba",
+           method="integrand_slow")
+@constraint(computing_units="1")
+@task(returns=1,
+      numba='cfunc',
+      numba_signature='float64(float64)')
+def integrand_fast(t):
+    return np.exp(-t) / t**2
+
+
 
 class testSyntaxWImplementsNumba(unittest.TestCase):
 
@@ -240,3 +255,8 @@ class testSyntaxWImplementsNumba(unittest.TestCase):
                                            [0, 11, 12, 13, 0],
                                            [0, 16, 17, 18, 0],
                                            [0, 0, 0, 0, 0]])
+
+    def testCfunc(self):
+        result = integrand_slow(20)
+        result = compss_wait_on(result)
+        self.assertEqual(result, 5.152884056096394e-12)

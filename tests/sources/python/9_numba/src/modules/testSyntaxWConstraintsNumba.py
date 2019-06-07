@@ -136,7 +136,6 @@ def kernel1(a):
     return 0.25 * (a[0, 1] + a[1, 0] + a[0, -1] + a[-1, 0])
 
 
-# UNSUPPORTED
 @constraint(computing_units="2")
 @task(returns=1,
       numba='cfunc',
@@ -223,12 +222,8 @@ class testSyntaxWConstraintsNumba(unittest.TestCase):
                                            [0, 16, 17, 18, 0],
                                            [0, 0, 0, 0, 0]])
 
-    @unittest.skip("Cfunc are not callable - So NOT SUPPORTED")
     def testCfunc(self):
-        # from numba import cfunc
-        # result = cfunc("float64(float64)")(integrand)
-        # result = result.ctypes(20)
-        result = cfunc(integrand)(20)
+        result = integrand(20)
         result = compss_wait_on(result)
         self.assertEqual(result, 5.152884056096394e-12)
 

@@ -31,9 +31,11 @@ RUN apt-get update && \
 # Dependencies for building COMPSs
 # =============================================================================
 # Build dependencies
-    apt-get install -y --no-install-recommends maven \
+    wget http://apache.rediris.es/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz && \
+    tar -zxvf apache-maven-3.6.1-bin.tar.gz -C /opt/ && \
+    sudo ln -s /opt/apache-maven-3.6.1/bin/mvn /bin/mvn && \
 # Runtime dependencies
-    openjdk-8-jdk graphviz xdg-utils \
+    apt-get install -y --no-install-recommends openjdk-8-jdk graphviz xdg-utils \
 # Bindings-common-dependencies
     libtool automake build-essential \
 # C-binding dependencies
@@ -64,7 +66,6 @@ RUN apt-get update && \
     rm gradle-5.4.1-bin.zip && \
     ln -s /opt/gradle-5.4.1 /opt/gradle && \
     echo "GRADLE_HOME=/opt/gradle" >> /etc/environment && \
-    echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:${GRADLE_HOME}/bin" >> /etc/environment && \
 # Testing dependencies
     pip3 install enum34 tabulate && \
 # Configure user environment

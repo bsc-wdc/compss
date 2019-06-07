@@ -16,7 +16,6 @@ from modules.testSyntaxWImplementsNumba import testSyntaxWImplementsNumba
 from modules.testPerformanceNumba import testPerformanceNumba
 
 def main():
-    # suite = unittest.TestLoader().loadTestsFromTestCase(testPerformanceNumba)  # TODO: check this test carefully.
     suite = unittest.TestLoader().loadTestsFromTestCase(testSyntaxNumba)
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testSyntaxWConstraintsNumba))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testSyntaxWImplementsNumba))

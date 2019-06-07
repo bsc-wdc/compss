@@ -1162,8 +1162,9 @@ class task(object):
             elif numba_mode == 'cfunc':
                 numba_signature = self.decorator_arguments['numba_signature']
                 user_returns = cfunc(
-                    numba_signature
-                )(self.user_function)(*user_args, **user_kwargs)
+                                   numba_signature
+                               )(self.user_function).ctypes(*user_args,
+                                                            **user_kwargs)
             else:
                 raise Exception("Unsupported numba mode.")
         else:

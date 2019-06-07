@@ -208,12 +208,8 @@ class testSyntaxNumba(unittest.TestCase):
                                            [0, 16, 17, 18, 0],
                                            [0, 0, 0, 0, 0]])
 
-    @unittest.skip("Cfunc are not callable - So NOT SUPPORTED")
     def testCfunc(self):
-        # from numba import cfunc
-        # result = cfunc("float64(float64)")(integrand)
-        # result = result.ctypes(20)
-        result = cfunc(integrand)(20)
+        result = integrand(20)
         result = compss_wait_on(result)
         self.assertEqual(result, 5.152884056096394e-12)
 

@@ -47,11 +47,9 @@
         python_interpreter="python2"
         python_mpi_worker="--python_mpi_worker=true"
     fi
-    if [ "$python_interpreter" == 'python3' ]; then
-        exit 0
-    fi
     if [ "$python_interpreter" == 'python3_mpi' ]; then
-        exit 0
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
     fi
 
     # shellcheck disable=SC2086

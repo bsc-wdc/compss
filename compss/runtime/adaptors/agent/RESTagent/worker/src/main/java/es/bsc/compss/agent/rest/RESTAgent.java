@@ -19,6 +19,7 @@ package es.bsc.compss.agent.rest;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.Agent;
 import es.bsc.compss.agent.AgentException;
+import es.bsc.compss.agent.AgentInterface;
 import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.Orchestrator;
@@ -35,6 +36,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.util.ErrorManager;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -45,14 +47,63 @@ import javax.ws.rs.Produces;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 
 
 @Path("/COMPSs")
-public class RESTAgent {
+public class RESTAgent implements AgentInterface<RESTAgentConf> {
+
+    private int port;
+    private Server server = null;
+
+    @Override
+    public RESTAgentConf configure(String arguments) throws AgentException {
+        RESTAgentConf conf;
+        try {
+            int port = Integer.parseInt(arguments);
+            conf = new RESTAgentConf(port);
+        } catch (Exception e) {
+            throw new AgentException(e);
+        }
+        return conf;
+    }
+
+    @Override
+    public synchronized void start(RESTAgentConf args) throws AgentException {
+        if (server != null) {
+            //Server already started. Ignore start;
+            return;
+        }
+        RESTServiceLauncher launcher = null;
+        try {
+            port = args.getPort();
+            System.setProperty(RESTAgentConstants.COMPSS_AGENT_PORT, Integer.toString(port));
+            launcher = new RESTServiceLauncher(port);
+            new Thread(launcher).start();
+            launcher.waitForBoot();
+        } catch (Exception e) {
+            throw new AgentException(e);
+        }
+        if (launcher.getStartError() != null) {
+            throw new AgentException(launcher.getStartError());
+        } else {
+            server = launcher.getServer();
+        }
+    }
+
+    @Override
+    public synchronized void stop() {
+        if (server != null) {
+            try {
+                server.stop();
+            } catch (Exception ex) {
+                ErrorManager.warn("Could not stop the REST server for the Agent at port " + port, ex);
+            } finally {
+                server.destroy();
+                server = null;
+            }
+        }
+    }
 
     @GET
     @Path("test/")
@@ -202,25 +253,9 @@ public class RESTAgent {
     }
 
     public static void main(String[] args) throws Exception {
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-
         int port = Integer.parseInt(args[0]);
-        System.setProperty(RESTAgentConstants.COMPSS_AGENT_PORT, args[0]);
-        Server jettyServer = new Server(port);
-        jettyServer.setHandler(context);
-
-        ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/*");
-        jerseyServlet.setInitOrder(0);
-
-        // Tells the Jersey Servlet which REST service/class to load.
-        jerseyServlet.setInitParameter("jersey.config.server.provider.classnames", RESTAgent.class.getCanonicalName());
-
-        try {
-            jettyServer.start();
-            jettyServer.join();
-        } finally {
-            jettyServer.destroy();
-        }
+        RESTAgentConf config = new RESTAgentConf(port);
+        Agent.startInterface(config);
     }
+
 }

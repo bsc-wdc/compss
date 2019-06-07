@@ -29,7 +29,7 @@ mvn clean
 # BUILDING IMAGE
 echo "Building image"
 cd "${SANDBOX}"
-docker build -t mf2c/compss-agent:it2 ./framework
+docker build -t compss/agent:2.5 ./framework
 
 rm -rf "${SANDBOX}"
 cd "${INIT_DIR}"

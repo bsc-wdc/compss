@@ -19,7 +19,6 @@ package es.bsc.compss.agent;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
-import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
@@ -36,12 +35,14 @@ import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import storage.StorageException;
@@ -53,6 +54,7 @@ public class Agent {
     private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
     private static final COMPSsRuntimeImpl RUNTIME;
     private static final Random APP_ID_GENERATOR = new Random();
+    private static final List<AgentInterface> interfaces;
 
     static {
         String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);
@@ -103,6 +105,9 @@ public class Agent {
             }
         }
         System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
+
+        interfaces = new LinkedList<>();
+        
     }
 
     /**
@@ -358,21 +363,45 @@ public class Agent {
         }
     }
 
+    /**
+     * Starts an agent interface.
+     *
+     * @param conf Agent Interface configuration parameters
+     *
+     * @throws ClassNotFoundException Could not find the specify agent interface class
+     * @throws InstantiationException Could not instantiate the agent interface
+     * @throws IllegalAccessException Could not call the empty constructor because is private
+     * @throws AgentException Error during the interface boot process
+     */
+    public final static void startInterface(AgentInterfaceConfig conf)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+        Class<?> agentClass = Class.forName(conf.getInterfaceClass());
+        AgentInterface itf = (AgentInterface) agentClass.newInstance();
+        itf.start(conf);
+        interfaces.add(itf);
+    }
 
-    public abstract static class AppMonitor implements TaskMonitor {
+    private static AgentInterfaceConfig getConfig(String className, String arguments)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+        Class<?> agentClass = Class.forName(className);
+        AgentInterface itf = (AgentInterface) agentClass.newInstance();
+        return itf.configure(arguments);
+    }
 
-        private long appId;
+    public final static void main(String[] args) throws Exception {
+        //TODO: Read Agents Setup
+        LinkedList<AgentInterfaceConfig> agents = new LinkedList<>();
+        agents.add(getConfig("es.bsc.compss.agent.rest.RESTAgent", args[0]));
 
-        public AppMonitor() {
+        for (AgentInterfaceConfig agent : agents) {
+            try {
+                startInterface(agent);
+            } catch (Exception e) {
+                ErrorManager.warn("Could not start Agent", e);
+            }
         }
-
-        private void setAppId(long appId) {
-            this.appId = appId;
+        if (interfaces.isEmpty()) {
+            ErrorManager.fatal("Could not start any interface");
         }
-
-        public long getAppId() {
-            return this.appId;
-        }
-
     }
 }

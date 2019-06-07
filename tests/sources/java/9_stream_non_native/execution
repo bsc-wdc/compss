@@ -23,6 +23,9 @@
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
   mkdir -p /tmp/COMPSsWorker02/
+
+  # Wait for system sockets to close
+  sleep 10s
   
   #----------------------------------------------------------------------------------
   # Run application

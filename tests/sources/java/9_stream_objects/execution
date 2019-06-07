@@ -18,6 +18,9 @@
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+
+  # Wait for system sockets to close
+  sleep 10s
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders

@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.agent.rest;
 
-import es.bsc.compss.agent.Agent.AppMonitor;
+import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
 import es.bsc.compss.comm.Comm;

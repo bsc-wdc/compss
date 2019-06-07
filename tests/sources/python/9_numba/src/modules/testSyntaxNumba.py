@@ -122,7 +122,6 @@ def kernel1(a):
     return 0.25 * (a[0, 1] + a[1, 0] + a[0, -1] + a[-1, 0])
 
 
-# UNSUPPORTED
 @task(returns=1,
       numba='cfunc',
       numba_signature='float64(float64)')

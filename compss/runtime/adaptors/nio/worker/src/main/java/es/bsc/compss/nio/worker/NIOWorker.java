@@ -134,32 +134,32 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     /**
      * Creates a new NIOWorker instance.
      *
-     * @param transferLogs Whether to transfer the output/error files or not.
-     * @param snd Number of senders.
-     * @param rcv Number of receivers.
-     * @param hostName Worker hostname.
-     * @param masterName Master hostname.
-     * @param masterPort Master port.
-     * @param streamingPort Streaming port.
-     * @param computingUnitsCPU Worker CPU computing units.
-     * @param computingUnitsGPU Worker GPU computing units.
+     * @param transferLogs       Whether to transfer the output/error files or not.
+     * @param snd                Number of senders.
+     * @param rcv                Number of receivers.
+     * @param hostName           Worker hostname.
+     * @param masterName         Master hostname.
+     * @param masterPort         Master port.
+     * @param streamingPort      Streaming port.
+     * @param computingUnitsCPU  Worker CPU computing units.
+     * @param computingUnitsGPU  Worker GPU computing units.
      * @param computingUnitsFPGA Worker FPGA computing units
-     * @param cpuMap String describing the thread-cpu mapping.
-     * @param gpuMap String describing the thread-gpu mapping.
-     * @param fpgaMap String describing the thread-fpga mapping.
-     * @param limitOfTasks Limit of simultaneous tasks.
-     * @param appUuid Application UUID.
-     * @param traceFlag Tracing flag.
-     * @param traceHost Tracing host name.
-     * @param storageConf Storage configuration file path.
-     * @param executionType Task execution type.
-     * @param persistentC Whether to spawn persistent C workers or not.
-     * @param workingDir Worker working directory.
-     * @param installDir Installation directory.
-     * @param appDir Application directory.
-     * @param javaParams Java specific parameters.
-     * @param pyParams Python specific parameters.
-     * @param cParams C specific parameters.
+     * @param cpuMap             String describing the thread-cpu mapping.
+     * @param gpuMap             String describing the thread-gpu mapping.
+     * @param fpgaMap            String describing the thread-fpga mapping.
+     * @param limitOfTasks       Limit of simultaneous tasks.
+     * @param appUuid            Application UUID.
+     * @param traceFlag          Tracing flag.
+     * @param traceHost          Tracing host name.
+     * @param storageConf        Storage configuration file path.
+     * @param executionType      Task execution type.
+     * @param persistentC        Whether to spawn persistent C workers or not.
+     * @param workingDir         Worker working directory.
+     * @param installDir         Installation directory.
+     * @param appDir             Application directory.
+     * @param javaParams         Java specific parameters.
+     * @param pyParams           Python specific parameters.
+     * @param cParams            C specific parameters.
      */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
             int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
@@ -453,7 +453,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
             WORKER_LOGGER.debug(tr);
         }
-        CommandNIOTaskDone cmd = new CommandNIOTaskDone(this, tr, successful);
+        CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful);
         c.sendCommand(cmd);
 
         if (this.transferLogs || !successful) {
@@ -485,7 +485,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * Checks whether a STD IO stream file (OUT / ERR) exists or not.
      *
      * @param taskFileName Task file name.
-     * @param streamName Stream name.
+     * @param streamName   Stream name.
      * @param errorMessage Error message.
      */
     public void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
@@ -528,7 +528,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("Notifying presence of all data for job " + task.getJobId() + ".");
         }
 
-        CommandDataReceived cdr = new CommandDataReceived(this, task.getTransferGroupId());
+        CommandDataReceived cdr = new CommandDataReceived(task.getTransferGroupId());
         Connection c = TM.startConnection(masterNode);
         c.sendCommand(cdr);
         c.finishConnection();

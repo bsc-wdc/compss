@@ -17,20 +17,17 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
-
 import es.bsc.compss.nio.NIOAgent;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandCheckWorkerACK extends Command implements Externalizable {
+public class CommandCheckWorkerACK implements Command {
 
     private String uuid;
     private String nodeName;
-
 
     /**
      * Creates a new CommandCheckWorkerACK for externalization.
@@ -41,25 +38,18 @@ public class CommandCheckWorkerACK extends Command implements Externalizable {
 
     /**
      * Creates a new CommandCheckWorkerACK instance.
-     * 
-     * @param agent Associated NIOAgent.
-     * @param uuid Associated application UUID.
+     *
+     * @param uuid     Associated application UUID.
      * @param nodeName Worker node name.
      */
-    public CommandCheckWorkerACK(NIOAgent agent, String uuid, String nodeName) {
-        super(agent);
+    public CommandCheckWorkerACK(String uuid, String nodeName) {
         this.uuid = uuid;
         this.nodeName = nodeName;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.CHECK_WORKER_ACK;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.setWorkerIsReady(this.nodeName);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.setWorkerIsReady(this.nodeName);
     }
 
     @Override

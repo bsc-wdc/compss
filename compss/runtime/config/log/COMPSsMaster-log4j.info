@@ -51,6 +51,12 @@
       <AppenderRef ref="Console"/>
     </Logger>
 
+    <!-- RUNTIME AGENT -->
+    <!-- es.bsc.compss.Agent: DEFAULT = DEBUG -->
+    <Logger name="es.bsc.compss.Agent" additivity="FALSE" level="info">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
     <!-- RUNTIME API -->
     <!-- es.bsc.compss.API: DEFAULT = INFO -->
     <Logger name="es.bsc.compss.API" additivity="FALSE" level="info">

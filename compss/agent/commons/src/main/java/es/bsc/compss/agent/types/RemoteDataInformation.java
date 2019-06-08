@@ -1,0 +1,77 @@
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package es.bsc.compss.agent.types;
+
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.Collection;
+import java.util.LinkedList;
+
+
+/**
+ * Container for all the required information for an Agent to use a remote data value.
+ *
+ */
+public class RemoteDataInformation implements Externalizable {
+
+    private String renaming;
+    private Collection<RemoteDataLocation> sources = new LinkedList<>();
+
+    public RemoteDataInformation() {
+    }
+
+    public RemoteDataInformation(String renaming) {
+        this.renaming = renaming;
+    }
+
+    public String getRenaming() {
+        return renaming;
+    }
+
+    public void addSource(RemoteDataLocation location) {
+        sources.add(location);
+    }
+
+    public Collection<RemoteDataLocation> getSources() {
+        return sources;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("RemoteData " + renaming + " @ {");
+        for (RemoteDataLocation source : sources) {
+            sb.append("[" + source.toString() + "] ");
+        }
+        sb.append(" }");
+        return sb.toString();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput oo) throws IOException {
+        oo.writeUTF(renaming);
+        oo.writeObject(sources);
+    }
+
+    @Override
+    public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
+        renaming = oi.readUTF();
+        sources = (Collection<RemoteDataLocation>) oi.readObject();
+    }
+
+}

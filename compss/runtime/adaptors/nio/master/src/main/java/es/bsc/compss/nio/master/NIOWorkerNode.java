@@ -92,7 +92,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     /**
      * Creates a new NIOWorkerNode instance.
      *
-     * @param config Worker configuration.
+     * @param config  Worker configuration.
      * @param adaptor Worker communication adaptor.
      */
     public NIOWorkerNode(NIOConfiguration config, NIOAdaptor adaptor) {
@@ -280,7 +280,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     }
                     Connection c = NIOAgent.getTransferManager().startConnection(node);
                     commManager.shuttingDown(this, c, sl);
-                    CommandShutdown cmd = new CommandShutdown(null, null);
+                    CommandShutdown cmd = new CommandShutdown(null);
                     c.sendCommand(cmd);
                     c.receive();
                     c.finishConnection();
@@ -308,7 +308,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             commManager.shuttingDownEM(this, c, esl);
 
             LOGGER.debug("Sending shutdown command " + this.getName());
-            CommandExecutorShutdown cmd = new CommandExecutorShutdown(null);
+            CommandExecutorShutdown cmd = new CommandExecutorShutdown();
             c.sendCommand(cmd);
             c.receive();
             c.finishConnection();
@@ -552,7 +552,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
         NIOParam param = NIOParamFactory.fromParameter((Parameter) reason);
-        CommandDataFetch cmd = new CommandDataFetch(this.commManager, param, listener.getId());
+        CommandDataFetch cmd = new CommandDataFetch(param, listener.getId());
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
@@ -667,7 +667,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     /**
      * Submits a new task to the worker.
      *
-     * @param job Job to submit.
+     * @param job      Job to submit.
      * @param obsolete List of obsolete objects to delete.
      * @throws UnstartedNodeException If the node has not started yet.
      */
@@ -676,7 +676,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             throw new UnstartedNodeException();
         }
         NIOTask t = job.prepareJob();
-        CommandNewTask cmd = new CommandNewTask(this.commManager, t, obsolete);
+        CommandNewTask cmd = new CommandNewTask(t, obsolete);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
@@ -695,7 +695,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void increaseComputingCapabilities(ResourceDescription description) {
         Semaphore sem = new Semaphore(0);
         MethodResourceDescription mrd = (MethodResourceDescription) description;
-        CommandResourcesIncrease cmd = new CommandResourcesIncrease(this.commManager, mrd);
+        CommandResourcesIncrease cmd = new CommandResourcesIncrease(mrd);
         Connection c = NIOAgent.getTransferManager().startConnection(this.node);
         this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);
@@ -711,7 +711,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void reduceComputingCapabilities(ResourceDescription description) {
         Semaphore sem = new Semaphore(0);
         MethodResourceDescription mrd = (MethodResourceDescription) description;
-        CommandResourcesReduce cmd = new CommandResourcesReduce(this.commManager, mrd);
+        CommandResourcesReduce cmd = new CommandResourcesReduce(mrd);
         Connection c = NIOAgent.getTransferManager().startConnection(this.node);
         this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);

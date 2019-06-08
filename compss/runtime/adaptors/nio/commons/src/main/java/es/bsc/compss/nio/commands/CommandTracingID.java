@@ -17,18 +17,17 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
+import es.bsc.compss.nio.NIOAgent;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandTracingID extends Command implements Externalizable {
+public class CommandTracingID implements Command {
 
     private int id;
     private int tag;
-
 
     /**
      * Creates a new CommandTracingID for externalization.
@@ -39,24 +38,18 @@ public class CommandTracingID extends Command implements Externalizable {
 
     /**
      * Creates a new CommandTracingID instance.
-     * 
-     * @param id Trancing Id.
+     *
+     * @param id  Trancing Id.
      * @param tag Tracing tag.
      */
     public CommandTracingID(int id, int tag) {
-        super();
         this.id = id;
         this.tag = tag;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.DATA_DEMAND;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.addConnectionAndPartner(c, this.id, this.tag);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.addConnectionAndPartner(c, this.id, this.tag);
     }
 
     @Override

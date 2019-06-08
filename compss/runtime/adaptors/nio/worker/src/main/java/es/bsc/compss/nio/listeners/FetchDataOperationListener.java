@@ -41,7 +41,7 @@ public class FetchDataOperationListener extends MultiOperationFetchListener {
 
     @Override
     public void doCompleted() {
-        CommandDataReceived cdr = new CommandDataReceived(this.nw, this.transferId);
+        CommandDataReceived cdr = new CommandDataReceived(this.transferId);
         Connection c = this.nw.startConnection();
         c.sendCommand(cdr);
         c.finishConnection();

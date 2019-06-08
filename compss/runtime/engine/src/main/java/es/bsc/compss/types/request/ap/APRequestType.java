@@ -27,6 +27,8 @@ public enum APRequestType {
     WAIT_FOR_ALL_TASKS, // Waits for all submitted tasks
     END_OF_APP, // End of application
     ALREADY_ACCESSED, // Data has already been accessed
+    REGISTER_REMOTE_OBJECT, //Registers an object whose value is on remote nodes
+    REGISTER_REMOTE_FILE, //Registers an object whose value is on remote nodes
     REGISTER_DATA_ACCESS, // Register a new data access
     TRANSFER_OPEN_FILE, // Request an open file transfer
     TRANSFER_RAW_FILE, // Request a raw file transfer

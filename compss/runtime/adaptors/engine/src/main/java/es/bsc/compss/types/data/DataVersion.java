@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+
 public class DataVersion {
 
     private final DataInstanceId dataInstanceId;
@@ -32,7 +33,7 @@ public class DataVersion {
 
     /**
      * Creates a new DataVersion instance.
-     * 
+     *
      * @param dataId Data Id.
      * @param versionId Version Id.
      */
@@ -47,8 +48,25 @@ public class DataVersion {
     }
 
     /**
+     * Creates a new DataVersion instance with a first version with an alternative data renaming.
+     *
+     * @param dataId Data Id.
+     * @param versionId Version Id.
+     * @param dataRename alternative rename for the data
+     */
+    public DataVersion(int dataId, int versionId, String dataRename) {
+        this.readers = 0;
+        this.dataInstanceId = new DataInstanceId(dataId, versionId, dataRename);
+        this.writters = 0;
+        this.toDelete = false;
+        this.used = false;
+        this.semReaders = new LinkedList<>();
+        this.semUsed = false;
+    }
+
+    /**
      * Returns the associated data instance.
-     * 
+     *
      * @return The associated data instance.
      */
     public DataInstanceId getDataInstanceId() {
@@ -71,7 +89,7 @@ public class DataVersion {
 
     /**
      * Returns whether the data version has pending lectures or not.
-     * 
+     *
      * @return {@code true} if the data version has pending lectures, {@code false} otherwise.
      */
     public boolean hasPendingLectures() {
@@ -80,7 +98,7 @@ public class DataVersion {
 
     /**
      * Returns whether the data version has more than one reader or not.
-     * 
+     *
      * @return @{code true} if the data version has more than one reader, {@code false} otherwise.
      */
     public boolean hasMoreReaders() {
@@ -89,7 +107,7 @@ public class DataVersion {
 
     /**
      * Marks the data version as read and returns whether it can be deleted or not.
-     * 
+     *
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
      */
     public boolean hasBeenRead() {
@@ -104,17 +122,17 @@ public class DataVersion {
 
     /**
      * Marks the data version as written and returns whether it can be deleted or not.
-     * 
+     *
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
      */
     public boolean hasBeenWritten() {
         this.writters--;
         return checkDeletion();
     }
-    
+
     /**
      * Returns the number of readers.
-     * 
+     *
      * @return The number of readers
      */
     public Integer getNumberOfReaders() {
@@ -123,7 +141,7 @@ public class DataVersion {
 
     /**
      * Returns whether the data can be deleted or not.
-     * 
+     *
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
      */
     public boolean markToDelete() {
@@ -136,7 +154,7 @@ public class DataVersion {
 
     /**
      * Whether the data version is marked for deletion or not.
-     * 
+     *
      * @return {@code true} if the data version is marked for deletion, {@code false} otherwise.
      */
     public boolean isToDelete() {
@@ -145,15 +163,15 @@ public class DataVersion {
 
     /**
      * Internally checks if the data version can be deleted and is marked for deletion.
-     * 
+     *
      * @return {@code true} if the data version can be deleted and is marked for deletion, {@code false} otherwise.
      */
     private boolean checkDeletion() {
         if (this.toDelete // deletion requested
                 && this.writters == 0 // version has been generated
                 && this.readers == 0 // version has been read
-        ) {
-            
+                ) {
+
             return true;
         }
         return false;
@@ -168,17 +186,17 @@ public class DataVersion {
 
     /**
      * Returns whether the version has been used or not.
-     * 
+     *
      * @return {@code true} if the version has been used, {@code false} otherwise.
      */
     public boolean hasBeenUsed() {
         return this.used;
     }
-    
+
     /**
      * Adds a Semaphore to the Semaphore list.
-     * 
-     * @param semWait Semaphore to be added to the list 
+     *
+     * @param semWait Semaphore to be added to the list
      * @return True if semaphore is add. Otherwise false.
      */
     public boolean addSemaphore(Semaphore semWait) {

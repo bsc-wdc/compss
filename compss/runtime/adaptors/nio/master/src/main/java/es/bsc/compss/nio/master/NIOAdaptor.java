@@ -41,6 +41,7 @@ import es.bsc.compss.nio.master.configuration.NIOConfiguration;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.requests.MasterDataRequest;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -98,12 +99,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      */
     private static final int BASE_MASTER_PORT = 43_000;
     private static final int MAX_RANDOM_VALUE = 1_000;
-    private static final int RANDOM_VALUE = new Random().nextInt(MAX_RANDOM_VALUE);
-    private static final int MASTER_PORT_CALCULATED = BASE_MASTER_PORT + RANDOM_VALUE;
-    private static final String MASTER_PORT_PROPERTY = System.getProperty(COMPSsConstants.MASTER_PORT);
-    public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty())
-            ? Integer.valueOf(MASTER_PORT_PROPERTY)
-            : MASTER_PORT_CALCULATED;
+    public static final int MASTER_PORT;
 
     // Final jobs log directory
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + File.separator;
@@ -129,6 +125,17 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private final Semaphore tracingGeneration;
     private final Semaphore workersDebugInfo;
 
+    static {
+        int masterPort;
+        String masterPortProp = System.getProperty(COMPSsConstants.MASTER_PORT);
+        if (masterPortProp != null && !masterPortProp.isEmpty()) {
+            masterPort = Integer.valueOf(masterPortProp);
+        } else {
+            int random = new Random().nextInt(MAX_RANDOM_VALUE);
+            masterPort = BASE_MASTER_PORT + random;
+        }
+        MASTER_PORT = masterPort;
+    }
 
     /**
      * New NIOAdaptor instance.
@@ -285,7 +292,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public NIOWorkerNode initWorker(Configuration config) {
+    public COMPSsWorker initWorker(Configuration config) {
         NIOConfiguration nioCfg = (NIOConfiguration) config;
         LOGGER.debug("Init NIO Worker Node named " + nioCfg.getHost());
 
@@ -491,7 +498,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     /**
      * Registers a new copy.
-     * 
+     *
      * @param c New copy to register.
      */
     public void registerCopy(Copy c) {
@@ -655,11 +662,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     /**
      * Requests a new data.
-     * 
-     * @param c Associated copy.
+     *
+     * @param c         Associated copy.
      * @param paramType Data type.
-     * @param d NIOData to request.
-     * @param path Target path.
+     * @param d         NIOData to request.
+     * @param path      Target path.
      */
     public void requestData(Copy c, DataType paramType, NIOData d, String path) {
         DataRequest dr = new MasterDataRequest(c, paramType, d, path);
@@ -670,9 +677,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     /**
      * Marks the worker to shutdown.
-     * 
-     * @param worker Worker node.
-     * @param c Connection.
+     *
+     * @param worker   Worker node.
+     * @param c        Connection.
      * @param listener Listener.
      */
     public void shuttingDown(NIOWorkerNode worker, Connection c, ShutdownListener listener) {
@@ -681,9 +688,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     /**
      * Marks the worker to shutdown only the execution manager.
-     * 
-     * @param worker Worker node.
-     * @param c Connection.
+     *
+     * @param worker   Worker node.
+     * @param c        Connection.
      * @param listener Listener.
      */
     public void shuttingDownEM(NIOWorkerNode worker, Connection c, ExecutorShutdownListener listener) {
@@ -774,8 +781,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     /**
      * Registers a pending modification of the current worker node.
-     * 
-     * @param c Connection.
+     *
+     * @param c   Connection.
      * @param sem Semaphore to wait until the modification is performed.
      */
     public void registerPendingResourceUpdateConfirmation(Connection c, Semaphore sem) {
@@ -801,6 +808,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     protected String getPossiblyRenamedFileName(File originalFile, NIOData d) {
         return Comm.getAppHost().getCompleteRemotePath(DataType.FILE_T, d.getDataMgmtId()).getPath();
+
     }
 
 
@@ -809,17 +817,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
-
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             this.worker = w;
             this.listener = l;
         }
     }
 
+
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
-
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             this.listener = l;

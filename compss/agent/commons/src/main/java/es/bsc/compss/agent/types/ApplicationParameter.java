@@ -17,14 +17,60 @@
 package es.bsc.compss.agent.types;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
 
 
 public interface ApplicationParameter {
 
+    /**
+     * Returns the name of the parameter.
+     *
+     * @return parameter name
+     */
+    public String getParamName();
+
+    /**
+     * Returns the type of the data on the parameter.
+     *
+     * @return type of the data on the parameter.
+     */
     public DataType getType();
 
-    public Object getDirection();
+    /**
+     * Returns the direction of the parameter.
+     *
+     * @return direction of the parameter
+     */
+    public Direction getDirection();
 
+    /**
+     * Returns the StdIOStream to redirect to the parameter.
+     *
+     * @return stdIOStream to redirect to the parameter
+     */
+    public Object getStdIOStream();
+
+    /**
+     * Returns the prefix to apply to the parameter value.
+     *
+     * @return prefix to apply to the parameter value
+     */
+    public Object getPrefix();
+
+    /**
+     * Returns the object passed in as parameter value.
+     *
+     * @return the object passed in as parameter value
+     *
+     * @throws Exception Error unmarshalling the object
+     */
     public Object getValueContent() throws Exception;
+
+    /**
+     * Returns a set of sources from where to fetch the param value.
+     *
+     * @return sources from where to fetch the param value
+     */
+    public RemoteDataInformation getRemoteData();
 
 }

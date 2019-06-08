@@ -88,7 +88,6 @@ public class ExecutionAction extends AllocatableAction {
     private int transferErrors = 0;
     protected int executionErrors = 0;
 
-
     /**
      * Creates a new execution action.
      *
@@ -209,6 +208,7 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     private void transferInputData(JobTransfersListener listener) {
+        System.out.println("Obtaining data values for task:");
         TaskDescription taskDescription = task.getTaskDescription();
         for (Parameter p : taskDescription.getParameters()) {
             if (DEBUG) {
@@ -234,6 +234,7 @@ public class ExecutionAction extends AllocatableAction {
 
     // Private method that performs data transfers
     private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
+        System.out.println("\t Param " + param);
         switch (param.getType()) {
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) param;
@@ -276,19 +277,21 @@ public class ExecutionAction extends AllocatableAction {
             }
             JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
             param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName).getPath());
-        } else if (access instanceof RAccessId) {
-            // Read Access, transfer object
-            listener.addOperation();
-
-            String srcName = ((RAccessId) access).getReadDataInstance().getRenaming();
-            w.getData(srcName, srcName, param, listener);
         } else {
-            // ReadWrite Access, transfer object
-            listener.addOperation();
+            if (access instanceof RAccessId) {
+                // Read Access, transfer object
+                listener.addOperation();
 
-            String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
-            String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-            w.getData(srcName, tgtName, (LogicalData) null, param, listener);
+                String srcName = ((RAccessId) access).getReadDataInstance().getRenaming();
+                w.getData(srcName, srcName, param, listener);
+            } else {
+                // ReadWrite Access, transfer object
+                listener.addOperation();
+
+                String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
+                String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+                w.getData(srcName, tgtName, (LogicalData) null, param, listener);
+            }
         }
     }
 
@@ -300,14 +303,16 @@ public class ExecutionAction extends AllocatableAction {
             WAccessId wAccess = (WAccessId) access;
             source = wAccess.getWrittenDataInstance().getRenaming();
             target = source;
-        } else if (access instanceof RAccessId) {
-            RAccessId rAccess = (RAccessId) access;
-            source = rAccess.getReadDataInstance().getRenaming();
-            target = source;
         } else {
-            RWAccessId rwAccess = (RWAccessId) access;
-            source = rwAccess.getReadDataInstance().getRenaming();
-            target = rwAccess.getWrittenDataInstance().getRenaming();
+            if (access instanceof RAccessId) {
+                RAccessId rAccess = (RAccessId) access;
+                source = rAccess.getReadDataInstance().getRenaming();
+                target = source;
+            } else {
+                RWAccessId rwAccess = (RWAccessId) access;
+                source = rwAccess.getReadDataInstance().getRenaming();
+                target = rwAccess.getWrittenDataInstance().getRenaming();
+            }
         }
 
         // Ask for transfer
@@ -620,7 +625,7 @@ public class ExecutionAction extends AllocatableAction {
             } else {
                 ErrorManager.warn(
                         "Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
-                                + " has failed; rescheduling task execution. (changing worker)");
+                        + " has failed; rescheduling task execution. (changing worker)");
                 LOGGER.warn("Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
                         + " has failed; rescheduling task execution. (changing worker)");
             }
@@ -884,7 +889,7 @@ public class ExecutionAction extends AllocatableAction {
 
         if (!targetWorker.getResource().canRun(impl) // Resource is not compatible with the implementation
                 || this.getExecutingResources().contains(targetWorker)// already ran on the resource
-        ) {
+                ) {
             LOGGER.debug("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();
         }

@@ -17,29 +17,22 @@
 package es.bsc.compss.nio.commands.tracing;
 
 import es.bsc.comm.Connection;
+import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.commands.Command;
-import es.bsc.compss.nio.commands.CommandType;
-
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandGenerateDone extends Command implements Externalizable {
+public class CommandGenerateDone implements Command {
 
     public CommandGenerateDone() {
         super();
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.GEN_TRACE_PACKAGE_DONE;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.notifyTracingPackageGeneration();
+    public void handle(NIOAgent agent, Connection c) {
+        agent.notifyTracingPackageGeneration();
     }
 
     @Override

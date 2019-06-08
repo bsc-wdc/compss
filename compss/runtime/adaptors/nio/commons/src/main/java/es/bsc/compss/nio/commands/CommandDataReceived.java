@@ -20,16 +20,14 @@ import es.bsc.comm.Connection;
 
 import es.bsc.compss.nio.NIOAgent;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandDataReceived extends Command implements Externalizable {
+public class CommandDataReceived implements Command {
 
     private int transfergroupID;
-
 
     /**
      * Creates a new CommandDataReceived for externalization.
@@ -40,24 +38,17 @@ public class CommandDataReceived extends Command implements Externalizable {
 
     /**
      * Creates a new CommandDataReceived instance.
-     * 
-     * @param agent Associated NIOAgent.
+     *
      * @param transfergroupID Transfer group Id.
      */
-    public CommandDataReceived(NIOAgent agent, int transfergroupID) {
-        super(agent);
+    public CommandDataReceived(int transfergroupID) {
         this.transfergroupID = transfergroupID;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.DATA_RECEIVED;
-    }
-
-    @Override
-    public void handle(Connection c) {
+    public void handle(NIOAgent agent, Connection c) {
         c.finishConnection();
-        this.agent.copiedData(this.transfergroupID);
+        agent.copiedData(this.transfergroupID);
     }
 
     @Override

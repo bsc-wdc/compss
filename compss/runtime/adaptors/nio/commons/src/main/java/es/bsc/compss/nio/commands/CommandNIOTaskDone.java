@@ -21,17 +21,15 @@ import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTaskResult;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandNIOTaskDone extends Command implements Externalizable {
+public class CommandNIOTaskDone implements Command {
 
     private boolean successful;
     private NIOTaskResult tr;
-
 
     /**
      * Creates a new CommandNIOTaskDone for externalization.
@@ -42,26 +40,18 @@ public class CommandNIOTaskDone extends Command implements Externalizable {
 
     /**
      * Creates a new CommandNIOTaskDone instance.
-     * 
-     * @param agent Associated NIOAgent.
-     * @param tr Task result.
+     *
+     * @param tr         Task result.
      * @param successful Whether the task has successfully finished or not.
      */
-    public CommandNIOTaskDone(NIOAgent agent, NIOTaskResult tr, boolean successful) {
-        super(agent);
+    public CommandNIOTaskDone(NIOTaskResult tr, boolean successful) {
         this.tr = tr;
         this.successful = successful;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.TASK_DONE;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        NIOAgent nm = (NIOAgent) this.agent;
-        nm.receivedNIOTaskDone(c, this.tr, this.successful);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.receivedNIOTaskDone(c, this.tr, this.successful);
     }
 
     public boolean isSuccessful() {

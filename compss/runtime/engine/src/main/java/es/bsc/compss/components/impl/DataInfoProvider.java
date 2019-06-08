@@ -92,7 +92,6 @@ public class DataInfoProvider {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-
     /**
      * New Data Info Provider instance.
      */
@@ -104,6 +103,23 @@ public class DataInfoProvider {
         this.renamingToValue = new TreeMap<>();
 
         LOGGER.info("Initialization finished");
+    }
+
+    public void registerRemoteObjectSources(int code, String data) {
+        DataInfo oInfo;
+        Integer aoId = this.codeToId.get(code);
+        if (aoId == null) {
+            if (DEBUG) {
+                LOGGER.debug("Registering Remote object on DIP with code " + code);
+            }
+            // Update mappings
+            oInfo = new ObjectInfo(code, data);
+            aoId = oInfo.getDataId();
+            this.codeToId.put(code, aoId);
+            this.idToData.put(aoId, oInfo);
+        }
+        //if data already exists no need to do anything else
+
     }
 
     /**
@@ -381,7 +397,7 @@ public class DataInfoProvider {
 
     /**
      * Marks an access to a file as finished.
-     * 
+     *
      * @param mode File Access Mode.
      * @param location File location.
      */
@@ -407,7 +423,7 @@ public class DataInfoProvider {
 
     /**
      * Marks the access to a BindingObject as finished.
-     * 
+     *
      * @param mode Binding Object Access Mode.
      * @param code Binding Object hashcode.
      */
@@ -729,7 +745,7 @@ public class DataInfoProvider {
 
     /**
      * Gets the dataInfo of the location.
-     * 
+     *
      * @param loc Location
      * @return DataInfo associated with the given location {@code loc}.
      */
@@ -973,14 +989,16 @@ public class DataInfoProvider {
                 }
 
                 return rf;
-            } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
-                if (DEBUG) {
-                    String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
-                    String origName = splitPath[splitPath.length - 1];
-                    LOGGER.debug("Trying to delete file " + origName);
-                }
-                if (fileInfo.delete()) {
-                    // idToData.remove(dataId);
+            } else {
+                if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
+                    if (DEBUG) {
+                        String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
+                        String origName = splitPath[splitPath.length - 1];
+                        LOGGER.debug("Trying to delete file " + origName);
+                    }
+                    if (fileInfo.delete()) {
+                        // idToData.remove(dataId);
+                    }
                 }
             }
         }
@@ -996,7 +1014,7 @@ public class DataInfoProvider {
 
     /**
      * Registers the access to a collection.
-     * 
+     *
      * @param am AccesMode.
      * @param cp CollectionParameter.
      * @return DataAccessId Representation of the access to the collection.

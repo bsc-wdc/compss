@@ -56,6 +56,6 @@
     <!-- SUB-MODULES -->
     <modules>
         <module>RESTagent</module>
-        <module>NIOagent</module>
+        <module>CommAgent</module>
     </modules>
 </project>

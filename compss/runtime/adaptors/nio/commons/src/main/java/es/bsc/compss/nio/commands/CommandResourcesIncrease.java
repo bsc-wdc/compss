@@ -21,16 +21,14 @@ import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandResourcesIncrease extends Command implements Externalizable {
+public class CommandResourcesIncrease implements Command {
 
     private MethodResourceDescription description;
-
 
     /**
      * Creates a new CommandResourcesIncrease for externalization.
@@ -41,23 +39,16 @@ public class CommandResourcesIncrease extends Command implements Externalizable 
 
     /**
      * Creates a new CommandResourcesIncrease instance.
-     * 
-     * @param agent Associated NIOAgent.
+     *
      * @param description Increasing resource description.
      */
-    public CommandResourcesIncrease(NIOAgent agent, MethodResourceDescription description) {
-        super(agent);
+    public CommandResourcesIncrease(MethodResourceDescription description) {
         this.description = description;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.RESOURCES_INCREASE;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.increaseResources(this.description);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.increaseResources(this.description);
         c.sendCommand(new CommandResourcesReduced());
         c.finishConnection();
     }

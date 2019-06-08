@@ -42,8 +42,9 @@ public class JavaInvoker extends Invoker {
     private final String methodName;
     protected final Method method;
 
-
-    /** Java Invoker constructor.
+    /**
+     * Java Invoker constructor.
+     *
      * @param context Task execution context
      * @param invocation Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
@@ -172,7 +173,11 @@ public class JavaInvoker extends Invoker {
         }
         for (InvocationParam np : this.invocation.getResults()) {
             np.setValue(retValue);
-            np.setValueClass(retValue.getClass());
+            if (retValue != null) {
+                np.setValueClass(retValue.getClass());
+            }else{
+                np.setValueClass(null);
+            }
             checkSCOPersistence(np);
         }
     }

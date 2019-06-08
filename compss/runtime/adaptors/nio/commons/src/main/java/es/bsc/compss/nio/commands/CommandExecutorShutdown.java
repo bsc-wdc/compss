@@ -19,13 +19,12 @@ package es.bsc.compss.nio.commands;
 import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandExecutorShutdown extends Command implements Externalizable {
+public class CommandExecutorShutdown implements Command {
 
     /**
      * Creates a new CommandExecutorShutdown for externalization.
@@ -34,23 +33,9 @@ public class CommandExecutorShutdown extends Command implements Externalizable {
         super();
     }
 
-    /**
-     * Creates a new CommandExecutorShutdown instance.
-     * 
-     * @param agent Associated NIOAgent.
-     */
-    public CommandExecutorShutdown(NIOAgent agent) {
-        super(agent);
-    }
-
     @Override
-    public CommandType getType() {
-        return CommandType.STOP_EXECUTOR;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.shutdownExecutionManager(c);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.shutdownExecutionManager(c);
     }
 
     @Override

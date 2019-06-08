@@ -21,19 +21,17 @@ import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandDataNegate extends Command implements Externalizable {
+public class CommandDataNegate implements Command {
 
     private NIOData d;
 
     // Whether the node has the file or not
     private boolean hosted;
-
 
     /**
      * Creates a new CommandDataNegate for externalization.
@@ -44,24 +42,17 @@ public class CommandDataNegate extends Command implements Externalizable {
 
     /**
      * Creates a new CommandDataNegate instance.
-     * 
-     * @param agent Associated NIOAgent.
-     * @param d Data to negate.
+     *
+     * @param d      Data to negate.
      * @param hosted Whether it is hosted or not.
      */
-    public CommandDataNegate(NIOAgent agent, NIOData d, boolean hosted) {
-        super(agent);
+    public CommandDataNegate(NIOData d, boolean hosted) {
         this.d = d;
         this.hosted = hosted;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.DATA_NEGATE;
-    }
-
-    @Override
-    public void handle(Connection c) {
+    public void handle(NIOAgent agent, Connection c) {
     }
 
     @Override

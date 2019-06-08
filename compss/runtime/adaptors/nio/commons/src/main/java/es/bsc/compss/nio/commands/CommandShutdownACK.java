@@ -20,13 +20,12 @@ import es.bsc.comm.Connection;
 
 import es.bsc.compss.nio.NIOAgent;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandShutdownACK extends Command implements Externalizable {
+public class CommandShutdownACK implements Command {
 
     /**
      * Creates a new CommandShutdownACK for externalization.
@@ -35,23 +34,9 @@ public class CommandShutdownACK extends Command implements Externalizable {
         super();
     }
 
-    /**
-     * Creates a new CommandShutdownACK instance.
-     * 
-     * @param agent Associated NIOAgent.
-     */
-    public CommandShutdownACK(NIOAgent agent) {
-        super(agent);
-    }
-
     @Override
-    public CommandType getType() {
-        return CommandType.STOP_WORKER_ACK;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.shutdownNotification(c);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.shutdownNotification(c);
     }
 
     @Override

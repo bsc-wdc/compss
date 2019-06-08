@@ -1,0 +1,85 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-adaptors-agent-comm-commons</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-adaptors-agent-comm</artifactId>
+        <version>2.5.rc1907</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <!-- PROJECT INFORMATION -->
+    <name>COMPSs Back-end Comm Agent Commons</name>
+    <description>Classes shared among the Master node and the workers when using the Comm library to interact between agents.</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
+
+    <!-- DEPENDENCIES -->
+    <dependencies>
+        <!-- COMPSs dependencies -->
+        <!-- Common classes for all Agent communications -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-agent-commons</artifactId>
+        </dependency>
+        
+        <!-- NIO Adaptor common classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-nio-commons</artifactId>
+        </dependency>
+        
+        <!-- NIO Adaptor master classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-nio-master</artifactId>
+        </dependency>
+        
+        <!-- Configuration classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-project-schema</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-resources-schema</artifactId>
+        </dependency>
+                
+        <!-- Comm Library -->
+        <dependency>
+            <groupId>es.bsc.comm</groupId>
+            <artifactId>comm-all</artifactId>
+        </dependency>
+    </dependencies>
+
+    <!-- BUILD -->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <!-- Compile Java code -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

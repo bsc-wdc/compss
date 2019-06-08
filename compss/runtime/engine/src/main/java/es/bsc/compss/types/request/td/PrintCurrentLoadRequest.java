@@ -28,7 +28,7 @@ import es.bsc.compss.util.ResourceManager;
 public class PrintCurrentLoadRequest extends TDRequest {
 
     /**
-     * Constructs a PrintCurrentLoadRequest
+     * Constructs a PrintCurrentLoadRequest.
      */
     public PrintCurrentLoadRequest() {
     }

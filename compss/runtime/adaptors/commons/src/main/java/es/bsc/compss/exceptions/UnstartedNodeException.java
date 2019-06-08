@@ -35,18 +35,18 @@ public class UnstartedNodeException extends Exception {
     }
 
     /**
-     * New nested @e Unstarted Node Exception.
+     * New nested {@code e} Unstarted Node Exception.
      * 
-     * @param e Causing exeception
+     * @param e Nested exception.
      */
     public UnstartedNodeException(Exception e) {
         super(e);
     }
 
     /**
-     * New Unstarted Node Exception with message @msg.
+     * New Unstarted Node Exception with message {@code msg}.
      * 
-     * @param msg Error message
+     * @param msg Exception message.
      */
     public UnstartedNodeException(String msg) {
         super(msg);

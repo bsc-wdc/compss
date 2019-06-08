@@ -32,8 +32,16 @@ public class OMPSsDefinition extends ImplementationDefinition {
     private final OmpSsImplementation impl;
 
 
+    /**
+     * Creates a new OmpSs definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
     public OMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + OmpSsImplementation.NUM_PARAMS);
+
         this.binary = args[execArgsIdx++];
 
         String wDir = args[execArgsIdx];

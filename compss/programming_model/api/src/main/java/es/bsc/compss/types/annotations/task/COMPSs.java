@@ -16,15 +16,15 @@
  */
 package es.bsc.compss.types.annotations.task;
 
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.Constraints;
-import es.bsc.compss.types.annotations.task.repeatables.MultiCOMPSs;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -41,16 +41,16 @@ public @interface COMPSs {
      */
 
     /**
-     * Returns the runcompss command path
+     * Returns the runcompss command path.
      * 
-     * @return the runcompss command path
+     * @return the runcompss command path.
      */
     String runcompss() default Constants.UNASSIGNED;
 
     /**
-     * Returns the COMPSs application main class
+     * Returns the COMPSs application main class.
      * 
-     * @return the COMPSs application main class
+     * @return the COMPSs application main class.
      */
     String appName() default Constants.UNASSIGNED;
 
@@ -60,30 +60,30 @@ public @interface COMPSs {
      */
 
     /**
-     * Returns the runcompss flags
+     * Returns the runcompss flags.
      * 
-     * @return the runcompss flags
+     * @return the runcompss flags.
      */
     String flags() default Constants.UNASSIGNED;
 
     /**
-     * Returns if a worker can run on the master resource or not
+     * Returns if a worker can run on the master resource or not.
      * 
-     * @return whether the worker can run on the master resource or not
+     * @return whether the worker can run on the master resource or not.
      */
     String workerInMaster() default Constants.WORKER_IN_MASTER;
 
     /**
-     * Returns the working directory of the binary
+     * Returns the working directory of the binary.
      * 
-     * @return the binary working directory
+     * @return the binary working directory.
      */
     String workingDir() default Constants.UNASSIGNED;
 
     /**
-     * Returns the number of computing nodes required
+     * Returns the number of computing nodes required.
      * 
-     * @return the number of computing nodes required
+     * @return the number of computing nodes required.
      */
     String computingNodes() default Constants.UNASSIGNED;
 
@@ -93,16 +93,16 @@ public @interface COMPSs {
      */
 
     /**
-     * Returns if the method has priority or not
+     * Returns if the method has priority or not.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 
     /**
-     * Returns the method specific constraints
+     * Returns the method specific constraints.
      * 
-     * @return the method specific constraints
+     * @return the method specific constraints.
      */
     Constraints constraints() default @Constraints();
 

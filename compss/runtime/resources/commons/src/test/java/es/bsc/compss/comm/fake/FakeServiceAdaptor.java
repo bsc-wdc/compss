@@ -41,8 +41,9 @@ public class FakeServiceAdaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(String workerName, Configuration config) {
-        return new FakeNode(workerName);
+    public COMPSsWorker initWorker(Configuration config) {
+        ServiceConfiguration serviceCfg = (ServiceConfiguration) config;
+        return new FakeNode(serviceCfg.getWsdl());
 
     }
 

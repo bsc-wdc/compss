@@ -18,14 +18,14 @@
     <description>Adaptor implementation so the master node manages data transfers and job submissions through the NIO communication library</description>
     <url>http://www.bsc.es</url>
 
-    <!-- DEPENDENCIES -->
-    <dependencies>
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-nio-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-nio-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
     <!-- BUILD -->
     <build>

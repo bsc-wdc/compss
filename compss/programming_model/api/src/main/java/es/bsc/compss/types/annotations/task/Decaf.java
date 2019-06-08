@@ -33,30 +33,30 @@ import java.lang.annotation.Target;
 public @interface Decaf {
 
     /**
-     * Returns the decaf data-flow generation script
+     * Returns the decaf data-flow generation script.
      * 
-     * @return the binary name
+     * @return the binary name.
      */
     String dfScript() default Constants.UNASSIGNED;
 
     /**
-     * Returns the decaf dataflow executor
+     * Returns the decaf dataflow executor.
      * 
-     * @return the binary name
+     * @return the binary name.
      */
     String dfExecutor() default Constants.UNASSIGNED;
 
     /**
-     * Returns the decaf dataflow lib
+     * Returns the decaf dataflow lib.
      * 
-     * @return the binary name
+     * @return the binary name.
      */
     String dfLib() default Constants.UNASSIGNED;
 
     /**
-     * Returns the working directory
+     * Returns the working directory.
      * 
-     * @return the binary working directory
+     * @return the binary working directory.
      */
     String workingDir() default Constants.UNASSIGNED;
 
@@ -66,16 +66,16 @@ public @interface Decaf {
      */
 
     /**
-     * Returns the mpi runner
+     * Returns the mpi runner.
      * 
-     * @return the mpi runner
+     * @return the mpi runner.
      */
     String mpiRunner() default Constants.UNASSIGNED;
 
     /**
-     * Returns the number of computing nodes required
+     * Returns the number of computing nodes required.
      * 
-     * @return the number of computing nodes required
+     * @return the number of computing nodes required.
      */
     String computingNodes() default Constants.UNASSIGNED;
 
@@ -85,16 +85,16 @@ public @interface Decaf {
      */
 
     /**
-     * Returns if the method has priority or not
+     * Returns if the method has priority or not.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 
     /**
-     * Returns the method specific constraints
+     * Returns the method specific constraints.
      * 
-     * @return the method specific constraints
+     * @return the method specific constraints.
      */
     Constraints constraints() default @Constraints();
 

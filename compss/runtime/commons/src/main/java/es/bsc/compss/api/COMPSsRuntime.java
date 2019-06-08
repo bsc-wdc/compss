@@ -58,10 +58,10 @@ public interface COMPSsRuntime {
      * Registers a new CoreElement in the Runtime.
      *
      * @param coreElementSignature The coreElement signature.
-     * @param implSignature        The implementation signature.
-     * @param implConstraints      The implementation constraints.
-     * @param implType             The implementation type.
-     * @param implTypeArgs         The implementation specific arguments.
+     * @param implSignature The implementation signature.
+     * @param implConstraints The implementation constraints.
+     * @param implType The implementation type.
+     * @param implTypeArgs The implementation specific arguments.
      */
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
             String implType, String... implTypeArgs);
@@ -69,58 +69,56 @@ public interface COMPSsRuntime {
     /**
      * New Method task for C Binding.
      *
-     * @param appId          The application id.
-     * @param methodClass    The method class.
-     * @param onFailure      On task failure behavior.
-     * @param methodName     The method name.
-     * @param isPrioritary   Whether the task is set as prioritary or not.
-     * @param hasTarget      Whether the task has a target parameter or not.
-     * @param numReturns     The number of return values of the method.
+     * @param appId The application id.
+     * @param methodClass The method class.
+     * @param onFailure On task failure behavior.
+     * @param methodName The method name.
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param hasTarget Whether the task has a target parameter or not.
+     * @param numReturns The number of return values of the method.
      * @param parameterCount The number of parameters of the method.
-     * @param parameters     An object array containing the method parameters.
-     *
+     * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String onFailure, String methodName, boolean isPrioritary, boolean hasTarget, Integer numReturns,
-            int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String methodClass, String onFailure, String methodName, boolean isPrioritary,
+            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding.
      *
-     * @param appId          The application id.
-     * @param signature      The method signature.
-     * @param onFailure      On task failure behavior.
-     * @param isPrioritary   Whether the task is set as prioritary or not.
-     * @param numNodes       The number of nodes required to execute the task.
-     * @param isReplicated   Whether the task must be replicated or not.
-     * @param isDistributed  Whether the task must be distributed or not.
-     * @param hasTarget      Whether the task has a target parameter or not.
-     * @param numReturns     The number of return values of the method.
+     * @param appId The application id.
+     * @param signature The method signature.
+     * @param onFailure On task failure behavior.
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
+     * @param numReturns The number of return values of the method.
      * @param parameterCount The number of parameters of the method.
-     * @param parameters     An object array containing the method parameters.
-     *
+     * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String signature, String onFailure, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String signature, String onFailure, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
+            Object... parameters);
 
     /**
      * New Method Task for Loader.
      *
-     * @param appId          The application id.
-     * @param monitor        The pointer to the TaskMonitor implementation.
-     * @param lang           The application language.
-     * @param methodClass    The method class.
-     * @param methodName     The method name.
-     * @param isPrioritary   Whether the task is set as prioritary or not.
-     * @param numNodes       The number of nodes required to execute the task.
-     * @param isReplicated   Whether the task must be replicated or not.
-     * @param isDistributed  Whether the task must be distributed or not.
-     * @param hasTarget      Whether the task has a target parameter or not.
+     * @param appId The application id.
+     * @param monitor The pointer to the TaskMonitor implementation.
+     * @param lang The application language.
+     * @param methodClass The method class.
+     * @param methodName The method name.
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
      * @param parameterCount The number of parameters of the method.
-     * @param onFailure      On task failure behavior.
-     * @param parameters     An object array containing the method parameters.
-     *
+     * @param onFailure On task failure behavior.
+     * @param parameters An object array containing the method parameters.
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
@@ -130,21 +128,20 @@ public interface COMPSsRuntime {
     /**
      * New service task.
      *
-     * @param appId          The application id.
-     * @param monitor        The pointer to the TaskMonitor implementation.
-     * @param namespace      The service namespace.
-     * @param service        The service endpoint.
-     * @param port           The service port.
-     * @param operation      The service operation.
-     * @param isPrioritary   Whether the task is set as prioritary or not.
-     * @param numNodes       The number of nodes required to execute the task.
-     * @param isReplicated   Whether the task must be replicated or not.
-     * @param isDistributed  Whether the task must be distributed or not.
-     * @param hasTarget      Whether the task has a target parameter or not.
+     * @param appId The application id.
+     * @param monitor The pointer to the TaskMonitor implementation.
+     * @param namespace The service namespace.
+     * @param service The service endpoint.
+     * @param port The service port.
+     * @param operation The service operation.
+     * @param isPrioritary Whether the task is set as prioritary or not.
+     * @param numNodes The number of nodes required to execute the task.
+     * @param isReplicated Whether the task must be replicated or not.
+     * @param isDistributed Whether the task must be distributed or not.
+     * @param hasTarget Whether the task has a target parameter or not.
      * @param parameterCount The number of parameters of the method.
-     * @param onFailure      On task failure behavior.
-     * @param parameters     An object array containing the method parameters.
-     *
+     * @param onFailure On task failure behavior.
+     * @param parameters An object array containing the method parameters.
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
@@ -169,7 +166,7 @@ public interface COMPSsRuntime {
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not.
      *
-     * @param appId       The application id.
+     * @param appId The application id.
      * @param noMoreTasks Whether the application will spawn more tasks or not.
      */
     public void barrier(Long appId, boolean noMoreTasks);
@@ -178,7 +175,7 @@ public interface COMPSsRuntime {
      * Unregisters an object to eventually free its memory.
      *
      * @param appId The application id.
-     * @param o     The object to register.
+     * @param o The object to register.
      */
     public void deregisterObject(Long appId, Object o);
 
@@ -190,8 +187,7 @@ public interface COMPSsRuntime {
      * Returns the renaming of the file version opened.
      *
      * @param fileName File name.
-     * @param mode     Access mode.
-     *
+     * @param mode Access mode.
      * @return
      */
     public String openFile(String fileName, Direction mode);
@@ -200,7 +196,7 @@ public interface COMPSsRuntime {
      * Close the opened file version.
      *
      * @param fileName File name.
-     * @param mode     Access mode.
+     * @param mode Access mode.
      */
     public void closeFile(String fileName, Direction mode);
 
@@ -208,7 +204,6 @@ public interface COMPSsRuntime {
      * Deletes the specified version of a file.
      *
      * @param fileName File name.
-     *
      * @return true if the {@code fileName} has been deleted, false otherwise.
      */
     public boolean deleteFile(String fileName);
@@ -216,7 +211,7 @@ public interface COMPSsRuntime {
     /**
      * Returns last version of file with its original name.
      *
-     * @param appId    Application id.
+     * @param appId Application id.
      * @param fileName File name.
      */
     public void getFile(Long appId, String fileName);
@@ -225,7 +220,6 @@ public interface COMPSsRuntime {
      * Returns the renaming of the binding object version opened.
      *
      * @param bindingObjectName Name of the binding object.
-     *
      * @return id in the cache.
      */
     public String getBindingObject(String bindingObjectName);
@@ -234,7 +228,6 @@ public interface COMPSsRuntime {
      * Removes the binding object from runtime.
      *
      * @param bindingObjectName Name of the binding object.
-     *
      * @return true if the {@code bindingObjectName} has been deleted, false otherwise.
      */
     public boolean deleteBindingObject(String bindingObjectName);
@@ -247,7 +240,7 @@ public interface COMPSsRuntime {
      * Emits a tracing event.
      *
      * @param type Event type.
-     * @param id   Event id.
+     * @param id Event id.
      */
     public void emitEvent(int type, long id);
 

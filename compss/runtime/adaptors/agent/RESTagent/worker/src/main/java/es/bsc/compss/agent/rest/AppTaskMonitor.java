@@ -45,6 +45,7 @@ public class AppTaskMonitor extends AppMonitor {
     private final String[] paramLocations;
     private boolean successful;
 
+
     public AppTaskMonitor(int numParams, Orchestrator orchestrator) {
         super();
         this.orchestrator = orchestrator;
@@ -72,23 +73,23 @@ public class AppTaskMonitor extends AppMonitor {
 
     @Override
     public void valueGenerated(int paramId, DataType type, String name, Object value) {
-        paramTypes[paramId] = type;
+        this.paramTypes[paramId] = type;
         if (type == DataType.OBJECT_T) {
             LogicalData ld = Comm.getData(name);
             StubItf psco = (StubItf) ld.getValue();
             psco.makePersistent(ld.getName());
-            paramTypes[paramId] = DataType.PSCO_T;
+            this.paramTypes[paramId] = DataType.PSCO_T;
             ld.setPscoId(psco.getID());
             DataLocation outLoc = null;
             try {
                 SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.PERSISTENT_URI.getSchema() + psco.getID());
                 outLoc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-                paramLocations[paramId] = outLoc.toString();
+                this.paramLocations[paramId] = outLoc.toString();
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + name, e);
             }
         } else {
-            paramLocations[paramId] = value.toString();
+            this.paramLocations[paramId] = value.toString();
         }
     }
 
@@ -102,12 +103,12 @@ public class AppTaskMonitor extends AppMonitor {
 
     @Override
     public void onFailedExecution() {
-        successful = false;
+        this.successful = false;
     }
 
     @Override
     public void onSuccesfulExecution() {
-        successful = true;
+        this.successful = true;
     }
 
     @Override
@@ -116,19 +117,16 @@ public class AppTaskMonitor extends AppMonitor {
 
     @Override
     public void onCompletion() {
-        if (orchestrator != null) {
-            String masterId = orchestrator.getHost();
-            String operation = orchestrator.getOperation();
+        if (this.orchestrator != null) {
+            String masterId = this.orchestrator.getHost();
+            String operation = this.orchestrator.getOperation();
             WebTarget target = CLIENT.target(masterId);
             WebTarget wt = target.path(operation);
-            EndApplicationNotification ean = new EndApplicationNotification(
-                    "" + getAppId(),
-                    successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED,
-                    paramTypes, paramLocations);
+            EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
+                    this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.paramTypes,
+                    this.paramLocations);
 
-            Response response = wt
-                    .request(MediaType.APPLICATION_JSON)
-                    .put(Entity.xml(ean), Response.class);
+            Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
             if (response.getStatusInfo().getStatusCode() != 200) {
                 ErrorManager.warn("AGENT Could not notify Application " + getAppId() + " end to " + wt);
             }

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+  # shellcheck disable=SC2154
+  # Because many variables are sourced from common setup.sh
+
+
   ######################
   # MAIN PROGRAM
   ######################
@@ -12,15 +16,16 @@
     SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
   fi
   # shellcheck source=setup.sh
-  source ${SCRIPT_DIR}/setup.sh
+  # shellcheck disable=SC1091
+  source "${SCRIPT_DIR}"/setup.sh
 
   # Load parameters --------------------------------------------------
-  load_parameters $@
+  load_parameters "$@"
 
   # BLAUNCH start ----------------------------------------------------
   # Check that the current machine has not already awaken any WORKER in PORT and for app UUID
   worker_class="es.bsc.compss.nio.worker.NIOWorker"
-  pid=$(ps -elfa | grep ${worker_class} | grep ${appUuid} | grep ${hostName} | grep ${worker_port} | grep -v grep | awk '{print $4}')
+  pid=$(ps -elfa | grep ${worker_class} | grep "${appUuid}" | grep "${hostName}" | grep "${worker_port}" | grep -v grep | awk '{ print $4 }')
   if [ "$pid" != "" ]; then
     if [ "$debug" == "true" ]; then
        echo "Worker already awaken. Nothing to do"
@@ -47,7 +52,8 @@
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
-  setsid $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err < /dev/null | echo $! &
+  # shellcheck disable=SC2086
+  setsid $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err" < /dev/null | echo "$!" &
   endCode=$?
 
   post_launch

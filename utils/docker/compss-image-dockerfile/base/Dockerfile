@@ -31,9 +31,11 @@ RUN apt-get update && \
 # Dependencies for building COMPSs
 # =============================================================================
 # Build dependencies
-    apt-get install -y --no-install-recommends maven \
+    wget http://apache.rediris.es/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz && \
+    tar -zxvf apache-maven-3.6.1-bin.tar.gz -C /opt/ && \
+    sudo ln -s /opt/apache-maven-3.6.1/bin/mvn /bin/mvn && \
 # Runtime dependencies
-    openjdk-8-jdk graphviz xdg-utils \
+    apt-get install -y --no-install-recommends openjdk-8-jdk graphviz xdg-utils \
 # Bindings-common-dependencies
     libtool automake build-essential \
 # C-binding dependencies
@@ -43,7 +45,9 @@ RUN apt-get update && \
 # Misc. dependencies
     openmpi-bin openmpi-doc libopenmpi-dev uuid-runtime curl bc \
 # Python-binding dependencies
-    python-dev python3-dev libpython2.7 python-pip python3-pip python-setuptools python3-setuptools && \
+    python-setuptools python3-setuptools python-dev python3-dev libpython2.7 python-pip python3-pip && \
+    python2 -m pip install --upgrade pip && \
+    python3 -m pip install --upgrade pip && \
     pip2 install wheel numpy==1.15.4 dill guppy decorator mpi4py==1.3.1 && \
     pip3 install wheel numpy==1.15.4 dill decorator mpi4py==3.0.1 && \
 # Python-redis dependencies
@@ -55,6 +59,13 @@ RUN apt-get update && \
 # AutoParallel dependencies
     apt-get install -y --no-install-recommends libgmp3-dev flex bison libbison-dev texinfo libffi-dev && \
     pip2 install astor sympy enum34 islpy && \
+# Streaming dependencies
+    apt-get install -y --no-install-recommends unzip && \
+    wget https://services.gradle.org/distributions/gradle-5.4.1-bin.zip && \
+    unzip -d /opt gradle-5.4.1-bin.zip && \
+    rm gradle-5.4.1-bin.zip && \
+    ln -s /opt/gradle-5.4.1 /opt/gradle && \
+    echo "GRADLE_HOME=/opt/gradle" >> /etc/environment && \
 # Testing dependencies
     pip3 install enum34 tabulate && \
 # Configure user environment

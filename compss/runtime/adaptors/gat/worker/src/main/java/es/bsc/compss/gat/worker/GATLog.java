@@ -31,27 +31,32 @@ import org.apache.logging.log4j.core.config.builder.api.RootLoggerComponentBuild
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 
 
-class GATLog {
+public class GATLog {
 
-    private static final String appenderName = "Stdout";
-    private static final String pattern = "[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n";
+    private static final String APPENDER_NAME = "Stdout";
+    private static final String PATTERN = "[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n";
 
 
+    /**
+     * Initializes the GAT Logger with the given level.
+     * 
+     * @param debug Whether the debug level is enabled or not.
+     */
     public static void init(boolean debug) {
-        Level level = debug ? Level.DEBUG : Level.OFF;
-        ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationFactory.newConfigurationBuilder();
+        final ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationFactory.newConfigurationBuilder();
 
         // Creating Appender
-        AppenderRefComponentBuilder appender = builder.newAppenderRef(appenderName);
-        AppenderComponentBuilder appenderBuilder = builder.newAppender(appenderName, "CONSOLE");
+        final AppenderComponentBuilder appenderBuilder = builder.newAppender(APPENDER_NAME, "CONSOLE");
         appenderBuilder.addAttribute("target", ConsoleAppender.Target.SYSTEM_OUT);
-        LayoutComponentBuilder layoutBuilder = builder.newLayout("PatternLayout");
-        layoutBuilder.addAttribute("pattern", pattern);
+        final LayoutComponentBuilder layoutBuilder = builder.newLayout("PatternLayout");
+        layoutBuilder.addAttribute("pattern", PATTERN);
         appenderBuilder.add(layoutBuilder);
         builder.add(appenderBuilder);
 
         // ADD ROOT LEVEL
-        RootLoggerComponentBuilder rootLogger = builder.newRootLogger(level);
+        final Level level = debug ? Level.DEBUG : Level.OFF;
+        final AppenderRefComponentBuilder appender = builder.newAppenderRef(APPENDER_NAME);
+        final RootLoggerComponentBuilder rootLogger = builder.newRootLogger(level);
         rootLogger.add(appender);
         builder.add(rootLogger);
 
@@ -59,13 +64,14 @@ class GATLog {
         addLogger(Loggers.WORKER, level, appender, builder);
         addLogger(Loggers.WORKER_INVOKER, level, appender, builder);
 
-        Configuration conf = builder.build();
+        final Configuration conf = builder.build();
         Configurator.initialize(conf);
     }
 
     private static void addLogger(String name, Level level, AppenderRefComponentBuilder appender,
             ConfigurationBuilder<?> builder) {
-        LoggerComponentBuilder logger = builder.newLogger(name, level);
+
+        final LoggerComponentBuilder logger = builder.newLogger(name, level);
         logger.add(appender);
         logger.addAttribute("additivity", false);
         builder.add(logger);

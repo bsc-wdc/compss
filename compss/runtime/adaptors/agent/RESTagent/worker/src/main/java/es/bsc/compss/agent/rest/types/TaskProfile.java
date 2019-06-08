@@ -16,50 +16,161 @@
  */
 package es.bsc.compss.agent.rest.types;
 
-
 public class TaskProfile {
 
-    private final long taskReception = System.currentTimeMillis();
-    private Long taskCreation = null;
-    private Long taskAnalyzed = null;
-    private Long taskScheduled = null;
-    private Long executionStart = null;
-    private Long executionEnd = null;
-    private Long taskEnd = null;
+    private final long taskReception;
+    private Long taskCreation;
+    private Long taskAnalyzed;
+    private Long taskScheduled;
+    private Long executionStart;
+    private Long executionEnd;
+    private Long taskEnd;
 
+
+    /**
+     * Initializes a new TaskProfile instance
+     */
     public TaskProfile() {
-
+        this.taskReception = System.currentTimeMillis();
+        this.taskCreation = null;
+        this.taskAnalyzed = null;
+        this.taskScheduled = null;
+        this.executionStart = null;
+        this.executionEnd = null;
+        this.taskEnd = null;
     }
 
-    public void created() {
-        taskCreation = System.currentTimeMillis();
-    }
-
-    public void end() {
-        taskEnd = System.currentTimeMillis();
-    }
-
-    public Long getTotalTime() {
+    /**
+     * Returns the creation time.
+     * 
+     * @return The creation time.
+     */
+    public Long getCreationTime() {
         Long length = null;
-        if (taskEnd != null) {
-            length = taskEnd - taskReception;
+        if (this.taskCreation != null) {
+            length = this.taskCreation - this.taskReception;
         }
         return length;
     }
 
-    public void finished() {
-        executionEnd = System.currentTimeMillis();
+    /**
+     * Returns the analysis time.
+     * 
+     * @return The analysis time.
+     */
+    public Long getAnalysisTime() {
+        Long length = null;
+        if (this.taskAnalyzed != null && this.taskCreation != null) {
+            length = this.taskAnalyzed - this.taskCreation;
+        }
+        return length;
     }
 
-    public void submitted() {
-        executionStart = System.currentTimeMillis();
+    /**
+     * Returns the scheduling time.
+     * 
+     * @return The scheduling time.
+     */
+    public Long getSchedulingTime() {
+        Long length = null;
+        if (this.taskScheduled != null && this.taskAnalyzed != null) {
+            length = this.taskScheduled - this.taskAnalyzed;
+        }
+        return length;
     }
 
-    public void scheduled() {
-        taskScheduled = System.currentTimeMillis();
+    /**
+     * Returns the pre-execution time.
+     * 
+     * @return The pre-execution time.
+     */
+    public Long getPreExecutionTime() {
+        Long length = null;
+        if (this.executionStart != null && this.taskScheduled != null) {
+            length = this.executionStart - this.taskScheduled;
+        }
+        return length;
     }
 
+    /**
+     * Returns the task execution time.
+     * 
+     * @return The task execution time.
+     */
+    public Long getExecutionTime() {
+        Long length = null;
+        if (this.executionEnd != null && this.executionStart != null) {
+            length = this.executionEnd - this.executionStart;
+        }
+        return length;
+    }
+
+    /**
+     * Returns the task post-execution time.
+     * 
+     * @return The task post-execution time.
+     */
+    public Long getPostExecutionTime() {
+        Long length = null;
+        if (this.taskEnd != null && this.executionEnd != null) {
+            length = this.taskEnd - this.executionEnd;
+        }
+        return length;
+    }
+
+    /**
+     * Returns the total task time.
+     * 
+     * @return The total task time.
+     */
+    public Long getTotalTime() {
+        Long length = null;
+        if (this.taskEnd != null) {
+            length = this.taskEnd - this.taskReception;
+        }
+        return length;
+    }
+
+    /**
+     * Marks the task as created.
+     */
+    public void created() {
+        this.taskCreation = System.currentTimeMillis();
+    }
+
+    /**
+     * Marks the task as analyzed.
+     */
     public void processedAccesses() {
-        taskAnalyzed = System.currentTimeMillis();
+        this.taskAnalyzed = System.currentTimeMillis();
     }
+
+    /**
+     * Marks the task as scheduled.
+     */
+    public void scheduled() {
+        this.taskScheduled = System.currentTimeMillis();
+    }
+
+    /**
+     * Marks the start of the task's execution.
+     */
+    public void submitted() {
+        this.executionStart = System.currentTimeMillis();
+    }
+
+    /**
+     * Marks the task as executed.
+     */
+    public void finished() {
+        this.executionEnd = System.currentTimeMillis();
+    }
+
+    /**
+     * Marks the task as ended.
+     */
+    public void end() {
+        this.taskEnd = System.currentTimeMillis();
+    }
+
 }

@@ -36,6 +36,8 @@ from pycompss.worker.pipe_constants import PING_TAG
 from pycompss.worker.pipe_constants import PONG_TAG
 from pycompss.worker.pipe_constants import QUIT_TAG
 
+from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
+
 
 def shutdown_handler(signal, frame):
     """
@@ -79,7 +81,7 @@ class Pipe(object):
 
         line = self.input_pipe_open.readline()
         if line == "":
-            time.sleep(0.001*retry_period)
+            time.sleep(0.001 * retry_period)
             line = self.input_pipe_open.readline()
 
         return line
@@ -91,7 +93,7 @@ class Pipe(object):
         :param message: message sent through the pipe
         """
         with open(self.output_pipe, 'w') as out_pipe:
-            out_pipe.write(message+"\n")
+            out_pipe.write(message + "\n")
 
     def close(self):
         """
@@ -102,31 +104,40 @@ class Pipe(object):
             self.input_pipe_open = None
 
     def __str__(self):
-        return "PIPE IN "+self.input_pipe+" OUT "+self.output_pipe
+        return "PIPE IN " + self.input_pipe + " OUT " + self.output_pipe
+
 
 class ExecutorConf(object):
     """
     Executor configuration
     """
 
-    def __init__(self, tracing, storage_conf, logger, storage_loggers):
+    def __init__(self, tracing, storage_conf, logger, storage_loggers, stream_backend, stream_master_ip,
+                 stream_master_port):
         """
-        Constructs a new executor configuration
+        Constructs a new executor configuration.
 
-        :param tracing: Enable tracing for the executor
-        :param storage_conf: Storage configuration file
-        :param logger: Main logger
-        :param storage_loggers: List of supported storage loggers - empty if running w/o storage
+        :param tracing: Enable tracing for the executor.
+        :param storage_conf: Storage configuration file.
+        :param logger: Main logger.
+        :param storage_loggers: List of supported storage loggers - empty if running w/o storage.
+        :param stream_backend: Streaming backend type.
+        :param stream_master_ip: Streaming master IP.
+        :param stream_master_port: Streaming master port.
         """
         self.tracing = tracing
         self.storage_conf = storage_conf
         self.logger = logger
         self.storage_loggers = storage_loggers
+        self.stream_backend = stream_backend
+        self.stream_master_ip = stream_master_ip
+        self.stream_master_port = stream_master_port
 
 
 ######################
 #  Processes body
 ######################
+
 def executor(queue, process_name, pipe, conf):
     """
     Thread main body - Overrides Threading run method.
@@ -145,7 +156,6 @@ def executor(queue, process_name, pipe, conf):
     # Replace Python Worker's SIGTERM handler.
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    
     tracing = conf.tracing
     storage_conf = conf.storage_conf
     logger = conf.logger
@@ -165,8 +175,25 @@ def executor(queue, process_name, pipe, conf):
             initStorageAtWorkerPostFork()
         except ImportError:
             if __debug__:
-                logger.info("[PYTHON EXECUTOR] [%s] Could not find initWorkerPostFork storage call. Ignoring it." % str(process_name))
+                logger.info("[PYTHON EXECUTOR] [%s] Could not find initWorkerPostFork storage call. Ignoring it." % str(
+                    process_name))
 
+    # Start the streaming backend if necessary
+    streaming = False
+    if conf.stream_backend is not None and conf.stream_backend != 'null' and conf.stream_backend != 'NONE':
+        streaming = True
+
+    if streaming:
+        # Initialize streaming
+        logger.debug("[PYTHON EXECUTOR] Starting streaming for process " + str(process_name))
+        try:
+            DistroStreamClientHandler.init_and_start(master_ip=conf.stream_master_ip,
+                                                     master_port=int(conf.stream_master_port))
+        except Exception as e:
+            logger.error(e)
+            raise e
+
+    # Process properties
     alive = True
     stdout = sys.stdout
     stderr = sys.stderr
@@ -197,7 +224,8 @@ def executor(queue, process_name, pipe, conf):
                             thread_affinity.setaffinity(binded_cpus)
                         except Exception:
                             if __debug__:
-                                logger.error("[PYTHON EXECUTOR] [%s] Warning: could not assign affinity %s" % (str(process_name), str(binded_cpus)))
+                                logger.error("[PYTHON EXECUTOR] [%s] Warning: could not assign affinity %s" % (
+                                    str(process_name), str(binded_cpus)))
                             affinity_ok = False
 
                 bind_cpus(binded_cpus)
@@ -211,7 +239,8 @@ def executor(queue, process_name, pipe, conf):
                         os.environ['CUDA_VISIBLE_DEVICES'] = current_binded_gpus
                         os.environ['GPU_DEVICE_ORDINAL'] = current_binded_gpus
                         if __debug__:
-                            logger.debug("[PYTHON EXECUTOR] [%s] Assigning GPU %s" % (str(process_name), str(current_binded_gpus)))
+                            logger.debug("[PYTHON EXECUTOR] [%s] Assigning GPU %s" % (
+                                str(process_name), str(current_binded_gpus)))
 
                 bind_gpus(binded_gpus)
 
@@ -311,8 +340,8 @@ def executor(queue, process_name, pipe, conf):
                         # endTask jobId exitValue message
                         params = _build_return_params_message(new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
-                                               + " " + str(exit_value) \
-                                               + " " + str(params) + "\n"
+                                  + " " + str(exit_value) \
+                                  + " " + str(params) + "\n"
                     else:
                         # An exception has been raised in task
                         message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
@@ -395,13 +424,20 @@ def executor(queue, process_name, pipe, conf):
             logger.debug("[PYTHON EXECUTOR] Received %s" % command)
             alive = process_task(command)
 
+    # Stop storage
     if storage_conf != 'null':
         try:
             from storage.api import finishWorkerPostFork as finishStorageAtWorkerPostFork
             finishStorageAtWorkerPostFork()
         except ImportError:
             if __debug__:
-                logger.info("[PYTHON EXECUTOR] [%s] Could not find finishWorkerPostFork storage call. Ignoring it." % (str(process_name)))
+                logger.info("[PYTHON EXECUTOR] [%s] Could not find finishWorkerPostFork storage call. Ignoring it." % (
+                    str(process_name)))
+
+    # Stop streaming
+    if streaming:
+        logger.debug("[PYTHON EXECUTOR] Stopping streaming for process " + str(process_name))
+        DistroStreamClientHandler.set_stop()
 
     sys.stdout.flush()
     sys.stderr.flush()
@@ -410,6 +446,7 @@ def executor(queue, process_name, pipe, conf):
 
     pipe.write(QUIT_TAG)
     pipe.close()
+
 
 def _build_return_params_message(types, values):
     """
@@ -429,4 +466,3 @@ def _build_return_params_message(types, values):
         params = params + str(pair[0]) + ' ' + str(pair[1]) + ' '
     message = str(num_params) + ' ' + params
     return message
-

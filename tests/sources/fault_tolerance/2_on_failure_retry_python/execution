@@ -21,11 +21,18 @@
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/sharedDisk/
+
+  # Add trap to clean shared folder
+  clean() {
+    rm -rf /tmp/sharedDisk/
+  }
+  trap clean EXIT
 
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING PYTHON APPLICATION EXCEPTION IN WORKER"
+  echo "*** RUNNING PYTHON APPLICATION FAILURE RETRY "
 
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"

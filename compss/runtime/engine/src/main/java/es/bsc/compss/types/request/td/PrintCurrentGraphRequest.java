@@ -43,20 +43,20 @@ public class PrintCurrentGraphRequest extends TDRequest {
     private static final String ERROR_PRINT_CURRENT_GRAPH = "ERROR: Cannot print current graph state";
 
     /**
-     * Semaphore to synchronize until the representation is constructed
+     * Semaphore to synchronize until the representation is constructed.
      */
-    private Semaphore sem;
+    private final Semaphore sem;
+    /**
+     * BufferedWriter describing the graph file where to write the information.
+     */
+    private final BufferedWriter graph;
+
 
     /**
-     * BufferedWriter describing the graph file where to write the information
-     */
-    private BufferedWriter graph;
-
-
-    /**
-     * Constructs a GetCurrentScheduleRequest
+     * Constructs a GetCurrentScheduleRequest.
      *
-     * @param sem Semaphore to synchronize until the representation is constructed
+     * @param sem Semaphore to synchronize until the representation is constructed.
+     * @param graph BufferedWriter to print the graph.
      */
     public PrintCurrentGraphRequest(Semaphore sem, BufferedWriter graph) {
         this.sem = sem;
@@ -64,21 +64,12 @@ public class PrintCurrentGraphRequest extends TDRequest {
     }
 
     /**
-     * Returns the semaphore to synchronize until the representation is constructed
+     * Returns the semaphore to synchronize until the representation is constructed.
      *
-     * @result Semaphore to synchronize until the representation is constructed
+     * @result Semaphore to synchronize until the representation is constructed.
      */
     public Semaphore getSemaphore() {
-        return sem;
-    }
-
-    /**
-     * Changes the semaphore to synchronize until the representation is constructed
-     *
-     * @param sem New semaphore to synchronize until the representation is constructed
-     */
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
+        return this.sem;
     }
 
     @Override
@@ -89,186 +80,186 @@ public class PrintCurrentGraphRequest extends TDRequest {
             String prefix = "  ";
 
             // Header options
-            graph.write(prefix + "outputorder=\"edgesfirst\";");
-            graph.newLine();
-            graph.write(prefix + "compound=true;");
-            graph.newLine();
+            this.graph.write(prefix + "outputorder=\"edgesfirst\";");
+            this.graph.newLine();
+            this.graph.write(prefix + "compound=true;");
+            this.graph.newLine();
 
             /* Subgraph for blocked and scheduled tasks ******************** */
-            graph.write(prefix + "subgraph cluster1 {");
-            graph.newLine();
-            graph.write(prefix + prefix + "color=white");
-            graph.newLine();
+            this.graph.write(prefix + "subgraph cluster1 {");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + "color=white");
+            this.graph.newLine();
 
             // Room for Blocked tasks
             int roomIndex = 1;
-            graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
+            this.graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
             ++roomIndex;
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "ranksep=0.20;");
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "node[height=0.75];");
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "label = \"Blocked\"");
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "color=red");
-            graph.newLine();
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "ranksep=0.20;");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "node[height=0.75];");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "label = \"Blocked\"");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "color=red");
+            this.graph.newLine();
             List<AllocatableAction> blockedActions = ts.getBlockedActions();
             for (AllocatableAction action : blockedActions) {
                 if (action instanceof ExecutionAction) {
                     ExecutionAction se = (ExecutionAction) action;
                     Task t = se.getTask();
-                    graph.write(prefix + prefix + prefix + t.getDotDescription());
-                    graph.newLine();
+                    this.graph.write(prefix + prefix + prefix + t.getDotDescription());
+                    this.graph.newLine();
 
                     pending.addAll(t.getSuccessors());
                     tasks.add(t);
                 }
             }
-            graph.write(prefix + prefix + "}");
-            graph.newLine();
+            this.graph.write(prefix + prefix + "}");
+            this.graph.newLine();
 
             // Room for unassigned tasks
-            graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
+            this.graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
             ++roomIndex;
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "ranksep=0.20;");
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "node[height=0.75];");
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "label = \"No Assigned\"");
-            graph.newLine();
-            graph.write(prefix + prefix + prefix + "color=orange");
-            graph.newLine();
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "ranksep=0.20;");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "node[height=0.75];");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "label = \"No Assigned\"");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + prefix + "color=orange");
+            this.graph.newLine();
             List<AllocatableAction> unassignedActions = ts.getUnassignedActions();
             for (AllocatableAction action : unassignedActions) {
                 if (action instanceof ExecutionAction) {
                     ExecutionAction se = (ExecutionAction) action;
                     Task t = se.getTask();
-                    graph.write(prefix + prefix + prefix + t.getDotDescription());
-                    graph.newLine();
+                    this.graph.write(prefix + prefix + prefix + t.getDotDescription());
+                    this.graph.newLine();
 
                     pending.addAll(t.getSuccessors());
                     tasks.add(t);
                 }
             }
-            graph.write(prefix + prefix + "}");
-            graph.newLine();
+            this.graph.write(prefix + prefix + "}");
+            this.graph.newLine();
 
             // Add another room for each worker
             for (Worker<? extends WorkerResourceDescription> worker : ResourceManager.getAllWorkers()) {
-                graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + "label = \"" + worker.getName() + "\"");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + "color=black");
-                graph.newLine();
+                this.graph.write(prefix + prefix + "subthis.graph cluster_room" + roomIndex + " {");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + "label = \"" + worker.getName() + "\"");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + "color=black");
+                this.graph.newLine();
 
                 // Create a box for running tasks
-                graph.write(prefix + prefix + prefix + "subgraph cluster_box" + roomIndex + "1 {");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "label = \"Running\"");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "ranksep=0.20;");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "node[height=0.75];");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "color=green");
-                graph.newLine();
+                this.graph.write(prefix + prefix + prefix + "subthis.graph cluster_box" + roomIndex + "1 {");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "label = \"Running\"");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "ranksep=0.20;");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "node[height=0.75];");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "color=green");
+                this.graph.newLine();
                 AllocatableAction[] hostedActions = ts.getHostedActions(worker);
                 for (AllocatableAction action : hostedActions) {
                     if (action instanceof ExecutionAction) {
                         ExecutionAction se = (ExecutionAction) action;
                         Task t = se.getTask();
-                        graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
-                        graph.newLine();
+                        this.graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
+                        this.graph.newLine();
 
                         pending.addAll(t.getSuccessors());
                         tasks.add(t);
                     }
                 }
-                graph.write(prefix + prefix + prefix + "}");
-                graph.newLine();
+                this.graph.write(prefix + prefix + prefix + "}");
+                this.graph.newLine();
 
-                graph.write(prefix + prefix + prefix + "subgraph cluster_box" + roomIndex + "2 {");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "label = \"Resource Blocked\"");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "ranksep=0.20;");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "node[height=0.75];");
-                graph.newLine();
-                graph.write(prefix + prefix + prefix + prefix + "color=red");
-                graph.newLine();
+                this.graph.write(prefix + prefix + prefix + "subthis.graph cluster_box" + roomIndex + "2 {");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "label = \"Resource Blocked\"");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "ranksep=0.20;");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "node[height=0.75];");
+                this.graph.newLine();
+                this.graph.write(prefix + prefix + prefix + prefix + "color=red");
+                this.graph.newLine();
                 PriorityQueue<AllocatableAction> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
                 for (AllocatableAction action : blockedActionsOnResource) {
                     if (action instanceof ExecutionAction) {
                         ExecutionAction se = (ExecutionAction) action;
                         Task t = se.getTask();
-                        graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
-                        graph.newLine();
+                        this.graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
+                        this.graph.newLine();
 
                         pending.addAll(t.getSuccessors());
                         tasks.add(t);
                     }
                 }
                 // Close box
-                graph.write(prefix + prefix + prefix + "}");
-                graph.newLine();
+                this.graph.write(prefix + prefix + prefix + "}");
+                this.graph.newLine();
 
                 // Close room
-                graph.write(prefix + prefix + "}");
-                graph.newLine();
+                this.graph.write(prefix + prefix + "}");
+                this.graph.newLine();
                 ++roomIndex;
             }
 
             // Close cluster
-            graph.write(prefix + "}");
-            graph.newLine();
+            this.graph.write(prefix + "}");
+            this.graph.newLine();
 
-            /* Subgraph for pending tasks ********************************** */
-            graph.write(prefix + "subgraph cluster2 {");
-            graph.newLine();
-            graph.write(prefix + prefix + "label = \"Pending\"");
-            graph.newLine();
-            graph.write(prefix + prefix + "ranksep=0.20;");
-            graph.newLine();
-            graph.write(prefix + prefix + "node[height=0.75];");
-            graph.newLine();
-            graph.write(prefix + prefix + "color=blue");
-            graph.newLine();
+            /* Subthis.graph for pending tasks ********************************** */
+            this.graph.write(prefix + "subthis.graph cluster2 {");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + "label = \"Pending\"");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + "ranksep=0.20;");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + "node[height=0.75];");
+            this.graph.newLine();
+            this.graph.write(prefix + prefix + "color=blue");
+            this.graph.newLine();
 
             while (!pending.isEmpty()) {
                 Task t = pending.poll();
                 if (!tasks.contains(t)) {
-                    graph.write(prefix + prefix + t.getDotDescription());
-                    graph.newLine();
+                    this.graph.write(prefix + prefix + t.getDotDescription());
+                    this.graph.newLine();
                     tasks.add(t);
                     pending.addAll(t.getSuccessors());
                 }
             }
 
             // Close cluster
-            graph.write(prefix + "}");
-            graph.newLine();
+            this.graph.write(prefix + "}");
+            this.graph.newLine();
 
             /* Write edges *************************************************** */
             for (Task t : tasks) {
                 Set<Task> successors = new HashSet<>();
                 successors.addAll(t.getSuccessors());
                 for (Task t2 : successors) {
-                    graph.write(prefix + t.getId() + " -> " + t2.getId() + ";");
-                    graph.newLine();
+                    this.graph.write(prefix + t.getId() + " -> " + t2.getId() + ";");
+                    this.graph.newLine();
                 }
             }
 
             /* Force flush before end ***************************************** */
-            graph.flush();
+            this.graph.flush();
         } catch (IOException e) {
             LOGGER.error(ERROR_PRINT_CURRENT_GRAPH);
         }
 
-        sem.release();
+        this.sem.release();
     }
 
     @Override

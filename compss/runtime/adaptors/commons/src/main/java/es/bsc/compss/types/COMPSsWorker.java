@@ -17,7 +17,6 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.exceptions.AnnounceException;
-import es.bsc.compss.types.resources.configuration.Configuration;
 
 
 /**
@@ -26,54 +25,51 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 public abstract class COMPSsWorker extends COMPSsNode {
 
     /**
-     * New worker with name @name and configuration @config.
-     * 
-     * @param name Worker name
-     * @param config Worker configuration
+     * New worker.
      */
-    public COMPSsWorker(String name, Configuration config) {
+    public COMPSsWorker() {
         super();
     }
 
     /**
      * Returns the worker user.
      * 
-     * @return Worker user
+     * @return The worker user.
      */
     public abstract String getUser();
 
     /**
      * Returns the worker classpath.
      * 
-     * @return worker classpath
+     * @return The worker classpath.
      */
     public abstract String getClasspath();
 
     /**
      * Returns the worker pythonpath.
      * 
-     * @return worker pythonpath
+     * @return The worker pythonpath.
      */
     public abstract String getPythonpath();
 
     /**
-     * Updates the task count to @processorCoreCount. 
+     * Updates the task count to the given value {@code processorCoreCount}.
      * 
-     * @param processorCoreCount number of processor cores
+     * @param processorCoreCount Number of processor cores.
      */
     public abstract void updateTaskCount(int processorCoreCount);
 
     /**
      * Announces the worker destruction.
      * 
-     * @throws AnnounceException Exception announcing destruction
+     * @throws AnnounceException Exception announcing destruction.
      */
     public abstract void announceDestruction() throws AnnounceException;
 
     /**
      * Announces the worker creation.
      * 
-     * @throws AnnounceException Error announcing the worker creation
+     * @throws AnnounceException Error announcing the worker creation.
      */
     public abstract void announceCreation() throws AnnounceException;
 

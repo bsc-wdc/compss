@@ -24,7 +24,7 @@ import es.bsc.compss.types.resources.updates.ResourceUpdate;
 
 
 /**
- * The AddCloudNodeRequest represents a request to add a new resource ready to execute to the resource pool
+ * The AddCloudNodeRequest represents a request to add a new resource ready to execute to the resource pool.
  */
 public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TDRequest {
 
@@ -33,23 +33,28 @@ public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TD
 
 
     /**
-     * Constructs a AddCloudNodeRequest with all its parameters
+     * Constructs a AddCloudNodeRequest with all its parameters.
      *
-     * @param worker Worker that has been added
-     * @param update
+     * @param worker Worker that has been added.
+     * @param update Resource update.
      */
     public WorkerUpdateRequest(Worker<T> worker, ResourceUpdate<T> update) {
         this.worker = worker;
         this.ru = update;
     }
 
+    /**
+     * Returns the associated worker to update.
+     * 
+     * @return The associated worker to update.
+     */
     public Worker<T> getWorker() {
-        return worker;
+        return this.worker;
     }
 
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
-        ts.updateWorker(worker, ru);
+        ts.updateWorker(this.worker, this.ru);
     }
 
     @Override

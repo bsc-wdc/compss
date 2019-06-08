@@ -16,20 +16,20 @@
  */
 package es.bsc.compss.types.uri.test;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.types.uri.SimpleURI;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import org.junit.Test;
+
 
 public class SimpleURITest {
 
     // Test Logger
-    private static final Logger logger = LogManager.getLogger("Console");
+    private static final Logger LOGGER = LogManager.getLogger("Console");
 
 
     /*
@@ -38,7 +38,7 @@ public class SimpleURITest {
      */
     @Test
     public void fileURIs() {
-        logger.info("Begin File URI Test");
+        LOGGER.info("Begin File URI Test");
         SimpleURI fileURI = new SimpleURI("file:///home/compss/.COMPSs/file.IT");
         assertEquals("File Schema", fileURI.getSchema(), "file://");
         assertEquals("File Host", fileURI.getHost(), "");
@@ -52,7 +52,7 @@ public class SimpleURITest {
 
     @Test
     public void objectURIs() {
-        logger.info("Begin Object URI Test");
+        LOGGER.info("Begin Object URI Test");
         SimpleURI fileURI = new SimpleURI("object://d1v1RAND.IT");
         assertEquals("File Schema", fileURI.getSchema(), "object://");
         assertEquals("File Host", fileURI.getHost(), "");

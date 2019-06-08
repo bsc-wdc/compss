@@ -14,6 +14,14 @@
   exit_value=1
   jar_name="0_elasticity_java.jar"
   app_name="simple.SimpleElasticity"
+
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/elasticity/
+  clean() {
+    rm -rf /tmp/elasticity/
+  }
+  trap clean EXIT
   
   #----------------------------------------------------------------------------------
   # Create project and resources XML

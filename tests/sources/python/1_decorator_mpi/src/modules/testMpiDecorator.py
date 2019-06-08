@@ -63,8 +63,8 @@ def mySedINOUT(flag, expression, file):
 
 
 @mpi(binary="grep", working_dir=".", runner="mpirun")
-# @task(infile=Parameter(TYPE.FILE, DIRECTION.IN, STREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, STREAM.STDOUT))
-# @task(infile={Type:FILE_IN, Stream:STDIN}, result={Type:FILE_OUT, Stream:STDOUT})
+# @task(infile=Parameter(TYPE.FILE, DIRECTION.IN, IOSTREAM.STDIN), result=Parameter(TYPE.FILE, DIRECTION.OUT, IOSTREAM.STDOUT))
+# @task(infile={Type:FILE_IN, StdIOStream:STDIN}, result={Type:FILE_OUT, StdIOStream:STDOUT})
 @task(infile={Type: FILE_IN_STDIN}, result={Type: FILE_OUT_STDOUT})
 def myGrepper(keyword, infile, result):
     pass

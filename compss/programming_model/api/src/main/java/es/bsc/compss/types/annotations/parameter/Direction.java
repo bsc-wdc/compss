@@ -17,7 +17,7 @@
 package es.bsc.compss.types.annotations.parameter;
 
 /**
- * Direction types
+ * Direction types.
  */
 public enum Direction {
     IN, // Read

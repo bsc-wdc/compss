@@ -20,7 +20,7 @@ import es.bsc.compss.executor.Executor;
 import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.util.JobQueue;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -38,6 +38,7 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 /**
  * The thread pool is an utility to manage a set of threads for job execution.
@@ -149,6 +150,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
     /**
      * Add worker threads to Execution Platform.
+     * 
      * @param numWorkerThreads Number of new worker threads
      */
     public final synchronized void addWorkerThreads(int numWorkerThreads) {
@@ -176,7 +178,7 @@ public class ExecutionPlatform implements ExecutorContext {
             t.setName(platformName + " compute thread # " + id);
             workerThreads.add(t);
             if (started) {
-                
+
                 t.start();
             }
         }
@@ -188,8 +190,7 @@ public class ExecutionPlatform implements ExecutorContext {
     /**
      * Remove worker threads from execution platform.
      * 
-     * @param numWorkerThreads
-     *            Number of worker threads to reduce
+     * @param numWorkerThreads Number of worker threads to reduce
      */
     public final synchronized void removeWorkerThreads(int numWorkerThreads) {
         if (numWorkerThreads > 0) {

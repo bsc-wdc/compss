@@ -31,6 +31,11 @@ public class Dispatcher extends RequestDispatcher<DataOperation> {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
 
+    /**
+     * Creates a new Dispatcher instance.
+     * 
+     * @param queue Associated request queue.
+     */
     public Dispatcher(RequestQueue<DataOperation> queue) {
         super(queue);
     }

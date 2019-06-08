@@ -17,6 +17,7 @@
 package es.bsc.compss.nio.worker.components;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.Tracer;
 import java.io.File;
@@ -38,48 +39,133 @@ public class DataRegister {
     private boolean inMemory;
     private Object value;
     private String storageId;
-    private final List<String> files = new LinkedList<>();
-    private final List<BindingLocation> bindingLocations = new LinkedList<>();
+
+    private final List<String> files;
 
 
+    /**
+     * Create a new DataRegister instance.
+     */
     public DataRegister() {
+        this.files = new LinkedList<>();
     }
 
+    /**
+     * Returns whether the data is in memory or not.
+     * 
+     * @return {@code true} if the data is in memory, {@code false} otherwise.
+     */
+    public boolean isInMemory() {
+        return this.inMemory;
+    }
+
+    /**
+     * Returns the data value.
+     * 
+     * @return The data value.
+     */
+    public Object getValue() {
+        return this.value;
+    }
+
+    /**
+     * Returns the storage Id.
+     * 
+     * @return The storage Id.
+     */
+    public String getStorageId() {
+        return storageId;
+    }
+
+    /**
+     * Returns whether the value is cached locally or not.
+     * 
+     * @return {@code true} if the value is stored locally, {@code false} otherwise.
+     */
+    public boolean isLocal() {
+        return inMemory || !files.isEmpty() || storageId != null;
+    }
+
+    /**
+     * Returns the file locations of the data.
+     * 
+     * @return The file locations of the data.
+     */
+    public List<String> getFileLocations() {
+        return files;
+    }
+
+    /**
+     * Sets a new storage Id for the current data.
+     * 
+     * @param storageId New storage Id.
+     */
+    public void setStorageId(String storageId) {
+        this.storageId = storageId;
+    }
+
+    /**
+     * Adds a new file location for the data.
+     * 
+     * @param file New file location.
+     */
+    public void addFileLocation(String file) {
+        this.files.add(file);
+    }
+
+    /**
+     * Removes the given file location.
+     * 
+     * @param path File location to remove.
+     */
+    public void removeFileLocation(String path) {
+        files.remove(path);
+    }
+
+    /**
+     * Sets a new object value.
+     * 
+     * @param value The new object value.
+     */
     public void setValue(Object value) {
         if (value instanceof StorageObject) {
             this.storageId = ((StorageObject) value).getID();
         }
         this.value = value;
-        inMemory = true;
+        this.inMemory = true;
     }
 
+    /**
+     * Removes the current memory value of the data.
+     */
     public void removeValue() {
         this.inMemory = false;
         this.value = null;
     }
 
-    public boolean isInMemory() {
-        return inMemory;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
+    /**
+     * Loads the value of the data from the storage or one of the registered file locations.
+     * 
+     * @return The loaded value.
+     * @throws IOException When deserializing the value.
+     * @throws ClassNotFoundException When deserializing the value.
+     * @throws NoSourcesException If no source was found to load the value.
+     * @throws StorageException When loading the value from the storage backend.
+     */
     public Object loadValue() throws IOException, ClassNotFoundException, NoSourcesException, StorageException {
-        if (storageId != null) {
+        if (this.storageId != null) {
             // Try if parameter is in cache
-            LOGGER.debug("   - Retrieving psco " + storageId + " from Storage");
+            LOGGER.debug("   - Retrieving psco " + this.storageId + " from Storage");
             Object obj;
             // Get Object from its ID
             if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
             }
             try {
-                obj = StorageItf.getByID(storageId);
+                obj = StorageItf.getByID(this.storageId);
                 return obj;
             } catch (StorageException e) {
-                LOGGER.error("Cannot getByID PSCO " + storageId, e);
+                LOGGER.error("Cannot getByID PSCO " + this.storageId, e);
                 throw e;
             } finally {
                 if (Tracer.extraeEnabled()) {
@@ -90,8 +176,8 @@ public class DataRegister {
 
         IOException io = null;
         ClassNotFoundException cnf = null;
-        if (!inMemory) {
-            for (String path : files) {
+        if (!this.inMemory) {
+            for (String path : this.files) {
                 try {
                     setValue(Serializer.deserialize(path));
                     return this.value;
@@ -112,15 +198,24 @@ public class DataRegister {
         throw new NoSourcesException();
     }
 
+    /**
+     * Clones the current value.
+     * 
+     * @return A cloned version of the current value.
+     * @throws StorageException When retrieving the value from the storage backend.
+     * @throws ClassNotFoundException When deserializing the value.
+     * @throws IOException When deserializing the value.
+     * @throws NoSourcesException If no source was found to load the value.
+     */
     public Object cloneValue() throws StorageException, ClassNotFoundException, IOException, NoSourcesException {
-        if (storageId != null) {
-            return StorageItf.getByID(storageId);
+        if (this.storageId != null) {
+            return StorageItf.getByID(this.storageId);
         }
 
-        if (!inMemory) {
+        if (!this.inMemory) {
             IOException io = null;
             ClassNotFoundException cnf = null;
-            for (String path : files) {
+            for (String path : this.files) {
                 try {
                     return Serializer.deserialize(path);
                 } catch (IOException ioe) {
@@ -140,38 +235,13 @@ public class DataRegister {
         throw new NoSourcesException();
     }
 
-    public void setStorageId(String storageId) {
-        this.storageId = storageId;
-    }
-
-    public String getStorageId() {
-        return storageId;
-    }
-
-    public void addFileLocation(String file) {
-        this.files.add(file);
-    }
-
-    public void removeFileLocation(String path) {
-        files.remove(path);
-    }
-
-    public List<String> getFileLocations() {
-        return files;
-    }
-
-    public void addBindingLocation(BindingLocation loc) {
-        bindingLocations.add(loc);
-    }
-
-    public boolean isLocal() {
-        return inMemory || !files.isEmpty() || storageId != null || !bindingLocations.isEmpty();
-    }
-
+    /**
+     * Clears all the data information.
+     */
     public void clear() {
-        storageId = null;
+        this.storageId = null;
         removeValue();
-        for (String path : files) {
+        for (String path : this.files) {
             try {
                 File f = new File(path);
                 f.delete();
@@ -181,44 +251,23 @@ public class DataRegister {
         }
     }
 
-
-    public static interface BindingLocation {
-
-    }
-
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\t Memory:");
-        if (inMemory) {
+        sb.append("\tMemory: ");
+        if (this.inMemory) {
             sb.append("<").append(value).append(">");
         } else {
-            sb.append(" NOT PRESENT");
+            sb.append("NOT PRESENT");
         }
         sb.append("\n");
-        sb.append("\t Bindings:\n");
-        for (BindingLocation bLoc : this.bindingLocations) {
-            sb.append("\t-").append(bLoc.toString()).append("\n");
-        }
-        sb.append("\t Storage ID:").append(this.storageId).append("\n");
+        sb.append("\tStorage ID:").append(this.storageId).append("\n");
 
-        sb.append("\t Files:\n");
+        sb.append("\tFiles:\n");
         for (String file : this.files) {
-            sb.append("\t-").append(file).append("\n");
+            sb.append("\t- ").append(file).append("\n");
         }
         return sb.toString();
     }
 
-
-    public static class NoSourcesException extends Exception {
-
-        private static final long serialVersionUID = 1L;
-
-
-        public NoSourcesException() {
-            super("No sources form where to load the value");
-        }
-
-    }
 }

@@ -19,7 +19,7 @@ package es.bsc.compss.types.parameter;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import java.io.Serializable;
 
@@ -34,7 +34,7 @@ public abstract class Parameter implements Serializable {
     // Parameter fields
     private DataType type;
     private final Direction direction;
-    private final Stream stream;
+    private final StdIOStream stream;
     private final String prefix;
     private final String name;
 
@@ -48,7 +48,7 @@ public abstract class Parameter implements Serializable {
      * @param prefix Parameter prefix.
      * @param name Parameter name.
      */
-    public Parameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
+    public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name) {
         this.type = type;
         this.direction = direction;
         this.stream = stream;
@@ -92,7 +92,7 @@ public abstract class Parameter implements Serializable {
      * 
      * @return The parameter IO stream mode.
      */
-    public Stream getStream() {
+    public StdIOStream getStream() {
         return this.stream;
     }
 

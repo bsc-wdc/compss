@@ -20,42 +20,30 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
 
+import java.util.concurrent.Semaphore;
+
 
 /**
- * The TransferObjectRequest is a request for an object contained in a remote worker
+ * The TransferObjectRequest is a request for an object contained in a remote worker.
  */
 public class TransferObjectRequest extends APRequest {
 
-    /**
-     * Data Access Id
-     */
-    private DataAccessId daId;
-    /**
-     * Semaphore where to synchronize until the operation is done
-     */
-    private Semaphore sem;
-    /**
-     * Object asked for
-     */
+    private final DataAccessId daId;
+    private final Semaphore sem;
+
     private Object response;
 
-    /**
-     * LogicalData referring to the final object location
-     */
     private LogicalData target;
 
 
     /**
-     * Constructs a new TransferObjectRequest
+     * Constructs a new TransferObjectRequest.
      *
-     * @param daId Object required, data id + version
-     * @param sem Semaphore where to synchronize until the operation is done
+     * @param daId Object required, data id + version.
+     * @param sem Semaphore where to synchronize until the operation is done.
      */
     public TransferObjectRequest(DataAccessId daId, Semaphore sem) {
         this.daId = daId;
@@ -63,39 +51,21 @@ public class TransferObjectRequest extends APRequest {
     }
 
     /**
-     * Returns the data id + version of the required object
+     * Returns the data id + version of the required object.
      *
-     * @return data id + version of the required object
+     * @return data id + version of the required object.
      */
     public DataAccessId getDaId() {
-        return daId;
+        return this.daId;
     }
 
     /**
-     * Sets the requested data id and version
+     * Returns the semaphore where to synchronize until the object can be read.
      *
-     * @param daId data id + version of the required object
-     */
-    public void setDaId(DataAccessId daId) {
-        this.daId = daId;
-    }
-
-    /**
-     * Returns the semaphore where to synchronize until the object can be read
-     *
-     * @return the semaphore where to synchronize until the object can be read
+     * @return the semaphore where to synchronize until the object can be read.
      */
     public Semaphore getSemaphore() {
-        return sem;
-    }
-
-    /**
-     * Sets the semaphore where to synchronize until the requested object can be read
-     *
-     * @param sem the semaphore where to synchronize until the requested object can be read
-     */
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
+        return this.sem;
     }
 
     /**
@@ -104,22 +74,22 @@ public class TransferObjectRequest extends APRequest {
      * @return the requested object (Null if it was on a file).
      */
     public Object getResponse() {
-        return response;
+        return this.response;
     }
 
     /**
-     * Returns the requested LogicalData instance
+     * Returns the requested LogicalData instance.
      *
-     * @return the requested LogicalData instance
+     * @return the requested LogicalData instance.
      */
     public LogicalData getTargetData() {
-        return target;
+        return this.target;
     }
 
     /**
-     * Sets the requested LogicalData instance
+     * Sets the requested LogicalData instance.
      *
-     * @param ld the requested LogicalData instance
+     * @param ld the requested LogicalData instance.
      */
     public void setTargetData(LogicalData ld) {
         this.target = ld;

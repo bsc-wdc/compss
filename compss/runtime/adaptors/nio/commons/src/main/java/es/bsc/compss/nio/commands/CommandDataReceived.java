@@ -16,13 +16,14 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
+import es.bsc.compss.nio.NIOAgent;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.comm.Connection;
-import es.bsc.compss.nio.NIOAgent;
 
 
 public class CommandDataReceived extends Command implements Externalizable {
@@ -30,11 +31,21 @@ public class CommandDataReceived extends Command implements Externalizable {
     private int transfergroupID;
 
 
+    /**
+     * Creates a new CommandDataReceived for externalization.
+     */
     public CommandDataReceived() {
+        super();
     }
 
-    public CommandDataReceived(NIOAgent ng, int transfergroupID) {
-        super(ng);
+    /**
+     * Creates a new CommandDataReceived instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param transfergroupID Transfer group Id.
+     */
+    public CommandDataReceived(NIOAgent agent, int transfergroupID) {
+        super(agent);
         this.transfergroupID = transfergroupID;
     }
 
@@ -46,23 +57,22 @@ public class CommandDataReceived extends Command implements Externalizable {
     @Override
     public void handle(Connection c) {
         c.finishConnection();
-        NIOAgent nm = (NIOAgent) agent;
-        nm.copiedData(transfergroupID);
+        this.agent.copiedData(this.transfergroupID);
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        transfergroupID = in.readInt();
+        this.transfergroupID = in.readInt();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeInt(transfergroupID);
+        out.writeInt(this.transfergroupID);
     }
 
     @Override
     public String toString() {
-        return "Data for transfer group" + transfergroupID + "has been received in the remote worker";
+        return "Data for transfer group" + this.transfergroupID + "has been received in the remote worker";
     }
 
 }

@@ -31,8 +31,8 @@ public class COMPSsConstants {
      * Accepted Execution modes.
      */
     public static enum TaskExecution {
-        COMPSS, // Internal Execution
-        STORAGE // External execution
+    COMPSS, // Internal Execution
+    STORAGE // External execution
     }
 
     /**
@@ -130,6 +130,10 @@ public class COMPSsConstants {
     public static final String STORAGE_CONF = "compss.storage.conf";
     public static final String TASK_EXECUTION = "compss.task.execution";
 
+    // Streaming properties
+    public static final String STREAMING_BACKEND = "compss.streaming";
+    public static final String STREAMING_MASTER_PORT = "compss.streaming.masterPort";
+
     // Persistent worker c property
     public static final String WORKER_PERSISTENT_C = "compss.worker.persistent.c";
 
@@ -145,7 +149,7 @@ public class COMPSsConstants {
     public static final String COMPSS_IS_WS = "compss.is.ws";
     public static final String COMPSS_IS_MAINCLASS = "compss.is.mainclass";
 
-    // Properties for locating the it.properties file
+    // Properties for locating the compss.properties file
     public static final String COMPSS_CONFIG = "compss.properties";
     public static final String COMPSS_CONFIG_LOCATION = "compss.properties.location";
     public static final String COMPSS_CONTEXT = "compss.context";
@@ -190,6 +194,9 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
 
 
+    /**
+     * Private constructor to avoid instantiation.
+     */
     private COMPSsConstants() {
         throw new NonInstantiableException("COMPSsConstants");
     }

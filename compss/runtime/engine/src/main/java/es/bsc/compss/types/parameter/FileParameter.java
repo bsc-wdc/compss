@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.location.DataLocation;
 
@@ -26,7 +26,7 @@ import es.bsc.compss.types.data.location.DataLocation;
 public class FileParameter extends DependencyParameter {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -35,8 +35,19 @@ public class FileParameter extends DependencyParameter {
     private final String originalName;
 
 
-    public FileParameter(Direction direction, Stream stream, String prefix, String name, DataLocation location,
+    /**
+     * Creates a new Stream Parameter.
+     * 
+     * @param direction Parameter direction.
+     * @param stream Standard IO Stream flags.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     * @param location File location.
+     * @param originalName Original file name.
+     */
+    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, DataLocation location,
             String originalName) {
+
         super(DataType.FILE_T, direction, stream, prefix, name);
         this.location = location;
         this.originalName = originalName;
@@ -44,17 +55,17 @@ public class FileParameter extends DependencyParameter {
     }
 
     public DataLocation getLocation() {
-        return location;
+        return this.location;
     }
 
     @Override
     public String getOriginalName() {
-        return originalName;
+        return this.originalName;
     }
 
     @Override
     public String toString() {
-        return "FileParameter with location " + location + ", type " + getType() + ", direction " + getDirection();
+        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection();
     }
 
 }

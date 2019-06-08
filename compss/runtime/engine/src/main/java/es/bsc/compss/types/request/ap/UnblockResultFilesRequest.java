@@ -27,24 +27,30 @@ import java.util.List;
 
 public class UnblockResultFilesRequest extends APRequest {
 
-    private List<ResultFile> resultFiles;
+    private final List<ResultFile> resultFiles;
 
 
+    /**
+     * Creates a new request to unlock the given result files.
+     * 
+     * @param resultFiles Result files to unlock.
+     */
     public UnblockResultFilesRequest(List<ResultFile> resultFiles) {
         this.resultFiles = resultFiles;
     }
 
+    /**
+     * Returns the list of associated result files to unlock.
+     * 
+     * @return The list of associated result files to unlock.
+     */
     public List<ResultFile> getResultFiles() {
-        return resultFiles;
-    }
-
-    public void setResultFiles(List<ResultFile> resultFiles) {
-        this.resultFiles = resultFiles;
+        return this.resultFiles;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        for (ResultFile resFile : resultFiles) {
+        for (ResultFile resFile : this.resultFiles) {
             dip.unblockDataId(resFile.getFileInstanceId().getDataId());
         }
     }

@@ -43,7 +43,9 @@ public class IDLParserTest {
     private static final int CORE1_6_IMPLS_RESULT = 3;
     private static final int COMPUTING_UNITS_RESULT = 2;
     private static final int PROCESSOR_COUNT = 2;
-    private static final String TEST_2_SIGNATURE = "RemoteTrackOnce(INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,INT_T,INT_T,INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T)NULL";
+    private static final String TEST_2_SIGNATURE = "RemoteTrackOnce("
+            + "INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,"
+            + "BINDING_OBJECT_T,BINDING_OBJECT_T,INT_T,INT_T,INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T)NULL";
 
 
     @Before
@@ -105,7 +107,6 @@ public class IDLParserTest {
         LOGGER.debug("[IDL-Loader]: Checking Number of processors (2)");
         assertEquals(impl.getRequirements().getProcessors().size(), PROCESSOR_COUNT);
         Processor p1 = impl.getRequirements().getProcessors().get(0);
-        Processor p2 = impl.getRequirements().getProcessors().get(1);
         LOGGER.debug("[IDL-Loader]: Checking Processor 1 parameters (4)");
         assertEquals(p1.getType(), ProcessorType.CPU);
         assertEquals(p1.getComputingUnits(), 2);
@@ -113,6 +114,7 @@ public class IDLParserTest {
         assertEquals(p1.getInternalMemory(), 0.6f, 0);
 
         LOGGER.debug("[IDL-Loader]: Checking Processor 2 parameters (4)");
+        Processor p2 = impl.getRequirements().getProcessors().get(1);
         assertEquals(p2.getType(), ProcessorType.GPU);
         assertEquals(p2.getComputingUnits(), 256);
         assertEquals(p2.getArchitecture(), "k40");

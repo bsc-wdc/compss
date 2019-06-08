@@ -27,34 +27,36 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 public class DeregisterObject extends APRequest {
 
-    private int hash_code;
+    private final int hashCode;
 
 
+    /**
+     * Creates a new request to unregister an object.
+     * 
+     * @param o Object to unregister.
+     */
     public DeregisterObject(Object o) {
-        hash_code = o.hashCode();
+        this.hashCode = o.hashCode();
     }
 
     @Override
     public APRequestType getRequestType() {
-
         return APRequestType.DEREGISTER_OBJECT;
-
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
             throws ShutdownException {
 
-        ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(hash_code);
-
+        ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(this.hashCode);
         if (objectInfo == null) {
-            LOGGER.info("The object with code: " + String.valueOf(hash_code) + " is not used by any task");
+            LOGGER.info("The object with code: " + String.valueOf(this.hashCode) + " is not used by any task");
 
             return;
             // I think it's not possible to enter here, the problem we had was that
             // they were not deleted, but I think it's mandatory to log out what happens
         } else {
-            LOGGER.info("Data of : " + String.valueOf(hash_code) + " deleted");
+            LOGGER.info("Data of : " + String.valueOf(hashCode) + " deleted");
         }
         // At this point all the ObjectInfo versions (renamings) are
         // out of the DataInfoProvider data structures

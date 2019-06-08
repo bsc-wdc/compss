@@ -18,39 +18,72 @@ package es.bsc.compss.nio.master.handlers;
 
 public class ProcessOut {
 
-    private StringBuffer output = new StringBuffer();
-    private StringBuffer error = new StringBuffer();
-    private int exitValue = -1;
+    private StringBuffer output;
+    private StringBuffer error;
+    private int exitValue;
 
 
-    /*
-     * GETTERS
+    /**
+     * Creates a new ProcessOut instance.
+     */
+    public ProcessOut() {
+        this.output = new StringBuffer();
+        this.error = new StringBuffer();
+        this.exitValue = -1;
+    }
+
+    /**
+     * Returns the process exit value.
+     * 
+     * @return The process exit value.
      */
     public int getExitValue() {
         return this.exitValue;
     }
 
+    /**
+     * Returns the process output.
+     * 
+     * @return The process output.
+     */
     public String getOutput() {
         return this.output.toString();
     }
 
+    /**
+     * Returns the process error.
+     * 
+     * @return The process error.
+     */
     public String getError() {
         return this.error.toString();
     }
 
-    /*
-     * SETTERS
+    /**
+     * Sets a new process exit value.
+     * 
+     * @param exit The new process exit value.
      */
     public void setExitValue(int exit) {
-        exitValue = exit;
+        this.exitValue = exit;
     }
 
+    /**
+     * Adds a new line to the process error.
+     * 
+     * @param line New error line.
+     */
     public void appendError(String line) {
-        error.append(line);
+        this.error.append(line);
     }
 
+    /**
+     * Adds a new line to the process output.
+     * 
+     * @param line New output line.
+     */
     public void appendOutput(String line) {
-        output.append(line + "\n");
+        this.output.append(line + "\n");
     }
 
 }

@@ -35,6 +35,13 @@ public class COMPSsDefinition extends ImplementationDefinition {
     private final COMPSsImplementation impl;
 
 
+    /**
+     * Creates a new COMPSs definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
     public COMPSsDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + COMPSsImplementation.NUM_PARAMS);
 
@@ -42,6 +49,7 @@ public class COMPSsDefinition extends ImplementationDefinition {
         this.flags = args[execArgsIdx++];
         this.appName = args[execArgsIdx++];
         this.workerInMaster = args[execArgsIdx++];
+        
         String wDir = args[execArgsIdx++];
         if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;

@@ -49,7 +49,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,26 +59,28 @@ import org.apache.logging.log4j.Logger;
 
 public class StreamRegistry {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String LINE_SEP = System.getProperty("line.separator");
+
     // API object used to invoke calls on the COMPSsRuntimeImpl
-    private LoaderAPI itApi;
+    private final LoaderAPI itApi;
 
     /*
      * Map: file absolute path -> list of opened streams of the file Only local files are accepted, since a java stream
      * cannot be opened on a remote file
      */
-    private TreeMap<String, StreamList> fileToStreams;
+    private final Map<String, StreamList> fileToStreams;
 
-    HashSet<String> taskFiles;
+    private final Set<String> taskFiles;
 
-    private boolean onWindows;
-
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-    private static final String LINE_SEP = System.getProperty("line.separator");
+    private final boolean onWindows;
 
 
     /**
-     * TODO javadoc.
+     * Creates a new StreamRegistry instance.
+     * 
+     * @param api Associated Loader API.
      */
     public StreamRegistry(LoaderAPI api) {
         this.itApi = api;
@@ -88,7 +92,11 @@ public class StreamRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Creates a new FileInputStream from the given file {@code file}.
+     * 
+     * @param file File.
+     * @return FileInputStream pointing to the given file.
+     * @throws FileNotFoundException When file does not exist.
      */
     public FileInputStream newFileInputStream(File file) throws FileNotFoundException {
         Direction direction = Direction.IN;
@@ -111,12 +119,11 @@ public class StreamRegistry {
         return fis;
     }
 
-    public FileInputStream newFileInputStream(String fileName) throws FileNotFoundException {
-        return newFileInputStream(new File(fileName));
-    }
-
     /**
-     * TODO javadoc.
+     * Creates a new FileInputStream from the given FileDescriptor {@code fd}.
+     * 
+     * @param fd FileDescriptor.
+     * @return FileInputStream pointing to the given file descriptor.
      */
     public FileInputStream newFileInputStream(FileDescriptor fd) {
         StreamList list = obtainList(fd);
@@ -128,7 +135,23 @@ public class StreamRegistry {
     }
 
     /**
-     * TODO javadoc.
+     * Creates a new FileInputStream from the given fileName {@code fileName}.
+     * 
+     * @param fileName File name.
+     * @return FileInputStream pointing to the given file name.
+     * @throws FileNotFoundException When the file denoted by the abstract {@code fileName} does not exist.
+     */
+    public FileInputStream newFileInputStream(String fileName) throws FileNotFoundException {
+        return newFileInputStream(new File(fileName));
+    }
+
+    /**
+     * Creates a new FileOutputStream from the given file {@code file} and the given mode {@code append}.
+     * 
+     * @param file File.
+     * @param append Whether the file must be appended or overwritten.
+     * @return FileOutputStream pointing to the given file.
+     * @throws FileNotFoundException When the file does not exist.
      */
     public FileOutputStream newFileOutputStream(File file, boolean append) throws FileNotFoundException {
         Direction direction = (append ? Direction.INOUT : Direction.OUT);
@@ -147,20 +170,11 @@ public class StreamRegistry {
         return fos;
     }
 
-    public FileOutputStream newFileOutputStream(File file) throws FileNotFoundException {
-        return newFileOutputStream(file, false);
-    }
-
-    public FileOutputStream newFileOutputStream(String fileName, boolean append) throws FileNotFoundException {
-        return newFileOutputStream(new File(fileName), append);
-    }
-
-    public FileOutputStream newFileOutputStream(String fileName) throws FileNotFoundException {
-        return newFileOutputStream(new File(fileName), false);
-    }
-
     /**
-     * TODO javadoc.
+     * Creates a new FileOutputStream from the given file descriptor {@code fd}.
+     * 
+     * @param fd File descriptor.
+     * @return FileOutputStream pointing to the given file descriptor.
      */
     public FileOutputStream newFileOutputStream(FileDescriptor fd) {
         StreamList list = obtainList(fd);
@@ -173,8 +187,45 @@ public class StreamRegistry {
     }
 
     /**
-     * FilterInputStream (e.g. BufferedInputStream, DataInputStream) FilterOutputStream (e.g. BufferedOutputStream,
-     * DataOutputStream; not PrintStream)
+     * Creates a new FileOutputStream from the given file {@code file}.
+     * 
+     * @param file File.
+     * @return FileOutputStream pointing to the given file.
+     * @throws FileNotFoundException When the file does not exist.
+     */
+    public FileOutputStream newFileOutputStream(File file) throws FileNotFoundException {
+        return newFileOutputStream(file, false);
+    }
+
+    /**
+     * Creates a new FileOutputStream from the given file name {@code fileName} with the given access mode
+     * {@code append}.
+     * 
+     * @param fileName File name.
+     * @param append {@code true} if the file is opened in append mode, {@code false} for overwrite.
+     * @return FileOutputStream pointing to the given file name.
+     * @throws FileNotFoundException When path denoted by the given abstract file name does not exist.
+     */
+    public FileOutputStream newFileOutputStream(String fileName, boolean append) throws FileNotFoundException {
+        return newFileOutputStream(new File(fileName), append);
+    }
+
+    /**
+     * Creates a new FileOutputStream from the given file name {@code fileName}.
+     * 
+     * @param fileName File Name.
+     * @return FileOutputStream pointing to the given file name.
+     * @throws FileNotFoundException When path denoted by the given abstract file name does not exist.
+     */
+    public FileOutputStream newFileOutputStream(String fileName) throws FileNotFoundException {
+        return newFileOutputStream(new File(fileName), false);
+    }
+
+    /**
+     * Replaces the given stream {@code code} stream applying the given filter {@code filter}.
+     * 
+     * @param stream Stream to replace.
+     * @param filter Filter to apply.
      */
     public void newFilterStream(Object stream, Object filter) {
         /*

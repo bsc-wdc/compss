@@ -35,18 +35,18 @@ public class FileDeletionException extends Exception {
     }
 
     /**
-     * New nested @e File Deletion Exception.
+     * New nested {@code e} File Deletion Exception.
      * 
-     * @param e Causing Exception
+     * @param e Nested exception.
      */
     public FileDeletionException(Exception e) {
         super(e);
     }
 
     /**
-     * New File Deletion Exception with message @msg.
+     * New File Deletion Exception with message {@code msg}.
      * 
-     * @param msg Error message
+     * @param msg Exception message.
      */
     public FileDeletionException(String msg) {
         super(msg);

@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.scheduler.types;
 
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.types.fake.FakeWorker;
 import es.bsc.compss.types.implementations.Implementation;
@@ -23,12 +25,13 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
+
 import java.util.LinkedList;
 import java.util.List;
+
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,14 +40,14 @@ import org.junit.Test;
 public class ResourceSchedulerTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
-    private static final long DEFAULT_AVG_EXECUTION_TIME = 100l;
+    private static final long DEFAULT_AVG_EXECUTION_TIME = 100L;
     private static final long DEFAULT_MAX_EXECUTION_TIME = Long.MIN_VALUE;
-    private static final long DEFAULT_EXECUTION_COUNT = 0l;
+    private static final long DEFAULT_EXECUTION_COUNT = 0L;
 
     private static final long SET_MIN_EXECUTION_TIME = 2;
     private static final long SET_AVG_EXECUTION_TIME = 5;
     private static final long SET_MAX_EXECUTION_TIME = 10;
-    private static final long SET_EXECUTION_COUNT = 3l;
+    private static final long SET_EXECUTION_COUNT = 3L;
 
     private static final String SET_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME) + ",\"executions\":"
             + (SET_EXECUTION_COUNT) + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME) + ",\"minTime\":"
@@ -56,6 +59,9 @@ public class ResourceSchedulerTest {
     private static FakeWorker worker;
 
 
+    /**
+     * Sets up the class environment before launching the unit tests.
+     */
     @BeforeClass
     public static void setUpClass() {
         // Method resource description and its slots
@@ -494,7 +500,7 @@ public class ResourceSchedulerTest {
     private class CheckerException extends Exception {
 
         /**
-         * All Runtime Exceptions have serial ID 2L
+         * All Runtime Exceptions have serial ID 2L.
          */
         private static final long serialVersionUID = 2L;
 

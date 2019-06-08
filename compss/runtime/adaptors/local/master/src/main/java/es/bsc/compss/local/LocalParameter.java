@@ -18,7 +18,7 @@ package es.bsc.compss.local;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
@@ -48,13 +48,20 @@ public class LocalParameter implements InvocationParam {
     private Class<?> valueClass;
 
 
+    /**
+     * Creates a new LocalParameter instance from the given parameter information.
+     * 
+     * @param param Parameter information.
+     */
     public LocalParameter(Parameter param) {
         this.param = param;
         DataType type = param.getType();
         switch (type) {
             case FILE_T:
             case OBJECT_T:
+            case STREAM_T:
             case PSCO_T:
+            case EXTERNAL_STREAM_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
                 DependencyParameter dPar = (DependencyParameter) param;
@@ -84,11 +91,11 @@ public class LocalParameter implements InvocationParam {
                     // Read only mode
                     RAccessId raId = (RAccessId) faId;
                     this.sourceDataMgmtId = raId.getReadDataInstance().getRenaming();
-                    dataMgmtId = this.sourceDataMgmtId;
+                    this.dataMgmtId = this.sourceDataMgmtId;
                 } else {
                     WAccessId waId = (WAccessId) faId;
                     this.sourceDataMgmtId = null;
-                    dataMgmtId = waId.getWrittenDataInstance().getRenaming();
+                    this.dataMgmtId = waId.getWrittenDataInstance().getRenaming();
                 }
                 if (this.sourceDataMgmtId != null) {
                     String pscoId = Comm.getData(this.sourceDataMgmtId).getPscoId();
@@ -150,7 +157,7 @@ public class LocalParameter implements InvocationParam {
     }
 
     @Override
-    public Stream getStream() {
+    public StdIOStream getStdIOStream() {
         return this.param.getStream();
     }
 

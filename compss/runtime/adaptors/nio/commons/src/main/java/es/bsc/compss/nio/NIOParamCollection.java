@@ -16,10 +16,6 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -28,81 +24,91 @@ import java.util.List;
 
 
 /**
- * Extension of the NIOParam class to handle collection types.
+ * Extension of the NIOParam class to handle collection types. Basically, a NIOParam plus a list of NIOParams
+ * representing the contents of the collection.
  * 
  * @see NIOParam
  */
 public class NIOParamCollection extends NIOParam {
 
-    // A NIOParamCollection is basically a NIOParam plus a list of NIOParams (the contents of the collection)
-    private List<NIOParam> collectionParameters = new LinkedList<>();
+    private List<NIOParam> collectionParameters;
 
 
     /**
-     * Constructor. Same as NIOParam
-     * 
-     * @param dataMgmtId String
-     * @param type DataType
-     * @param stream Stream
-     * @param prefix String
-     * @param name String
-     * @param preserveSourceData Boolean
-     * @param writeFinalValue Boolean
-     * @param value Object
-     * @param data NIOData
-     * @param originalName String
-     * @see NIOParam Constructor
+     * Create a new NIOParamCollection instance for externalization.
      */
-    public NIOParamCollection(String dataMgmtId, DataType type, Stream stream, String prefix, String name,
-            boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
-        super(dataMgmtId, type, stream, prefix, name, preserveSourceData, writeFinalValue, value, data, originalName);
-    }
-
     public NIOParamCollection() {
-
+        // Only executed by externalizable
+        super();
     }
 
     /**
-     * Getter of the parameter list. Use this method to insert elements in there
+     * Create a new NIOParamCollection copying the given NIOParam values.
      * 
-     * @return List
+     * @param p NIOParam to copy.
+     */
+    public NIOParamCollection(NIOParam p) {
+        super(p);
+
+        // Empty attributes
+        this.collectionParameters = new LinkedList<>();
+    }
+
+    /**
+     * Returns the number of internal parameters of the collection.
+     * 
+     * @return The number of internal parameters of the collection.
+     */
+    public int getSize() {
+        return this.collectionParameters.size();
+    }
+
+    /**
+     * Returns a list of objects containing the collection parameters.
+     * 
+     * @return A list of objects containing the collection parameters.
      */
     public List<NIOParam> getCollectionParameters() {
-        return collectionParameters;
+        return this.collectionParameters;
     }
 
     /**
-     * Extend the readExternal from NIOParam. The implementation of this method speed up the serialization and
-     * deserialization processes
+     * Adds a new parameter to the collection.
      * 
-     * @param in Object to read
-     * @throws IOException
-     * @throws ClassNotFoundException
+     * @param p Parameter to add.
      */
+    public void addParameter(NIOParam p) {
+        this.collectionParameters.add(p);
+    }
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
+
         this.collectionParameters = new LinkedList<>();
         int numParameters = in.readInt();
-        while (numParameters-- > 0) {
-            collectionParameters.add((NIOParam) in.readObject());
+        for (int i = 0; i < numParameters; ++i) {
+            this.collectionParameters.add((NIOParam) in.readObject());
         }
     }
 
-    /**
-     * Extend the writeExternal from NIOParam. The implementation of this method speed up the serialization and
-     * deserialization processes.
-     * 
-     * @param out Object in which we write the representation of the NIOParamCollection
-     * @throws IOException
-     */
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeInt(collectionParameters.size());
-        for (NIOParam subParam : collectionParameters) {
+
+        out.writeInt(this.collectionParameters.size());
+        for (NIOParam subParam : this.collectionParameters) {
             // Note that this implementation also implicitly supports nesting
             out.writeObject(subParam);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[COLL_PARAM");
+        dumpInternalInfo(sb);
+        sb.append("]");
+
+        return sb.toString();
     }
 }

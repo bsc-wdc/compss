@@ -23,54 +23,51 @@ import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.NIOURI;
+import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
 import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandResourcesReduce;
 import es.bsc.compss.nio.commands.CommandShutdown;
-import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
-import es.bsc.compss.nio.commands.workerFiles.CommandGenerateWorkerDebugFiles;
-import es.bsc.compss.nio.dataRequest.DataRequest;
-import es.bsc.compss.nio.dataRequest.MasterDataRequest;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
 import es.bsc.compss.nio.master.utils.NIOParamFactory;
-import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.nio.requests.DataRequest;
+import es.bsc.compss.nio.requests.MasterDataRequest;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
+import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.DataOperation.OpEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.data.operation.copy.DeferredCopy;
 import es.bsc.compss.types.data.operation.copy.StorageCopy;
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.ShutdownListener;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -92,15 +89,22 @@ public class NIOWorkerNode extends COMPSsWorker {
     private boolean started = false;
     private WorkerStarter workerStarter;
 
+
+    /**
+     * Creates a new NIOWorkerNode instance.
+     * 
+     * @param config Worker configuration.
+     * @param adaptor Worker communication adaptor.
+     */
+    public NIOWorkerNode(NIOConfiguration config, NIOAdaptor adaptor) {
+        super();
+        this.config = config;
+        this.commManager = adaptor;
+    }
+
     @Override
     public String getName() {
         return this.config.getHost();
-    }
-
-    public NIOWorkerNode(String name, NIOConfiguration config, NIOAdaptor adaptor) {
-        super(name, config);
-        this.config = config;
-        this.commManager = adaptor;
     }
 
     @Override
@@ -129,26 +133,65 @@ public class NIOWorkerNode extends COMPSsWorker {
         return this.config.getUser();
     }
 
+    /**
+     * Returns the associated communication adaptor.
+     * 
+     * @return The associated communication adaptor.
+     */
+    public NIOAdaptor getCommManager() {
+        return this.commManager;
+    }
+
+    /**
+     * Returns the hostname of the worker node.
+     * 
+     * @return The hostname of the worker node.
+     */
     public String getHost() {
         return this.config.getHost();
     }
 
+    /**
+     * Returns the installation directory of the worker node.
+     * 
+     * @return The installation directory of the worker node.
+     */
     public String getInstallDir() {
         return this.config.getInstallDir();
     }
 
+    /**
+     * Returns the base working directory of the worker node.
+     * 
+     * @return The base working directory of the worker node.
+     */
     public String getBaseWorkingDir() {
         return this.config.getWorkingDir();
     }
 
+    /**
+     * Returns the sandboxed working directory of the worker node.
+     * 
+     * @return The sandboxed working directory of the worker node.
+     */
     public String getWorkingDir() {
         return this.config.getSandboxWorkingDir();
     }
 
+    /**
+     * Returns the application directory.
+     * 
+     * @return The application directory.
+     */
     public String getAppDir() {
         return this.config.getAppDir();
     }
 
+    /**
+     * Returns the library path.
+     * 
+     * @return The library path.
+     */
     public String getLibPath() {
         return this.config.getLibraryPath();
     }
@@ -163,22 +206,47 @@ public class NIOWorkerNode extends COMPSsWorker {
         return this.config.getPythonpath();
     }
 
+    /**
+     * Returns the limit of tasks of the worker node.
+     * 
+     * @return The limit of tasks of the worker node.
+     */
     public int getLimitOfTasks() {
         return this.config.getLimitOfTasks();
     }
 
+    /**
+     * Returns the total number of CPU computing units of the worker node.
+     * 
+     * @return The total number of CPU computing units of the worker node.
+     */
     public int getTotalComputingUnits() {
         return this.config.getTotalComputingUnits();
     }
 
+    /**
+     * Returns the total number of GPU computing units of the worker node.
+     * 
+     * @return The total number of GPU computing units of the worker node.
+     */
     public int getTotalGPUs() {
         return this.config.getTotalGPUComputingUnits();
     }
 
+    /**
+     * Returns the total number of FPGA computing units of the worker node.
+     * 
+     * @return The total number of FPGA computing units of the worker node.
+     */
     public int getTotalFPGAs() {
         return this.config.getTotalFPGAComputingUnits();
     }
 
+    /**
+     * Returns the worker node configuration.
+     * 
+     * @return The worker node configuration.
+     */
     public NIOConfiguration getConfiguration() {
         return this.config;
     }
@@ -188,7 +256,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (node == null) {
             throw new UnstartedNodeException();
         }
-        NIOURI nio = new NIOURI(node, uri.getPath(), uri.getProtocol());
+        NIOUri nio = new NIOUri(node, uri.getPath(), uri.getProtocol());
         uri.setInternalURI(NIOAdaptor.ID, nio);
     }
 
@@ -255,29 +323,23 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
             Transferable reason, EventListener listener) {
         if (DEBUG) {
-            LOGGER.debug("Sending data " + ld.getName() + " from worker node " +this.getName());
+            LOGGER.debug("Sending data " + ld.getName() + " from worker node " + this.getName());
         }
         if (target.getHosts().contains(Comm.getAppHost())) {
             // Request to master
 
             // Order petition directly
-            /*if (tgtData != null) {
-                MultiURI u = tgtData.alreadyAvailable(Comm.getAppHost());
-                if (u != null) { 
-                    if (DEBUG) {
-                        LOGGER.debug("Data " + ld.getName() + " already present at the master.");
-                    }
-                    reason.setDataTarget(u.getPath());
-                    listener.notifyEnd(null);
-                    return;
-                }
-            }*/
-                       
+            /*
+             * if (tgtData != null) { MultiURI u = tgtData.alreadyAvailable(Comm.getAppHost()); if (u != null) { if
+             * (DEBUG) { LOGGER.debug("Data " + ld.getName() + " already present at the master."); }
+             * reason.setDataTarget(u.getPath()); listener.notifyEnd(null); return; } }
+             */
+
             NIOData d = new NIOData(ld);
             if (source != null) {
                 for (MultiURI uri : source.getURIs()) {
                     try {
-                        NIOURI nURI = (NIOURI) uri.getInternalURI(NIOAdaptor.ID);
+                        NIOUri nURI = (NIOUri) uri.getInternalURI(NIOAdaptor.ID);
                         if (nURI != null) {
                             d.getSources().add(nURI);
                         }
@@ -286,7 +348,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     }
                 }
             } else {
-                LOGGER.warn(" Source location for data " + ld.getName() + " is null.");    
+                LOGGER.warn(" Source location for data " + ld.getName() + " is null.");
             }
             Copy c = new DeferredCopy(ld, null, target, tgtData, reason, listener);
             String path = target.getURIInHost(Comm.getAppHost()).getPath();
@@ -355,8 +417,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     private void newReplica(StorageCopy sc) {
         String targetHostname = this.getName();
-        LogicalData srcLD = sc.getSourceData();
-        LogicalData targetLD = sc.getTargetData();
+        final LogicalData srcLD = sc.getSourceData();
+        final LogicalData targetLD = sc.getTargetData();
 
         LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
@@ -430,7 +492,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (targetLD != null) {
                 targetLD.setPscoId(newId);
             }
-            NIOURI uri = new NIOURI(null, pscoId, Protocol.PERSISTENT_URI);
+            NIOUri uri = new NIOUri(null, pscoId, Protocol.PERSISTENT_URI);
             NIOData nd = new NIOData(srcLD.getName(), uri);
             sc.setProposedSource(nd);
         } catch (Exception e) {
@@ -451,8 +513,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         Resource tgtRes = null;
         for (Resource r : c.getTargetLoc().getHosts()) {
-            if ( r.getNode().equals(tgtNode)) {
-                tgtRes=r;
+            if (r.getNode().equals(tgtNode)) {
+                tgtRes = r;
                 break;
             }
         }
@@ -485,7 +547,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
         NIOParam param = NIOParamFactory.fromParameter((Parameter) reason);
-        CommandDataFetch cmd = new CommandDataFetch(param, listener.getId());
+        CommandDataFetch cmd = new CommandDataFetch(this.commManager, param, listener.getId());
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
@@ -511,11 +573,17 @@ public class NIOWorkerNode extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + config.getSandboxWorkingDir() + name;
+                path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case OBJECT_T:
             case COLLECTION_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
+                break;
+            case STREAM_T:
+                path = Protocol.STREAM_URI.getSchema() + name;
+                break;
+            case EXTERNAL_STREAM_T:
+                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case PSCO_T:
                 // Search for the PSCO id
@@ -527,7 +595,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = Protocol.BINDING_URI.getSchema() + config.getSandboxWorkingDir() + name;
+                path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;
@@ -591,48 +659,62 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
     }
 
+    /**
+     * Submits a new task to the worker.
+     * 
+     * @param job Job to submit.
+     * @param obsolete List of obsolete objects to delete.
+     * @throws UnstartedNodeException If the node has not started yet.
+     */
     public void submitTask(NIOJob job, List<String> obsolete) throws UnstartedNodeException {
         if (node == null) {
             throw new UnstartedNodeException();
         }
         NIOTask t = job.prepareJob();
-        CommandNewTask cmd = new CommandNewTask(t, obsolete);
+        CommandNewTask cmd = new CommandNewTask(this.commManager, t, obsolete);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
     }
 
+    /**
+     * Marks the worker start status.
+     * 
+     * @param b New worker start status.
+     */
     public void setStarted(boolean b) {
-        started = b;
+        this.started = b;
     }
 
     @Override
     public void increaseComputingCapabilities(ResourceDescription description) {
         Semaphore sem = new Semaphore(0);
-        CommandResourcesIncrease cmd = new CommandResourcesIncrease((MethodResourceDescription) description);
-        Connection c = NIOAgent.getTransferManager().startConnection(node);
-        commManager.registerPendingResourceUpdateConfirmation(c, sem);
+        MethodResourceDescription mrd = (MethodResourceDescription) description;
+        CommandResourcesIncrease cmd = new CommandResourcesIncrease(this.commManager, mrd);
+        Connection c = NIOAgent.getTransferManager().startConnection(this.node);
+        this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);
         c.receive();
         try {
             sem.acquire();
         } catch (InterruptedException ie) {
-            //Do nothing
+            // Do nothing
         }
     }
 
     @Override
     public void reduceComputingCapabilities(ResourceDescription description) {
         Semaphore sem = new Semaphore(0);
-        CommandResourcesReduce cmd = new CommandResourcesReduce((MethodResourceDescription) description);
-        Connection c = NIOAgent.getTransferManager().startConnection(node);
-        commManager.registerPendingResourceUpdateConfirmation(c, sem);
+        MethodResourceDescription mrd = (MethodResourceDescription) description;
+        CommandResourcesReduce cmd = new CommandResourcesReduce(this.commManager, mrd);
+        Connection c = NIOAgent.getTransferManager().startConnection(this.node);
+        this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
         c.sendCommand(cmd);
         c.receive();
         try {
             sem.acquire();
         } catch (InterruptedException ie) {
-            //Do nothing
+            // Do nothing
         }
     }
 }

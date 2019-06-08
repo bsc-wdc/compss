@@ -16,21 +16,19 @@
  */
 package es.bsc.compss.ws.master;
 
-import java.util.List;
-
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.types.COMPSsNode;
-import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
+import es.bsc.compss.types.data.listener.EventListener;
+import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
@@ -41,13 +39,16 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.ws.master.configuration.WSConfiguration;
 
+import java.util.List;
+
 
 public class ServiceInstance extends COMPSsWorker {
 
     private WSConfiguration config;
 
-    public ServiceInstance(String name, WSConfiguration config) {
-        super(name, config);
+
+    public ServiceInstance(WSConfiguration config) {
+        super();
         this.config = config;
     }
 
@@ -133,7 +134,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
-        //Copy already done on obtainData()
+        // Copy already done on obtainData()
         listener.notifyEnd(null);
     }
 
@@ -167,6 +168,12 @@ public class ServiceInstance extends COMPSsWorker {
                 break;
             case OBJECT_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
+                break;
+            case STREAM_T:
+                path = Protocol.STREAM_URI.getSchema() + name;
+                break;
+            case EXTERNAL_STREAM_T:
+                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;

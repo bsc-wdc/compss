@@ -23,7 +23,7 @@ import es.bsc.compss.executor.external.persistent.PersistentMirror;
 import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.executor.external.piped.PipedMirror;
 import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.JavaInvoker;
 import es.bsc.compss.invokers.OpenCLInvoker;
@@ -667,7 +667,7 @@ public class Executor implements Runnable {
                 return new PythonInvoker(context, invocation, taskSandboxWorkingDir, assignedResources, pyPipes);
             case C:
                 Invoker cInvoker = null;
-                if (context.isPersistentEnabled()) {
+                if (context.isPersistentCEnabled()) {
                     cInvoker = new CPersistentInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     if (!isRegistered) {
                         PersistentMirror mirror;

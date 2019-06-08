@@ -27,19 +27,40 @@ public class ResultFile implements Comparable<ResultFile> {
     private DataLocation originalLocation;
 
 
+    /**
+     * Creates a new ResultFile instance for data {@code fId} at location {@code location}.
+     * 
+     * @param fId Associated DataInstanceId
+     * @param location Data location.
+     */
     public ResultFile(DataInstanceId fId, DataLocation location) {
         this.fId = fId;
         this.originalLocation = location;
     }
 
+    /**
+     * Returns the associated DataInstanceId.
+     * 
+     * @return The associated DataInstanceId.
+     */
     public DataInstanceId getFileInstanceId() {
-        return fId;
+        return this.fId;
     }
 
+    /**
+     * Returns the original file location.
+     * 
+     * @return The original file location.
+     */
     public DataLocation getOriginalLocation() {
-        return originalLocation;
+        return this.originalLocation;
     }
 
+    /**
+     * Returns the original file name.
+     * 
+     * @return The original file name.
+     */
     public String getOriginalName() {
         String[] splitPath = originalLocation.getPath().split(File.separator);
         return splitPath[splitPath.length - 1];
@@ -53,12 +74,12 @@ public class ResultFile implements Comparable<ResultFile> {
         }
 
         // Compare file identifiers
-        return this.getFileInstanceId().compareTo(resFile.getFileInstanceId());
+        return this.fId.compareTo(resFile.getFileInstanceId());
     }
 
     @Override
     public String toString() {
-        return fId.getRenaming();
+        return this.fId.getRenaming();
     }
 
 }

@@ -17,18 +17,20 @@
 package es.bsc.compss.types;
 
 import java.util.LinkedList;
+import java.util.List;
 
 
-public class CoreElementDefinition {
+public class CoreElementDefinition implements Comparable<CoreElementDefinition> {
 
     private String ceSignature;
-    private final LinkedList<ImplementationDefinition> implementations = new LinkedList<>();
+    private final List<ImplementationDefinition> implementations;
 
 
     /**
      * Creates a new CoreElementDefinition instance.
      */
     public CoreElementDefinition() {
+        this.implementations = new LinkedList<>();
     }
 
     /**
@@ -46,7 +48,7 @@ public class CoreElementDefinition {
      * @return The CoreElement signature.
      */
     public String getCeSignature() {
-        return ceSignature;
+        return this.ceSignature;
     }
 
     /**
@@ -55,7 +57,7 @@ public class CoreElementDefinition {
      * @param impl The new CoreElement implementation.
      */
     public void addImplementation(ImplementationDefinition impl) {
-        implementations.add(impl);
+        this.implementations.add(impl);
     }
 
     /**
@@ -63,8 +65,13 @@ public class CoreElementDefinition {
      * 
      * @return The registered implementations for the CoreElement.
      */
-    public LinkedList<ImplementationDefinition> getImplementations() {
-        return implementations;
+    public List<ImplementationDefinition> getImplementations() {
+        return this.implementations;
+    }
+
+    @Override
+    public int compareTo(CoreElementDefinition ced) {
+        return this.ceSignature.compareTo(ced.ceSignature);
     }
 
 }

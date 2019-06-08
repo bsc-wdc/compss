@@ -16,15 +16,6 @@
  */
 package es.bsc.compss.gat.master;
 
-import java.net.URISyntaxException;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.gridlab.gat.GAT;
-import org.gridlab.gat.GATContext;
-
-import java.util.LinkedList;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.comm.Dispatcher;
@@ -40,19 +31,31 @@ import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.util.LinkedList;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.gridlab.gat.GAT;
+import org.gridlab.gat.GATContext;
 
 
 public class GATAdaptor implements CommAdaptor {
 
+    // LOGGING
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    protected static final String THREAD_POOL_ERR = "Error starting pool of threads";
+    protected static final String POOL_ERR = "Error deleting pool of threads";
+
+    // Class ID
     public static final String ID = GATAdaptor.class.getCanonicalName();
 
+    // Class properties
     protected static final String POOL_NAME = "FTM";
     private static final int GAT_POOL_SIZE = 5;
     protected static final String SAFE_POOL_NAME = "SAFE_FTM";
     protected static final int SAFE_POOL_SIZE = 1;
-
-    protected static final String THREAD_POOL_ERR = "Error starting pool of threads";
-    protected static final String POOL_ERR = "Error deleting pool of threads";
 
     // Copy request queues
     // copyQueue is for ordinary copies
@@ -67,24 +70,21 @@ public class GATAdaptor implements CommAdaptor {
     // GAT context
     private static GATContext transferContext;
 
-    // LOGGING
-    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    private static final boolean debug = logger.isDebugEnabled();
-
 
     public GATAdaptor() {
-
+        // NOthing to do
     }
 
+    /**
+     * Starts the GAT Adaptor.
+     */
     public void init() {
         // Create request queues
         copyQueue = new RequestQueue<DataOperation>();
         safeQueue = new RequestQueue<DataOperation>();
 
-        String adaptor = System.getProperty(COMPSsConstants.GAT_FILE_ADAPTOR);
-
-        if (debug) {
-            logger.debug("Initializing GAT");
+        if (DEBUG) {
+            LOGGER.debug("Initializing GAT");
         }
         pool = new ThreadPool(GAT_POOL_SIZE, POOL_NAME, new Dispatcher(copyQueue));
         try {
@@ -101,8 +101,8 @@ public class GATAdaptor implements CommAdaptor {
         }
 
         // GAT adaptor path
-        if (debug) {
-            logger.debug("Initializing GAT Tranfer Context");
+        if (DEBUG) {
+            LOGGER.debug("Initializing GAT Tranfer Context");
         }
         transferContext = new GATContext();
 
@@ -110,22 +110,23 @@ public class GATAdaptor implements CommAdaptor {
          * We need to try the local adaptor when both source and target hosts are local, because ssh file adaptor cannot
          * perform local operations
          */
+        final String adaptor = System.getProperty(COMPSsConstants.GAT_FILE_ADAPTOR);
         transferContext.addPreference("File.adaptor.name", adaptor + ", srcToLocalToDestCopy, local");
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
 
         String brokerAdaptorName = System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR);
-        String project_brokerAdaptor = (String) project_properties;
-        String resources_brokerAdaptor = (String) resources_properties;
-        if (project_brokerAdaptor != null) {
-            if (resources_brokerAdaptor != null) {
+        String projectBrokerAdaptor = (String) projectProperties;
+        String resourcesBrokerAdaptor = (String) resourcesProperties;
+        if (projectBrokerAdaptor != null) {
+            if (resourcesBrokerAdaptor != null) {
                 // Both
-                if (project_brokerAdaptor.equals(resources_brokerAdaptor)) {
+                if (projectBrokerAdaptor.equals(resourcesBrokerAdaptor)) {
                     // Equal, set any of them
-                    brokerAdaptorName = project_brokerAdaptor;
+                    brokerAdaptorName = projectBrokerAdaptor;
                 } else {
                     // Specified Broker adaptors don't match
                     throw new ConstructConfigurationException(
@@ -133,15 +134,15 @@ public class GATAdaptor implements CommAdaptor {
                 }
             } else {
                 // Only project
-                brokerAdaptorName = project_brokerAdaptor;
+                brokerAdaptorName = projectBrokerAdaptor;
             }
         } else {
-            if (resources_brokerAdaptor != null) {
+            if (resourcesBrokerAdaptor != null) {
                 // Only resources
-                brokerAdaptorName = resources_brokerAdaptor;
+                brokerAdaptorName = resourcesBrokerAdaptor;
             } else {
                 // No broker adaptor specified, load default
-                logger.debug("GAT Broker Adaptor not specified. Setting default value " + brokerAdaptorName);
+                LOGGER.debug("GAT Broker Adaptor not specified. Setting default value " + brokerAdaptorName);
             }
         }
 
@@ -151,15 +152,27 @@ public class GATAdaptor implements CommAdaptor {
 
     // GAT adaptor initializes the worker each time it sends a new job
     @Override
-    public GATWorkerNode initWorker(String name, Configuration config) {
-        GATWorkerNode node = new GATWorkerNode(name, (GATConfiguration) config);
+    public GATWorkerNode initWorker(Configuration config) {
+        GATConfiguration gatCfg = (GATConfiguration) config;
+        LOGGER.debug("Init GAT Worker Node named " + gatCfg.getHost());
+
+        GATWorkerNode node = new GATWorkerNode((GATConfiguration) config);
         return node;
     }
 
+    /**
+     * Adds the transfer context preferences to the Adaptor.
+     * 
+     * @param name Context name.
+     * @param value Context value.
+     */
     public static void addTransferContextPreferences(String name, String value) {
         transferContext.addPreference(name, value);
     }
 
+    /**
+     * Returns the pending operations of the adaptor.
+     */
     public LinkedList<DataOperation> getPending() {
         LinkedList<DataOperation> l = new LinkedList<>();
 
@@ -179,7 +192,7 @@ public class GATAdaptor implements CommAdaptor {
             pool.stopThreads();
             safePool.stopThreads();
         } catch (Exception e) {
-            logger.error(POOL_ERR, e);
+            LOGGER.error(POOL_ERR, e);
         }
 
         GAT.end();
@@ -204,7 +217,7 @@ public class GATAdaptor implements CommAdaptor {
         try {
             uri.setInternalURI(ID, new org.gridlab.gat.URI(s));
         } catch (URISyntaxException e) {
-            logger.error("Exception", e);
+            LOGGER.error("Exception", e);
         }
     }
 

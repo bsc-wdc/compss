@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import java.util.List;
@@ -32,7 +32,7 @@ import java.util.List;
 public class CollectionParameter extends DependencyParameter {
 
     /**
-     * Serializable objects Version UID are 1L in all Runtime
+     * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
@@ -56,8 +56,9 @@ public class CollectionParameter extends DependencyParameter {
      * @see es.bsc.compss.api.impl.COMPSsRuntimeImpl
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
-    public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction, Stream stream,
-            String prefix, String name) {
+    public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction,
+            StdIOStream stream, String prefix, String name) {
+
         // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses
         super(DataType.COLLECTION_T, direction, stream, prefix, name);
@@ -66,33 +67,28 @@ public class CollectionParameter extends DependencyParameter {
     }
 
     /**
-     * Get the identifier of the collection
+     * Get the identifier of the collection.
      * 
-     * @return String
+     * @return The collection identifier.
      */
     public String getCollectionId() {
-        return collectionId;
+        return this.collectionId;
     }
 
     /**
-     * Set the identifier of the collection
+     * Set the identifier of the collection.
      * 
-     * @param collectionId String
+     * @param collectionId The collection Id.
      */
     public void setCollectionId(String collectionId) {
         this.collectionId = collectionId;
     }
 
-    /**
-     * Representable print format of the collection
-     * 
-     * @return String
-     */
     @Override
     public String toString() {
         // Stringbuilder adds less overhead when creating a string
         StringBuilder sb = new StringBuilder();
-        sb.append("Collection ").append(collectionId).append("\n");
+        sb.append("CollectionParameter ").append(this.collectionId).append("\n");
         sb.append("Name: ").append(getName()).append("\n");
         sb.append("Contents:\n");
         for (Parameter s : parameters) {
@@ -102,14 +98,18 @@ public class CollectionParameter extends DependencyParameter {
     }
 
     /**
-     * @return List of Parameter
+     * Returns the collection parameters.
+     * 
+     * @return List of the internal parameters of the collection.
      */
     public List<Parameter> getParameters() {
-        return parameters;
+        return this.parameters;
     }
 
     /**
-     * @param parameters List of Parameter
+     * Sets the internal parameters of the collection.
+     * 
+     * @param parameters New internal parameters of the collection.
      */
     public void setParameters(List<Parameter> parameters) {
         this.parameters = parameters;

@@ -16,16 +16,17 @@
  */
 package es.bsc.compss.nio;
 
+import static java.lang.Math.abs;
+
+import es.bsc.cepbatools.extrae.Wrapper;
+
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.StreamGobbler;
-import es.bsc.cepbatools.extrae.Wrapper;
+import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.io.IOException;
-
-import static java.lang.Math.abs;
 
 
 public class NIOTracer extends Tracer {
@@ -42,9 +43,9 @@ public class NIOTracer extends Tracer {
 
 
     /**
-     * Initializes the tracing level
+     * Initializes the tracing at the given level.
      * 
-     * @param level
+     * @param level Tracing level.
      */
     public static void init(int level) {
         LOGGER.debug("Initializing NIO tracing level [" + level + "]");
@@ -52,12 +53,12 @@ public class NIOTracer extends Tracer {
     }
 
     /**
-     * Initializes the tracing structures
+     * Initializes the tracing structures.
      * 
-     * @param scriptDir
-     * @param nodeName
-     * @param workingDir
-     * @param hostID
+     * @param scriptDir COMPSs scripts directory.
+     * @param nodeName Node name.
+     * @param workingDir Node working directory.
+     * @param hostID Tracing host Id.
      */
     public static void setWorkerInfo(String scriptDir, String nodeName, String workingDir, int hostID) {
         NIOTracer.scriptDir = scriptDir;
@@ -79,12 +80,12 @@ public class NIOTracer extends Tracer {
     }
 
     /**
-     * Starts the tracing system
+     * Starts the tracing system at a given worker.
      * 
-     * @param workerName
-     * @param workerUser
-     * @param workerHost
-     * @param numThreads
+     * @param workerName Worker name.
+     * @param workerUser User to connect to the worker.
+     * @param workerHost Worker host name.
+     * @param numThreads Worker number of threads.
      */
     public static void startTracing(String workerName, String workerUser, String workerHost, Integer numThreads) {
         if (numThreads <= 0) {
@@ -103,18 +104,18 @@ public class NIOTracer extends Tracer {
     }
 
     /**
-     * Returns the host ID
+     * Returns the host Id.
      * 
-     * @return
+     * @return The host Id.
      */
     public static String getHostID() {
         return hostID;
     }
 
     /**
-     * Emits a new data transfer event
+     * Emits a new data transfer event for the given data.
      * 
-     * @param data
+     * @param data Data code to emit the event.
      */
     public static void emitDataTransferEvent(String data) {
         boolean dataTransfer = !(data.startsWith("worker")) && !(data.startsWith("tracing"));
@@ -132,23 +133,23 @@ public class NIOTracer extends Tracer {
     }
 
     /**
-     * Emits a new communication event
+     * Emits a new communication event.
      * 
-     * @param send
-     * @param partnerID
-     * @param tag
+     * @param send Whether it is a send event or not.
+     * @param partnerID Transfer partner Id.
+     * @param tag Transfer tag.
      */
     public static void emitCommEvent(boolean send, int partnerID, int tag) {
         emitCommEvent(send, partnerID, tag, 0);
     }
 
     /**
-     * Emits a new communication event
+     * Emits a new communication event.
      * 
-     * @param send
-     * @param partnerID
-     * @param tag
-     * @param size
+     * @param send Whether it is a send event or not.
+     * @param partnerID Transfer partner Id.
+     * @param tag Transfer tag.
+     * @param size Transfer size.
      */
     public static void emitCommEvent(boolean send, int partnerID, int tag, long size) {
         synchronized (Tracer.class) {
@@ -162,7 +163,7 @@ public class NIOTracer extends Tracer {
     }
 
     /**
-     * Generates the tracing package on the worker side
+     * Generates the tracing package on the worker side.
      */
     public static void generatePackage() {
         String mode = "package";
@@ -205,8 +206,8 @@ public class NIOTracer extends Tracer {
 
         // Generate package
         if (DEBUG) {
-            LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " " + mode
-                    + " " + workingDir + " " + nodeName + " " + hostID);
+            LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " " + mode + " "
+                    + workingDir + " " + nodeName + " " + hostID);
         }
 
         ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, mode, workingDir, nodeName, hostID);

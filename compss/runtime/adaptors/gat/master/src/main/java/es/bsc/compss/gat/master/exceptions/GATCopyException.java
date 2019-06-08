@@ -20,29 +20,29 @@ import es.bsc.compss.exceptions.CopyException;
 
 
 /**
- * Exception for GAT Copies
+ * Exception for GAT Copies.
  */
 public class GATCopyException extends CopyException {
 
     /**
-     * Exception Version UID are 2L in all Runtime
+     * Exception Version UID are 2L in all Runtime.
      */
     private static final long serialVersionUID = 2L;
 
 
     /**
-     * Creates a new nested Exception @e
+     * Creates a new nested Exception {@code e}.
      * 
-     * @param e
+     * @param e Nested exception.
      */
     public GATCopyException(Exception e) {
         super(e);
     }
 
     /**
-     * Creates a new Exception with a given message @msg
+     * Creates a new Exception with a given message {@code msg}.
      * 
-     * @param msg
+     * @param msg Exception message.
      */
     public GATCopyException(String msg) {
         super(msg);

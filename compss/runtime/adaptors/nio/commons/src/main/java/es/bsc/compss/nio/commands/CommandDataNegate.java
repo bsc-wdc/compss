@@ -16,13 +16,15 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
+import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.compss.nio.NIOAgent;
-import es.bsc.comm.Connection;
 
 
 public class CommandDataNegate extends Command implements Externalizable {
@@ -33,8 +35,22 @@ public class CommandDataNegate extends Command implements Externalizable {
     private boolean hosted;
 
 
-    public CommandDataNegate(NIOAgent ng, NIOData d, boolean hosted) {
-        super(ng);
+    /**
+     * Creates a new CommandDataNegate for externalization.
+     */
+    public CommandDataNegate() {
+        super();
+    }
+
+    /**
+     * Creates a new CommandDataNegate instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param d Data to negate.
+     * @param hosted Whether it is hosted or not.
+     */
+    public CommandDataNegate(NIOAgent agent, NIOData d, boolean hosted) {
+        super(agent);
         this.d = d;
         this.hosted = hosted;
     }
@@ -50,20 +66,20 @@ public class CommandDataNegate extends Command implements Externalizable {
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        d = (NIOData) in.readObject();
-        hosted = in.readBoolean();
+        this.d = (NIOData) in.readObject();
+        this.hosted = in.readBoolean();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(d);
-        out.writeBoolean(hosted);
+        out.writeObject(this.d);
+        out.writeBoolean(this.hosted);
     }
 
     @Override
     public String toString() {
-        return "Data " + d + " can't be send"
-                + (hosted ? ", although it is in the node" : " since the node does not have it");
+        return "Data " + this.d + " can't be send"
+                + (this.hosted ? ", although it is in the node" : " since the node does not have it");
     }
 
 }

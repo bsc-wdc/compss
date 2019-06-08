@@ -48,6 +48,7 @@ public class CustomLoader extends URLClassLoader {
      *
      * @see java.lang.ClassLoader#loadClass(java.lang.String)
      */
+    @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         // Have we already loaded this class?
         Class<?> c = findLoadedClass(name);

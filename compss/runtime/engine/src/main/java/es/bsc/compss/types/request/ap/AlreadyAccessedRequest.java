@@ -27,42 +27,53 @@ import java.util.concurrent.Semaphore;
 public class AlreadyAccessedRequest extends APRequest {
 
     private final DataLocation loc;
-
-    private Semaphore sem;
-
+    private final Semaphore sem;
     private boolean response;
 
 
+    /**
+     * Creates a new request for already accessed data.
+     * 
+     * @param loc Data location
+     * @param sem Waiting semaphore.
+     */
     public AlreadyAccessedRequest(DataLocation loc, Semaphore sem) {
         this.loc = loc;
         this.sem = sem;
     }
 
+    /**
+     * Returns the data location.
+     * 
+     * @return The data location.
+     */
     public DataLocation getLocation() {
-        return loc;
+        return this.loc;
     }
 
+    /**
+     * Returns the associated waiting semaphore.
+     * 
+     * @return The associated waiting semaphore.
+     */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
+    /**
+     * Returns the response message.
+     * 
+     * @return {@code true} if the location has been accessed, {@code false} otherwise.
+     */
     public boolean getResponse() {
-        return response;
-    }
-
-    public void setResponse(boolean response) {
-        this.response = response;
+        return this.response;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         boolean aa = dip.alreadyAccessed(this.loc);
         this.response = aa;
-        sem.release();
+        this.sem.release();
     }
 
     @Override

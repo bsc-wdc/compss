@@ -21,8 +21,8 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.util.CEIParser;
 import es.bsc.compss.util.ResourceManager;
 
-import java.util.concurrent.Semaphore;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 
 public class UpdateLocalCEIRequest extends TDRequest {
@@ -31,27 +31,33 @@ public class UpdateLocalCEIRequest extends TDRequest {
     private final Semaphore sem;
 
 
+    /**
+     * Creates a new request to update the local CoreElement Interface class.
+     * 
+     * @param ceiClass CoreElement Interface class to update.
+     * @param sem Waiting semaphore.
+     */
     public UpdateLocalCEIRequest(Class<?> ceiClass, Semaphore sem) {
         this.ceiClass = ceiClass;
         this.sem = sem;
     }
 
     /**
-     * Returns the CoreElement Interface class
+     * Returns the CoreElement Interface class.
      *
-     * @return
+     * @return The coreElement Interface class.
      */
     public Class<?> getCeiClass() {
         return this.ceiClass;
     }
 
     /**
-     * Returns the semaphore where to synchronize until the operation is done
+     * Returns the semaphore where to synchronize until the operation is done.
      *
-     * @return Semaphore where to synchronize until the operation is done
+     * @return Semaphore where to synchronize until the operation is done.
      */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
     @Override
@@ -70,7 +76,7 @@ public class UpdateLocalCEIRequest extends TDRequest {
 
         // Release
         LOGGER.debug("Data structures resized and CE-resources links updated");
-        sem.release();
+        this.sem.release();
     }
 
     @Override

@@ -16,13 +16,15 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
+import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOParam;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import es.bsc.comm.Connection;
-import es.bsc.compss.nio.NIOParam;
 
 
 public class CommandDataFetch extends Command implements Externalizable {
@@ -30,12 +32,23 @@ public class CommandDataFetch extends Command implements Externalizable {
     private NIOParam param;
     private int transferId;
 
+
+    /**
+     * Creates a new CommandDataFetch for externalization.
+     */
     public CommandDataFetch() {
         super();
     }
 
-    public CommandDataFetch(NIOParam p, int transferId) {
-        super();
+    /**
+     * Creates a new CommandDataFetch instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param p Parameter to fetch.
+     * @param transferId Transfer Id.
+     */
+    public CommandDataFetch(NIOAgent agent, NIOParam p, int transferId) {
+        super(agent);
         this.param = p;
     }
 
@@ -46,11 +59,10 @@ public class CommandDataFetch extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.receivedNewDataFetchOrder(param, transferId);
+        this.agent.receivedNewDataFetchOrder(this.param, this.transferId);
         c.finishConnection();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.param = (NIOParam) in.readObject();
@@ -59,13 +71,13 @@ public class CommandDataFetch extends Command implements Externalizable {
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(param);
-        out.writeInt(transferId);
+        out.writeObject(this.param);
+        out.writeInt(this.transferId);
     }
 
     @Override
     public String toString() {
-        return "Data Fetch " + param;
+        return "Data Fetch " + this.param;
     }
 
 }

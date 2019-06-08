@@ -17,7 +17,7 @@
 package es.bsc.compss.invokers.external;
 
 import es.bsc.compss.executor.external.commands.ExecuteTaskExternalCommand;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -49,7 +49,10 @@ public abstract class ExternalInvoker extends Invoker {
 
     protected final ExecuteTaskExternalCommand command;
 
-    /** External Invoker constructor.
+
+    /**
+     * External Invoker constructor.
+     * 
      * @param context Task execution context
      * @param invocation Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
@@ -170,13 +173,12 @@ public abstract class ExternalInvoker extends Invoker {
 
         DataType type = np.getType();
         paramArgs.add(Integer.toString(type.ordinal()));
-        paramArgs.add(Integer.toString(np.getStream().ordinal()));
+        paramArgs.add(Integer.toString(np.getStdIOStream().ordinal()));
         paramArgs.add(np.getPrefix());
         paramArgs.add(np.getName());
         switch (type) {
             case FILE_T:
                 // Passing originalName link instead of renamed file
-
                 String originalFile = np.getOriginalName();
                 String destFile = new File(np.getRenamedName()).getName();
                 if (!isRuntimeRenamed(destFile)) {
@@ -189,6 +191,8 @@ public abstract class ExternalInvoker extends Invoker {
                 break;
             case OBJECT_T:
             case PSCO_T:
+            case STREAM_T:
+            case EXTERNAL_STREAM_T:
             case EXTERNAL_PSCO_T:
                 paramArgs.add(np.getValue().toString());
                 paramArgs.add(np.isWriteFinalValue() ? "W" : "R");

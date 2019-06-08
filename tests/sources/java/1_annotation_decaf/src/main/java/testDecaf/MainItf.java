@@ -3,7 +3,7 @@ package testDecaf;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Decaf;
 
@@ -15,7 +15,7 @@ public interface MainItf {
 	int taskSingleDecaf(
 		@Parameter()String arg1,
 		@Parameter()int arg2,
-		@Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
+		@Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut
 	);
 	
 	@Decaf(dfScript = "$PWD/decaf/test.py", dfExecutor="test.sh", mpiRunner = "mpirun", computingNodes = "2")
@@ -23,7 +23,7 @@ public interface MainItf {
     	Integer taskMultipleDecaf(
     		@Parameter()String arg1,
     		@Parameter()int arg2,
-        	@Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
+        	@Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut
     	);
 	
 	@Decaf(dfScript = "$PWD/decaf/test.py", dfExecutor="test.sh", mpiRunner = "mpirun", computingNodes = "2")
@@ -31,7 +31,7 @@ public interface MainItf {
 	Integer taskConcurrentMultipleDecaf(
 		@Parameter()String arg1,
 		@Parameter()int arg2,
-	    @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
+	    @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String fileOut
 	);
 	
 }

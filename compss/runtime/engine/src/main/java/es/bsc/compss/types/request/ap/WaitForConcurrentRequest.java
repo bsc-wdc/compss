@@ -16,24 +16,33 @@
  */
 package es.bsc.compss.types.request.ap;
 
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+
+import java.util.concurrent.Semaphore;
 
 
 public class WaitForConcurrentRequest extends APRequest {
 
-    private int dataId;
-    private Semaphore sem;
-    private Semaphore semTask;
-    private int numWaits;
+    private final int dataId;
+    private final Semaphore sem;
+    private final Semaphore semTask;
     private final AccessMode am;
 
+    private int numWaits;
 
+
+    /**
+     * Creates a new request to wait for a concurrent data.
+     * 
+     * @param dataId Data Id.
+     * @param mode Access mode.
+     * @param sem Waiting semaphore.
+     * @param semTasks Tasks semaphore.
+     */
     public WaitForConcurrentRequest(int dataId, AccessMode mode, Semaphore sem, Semaphore semTasks) {
         this.dataId = dataId;
         this.sem = sem;
@@ -41,12 +50,58 @@ public class WaitForConcurrentRequest extends APRequest {
         this.am = mode;
     }
 
+    /**
+     * Returns the waiting semaphore.
+     * 
+     * @return The waiting semaphore.
+     */
+    public Semaphore getSemaphore() {
+        return this.sem;
+    }
+
+    /**
+     * Returns the associated data Id.
+     * 
+     * @return The associated data Id.
+     */
     public int getDataId() {
         return this.dataId;
     }
 
-    public void setDataId(int dataId) {
-        this.dataId = dataId;
+    /**
+     * Returns the tasks semaphore.
+     * 
+     * @return The tasks semaphore.
+     */
+    public Semaphore getTaskSemaphore() {
+        return this.semTask;
+    }
+
+    /**
+     * Returns the concurrent access mode.
+     * 
+     * @return The concurrent access mode.
+     */
+    public AccessMode getAccessMode() {
+        return this.am;
+    }
+
+    /**
+     * Returns the number of tasks waiting for the request.
+     * 
+     * @return The number of tasks waiting for the request.
+     */
+    public int getNumWaitedTasks() {
+        return this.numWaits;
+    }
+
+    /**
+     * Sets a new number of tasks waiting for the request.
+     * 
+     * @param n Number of tasks waiting for the request.
+     */
+    public void setNumWaitedTasks(int n) {
+        this.numWaits = n;
     }
 
     @Override
@@ -57,26 +112,6 @@ public class WaitForConcurrentRequest extends APRequest {
     @Override
     public APRequestType getRequestType() {
         return APRequestType.WAIT_FOR_CONCURRENT;
-    }
-
-    public int getNumWaitedTasks() {
-        return this.numWaits;
-    }
-
-    public void setNumWaitedTasks(int n) {
-        this.numWaits = n;
-    }
-
-    public Semaphore getSemaphore() {
-        return this.sem;
-    }
-
-    public Semaphore getTaskSemaphore() {
-        return this.semTask;
-    }
-
-    public AccessMode getAccessMode() {
-        return this.am;
     }
 
 }

@@ -35,18 +35,18 @@ public class AnnounceException extends Exception {
     }
 
     /**
-     * New nested @e Announce Exception.
+     * New nested {@code e} Announce Exception.
      * 
-     * @param e Exception
+     * @param e Exception.
      */
     public AnnounceException(Exception e) {
         super(e);
     }
 
     /**
-     * New Announce Exception with message @msg.
+     * New Announce Exception with message {@code msg}.
      * 
-     * @param msg Exception message
+     * @param msg Exception message.
      */
     public AnnounceException(String msg) {
         super(msg);

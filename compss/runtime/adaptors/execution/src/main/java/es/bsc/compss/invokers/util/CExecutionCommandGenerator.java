@@ -17,7 +17,7 @@
 package es.bsc.compss.invokers.util;
 
 import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -42,7 +42,9 @@ public class CExecutionCommandGenerator {
     private static final String QUOTES = "\"";
 
 
-    /** Generate task execution command.
+    /**
+     * Generate task execution command.
+     * 
      * @param context Task execution context
      * @param invocation Task execution description
      * @param sandBox Execution sandbox
@@ -71,7 +73,7 @@ public class CExecutionCommandGenerator {
         cudaVisible.append("CUDA_VISIBLE_DEVICES=").append(QUOTES);
         openCLVisible.append("GPU_DEVICE_ORDINAL=").append(QUOTES);
         int[] assignedGPUs = assignedResources.getAssignedGPUs();
-        int[] assignedFPGAs = assignedResources.getAssignedFPGAs();                
+        int[] assignedFPGAs = assignedResources.getAssignedFPGAs();
         if (assignedGPUs.length > 0) {
             reqs.append("#--gpu-warmup=no");
             for (int i = 0; i < (assignedGPUs.length - 1); i++) {
@@ -110,19 +112,21 @@ public class CExecutionCommandGenerator {
             }
             taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
         }
-        
+
         ArrayList<String> lArgs = new ArrayList<>();
         lArgs.add(cudaVisible.toString() + ";" + openCLVisible.toString() + ";" + reqs.toString() + " "
                 + taskset.toString() + context.getAppDir() + WORKER_C_RELATIVE_PATH);
         return lArgs;
     }
 
-    /** Get execution environment.
+    /**
+     * Get execution environment.
+     * 
      * @param context Task execution context
      * @return Environment as key-value map
      */
     public static Map<String, String> getEnvironment(InvocationContext context) {
-        
+
         String ldLibraryPath = System.getenv(LIBRARY_PATH_ENV);
         CParams cParams = (CParams) context.getLanguageParams(Lang.C);
         if (ldLibraryPath == null) {
@@ -134,7 +138,7 @@ public class CExecutionCommandGenerator {
         // Add C and commons libs
         ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + C_LIB_RELATIVE_PATH);
         ldLibraryPath = ldLibraryPath.concat(":" + context.getInstallDir() + BINDINGS_RELATIVE_PATH);
-        
+
         Map<String, String> env = new HashMap<>();
         env.put(LIBRARY_PATH_ENV, ldLibraryPath);
         return env;

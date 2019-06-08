@@ -48,18 +48,27 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
+    /**
+     * Creates a new StartWorkerAction instance.
+     * 
+     * @param schedulingInformation Associated scheduling information.
+     * @param worker Associated worker ResourceScheduler.
+     * @param ts Associated Task Scheduler
+     */
     public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
             TaskScheduler ts) {
+
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         switch (worker.getResource().getType()) {
             case WORKER:
             case MASTER:
                 Worker<T> mw = worker.getResource();
-                impl = new MethodImplementation("", "", null, null, (MethodResourceDescription) mw.getDescription());
+                this.impl = new MethodImplementation("", "", null, null,
+                        (MethodResourceDescription) mw.getDescription());
                 break;
             default:
-                impl = new ServiceImplementation(null, "", "", "", "");
+                this.impl = new ServiceImplementation(null, "", "", "", "");
         }
     }
 
@@ -117,7 +126,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     @Override
     protected void doCompleted() {
         // Notify worker available
-        LOGGER.info("Worker " + worker.getName() + " is ready to execute tasks.");
+        LOGGER.info("Worker " + this.worker.getName() + " is ready to execute tasks.");
     }
 
     @Override
@@ -128,7 +137,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     @Override
     protected void doFailed() {
         // Notify worker available
-        LOGGER.info("Worker " + worker.getName() + " could not be started.");
+        LOGGER.info("Worker " + this.worker.getName() + " could not be started.");
         // Worker<T, I> wNode = this.worker.getResource();
 
         // Remove from the pool
@@ -170,7 +179,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public Implementation[] getImplementations() {
-        Implementation[] impls = new Implementation[]{impl};
+        Implementation[] impls = new Implementation[] { this.impl };
         return impls;
     }
 

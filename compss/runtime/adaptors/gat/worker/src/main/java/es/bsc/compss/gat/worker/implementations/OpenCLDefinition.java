@@ -30,8 +30,16 @@ public class OpenCLDefinition extends ImplementationDefinition {
     private final OpenCLImplementation impl;
 
 
+    /**
+     * Creates a new OpenCL definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
     public OpenCLDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + OpenCLImplementation.NUM_PARAMS);
+        
         this.kernel = args[execArgsIdx];
 
         this.impl = new OpenCLImplementation(this.kernel, "", null, null, null);

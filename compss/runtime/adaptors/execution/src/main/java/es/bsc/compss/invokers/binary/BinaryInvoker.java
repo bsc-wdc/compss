@@ -17,9 +17,11 @@
 package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.exceptions.StreamCloseException;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
+import es.bsc.compss.invokers.util.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -39,12 +41,14 @@ public class BinaryInvoker extends Invoker {
     private final String binary;
 
 
-    /** Binary Invoker constructor.
-     * @param context Task execution context
-     * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources Assigned resources
-     * @throws JobExecutionException Error creating the binary invoker
+    /**
+     * Binary Invoker constructor.
+     * 
+     * @param context Task execution context.
+     * @param invocation Task execution description.
+     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param assignedResources Assigned resources.
+     * @throws JobExecutionException Error creating the binary invoker.
      */
     public BinaryInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
@@ -65,6 +69,8 @@ public class BinaryInvoker extends Invoker {
     @Override
     public void invokeMethod() throws JobExecutionException {
         LOGGER.info("Invoked " + this.binary + " in " + this.context.getHostName());
+
+        // Execute binary
         Object retValue;
         try {
             retValue = runInvocation();
@@ -72,6 +78,16 @@ public class BinaryInvoker extends Invoker {
             LOGGER.error("Exception running binary", iee);
             throw new JobExecutionException(iee);
         }
+
+        // Close out streams if any
+        try {
+            BinaryRunner.closeStreams(this.invocation.getParams(), this.jythonPycompssHome);
+        } catch (StreamCloseException se) {
+            LOGGER.error("Exception closing binary streams", se);
+            throw new JobExecutionException(se);
+        }
+
+        // Update binary results
         for (InvocationParam np : this.invocation.getResults()) {
             if (np.getType() == DataType.FILE_T) {
                 serializeBinaryExitValue(np, retValue);
@@ -86,9 +102,9 @@ public class BinaryInvoker extends Invoker {
         // Command similar to
         // ./exec args
         // Convert binary parameters and calculate binary-streams redirection
-        BinaryRunner.StreamSTD streamValues = new BinaryRunner.StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
-                invocation.getTarget(), streamValues);
+        StdIOStream streamValues = new StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+                this.invocation.getTarget(), streamValues, this.jythonPycompssHome);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
@@ -113,8 +129,8 @@ public class BinaryInvoker extends Invoker {
             outLog.println("[BINARY INVOKER] Binary STDERR: " + streamValues.getStdErr());
         }
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(),
-                context.getThreadErrStream());
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+                this.context.getThreadErrStream());
     }
 
 }

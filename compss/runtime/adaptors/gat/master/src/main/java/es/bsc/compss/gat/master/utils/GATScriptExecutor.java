@@ -16,18 +16,19 @@
  */
 package es.bsc.compss.gat.master.utils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.List;
-
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.GATWorkerNode;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.util.RequestDispatcher;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,70 +47,65 @@ import org.gridlab.gat.resources.SoftwareDescription;
  */
 public class GATScriptExecutor {
 
-    /**
-     * Constants
-     */
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+
     private static final String THREAD_POOL_START_ERR = "Error starting pool of threads";
     private static final String THREAD_POOL_STOP_ERR = "Error stopping pool of threads";
     private static final String CLEAN_JOB_ERR = "Error running clean job";
 
+    // Thread pool base name
     private static final String POOL_NAME = "Cleaner";
-    /**
-     * Amount of threads that will execute the cleaning scripts
-     */
+    // Amount of threads that will execute the cleaning scripts
     private static final int POOL_SIZE = 5;
-    /**
-     * Amount of host to be clean
-     */
+
+    private final GATWorkerNode node;
+    private final RequestQueue<Job> jobQueue;
+    private final RequestQueue<SoftwareDescription> sdQueue;
+    private final ThreadPool pool;
+
     private int jobCount;
-
-    private ThreadPool pool;
-
-    private GATWorkerNode node;
-
-    RequestQueue<Job> jobQueue;
-
-    RequestQueue<SoftwareDescription> sdQueue;
-
-    /**
-     * Logger
-     */
-    private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
-    private static final boolean debug = logger.isDebugEnabled();
 
 
     /**
      * Constructs a new cleaner and starts the cleaning process. A new GATContext is created and configured. Two
      * RequestQueues are created: sdQueue and jobQueue. The former contains the tasks that still have to be executed and
-     * the last keeps the notifications about their runs. With this 2 queues it constructs a new Cleaner Dispatcher
+     * the last keeps the notifications about their runs. With these 2 queues it constructs a new Cleaner Dispatcher
      * which is in charge of the remote executions, its threads take job descriptions from the input queue and leaves
-     * the results on the jobQueue. Once the method has added all the job descriptions, it waits for its response. If
-     * the task runs properly or there is an error during the submission process, it counts that job has done. If it
-     * ended due to another reason, the task is resubmitted. Once all the scripts have been executed, the pool of
-     * threads is destroyed. There's a timeout of 1 minute. if the task don't end during this time, the thread pool is
-     * destroyed as well.
+     * the results on the jobQueue.
      *
-     * @param cleanScripts list of locations where to find all the cleaning scripts that must be executed
-     * @param cleanParams list with the input parameters that each script will run with
+     * @param node Node where to run the cleaning scripts.
      */
-
     public GATScriptExecutor(GATWorkerNode node) {
-        sdQueue = new RequestQueue<>();
-        jobQueue = new RequestQueue<>();
-        pool = new ThreadPool(POOL_SIZE, POOL_NAME, new ScriptDispatcher(sdQueue, jobQueue, node));
         this.node = node;
+        this.jobQueue = new RequestQueue<>();
+        this.sdQueue = new RequestQueue<>();
+        this.pool = new ThreadPool(POOL_SIZE, POOL_NAME, new ScriptDispatcher(this.sdQueue, this.jobQueue, node));
     }
 
+    /**
+     * Executes the given list of cleaning scripts in the cleaner pool. Once the method has added all the job
+     * descriptions, it waits for its response. If the task runs properly or there is an error during the submission
+     * process, it counts that job has done. If it ended due to another reason, the task is resubmitted. Once all the
+     * scripts have been executed, the pool of threads is destroyed. There's a timeout of 1 minute. if the task don't
+     * end during this time, the thread pool is destroyed as well.
+     * 
+     * @param scripts List of locations where to find all the cleaning scripts that must be executed
+     * @param params List of input parameters that each script will run with.
+     * @param stdOutFileName Execution output.
+     * @return {@literal true} if all the scripts have been executed properly, {@literal false} otherwise.
+     */
     public boolean executeScript(List<URI> scripts, List<String> params, String stdOutFileName) {
         try {
-            pool.startThreads();
+            this.pool.startThreads();
         } catch (Exception e) {
-            logger.error(THREAD_POOL_START_ERR, e);
+            LOGGER.error(THREAD_POOL_START_ERR, e);
             return false;
         }
 
-        synchronized (jobQueue) {
-            jobCount = scripts.size();
+        synchronized (this.jobQueue) {
+            this.jobCount = scripts.size();
         }
 
         for (int i = 0; i < scripts.size(); i++) {
@@ -119,12 +115,12 @@ public class GATScriptExecutor {
                 continue;
             }
 
-            if (debug) {
-                logger.debug("Clean call: " + script + " " + cleanParam);
+            if (DEBUG) {
+                LOGGER.debug("Clean call: " + script + " " + cleanParam);
             }
 
             try {
-                if (!node.isUserNeeded() && script.getUserInfo() != null) { // Remove user from the URI
+                if (!this.node.isUserNeeded() && script.getUserInfo() != null) { // Remove user from the URI
                     script.setUserInfo(null);
                 }
                 String user = script.getUserInfo();
@@ -143,64 +139,66 @@ public class GATScriptExecutor {
                 sd.addAttribute(SoftwareDescription.SANDBOX_USEROOT, "true");
                 sd.addAttribute(SoftwareDescription.SANDBOX_DELETE, "false");
 
-                if (debug) {
+                if (DEBUG) {
                     try {
-                        org.gridlab.gat.io.File outFile = GAT.createFile(node.getContext(),
+                        org.gridlab.gat.io.File outFile = GAT.createFile(this.node.getContext(),
                                 Protocol.ANY_URI.getSchema() + File.separator
                                         + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
                                         + stdOutFileName + ".out");
                         sd.setStdout(outFile);
-                        org.gridlab.gat.io.File errFile = GAT.createFile(node.getContext(),
+                        org.gridlab.gat.io.File errFile = GAT.createFile(this.node.getContext(),
                                 Protocol.ANY_URI.getSchema() + File.separator
                                         + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
                                         + stdOutFileName + ".err");
                         sd.setStderr(errFile);
                     } catch (Exception e) {
-                        logger.error(CLEAN_JOB_ERR, e);
+                        LOGGER.error(CLEAN_JOB_ERR, e);
                     }
                 }
 
-                sdQueue.enqueue(sd);
+                this.sdQueue.enqueue(sd);
             } catch (Exception e) {
-                logger.error(CLEAN_JOB_ERR, e);
+                LOGGER.error(CLEAN_JOB_ERR, e);
                 return false;
             }
         }
-        Long timeout = System.currentTimeMillis() + 60_000l;
+
         // Poll for completion of the clean jobs
-        while (jobCount > 0 && System.currentTimeMillis() < timeout) {
-            Job job = jobQueue.dequeue();
+        Long timeout = System.currentTimeMillis() + 60_000L;
+        while (this.jobCount > 0 && System.currentTimeMillis() < timeout) {
+            Job job = this.jobQueue.dequeue();
             if (job == null) {
-                synchronized (jobQueue) {
-                    jobCount--;
+                synchronized (this.jobQueue) {
+                    this.jobCount--;
                 }
             } else if (job.getState() == JobState.STOPPED) {
-                synchronized (jobQueue) {
-                    jobCount--;
+                synchronized (this.jobQueue) {
+                    this.jobCount--;
                 }
             } else if (job.getState() == JobState.SUBMISSION_ERROR) {
-                logger.error(CLEAN_JOB_ERR + ": " + job);
-                synchronized (jobQueue) {
-                    jobCount--;
+                LOGGER.error(CLEAN_JOB_ERR + ": " + job);
+                synchronized (this.jobQueue) {
+                    this.jobCount--;
                 }
             } else {
-                jobQueue.enqueue(job);
+                this.jobQueue.enqueue(job);
                 try {
                     Thread.sleep(50);
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
         }
 
         try {
-            pool.stopThreads();
+            this.pool.stopThreads();
         } catch (Exception e) {
-            logger.error(THREAD_POOL_STOP_ERR, e);
+            LOGGER.error(THREAD_POOL_STOP_ERR, e);
             return false;
         }
 
         // Move cleanX.out logs to default logger
-        if (debug) {
+        if (DEBUG) {
             String stdOutFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
                     + ".out";
 
@@ -209,38 +207,37 @@ public class GATScriptExecutor {
 
                 String line = br.readLine();
                 while (line != null) {
-                    logger.debug(line);
+                    LOGGER.debug(line);
                     line = br.readLine();
                 }
-            } catch (Exception e) {
-                logger.error("Error moving std out file", e);
+            } catch (IOException ioe) {
+                LOGGER.error("Error moving std out file", ioe);
             }
 
             // Delete file
             if (!new File(stdOutFilePath).delete()) {
-                logger.error("Error deleting out file " + stdOutFilePath);
+                LOGGER.error("Error deleting out file " + stdOutFilePath);
             }
         }
 
         // Move cleanX.err logs to default logger
-        if (debug) {
+        if (DEBUG) {
             String stdErrFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
                     + ".err";
 
             try (FileReader cleanErr = new FileReader(stdErrFilePath);
                     BufferedReader br = new BufferedReader(cleanErr)) {
-
                 String line = br.readLine();
                 while (line != null) {
-                    logger.error(line);
+                    LOGGER.error(line);
                     line = br.readLine();
                 }
-            } catch (Exception e) {
-                logger.error("Error moving std err file", e);
+            } catch (IOException ioe) {
+                LOGGER.error("Error moving std err file", ioe);
             }
 
             if (!new File(stdErrFilePath).delete()) {
-                logger.error("Error deleting err file " + stdErrFilePath);
+                LOGGER.error("Error deleting err file " + stdErrFilePath);
             }
         }
         return true;
@@ -248,39 +245,37 @@ public class GATScriptExecutor {
 
 
     /**
-     * The CleanDispatcherClass represents a pool of threads that will run the cleaning scripts
+     * The CleanDispatcherClass represents a pool of threads that will run the cleaning scripts.
      */
-    class ScriptDispatcher extends RequestDispatcher<SoftwareDescription> {
+    private class ScriptDispatcher extends RequestDispatcher<SoftwareDescription> {
 
-        /**
-         * All the GAT jobs that have already been submitted
-         */
+        // All the GAT jobs that have already been submitted
         private RequestQueue<Job> jobQueue;
         private GATWorkerNode node;
 
 
         /**
-         * Constructs a new CleanDispatcher
+         * Constructs a new CleanDispatcher.
          *
-         * @param sdQueue list of the task to be executed
-         * @param jobQueue list where all the already executed tasks will be left
+         * @param sdQueue List of the task to be executed.
+         * @param jobQueue List where all the already executed tasks will be left.
          */
         public ScriptDispatcher(RequestQueue<SoftwareDescription> sdQueue, RequestQueue<Job> jobQueue,
                 GATWorkerNode node) {
+
             super(sdQueue);
             this.jobQueue = jobQueue;
             this.node = node;
-
         }
 
         /**
-         * main function executed by the thread of the pool. They take a job description from the input queue and try to
-         * execute it. If the tasks ends properly the job is added to the jobqueue; if not, a null job is added to
+         * Main function executed by the thread of the pool. They take a job description from the input queue and try to
+         * execute it. If the tasks ends properly the job is added to the jobQueue; if not, a null job is added to
          * notify the error. The thread will stop once it dequeues a null task.
          */
         public void processRequests() {
             while (true) {
-                SoftwareDescription sd = queue.dequeue();
+                SoftwareDescription sd = this.queue.dequeue();
 
                 if (sd == null) {
                     break;
@@ -289,10 +284,10 @@ public class GATScriptExecutor {
                     URI brokerURI = new URI((String) sd.getObjectAttribute("uri"));
                     ResourceBroker broker = GAT.createResourceBroker(node.getContext(), brokerURI);
                     Job job = broker.submitJob(new JobDescription(sd));
-                    jobQueue.enqueue(job);
+                    this.jobQueue.enqueue(job);
                 } catch (Exception e) {
-                    logger.error("Error submitting clean job", e);
-                    jobQueue.enqueue((Job) null);
+                    LOGGER.error("Error submitting clean job", e);
+                    this.jobQueue.enqueue((Job) null);
                 }
             }
         }

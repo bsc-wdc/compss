@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
@@ -39,6 +39,7 @@ public class DependencyParameter extends Parameter implements Transferable {
     private Object dataSource;
     private String dataTarget; // Full path with PROTOCOL
 
+
     /**
      * Creates a new DependencyParameter instance from the given parameters.
      *
@@ -48,7 +49,7 @@ public class DependencyParameter extends Parameter implements Transferable {
      * @param prefix Parameter prefix.
      * @param name Parameter name.
      */
-    public DependencyParameter(DataType type, Direction direction, Stream stream, String prefix, String name) {
+    public DependencyParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name) {
         super(type, direction, stream, prefix, name);
     }
 
@@ -68,6 +69,15 @@ public class DependencyParameter extends Parameter implements Transferable {
      */
     public void setDataAccessId(DataAccessId daId) {
         this.daId = daId;
+    }
+
+    /**
+     * Returns the parameter's original name.
+     *
+     * @return The parameter's original name.
+     */
+    public String getOriginalName() {
+        return NO_NAME;
     }
 
     @Override
@@ -95,24 +105,15 @@ public class DependencyParameter extends Parameter implements Transferable {
         return "DependencyParameter";
     }
 
-    /**
-     * Returns the parameter's original name.
-     *
-     * @return The parameter's original name.
-     */
-    public String getOriginalName() {
-        return NO_NAME;
-    }
-
     @Override
     public boolean isSourcePreserved() {
         boolean preserveSourceData;
-        if (daId instanceof RAccessId) {
+        if (this.daId instanceof RAccessId) {
             // Parameter is a R, has sources
-            preserveSourceData = ((RAccessId) daId).isPreserveSourceData();
-        } else if (daId instanceof RWAccessId) {
+            preserveSourceData = ((RAccessId) this.daId).isPreserveSourceData();
+        } else if (this.daId instanceof RWAccessId) {
             // Parameter is a RW, has sources
-            preserveSourceData = ((RWAccessId) daId).isPreserveSourceData();
+            preserveSourceData = ((RWAccessId) this.daId).isPreserveSourceData();
         } else {
             // Parameter is a W, it has no sources
             preserveSourceData = false;

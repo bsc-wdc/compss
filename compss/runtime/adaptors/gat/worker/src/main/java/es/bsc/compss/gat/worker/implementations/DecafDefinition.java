@@ -35,8 +35,16 @@ public class DecafDefinition extends ImplementationDefinition {
     private final DecafImplementation impl;
 
 
+    /**
+     * Creates a new Decaf definition implementation.
+     * 
+     * @param debug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param execArgsIdx Index of the start of the execution arguments.
+     */
     public DecafDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + DecafImplementation.NUM_PARAMS);
+        
         this.dfScript = args[execArgsIdx++];
         this.dfExecutor = args[execArgsIdx++];
         this.dfLib = args[execArgsIdx++];

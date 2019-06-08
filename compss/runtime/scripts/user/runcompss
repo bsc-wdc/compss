@@ -1,8 +1,10 @@
 #!/bin/bash
 
+
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
+
 DEFAULT_LANGUAGE=java
 
 DEFAULT_SUMMARY=false
@@ -24,6 +26,12 @@ DEFAULT_TRACING_ARGUMENT=true #-3:arm-ddt, -2:arm-map, -1:scorep, 0:deactivated,
 DEFAULT_MONITORING_INTERVAL=0
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 
+DEFAULT_STORAGE_CONF="null"
+
+DEFAULT_STREAMING="null"
+BASE_STREAMING_PORT=49049
+STREAMING_PORT_RAND_RANGE=100
+
 DEFAULT_TASK_COUNT=50
 
 if [ -z "${PBS_O_WORKDIR}" ]; then
@@ -38,7 +46,6 @@ else
   DEFAULT_APPDIR=${PBS_O_WORKDIR}
 fi
 
-DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
 DEFAULT_PYTHON_INTERPRETER=python
 DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
@@ -76,16 +83,23 @@ DEFAULT_DEBUGGER_PORT=9999
 
 DEFAULT_PERSISTENT_WORKER_C=false
 DEFAULT_EXTERNAL_ADAPTATION=false
-APPLICATION_ERROR="Error: Application name not provided"
-LANGUAGE_ERROR="Value of option --lang must be: java, c or python"
-JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME."
-JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
+
+APPLICATION_ERROR="ERROR: Application name not provided"
+LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c or python"
+JAVA_HOME_ERROR="ERRROR: Cannot find Java JRE installation. Please set JAVA_HOME."
+JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
+TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
+TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
+STREAM_BACKEND_ERROR="ERROR: Cannot load stream backend. Invalid KAFKA_HOME location"
+ERROR_ZOOKEEPER_CONFIG="ERROR: Cannot create zookeeper configuration file"
+ERROR_KAFKA_CONFIG="ERROR: Cannot create kafka configuration file"
 RUNTIME_ERROR="Error running application"
-TMP_FILE_JVM_ERROR="Error: Can't create temporary file for JVM options."
-TRACING_ERROR="Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
+
+
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
+
 show_opts() {
   cat <<EOT
 
@@ -132,6 +146,9 @@ show_opts() {
                                             Supported connectors: es.bsc.compss.connectors.DefaultSSHConnector
                                                | es.bsc.compss.connectors.DefaultNoSSHConnector
                                             Default: ${DEFAULT_CONNECTOR}
+    --streaming=<type>                      Enable the streaming mode for the given type.
+                                            Supported types: FILES, OBJECTS, PSCOS, ALL, NONE
+                                            Default: ${DEFAULT_STREAMING}
     --scheduler=<className>                 Class that implements the Scheduler for COMPSs
                                             Supported schedulers: es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
                                                                   | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
@@ -351,6 +368,12 @@ check_env() {
     export PATH=${PLUTO_HOME}/bin:${PATH}
   fi
 
+  # Object stream environment
+  if [ -z "${KAFKA_HOME}" ]; then
+    KAFKA_HOME=${COMPSS_HOME}/Dependencies/kafka/
+    export KAFKA_HOME=${KAFKA_HOME}
+  fi
+
   # JAVA HOME
   if [[ -z "$JAVA_HOME" ]]; then
     JAVA=java
@@ -420,37 +443,40 @@ get_args() {
             show_recipe
             exit 0
             ;;
-	  project=*)
-	    # Custom project file
-	    projFile=${OPTARG//project=/}
-	    if [ ! -f "$projFile" ]; then
-	      echo "[ WARNING ]: Project XML file '$projFile' could not be found."
-	    fi
-	    ;;
-	  resources=*)
-	    # Custom resources file
-	    resFile=${OPTARG//resources=/}
-	    if [ ! -f "$resFile" ]; then
-	      echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
-	    fi
+	      project=*)
+	        # Custom project file
+	        projFile=${OPTARG//project=/}
+	        if [ ! -f "$projFile" ]; then
+	          echo "[ WARNING ]: Project XML file '$projFile' could not be found."
+	        fi
+	        ;;
+	      resources=*)
+	        # Custom resources file
+	        resFile=${OPTARG//resources=/}
+	        if [ ! -f "$resFile" ]; then
+	          echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
+	        fi
             ;;
           summary)
             summary=true
             ;;
-	  storage_conf=*)
+	      storage_conf=*)
             storageConf=${OPTARG//storage_conf=/}
             ;;
-    storage_impl=*)
+          storage_impl=*)
             storageImpl=${OPTARG//storage_impl=/}
             ;;
-	  task_execution=*)
-	    # Task execution under COMPSs or Storage
-	    taskExecution=${OPTARG//task_execution=/}
-	    ;;
-	  lang=*)
-	    # Language selection
-	    lang=${OPTARG//lang=/}
-	    ;;
+          streaming=*)
+            streaming=${OPTARG//streaming=/}
+            ;;
+	      task_execution=*)
+	        # Task execution under COMPSs or Storage
+	        taskExecution=${OPTARG//task_execution=/}
+	        ;;
+	      lang=*)
+	        # Language selection
+	        lang=${OPTARG//lang=/}
+	        ;;
           log_level=*)
             # Enable different log_levels by user selection
             log_level=${OPTARG//log_level=/}
@@ -459,14 +485,14 @@ get_args() {
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
-	  graph=*)
-	    # Graph generation at the end of the execution with user option
-	    graph=${OPTARG//graph=/}
-	    ;;
-	  graph)
-	    # Graph generation at the end of the execution by default arg
-	    graph=${DEFAULT_GRAPH_ARGUMENT}
-	    ;;
+	      graph=*)
+	        # Graph generation at the end of the execution with user option
+	        graph=${OPTARG//graph=/}
+	        ;;
+	      graph)
+	        # Graph generation at the end of the execution by default arg
+	        graph=${DEFAULT_GRAPH_ARGUMENT}
+	        ;;
           tracing=*)
             # Tracing system
             tracing=${OPTARG//tracing=/}
@@ -479,34 +505,34 @@ get_args() {
             # Custom extrae config file
             custom_extrae_config_file=${OPTARG//extrae_config_file=/}
             ;;
-	  monitoring=*)
-	    # Value between monitor steps (ms)
-	    monitoring=${OPTARG//monitoring=/}
-	    ;;
-	  monitoring)
-	    # Value between monitor steps (ms)
-	    monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
-	    ;;
-	  comm=*)
-	    # Communication adaptor main class
-	    comm=${OPTARG//comm=/}
-	    ;;
-	  conn=*)
-	    # Communication connector main class
-	    conn=${OPTARG//conn=/}
-	    ;;
+	      monitoring=*)
+	        # Value between monitor steps (ms)
+	        monitoring=${OPTARG//monitoring=/}
+	        ;;
+	      monitoring)
+	        # Value between monitor steps (ms)
+	        monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+	        ;;
+	      comm=*)
+	        # Communication adaptor main class
+	        comm=${OPTARG//comm=/}
+	        ;;
+	      conn=*)
+	        # Communication connector main class
+	        conn=${OPTARG//conn=/}
+	        ;;
           scheduler=*)
             # Scheduler main class
             scheduler=${OPTARG//scheduler=/}
             ;;
-	  classpath=*)
-	    # Additional classpath
-	    cp=${OPTARG//classpath=/}
-	    ;;
-	  library_path=*)
-	    # Additional library path
-	    library_path=${OPTARG//library_path=/}
-	    ;;
+	      classpath=*)
+	        # Additional classpath
+	        cp=${OPTARG//classpath=/}
+	        ;;
+	      library_path=*)
+	        # Additional library path
+	        library_path=${OPTARG//library_path=/}
+	        ;;
           jvm_master_opts=*)
             # Master JVM option
             jvm_master_opts=${OPTARG//jvm_master_opts=/}
@@ -549,7 +575,7 @@ get_args() {
             # Set a custom specific log dir
             specific_log_dir=${OPTARG//specific_log_dir=/}
             ;;
-	  uuid=*)
+	      uuid=*)
             # Preset an Application UUID
             uuid=${OPTARG//uuid=/}
             ;;
@@ -609,16 +635,16 @@ get_args() {
             # Enable or disable the virtual environment propagation
             python_mpi_worker=${OPTARG//python_mpi_worker=/}
             ;;
-  	  *)
-	    # Flag didn't match any patern. Raise exception
-	    display_error "Bad argument: $OPTARG"
+  	      *)
+	        # Flag didn't match any patern. Raise exception
+	        display_error "Bad argument: $OPTARG"
+	        ;;
+	    esac
 	    ;;
-	esac
-	;;
       *)
-	# Flag didn't match any patern. End of COMPSs flags
-	break
-	;;
+	    # Flag didn't match any patern. End of COMPSs flags
+	    break
+	    ;;
     esac
   done
   # Shift COMPSs arguments
@@ -638,7 +664,6 @@ get_args() {
 
   # Parse application arguments
   application_args=$*
-
 }
 
 ###############################################
@@ -664,7 +689,7 @@ infer_language() {
     # Try to infer language by file command
     isPython=$(file "$fullAppPath" | grep "Python" | cat)
     isPythonCompiled=$(file "$fullAppPath" | grep "python" | cat)
-    isC=$(file "$fullAppPath" | egrep "executable|ELF" | cat)
+    isC=$(file "$fullAppPath" | grep -E "executable|ELF" | cat)
     if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
       echo "[  INFO] Inferred PYTHON language"
       lang=python
@@ -776,9 +801,30 @@ check_args() {
     fi
   fi
 
+  # MASTER
+  if [ -z "${master_name}" ]; then
+    master_name=${DEFAULT_MASTER_NAME}
+  fi
+
   # Storage configuration
   if [ -z "$storageConf" ]; then
-    storageConf="null"
+    storageConf=${DEFAULT_STORAGE_CONF}
+  fi
+
+  # Streaming
+  if [ -z "${streaming}" ]; then
+    streaming=${DEFAULT_STREAMING}
+  fi
+  if [ "${streaming}" != "null" ] && [ "${streaming}" != "NONE" ]; then
+    if [ -z "${master_name}" ]; then
+      streaming_master_name="null"
+    else
+      streaming_master_name=${master_name}
+    fi
+    streaming_master_port=$((BASE_STREAMING_PORT + RANDOM % STREAMING_PORT_RAND_RANGE))
+  else
+    streaming_master_name="null"
+    streaming_master_port="null"
   fi
 
   # Master log level
@@ -854,11 +900,6 @@ check_args() {
     if [ -z "$uuid" ]; then
       uuid=$(cat /proc/sys/kernel/random/uuid)
     fi
-  fi
-
-  # MASTER
-  if [ -z "${master_name}" ]; then
-    master_name=${DEFAULT_MASTER_NAME}
   fi
 
   # JVM
@@ -970,8 +1011,41 @@ execute_runtime() {
   appName=$(basename "$fullAppPath")
   generate_jvm_opts_file
 
+  # Start streaming backend if required
+  if [ "${streaming}" == "OBJECTS" ] || [ "${streaming}" == "ALL" ]; then
+    echo ""
+    echo "[  INFO] Starting Streaming Backend"
+    if [ -d "${KAFKA_HOME}" ]; then
+      # Generate stream configuration files
+      generate_stream_config_files
+
+      # Clean classpath before starting daemons
+      backup_classpath=$CLASSPATH
+      export CLASSPATH=
+
+      # Start ZooKeeper and Kafka
+      export LOG_DIR="${zookeeper_log_dir}"
+      # echo "ZK: ${KAFKA_HOME}/bin/zookeeper-server-start.sh -daemon ${zookeeper_props_file}"
+      "${KAFKA_HOME}"/bin/zookeeper-server-start.sh -daemon "${zookeeper_props_file}"
+      export LOG_DIR="${kafka_log_dir}"
+      # echo "KAFKA: ${KAFKA_HOME}/bin/kafka-server-start.sh -daemon ${kafka_props_file}"
+      "${KAFKA_HOME}"/bin/kafka-server-start.sh -daemon "${kafka_props_file}"
+
+      # Wait for servers to setup
+      sleep 5s
+
+      # Restore classpath
+      export CLASSPATH=${backup_classpath}
+    else
+      error_msg "${STREAM_BACKEND_ERROR}"
+    fi
+    echo "[  INFO] Streaming Backend ready"
+  fi
+
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
+
+  # Launch application execution
   if [ $lang = java ]; then
     add_jvm_opts_java
     exec_java
@@ -982,8 +1056,48 @@ execute_runtime() {
     add_jvm_opts_python
     exec_python
   fi
+
+  # End
   echo
   echo ------------------------------------------------------------
+}
+
+generate_stream_config_files() {
+  # Create zookeeper properties
+  zookeeper_log_dir="/tmp/zookeeper"
+  mkdir -p "${zookeeper_log_dir}"
+  zookeeper_props_file=$(mktemp -p "${zookeeper_log_dir}") || display_error "${ERROR_ZOOKEEPER_CONFIG}"
+  cat > "${zookeeper_props_file}" << EOT
+dataDir=${zookeeper_log_dir}
+clientPort=49000
+maxClientCnxns=0
+EOT
+
+  # Create kafka properties
+  kafka_log_dir="/tmp/kafka-logs"
+  mkdir -p "${kafka_log_dir}"
+  kafka_props_file=$(mktemp -p "${kafka_log_dir}") || display_error "${ERROR_KAFKA_CONFIG}"
+  cat > "${kafka_props_file}" << EOT
+broker.id=$((RANDOM % 100))
+port=49001
+num.network.threads=3
+num.io.threads=8
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+socket.request.max.bytes=104857600
+log.dirs=/tmp/kafka-logs
+num.partitions=1
+num.recovery.threads.per.data.dir=1
+offsets.topic.replication.factor=1
+transaction.state.log.replication.factor=1
+transaction.state.log.min.isr=1
+log.retention.hours=168
+log.segment.bytes=1073741824
+log.retention.check.interval.ms=300000
+zookeeper.connect=localhost:49000
+zookeeper.connection.timeout.ms=6000
+group.initial.rebalance.delay.ms=0
+EOT
 }
 
 generate_jvm_opts_file() {
@@ -1021,6 +1135,9 @@ ${jvm_debugger_opts}
 -Dcompss.extrae.file=${custom_extrae_config_file}
 -Dcompss.comm=${comm}
 -Dcompss.conn=${conn}
+-Dcompss.streaming=${streaming}
+-Dcompss.streaming.masterName=${streaming_master_name}
+-Dcompss.streaming.masterPort=${streaming_master_port}
 -Dcompss.masterName=${master_name}
 -Dcompss.masterPort=${master_port}
 -Dcompss.scheduler=${scheduler}
@@ -1084,7 +1201,7 @@ exec_java() {
   # Define command
   local java_opts
   local JAVACMD
-  java_opts=$(cat "${jvm_options_file}" | tr '\n' ' ')
+  java_opts=$(tr "\\n" " " < "${jvm_options_file}")
   JAVACMD=$JAVA" ${java_opts}"
 
   if [ $tracing -gt 0 ]; then
@@ -1092,6 +1209,7 @@ exec_java() {
   fi
 
   # Launch application
+  # shellcheck disable=SC2086
   $JAVACMD ${RUNTIME_LOADER} total "$fullAppPath" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
@@ -1135,6 +1253,7 @@ exec_c() {
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
 
+  # shellcheck disable=SC2086
   $fullAppPath ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
@@ -1188,7 +1307,8 @@ exec_python() {
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
 
-  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf "$fullAppPath" ${application_args}
+  # shellcheck disable=SC2086
+  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${log_level} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD
@@ -1199,6 +1319,16 @@ exec_python() {
 }
 
 clean_env() {
+  # Stop streaming backend if necessary
+  if [ "${streaming}" == "OBJECTS" ] || [ "${streaming}" == "ALL" ]; then
+    "${KAFKA_HOME}"/bin/kafka-server-stop.sh
+    "${KAFKA_HOME}"/bin/zookeeper-server-stop.sh
+
+    # Delete ZooKeeper and Kafka logs and configuration files
+    rm -rf "${zookeeper_log_dir}"
+    rm -rf "${kafka_log_dir}"
+  fi
+
   # Delete JVM options file
   rm -f "${jvm_options_file}"
 

@@ -17,44 +17,49 @@
 package es.bsc.compss.components.impl;
 
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.components.monitor.impl.EdgeType;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.Task.TaskState;
+import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.DataAccessId.Direction;
 import es.bsc.compss.types.data.DataInfo;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
-import es.bsc.compss.types.data.AccessParams.*;
-import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.DataAccessId.*;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.operation.ResultListener;
 import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
+import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.StreamParameter;
+import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
-import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -64,16 +69,22 @@ import storage.StubItf;
 
 
 /**
- * Class to analyze the data dependencies between tasks
+ * Class to analyze the data dependencies between tasks.
  */
 public class TaskAnalyser {
 
-    // Components
-    private DataInfoProvider DIP;
-    private GraphGenerator GM;
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String TASK_FAILED = "Task failed: ";
+    private static final String TASK_CANCELED = "Task canceled: ";
 
-    // <File id, Last writer task> table
-    private TreeMap<Integer, Task> writers;
+    // Components
+    private DataInfoProvider dip;
+    private GraphGenerator gm;
+
+    // Map: data Id -> WritersInfo
+    private TreeMap<Integer, WritersInfo> writers;
     // Method information
     private HashMap<Integer, Integer> currentTaskCount;
     // Map: app id -> task count
@@ -93,19 +104,14 @@ public class TaskAnalyser {
     // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
     private TreeMap<Integer, List<Task>> concurrentAccessMap;
 
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-    private static final String TASK_FAILED = "Task failed: ";
-    private static final String TASK_CANCELED = "Task canceled: ";
-
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
     private int synchronizationId;
     private boolean taskDetectedAfterSync;
 
+
     /**
-     * Creates a new Task Analyser instance
+     * Creates a new Task Analyzer instance.
      */
     public TaskAnalyser() {
         this.currentTaskCount = new HashMap<>();
@@ -119,28 +125,28 @@ public class TaskAnalyser {
         this.waitedTasks = new Hashtable<>();
         this.concurrentAccessMap = new TreeMap<>();
 
-        synchronizationId = 0;
-        taskDetectedAfterSync = false;
+        this.synchronizationId = 0;
+        this.taskDetectedAfterSync = false;
 
         LOGGER.info("Initialization finished");
     }
 
     /**
-     * Sets the TaskAnalyser co-workers
+     * Sets the TaskAnalyser co-workers.
      *
-     * @param DIP
+     * @param dip DataInfoProvider co-worker.
      */
-    public void setCoWorkers(DataInfoProvider DIP) {
-        this.DIP = DIP;
+    public void setCoWorkers(DataInfoProvider dip) {
+        this.dip = dip;
     }
 
     /**
-     * Sets the graph generator co-worker
+     * Sets the graph generator co-worker.
      *
-     * @param GM
+     * @param gm Graph Generator co-worker.
      */
-    public void setGM(GraphGenerator GM) {
-        this.GM = GM;
+    public void setGM(GraphGenerator gm) {
+        this.gm = gm;
     }
 
     private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining,
@@ -167,25 +173,25 @@ public class TaskAnalyser {
         switch (p.getType()) {
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
-                daId = this.DIP.registerFileAccess(am, fp.getLocation());
+                daId = this.dip.registerFileAccess(am, fp.getLocation());
                 break;
             case PSCO_T:
                 ObjectParameter pscop = (ObjectParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 pscop.setType(DataType.PSCO_T);
-                daId = this.DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
+                daId = this.dip.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
                 break;
             case EXTERNAL_PSCO_T:
                 ExternalPSCOParameter externalPSCOparam = (ExternalPSCOParameter) p;
                 // Check if its PSCO class and persisted to infer its type
                 externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                daId = DIP.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                daId = dip.registerExternalPSCOAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
                 break;
             case BINDING_OBJECT_T:
                 BindingObjectParameter bindingObjectparam = (BindingObjectParameter) p;
                 // Check if its Binding OBJ and register its access
                 bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
-                daId = DIP.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(),
+                daId = dip.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(),
                         bindingObjectparam.getCode());
                 break;
             case OBJECT_T:
@@ -194,14 +200,22 @@ public class TaskAnalyser {
                 if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                     op.setType(DataType.PSCO_T);
                 }
-                daId = this.DIP.registerObjectAccess(am, op.getValue(), op.getCode());
+                daId = this.dip.registerObjectAccess(am, op.getValue(), op.getCode());
+                break;
+            case STREAM_T:
+                StreamParameter sp = (StreamParameter) p;
+                daId = this.dip.registerStreamAccess(am, sp.getValue(), sp.getCode());
+                break;
+            case EXTERNAL_STREAM_T:
+                ExternalStreamParameter esp = (ExternalStreamParameter) p;
+                daId = this.dip.registerExternalStreamAccess(am, esp.getLocation());
                 break;
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter content : cp.getParameters()) {
                     registerParameterAccessAndAddDependencies(currentTask, isConstraining, content);
                 }
-                daId = DIP.registerCollectionAccess(am, cp);
+                daId = dip.registerCollectionAccess(am, cp);
                 break;
             default:
                 // This is a basic type, there are no accesses to register
@@ -228,7 +242,26 @@ public class TaskAnalyser {
                     DataInstanceId dependingDataId = raId.getReadDataInstance();
                     if (dependingDataId != null) {
                         if (dependingDataId.getVersionId() > 1) {
-                            currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
+                            WritersInfo wi = this.writers.get(dependingDataId.getDataId());
+                            if (wi != null) {
+                                switch (wi.getDataType()) {
+                                    case STREAM_T:
+                                    case EXTERNAL_STREAM_T:
+                                        // Retrieve all the stream writers and enforce the execution to be near any
+                                        List<Task> lastWriters = wi.getStreamWriters();
+                                        if (!lastWriters.isEmpty()) {
+                                            currentTask.setEnforcingTask(lastWriters.get(0));
+                                        }
+                                        break;
+                                    default:
+                                        // Retrieve the writer and enforce the execution to be near the writer task
+                                        Task lastWriter = wi.getDataWriter();
+                                        if (lastWriter != null) {
+                                            currentTask.setEnforcingTask(lastWriter);
+                                        }
+                                        break;
+                                }
+                            }
                         }
                     }
                 }
@@ -245,7 +278,25 @@ public class TaskAnalyser {
                     DataInstanceId dependingDataId = raId.getReadDataInstance();
                     if (dependingDataId != null) {
                         if (dependingDataId.getVersionId() > 1) {
-                            currentTask.setEnforcingTask(this.writers.get(dependingDataId.getDataId()));
+                            WritersInfo wi = this.writers.get(dependingDataId.getDataId());
+                            if (wi != null) {
+                                switch (wi.getDataType()) {
+                                    case STREAM_T:
+                                        // Retrieve all the stream writers and enforce the execution to be near any
+                                        List<Task> lastWriters = wi.getStreamWriters();
+                                        if (!lastWriters.isEmpty()) {
+                                            currentTask.setEnforcingTask(lastWriters.get(0));
+                                        }
+                                        break;
+                                    default:
+                                        // Retrieve the writer and enforce the execution to be near the writer task
+                                        Task lastWriter = wi.getDataWriter();
+                                        if (lastWriter != null) {
+                                            currentTask.setEnforcingTask(lastWriter);
+                                        }
+                                        break;
+                                }
+                            }
                         }
                     }
                 }
@@ -270,9 +321,9 @@ public class TaskAnalyser {
     }
 
     /**
-     * Process the dependencies of a new task @currentTask
+     * Process the dependencies of a new task {@code currentTask}.
      *
-     * @param currentTask
+     * @param currentTask Task.
      */
     public void processTask(Task currentTask) {
         TaskDescription params = currentTask.getTaskDescription();
@@ -309,18 +360,19 @@ public class TaskAnalyser {
         // Check scheduling enforcing data
         int constrainingParam = -1;
         if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
-            constrainingParam = params.getParameters().length - 1 - params.getNumReturns();
+            constrainingParam = params.getParameters().size() - 1 - params.getNumReturns();
         }
-        Parameter[] parameters = params.getParameters();
-        for (int paramIdx = 0; paramIdx < parameters.length; paramIdx++) {
-            registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam, parameters[paramIdx]);
+        List<Parameter> parameters = params.getParameters();
+        for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
+            registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam,
+                    parameters.get(paramIdx));
         }
     }
 
     /**
-     * Registers the end of execution of task @task
+     * Registers the end of execution of task @{code task}.
      *
-     * @param task
+     * @param task Ended task.
      */
     public void endTask(Task task) {
         int taskId = task.getId();
@@ -357,12 +409,10 @@ public class TaskAnalyser {
                 registeredMonitor.onCompletion();
         }
 
-        /*
-         * Treat end of task
-         */
-        LOGGER.debug("Ending task " + taskId);
-
-        // Free dependencies
+        // Free barrier dependencies
+        if (DEBUG) {
+            LOGGER.debug("Freeing barriers for task " + taskId);
+        }
         Long appId = task.getAppId();
         Integer taskCount = this.appIdToTaskCount.get(appId) - 1;
         this.appIdToTaskCount.put(appId, taskCount);
@@ -379,7 +429,10 @@ public class TaskAnalyser {
             }
         }
 
-        // Check if task is being waited
+        // Free task data dependencies
+        if (DEBUG) {
+            LOGGER.debug("Releasing waiting tasks for task " + taskId);
+        }
         List<Semaphore> sems = this.waitedTasks.remove(task);
         if (sems != null) {
             for (Semaphore sem : sems) {
@@ -387,35 +440,51 @@ public class TaskAnalyser {
             }
         }
 
+        // Mark parameter accesses
+        if (DEBUG) {
+            LOGGER.debug("Marking accessed parameters for task " + taskId);
+        }
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
             if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
+                    || type == DataType.STREAM_T || type == DataType.EXTERNAL_STREAM_T
                     || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
+
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
-                LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
-                    this.DIP.dataAccessHasBeenCanceled(dAccId);
+                if (DEBUG) {
+                    LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
+                }
+                if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
+                        && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
+                    this.dip.dataAccessHasBeenCanceled(dAccId);
                 } else {
-                    this.DIP.dataHasBeenAccessed(dAccId);
+                    this.dip.dataHasBeenAccessed(dAccId);
                 }
             }
         }
+
         // Check if the finished task was the last writer of a file, but only if task generation has finished
         // Task generation is finished if we are on noMoreTasks but we are not on a barrier
+        if (DEBUG) {
+            LOGGER.debug("Checking result file transfers for task " + taskId);
+        }
         if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
             checkResultFileTransfer(task);
         }
 
         // Release data dependent tasks
+        if (DEBUG) {
+            LOGGER.debug("Releasing data dependant tasks for task " + taskId);
+        }
         task.releaseDataDependents();
     }
 
     /**
      * Checks if a finished task is the last writer of its file parameters and, eventually, order the necessary
-     * transfers
+     * transfers.
      *
-     * @param t
+     * @param t Task.
      */
     private void checkResultFileTransfer(Task t) {
         LinkedList<DataInstanceId> fileIds = new LinkedList<>();
@@ -429,14 +498,37 @@ public class TaskAnalyser {
                             break;
                         case INOUT:
                             DataInstanceId dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                            if (this.writers.get(dId.getDataId()) == t) {
-                                fileIds.add(dId);
+                            WritersInfo wi = this.writers.get(dId.getDataId());
+                            if (wi != null) {
+                                switch (wi.getDataType()) {
+                                    case STREAM_T:
+                                    case EXTERNAL_STREAM_T:
+                                        // Streams have no result files regarding their direction
+                                        break;
+                                    default:
+                                        Task lastWriter = wi.getDataWriter();
+                                        if (lastWriter != null && lastWriter == t) {
+                                            fileIds.add(dId);
+                                        }
+                                        break;
+                                }
                             }
                             break;
                         case OUT:
                             dId = ((WAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                            if (this.writers.get(dId.getDataId()) == t) {
-                                fileIds.add(dId);
+                            wi = this.writers.get(dId.getDataId());
+                            if (wi != null) {
+                                switch (wi.getDataType()) {
+                                    case STREAM_T:
+                                        // Streams have no result files regarding their direction
+                                        break;
+                                    default:
+                                        Task lastWriter = wi.getDataWriter();
+                                        if (lastWriter != null && lastWriter == t) {
+                                            fileIds.add(dId);
+                                        }
+                                        break;
+                                }
                             }
                             break;
                     }
@@ -445,78 +537,116 @@ public class TaskAnalyser {
                     break;
             }
         }
+
         // Order the transfer of the result files
         final int numFT = fileIds.size();
         if (numFT > 0) {
-            // List<ResultFile> resFiles = new ArrayList<ResultFile>(numFT);
-            for (DataInstanceId fileId : fileIds) {
-                try {
-                    int id = fileId.getDataId();
-                    this.DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
-                    this.DIP.unblockDataId(id);
-                } catch (Exception e) {
-                    LOGGER.error("Exception ordering transfer when task ends", e);
-                }
+            if (DEBUG) {
+                LOGGER.debug("Ordering transfers for result files of task " + t.getId());
             }
-
+            for (DataInstanceId fileId : fileIds) {
+                int id = fileId.getDataId();
+                if (DEBUG) {
+                    LOGGER.debug("- Requesting result file " + id + " because of task " + t.getId());
+                }
+                this.dip.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
+                this.dip.unblockDataId(id);
+            }
         }
     }
 
     /**
-     * Returns the tasks dependent to the requested task
+     * Returns the tasks dependent to the requested task.
      *
-     * @param request
+     * @param request Requested task.
      */
     public void findWaitedTask(WaitForTaskRequest request) {
         int dataId = request.getDataId();
         AccessMode am = request.getAccessMode();
         Semaphore sem = request.getSemaphore();
-        Task lastWriter = this.writers.get(dataId);
 
-        if (lastWriter != null) {
-            treatDataAccess(lastWriter, am, dataId);
-        }
-
-        // Release task if possible. Otherwise add to waiting
-        if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
-            sem.release();
-        } else {
-            List<Semaphore> list = this.waitedTasks.get(lastWriter);
-            if (list == null) {
-                list = new LinkedList<>();
-                this.waitedTasks.put(lastWriter, list);
+        // Retrieve writers information
+        WritersInfo wi = this.writers.get(dataId);
+        if (wi != null) {
+            switch (wi.getDataType()) {
+                case STREAM_T:
+                case EXTERNAL_STREAM_T:
+                    // Mark the data accesses
+                    List<Task> lastStreamWriters = wi.getStreamWriters();
+                    for (Task lastWriter : lastStreamWriters) {
+                        treatDataAccess(lastWriter, am, dataId);
+                    }
+                    // We do not wait for stream task to complete
+                    sem.release();
+                    break;
+                default:
+                    // Retrieve last writer task
+                    Task lastWriter = wi.getDataWriter();
+                    // Mark the data access
+                    if (lastWriter != null) {
+                        treatDataAccess(lastWriter, am, dataId);
+                    }
+                    // Release task if possible. Otherwise add to waiting
+                    if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
+                        sem.release();
+                    } else {
+                        List<Semaphore> list = this.waitedTasks.get(lastWriter);
+                        if (list == null) {
+                            list = new LinkedList<>();
+                        }
+                        list.add(sem);
+                        this.waitedTasks.put(lastWriter, list);
+                    }
+                    break;
             }
-            list.add(sem);
+        } else {
+            // No writer registered, release
+            sem.release();
         }
     }
 
     /**
-     * Checks how the data was accessed
+     * Checks how the data was accessed.
      *
-     * @param lastWriter
-     * @param am
-     * @param dataId
+     * @param lastWriter Writer task.
+     * @param am Access mode.
+     * @param dataId Data Id.
      */
     private void treatDataAccess(Task lastWriter, AccessMode am, int dataId) {
         // Add to writers if needed
         if (am == AccessMode.RW) {
-            this.writers.put(dataId, null);
+            WritersInfo wi = this.writers.get(dataId);
+            if (wi != null) {
+                switch (wi.getDataType()) {
+                    case STREAM_T:
+                    case EXTERNAL_STREAM_T:
+                        // Nothing to do, we do not reset the writers because of the main access
+                        break;
+                    default:
+                        // Reset the writers entry
+                        this.writers.put(dataId, null);
+                        break;
+                }
+            } else {
+                // Add a new reset entry
+                this.writers.put(dataId, null);
+            }
         }
 
         // Add graph description
         if (IS_DRAW_GRAPH) {
             TreeSet<Integer> toPass = new TreeSet<>();
             toPass.add(dataId);
-            DataInstanceId dii = DIP.getLastVersions(toPass).get(0);
+            DataInstanceId dii = dip.getLastVersions(toPass).get(0);
             int dataVersion = dii.getVersionId();
-            addEdgeFromTaskToMain(lastWriter, dataId, dataVersion);
+            addEdgeFromTaskToMain(lastWriter, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
         }
     }
 
     /**
-     * Check if data is of type concurrent
+     * Check whether a dataId is of type concurrent or not.
      *
-     * @param daId
+     * @param daId {@code true} if the dataId is concurrent, {@code false} otherwise.
      */
     public boolean dataWasAccessedConcurrent(int daId) {
         List<Task> concurrentAccess = this.concurrentAccessMap.get(daId);
@@ -528,9 +658,9 @@ public class TaskAnalyser {
     }
 
     /**
-     * Returns the concurrent tasks dependent to the requested task
+     * Returns the concurrent tasks dependent to the requested task.
      *
-     * @param request
+     * @param request Requested task.
      */
     public void findWaitedConcurrent(WaitForConcurrentRequest request) {
         int dataId = request.getDataId();
@@ -547,12 +677,12 @@ public class TaskAnalyser {
             treatDataAccess(task, am, dataId);
             if (task.getStatus() != TaskState.FINISHED) {
                 n++;
-                List<Semaphore> list = waitedTasks.get(task);
+                List<Semaphore> list = this.waitedTasks.get(task);
                 if (list == null) {
                     list = new LinkedList<>();
-                    this.waitedTasks.put(task, list);
                 }
                 list.add(semTasks);
+                this.waitedTasks.put(task, list);
             }
         }
         request.setNumWaitedTasks(n);
@@ -560,9 +690,9 @@ public class TaskAnalyser {
     }
 
     /**
-     * Barrier
+     * Barrier.
      *
-     * @param request
+     * @param request Barrier request.
      */
     public void barrier(BarrierRequest request) {
         Long appId = request.getAppId();
@@ -571,7 +701,7 @@ public class TaskAnalyser {
             addNewBarrier();
 
             // We can draw the graph on a barrier while we wait for tasks
-            this.GM.commitGraph();
+            this.gm.commitGraph();
         }
 
         // Release the semaphore only if all application tasks have finished
@@ -584,16 +714,16 @@ public class TaskAnalyser {
     }
 
     /**
-     * End of execution barrier
+     * End of execution barrier.
      *
-     * @param request
+     * @param request End of execution request.
      */
     public void noMoreTasks(EndOfAppRequest request) {
         Long appId = request.getAppId();
         Integer count = this.appIdToTaskCount.get(appId);
 
         if (IS_DRAW_GRAPH) {
-            this.GM.commitGraph();
+            this.gm.commitGraph();
         }
 
         if (count == null || count == 0) {
@@ -605,18 +735,17 @@ public class TaskAnalyser {
     }
 
     /**
-     * Returns the written files and deletes them
+     * Returns the written files and deletes them.
      *
-     * @param appId
-     *
-     * @return
+     * @param appId Application id.
+     * @return List of written files of the application.
      */
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {
         return this.appIdToWrittenFiles.remove(appId);
     }
 
     /**
-     * Shutdown
+     * Shutdown the component.
      */
     public void shutdown() {
         if (IS_DRAW_GRAPH) {
@@ -625,9 +754,9 @@ public class TaskAnalyser {
     }
 
     /**
-     * Returns the task state
+     * Returns the tasks state.
      *
-     * @return
+     * @return A string representation of the tasks state.
      */
     public String getTaskStateRequest() {
         StringBuilder sb = new StringBuilder("\t").append("<TasksInfo>").append("\n");
@@ -650,30 +779,43 @@ public class TaskAnalyser {
     }
 
     /**
-     * Deletes the specified data and its renamings
+     * Deletes the specified data and its renamings.
      *
-     * @param dataInfo
+     * @param dataInfo DataInfo.
      */
     public void deleteData(DataInfo dataInfo) {
         int dataId = dataInfo.getDataId();
 
         LOGGER.debug("Deleting data with id " + dataId);
 
-        Task task = writers.remove(dataId);
-        if (task != null) {
-            return;
-        }
-
-        LOGGER.debug("Removing " + dataInfo.getDataId() + " from written files");
-        for (TreeSet<Integer> files : appIdToWrittenFiles.values()) {
-            files.remove(dataInfo.getDataId());
+        WritersInfo wi = this.writers.remove(dataId);
+        if (wi != null) {
+            switch (wi.getDataType()) {
+                case STREAM_T:
+                case EXTERNAL_STREAM_T:
+                    // No data to delete
+                    break;
+                default:
+                    Task task = wi.getDataWriter();
+                    if (task != null) {
+                        // Cannot delete data because task is still running
+                        return;
+                    } else {
+                        // Remove data
+                        LOGGER.debug("Removing " + dataInfo.getDataId() + " from written files");
+                        for (TreeSet<Integer> files : this.appIdToWrittenFiles.values()) {
+                            files.remove(dataInfo.getDataId());
+                        }
+                    }
+                    break;
+            }
         }
     }
 
     /**
-     * Removes the tasks that have accessed the data in a concurrent way
+     * Removes the tasks that have accessed the data in a concurrent way.
      *
-     * @param dataId
+     * @param dataId Data Id.
      */
     public void removeFromConcurrentAccess(int dataId) {
         List<Task> returnedValue = this.concurrentAccessMap.remove(dataId);
@@ -687,46 +829,120 @@ public class TaskAnalyser {
      * DATA DEPENDENCY MANAGEMENT PRIVATE METHODS
      **************************************************************************************************************/
     /**
-     * Checks the dependencies of a task @currentTask considering the parameter @dp
+     * Checks the dependencies of a task {@code currentTask} considering the parameter {@code dp}.
      *
-     * @param currentTask
-     * @param dp
+     * @param currentTask Task to analyze.
+     * @param dp Dependency Parameter to analyze.
      */
     private void checkDependencyForRead(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
-        Task lastWriter = this.writers.get(dataId);
 
+        if (DEBUG) {
+            LOGGER.debug("Checking READ dependency for datum " + dataId + " and task " + currentTask.getId());
+        }
+
+        WritersInfo wi = this.writers.get(dataId);
+        if (wi != null) {
+            switch (wi.getDataType()) {
+                case STREAM_T:
+                case EXTERNAL_STREAM_T:
+                    addStreamDependency(currentTask, dp, wi);
+                    break;
+                default:
+                    addRegularDependency(currentTask, dp, wi);
+                    break;
+            }
+        } else {
+            // Task is free
+            if (DEBUG) {
+                LOGGER.debug("There is no last writer for datum " + dataId);
+            }
+        }
+    }
+
+    private void addStreamDependency(Task currentTask, DependencyParameter dp, WritersInfo wi) {
+        int dataId = dp.getDataAccessId().getDataId();
+        List<Task> lastStreamWriters = wi.getStreamWriters();
+        if (!lastStreamWriters.isEmpty()) {
+            if (DEBUG) {
+                StringBuilder sb = new StringBuilder();
+                if (lastStreamWriters.size() > 1) {
+                    sb.append("Last writers for stream datum ");
+                    sb.append(dataId);
+                    sb.append(" are tasks ");
+                } else {
+                    sb.append("Last writer for stream datum ");
+                    sb.append(dataId);
+                    sb.append(" is task ");
+                }
+                for (Task lastWriter : lastStreamWriters) {
+                    sb.append(lastWriter.getId());
+                    sb.append(" ");
+                }
+                LOGGER.debug(sb.toString());
+            }
+
+            // Add dependencies
+            for (Task lastWriter : lastStreamWriters) {
+                // Debug message
+                if (DEBUG) {
+                    LOGGER.debug("Adding stream dependency between task " + lastWriter.getId() + " and task "
+                            + currentTask.getId());
+                }
+
+                // Add dependency
+                currentTask.addStreamDataDependency(lastWriter);
+
+                // Add edge to graph
+                if (IS_DRAW_GRAPH) {
+                    drawEdges(currentTask, dp, lastWriter);
+                }
+            }
+        } else {
+            // Task is free
+            if (DEBUG) {
+                LOGGER.debug("There is no last stream writer for datum " + dataId);
+            }
+        }
+    }
+
+    private void addRegularDependency(Task currentTask, DependencyParameter dp, WritersInfo wi) {
+        int dataId = dp.getDataAccessId().getDataId();
+        Task lastWriter = wi.getDataWriter();
         if (lastWriter != null && lastWriter != currentTask) {
             if (DEBUG) {
-                LOGGER.debug(
-                        "Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
+                LOGGER.debug("Last writer for datum " + dataId + " is task " + lastWriter.getId());
                 LOGGER.debug(
                         "Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
+
             // Add dependency
             currentTask.addDataDependency(lastWriter);
-        } else {
-            if (DEBUG) {
-                LOGGER.debug("There is no last writer for datum " + dp.getDataAccessId().getDataId());
+
+            // Add edge to graph
+            if (IS_DRAW_GRAPH) {
+                drawEdges(currentTask, dp, lastWriter);
             }
-        }
-        // Handle when -g enabled
-        if (IS_DRAW_GRAPH) {
-            drawEdges(currentTask, dp, dataId, lastWriter);
+        } else {
+            // Task is free
+            if (DEBUG) {
+                LOGGER.debug("There is no last writer for datum " + dataId);
+            }
         }
     }
 
     /**
-     * Adds edges to graph
+     * Adds edges to graph.
      *
-     * @param currentTask
-     * @param dp
-     * @param dataId
-     * @param lastWriter
+     * @param currentTask New task.
+     * @param dp Dependency parameter causing the dependency.
+     * @param lastWriter Last writer task.
      */
-    private void drawEdges(Task currentTask, DependencyParameter dp, int dataId, Task lastWriter) {
-        int dataVersion = -1;
+    private void drawEdges(Task currentTask, DependencyParameter dp, Task lastWriter) {
+        // Retrieve common information
+        int dataId = dp.getDataAccessId().getDataId();
         Direction d = dp.getDataAccessId().getDirection();
+        int dataVersion;
         switch (d) {
             case C:
             case R:
@@ -739,24 +955,34 @@ public class TaskAnalyser {
                 dataVersion = ((RWAccessId) dp.getDataAccessId()).getRVersionId();
                 break;
         }
-        if (lastWriter != null && lastWriter != currentTask) {
-            addEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
-        } else {
-            addEdgeFromMainToTask(currentTask, dataId, dataVersion);
+
+        // Add edges on graph depending on the dependency type
+        switch (dp.getType()) {
+            case STREAM_T:
+            case EXTERNAL_STREAM_T:
+                addStreamEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+                break;
+            default:
+                if (lastWriter != null && lastWriter != currentTask) {
+                    addDataEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+                } else {
+                    addDataEdgeFromMainToTask(currentTask, dataId, dataVersion);
+                }
+                break;
         }
     }
 
     /**
-     * Checks the dependencies of a task @currentTask considering the parameter @dp
+     * Checks the concurrent dependencies of a task {@code currentTask} considering the parameter {@code dp}.
      *
-     * @param currentTask
-     * @param dp
+     * @param currentTask Task.
+     * @param dp Dependency Parameter.
      */
     private void checkDependencyForConcurrent(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
         List<Task> tasks = this.concurrentAccessMap.get(dataId);
 
-        if (concurrentAccessMap != null && tasks.contains(currentTask) == false) {
+        if (this.concurrentAccessMap != null && tasks.contains(currentTask) == false) {
             if (DEBUG) {
                 LOGGER.debug("There was a concurrent access for datum " + dataId);
                 LOGGER.debug("Adding dependency between list and task " + currentTask.getId());
@@ -765,7 +991,7 @@ public class TaskAnalyser {
                 // Add dependency
                 currentTask.addDataDependency(t);
                 if (IS_DRAW_GRAPH) {
-                    drawEdges(currentTask, dp, dataId, t);
+                    drawEdges(currentTask, dp, t);
                 }
             }
         } else {
@@ -776,18 +1002,38 @@ public class TaskAnalyser {
     }
 
     /**
-     * Registers the output values of the task @currentTask
+     * Registers the output values of the task {@code currentTask}.
      *
-     * @param currentTask
-     * @param dp
+     * @param currentTask Task.
+     * @param dp Dependency Parameter.
      */
     private void registerOutputValues(Task currentTask, DependencyParameter dp) {
         int currentTaskId = currentTask.getId();
         int dataId = dp.getDataAccessId().getDataId();
         Long appId = currentTask.getAppId();
 
-        // Update global last writer
-        this.writers.put(dataId, currentTask);
+        if (DEBUG) {
+            LOGGER.debug("Checking WRITE dependency for datum " + dataId + " and task " + currentTaskId);
+        }
+
+        // Update global last writers
+        switch (dp.getType()) {
+            case STREAM_T:
+            case EXTERNAL_STREAM_T:
+                WritersInfo wi = this.writers.get(dataId);
+                if (wi != null) {
+                    wi.addStreamWriter(currentTask);
+                } else {
+                    wi = new WritersInfo(dp.getType(), Arrays.asList(currentTask));
+                }
+                this.writers.put(dataId, wi);
+                break;
+            default:
+                // Substitute the current entry by the new access
+                WritersInfo newWi = new WritersInfo(dp.getType(), currentTask);
+                this.writers.put(dataId, newWi);
+                break;
+        }
 
         // Update file and PSCO lists
         switch (dp.getType()) {
@@ -814,7 +1060,7 @@ public class TaskAnalyser {
         }
 
         if (DEBUG) {
-            LOGGER.debug("New writer for datum " + dp.getDataAccessId().getDataId() + " is task " + currentTaskId);
+            LOGGER.debug("New writer for datum " + dataId + " is task " + currentTaskId);
         }
     }
 
@@ -823,109 +1069,200 @@ public class TaskAnalyser {
      * GRAPH WRAPPERS
      **************************************************************************************************************/
     /**
-     * We have detected a new task, register it into the graph STEPS: Only adds the node
+     * We have detected a new task, register it into the graph. STEPS: Only adds the node.
      *
-     * @param task
+     * @param task New task.
      */
     private void addNewTask(Task task) {
         // Add task to graph
-        this.GM.addTaskToGraph(task);
+        this.gm.addTaskToGraph(task);
         // Set the syncId of the task
         task.setSynchronizationId(this.synchronizationId);
         // Update current sync status
-        taskDetectedAfterSync = true;
+        this.taskDetectedAfterSync = true;
     }
 
     /**
      * We will execute a task whose data is produced by another task. STEPS: Add an edge from the previous task or the
-     * last synchronization point to the new task
+     * last synchronization point to the new task.
      *
-     * @param source
-     * @param dest
-     * @param dataId
+     * @param source Source task.
+     * @param dest Destination task.
+     * @param dataId Data causing the dependency.
+     * @param dataVersion Data version.
      */
-    private void addEdgeFromTaskToTask(Task source, Task dest, int dataId, int dataVersion) {
+    private void addDataEdgeFromTaskToTask(Task source, Task dest, int dataId, int dataVersion) {
         if (source.getSynchronizationId() == dest.getSynchronizationId()) {
             String src = String.valueOf(source.getId());
             String dst = String.valueOf(dest.getId());
             String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-            this.GM.addEdgeToGraph(src, dst, dep);
+            this.gm.addEdgeToGraph(src, dst, EdgeType.DATA_DEPENDENCY, dep);
         } else {
             String src = "Synchro" + dest.getSynchronizationId();
             String dst = String.valueOf(dest.getId());
             String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-            this.GM.addEdgeToGraph(src, dst, dep);
+            this.gm.addEdgeToGraph(src, dst, EdgeType.DATA_DEPENDENCY, dep);
         }
+    }
+
+    /**
+     * We will execute a task whose data is produced by another task. STEPS: Add an edge from the previous task or the
+     * last synchronization point to the new task.
+     *
+     * @param source Source task.
+     * @param dest Destination task.
+     * @param dataId Data causing the dependency.
+     * @param dataVersion Data version.
+     */
+    private void addStreamEdgeFromTaskToTask(Task source, Task dest, int dataId, int dataVersion) {
+        // Streams do not consider main synchro points, add dependency between tasks
+        String src = String.valueOf(source.getId());
+        String dst = String.valueOf(dest.getId());
+        String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
+        this.gm.addEdgeToGraph(src, dst, EdgeType.STREAM_DEPENDENCY, dep);
     }
 
     /**
      * We will execute a task with no predecessors, data must be retrieved from the last synchronization point. STEPS:
      * Add edge from sync to task
      *
-     * @param dest
-     * @param dataId
+     * @param dest Destination task.
+     * @param dataId Data causing the dependency.
+     * @param dataVersion Data version.
      */
-    private void addEdgeFromMainToTask(Task dest, int dataId, int dataVersion) {
+    private void addDataEdgeFromMainToTask(Task dest, int dataId, int dataVersion) {
         String src = "Synchro" + dest.getSynchronizationId();
         String dst = String.valueOf(dest.getId());
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
-        this.GM.addEdgeToGraph(src, dst, dep);
+        this.gm.addEdgeToGraph(src, dst, EdgeType.DATA_DEPENDENCY, dep);
     }
 
     /**
      * We have accessed to data produced by a task from the main code STEPS: Adds a new synchronization point if any
-     * task has been created Adds a dependency from task to synchronization
+     * task has been created Adds a dependency from task to synchronization.
      *
-     * @param task
-     * @param dataId
+     * @param task Task that generated the value.
+     * @param edgeType Type of edge for the DOT representation.
+     * @param dataId Data causing the dependency.
      */
-    private void addEdgeFromTaskToMain(Task task, int dataId, int dataVersion) {
+    private void addEdgeFromTaskToMain(Task task, EdgeType edgeType, int dataId, int dataVersion) {
         // Add Sync if any task has been created
         if (this.taskDetectedAfterSync) {
             this.taskDetectedAfterSync = false;
 
             int oldSyncId = this.synchronizationId;
             this.synchronizationId++;
-            this.GM.addSynchroToGraph(this.synchronizationId);
+            this.gm.addSynchroToGraph(this.synchronizationId);
             if (this.synchronizationId > 1) {
                 String oldSync = "Synchro" + oldSyncId;
                 String currentSync = "Synchro" + this.synchronizationId;
-                this.GM.addEdgeToGraph(oldSync, currentSync, "");
+                this.gm.addEdgeToGraph(oldSync, currentSync, edgeType, "");
             }
         }
 
         // Add edge from task to sync
         String src = String.valueOf(task.getId());
         String dest = "Synchro" + this.synchronizationId;
-        this.GM.addEdgeToGraph(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
+        this.gm.addEdgeToGraph(src, dest, edgeType, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
     }
 
     /**
      * We have explicitly called the barrier API. STEPS: Add a new synchronization node. Add an edge from last
-     * synchronization point to barrier. Add edges from writer tasks to barrier
+     * synchronization point to barrier. Add edges from writer tasks to barrier.
      */
     private void addNewBarrier() {
         // Add barrier node
         int oldSync = this.synchronizationId;
+        String oldSyncStr = "Synchro" + oldSync;
+
         this.synchronizationId++;
         this.taskDetectedAfterSync = false;
-        this.GM.addBarrierToGraph(this.synchronizationId);
+        this.gm.addBarrierToGraph(this.synchronizationId);
 
         // Add edge from last sync
-        String newSync_str = "Synchro" + this.synchronizationId;
-        String oldSync_str = "Synchro" + oldSync;
+        String newSyncStr = "Synchro" + this.synchronizationId;
         if (this.synchronizationId > 1) {
-            this.GM.addEdgeToGraph(oldSync_str, newSync_str, "");
+            this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, EdgeType.USER_DEPENDENCY, "");
         }
 
         // Add edges from writers to barrier
-        HashSet<Task> uniqueWriters = new HashSet<>(this.writers.values());
+        HashSet<Task> uniqueWriters = new HashSet<>();
+        for (WritersInfo wi : this.writers.values()) {
+            if (wi != null) {
+                // Add data writers
+                Task dataWriter = wi.getDataWriter();
+                if (dataWriter != null) {
+                    uniqueWriters.add(dataWriter);
+                }
+                // Add stream writers
+                uniqueWriters.addAll(wi.getStreamWriters());
+            }
+        }
         for (Task writer : uniqueWriters) {
             if (writer != null && writer.getSynchronizationId() == oldSync) {
                 String taskId = String.valueOf(writer.getId());
-                this.GM.addEdgeToGraph(taskId, newSync_str, "");
+                this.gm.addEdgeToGraph(taskId, newSyncStr, EdgeType.USER_DEPENDENCY, "");
             }
         }
+    }
+
+
+    private static class WritersInfo {
+
+        private final DataType dataType;
+        private final Task dataWriter;
+        private final List<Task> streamWriters;
+
+
+        public WritersInfo(DataType dataType, Task dataWriter) {
+            this.dataType = dataType;
+            this.dataWriter = dataWriter;
+            this.streamWriters = new ArrayList<>();
+        }
+
+        public WritersInfo(DataType dataType, List<Task> streamWriters) {
+            this.dataType = dataType;
+            this.dataWriter = null;
+            this.streamWriters = new ArrayList<>();
+            if (streamWriters != null) {
+                this.streamWriters.addAll(streamWriters);
+            }
+        }
+
+        public DataType getDataType() {
+            return this.dataType;
+        }
+
+        public Task getDataWriter() {
+            return this.dataWriter;
+        }
+
+        public List<Task> getStreamWriters() {
+            return this.streamWriters;
+        }
+
+        public void addStreamWriter(Task writerTask) {
+            if (writerTask != null) {
+                this.streamWriters.add(writerTask);
+            }
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("WI [ ");
+            sb.append("dataType = ").append(this.dataType).append(", ");
+            sb.append("dataWriter = ").append(this.dataWriter != null ? this.dataWriter.getId() : "null").append(", ");
+            sb.append("streamWriters = [");
+            for (Task t : this.streamWriters) {
+                sb.append(t.getId()).append(" ");
+            }
+            sb.append("]");
+            sb.append("]");
+
+            return sb.toString();
+        }
+
     }
 
 }

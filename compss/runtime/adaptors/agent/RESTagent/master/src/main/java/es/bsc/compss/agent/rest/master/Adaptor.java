@@ -52,9 +52,9 @@ public class Adaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(String workerName, Configuration config) {
+    public COMPSsWorker initWorker(Configuration config) {
         AgentConfiguration ac = (AgentConfiguration) config;
-        return new RemoteRESTAgent(workerName, ac);
+        return new RemoteRESTAgent(ac);
     }
 
     @Override

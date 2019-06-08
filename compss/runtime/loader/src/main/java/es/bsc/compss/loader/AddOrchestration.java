@@ -37,16 +37,17 @@ import org.apache.logging.log4j.Logger;
 
 public class AddOrchestration {
 
-    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+
 
     /**
      * TODO javadoc.
      *
      * @param args description
-     * @throws NotFoundException      description
-     * @throws NameNotFoundException  description
+     * @throws NotFoundException description
+     * @throws NameNotFoundException description
      * @throws CannotCompileException description
-     * @throws IOException            description
+     * @throws IOException description
      */
     public static void main(String[] args)
             throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
@@ -82,18 +83,6 @@ public class AddOrchestration {
             methodDescriptor.getMethodInfo().addAttribute(attr);
         }
         cc.writeFile();
-
-        // transform the ctClass to java class
-        /*
-         * Class<?> dynamiqueBeanClass = cc.toClass();
-         *
-         * //instantiating the updated class AddOrchestration ao = (AddOrchestration) dynamiqueBeanClass.newInstance();
-         *
-         * try{ Method fooMethod = ao.getClass().getDeclaredMethod(methodName, new Class<?>[] { int.class }); //getting
-         * the annotation Orchestration o = (Orchestration) fooMethod.getAnnotation(Orchestration.class);
-         * System.out.println("METHOD: " + fooMethod); System.out.println("ANNOTATION: " + o); } catch(Exception e){
-         * e.printStackTrace(); }
-         */
     }
 
     private static CtClass[] getParamClasses(String label, ClassPool pool)
@@ -115,19 +104,19 @@ public class AddOrchestration {
     }
 
     /**
-     * TODO javadoc.
-     *
-     * @param label description
-     * @return description
-     * @throws NameNotFoundException description
+     * Parses the list of type parameters {@code label} and returns a list with the type of each parameter.
+     * 
+     * @param label String containing the parameters between brackets and separated by commas.
+     * @return List of types of each parameter.
+     * @throws NameNotFoundException When {@code label} is malformed.
      */
     public static List<String> getParametersTypeFromLabel(String label) throws NameNotFoundException {
         int begin = label.indexOf("(");
         int end = label.indexOf(")");
         if (begin > 0 && end > 0 && end > begin) {
             String parsString = label.substring(begin + 1, end);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Parameters: " + parsString);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Parameters: " + parsString);
             }
             List<String> parameters = new LinkedList<String>();
             if (parsString != null && parsString.trim().length() > 0) {

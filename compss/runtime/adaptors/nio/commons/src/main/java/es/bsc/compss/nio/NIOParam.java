@@ -16,9 +16,8 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.nio.commands.NIOData;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.InvocationParam;
 
 import java.io.Externalizable;
@@ -28,11 +27,14 @@ import java.io.ObjectOutput;
 import java.util.List;
 
 
+/**
+ * Representation of a data parameter for the NIO Adaptor.
+ */
 public class NIOParam implements Externalizable, InvocationParam {
 
     private String dataMgmtId;
     private DataType type;
-    private Stream stream;
+    private StdIOStream stream;
     private String prefix;
     private String name;
     private boolean preserveSourceData;
@@ -46,12 +48,30 @@ public class NIOParam implements Externalizable, InvocationParam {
     private Class<?> valueClass;
 
 
+    /**
+     * Creates a new NIOParam instance for externalization.
+     */
     public NIOParam() {
         // Only executed by externalizable
     }
 
-    public NIOParam(String dataMgmtId, DataType type, Stream stream, String prefix, String name,
+    /**
+     * Creates a new NIOParam instance with the given information.
+     * 
+     * @param dataMgmtId Renaming Id.
+     * @param type Data Type.
+     * @param stream Std IO stream type.
+     * @param prefix Parameter prefix.
+     * @param name Parameter name.
+     * @param preserveSourceData Whether to keep the source data or not.
+     * @param writeFinalValue Whether to write the output value or not.
+     * @param value The original value.
+     * @param data The original data.
+     * @param originalName The original parameter name.
+     */
+    public NIOParam(String dataMgmtId, DataType type, StdIOStream stream, String prefix, String name,
             boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
+
         this.dataMgmtId = dataMgmtId;
         this.type = type;
         this.stream = stream;
@@ -64,13 +84,31 @@ public class NIOParam implements Externalizable, InvocationParam {
         this.originalName = originalName;
     }
 
+    /**
+     * Creates a new NIOParam instance copying the given NIOParam internal fields.
+     * 
+     * @param p NIOParam to copy.
+     */
+    public NIOParam(NIOParam p) {
+        this.dataMgmtId = p.dataMgmtId;
+        this.type = p.type;
+        this.stream = p.stream;
+        this.prefix = p.prefix;
+        this.name = p.name;
+        this.value = p.value;
+        this.preserveSourceData = p.preserveSourceData;
+        this.writeFinalValue = p.writeFinalValue;
+        this.source = p.source;
+        this.originalName = p.originalName;
+    }
+
     @Override
     public DataType getType() {
         return this.type;
     }
 
     @Override
-    public Stream getStream() {
+    public StdIOStream getStdIOStream() {
         return this.stream;
     }
 
@@ -94,10 +132,6 @@ public class NIOParam implements Externalizable, InvocationParam {
         return this.writeFinalValue;
     }
 
-    public NIOData getData() {
-        return this.source;
-    }
-
     @Override
     public String getDataMgmtId() {
         return this.dataMgmtId;
@@ -109,7 +143,7 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
-    public List<NIOURI> getSources() {
+    public List<NIOUri> getSources() {
         return source.getSources();
     }
 
@@ -139,6 +173,20 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
+    public Class<?> getValueClass() {
+        return this.valueClass;
+    }
+
+    /**
+     * Returns the source data.
+     * 
+     * @return The source data.
+     */
+    public NIOData getData() {
+        return this.source;
+    }
+
+    @Override
     public void setType(DataType type) {
         this.type = type;
     }
@@ -154,15 +202,10 @@ public class NIOParam implements Externalizable, InvocationParam {
     }
 
     @Override
-    public Class<?> getValueClass() {
-        return valueClass;
-    }
-
-    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.dataMgmtId = (String) in.readObject();
         this.type = (DataType) in.readObject();
-        this.stream = (Stream) in.readObject();
+        this.stream = (StdIOStream) in.readObject();
         this.prefix = in.readUTF();
         this.name = in.readUTF();
         this.preserveSourceData = in.readBoolean();
@@ -192,12 +235,15 @@ public class NIOParam implements Externalizable, InvocationParam {
         }
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("[PARAM");
+    /**
+     * Dumps the internal information into the given StringBuilder.
+     * 
+     * @param sb StringBuilder where to dump the internal information.
+     */
+    public void dumpInternalInfo(StringBuilder sb) {
         sb.append("[MGMT ID = ").append(this.dataMgmtId).append("]");
         sb.append("[TYPE = ").append(this.type).append("]");
-        sb.append("[STREAM = ").append(this.stream).append("]");
+        sb.append("[IOSTREAM = ").append(this.stream).append("]");
         sb.append("[PREFIX = ").append(this.prefix).append("]");
         sb.append("[NAME = ").append(this.name).append("]");
         sb.append("[PRESERVE SOURCE DATA = ").append(this.preserveSourceData).append("]");
@@ -205,6 +251,12 @@ public class NIOParam implements Externalizable, InvocationParam {
         sb.append("[ORIGINAL NAME = ").append(this.originalName).append("]");
         sb.append("[VALUE = ").append(this.value).append("]");
         sb.append("[DATA ").append(this.source).append("]");
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[PARAM");
+        dumpInternalInfo(sb);
         sb.append("]");
 
         return sb.toString();

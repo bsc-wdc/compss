@@ -19,12 +19,14 @@ package es.bsc.compss.nio.master;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.commands.CommandCheckWorker;
 import es.bsc.compss.nio.master.handlers.Ender;
 import es.bsc.compss.nio.master.handlers.ProcessOut;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.util.Tracer;
 
@@ -40,6 +42,10 @@ import org.apache.logging.log4j.Logger;
 
 
 public class WorkerStarter {
+
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Static Environment variables
     private static final String LIB_SEPARATOR = ":";
@@ -86,9 +92,6 @@ public class WorkerStarter {
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
-    // Master name
-    private static final String MASTER_NAME_PROPERTY = System.getProperty(COMPSsConstants.MASTER_NAME);
-
     // Scripts configuration
     private static final String STARTER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
             + File.separator + "adaptors" + File.separator + "nio" + File.separator;
@@ -104,37 +107,36 @@ public class WorkerStarter {
     private static final long MAX_WAIT_FOR_INIT = 20_000;
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
 
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    // Starting workers
+    private static final Map<String, WorkerStarter> ADDRESS_TO_WORKER_STARTER = new TreeMap<>();
 
-    private static final Map<String, WorkerStarter> addressToWorkerStarter = new TreeMap<>();
+    // Instance attributes
     private boolean workerIsReady = false;
     private boolean toStop = false;
     private final NIOWorkerNode nw;
 
 
     /**
-     * Instantiates a new WorkerStarter for a given Worker
+     * Instantiates a new WorkerStarter for a given Worker.
      *
-     * @param nw
+     * @param nw Worker node.
      */
     public WorkerStarter(NIOWorkerNode nw) {
         this.nw = nw;
     }
 
     /**
-     * Returns the WorkerStarter registered to a given address
+     * Returns the WorkerStarter registered to a given address.
      *
-     * @param address
-     * @return
+     * @param address Worker address.
+     * @return WorkerStrarter object for the current address.
      */
     public static WorkerStarter getWorkerStarter(String address) {
-        return addressToWorkerStarter.get(address);
+        return ADDRESS_TO_WORKER_STARTER.get(address);
     }
 
     /**
-     * Marks the worker as ready
+     * Marks the worker as ready.
      */
     public void setWorkerIsReady() {
         LOGGER.debug("[WorkerStarter] Worker " + nw.getName() + " set to ready.");
@@ -142,17 +144,17 @@ public class WorkerStarter {
     }
 
     /**
-     * Marks the worker to be stopped
+     * Marks the worker to be stopped.
      */
     public void setToStop() {
         this.toStop = true;
     }
 
     /**
-     * Starts the current worker
+     * Starts the current worker.
      *
-     * @return
-     * @throws InitNodeException
+     * @return The corresponding worker node.
+     * @throws InitNodeException If any internal error occurs.
      */
     public NIONode startWorker() throws InitNodeException {
         String name = this.nw.getName();
@@ -160,15 +162,11 @@ public class WorkerStarter {
         int minPort = this.nw.getConfiguration().getMinPort();
         int maxPort = this.nw.getConfiguration().getMaxPort();
         int port = minPort;
-        String masterName = "null";
-        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals(""))
-                && (!MASTER_NAME_PROPERTY.equals("null"))) {
-            // Set the hostname from the defined property
-            masterName = MASTER_NAME_PROPERTY;
-        }
+        String masterName = COMPSsNode.getMasterName();
+
         // Solves exit error 143
-        synchronized (addressToWorkerStarter) {
-            addressToWorkerStarter.put(name, this);
+        synchronized (ADDRESS_TO_WORKER_STARTER) {
+            ADDRESS_TO_WORKER_STARTER.put(name, this);
             LOGGER.debug("[WorkerStarter] Worker starter for " + name + " registers in the hashmap");
         }
 
@@ -226,26 +224,6 @@ public class WorkerStarter {
         }
     }
 
-    private void killPreviousWorker(String user, String name, int pid) throws InitNodeException {
-        if (pid != -1) {
-            // Command was started but it is not possible to contact to the worker
-            String[] command = getStopCommand(pid);
-            ProcessOut po = executeCommand(user, name, command);
-            if (po == null) {
-                // Queue System managed worker starter
-                LOGGER.error(
-                        "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
-                                + name + ". Retries not available in this option.");
-                throw new InitNodeException(
-                        "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
-                                + name + ". Retries not available in this option.");
-            } else if (po.getExitValue() != 0) {
-                // Normal starting process
-                LOGGER.error(ERROR_SHUTTING_DOWN_RETRY);
-            }
-        }
-    }
-
     private int startWorker(String user, String name, int port, String masterName) throws InitNodeException {
         // Initial wait
         try {
@@ -291,10 +269,30 @@ public class WorkerStarter {
         return pid;
     }
 
+    private void killPreviousWorker(String user, String name, int pid) throws InitNodeException {
+        if (pid != -1) {
+            // Command was started but it is not possible to contact to the worker
+            String[] command = getStopCommand(pid);
+            ProcessOut po = executeCommand(user, name, command);
+            if (po == null) {
+                // Queue System managed worker starter
+                LOGGER.error(
+                        "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
+                                + name + ". Retries not available in this option.");
+                throw new InitNodeException(
+                        "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
+                                + name + ". Retries not available in this option.");
+            } else if (po.getExitValue() != 0) {
+                // Normal starting process
+                LOGGER.error(ERROR_SHUTTING_DOWN_RETRY);
+            }
+        }
+    }
+
     private void checkWorker(NIONode n, String name) {
         long delay = WAIT_TIME_UNIT;
         long totalWait = 0;
-        CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, name);
+        CommandCheckWorker cmd = new CommandCheckWorker(this.nw.getCommManager(), DEPLOYMENT_ID, name);
 
         do {
             if (DEBUG) {
@@ -321,9 +319,9 @@ public class WorkerStarter {
 
     // Arguments needed for persistent_worker.sh
     private String[] getStartCommand(int workerPort, String masterName) throws InitNodeException {
-        String workingDir = this.nw.getWorkingDir();
-        String installDir = this.nw.getInstallDir();
-        String appDir = this.nw.getAppDir();
+        final String workingDir = this.nw.getWorkingDir();
+        final String installDir = this.nw.getInstallDir();
+        final String appDir = this.nw.getAppDir();
 
         // Merge command classpath and worker defined classpath
         String workerClasspath = "";
@@ -373,66 +371,58 @@ public class WorkerStarter {
 
         // Get FPGA reprogram args
         String workerFPGAargs = System.getProperty(COMPSsConstants.WORKER_FPGA_REPROGRAM);
-        String[] FPGAargs = new String[0];
+        String[] fpgaArgs = new String[0];
         if (workerFPGAargs != null && !workerFPGAargs.isEmpty()) {
-            FPGAargs = workerFPGAargs.split(" ");
+            fpgaArgs = workerFPGAargs.split(" ");
         }
 
         // Configure worker debug level
-        String workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
+        final String workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
 
         // Configure storage
         String storageConf = System.getProperty(COMPSsConstants.STORAGE_CONF);
         if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
             storageConf = "null";
-            LOGGER.warn("No storage configuration file passed");
         }
         String executionType = System.getProperty(COMPSsConstants.TASK_EXECUTION);
         if (executionType == null || executionType.equals("") || executionType.equals("null")) {
             executionType = COMPSsConstants.TaskExecution.COMPSS.toString();
-            LOGGER.warn("No executionType passed");
         }
 
         // configure persistent_worker_c execution
-        String worker_persistent_c = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
-        if (worker_persistent_c == null || worker_persistent_c.isEmpty() || worker_persistent_c.equals("null")) {
-            worker_persistent_c = COMPSsConstants.DEFAULT_PERSISTENT_C;
-            LOGGER.warn("No persistent c passed");
+        String workerPersistentC = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
+        if (workerPersistentC == null || workerPersistentC.isEmpty() || workerPersistentC.equals("null")) {
+            workerPersistentC = COMPSsConstants.DEFAULT_PERSISTENT_C;
         }
 
         // Configure python interpreter
-        String python_interpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
-        if (python_interpreter == null || python_interpreter.isEmpty() || python_interpreter.equals("null")) {
-            python_interpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
-            LOGGER.warn("No python interpreter passed");
+        String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+        if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
+            pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
         }
 
         // Configure python version
-        String python_version = System.getProperty(COMPSsConstants.PYTHON_VERSION);
-        if (python_version == null || python_version.isEmpty() || python_version.equals("null")) {
-            python_version = COMPSsConstants.DEFAULT_PYTHON_VERSION;
-            LOGGER.warn("No python version passed");
+        String pythonVersion = System.getProperty(COMPSsConstants.PYTHON_VERSION);
+        if (pythonVersion == null || pythonVersion.isEmpty() || pythonVersion.equals("null")) {
+            pythonVersion = COMPSsConstants.DEFAULT_PYTHON_VERSION;
         }
 
         // Configure python virtual environment
-        String python_virtual_environment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
-        if (python_virtual_environment == null || python_virtual_environment.isEmpty()
-                || python_virtual_environment.equals("null")) {
-            python_virtual_environment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
-            LOGGER.warn("No python virtual environment passed");
+        String pythonVirtualEnvironment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
+        if (pythonVirtualEnvironment == null || pythonVirtualEnvironment.isEmpty()
+                || pythonVirtualEnvironment.equals("null")) {
+            pythonVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
         }
-        String python_propagate_virtual_environment = System
+        String pythonPropagateVirtualEnvironment = System
                 .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
-        if (python_propagate_virtual_environment == null || python_propagate_virtual_environment.isEmpty()
-                || python_propagate_virtual_environment.equals("null")) {
-            python_propagate_virtual_environment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
-            LOGGER.warn("No python propagate virtual environment passed");
+        if (pythonPropagateVirtualEnvironment == null || pythonPropagateVirtualEnvironment.isEmpty()
+                || pythonPropagateVirtualEnvironment.equals("null")) {
+            pythonPropagateVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
         }
 
-        String python_mpi_worker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
-        if (python_mpi_worker == null || python_mpi_worker.isEmpty() || python_mpi_worker.equals("null")) {
-            python_mpi_worker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
-            LOGGER.warn("No python MPI worker flag passed.");
+        String pythonMpiWorker = System.getProperty(COMPSsConstants.PYTHON_MPI_WORKER);
+        if (pythonMpiWorker == null || pythonMpiWorker.isEmpty() || pythonMpiWorker.equals("null")) {
+            pythonMpiWorker = COMPSsConstants.DEFAULT_PYTHON_MPI_WORKER;
         }
 
         /*
@@ -441,7 +431,7 @@ public class WorkerStarter {
          * ************************************************************************************************************
          */
         String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER
-                + jvmFlags.length + 1 + FPGAargs.length];
+                + jvmFlags.length + 1 + fpgaArgs.length];
 
         /* SCRIPT ************************************************ */
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH
@@ -455,8 +445,8 @@ public class WorkerStarter {
             cmd[2] = "null";
         } else if (!appDir.isEmpty()) {
             if (!WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty()) {
-                LOGGER.warn(
-                        "Path passed via appdir option and xml AppDir field, the path provided by the xml will be used");
+                LOGGER.warn("Path passed via appdir option and xml AppDir field."
+                        + "The path provided by the xml will be used");
             }
             cmd[2] = appDir;
         } else if (!WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty()) {
@@ -464,19 +454,21 @@ public class WorkerStarter {
         }
 
         cmd[3] = workerClasspath.isEmpty() ? "null" : workerClasspath;
-        cmd[4] = String.valueOf(jvmFlags.length);
+
+        cmd[4] = Comm.getStreamingBackend().name();
+
+        cmd[5] = String.valueOf(jvmFlags.length);
         for (int i = 0; i < jvmFlags.length; ++i) {
             cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = jvmFlags[i];
         }
 
-        int FPGAposition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
-        cmd[FPGAposition] = String.valueOf(FPGAargs.length);
-        for (int i = 0; i < FPGAargs.length; ++i) {
-            cmd[FPGAposition + i + 1] = FPGAargs[i];
+        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
+        cmd[nextPosition++] = String.valueOf(fpgaArgs.length);
+        for (String fpgaArg : fpgaArgs) {
+            cmd[nextPosition++] = fpgaArg;
         }
 
         /* Values for NIOWorker ********************************** */
-        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length + 1 + FPGAargs.length;
         cmd[nextPosition++] = workerDebug;
 
         // Internal parameters
@@ -486,6 +478,7 @@ public class WorkerStarter {
         cmd[nextPosition++] = String.valueOf(workerPort);
         cmd[nextPosition++] = masterName;
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MASTER_PORT);
+        cmd[nextPosition++] = String.valueOf(Comm.getStreamingPort());
 
         // Worker parameters
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalComputingUnits());
@@ -523,18 +516,18 @@ public class WorkerStarter {
         cmd[nextPosition++] = executionType;
 
         // persistent_c parameter
-        cmd[nextPosition++] = worker_persistent_c;
+        cmd[nextPosition++] = workerPersistentC;
 
         // Python interpreter parameter
-        cmd[nextPosition++] = python_interpreter;
+        cmd[nextPosition++] = pythonInterpreter;
         // Python interpreter version
-        cmd[nextPosition++] = python_version;
+        cmd[nextPosition++] = pythonVersion;
         // Python virtual environment parameter
-        cmd[nextPosition++] = python_virtual_environment;
+        cmd[nextPosition++] = pythonVirtualEnvironment;
         // Python propagate virtual environment parameter
-        cmd[nextPosition++] = python_propagate_virtual_environment;
+        cmd[nextPosition++] = pythonPropagateVirtualEnvironment;
         // Python use MPI worker parameter
-        cmd[nextPosition++] = python_mpi_worker;
+        cmd[nextPosition++] = pythonMpiWorker;
 
         if (cmd.length != nextPosition) {
             throw new InitNodeException(
@@ -591,8 +584,8 @@ public class WorkerStarter {
             pb.command(cmd);
             Process process = pb.start();
 
-            InputStream stderr = process.getErrorStream();
-            InputStream stdout = process.getInputStream();
+            final InputStream stderr = process.getErrorStream();
+            final InputStream stdout = process.getInputStream();
 
             process.getOutputStream().close();
 
@@ -617,10 +610,10 @@ public class WorkerStarter {
     }
 
     /**
-     * Ender function called from the JVM Ender Hook
+     * Ender function called from the JVM Ender Hook.
      *
-     * @param node
-     * @param pid
+     * @param node Worker node.
+     * @param pid Process PID.
      */
     public void ender(NIOWorkerNode node, int pid) {
         if (pid > 0) {

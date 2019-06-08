@@ -26,7 +26,7 @@ import es.bsc.compss.types.annotations.SchedulerHints;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
@@ -38,6 +38,7 @@ import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.util.EnvironmentLoader;
+
 import java.io.File;
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
@@ -45,6 +46,7 @@ import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -54,19 +56,18 @@ import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
 import javassist.expr.MethodCall;
 import javassist.expr.NewExpr;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
 public class ITAppEditor extends ExprEditor {
 
-    private Method[] remoteMethods;
-    private CtMethod[] instrCandidates; // methods that will be instrumented if they are not remote
-    private String itApiVar;
-    private String itSRVar;
-    private String itORVar;
-    private String itAppIdVar;
-    private CtClass appClass;
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+
+    private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
     // Inserted method calls
     private static final String NEW_COMPSS_FILE = ".newCOMPSsFile(";
@@ -86,24 +87,36 @@ public class ITAppEditor extends ExprEditor {
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
     private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
-    private static final String DATA_STREAM = Stream.class.getCanonicalName();
+    private static final String DATA_STREAM = StdIOStream.class.getCanonicalName();
 
     private static final String LANG = Lang.class.getCanonicalName() + ".JAVA";
 
     private static final String CHECK_SCO_TYPE = "LoaderUtils.checkSCOType(";
     private static final String RUN_METHOD_ON_OBJECT = "LoaderUtils.runMethodOnObject(";
 
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    // Pointers to internal variables
+    private Method[] remoteMethods;
+    private CtMethod[] instrCandidates; // methods that will be instrumented if they are not remote
+    private String itApiVar;
+    private String itSRVar;
+    private String itORVar;
+    private String itAppIdVar;
+    private CtClass appClass;
 
-    private static final String ERROR_NO_EMPTY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
     /**
-     * TODO javadoc.
+     * Modifies the current application to instrument the task methods with remote invocations.
+     * 
+     * @param remoteMethods List of ITF remote methods.
+     * @param instrCandidates List of detected methods in the main code.
+     * @param itApiVar COMPSs API pointer.
+     * @param itSRVar Stream Registry.
+     * @param itORVar Object Registry pointer.
+     * @param itAppIdVar COMPSs Application Id variable.
+     * @param appClass Application main class.
      */
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar,
-                       String itORVar, String itAppIdVar, CtClass appClass) {
+            String itORVar, String itAppIdVar, CtClass appClass) {
 
         super();
         this.remoteMethods = remoteMethods;
@@ -115,6 +128,11 @@ public class ITAppEditor extends ExprEditor {
         this.appClass = appClass;
     }
 
+    /**
+     * Returns the application class.
+     * 
+     * @return The application class.
+     */
     public CtClass getAppClass() {
         return this.appClass;
     }
@@ -185,6 +203,7 @@ public class ITAppEditor extends ExprEditor {
     /**
      * Replaces calls to remote methods by calls to executeTask or black-boxes methods.
      */
+    @Override
     public void edit(MethodCall mc) throws CannotCompileException {
         LOGGER.debug("---- BEGIN EDIT METHOD CALL " + mc.getMethodName() + " ----");
 
@@ -259,10 +278,13 @@ public class ITAppEditor extends ExprEditor {
             }
 
             mc.replace(modifiedCall);
-        } else // The method is an instrumented method
+        } else {
+            // The method is an instrumented method, nothing to do
             if (DEBUG) {
                 LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
-            } // Nothing to do
+            }
+        }
+
         LOGGER.debug("---- END EDIT METHOD CALL ----");
     }
 
@@ -332,20 +354,20 @@ public class ITAppEditor extends ExprEditor {
         boolean found = false;
         for (String streamClass : LoaderConstants.SUPPORTED_STREAM_TYPES) {
             if (className.equals(streamClass)) {
-                modifiedExpr = "$_ = " + itSRVar + ".new" + streamClass + "(" + callPars + ");";
+                modifiedExpr = "$_ = " + this.itSRVar + ".new" + streamClass + "(" + callPars + ");";
                 found = true;
                 break;
             }
         }
         if (!found) { // Not a stream
             if (className.equals(File.class.getCanonicalName())) {
-                modifiedExpr = "$_ = " + itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
+                modifiedExpr = "$_ = " + this.itSRVar + NEW_COMPSS_FILE + "(" + callPars + ");";
             } else {
-                String internalObject = itORVar + GET_INTERNAL_OBJECT + "$1)";
+                String internalObject = this.itORVar + GET_INTERNAL_OBJECT + "$1)";
                 String par1 = internalObject + " == null ? (Object)$1 : " + internalObject;
                 modifiedExpr = PROCEED + callPars + "); " + "if ($_ instanceof "
                         + FilterInputStream.class.getCanonicalName() + " || $_ instanceof "
-                        + FilterOutputStream.class.getCanonicalName() + ") {" + itSRVar + NEW_FILTER_STREAM + par1
+                        + FilterOutputStream.class.getCanonicalName() + ") {" + this.itSRVar + NEW_FILTER_STREAM + par1
                         + ", (Object)$_); }";
             }
         }
@@ -359,7 +381,7 @@ public class ITAppEditor extends ExprEditor {
      * Replaces calls to local methods by executeTask.
      */
     private String replaceTaskMethodCall(String methodName, String className, Method declaredMethod,
-                                         CtMethod calledMethod) throws CannotCompileException {
+            CtMethod calledMethod) throws CannotCompileException {
 
         if (DEBUG) {
             LOGGER.debug("Found call to remote method " + methodName);
@@ -379,8 +401,8 @@ public class ITAppEditor extends ExprEditor {
 
         // Build the executeTask call string
         StringBuilder executeTask = new StringBuilder();
-        executeTask.append(itApiVar).append(EXECUTE_TASK);
-        executeTask.append(itAppIdVar).append(',');
+        executeTask.append(this.itApiVar).append(EXECUTE_TASK);
+        executeTask.append(this.itAppIdVar).append(',');
         executeTask.append("null").append(','); // TaskMonitor set to null
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
@@ -495,8 +517,7 @@ public class ITAppEditor extends ExprEditor {
      * Process the parameters, the target object and the return value of a given method.
      */
     private CallInformation processParameters(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes,
-                                              boolean isVoid, boolean isStatic, boolean isMethod, int numParams,
-                                              Class<?> retType)
+            boolean isVoid, boolean isStatic, boolean isMethod, int numParams, Class<?> retType)
             throws CannotCompileException {
 
         StringBuilder toAppend = new StringBuilder("");
@@ -546,26 +567,45 @@ public class ITAppEditor extends ExprEditor {
     private ParameterInformation processParameterValue(int paramIndex, Parameter par, Class<?> formalType) {
         Type annotType = par.type();
         Direction paramDirection = par.direction();
-        Stream paramStream = par.stream();
+        StdIOStream paramStream = par.stream();
         String paramPrefix = par.prefix();
 
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
         String type = "";
 
-        if (annotType.equals(Type.FILE)) {
-            // The File type needs to be specified explicitly, since its formal type is String
-            type = DATA_TYPES + ".FILE_T";
-            infoToAppend.append('$').append(paramIndex + 1).append(',');
-            infoToPrepend.insert(0, itSRVar + ADD_TASK_FILE + "$" + (paramIndex + 1) + ");");
-        } else if (annotType.equals(Type.STRING)) {
-            /*
-             * Mechanism to make a String be treated like a list of chars instead of like another object. Dependencies
-             * won't be watched for the string.
-             */
-            type = DATA_TYPES + ".STRING_T";
-            infoToAppend.append('$').append(paramIndex + 1).append(',');
-        } else if (formalType.isPrimitive()) {
+        switch (annotType) {
+            case FILE:
+                // The File type needs to be specified explicitly, since its formal type is String
+                type = DATA_TYPES + ".FILE_T";
+                infoToAppend.append('$').append(paramIndex + 1).append(',');
+                infoToPrepend.insert(0, this.itSRVar + ADD_TASK_FILE + "$" + (paramIndex + 1) + ");");
+                break;
+            case STRING:
+                // Mechanism to make a String be treated like a list of chars instead of like another object.
+                // Dependencies won't be watched for the string.
+                type = DATA_TYPES + ".STRING_T";
+                infoToAppend.append('$').append(paramIndex + 1).append(',');
+                break;
+            case STREAM:
+                type = DATA_TYPES + ".STREAM_T";
+                infoToAppend.append("$").append(paramIndex + 1).append(",");
+                break;
+            default:
+                // Process the regular parameter value
+                type = processRegularParameterValue(paramIndex, formalType, infoToAppend);
+                break;
+        }
+
+        // Build the parameter information and return
+        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(),
+                type, paramDirection, paramStream, paramPrefix);
+        return infoParam;
+    }
+
+    private String processRegularParameterValue(int paramIndex, Class<?> formalType, StringBuilder infoToAppend) {
+        String type;
+        if (formalType.isPrimitive()) {
             if (formalType.equals(boolean.class)) {
                 type = DATA_TYPES + ".BOOLEAN_T";
                 infoToAppend.append("new Boolean(").append("$").append(paramIndex + 1).append("),");
@@ -590,24 +630,26 @@ public class ITAppEditor extends ExprEditor {
             } else if (formalType.equals(double.class)) {
                 type = DATA_TYPES + ".DOUBLE_T";
                 infoToAppend.append("new Double(").append("$").append(paramIndex + 1).append("),");
+            } else {
+                LOGGER.warn("ERROR: Unrecognised formal type " + formalType.getCanonicalName() + " on parameter "
+                        + paramIndex);
+                type = "";
             }
         } else { // Object or Self-Contained Object or Persistent SCO
             type = CHECK_SCO_TYPE + "$" + (paramIndex + 1) + ")";
             infoToAppend.append("$").append(paramIndex + 1).append(",");
         }
 
-        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(),
-                type, paramDirection, paramStream, paramPrefix);
-        return infoParam;
+        return type;
     }
 
     /**
      * Process the target object of a given method call.
      */
     private String processTargetObject(Method declaredMethod, boolean isStatic, int numParams, boolean isVoid,
-                                       boolean isMethod) {
-        StringBuilder targetObj = new StringBuilder("");
+            boolean isMethod) {
 
+        StringBuilder targetObj = new StringBuilder("");
         if (!isStatic) {
             // Assuming object, it is unlikely that a user selects a method invoked on an array
             int numRealParams = (isVoid ? numParams : numParams - 1);
@@ -639,7 +681,7 @@ public class ITAppEditor extends ExprEditor {
             }
 
             // Add binary stream
-            targetObj.append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
+            targetObj.append(',').append(DATA_STREAM + "." + StdIOStream.UNSPECIFIED);
             // Add empty prefix
             targetObj.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
             // Add empty parameter name
@@ -654,6 +696,7 @@ public class ITAppEditor extends ExprEditor {
      */
     private ReturnInformation processReturnParameter(boolean isVoid, int numParams, Class<?> retType)
             throws CannotCompileException {
+
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
         StringBuilder afterExecute = new StringBuilder("");
@@ -668,13 +711,10 @@ public class ITAppEditor extends ExprEditor {
                  * ********************************* PRIMITIVE *********************************
                  */
                 String tempRetVar = "ret" + System.nanoTime();
-                infoToAppend
-                        .append(tempRetVar).append(',')
-                        .append(DATA_TYPES + ".OBJECT_T").append(',')
-                        .append(DATA_DIRECTION + ".OUT").append(',')
-                        .append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',')
-                        .append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",")
-                        .append("\"").append("\"");
+                infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',')
+                        .append(DATA_DIRECTION + ".OUT").append(',').append(DATA_STREAM + "." + StdIOStream.UNSPECIFIED)
+                        .append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(",").append("\"")
+                        .append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -720,13 +760,11 @@ public class ITAppEditor extends ExprEditor {
                  * After execute task, register an access to the wrapper object, get its (remotely) generated value and
                  * assign it to the application's primitive type var
                  */
-                afterExecute.append(itORVar).append(NEW_OBJECT_ACCESS).append(tempRetVar).append(");");
-                afterExecute.append("$_ = (").append(cast).append(itORVar).append(GET_INTERNAL_OBJECT)
+                afterExecute.append(this.itORVar).append(NEW_OBJECT_ACCESS).append(tempRetVar).append(");");
+                afterExecute.append("$_ = (").append(cast).append(this.itORVar).append(GET_INTERNAL_OBJECT)
                         .append(tempRetVar).append(")).").append(converterMethod).append(";");
             } else if (retType.isArray()) {
-                /*
-                 * ********************************* ARRAY
-                 *********************************/
+                // ARRAY
                 String typeName = retType.getName();
                 Class<?> compType = retType.getComponentType();
                 int numDim = typeName.lastIndexOf('[');
@@ -739,16 +777,11 @@ public class ITAppEditor extends ExprEditor {
                 }
                 String compTypeName = compType.getName();
                 infoToPrepend.insert(0, "$_ = new " + compTypeName + dims + ';');
-                infoToAppend
-                        .append("$_,").append(DATA_TYPES + ".OBJECT_T").append(',')
-                        .append(DATA_DIRECTION + ".OUT").append(',')
-                        .append(DATA_STREAM + ".UNSPECIFIED").append(',')
-                        .append("\"").append(Constants.PREFIX_EMPTY).append("\"").append(',')
-                        .append("\"").append("\"");
+                infoToAppend.append("$_,").append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
+                        .append(',').append(DATA_STREAM + ".UNSPECIFIED").append(',').append("\"")
+                        .append(Constants.PREFIX_EMPTY).append("\"").append(',').append("\"").append("\"");
             } else {
-                /*
-                 * ********************************* OBJECT
-                 *********************************/
+                // OBJECT
                 // Wrapper for a primitive type: return a default value
                 if (retType.isAssignableFrom(Boolean.class)) {
                     infoToPrepend.insert(0, "$_ = new Boolean(false);");
@@ -766,7 +799,8 @@ public class ITAppEditor extends ExprEditor {
                     infoToPrepend.insert(0, "$_ = new Float(Float.MIN_VALUE);");
                 } else if (retType.isAssignableFrom(Double.class)) {
                     infoToPrepend.insert(0, "$_ = new Double(Double.MIN_VALUE);");
-                } else { // Object (maybe String): use the no-args constructor
+                } else {
+                    // Object (maybe String): use the no-args constructor
                     // Check that object class has empty constructor
                     String typeName = retType.getName();
                     try {
@@ -801,7 +835,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceCloseStream() {
-        String streamClose = PROCEED + "$$); " + itSRVar + STREAM_CLOSED + "$0);";
+        String streamClose = PROCEED + "$$); " + this.itSRVar + STREAM_CLOSED + "$0);";
         return streamClose;
     }
 
@@ -811,7 +845,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceDeleteFile() {
-        String deleteFile = "$_ = " + itApiVar + DELETE_FILE + "$0" + GET_CANONICAL_PATH + "));";
+        String deleteFile = "$_ = " + this.itApiVar + DELETE_FILE + "$0" + GET_CANONICAL_PATH + "));";
         return deleteFile;
     }
 
@@ -834,12 +868,12 @@ public class ITAppEditor extends ExprEditor {
         // Something like: itApiVar.methodName(itAppIdVar, $$);
         StringBuilder apiCall = new StringBuilder("");
         if (isVoid) {
-            apiCall.append("$_ = ").append(itApiVar);
+            apiCall.append("$_ = ").append(this.itApiVar);
         } else {
-            apiCall.append(itApiVar);
+            apiCall.append(this.itApiVar);
         }
 
-        apiCall.append(".").append(methodName).append("(").append(itAppIdVar);
+        apiCall.append(".").append(methodName).append("(").append(this.itAppIdVar);
 
         if (hasArgs) {
             apiCall.append(", $$");
@@ -869,8 +903,8 @@ public class ITAppEditor extends ExprEditor {
         boolean isArrayWatch = method.getDeclaringClass().getName().equals(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
 
         // First check the target object
-        modifiedCall.append(itORVar).append(NEW_OBJECT_ACCESS + "$0);");
-        toSerialize.append(itORVar).append(SERIALIZE_LOCALLY + "$0);");
+        modifiedCall.append(this.itORVar).append(NEW_OBJECT_ACCESS + "$0);");
+        toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY + "$0);");
 
         /*
          * Now add the call. If the target object of the call is a task object, invoke the method on the internal object
@@ -929,21 +963,22 @@ public class ITAppEditor extends ExprEditor {
                                     || calledClass.equals(StringBuilder.class.getName())) {
                                 // If the call is inside a PrintStream or StringBuilder, only synchronize objects files
                                 // already has the name
-                                String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ')';
-                                modifiedCall.insert(0, itORVar + NEW_OBJECT_ACCESS + parId + ");");
+                                String internalObject = this.itORVar + GET_INTERNAL_OBJECT + parId + ')';
+                                modifiedCall.insert(0, this.itORVar + NEW_OBJECT_ACCESS + parId + ");");
                                 aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                         .append("(" + parType.getName() + ")").append(internalObject);
-                                toSerialize.append(itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
+                                toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
                             } else {
-                                String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ')';
-                                String taskFile = itSRVar + IS_TASK_FILE + parId + ")";
-                                String apiOpenFile = itApiVar + OPEN_FILE + parId + ", " + DATA_DIRECTION + ".INOUT)";
-                                modifiedCall.insert(0, itORVar + NEW_OBJECT_ACCESS + parId + ");");
+                                String internalObject = this.itORVar + GET_INTERNAL_OBJECT + parId + ')';
+                                String taskFile = this.itSRVar + IS_TASK_FILE + parId + ")";
+                                String apiOpenFile = this.itApiVar + OPEN_FILE + parId + ", " + DATA_DIRECTION
+                                        + ".INOUT)";
+                                modifiedCall.insert(0, this.itORVar + NEW_OBJECT_ACCESS + parId + ");");
                                 // Adding check of task files
                                 aux1.append(taskFile).append(" ? ").append(apiOpenFile).append(" : ")
                                         .append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                         .append("(" + parType.getName() + ")").append(internalObject);
-                                toSerialize.append(itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
+                                toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
                             }
                         }
                     } else { // Object (also array)
@@ -956,11 +991,11 @@ public class ITAppEditor extends ExprEditor {
                             // Prevent from synchronizing task return objects to be stored in an array position
                             aux1.append(parId);
                         } else {
-                            String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ')';
-                            modifiedCall.insert(0, itORVar + NEW_OBJECT_ACCESS + parId + ");");
+                            String internalObject = this.itORVar + GET_INTERNAL_OBJECT + parId + ')';
+                            modifiedCall.insert(0, this.itORVar + NEW_OBJECT_ACCESS + parId + ");");
                             aux1.append(internalObject).append(" == null ? ").append(parId).append(" : ")
                                     .append("(" + parType.getName() + ")").append(internalObject);
-                            toSerialize.append(itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
+                            toSerialize.append(this.itORVar).append(SERIALIZE_LOCALLY).append(parId).append(");");
                         }
                     }
                     i++;
@@ -971,7 +1006,7 @@ public class ITAppEditor extends ExprEditor {
         } catch (NotFoundException e) {
             throw new CannotCompileException(e);
         }
-        String internalObject = itORVar + GET_INTERNAL_OBJECT + "$0)";
+        String internalObject = this.itORVar + GET_INTERNAL_OBJECT + "$0)";
         modifiedCall.append("if (").append(internalObject).append(" != null) {")
                 .append("$_ = ($r)" + RUN_METHOD_ON_OBJECT).append(internalObject).append(",$class,\"")
                 .append(methodName).append("\",").append(redirectedCallPars).append(",$sig);")
@@ -985,18 +1020,19 @@ public class ITAppEditor extends ExprEditor {
         return modifiedCall.toString();
     }
 
+
     private class ParameterInformation {
 
         private final String toAppend;
         private final String toPrepend;
         private final String type;
         private final Direction direction;
-        private final Stream stream;
+        private final StdIOStream stream;
         private final String prefix;
 
 
-        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream,
-                                    String prefix) {
+        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction,
+                StdIOStream stream, String prefix) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;

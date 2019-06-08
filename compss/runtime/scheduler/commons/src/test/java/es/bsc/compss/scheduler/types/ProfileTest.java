@@ -16,27 +16,28 @@
  */
 package es.bsc.compss.scheduler.types;
 
+import static org.junit.Assert.fail;
+
 import org.json.JSONObject;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 
 public class ProfileTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
-    private static final long DEFAULT_AVG_EXECUTION_TIME = 100l;
+    private static final long DEFAULT_AVG_EXECUTION_TIME = 100L;
     private static final long DEFAULT_MAX_EXECUTION_TIME = Long.MIN_VALUE;
-    private static final long DEFAULT_EXECUTION_COUNT = 0l;
+    private static final long DEFAULT_EXECUTION_COUNT = 0L;
 
     private static final long SET_MIN_EXECUTION_TIME = 2;
     private static final long SET_AVG_EXECUTION_TIME = 5;
     private static final long SET_MAX_EXECUTION_TIME = 10;
-    private static final long SET_EXECUTION_COUNT = 3l;
+    private static final long SET_EXECUTION_COUNT = 3L;
 
 
     @BeforeClass

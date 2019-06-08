@@ -24,58 +24,60 @@ import java.util.HashSet;
 
 
 /**
- * Supporting class to manage SSH connections
+ * Supporting class to manage SSH connections.
  */
 public class SSHManager {
 
-    private static HashSet<COMPSsWorker> workers = new HashSet<>();
+    private static final HashSet<COMPSsWorker> WORKERS = new HashSet<>();
 
 
     /**
-     * Private constructor to avoid instantiation
+     * Private constructor to avoid instantiation.
      */
     private SSHManager() {
         throw new NonInstantiableException("SSHManager");
     }
 
     /**
-     * Registers a new worker
+     * Registers a new worker.
      * 
-     * @param worker
+     * @param worker New worker.
      */
     public static void registerWorker(COMPSsWorker worker) {
-        synchronized (workers) {
-            workers.add(worker);
+        synchronized (WORKERS) {
+            WORKERS.add(worker);
         }
     }
 
     /**
-     * Removes an existing worker
+     * Removes an existing worker.
      * 
-     * @param worker
+     * @param worker Worker to remove.
      */
     public static void removeWorker(COMPSsWorker worker) {
-        synchronized (workers) {
-            workers.remove(worker);
+        synchronized (WORKERS) {
+            WORKERS.remove(worker);
         }
     }
 
     /**
-     * Announces a worker creation (inserts ssh keys in all existing nodes)
+     * Announces a worker creation (inserts ssh keys in all existing nodes).
      * 
-     * @param worker
-     * @throws IOException
+     * @param worker Worker to announce.
+     * @throws IOException When the ssh keys cannot be copied or retrieved.
      */
     public static void announceCreation(COMPSsWorker worker) throws IOException {
         int i = 0;
         Process[] p;
-        synchronized (workers) {
-            p = new Process[workers.size() * 2];
+        synchronized (WORKERS) {
+            p = new Process[WORKERS.size() * 2];
 
-            for (COMPSsWorker remote : workers) {
-                String[] cmd = new String[] { "ssh", remote.getUser() + "@" + remote.getName(),
-                        "ssh-keyscan -t rsa,dsa " + worker.getName() + " >> /home/" + remote.getUser()
-                                + "/.ssh/known_hosts" };
+            for (COMPSsWorker remote : WORKERS) {
+                String[] cmd = new String[] { 
+                    "ssh", remote.getUser() + "@" + remote.getName(),
+                    "ssh-keyscan -t rsa,dsa " + worker.getName() + " >> /home/" + remote.getUser() 
+                        + "/.ssh/known_hosts" 
+                };
                 p[i] = Runtime.getRuntime().exec(cmd);
                 i++;
                 cmd = new String[] { "ssh", remote.getUser() + "@" + remote.getName(), "ssh-keyscan -t rsa,dsa "
@@ -98,23 +100,24 @@ public class SSHManager {
     }
 
     /**
-     * Announces a worker destruction (cleans ssh keys in worker node)
+     * Announces a worker destruction (cleans ssh keys in worker node).
      * 
-     * @param worker
-     * @throws IOException
+     * @param worker Worker to destroy.
+     * @throws IOException When worker cannot be removed from known_hosts.
      */
     public static void announceDestruction(COMPSsWorker worker) throws IOException {
         int i = 1;
 
         Process[] p;
-        synchronized (workers) {
-            p = new Process[workers.size()];
+        synchronized (WORKERS) {
+            p = new Process[WORKERS.size()];
 
-            for (COMPSsWorker remote : workers) {
+            for (COMPSsWorker remote : WORKERS) {
                 String user = remote.getUser();
-                String[] cmd = new String[] { "ssh", user + "@" + remote.getName(),
-                        "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw " + worker.getName()
-                                + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
+                String[] cmd = new String[] {
+                    "ssh", user + "@" + remote.getName(),
+                    "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw " + worker.getName()
+                        + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
                 p[i] = Runtime.getRuntime().exec(cmd);
                 i++;
             }
@@ -134,10 +137,10 @@ public class SSHManager {
     }
 
     /**
-     * Removes worker keys
+     * Removes worker keys.
      * 
-     * @param worker
-     * @throws IOException
+     * @param worker Worker name.
+     * @throws IOException When the worker keys cannot be removed.
      */
     public static void removeKey(COMPSsWorker worker) throws IOException {
         String user = System.getProperty("user.name");

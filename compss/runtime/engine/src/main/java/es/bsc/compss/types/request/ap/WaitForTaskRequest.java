@@ -20,41 +20,56 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.AccessParams.AccessMode;
+import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
+
 import java.util.concurrent.Semaphore;
 
 
 public class WaitForTaskRequest extends APRequest {
 
-    private int dataId;
+    private final int dataId;
     private final AccessMode am;
-    private Semaphore sem;
+    private final Semaphore sem;
 
 
+    /**
+     * Creates a new request to wait for a task completion.
+     * 
+     * @param dataId Data Id.
+     * @param mode Access mode.
+     * @param sem Waiting semaphore.
+     */
     public WaitForTaskRequest(int dataId, AccessMode mode, Semaphore sem) {
         this.dataId = dataId;
         this.am = mode;
         this.sem = sem;
     }
 
+    /**
+     * Returns the waiting semaphore.
+     * 
+     * @return The waiting semaphore.
+     */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
+    /**
+     * Returns the associated data Id.
+     * 
+     * @return The associated data Id.
+     */
     public int getDataId() {
-        return dataId;
+        return this.dataId;
     }
 
+    /**
+     * Returns the associated access mode to the data.
+     * 
+     * @return The associated access mode to the data.
+     */
     public AccessMode getAccessMode() {
-        return am;
-    }
-
-    public void setDataId(int dataId) {
-        this.dataId = dataId;
+        return this.am;
     }
 
     @Override

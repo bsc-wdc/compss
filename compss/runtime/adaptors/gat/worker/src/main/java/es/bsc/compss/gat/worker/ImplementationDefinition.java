@@ -18,7 +18,7 @@ package es.bsc.compss.gat.worker;
 
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
@@ -57,7 +57,14 @@ public abstract class ImplementationDefinition implements Invocation {
     private final LinkedList<Param> results = new LinkedList<>();
 
 
-    public ImplementationDefinition(boolean enableDebug, String args[], int appArgsIdx) {
+    /**
+     * Creates a new ImplementationDefinition instance.
+     * 
+     * @param enableDebug Whether the debug mode is enabled or not.
+     * @param args Application arguments.
+     * @param appArgsIdx Application arguments parsing index.
+     */
+    public ImplementationDefinition(boolean enableDebug, String[] args, int appArgsIdx) {
         this.jobId = Integer.parseInt(args[appArgsIdx++]);
         this.taskId = Integer.parseInt(args[appArgsIdx++]);
         this.history = JobHistory.NEW;
@@ -77,7 +84,7 @@ public abstract class ImplementationDefinition implements Invocation {
 
         int numParams = Integer.parseInt(args[appArgsIdx++]);
         // Get if has target or not
-        hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
+        this.hasTarget = Boolean.parseBoolean(args[appArgsIdx++]);
 
         int numReturns = Integer.parseInt(args[appArgsIdx++]);
 
@@ -91,15 +98,15 @@ public abstract class ImplementationDefinition implements Invocation {
 
         Iterator<Param> paramsItr = paramsTmp.descendingIterator();
         for (int i = 0; i < numReturns; i++) {
-            results.addFirst(paramsItr.next());
+            this.results.addFirst(paramsItr.next());
         }
-        if (hasTarget) {
-            target = paramsItr.next();
+        if (this.hasTarget) {
+            this.target = paramsItr.next();
         } else {
-            target = null;
+            this.target = null;
         }
         while (paramsItr.hasNext()) {
-            arguments.addFirst(paramsItr.next());
+            this.arguments.addFirst(paramsItr.next());
         }
     }
 
@@ -107,16 +114,10 @@ public abstract class ImplementationDefinition implements Invocation {
             throws Exception {
         LinkedList<Param> paramsList = new LinkedList<>();
         DataType[] dataTypesEnum = DataType.values();
-        Stream[] dataStream = Stream.values();
+        StdIOStream[] dataStream = StdIOStream.values();
 
         int totalParams = numParams + numReturns + (hasTarget ? 1 : 0);
         for (int paramIdx = 0; paramIdx < totalParams; paramIdx++) {
-            DataType argType;
-
-            Stream stream;
-            String prefix;
-            String name;
-
             // Object and primitiveTypes
             Object value = null;
             // File
@@ -126,31 +127,33 @@ public abstract class ImplementationDefinition implements Invocation {
             if (argTypeIdx >= dataTypesEnum.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_DATA_TYPE + argTypeIdx);
             }
-            argType = dataTypesEnum[argTypeIdx];
+            final DataType argType = dataTypesEnum[argTypeIdx];
 
             int argStreamIdx = Integer.parseInt(args[appArgsIdx++]);
             if (argStreamIdx >= dataStream.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStreamIdx);
             }
-            stream = dataStream[argStreamIdx];
+            final StdIOStream stream = dataStream[argStreamIdx];
 
-            prefix = args[appArgsIdx++];
+            String prefix = args[appArgsIdx++];
             if (prefix == null || prefix.isEmpty()) {
                 prefix = Constants.PREFIX_EMPTY;
             }
 
-            name = args[appArgsIdx++];
+            String name = args[appArgsIdx++];
             if (name.compareTo("null") == 0) {
                 name = "";
             }
 
             switch (argType) {
                 case FILE_T:
+                case EXTERNAL_STREAM_T:
                     originalName = args[appArgsIdx++];
                     value = args[appArgsIdx++];
                     break;
                 case OBJECT_T:
                 case BINDING_OBJECT_T:
+                case STREAM_T:
                 case PSCO_T:
                     String fileLocation = (String) args[appArgsIdx++];
                     value = fileLocation;
@@ -320,13 +323,13 @@ public abstract class ImplementationDefinition implements Invocation {
 
         private final String prefix;
         private final String name;
-        private final Stream stream;
+        private final StdIOStream stream;
         private String originalName;
         private String renamedName;
         private final boolean writeFinalValue;
 
 
-        public Param(DataType type, String prefix, String name, Stream stream, String originalName,
+        public Param(DataType type, String prefix, String name, StdIOStream stream, String originalName,
                 boolean writeFinalValue) {
             this.type = type;
             this.prefix = prefix;
@@ -367,7 +370,7 @@ public abstract class ImplementationDefinition implements Invocation {
         }
 
         @Override
-        public Stream getStream() {
+        public StdIOStream getStdIOStream() {
             return this.stream;
         }
 

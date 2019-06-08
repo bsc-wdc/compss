@@ -17,7 +17,7 @@
 package es.bsc.compss.types.annotations.parameter;
 
 /**
- * Parameter types
+ * Parameter types.
  */
 public enum Type {
     FILE, // file
@@ -31,5 +31,6 @@ public enum Type {
     FLOAT, // float
     DOUBLE, // double
     OBJECT, // object
+    STREAM, // stream
     UNSPECIFIED; // unspecified
 }

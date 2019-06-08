@@ -20,14 +20,14 @@ import es.bsc.compss.types.Task;
 
 
 /**
- * Abstract interface for task producer implementations
+ * Abstract interface for task producer implementations.
  */
 public interface TaskProducer {
 
     /**
-     * Notifies the end of task @task
+     * Notifies the end of task {@code task}.
      * 
-     * @param task
+     * @param task Ended task.
      */
     public void notifyTaskEnd(Task task);
 

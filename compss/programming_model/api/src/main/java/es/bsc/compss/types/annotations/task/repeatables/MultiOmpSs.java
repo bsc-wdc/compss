@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.annotations.task.repeatables;
 
+import es.bsc.compss.types.annotations.task.OmpSs;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.task.OmpSs;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -31,6 +31,11 @@ import es.bsc.compss.types.annotations.task.OmpSs;
  */
 public @interface MultiOmpSs {
 
+    /**
+     * Returns the list of OmpSs annotations.
+     * 
+     * @return The list of OmpSs annotations.
+     */
     OmpSs[] value();
 
 }

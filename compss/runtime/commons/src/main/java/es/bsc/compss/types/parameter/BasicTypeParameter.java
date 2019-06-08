@@ -18,7 +18,7 @@ package es.bsc.compss.types.parameter;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 
 
 public class BasicTypeParameter extends Parameter {
@@ -45,7 +45,7 @@ public class BasicTypeParameter extends Parameter {
      * @param name Parameter name.
      * @param value Parameter value.
      */
-    public BasicTypeParameter(DataType type, Direction direction, Stream stream, String prefix, String name,
+    public BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
             Object value) {
         super(type, direction, stream, prefix, name);
         this.value = value;
@@ -57,7 +57,7 @@ public class BasicTypeParameter extends Parameter {
      * @return The parameter value.
      */
     public Object getValue() {
-        return value;
+        return this.value;
     }
 
     /**
@@ -71,7 +71,7 @@ public class BasicTypeParameter extends Parameter {
 
     @Override
     public String toString() {
-        return value + " " + getType() + " " + getDirection();
+        return this.value + " " + getType() + " " + getDirection();
     }
 
 }

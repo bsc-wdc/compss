@@ -17,6 +17,8 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
+
+import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
@@ -29,12 +31,22 @@ public class CommandResourcesIncrease extends Command implements Externalizable 
 
     private MethodResourceDescription description;
 
+
+    /**
+     * Creates a new CommandResourcesIncrease for externalization.
+     */
     public CommandResourcesIncrease() {
         super();
     }
 
-    public CommandResourcesIncrease(MethodResourceDescription description) {
-        super();
+    /**
+     * Creates a new CommandResourcesIncrease instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param description Increasing resource description.
+     */
+    public CommandResourcesIncrease(NIOAgent agent, MethodResourceDescription description) {
+        super(agent);
         this.description = description;
     }
 
@@ -45,24 +57,24 @@ public class CommandResourcesIncrease extends Command implements Externalizable 
 
     @Override
     public void handle(Connection c) {
-        agent.increaseResources(description);
+        this.agent.increaseResources(this.description);
         c.sendCommand(new CommandResourcesReduced());
         c.finishConnection();
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        description = (MethodResourceDescription) in.readObject();
+        this.description = (MethodResourceDescription) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(description);
+        out.writeObject(this.description);
     }
 
     @Override
     public String toString() {
-        return "CommandIncreaseResources " + description;
+        return "CommandIncreaseResources " + this.description;
     }
 
 }

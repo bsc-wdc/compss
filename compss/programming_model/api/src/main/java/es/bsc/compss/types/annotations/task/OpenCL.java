@@ -16,15 +16,15 @@
  */
 package es.bsc.compss.types.annotations.task;
 
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.Constraints;
-import es.bsc.compss.types.annotations.task.repeatables.OpenCLs;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -41,16 +41,16 @@ public @interface OpenCL {
      */
 
     /**
-     * Returns the kernel name
+     * Returns the kernel name.
      * 
-     * @return the kernel name
+     * @return the kernel name.
      */
     String kernel() default Constants.UNASSIGNED;
 
     /**
-     * Returns the working directory of the binary
+     * Returns the working directory of the binary.
      * 
-     * @return the binary working directory
+     * @return the binary working directory.
      */
     String workingDir() default Constants.UNASSIGNED;
 
@@ -60,16 +60,16 @@ public @interface OpenCL {
      */
 
     /**
-     * Returns if the method has priority or not
+     * Returns if the method has priority or not.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 
     /**
-     * Returns the method specific constraints
+     * Returns the method specific constraints.
      * 
-     * @return the method specific constraints
+     * @return the method specific constraints.
      */
     Constraints constraints() default @Constraints();
 

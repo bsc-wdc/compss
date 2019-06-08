@@ -17,7 +17,7 @@
 package es.bsc.compss.types.execution;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import java.util.List;
 
 
@@ -35,7 +35,7 @@ public interface InvocationParam {
 
     public String getName();
 
-    public Stream getStream();
+    public StdIOStream getStdIOStream();
 
     public String getOriginalName();
 

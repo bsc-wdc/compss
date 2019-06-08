@@ -35,8 +35,8 @@ import org.apache.logging.log4j.Logger;
 public class WSAdaptor implements CommAdaptor {
 
     // Logging
-    public static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    public static final boolean debug = logger.isDebugEnabled();
+    public static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    public static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Tracing
     protected static boolean tracing;
@@ -47,40 +47,42 @@ public class WSAdaptor implements CommAdaptor {
         try {
             WSJob.init();
         } catch (Exception e) {
-            logger.error("Can not initialize WS Adaptor");
+            LOGGER.error("Can not initialize WS Adaptor");
         }
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
 
-        es.bsc.compss.types.project.jaxb.ServiceType s_project = (es.bsc.compss.types.project.jaxb.ServiceType) project_properties;
-        es.bsc.compss.types.resources.jaxb.ServiceType s_resources = (es.bsc.compss.types.resources.jaxb.ServiceType) resources_properties;
+        es.bsc.compss.types.project.jaxb.ServiceType sProject = 
+            (es.bsc.compss.types.project.jaxb.ServiceType) projectProperties;
+        es.bsc.compss.types.resources.jaxb.ServiceType sResources = 
+            (es.bsc.compss.types.resources.jaxb.ServiceType) resourcesProperties;
 
         String wsdl = null;
-        if (s_project != null) {
-            wsdl = s_project.getWsdl();
-        } else if (s_resources != null) {
-            wsdl = s_resources.getWsdl();
+        if (sProject != null) {
+            wsdl = sProject.getWsdl();
+        } else if (sResources != null) {
+            wsdl = sResources.getWsdl();
         } else {
             // No wsdl (service unique key), throw exception
             throw new ConstructConfigurationException("Cannot configure service because no WSDL provided");
         }
 
         WSConfiguration config = new WSConfiguration(this.getClass().getName(), wsdl);
-        if (s_project != null) {
-            config.setLimitOfTasks(s_project.getLimitOfTasks());
+        if (sProject != null) {
+            config.setLimitOfTasks(sProject.getLimitOfTasks());
         }
 
-        if (s_resources != null) {
-            config.setServiceName(s_resources.getName());
-            config.setNamespace(s_resources.getNamespace());
-            String servicePort = s_resources.getPort();
+        if (sResources != null) {
+            config.setServiceName(sResources.getName());
+            config.setNamespace(sResources.getNamespace());
+            String servicePort = sResources.getPort();
             if (servicePort != null && !servicePort.isEmpty()) {
-                config.setPort(s_resources.getPort());
+                config.setPort(sResources.getPort());
             }
-            PriceType p = s_resources.getPrice();
+            PriceType p = sResources.getPrice();
             if (p != null) {
                 config.setPricePerUnitTime(p.getPricePerUnit());
                 config.setPriceUnitTime(p.getTimeUnit());
@@ -91,8 +93,10 @@ public class WSAdaptor implements CommAdaptor {
     }
 
     @Override
-    public COMPSsWorker initWorker(String workerName, Configuration config) {
-        return new ServiceInstance(workerName, (WSConfiguration) config);
+    public COMPSsWorker initWorker(Configuration config) {
+        WSConfiguration wsCfg = (WSConfiguration) config;
+        LOGGER.debug("Init WS Worker Node named " + wsCfg.getWsdl());
+        return new ServiceInstance(wsCfg);
     }
 
     @Override

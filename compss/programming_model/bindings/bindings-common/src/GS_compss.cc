@@ -60,10 +60,10 @@ jobject jobjParDirOUT; 		        /* Instance of the es.bsc.compss.types.annotati
 jobject jobjParDirINOUT; 	        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirCONCURRENT; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 
-jobject jobjParStreamSTDIN;         /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
-jobject jobjParStreamSTDOUT;        /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
-jobject jobjParStreamSTDERR;        /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
-jobject jobjParStreamUNSPECIFIED;   /* Instance of the es.bsc.compss.types.annotations.parameter.Stream class */
+jobject jobjParStreamSTDIN;         /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
+jobject jobjParStreamSTDOUT;        /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
+jobject jobjParStreamSTDERR;        /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
+jobject jobjParStreamUNSPECIFIED;   /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
 
 jstring jobjParPrefixEMPTY;         /* Instance of the es.bsc.compss.types.annotations.Constants.PREFIX_EMPTY */
 
@@ -177,8 +177,8 @@ void init_basic_jni_types() {
 void init_master_jni_types() {
     jclass clsParDir; 		    /* es.bsc.compss.types.annotations.parameter.Direction class */
     jmethodID midParDirCon; 	/* ID of the es.bsc.compss.types.annotations.parameter.Direction class constructor method */
-    jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.Stream class */
-    jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.Stream class constructor method */
+    jclass clsParStream;        /* es.bsc.compss.types.annotations.parameter.StdIOStream class */
+    jmethodID midParStreamCon;  /* es.bsc.compss.types.annotations.parameter.StdIOStream class constructor method */
 
     debug_printf ("[BINDING-COMMONS]  -  @Init JNI Methods\n");
 
@@ -310,35 +310,35 @@ void init_master_jni_types() {
 
     debug_printf ("[BINDING_COMMONS]  -  @Init JNI Stream Types\n");
 
-    clsParStream = m_env->FindClass("es/bsc/compss/types/annotations/parameter/Stream");
+    clsParStream = m_env->FindClass("es/bsc/compss/types/annotations/parameter/StdIOStream");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
     }
-    midParStreamCon = m_env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/Stream;");
+    midParStreamCon = m_env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Les/bsc/compss/types/annotations/parameter/StdIOStream;");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
     }
     objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDIN"));
-    check_and_treat_exception(m_env, "Error getting Stream.STDIN object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.STDIN object");
     jobjParStreamSTDIN = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Stream.STDIN object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.STDIN object");
 
     objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDOUT"));
-    check_and_treat_exception(m_env, "Error getting Stream.STDOUT object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.STDOUT object");
     jobjParStreamSTDOUT = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Stream.STDOUT object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.STDOUT object");
 
     objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("STDERR"));
-    check_and_treat_exception(m_env, "Error getting Stream.STDERR object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.STDERR object");
     jobjParStreamSTDERR = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Stream.STDERR object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.STDERR object");
 
     objLocal = m_env->CallStaticObjectMethod(clsParStream, midParStreamCon, m_env->NewStringUTF("UNSPECIFIED"));
-    check_and_treat_exception(m_env, "Error getting Stream.UNSPECIFIED object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.UNSPECIFIED object");
     jobjParStreamUNSPECIFIED = (jobject)m_env->NewGlobalRef(objLocal);
-    check_and_treat_exception(m_env, "Error getting Stream.UNSPECIFIED object");
+    check_and_treat_exception(m_env, "Error getting StdIOStream.UNSPECIFIED object");
 
 
     // Parameter prefix empty
@@ -376,7 +376,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     void *parVal        =           params[pv];
     int parType         = *(int*)   params[pt];
     int parDirect       = *(int*)   params[pd];
-    int parStream       = *(int*)   params[ps];
+    int parIOStream     = *(int*)   params[ps];
     void *parPrefix     =           params[pp];
     void *parName       =           params[pn];
 
@@ -540,6 +540,23 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
             exit(1);
         }
         break;
+    case external_stream_dt:
+        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+
+        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  External Stream: %s\n", *(char **)parVal);
+
+        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("EXTERNAL_STREAM_T"));
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+        break;
     case external_psco_dt:
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {
@@ -637,8 +654,8 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     }
 
     // Add param stream
-    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM STREAM: %d\n", (enum stream) parStream);
-    switch ((enum stream) parStream) {
+    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  ENUM STD IO STREAM: %d\n", (enum io_stream) parIOStream);
+    switch ((enum io_stream) parIOStream) {
     case STD_IN:
         m_env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamSTDIN);
         break;

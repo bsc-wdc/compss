@@ -16,9 +16,7 @@
  */
 package es.bsc.compss.types.data;
 
-import java.util.LinkedList;
-
-import es.bsc.compss.comm.Comm;
+import java.util.concurrent.Semaphore;
 
 
 public class ObjectInfo extends DataInfo {
@@ -27,40 +25,29 @@ public class ObjectInfo extends DataInfo {
     private int code;
 
 
+    /**
+     * Creates a new ObjectInfo instance with the given hashcode.
+     * 
+     * @param code Object hashcode.
+     */
     public ObjectInfo(int code) {
         super();
         this.code = code;
     }
 
+    /**
+     * Returns the object hashcode.
+     * 
+     * @return The object hashcode.
+     */
     public int getCode() {
-        return code;
+        return this.code;
     }
 
     @Override
-    public boolean delete() {
-        if (deletionBlocks > 0) {
-            pendingDeletions.addAll(versions.values());
-        } else {
-            LinkedList<Integer> removedVersions = new LinkedList<>();
-            for (DataVersion version : versions.values()) {
-                String sourceName = version.getDataInstanceId().getRenaming();
-                if (version.markToDelete()) {
-                    LogicalData ld = Comm.getData(sourceName);
-                    if (ld != null)
-                        ld.removeValue();
-
-                    Comm.removeData(sourceName);
-                    removedVersions.add(version.getDataInstanceId().getVersionId());
-                }
-            }
-            for (int versionId : removedVersions) {
-                versions.remove(versionId);
-            }
-            if (versions.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+    public int waitForDataReadyToDelete(Semaphore semWait) {
+        // Nothing to wait for
+        return 0;
     }
 
 }

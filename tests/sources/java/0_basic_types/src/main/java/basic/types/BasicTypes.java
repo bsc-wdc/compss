@@ -1,0 +1,19 @@
+package basic.types;
+
+import java.io.FileNotFoundException;
+
+public class BasicTypes {
+
+    /**
+     * Main test function.
+     * 
+     * @param args System arguments.
+     * @throws FileNotFoundException When test file is not found.
+     */
+    public static void main(String[] args) throws FileNotFoundException {
+        // Run basic types test
+        BasicTypesImpl.testBasicTypes("test_file", true, 'E', "My Test", (byte) 7, (short) 77, 777, (long) 7777, 7.7f,
+                7.77777);
+    }
+
+}

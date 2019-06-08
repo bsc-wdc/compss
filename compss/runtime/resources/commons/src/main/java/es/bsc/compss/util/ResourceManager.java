@@ -192,15 +192,13 @@ public class ResourceManager {
             RESOURCES_LOGGER.info("INFO_MSG = [Workers stopped]");
         }
 
-        //Stopping worker at master process
+        // Stopping worker at master process
         RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
         Comm.getAppHost().retrieveData(false);
         Semaphore sem = new Semaphore(0);
         ShutdownListener sl = new ShutdownListener(sem);
         RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
-        for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
-            Comm.getAppHost().stop(sl);
-        }
+        Comm.getAppHost().stop(sl);
         sl.enable();
 
         try {

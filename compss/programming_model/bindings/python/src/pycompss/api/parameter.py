@@ -34,9 +34,9 @@ PyCOMPSs API - Parameter
         - LONG
         - FLOAT
         - OBJECT
-        - PSCO
         - EXTERNAL_PSCO
-    3. STREAM.
+        - EXTERNAL_STREAM
+    3. IOSTREAM.
         - STDIN
         - STDOUT
         - STDERR
@@ -49,11 +49,11 @@ PyCOMPSs API - Parameter
 # Python3 has no ints and longs, only ints that are longs
 from pycompss.runtime.commons import IS_PYTHON3
 
-PYCOMPSS_LONG = int if IS_PYTHON3 else long
-
 # Numbers match both C and Java enums
 from pycompss.api.data_type import data_type
 from pycompss.util.object_properties import is_basic_iterable
+
+PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 TYPE = data_type
 
@@ -68,8 +68,9 @@ class DIRECTION(object):
     INOUT = 2
     CONCURRENT = 3
 
+
 # Numbers match both C and Java enums
-class STREAM(object):
+class IOSTREAM(object):
     """
     Used as enum for stream types
     """
@@ -92,8 +93,8 @@ class Parameter(object):
     Used to group the type, direction and value of a parameter
     """
 
-    def __init__(self, p_type=None, p_direction=DIRECTION.IN, p_stream=STREAM.UNSPECIFIED,
-                 p_prefix=PREFIX.PREFIX, p_object=None, file_name=None, is_future=False, depth = 1):
+    def __init__(self, p_type=None, p_direction=DIRECTION.IN, p_stream=IOSTREAM.UNSPECIFIED,
+                 p_prefix=PREFIX.PREFIX, p_object=None, file_name=None, is_future=False, depth=1):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -101,7 +102,7 @@ class Parameter(object):
         self.object = p_object  # placeholder for parameter object
         self.file_name = file_name  # placeholder for object's serialized file path
         self.is_future = is_future
-        self.depth     = depth # Recursive depth for collections
+        self.depth = depth  # Recursive depth for collections
 
     def __repr__(self):
         return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
@@ -175,75 +176,75 @@ _param_conversion_dict_ = {
     },
     'FILE_STDIN': {
         'p_type': TYPE.FILE,
-        'p_stream': STREAM.STDIN
+        'p_stream': IOSTREAM.STDIN
     },
     'FILE_STDERR': {
         'p_type': TYPE.FILE,
-        'p_stream': STREAM.STDERR
+        'p_stream': IOSTREAM.STDERR
     },
     'FILE_STDOUT': {
         'p_type': TYPE.FILE,
-        'p_stream': STREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT
     },
     'FILE_IN_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.IN,
-        'p_stream': STREAM.STDIN
+        'p_stream': IOSTREAM.STDIN
     },
     'FILE_IN_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.IN,
-        'p_stream': STREAM.STDERR
+        'p_stream': IOSTREAM.STDERR
     },
     'FILE_IN_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.IN,
-        'p_stream': STREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT
     },
     'FILE_OUT_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.OUT,
-        'p_stream': STREAM.STDIN
+        'p_stream': IOSTREAM.STDIN
     },
     'FILE_OUT_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.OUT,
-        'p_stream': STREAM.STDERR
+        'p_stream': IOSTREAM.STDERR
     },
     'FILE_OUT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.OUT,
-        'p_stream': STREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT
     },
     'FILE_INOUT_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
-        'p_stream': STREAM.STDIN
+        'p_stream': IOSTREAM.STDIN
     },
     'FILE_INOUT_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
-        'p_stream': STREAM.STDERR
+        'p_stream': IOSTREAM.STDERR
     },
     'FILE_INOUT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT,
-        'p_stream': STREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT
     },
     'FILE_CONCURRENT_STDIN': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT,
-        'p_stream': STREAM.STDIN
+        'p_stream': IOSTREAM.STDIN
     },
     'FILE_CONCURRENT_STDERR': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT,
-        'p_stream': STREAM.STDERR
+        'p_stream': IOSTREAM.STDERR
     },
     'FILE_CONCURRENT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT,
-        'p_stream': STREAM.STDOUT
+        'p_stream': IOSTREAM.STDOUT
     },
     'COLLECTION': {
         'p_type': TYPE.COLLECTION
@@ -255,6 +256,14 @@ _param_conversion_dict_ = {
     'COLLECTION_INOUT': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.INOUT
+    },
+    'STREAM_IN': {
+        'p_type': TYPE.EXTERNAL_STREAM,
+        'p_direction': DIRECTION.IN
+    },
+    'STREAM_OUT': {
+        'p_type': TYPE.EXTERNAL_STREAM,
+        'p_direction': DIRECTION.OUT
     }
 }
 
@@ -265,7 +274,7 @@ def is_parameter(x):
     Avoids internal _param_ import
     :param x: Object to check
     """
-    return isinstance(x, _param_)
+    return isinstance(x, _Param)
 
 
 def get_new_parameter(key):
@@ -313,12 +322,12 @@ def get_parameter_from_dictionary(d):
     p = d[Type]
     if Direction in d:
         p.direction = d.get[Direction]
-    if Stream in d:
-        p.stream = d[Stream]
+    if StdIOStream in d:
+        p.stream = d[StdIOStream]
     if Prefix in d:
         p.prefix = d[Prefix]
-    if Depth  in d:
-        p.depth  = d[Depth]
+    if Depth in d:
+        p.depth = d[Depth]
     return p
 
 
@@ -459,16 +468,7 @@ def destringify(stringified_object):
     return stringified_object.split('#', 2)
 
 
-class _param_(object):
-    """
-    Private class which hides the parameter key to be used.
-    """
-
-    def __init__(self, key):
-        self.key = key
-
-
-def get_compss_type(value, depth = 0):
+def get_compss_type(value, depth=0):
     """
     Retrieve the value type mapped to COMPSs types.
     :param value: Value to analyse
@@ -515,54 +515,67 @@ def get_compss_type(value, depth = 0):
         return TYPE.OBJECT
 
 
+class _Param(object):
+    """
+    Private class which hides the parameter key to be used.
+    """
+
+    def __init__(self, key):
+        self.key = key
+
+
 # Aliases for objects (just direction)
-IN = _param_('IN')
-OUT = _param_('OUT')
-INOUT = _param_('INOUT')
-CONCURRENT = _param_('CONCURRENT')
+IN = _Param('IN')
+OUT = _Param('OUT')
+INOUT = _Param('INOUT')
+CONCURRENT = _Param('CONCURRENT')
 
 # Aliases for files with direction
-FILE = _param_('FILE')
-FILE_IN = _param_('FILE_IN')
-FILE_OUT = _param_('FILE_OUT')
-FILE_INOUT = _param_('FILE_INOUT')
-FILE_CONCURRENT = _param_('FILE_CONCURRENT')
+FILE = _Param('FILE')
+FILE_IN = _Param('FILE_IN')
+FILE_OUT = _Param('FILE_OUT')
+FILE_INOUT = _Param('FILE_INOUT')
+FILE_CONCURRENT = _Param('FILE_CONCURRENT')
 
 # Aliases for files with stream
-FILE_STDIN = _param_('FILE_STDIN')
-FILE_STDERR = _param_('FILE_STDERR')
-FILE_STDOUT = _param_('FILE_STDOUT')
+FILE_STDIN = _Param('FILE_STDIN')
+FILE_STDERR = _Param('FILE_STDERR')
+FILE_STDOUT = _Param('FILE_STDOUT')
 
 # Aliases for files with direction and stream
-FILE_IN_STDIN = _param_('FILE_IN_STDIN')
-FILE_IN_STDERR = _param_('FILE_IN_STDERR')
-FILE_IN_STDOUT = _param_('FILE_IN_STDOUT')
-FILE_OUT_STDIN = _param_('FILE_OUT_STDIN')
-FILE_OUT_STDERR = _param_('FILE_OUT_STDERR')
-FILE_OUT_STDOUT = _param_('FILE_OUT_STDOUT')
-FILE_INOUT_STDIN = _param_('FILE_INOUT_STDIN')
-FILE_INOUT_STDERR = _param_('FILE_INOUT_STDERR')
-FILE_INOUT_STDOUT = _param_('FILE_INOUT_STDOUT')
-FILE_CONCURRENT_STDIN = _param_('FILE_CONCURRENT_STDIN')
-FILE_CONCURRENT_STDERR = _param_('FILE_CONCURRENT_STDERR')
-FILE_CONCURRENT_STDOUT = _param_('FILE_CONCURRENT_STDOUT')
+FILE_IN_STDIN = _Param('FILE_IN_STDIN')
+FILE_IN_STDERR = _Param('FILE_IN_STDERR')
+FILE_IN_STDOUT = _Param('FILE_IN_STDOUT')
+FILE_OUT_STDIN = _Param('FILE_OUT_STDIN')
+FILE_OUT_STDERR = _Param('FILE_OUT_STDERR')
+FILE_OUT_STDOUT = _Param('FILE_OUT_STDOUT')
+FILE_INOUT_STDIN = _Param('FILE_INOUT_STDIN')
+FILE_INOUT_STDERR = _Param('FILE_INOUT_STDERR')
+FILE_INOUT_STDOUT = _Param('FILE_INOUT_STDOUT')
+FILE_CONCURRENT_STDIN = _Param('FILE_CONCURRENT_STDIN')
+FILE_CONCURRENT_STDERR = _Param('FILE_CONCURRENT_STDERR')
+FILE_CONCURRENT_STDOUT = _Param('FILE_CONCURRENT_STDOUT')
 
 # Aliases for collections
-COLLECTION = _param_('COLLECTION')
-COLLECTION_IN = _param_('COLLECTION_IN')
-COLLECTION_INOUT = _param_('COLLECTION_INOUT')
+COLLECTION = _Param('COLLECTION')
+COLLECTION_IN = _Param('COLLECTION_IN')
+COLLECTION_INOUT = _Param('COLLECTION_INOUT')
 
-# Aliases for streams (just stream direction)
-STDIN = STREAM.STDIN
-STDOUT = STREAM.STDOUT
-STDERR = STREAM.STDERR
+# Aliases for streams
+STREAM_IN = _Param("STREAM_IN")
+STREAM_OUT = _Param("STREAM_OUT")
+
+# Aliases for std IO streams (just stream direction)
+STDIN = IOSTREAM.STDIN
+STDOUT = IOSTREAM.STDOUT
+STDERR = IOSTREAM.STDERR
 
 # Aliases for parameter definition as dictionary
 Type = 'type'  # parameter type
 Direction = 'direction'  # parameter type
-Stream = 'stream'  # parameter stream
+StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
-Depth  = 'depth' # collection recursive depth
+Depth = 'depth'  # collection recursive depth
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

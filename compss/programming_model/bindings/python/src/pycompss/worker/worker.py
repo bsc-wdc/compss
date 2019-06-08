@@ -91,13 +91,16 @@ def main():
     task_id = int(sys.argv[2])
     log_level = sys.argv[3]
     storage_conf = sys.argv[4]
-    method_type = sys.argv[5]
-    params = sys.argv[6:]
-    # class_name = sys.argv[6]
-    # method_name = sys.argv[7]
-    # num_slaves = sys.argv[8]
-    # i = 8 + num_slaves
-    # slaves = sys.argv[9-i]
+    stream_backend = sys.argv[5]
+    stream_master_name = sys.argv[6]
+    stream_master_port = sys.argv[7]
+    method_type = sys.argv[8]
+    params = sys.argv[9:]
+    # class_name = sys.argv[9]
+    # method_name = sys.argv[10]
+    # num_slaves = sys.argv[11]
+    # i = 11 + num_slaves
+    # slaves = sys.argv[11..i]
     # numCus = sys.argv[i+1]
     # has_target = sys.argv[i+2] == 'true'
     # num_params = int(sys.argv[i+3])
@@ -114,12 +117,26 @@ def main():
         from storage.api import initWorker as initStorageAtWorker
         from storage.api import finishWorker as finishStorageAtWorker
 
+    streaming = False
+    if stream_backend is not None and stream_backend != "null" and stream_backend != "NONE":
+        streaming = True
+
+    # Start tracing
     if tracing:
         import pyextrae.multiprocessing as pyextrae
 
         pyextrae.eventandcounters(SYNC_EVENTS, task_id)
         # pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
+
+    # Start storage
+    # if persistent_storage:
+    #    initStorageAtWorker(config_file_path=config.storage_conf)
+
+    # Start streaming
+    if streaming:
+        from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
+        DistroStreamClientHandler.init_and_start(master_ip=stream_master_name, master_port=stream_master_port)
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
@@ -144,6 +161,10 @@ def main():
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
         pyextrae.eventandcounters(SYNC_EVENTS, task_id)
+
+    if streaming:
+        # Finish streaming
+        DistroStreamClientHandler.set_stop()
 
     if persistent_storage:
         # Finish storage

@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.annotations.task.repeatables;
 
+import es.bsc.compss.types.annotations.task.OpenCL;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.task.OpenCL;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -31,6 +31,11 @@ import es.bsc.compss.types.annotations.task.OpenCL;
  */
 public @interface OpenCLs {
 
+    /**
+     * Returns the list of OpenCL annotations.
+     * 
+     * @return The list of OpenCL annotations.
+     */
     OpenCL[] value();
 
 }

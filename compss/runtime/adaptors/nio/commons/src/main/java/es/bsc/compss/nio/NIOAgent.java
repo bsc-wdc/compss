@@ -16,10 +16,7 @@
  */
 package es.bsc.compss.nio;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import static java.lang.Math.abs;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.TransferManager;
@@ -30,17 +27,16 @@ import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.commands.CommandDataDemand;
+import es.bsc.compss.nio.commands.CommandTracingID;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
+import es.bsc.compss.nio.exceptions.SerializedObjectException;
+import es.bsc.compss.nio.requests.DataRequest;
+import es.bsc.compss.nio.utils.NIOBindingDataManager;
+import es.bsc.compss.nio.utils.NIOBindingObjectStream;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.nio.commands.CommandDataDemand;
-import es.bsc.compss.nio.commands.CommandTracingID;
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
-import es.bsc.compss.nio.dataRequest.DataRequest;
-import es.bsc.compss.nio.exceptions.SerializedObjectException;
-import es.bsc.compss.nio.utils.NIOBindingDataManager;
-import es.bsc.compss.nio.utils.NIOBindingObjectStream;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
@@ -48,31 +44,42 @@ import es.bsc.compss.util.Serializer;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import static java.lang.Math.abs;
 
 
 public abstract class NIOAgent {
 
+    // Logging
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+    private static final String DBG_PREFIX = "[NIO Agent] ";
+
+    // Class information
     protected static final String NIO_EVENT_MANAGER_CLASS = NIOEventManager.class.getCanonicalName();
     public static final String ID = NIOAgent.class.getCanonicalName();
 
-    public static final int NUM_PARAMS_PER_WORKER_SH = 5;
-    public static final int NUM_PARAMS_NIO_WORKER = 33;
+    // Transfer Manager instance
+    protected static final TransferManager TM = new TransferManager();
+
+    public static final int NUM_PARAMS_PER_WORKER_SH = 6;
+    public static final int NUM_PARAMS_NIO_WORKER = 34;
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
 
     private int sendTransfers;
-    private final int MAX_SEND_TRANSFERS;
+    private final int maxSendTransfers;
     private final Connection[] trasmittingConnections;
     private int receiveTransfers;
-    private final int MAX_RECEIVE_TRANSFERS;
+    private final int maxReceiveTransfers;
 
     private boolean finish;
     private Connection closingConnection = null;
@@ -83,117 +90,110 @@ public abstract class NIOAgent {
     private final LinkedList<DataRequest> pendingRequests;
     // Ongoing transfers
     private final Map<Connection, String> ongoingTransfers;
-
-    // Transfers to send as soon as there is a slot available
-    // private LinkedList<Data> prioritaryData;
-    // IP of the master node
-    // protected String masterIP;
-    protected static int masterPort;
+    // Master information
+    protected int masterPort;
     protected NIONode masterNode;
 
-    // Transfer Manager instance
-    protected static final TransferManager TM = new TransferManager();
-
-    // Logging
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-    private static final String DBG_PREFIX = "[NIO Agent] ";
-
     // Tracing
-    protected static boolean tracing;
-    protected boolean persistentC;
-    protected static int tracing_level;
-    protected static int tracingID = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
-    protected static HashMap<Connection, Integer> connection2Partner;
+    protected boolean tracing;
+    protected int tracingLevel;
+    protected int tracingId = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
+    protected HashMap<Connection, Integer> connection2partner;
+
 
     /**
-     * Constructor
+     * Creates a NIOAgent instance.
      *
-     * @param snd
-     * @param rcv
-     * @param port
+     * @param snd Maximum simultaneous sends.
+     * @param rcv Maximum simultaneous receives.
+     * @param port Communication port.
      */
     public NIOAgent(int snd, int rcv, int port) {
-        sendTransfers = 0;
-        MAX_SEND_TRANSFERS = snd;
-        trasmittingConnections = new Connection[MAX_SEND_TRANSFERS];
-        receiveTransfers = 0;
-        MAX_RECEIVE_TRANSFERS = rcv;
-        masterPort = port;
-        ongoingTransfers = new HashMap<>();
-        pendingRequests = new LinkedList<>();
-        dataToRequests = new HashMap<>();
-        connection2Partner = new HashMap<>();
-        finish = false;
-        LOGGER.debug(DBG_PREFIX + "Debug: " + DEBUG + " persistent: " + persistentC);
+        this.sendTransfers = 0;
+        this.maxSendTransfers = snd;
+        this.trasmittingConnections = new Connection[maxSendTransfers];
+        this.receiveTransfers = 0;
+        this.maxReceiveTransfers = rcv;
+        this.masterPort = port;
+        this.ongoingTransfers = new HashMap<>();
+        this.pendingRequests = new LinkedList<>();
+        this.dataToRequests = new HashMap<>();
+        this.connection2partner = new HashMap<>();
+        this.finish = false;
+
+        LOGGER.debug(DBG_PREFIX + "Debug: " + DEBUG);
     }
 
     /**
-     * Returns the master node
+     * Returns the master node.
      *
-     * @return
+     * @return The master node.
      */
     public NIONode getMaster() {
-        return masterNode;
+        return this.masterNode;
     }
 
+    /**
+     * Returns the associated Transfer Manager.
+     * 
+     * @return The associated Transfer Manager.
+     */
     public static TransferManager getTransferManager() {
         return TM;
     }
 
     /**
-     * Adds connection and partner
+     * Adds a new association between the given connection {@code c} and the given partner {@code partner}.
      *
-     * @param c
-     * @param partner
-     * @param tag
+     * @param c Connection.
+     * @param partner Partner.
+     * @param tag Association tag.
      */
     public void addConnectionAndPartner(Connection c, int partner, int tag) {
-        connection2Partner.put(c, partner);
+        this.connection2partner.put(c, partner);
     }
 
     /**
-     * Returns DataRequests of a given dataId
+     * Returns DataRequests of a given dataId.
      *
-     * @param dataId
-     *
-     * @return
+     * @param dataId Data Id.
+     * @return The DataRequests associated to the given data Id.
      */
     protected List<DataRequest> getDataRequests(String dataId) {
-        return dataToRequests.get(dataId);
+        return this.dataToRequests.get(dataId);
     }
 
     /**
-     * Returns if there are pending transfers or not
+     * Returns whether there are pending transfers or not.
      *
-     * @return
+     * @return {@code true} if there are pending transfers, {@code false} otherwise.
      */
     public boolean hasPendingTransfers() {
-        LOGGER.debug("pending: " + !pendingRequests.isEmpty() + " sendTransfers: " + (sendTransfers != 0)
-                + " receiveTrasnfers: " + (receiveTransfers != 0) + "\n");
-        return !pendingRequests.isEmpty() || sendTransfers != 0 || receiveTransfers != 0;
+        LOGGER.debug("pending: " + !this.pendingRequests.isEmpty() + " sendTransfers: " + (this.sendTransfers != 0)
+                + " receiveTrasnfers: " + (this.receiveTransfers != 0) + "\n");
+        return !this.pendingRequests.isEmpty() || this.sendTransfers != 0 || this.receiveTransfers != 0;
     }
 
     /**
-     * Check if receive slots available
+     * Requests transfers if there are available receive slots.
      */
     public void requestTransfers() {
         DataRequest dr = null;
         synchronized (pendingRequests) {
-            if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
-                dr = pendingRequests.remove();
+            if (!this.pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
+                dr = this.pendingRequests.remove();
             }
         }
         while (dr != null) {
             NIOData source = dr.getSource();
-            NIOURI uri = source.getFirstURI();
+            NIOUri uri = source.getFirstURI();
 
             if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId());
             }
             NIONode nn = uri.getHost();
             if (nn.getIp() == null) {
-                nn = masterNode;
+                nn = this.masterNode;
             }
             Connection c = null;
 
@@ -204,8 +204,8 @@ public abstract class NIOAgent {
                             + dr.getTarget() + " stored in " + nn + " with name " + dr.getSource().getDataMgmtId());
                 }
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
-                CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
-                ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
+                CommandDataDemand cdd = new CommandDataDemand(this, remoteData, this.tracingId);
+                this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
                 if (NIOTracer.extraeEnabled()) {
@@ -213,19 +213,23 @@ public abstract class NIOAgent {
                 }
                 switch (dr.getType()) {
                     case FILE_T:
+                    case EXTERNAL_STREAM_T:
                         c.receiveDataFile(dr.getTarget());
                         c.finishConnection();
                         break;
                     case BINDING_OBJECT_T:
-                        if (persistentC) {
+                        if (isPersistentCEnabled()) {
                             receiveBindingObject(c, dr);
                         } else {
                             receiveBindingObjectAsFile(c, dr);
                         }
                         break;
+                    case STRING_T:
+                    case OBJECT_T:
+                    case STREAM_T:
                     case COLLECTION_T:
-                        c.receiveDataObject();
-                        c.finishConnection();
+                    case EXTERNAL_PSCO_T:
+                    case PSCO_T:
                     default:
                         c.receiveDataObject();
                         c.finishConnection();
@@ -239,8 +243,8 @@ public abstract class NIOAgent {
                 }
             }
             synchronized (pendingRequests) {
-                if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
-                    dr = pendingRequests.remove();
+                if (!this.pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
+                    dr = this.pendingRequests.remove();
                 } else {
                     dr = null;
                 }
@@ -282,33 +286,33 @@ public abstract class NIOAgent {
     }
 
     /**
-     * Adds a new NIOData Transfer Request
+     * Adds a new NIOData Transfer Request.
      *
-     * @param dr
+     * @param dr Data Request to add.
      */
     public void addTransferRequest(DataRequest dr) {
-        List<DataRequest> list = dataToRequests.get(dr.getSource().getDataMgmtId());
+        List<DataRequest> list = this.dataToRequests.get(dr.getSource().getDataMgmtId());
         if (list == null) {
             list = new LinkedList<>();
-            dataToRequests.put(dr.getSource().getDataMgmtId(), list);
-            synchronized (pendingRequests) {
-                pendingRequests.add(dr);
+            this.dataToRequests.put(dr.getSource().getDataMgmtId(), list);
+            synchronized (this.pendingRequests) {
+                this.pendingRequests.add(dr);
             }
         }
         list.add(dr);
     }
 
     /**
-     * Reply the data
+     * Reply the data.
      *
-     * @param c
-     * @param d
-     * @param receiverID
+     * @param c Connection.
+     * @param d Data.
+     * @param receiverID Receiver Id.
      */
     public void sendData(Connection c, NIOData d, int receiverID) {
         if (NIOTracer.extraeEnabled()) {
             int tag = abs(d.getDataMgmtId().hashCode());
-            CommandTracingID cmd = new CommandTracingID(tracingID, tag);
+            CommandTracingID cmd = new CommandTracingID(this.tracingId, tag);
             c.sendCommand(cmd);
             NIOTracer.emitDataTransferEvent(d.getDataMgmtId());
             NIOTracer.emitCommEvent(true, receiverID, tag);
@@ -318,16 +322,21 @@ public abstract class NIOAgent {
         Protocol scheme = d.getFirstURI().getProtocol();
         switch (scheme) {
             case FILE_URI:
+            case SHARED_URI:
+            case EXTERNAL_STREAM_URI:
                 sendFile(c, path, d);
                 break;
             case BINDING_URI:
-                if (persistentC) {
+                if (isPersistentCEnabled()) {
                     sendBindingObject(c, path, d);
                 } else {
                     sendBindingObjectAsFile(c, path, d);
                 }
                 break;
-            default:
+            case OBJECT_URI:
+            case STREAM_URI:
+            case PERSISTENT_URI:
+            case ANY_URI:
                 sendObject(c, path, d);
                 break;
         }
@@ -368,8 +377,8 @@ public abstract class NIOAgent {
                             + d.getDataMgmtId());
                 }
                 c.sendDataFile(path);
-            } else // Not found check if it has been moved to the target name (renames
-            {
+            } else {
+                // Not found check if it has been moved to the target name (renames
                 if (!f.getName().equals(d.getDataMgmtId())) {
                     File renamed;
                     if (isMaster()) { // renamed will be in the masters file path
@@ -476,15 +485,14 @@ public abstract class NIOAgent {
     }
 
     /**
-     * Received NIOData
+     * Received NIOData.
      *
-     * @param c
-     * @param t
+     * @param c Connection.
+     * @param t Transfer.
      */
     public void receivedData(Connection c, Transfer t) {
-
-        String dataId = ongoingTransfers.remove(c);
-        if (dataId == null) { 
+        String dataId = this.ongoingTransfers.remove(c);
+        if (dataId == null) {
             // It has received the output and error of a job execution
             return;
         }
@@ -492,22 +500,22 @@ public abstract class NIOAgent {
             LOGGER.debug(DBG_PREFIX + "Receiving data " + dataId);
         }
         releaseReceiveSlot();
-        
+
         // Add tracing event
         if (NIOTracer.extraeEnabled()) {
             int tag = abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId);
-            NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag, t.getSize());
-            connection2Partner.remove(c);
+            NIOTracer.emitCommEvent(false, this.connection2partner.get(c), tag, t.getSize());
+            this.connection2partner.remove(c);
         }
-        
+
         // Get all data requests for this source data_id/filename, and group by the target(final) data_id/filename
-        List<DataRequest> requests = dataToRequests.remove(dataId);       
+        List<DataRequest> requests = dataToRequests.remove(dataId);
         if (requests == null || requests.isEmpty()) {
-            LOGGER.warn( "WARN: No data removed for received data " + dataId);
+            LOGGER.warn("WARN: No data removed for received data " + dataId);
             return;
         }
-        
+
         boolean isBindingType = requests.get(0).getType().equals(DataType.BINDING_OBJECT_T);
         Map<String, List<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
@@ -528,14 +536,14 @@ public abstract class NIOAgent {
                 LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + targetName);
             }
             if (t.isFile()) {
-                if (!isPersistentEnabled() && isBindingType) {
+                if (!isPersistentCEnabled() && isBindingType) {
                     // When worker binding is not persistent binding objects can be transferred as files
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
                 receivedValue(t.getDestination(), targetName, t.getObject(), requests);
-            }else if (t.isObject()) {
+            } else if (t.isObject()) {
                 receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
-                    
+
             } else {
                 if (t.isByteBuffer()) {
                     BindingObject bo = getTargetBindingObject(targetName,
@@ -563,7 +571,7 @@ public abstract class NIOAgent {
                     LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + t.getFileName());
                 }
                 List<DataRequest> reqs;
-                if (!isPersistentEnabled() && isBindingType) {
+                if (!isPersistentCEnabled() && isBindingType) {
                     // When worker binding is not persistent binding objects can be transferred as files
                     BindingObject bo = getTargetBindingObject(t.getFileName(), requests.get(0).getTarget());
                     reqs = byTarget.remove(bo.toString());
@@ -585,7 +593,8 @@ public abstract class NIOAgent {
                             LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
                                     + " will be saved as name " + dataId);
                         }
-                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
+                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(),
+                                bo.getElements());
                         receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
                     } else {
                         BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
@@ -609,7 +618,7 @@ public abstract class NIOAgent {
                     }
                     if (t.isFile()) {
 
-                        if (!isPersistentEnabled() && isBindingType) {
+                        if (!isPersistentCEnabled() && isBindingType) {
                             BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
                             // When worker binding is not persistent binding objects can be transferred as files
                             receivedBindingObjectAsFile(t.getFileName(), targetName);
@@ -639,12 +648,12 @@ public abstract class NIOAgent {
         requestTransfers();
 
         // Check if shutdown and ready
-        if (finish == true && !hasPendingTransfers()) {
+        if (this.finish == true && !hasPendingTransfers()) {
             shutdown(closingConnection);
         }
 
     }
-    
+
     private String getName(String path) {
         int index = path.lastIndexOf(File.separator);
         if (index > 0) {
@@ -654,29 +663,29 @@ public abstract class NIOAgent {
         }
     }
 
-    private BindingObject getTargetBindingObject(String target, String origin_path) {
+    private BindingObject getTargetBindingObject(String target, String originPath) {
         BindingObject bo;
         if (target.contains("#")) {
             bo = BindingObject.generate(target);
         } else {
-            BindingObject bo_or = BindingObject.generate(origin_path);
-            bo = new BindingObject(target, bo_or.getType(), bo_or.getElements());
+            BindingObject boOr = BindingObject.generate(originPath);
+            bo = new BindingObject(target, boOr.getType(), boOr.getElements());
         }
         return bo;
     }
 
     /**
-     * Receives the Shutdown
+     * Receives the Shutdown request.
      *
-     * @param requester
-     * @param filesToSend
+     * @param requester Requester connection of the shutdown.
+     * @param filesToSend List of files to send.
      */
     public void receivedShutdown(Connection requester, List<NIOData> filesToSend) {
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Command for shutdown received. Preparing for shutdown...");
         }
-        closingConnection = requester;
-        finish = true;
+        this.closingConnection = requester;
+        this.finish = true;
 
         // Order copies of filesToSend?
         if (!hasPendingTransfers()) {
@@ -690,15 +699,15 @@ public abstract class NIOAgent {
     }
 
     /**
-     * Check if there is a transfer slot available
+     * Check whether there are available receive slots or not.
      *
-     * @return
+     * @return {@code true} If there are receive slots available, {@code false} otherwise.
      */
     private boolean tryAcquireReceiveSlot() {
         boolean b = false;
         synchronized (this) {
-            if (receiveTransfers < MAX_RECEIVE_TRANSFERS) {
-                receiveTransfers++;
+            if (this.receiveTransfers < this.maxReceiveTransfers) {
+                this.receiveTransfers++;
                 b = true;
             }
         }
@@ -706,30 +715,29 @@ public abstract class NIOAgent {
     }
 
     /**
-     * Release Receive slot
+     * Release Receive slot.
      */
     private void releaseReceiveSlot() {
         synchronized (this) {
-            receiveTransfers--;
+            this.receiveTransfers--;
         }
     }
 
     /**
-     * Check if there is a transfer slot available
+     * Check whether there is a transfer slot available or not.
      *
-     * @param c
-     *
-     * @return
+     * @param c Connection.
+     * @return {@code true} if there is a transfer slot available, {@code false} otherwise.
      */
     public boolean tryAcquireSendSlot(Connection c) {
         boolean b = false;
-        if (sendTransfers < MAX_SEND_TRANSFERS) {
-            sendTransfers++;
+        if (this.sendTransfers < this.maxSendTransfers) {
+            this.sendTransfers++;
 
             b = true;
-            for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
-                if (trasmittingConnections[i] == null) {
-                    trasmittingConnections[i] = c;
+            for (int i = 0; i < this.maxSendTransfers; i++) {
+                if (this.trasmittingConnections[i] == null) {
+                    this.trasmittingConnections[i] = c;
                     break;
                 }
             }
@@ -738,19 +746,19 @@ public abstract class NIOAgent {
     }
 
     /**
-     * Release send slot
+     * Release send slot.
      *
-     * @param c
+     * @param c Connection.
      */
     public void releaseSendSlot(Connection c) {
         synchronized (this) {
-            for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
-                if (trasmittingConnections[i] == c) {
-                    trasmittingConnections[i] = null;
-                    sendTransfers--;
-                    if (finish) {
+            for (int i = 0; i < this.maxSendTransfers; i++) {
+                if (this.trasmittingConnections[i] == c) {
+                    this.trasmittingConnections[i] = null;
+                    this.sendTransfers--;
+                    if (this.finish) {
                         if (!hasPendingTransfers()) {
-                            shutdown(closingConnection);
+                            shutdown(this.closingConnection);
                         }
                     }
                     break;
@@ -761,44 +769,40 @@ public abstract class NIOAgent {
     }
 
     /**
-     * Receive notification data not available
+     * Receive notification data not available.
      *
-     * @param c
-     * @param t
+     * @param c Connection.
+     * @param t Transfer.
      */
     public void receivedRequestedDataNotAvailableError(Connection c, Transfer t) {
-        String dataId = ongoingTransfers.remove(c);
+        String dataId = this.ongoingTransfers.remove(c);
         if (dataId == null) { // It has received the output and error of a job
             // execution
             return;
         }
 
         releaseReceiveSlot();
-        List<DataRequest> requests = dataToRequests.remove(dataId);
+        List<DataRequest> requests = this.dataToRequests.remove(dataId);
         handleRequestedDataNotAvailableError(requests, dataId);
         requestTransfers();
 
         // Check if shutdown and ready
-        if (finish == true && !hasPendingTransfers()) {
-            shutdown(closingConnection);
+        if (this.finish == true && !hasPendingTransfers()) {
+            shutdown(this.closingConnection);
         }
-    }
-
-    protected void setPersistent(boolean persistent) {
-        if (DEBUG) {
-            LOGGER.debug(DBG_PREFIX + "Setting persistent as " + persistent);
-        }
-        persistentC = persistent;
-    }
-
-    public boolean isPersistentEnabled() {
-        return persistentC;
     }
 
     /**
-     * Generate Tracing package
+     * Returns whether the persistent C storage is enabled or not.
+     * 
+     * @return {@code true} if the persistent C storage is enabled, {@code false} otherwise.
+     */
+    public abstract boolean isPersistentCEnabled();
+
+    /**
+     * Generates the tracing package.
      *
-     * @param c
+     * @param c Requester connection.
      */
     public void generatePackage(Connection c) {
         NIOTracer.generatePackage();

@@ -17,9 +17,10 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
-import java.io.Externalizable;
 
 import es.bsc.compss.nio.NIOAgent;
+
+import java.io.Externalizable;
 
 
 public abstract class Command implements Externalizable {
@@ -52,50 +53,50 @@ public abstract class Command implements Externalizable {
 
 
     /**
-     * Instantiates a new command
+     * Instantiates a new command.
      */
     public Command() {
         // Only for externalization
     }
 
     /**
-     * Instantiates a new command assigned to a given agent @agent
+     * Instantiates a new command assigned to a given agent {@code agent}.
      * 
-     * @param agent
+     * @param agent Associated NIOAgent.
      */
     public Command(NIOAgent agent) {
         this.agent = agent;
     }
 
     /**
-     * Returns the agent assigned to the command
+     * Returns the agent assigned to the command.
      * 
-     * @return
+     * @return The agent assigned to the command.
      */
     public NIOAgent getAgent() {
         return this.agent;
     }
 
     /**
-     * Assigns a new agent to the command
+     * Assigns a new agent to the command.
      * 
-     * @param agent
+     * @param agent New command agent.
      */
     public void setAgent(NIOAgent agent) {
         this.agent = agent;
     }
 
     /**
-     * Returns the command type
+     * Returns the command type.
      * 
-     * @return
+     * @return The command type.
      */
     public abstract CommandType getType();
 
     /**
-     * Invokes the command handler
+     * Invokes the command handler.
      * 
-     * @param c
+     * @param c Connection.
      */
     public abstract void handle(Connection c);
 

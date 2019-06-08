@@ -47,6 +47,16 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     private final List<String> slaveWorkersNodeNames;
 
 
+    /**
+     * Creates a new LocalJob instance.
+     * 
+     * @param taskId Associated task Id.
+     * @param task Associated task description.
+     * @param impl Task implementation.
+     * @param res Resource.
+     * @param slaveWorkersNodeNames List of slave nodes for multi-node tasks.
+     * @param listener Task listener.
+     */
     public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
 
@@ -57,36 +67,36 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         int numReturns = this.taskParams.getNumReturns();
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
-        Parameter[] params = task.getParameters();
-        int paramsCount = params.length;
+        List<Parameter> params = task.getParameters();
+        int paramsCount = params.size();
         if (super.getLang().equals(Lang.PYTHON)) {
             // Python parameters are in a different order
             if (hasTarget) {
-                Parameter p = params[params.length - 1];
+                Parameter p = params.get(params.size() - 1);
                 this.target = new LocalParameter(p);
                 paramsCount--;
             }
             for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-                Parameter p = params[params.length - (hasTarget ? 1 : 0) - numReturns + rIdx];
+                Parameter p = params.get(params.size() - (hasTarget ? 1 : 0) - numReturns + rIdx);
                 this.results.addFirst(new LocalParameter(p));
             }
             paramsCount -= numReturns;
         } else {
             // Java or C/C++
             for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-                Parameter p = params[params.length - numReturns + rIdx];
+                Parameter p = params.get(params.size() - numReturns + rIdx);
                 this.results.addFirst(new LocalParameter(p));
             }
             paramsCount -= numReturns;
             if (hasTarget) {
-                Parameter p = params[params.length - numReturns - 1];
+                Parameter p = params.get(params.size() - numReturns - 1);
                 this.target = new LocalParameter(p);
                 paramsCount--;
             }
         }
 
         for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
-            this.arguments.add(new LocalParameter(params[paramIdx]));
+            this.arguments.add(new LocalParameter(params.get(paramIdx)));
         }
 
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;

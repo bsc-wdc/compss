@@ -195,12 +195,10 @@ public abstract class Tracer {
 
 
     /**
-     * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then
-     * the current node (master) sets its nodeID (taskID in extrae) to 0, and its number of tasks
-     * to 1 (a single program).
+     * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
+     * (master) sets its nodeID (taskID in extrae) to 0, and its number of tasks to 1 (a single program).
      *
-     * @param level type of tracing: -3: arm-ddt, -2: arm-map, -1: scorep, 0: off, 1: extrae-basic,
-     *              2: extrae-advanced
+     * @param level type of tracing: -3: arm-ddt, -2: arm-map, -1: scorep, 0: off, 1: extrae-basic, 2: extrae-advanced
      */
     public static void init(int level) {
         if (DEBUG) {
@@ -223,11 +221,11 @@ public abstract class Tracer {
             }
             Wrapper.SetTaskID(0);
             Wrapper.SetNumTasks(1);
-        }else if (Tracer.scorepEnabled()) {
+        } else if (Tracer.scorepEnabled()) {
             if (DEBUG) {
                 LOGGER.debug("Initializing scorep.");
             }
-        }else if (Tracer.mapEnabled()) {
+        } else if (Tracer.mapEnabled()) {
             if (DEBUG) {
                 LOGGER.debug("Initializing arm-map.");
             }
@@ -298,8 +296,8 @@ public abstract class Tracer {
     }
 
     /**
-     * When using extrae's tracing, this call enables the instrumentation of ALL created threads
-     * from here onwards. To deactivate it use disablePThreads().
+     * When using extrae's tracing, this call enables the instrumentation of ALL created threads from here onwards. To
+     * deactivate it use disablePThreads().
      */
     public static void enablePThreads() {
         synchronized (Tracer.class) {
@@ -308,8 +306,8 @@ public abstract class Tracer {
     }
 
     /**
-     * When using extrae's tracing, this call disables the instrumentation of any created threads
-     * from here onwards. To reactivate it use enablePThreads()
+     * When using extrae's tracing, this call disables the instrumentation of any created threads from here onwards. To
+     * reactivate it use enablePThreads()
      */
     public static void disablePThreads() {
         synchronized (Tracer.class) {
@@ -318,12 +316,12 @@ public abstract class Tracer {
     }
 
     /**
-     * Adds a host name and its number of slots to a hashmap required to later merge the traces from
-     * each host into a single one.
+     * Adds a host name and its number of slots to a hashmap required to later merge the traces from each host into a
+     * single one.
      *
-     * @param name  of the host
-     * @param slots number of threads the host is expected to have (used in GAT, in NIO is 0,
-     *              because they will be computed automatically
+     * @param name of the host
+     * @param slots number of threads the host is expected to have (used in GAT, in NIO is 0, because they will be
+     *            computed automatically
      * @return the next ID to be used during the initialization of the tracing in the given host.
      */
     public static int registerHost(String name, int slots) {
@@ -422,7 +420,7 @@ public abstract class Tracer {
     /**
      * Emits an event using extrae's Wrapper. Requires that Tracer has been initialized with lvl >0
      *
-     * @param eventID   ID of the event
+     * @param eventID ID of the event
      * @param eventType type of the event.
      */
     public static void emitEvent(long eventID, int eventType) {
@@ -436,10 +434,10 @@ public abstract class Tracer {
     }
 
     /**
-     * Emits an event and the current PAPI counters activated using extrae's Wrapper. Requires
-     * that Tracer has been initialized with lvl >0.
+     * Emits an event and the current PAPI counters activated using extrae's Wrapper. Requires that Tracer has been
+     * initialized with lvl >0.
      *
-     * @param taskId    ID of the event
+     * @param taskId ID of the event
      * @param eventType type of the event.
      */
     public static void emitEventAndCounters(int taskId, int eventType) {
@@ -454,8 +452,8 @@ public abstract class Tracer {
     }
 
     /**
-     * End the extrae tracing system. Finishes master's tracing, generates both master and worker's
-     * packages, merges the packages, and clean the intermediate traces.
+     * End the extrae tracing system. Finishes master's tracing, generates both master and worker's packages, merges the
+     * packages, and clean the intermediate traces.
      */
     public static void fini() {
         if (DEBUG) {
@@ -463,7 +461,7 @@ public abstract class Tracer {
         }
 
         synchronized (Tracer.class) {
-            if (extraeEnabled()){
+            if (extraeEnabled()) {
                 defineEvents();
 
                 Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
@@ -480,6 +478,7 @@ public abstract class Tracer {
 
     /**
      * Returns how many events of a given type exist.
+     * 
      * @param type of the events
      * @return how many events does that type of event contains.
      */
@@ -494,8 +493,7 @@ public abstract class Tracer {
     }
 
     /**
-     * Iterates over all the tracing events and sets them in the Wrapper to generate the config.
-     * for the tracefile.
+     * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
      */
     private static void defineEvents() {
         Map<String, Integer> signatureToId = CoreManager.getSignaturesToId();
@@ -635,12 +633,9 @@ public abstract class Tracer {
     }
 
     /**
-     * Generate the tracing package for the master.
-     * The mode parameter enables to use different packaging methods.
-     * The currently supported modes are:
-     *     "package" --------> for Extrae
-     *     "package-scorep" -> for ScoreP
-     *     "package-map" ----> for Map
+     * Generate the tracing package for the master. The mode parameter enables to use different packaging methods. The
+     * currently supported modes are: "package" --------> for Extrae "package-scorep" -> for ScoreP "package-map" ---->
+     * for Map
      *
      * @param mode of the packaging (see trace.sh)
      */
@@ -678,8 +673,8 @@ public abstract class Tracer {
     }
 
     /**
-     * Copy the tracing master package from the working directory. Node packages are transferred
-     * on NIOTracer of GATTracer.
+     * Copy the tracing master package from the working directory. Node packages are transferred on NIOTracer of
+     * GATTracer.
      */
     private static void transferMasterPackage() {
         if (DEBUG) {

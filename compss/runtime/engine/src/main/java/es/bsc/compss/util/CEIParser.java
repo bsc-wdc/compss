@@ -55,9 +55,7 @@ public class CEIParser {
 
 
     /**
-     * Parses the different interfaces
-     *
-     * @return
+     * Parses the different interfaces.
      */
     public static void parse() {
         switch (LANG) {

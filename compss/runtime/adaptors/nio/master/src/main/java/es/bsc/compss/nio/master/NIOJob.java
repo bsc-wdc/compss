@@ -16,23 +16,23 @@
  */
 package es.bsc.compss.nio.master;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
-import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.nio.master.utils.NIOParamFactory;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.nio.master.utils.NIOParamFactory;
+
+import java.util.LinkedList;
+import java.util.List;
 
 
 public class NIOJob extends Job<NIOWorkerNode> {
@@ -40,6 +40,16 @@ public class NIOJob extends Job<NIOWorkerNode> {
     private final List<String> slaveWorkersNodeNames;
 
 
+    /**
+     * Creates a new NIOJob instance.
+     * 
+     * @param taskId Associated task id.
+     * @param taskParams Task parameters.
+     * @param impl Task implementation.
+     * @param res Resource
+     * @param slaveWorkersNodeNames Associated slave nodes.
+     * @param listener Listener.
+     */
     public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
 
@@ -64,6 +74,11 @@ public class NIOJob extends Job<NIOWorkerNode> {
         NIOAdaptor.submitTask(this);
     }
 
+    /**
+     * Creates a new Task with the associated job parameters.
+     * 
+     * @return The new task for the current job.
+     */
     public NIOTask prepareJob() {
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
 
@@ -94,8 +109,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
         int numParams = params.size() - taskParams.getNumReturns();
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, taskParams.hasTargetObject(),
-                taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
+        NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, this.taskParams.hasTargetObject(),
+                this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
                 this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history,
                 this.transferId);
 
@@ -104,12 +119,17 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
     private LinkedList<NIOParam> addParams() {
         LinkedList<NIOParam> params = new LinkedList<>();
-        for (Parameter param : taskParams.getParameters()) {
+        for (Parameter param : this.taskParams.getParameters()) {
             params.add(NIOParamFactory.fromParameter(param));
         }
         return params;
     }
 
+    /**
+     * Marks the task as finished with the given {@code successful} error code.
+     * 
+     * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
+     */
     public void taskFinished(boolean successful) {
         if (successful) {
             listener.jobCompleted(this);

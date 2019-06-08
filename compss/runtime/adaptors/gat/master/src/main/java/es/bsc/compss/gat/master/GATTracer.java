@@ -19,8 +19,8 @@ package es.bsc.compss.gat.master;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.utils.GATScriptExecutor;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.util.Tracer;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -36,6 +36,12 @@ import org.gridlab.gat.resources.SoftwareDescription;
 
 public class GATTracer extends Tracer {
 
+    /**
+     * Returns a job to start the tracing in the worker node.
+     * 
+     * @param worker Worker where to start the tracing.
+     * @return Tracing job.
+     */
     public static Job startTracing(GATWorkerNode worker) {
         if (DEBUG) {
             LOGGER.debug("Starting trace for woker " + worker.getHost());
@@ -51,7 +57,7 @@ public class GATTracer extends Tracer {
             return null;
         }
 
-        int hostId = Tracer.registerHost(worker.getName(), numTasks);
+        final int hostId = Tracer.registerHost(worker.getName(), numTasks);
 
         String user;
         if (worker.getUser() == null || worker.getUser().isEmpty()) {
@@ -98,18 +104,25 @@ public class GATTracer extends Tracer {
         return job;
     }
 
+    /**
+     * Waits for the tracing job to finish.
+     * 
+     * @param job Tracing job to wait for.
+     */
     public static void waitForTracing(Job job) {
         Long timeout = System.currentTimeMillis() + 60_000L;
         while (System.currentTimeMillis() < timeout) {
             if (isReady(job)) {
-                if (DEBUG)
+                if (DEBUG) {
                     LOGGER.debug("Tracing ready");
+                }
                 return;
             }
 
             try {
                 Thread.sleep(50);
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
         LOGGER.error("Error initializing tracing system, " + job + " job still pending.");
@@ -132,17 +145,29 @@ public class GATTracer extends Tracer {
         return false;
     }
 
+    /**
+     * Emits a tracing event.
+     * 
+     * @param eventID Event Id.
+     * @param eventType Event Type.
+     */
     public static void emitEvent(long eventID, int eventType) {
-        LOGGER.error(
-                "Emit event method based on Extrae JAVA API is not available for GAT tracing on workers. (Use Tracer class when instrumenting master.");
+        LOGGER.error("Emit event method based on Extrae JAVA API is not available for GAT tracing on workers."
+                + " (Use the Tracer class when instrumenting master.");
     }
 
+    /**
+     * Generates the tracing package in a given worker node.
+     * 
+     * @param node Worker node where to generate the tracing package.
+     * @return {@literal true} if the tracing package has been generated, {@literal false} otherwise.
+     */
     public static boolean generatePackage(GATWorkerNode node) {
-        LinkedList<URI> traceScripts = new LinkedList<>();
-        LinkedList<String> traceParams = new LinkedList<>();
-        String host = node.getHost();
-        String installDir = node.getInstallDir();
-        String workingDir = node.getWorkingDir();
+        final LinkedList<URI> traceScripts = new LinkedList<>();
+        final LinkedList<String> traceParams = new LinkedList<>();
+        final String host = node.getHost();
+        final String installDir = node.getInstallDir();
+        final String workingDir = node.getWorkingDir();
 
         String user = node.getUser();
         if (user == null || user.isEmpty()) {
@@ -161,9 +186,9 @@ public class GATTracer extends Tracer {
         String mode = "package";
         if (Tracer.extraeEnabled()) {
             mode = "package";
-        }else if (Tracer.scorepEnabled()) {
+        } else if (Tracer.scorepEnabled()) {
             mode = "package-scorep";
-        }else if (Tracer.mapEnabled()) {
+        } else if (Tracer.mapEnabled()) {
             mode = "package-map";
         }
         String pars = mode + " " + workingDir + " " + host;

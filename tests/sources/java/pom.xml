@@ -55,8 +55,8 @@
         <module>1_constraints_rm_available</module>
         <module>1_constraints_rm_compatible</module>
         <module>2_cache</module>
-	<module>2_delete_file</module>
-	<module>2_delete_file_shared_disk</module>
+        <module>2_delete_file</module>
+        <module>2_delete_file_shared_disk</module>
         <module>2_environment_variables</module>
         <module>2_get_file</module>
         <module>2_limit_of_tasks</module>
@@ -76,7 +76,9 @@
         <module>9_concurrent_procs</module>
         <module>9_concurrent_threads</module>
         <module>9_services</module>
-        <module>9_streams</module>
+        <module>9_stream_files</module>
+        <module>9_stream_objects</module>
+        <module>9_stream_non_native</module>
 
 		<!-- Add new modules below -->
 	</modules>

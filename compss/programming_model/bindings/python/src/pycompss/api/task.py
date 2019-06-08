@@ -35,6 +35,7 @@ from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}
@@ -113,10 +114,10 @@ class task(object):
             'is_distributed': False,
             'computing_nodes': 1,
             'tracing_hook': False,
-            'numba': False,          # numba mode (jit, vectorize, guvectorize)
-            'numba_flags': {},            # user defined extra numba flags
-            'numba_signature': None,      # vectorize and guvectorize signature
-            'numba_declaration': None,    # guvectorize declaration
+            'numba': False,  # numba mode (jit, vectorize, guvectorize)
+            'numba_flags': {},  # user defined extra numba flags
+            'numba_signature': None,  # vectorize and guvectorize signature
+            'numba_declaration': None,  # guvectorize declaration
             'varargs_type': parameter.IN  # Here for legacy purposes
         }
 
@@ -150,8 +151,7 @@ class task(object):
             # Not all decorator arguments are necessarily parameters
             # (see self.get_default_decorator_values)
             if parameter.is_parameter(value):
-                self.decorator_arguments[key] = \
-                    parameter.get_parameter_copy(value)
+                self.decorator_arguments[key] = parameter.get_parameter_copy(value)
             # Specific case when value is a dictionary
             # Use case example:
             # @binary(binary="ls")
@@ -166,10 +166,9 @@ class task(object):
                     # Perform user -> instance substitution
                     # param = self.decorator_arguments[key][parameter.Type]
                     # Replace the whole dict by a single parameter object
-                    self.decorator_arguments[key] = \
-                        parameter.get_parameter_from_dictionary(
-                            self.decorator_arguments[key]
-                        )
+                    self.decorator_arguments[key] = parameter.get_parameter_from_dictionary(
+                        self.decorator_arguments[key]
+                    )
                     # self.decorator_arguments[key].update(
                     #     {parameter.Type: parameter.get_parameter_copy(param)}
                     # )
@@ -940,7 +939,9 @@ class task(object):
             return self.get_varargs_direction().type is None
         # Is this parameter annotated in the decorator?
         if original_name in self.decorator_arguments:
-            return self.decorator_arguments[original_name].type in [parameter.TYPE.COLLECTION, None]
+            return self.decorator_arguments[original_name].type in [parameter.TYPE.COLLECTION,
+                                                                    parameter.TYPE.EXTERNAL_STREAM,
+                                                                    None]
         # The parameter is not annotated in the decorator, so (by default) return True
         return True
 
@@ -987,6 +988,9 @@ class task(object):
                 else:
                     # The object is a FILE, just forward the path of the file as a string parameter
                     arg.content = arg.file_name.split(':')[-1]
+            elif arg.type == parameter.TYPE.EXTERNAL_STREAM:
+                from pycompss.util.serializer import deserialize_from_file
+                arg.content = deserialize_from_file(arg.file_name)
             elif arg.type == parameter.TYPE.COLLECTION:
                 arg.content = []
                 # This field is exclusive for COLLECTION_T parameters, so make sure you have checked this
@@ -1140,26 +1144,26 @@ class task(object):
             elif numba_mode == 'vectorize':
                 numba_signature = self.decorator_arguments['numba_signature']
                 user_returns = vectorize(
-                                   numba_signature,
-                                   **numba_flags
-                               )(self.user_function)(*user_args, **user_kwargs)
+                    numba_signature,
+                    **numba_flags
+                )(self.user_function)(*user_args, **user_kwargs)
             elif numba_mode == 'guvectorize':
                 numba_signature = self.decorator_arguments['numba_signature']
                 numba_decl = self.decorator_arguments['numba_declaration']
                 user_returns = guvectorize(
-                                   numba_signature,
-                                   numba_decl,
-                                   **numba_flags
-                               )(self.user_function)(*user_args, **user_kwargs)
+                    numba_signature,
+                    numba_decl,
+                    **numba_flags
+                )(self.user_function)(*user_args, **user_kwargs)
             elif numba_mode == 'stencil':
                 user_returns = stencil(
-                                   **numba_flags
-                               )(self.user_function)(*user_args, **user_kwargs)
+                    **numba_flags
+                )(self.user_function)(*user_args, **user_kwargs)
             elif numba_mode == 'cfunc':
                 numba_signature = self.decorator_arguments['numba_signature']
                 user_returns = cfunc(
-                                   numba_signature
-                               )(self.user_function)(*user_args, **user_kwargs)
+                    numba_signature
+                )(self.user_function)(*user_args, **user_kwargs)
             else:
                 raise Exception("Unsupported numba mode.")
         else:

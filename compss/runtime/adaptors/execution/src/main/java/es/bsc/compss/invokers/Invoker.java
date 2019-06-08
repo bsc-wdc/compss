@@ -17,7 +17,8 @@
 package es.bsc.compss.invokers;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.invokers.external.piped.PythonMirror;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
@@ -64,10 +65,12 @@ public abstract class Invoker {
     protected final int computingUnits;
     protected final String workers;
     protected final int numWorkers;
+    protected final String jythonPycompssHome;
 
 
     /**
      * Invoker constructor.
+     * 
      * @param context Invocation context
      * @param invocation task execution invocation description (job)
      * @param taskSandboxWorkingDir task execution sandboxed working dir
@@ -120,6 +123,10 @@ public abstract class Invoker {
         }
         this.workers = hostnamesSTR.toString();
 
+        // Jython default pyCOMPSs home
+        this.jythonPycompssHome = this.context.getInstallDir() + PythonMirror.PYCOMPSS_RELATIVE_PATH + File.separator
+                + "2";
+
         /* Parse the parameters ************************************ */
         AbstractMethodImplementation impl = invocation.getMethodImplementation();
         int paramIdx = 0;
@@ -162,10 +169,10 @@ public abstract class Invoker {
 
             out.print("  * Parameter streams:");
             for (InvocationParam p : invocation.getParams()) {
-                out.print(" " + p.getStream());
+                out.print(" " + p.getStdIOStream());
             }
             if (invocation.getTarget() != null) {
-                out.print(" " + invocation.getTarget().getStream());
+                out.print(" " + invocation.getTarget().getStdIOStream());
             }
             out.println("");
 
@@ -216,11 +223,13 @@ public abstract class Invoker {
                 case STRING_T:
                 case FILE_T:
                 case BINDING_OBJECT_T:
+                case EXTERNAL_STREAM_T:
                 case EXTERNAL_PSCO_T:
                     np.setValueClass(String.class);
                     break;
                 case OBJECT_T:
                 case COLLECTION_T:
+                case STREAM_T:
                 case PSCO_T:
                     // Get object
                     if (obj != null) {
@@ -237,6 +246,7 @@ public abstract class Invoker {
 
     /**
      * Perform the task execution (job).
+     * 
      * @throws JobExecutionException Error execution the task
      */
     public void processTask() throws JobExecutionException {
@@ -250,7 +260,8 @@ public abstract class Invoker {
     }
 
     /**
-     *  Serialize the exit value in the task execution return parameter location.
+     * Serialize the exit value in the task execution return parameter location.
+     * 
      * @param returnParam Task execution return parameter
      * @param exitValue Exit value
      * @throws JobExecutionException Exception serializing the exist value.
@@ -328,7 +339,7 @@ public abstract class Invoker {
         // TRACING: Emit start task
         if (Tracer.extraeEnabled()) {
             // +1 Because Invocation ID can't be 0 (0 signals end task)
-            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1; 
+            int coreId = this.invocation.getMethodImplementation().getCoreId() + 1;
             int taskId = this.invocation.getTaskId();
             Tracer.emitEventAndCounters(coreId, Tracer.getTaskEventsType());
             Tracer.emitEvent(taskId, Tracer.getTaskSchedulingType());
@@ -349,7 +360,7 @@ public abstract class Invoker {
      * Writes the given list of workers to a hostfile inside the given task sandbox.
      *
      * @param taskSandboxWorkingDir task execution sandbox directory
-     * @param workers Strig with the list of workers in mpi hostfile style 
+     * @param workers Strig with the list of workers in mpi hostfile style
      * @return Returns the generated hostfile location inside the task sandbox
      * @throws InvokeExecutionException Exception writting hostfile
      */

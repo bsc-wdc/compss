@@ -14,6 +14,14 @@
   exit_value=1
   jar_name="1_external_adaptation.jar"
   app_name="simple.SimpleExtAdaptation"
+
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/elasticity/
+  clean() {
+    rm -rf /tmp/elasticity/
+  }
+  trap clean EXIT
   
   #----------------------------------------------------------------------------------
   # Create project and resources XML

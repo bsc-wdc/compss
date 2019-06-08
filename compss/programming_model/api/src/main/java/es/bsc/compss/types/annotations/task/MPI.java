@@ -16,15 +16,15 @@
  */
 package es.bsc.compss.types.annotations.task;
 
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.task.repeatables.MPIs;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.Constraints;
-import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -41,16 +41,16 @@ public @interface MPI {
      */
 
     /**
-     * Returns the binary name
+     * Returns the binary name.
      * 
-     * @return the binary name
+     * @return the binary name.
      */
     String binary() default Constants.UNASSIGNED;
 
     /**
-     * Returns the working directory of the binary
+     * Returns the working directory of the binary.
      * 
-     * @return the binary working directory
+     * @return the binary working directory.
      */
     String workingDir() default Constants.UNASSIGNED;
 
@@ -60,16 +60,16 @@ public @interface MPI {
      */
 
     /**
-     * Returns the mpi runner
+     * Returns the mpi runner.
      * 
-     * @return the mpi runner
+     * @return the mpi runner.
      */
     String mpiRunner() default Constants.UNASSIGNED;
 
     /**
-     * Returns the number of computing nodes required
+     * Returns the number of computing nodes required.
      * 
-     * @return the number of computing nodes required
+     * @return the number of computing nodes required.
      */
     String computingNodes() default Constants.UNASSIGNED;
 
@@ -79,16 +79,16 @@ public @interface MPI {
      */
 
     /**
-     * Returns if the method has priority or not
+     * Returns if the method has priority or not.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 
     /**
-     * Returns the method specific constraints
+     * Returns the method specific constraints.
      * 
-     * @return the method specific constraints
+     * @return the method specific constraints.
      */
     Constraints constraints() default @Constraints();
 

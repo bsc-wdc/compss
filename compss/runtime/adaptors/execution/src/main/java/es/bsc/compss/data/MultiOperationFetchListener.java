@@ -17,12 +17,11 @@
 
 package es.bsc.compss.data;
 
-import es.bsc.compss.data.DataManager.FetchDataListener;
+import es.bsc.compss.data.FetchDataListener;
 
 
 /**
  * This class handles the execution of several data fetching operations.
- *
  */
 public abstract class MultiOperationFetchListener implements FetchDataListener {
 
@@ -31,6 +30,7 @@ public abstract class MultiOperationFetchListener implements FetchDataListener {
     private boolean error;
     private String failedDataId;
     private Exception failCause;
+
 
     /**
      * Constructs a new MultiOperationFetchListener with no errors and 0 pending operations.

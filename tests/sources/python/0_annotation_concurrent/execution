@@ -34,6 +34,7 @@ EOF
 
   # Add trap to clean folder
   clean() {
+    rm -rf /tmp/sharedDisk/
     rm -rf /tmp/PSCO/
     rm -f /tmp/*.PSCO
   }

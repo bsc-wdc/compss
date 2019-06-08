@@ -20,53 +20,57 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.data.AccessParams;
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.accessparams.AccessParams;
+
+import java.util.concurrent.Semaphore;
 
 
 public class RegisterDataAccessRequest extends APRequest {
 
-    private AccessParams access;
-    private Semaphore sem;
+    private final AccessParams access;
+    private final Semaphore sem;
     private DataAccessId response;
 
 
+    /**
+     * Creates a new request to register a data access.
+     * 
+     * @param access AccessParams to register.
+     * @param sem Waiting semaphore.
+     */
     public RegisterDataAccessRequest(AccessParams access, Semaphore sem) {
         this.access = access;
         this.sem = sem;
     }
 
+    /**
+     * Returns the associated access parameters.
+     * 
+     * @return The associated access parameters.
+     */
     public AccessParams getAccess() {
-        return access;
-    }
-
-    public void setAccess(AccessParams access) {
-        this.access = access;
+        return this.access;
     }
 
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
+    /**
+     * Returns the waiting semaphore.
+     * 
+     * @return The waiting semaphore.
+     */
     public DataAccessId getResponse() {
-        return response;
-    }
-
-    public void setResponse(DataAccessId response) {
-        this.response = response;
+        return this.response;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         DataAccessId daId = dip.registerDataAccess(this.access);
         this.response = daId;
-        sem.release();
+        this.sem.release();
     }
 
     @Override

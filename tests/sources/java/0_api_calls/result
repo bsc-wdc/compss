@@ -93,6 +93,7 @@
      echo "ERROR ON BARRIER" | tee -a "${output_file}"
      echo "EXPECTED: $expectedBarrier" | tee -a "${output_file}"
      echo "GOT:      $barrier" | tee -a "${output_file}"
+     exit 1
   fi
 
   #---------------------------------------------------------------------------------- 

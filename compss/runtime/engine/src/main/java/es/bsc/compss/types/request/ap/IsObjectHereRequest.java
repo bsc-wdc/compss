@@ -27,8 +27,8 @@ import java.util.concurrent.Semaphore;
 
 public class IsObjectHereRequest extends APRequest {
 
-    private int code;
-    private Semaphore sem;
+    private final int code;
+    private final Semaphore sem;
 
     private boolean response;
 
@@ -38,35 +38,38 @@ public class IsObjectHereRequest extends APRequest {
         this.sem = sem;
     }
 
-    public int getdCode() {
-        return code;
+    /**
+     * Returns the associated object code.
+     * 
+     * @return The associated object code.
+     */
+    public int getCode() {
+        return this.code;
     }
 
-    public void setCode(int code) {
-        this.code = code;
-    }
-
+    /**
+     * Returns the waiting semaphore of the request.
+     * 
+     * @return The waiting semaphore of the request.
+     */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
+    /**
+     * Returns the request response.
+     * 
+     * @return {@code true} if the data is present in the master, {@code false} otherwise.
+     */
     public boolean getResponse() {
-        return response;
-    }
-
-    public void setResponse(boolean response) {
-        this.response = response;
+        return this.response;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        DataInstanceId dId = dip.getLastDataAccess(code);
-        response = dip.isHere(dId);
-        sem.release();
+        DataInstanceId dId = dip.getLastDataAccess(this.code);
+        this.response = dip.isHere(dId);
+        this.sem.release();
     }
 
     @Override

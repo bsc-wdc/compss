@@ -1,16 +1,14 @@
 #!/bin/bash
 
-  NUM_PARAMS=33
+  NUM_PARAMS=34
 
   ######################
   # INTERNAL FUNCTIONS
   ######################
   add_to_classpath () {
-    local DIRLIBS=${1}/*.jar
-    for i in ${DIRLIBS}; do
-      if [ "$i" != "${DIRLIBS}" ] ; then
-        CLASSPATH=$CLASSPATH:"$i"
-      fi
+    local baseDir=${1}
+    for i in ${baseDir}/*.jar; do
+      CLASSPATH=$CLASSPATH:"$i"
     done
     export CLASSPATH=$CLASSPATH
   }
@@ -43,16 +41,17 @@
     libPath=$1
     appDir=$2
     cp=$3
-    numJvmFlags=$4
+    streaming=$4
+    numJvmFlags=$5
 
     jvmFlags=""
     for i in $(seq 1 "$numJvmFlags"); do
-      pos=$((4 + i))
+      pos=$((5 + i))
       jvmFlags="${jvmFlags} ${!pos}"
     done
 
     # Shift parameters for script and leave only the NIOWorker parameters
-    paramsToShift=$((4 + numJvmFlags))
+    paramsToShift=$((5 + numJvmFlags))
     shift ${paramsToShift}
 
     FPGAargs=""
@@ -68,6 +67,7 @@
     paramsToShift=$((1 + numFPGAargs))
     shift ${paramsToShift}
 
+    # shellcheck disable=SC2034,2124
     paramsToCOMPSsWorker=$@
 
     # Check number of parameters
@@ -77,32 +77,33 @@
     fi
 
     # Catch some NIOWorker parameters
-    debug=$1
-    hostName=$4
-    worker_port=$5
-    cusCPU=$8
-    cusGPU=$9
-    cusFPGA=${10}
-    lot=${14}
-    appUuid=${15}
-    lang=${16}
-    workingDir=${17}
-    installDir=${18}
-    appDirNW=${19}
-    libPathNW=${20}
-    cpNW=${21}
-    pythonpath=${22}
-    tracing=${23}
-    extraeFile=${24}
-    hostId=${25}
-    storageConf=${26}
-    execType=${27}
-    persistentBinding=${28}
-    pythonInterpreter=${29}
-    pythonVersion=${30}
-    pythonVirtualEnvironment=${31}
-    pythonPropagateVirtualEnvironment=${32}
-    pythonMpiWorker=${33}
+    debug=${1}
+    hostName=${4}
+    worker_port=${5}
+    streaming_port=${8}
+    cusCPU=${9}
+    cusGPU=${10}
+    cusFPGA=${11}
+    lot=${15}
+    appUuid=${16}
+    lang=${17}
+    workingDir=${18}
+    installDir=${19}
+    appDirNW=${20}
+    libPathNW=${21}
+    cpNW=${22}
+    pythonpath=${23}
+    tracing=${24}
+    extraeFile=${25}
+    hostId=${26}
+    storageConf=${27}
+    execType=${28}
+    persistentBinding=${29}
+    pythonInterpreter=${30}
+    pythonVersion=${31}
+    pythonVirtualEnvironment=${32}
+    pythonPropagateVirtualEnvironment=${33}
+    pythonMpiWorker=${34}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -110,6 +111,9 @@
       echo "- WorkerPort:          ${worker_port}"
       echo "- WorkingDir:          $workingDir"
       echo "- InstallDir:          $installDir"
+
+      echo "- Streaming Type:      ${streaming}"
+      echo "- Streaming Port:      ${streaming_port}"
 
       echo "- Computing Units CPU: ${cusCPU}"
       echo "- Computing Units GPU: ${cusGPU}"
@@ -236,6 +240,7 @@
     -XX:+UseThreadPriorities \
     -XX:ThreadPriorityPolicy=42 \
     -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
+    -Dcompss.streaming=${streaming} \
     -Dcompss.python.interpreter=${pythonInterpreter} \
     -Dcompss.python.version=${pythonVersion} \
     -Dcompss.python.virtualenvironment=${pythonVirtualEnvironment} \
@@ -244,15 +249,17 @@
     
     if [ "$lang" = "c" ] && [ "${persistentBinding}" = "true" ]; then
     	generate_jvm_opts_file
+        # shellcheck disable=SC2034
     	cmd="${appDir}/worker/nio_worker_c"
     else
+        # shellcheck disable=SC2034
         cmd="$JAVA ${worker_jvm_flags} -classpath $CLASSPATH:${worker_jar} ${main_worker_class}"
     fi
     	
   }
   
   generate_jvm_opts_file() {
-    jvm_worker_opts=$(echo $worker_jvm_flags | tr " " "\n")
+    jvm_worker_opts=$(echo "${worker_jvm_flags}" | tr " " "\\n")
     jvm_options_file=$(mktemp) || error_msg "Error creating java_opts_tmp_file"
     cat >> "${jvm_options_file}" << EOT
 ${jvm_worker_opts}
@@ -262,7 +269,7 @@ EOT
 
   reprogram_fpga() {
     if [ -n "${FPGAargs}" ]; then
-        echo "Reprogramming FPGA with the command "${FPGAargs}""
+        echo "Reprogramming FPGA with the command ${FPGAargs}"
         eval "$FPGAargs"
     fi
   }

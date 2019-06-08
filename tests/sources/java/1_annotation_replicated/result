@@ -71,7 +71,7 @@
   
   #----------------------------------------------------------------------------------
   # Check PRV file
-  tasksOrderExpected=$'1\n2\n2\n3\n3\n3\n3\n3\n3\n3\n3'
+  tasksOrderExpected=$'2\n1\n1\n3\n3\n3\n3\n3\n3\n3\n3'
   tasksOrder=$(grep "8000000" "${target_log_folder}"/trace/*.prv | grep -v "8000000:0" | tr ":" "\\t" | awk '{ print $NF }')
   if [ "${tasksOrderExpected}" != "${tasksOrder}" ]; then
     echo "[ERROR] Obtained trace file is not as expected" | tee -a "${output_file}"

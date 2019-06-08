@@ -17,10 +17,11 @@
 package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.exceptions.StreamCloseException;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.BinaryRunner;
-import es.bsc.compss.invokers.util.BinaryRunner.StreamSTD;
+import es.bsc.compss.invokers.util.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -44,12 +45,15 @@ public class MPIInvoker extends Invoker {
     private final String mpiRunner;
     private final String mpiBinary;
 
-    /** MPI Invoker constructor.
-     * @param context Task execution context
-     * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources Assigned resources
-     * @throws JobExecutionException Error creating the MPI invoker
+
+    /**
+     * MPI Invoker constructor.
+     * 
+     * @param context Task execution context.
+     * @param invocation Task execution description.
+     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param assignedResources Assigned resources.
+     * @throws JobExecutionException Error creating the MPI invoker.
      */
     public MPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
@@ -84,13 +88,26 @@ public class MPIInvoker extends Invoker {
     @Override
     public void invokeMethod() throws JobExecutionException {
         checkArguments();
+
         LOGGER.info("Invoked " + this.mpiBinary + " in " + this.context.getHostName());
+
+        // Execute binary
         Object retValue;
         try {
             retValue = runInvocation();
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }
+
+        // Close out streams if any
+        try {
+            BinaryRunner.closeStreams(this.invocation.getParams(), this.jythonPycompssHome);
+        } catch (StreamCloseException se) {
+            LOGGER.error("Exception closing binary streams", se);
+            throw new JobExecutionException(se);
+        }
+
+        // Update binary results
         for (InvocationParam np : this.invocation.getResults()) {
             if (np.getType() == DataType.FILE_T) {
                 serializeBinaryExitValue(np, retValue);
@@ -108,20 +125,20 @@ public class MPIInvoker extends Invoker {
         // Get COMPSS ENV VARS
 
         // Convert binary parameters and calculate binary-streams redirection
-        StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
-                invocation.getTarget(), streamValues);
+        StdIOStream streamValues = new StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+                this.invocation.getTarget(), streamValues, this.jythonPycompssHome);
 
         // Create hostfile
         String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
-        
+
         // Prepare command
         String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];
         cmd[0] = this.mpiRunner;
         cmd[1] = "-hostfile";
         cmd[2] = hostfile;
         cmd[3] = "-n";
-        
+
         String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
         cmd[4] = numProcs;
         // cmd[5] = "--bind-to";
@@ -132,7 +149,7 @@ public class MPIInvoker extends Invoker {
         }
 
         // Prepare environment
-        if (invocation.isDebugEnabled()) {
+        if (this.invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
             outLog.println("[MPI INVOKER] Begin MPI call to " + this.mpiBinary);
@@ -149,7 +166,7 @@ public class MPIInvoker extends Invoker {
         }
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(),
-                context.getThreadErrStream());
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+                this.context.getThreadErrStream());
     }
 }

@@ -22,8 +22,20 @@ import es.bsc.compss.types.execution.InvocationParam;
 
 public interface DataProvider {
 
-    public boolean isPersistentEnabled();
+    /**
+     * Returns whether the persistent C backend is enabled or not.
+     * 
+     * @return {@code true} if the persistent C backend is enabled, {@code false} otherwise.
+     */
+    public boolean isPersistentCEnabled();
 
-    public void askForTransfer(InvocationParam param, int index, DataManager.FetchDataListener tt);
+    /**
+     * Requests a new transfer with the given information.
+     * 
+     * @param param Invocation Parameter to request.
+     * @param index Parameter index.
+     * @param tt Transfer listener.
+     */
+    public void askForTransfer(InvocationParam param, int index, FetchDataListener tt);
 
 }

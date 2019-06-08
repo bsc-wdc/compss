@@ -18,11 +18,12 @@ package es.bsc.compss.invokers.binary;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.exceptions.InvokeExecutionException;
-import es.bsc.compss.executor.utils.ResourceManager.InvocationResources;
+import es.bsc.compss.exceptions.StreamCloseException;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.types.JavaParams;
 import es.bsc.compss.invokers.util.BinaryRunner;
-import es.bsc.compss.invokers.util.BinaryRunner.StreamSTD;
+import es.bsc.compss.invokers.util.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -60,12 +61,15 @@ public class COMPSsInvoker extends Invoker {
     private final String appName;
     private final String workerInMaster;
 
-    /** COMPSs Invoker constructor.
-     * @param context Task execution context
-     * @param invocation Task execution description
-     * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources Assigned resources
-     * @throws JobExecutionException Error creating the COMPSs invoker
+
+    /**
+     * COMPSs Invoker constructor.
+     * 
+     * @param context Task execution context.
+     * @param invocation Task execution description.
+     * @param taskSandboxWorkingDir Task execution sandbox directory.
+     * @param assignedResources Assigned resources.
+     * @throws JobExecutionException Error creating the COMPSs invoker.
      */
     public COMPSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
             InvocationResources assignedResources) throws JobExecutionException {
@@ -104,6 +108,8 @@ public class COMPSsInvoker extends Invoker {
         checkArguments();
 
         LOGGER.info("Invoked " + this.appName + " in " + this.context.getHostName());
+
+        // Execute binary
         Object retValue;
         try {
             retValue = runInvocation();
@@ -111,7 +117,15 @@ public class COMPSsInvoker extends Invoker {
             throw new JobExecutionException(iee);
         }
 
-        // Check results
+        // Close out streams if any
+        try {
+            BinaryRunner.closeStreams(this.invocation.getParams(), this.jythonPycompssHome);
+        } catch (StreamCloseException se) {
+            LOGGER.error("Exception closing binary streams", se);
+            throw new JobExecutionException(se);
+        }
+
+        // Update binary results
         for (InvocationParam np : this.invocation.getResults()) {
             if (np.getType() == DataType.FILE_T) {
                 serializeBinaryExitValue(np, retValue);
@@ -124,7 +138,7 @@ public class COMPSsInvoker extends Invoker {
 
     private Object runInvocation() throws InvokeExecutionException {
         System.out.println("");
-        System.out.println("[COMPSs INVOKER] Begin COMPSs call to " + appName);
+        System.out.println("[COMPSs INVOKER] Begin COMPSs call to " + this.appName);
         System.out.println("[COMPSs INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
 
         // Command similar to:
@@ -216,7 +230,6 @@ public class COMPSsInvoker extends Invoker {
             throw new InvokeExecutionException("Error generating resources.xml file", ie);
         }
 
-
         // Prepare and purge runcompss extra flags
         String nestedLogDir = this.taskSandboxWorkingDir.getAbsolutePath() + File.separator + "nestedCOMPSsLog";
         JavaParams javaParams = (JavaParams) this.context.getLanguageParams(Lang.JAVA);
@@ -253,18 +266,18 @@ public class COMPSsInvoker extends Invoker {
         if (!new File(nestedLogDir).mkdir()) {
             throw new InvokeExecutionException("Error creating COMPSs nested log directory " + nestedLogDir);
         }
-        
+
         // Convert binary parameters and calculate binary-streams redirection
-        StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(invocation.getParams(),
-                invocation.getTarget(), streamValues);
-        
+        StdIOStream streamValues = new StdIOStream();
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
+                this.invocation.getTarget(), streamValues, this.jythonPycompssHome);
+
         // Prepare command (the +1 is for the appName)
         String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + binaryParams.size()];
         cmd[0] = runcompss;
         cmd[1] = "--project=" + projectXml;
         cmd[2] = "--resources=" + resourcesXml;
-        
+
         String nestedLogDirFlag = "--specific_log_dir=" + nestedLogDir;
         cmd[3] = nestedLogDirFlag;
         cmd[4] = classpathFlag;
@@ -272,7 +285,7 @@ public class COMPSsInvoker extends Invoker {
         for (String flag : extraFlagsList) {
             cmd[i++] = flag;
         }
-        cmd[i++] = appName;
+        cmd[i++] = this.appName;
         for (String param : binaryParams) {
             cmd[i++] = param;
         }
@@ -288,8 +301,8 @@ public class COMPSsInvoker extends Invoker {
         System.out.println("[COMPSs INVOKER] COMPSs STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, context.getThreadOutStream(),
-                context.getThreadErrStream());
+        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+                this.context.getThreadErrStream());
     }
 
     private int xmlGenerationScript(String[] cmd) throws IOException, InterruptedException {
@@ -306,6 +319,5 @@ public class COMPSsInvoker extends Invoker {
 
         // Wait and return exit value
         return process.waitFor();
-
     }
 }

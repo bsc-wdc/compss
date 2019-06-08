@@ -24,35 +24,43 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 
 public class NewVersionSameValueRequest extends APRequest {
 
-    private String rRenaming;
-    private String wRenaming;
+    private final String rRenaming;
+    private final String wRenaming;
 
 
+    /**
+     * Creates a new request to create a new version of a given renaming with the same value.
+     * 
+     * @param rRenaming Original renaming.
+     * @param wRenaming New renaming.
+     */
     public NewVersionSameValueRequest(String rRenaming, String wRenaming) {
         super();
         this.rRenaming = rRenaming;
         this.wRenaming = wRenaming;
     }
 
+    /**
+     * Returns the original renaming.
+     * 
+     * @return The original renaming.
+     */
     public String getrRenaming() {
-        return rRenaming;
+        return this.rRenaming;
     }
 
-    public void setrRenaming(String rRenaming) {
-        this.rRenaming = rRenaming;
-    }
-
+    /**
+     * Returns the new renaming.
+     * 
+     * @return The new renaming.
+     */
     public String getwRenaming() {
-        return wRenaming;
-    }
-
-    public void setwRenaming(String wRenaming) {
-        this.wRenaming = wRenaming;
+        return this.wRenaming;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        dip.newVersionSameValue(rRenaming, wRenaming);
+        dip.newVersionSameValue(this.rRenaming, this.wRenaming);
     }
 
     @Override

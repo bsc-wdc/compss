@@ -16,15 +16,16 @@
  */
 package es.bsc.compss.nio.commands;
 
+import es.bsc.comm.Connection;
+
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
 
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
-
-import es.bsc.comm.Connection;
 
 
 public class CommandShutdown extends Command implements Externalizable {
@@ -33,12 +34,21 @@ public class CommandShutdown extends Command implements Externalizable {
     private LinkedList<NIOData> filesToSend;
 
 
+    /**
+     * Creates a new CommandShutdown for externalization.
+     */
     public CommandShutdown() {
     }
 
-    public CommandShutdown(NIOAgent agent, LinkedList<NIOData> l) {
+    /**
+     * Creates a new CommandShutdown instance.
+     * 
+     * @param agent Associated NIOAgent.
+     * @param filesToSend List of files to send.
+     */
+    public CommandShutdown(NIOAgent agent, LinkedList<NIOData> filesToSend) {
         super(agent);
-        this.filesToSend = l;
+        this.filesToSend = filesToSend;
     }
 
     @Override
@@ -48,18 +58,18 @@ public class CommandShutdown extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.receivedShutdown(c, filesToSend);
+        this.agent.receivedShutdown(c, this.filesToSend);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        filesToSend = (LinkedList<NIOData>) in.readObject();
+        this.filesToSend = (LinkedList<NIOData>) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(filesToSend);
+        out.writeObject(this.filesToSend);
     }
 
     @Override

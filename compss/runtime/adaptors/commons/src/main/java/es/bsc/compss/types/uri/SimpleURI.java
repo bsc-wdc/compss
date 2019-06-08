@@ -29,8 +29,10 @@ public class SimpleURI {
     private final String path;
 
 
-    /** Simple URI constructor
-     * @param fullPath URI absolute path
+    /**
+     * Simple URI constructor.
+     * 
+     * @param fullPath URI absolute path.
      */
     public SimpleURI(String fullPath) {
         int parsedIndex = 0;
@@ -85,9 +87,10 @@ public class SimpleURI {
 
         return sb.toString();
     }
-    
+
     /**
      * Extended print version for debugging purposes.
+     * 
      * @param ps Print stream to print the debug information
      */
     public void debugPrint(PrintStream ps) {

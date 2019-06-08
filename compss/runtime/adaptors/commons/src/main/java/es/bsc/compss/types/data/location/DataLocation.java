@@ -52,6 +52,8 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         FILE_URI("file://"), // File protocol
         SHARED_URI("shared://"), // Shared protocol
         OBJECT_URI("object://"), // Object protocol
+        STREAM_URI("stream://"), // Stream protocol
+        EXTERNAL_STREAM_URI("extStream://"), // External Stream protocol
         PERSISTENT_URI("storage://"), // Persistent protocol
         BINDING_URI("binding://"), // Binding protocol
         ANY_URI("any://"); // Other
@@ -69,6 +71,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
 
         /**
          * Get protocol by Schema.
+         * 
          * @param schema Scheme
          * @return Protocol related to the schema. Null if there is no protocol bind to the schema
          */
@@ -140,6 +143,28 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                         "Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
                 loc = createLocation(Protocol.OBJECT_URI, host, objectName);
                 break;
+            case STREAM_URI:
+                // Stream
+                String streamName = uri.getPath(); // The Object name is stored as path in the URI
+                LOGGER.debug(
+                        "Creating new StreamLocation: " + protocol.getSchema() + host.getName() + "@" + streamName);
+                loc = createLocation(Protocol.STREAM_URI, host, streamName);
+                break;
+            case EXTERNAL_STREAM_URI:
+                // External stream
+                String streamCompletePath = null;
+                try {
+                    streamCompletePath = new URI(uri.getPath()).normalize().getPath();
+                    if ('/' != streamCompletePath.charAt(0)) {
+                        streamCompletePath = new File(uri.getPath()).getCanonicalPath();
+                    }
+                } catch (URISyntaxException e) {
+                    streamCompletePath = new File(uri.getPath()).getCanonicalPath();
+                }
+                LOGGER.debug("Creating new ExternalStreamLocation: " + protocol.getSchema() + host.getName() + "@"
+                        + streamCompletePath);
+                loc = createLocation(Protocol.EXTERNAL_STREAM_URI, host, streamCompletePath);
+                break;
             case PERSISTENT_URI:
                 String id = uri.getPath(); // The PSCO Id is stored as path in the URI
                 LOGGER.debug("Creating new PersistentLocation: " + id);
@@ -148,7 +173,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
             case BINDING_URI:
                 // Binding Object
                 // The Object name is stored as path in the URI
-                BindingObject bo = BindingObject.generate(uri.getPath()); 
+                BindingObject bo = BindingObject.generate(uri.getPath());
                 LOGGER.debug("Creating new BindingObjectLocation: " + protocol.getSchema() + host.getName() + "@" + bo);
                 loc = new BindingObjectLocation(host, bo);
                 break;

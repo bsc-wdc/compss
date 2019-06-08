@@ -35,7 +35,7 @@ from pycompss.worker.piper_executor import ExecutorConf
 from pycompss.worker.piper_executor import executor
 
 # Persistent worker global variables
-PROCESSES = {}  # IN_PIPE -> PROCES
+PROCESSES = {}  # IN_PIPE -> PROCESS
 
 
 class PiperWorkerConfiguration(object):
@@ -50,6 +50,9 @@ class PiperWorkerConfiguration(object):
         self.debug = False
         self.tracing = False
         self.storage_conf = None
+        self.stream_backend = None
+        self.stream_master_name = None
+        self.stream_master_port = None
         self.tasks_x_node = 0
         self.pipes = []
         self.control_pipe = None
@@ -64,9 +67,12 @@ class PiperWorkerConfiguration(object):
         self.debug = argv[1] == 'true'
         self.tracing = argv[2] == 'true'
         self.storage_conf = argv[3]
-        self.tasks_x_node = int(argv[4])
-        in_pipes = argv[5:5 + self.tasks_x_node]
-        out_pipes = argv[5 + self.tasks_x_node:-2]
+        self.stream_backend = argv[4]
+        self.stream_master_name = argv[5]
+        self.stream_master_port = argv[6]
+        self.tasks_x_node = int(argv[7])
+        in_pipes = argv[8:8 + self.tasks_x_node]
+        out_pipes = argv[8 + self.tasks_x_node:-2]
         if self.debug:
             assert self.tasks_x_node == len(in_pipes)
             assert self.tasks_x_node == len(out_pipes)
@@ -177,6 +183,7 @@ def compss_persistent_worker(config):
 
     if persistent_storage:
         # Initialize storage
+        logger.debug("[PYTHON WORKER] Starting persitent storage")
         from storage.api import initWorker as initStorageAtWorker
         initStorageAtWorker(config_file_path=config.storage_conf)
 
@@ -191,7 +198,9 @@ def compss_persistent_worker(config):
         """
         queue = Queue()
         queues.append(queue)
-        conf = ExecutorConf(TRACING, config.storage_conf, logger, storage_loggers)
+        conf = ExecutorConf(TRACING,
+                            config.storage_conf, logger, storage_loggers,
+                            config.stream_backend, config.stream_master_name, config.stream_master_port)
         process = Process(target=executor, args=(queue,
                                                  process_name,
                                                  pipe,
@@ -269,6 +278,7 @@ def compss_persistent_worker(config):
 
     if persistent_storage:
         # Finish storage
+        logger.debug("[PYTHON WORKER] Stopping persistent storage")
         from storage.api import finishWorker as finishStorageAtWorker
         finishStorageAtWorker()
 

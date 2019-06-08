@@ -16,16 +16,16 @@
  */
 package es.bsc.compss.types.annotations.task;
 
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.Constraints;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.Constraints;
-import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.annotations.task.repeatables.MultiMultiNode;
 
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -42,23 +42,23 @@ public @interface MultiNode {
      */
 
     /**
-     * Returns the declaring class of the method
+     * Returns the declaring class of the method.
      * 
-     * @return method's declaring class
+     * @return method's declaring class.
      */
     String declaringClass();
 
     /**
-     * Returns the name of the method
+     * Returns the name of the method.
      * 
-     * @return method's name
+     * @return method's name.
      */
     String name() default Constants.UNASSIGNED;
 
     /**
-     * Returns the number of computing nodes required
+     * Returns the number of computing nodes required.
      * 
-     * @return the number of computing nodes required
+     * @return the number of computing nodes required.
      */
     String computingNodes() default Constants.UNASSIGNED;
 
@@ -68,9 +68,9 @@ public @interface MultiNode {
      */
 
     /**
-     * Returns the access mode of the target object
+     * Returns the access mode of the target object.
      * 
-     * @return Direction object indicating the access mode of the target object
+     * @return Direction object indicating the access mode of the target object.
      */
     Direction targetDirection() default Direction.INOUT;
 
@@ -80,16 +80,16 @@ public @interface MultiNode {
      */
 
     /**
-     * Returns if the method has priority or not
+     * Returns if the method has priority or not.
      * 
-     * @return if the method has priority or not
+     * @return if the method has priority or not.
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 
     /**
-     * Returns the method specific constraints
+     * Returns the method specific constraints.
      * 
-     * @return the method specific constraints
+     * @return the method specific constraints.
      */
     Constraints constraints() default @Constraints();
 

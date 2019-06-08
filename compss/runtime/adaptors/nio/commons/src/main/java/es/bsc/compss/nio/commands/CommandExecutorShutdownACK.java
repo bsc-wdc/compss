@@ -27,12 +27,20 @@ import java.io.ObjectOutput;
 
 public class CommandExecutorShutdownACK extends Command implements Externalizable {
 
+    /**
+     * Creates a new CommandExecutorShutdownACK for externalization.
+     */
     public CommandExecutorShutdownACK() {
         super();
     }
 
-    public CommandExecutorShutdownACK(NIOAgent ng) {
-        super(ng);
+    /**
+     * Creates a new CommandExecutorShutdownACK instance.
+     * 
+     * @param agent Associated NIOAgent.
+     */
+    public CommandExecutorShutdownACK(NIOAgent agent) {
+        super(agent);
     }
 
     @Override
@@ -42,7 +50,7 @@ public class CommandExecutorShutdownACK extends Command implements Externalizabl
 
     @Override
     public void handle(Connection c) {
-        agent.shutdownExecutionManagerNotification(c);
+        this.agent.shutdownExecutionManagerNotification(c);
     }
 
     @Override

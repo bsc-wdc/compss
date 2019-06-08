@@ -52,6 +52,8 @@ import storage.StubItf;
 
 public class LoaderUtils {
 
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
+
     public static final String BINARY_SIGNATURE = "binary.BINARY";
     public static final String MPI_SIGNATURE = "mpi.MPI";
     public static final String DECAF_SIGNATURE = "decaf.DECAF";
@@ -59,15 +61,19 @@ public class LoaderUtils {
     public static final String OMPSS_SIGNATURE = "ompss.OMPSS";
     public static final String OPENCL_SIGNATURE = "opencl.OPENCL";
 
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
 
-
+    /**
+     * Private constructor to avoid instantiation.
+     */
     private LoaderUtils() {
         throw new NonInstantiableException("LoaderUtils");
     }
 
     /**
-     * Storage: Check object type.
+     * Returns the DataType of the given object {@code o} checked with the Storage interface.
+     * 
+     * @param o Object
+     * @return The DataType of the Object.
      */
     public static DataType checkSCOType(Object o) {
         if (o instanceof StubItf && ((StubItf) o).getID() != null) {
@@ -80,7 +86,13 @@ public class LoaderUtils {
     }
 
     /**
-     * Return the called method if it is in the remote list.
+     * Checks whether the given method is a remote invocation or not. Returns the remote method if it is a remote method
+     * or {@code null} otherwise.
+     * 
+     * @param method Method to check.
+     * @param remoteMethods List of detected remote methods.
+     * @return The remote method if it is a remote method or {@code null} otherwise.
+     * @throws NotFoundException When the parameter types of a CtClass cannot be found.
      */
     public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods)
             throws NotFoundException {
@@ -220,7 +232,7 @@ public class LoaderUtils {
     }
 
     private static boolean isSelectedMethod(CtMethod method, java.lang.reflect.Method remote, String remoteMethodClass,
-                                            String remoteMethodName) throws NotFoundException {
+            String remoteMethodName) throws NotFoundException {
         // Patch remote method name if required
         if (remoteMethodName == null || remoteMethodName.isEmpty() || remoteMethodName.equals(Constants.UNASSIGNED)) {
             remoteMethodName = remote.getName();
@@ -364,7 +376,10 @@ public class LoaderUtils {
     }
 
     /**
-     * Check whether the method call is a close of a stream.
+     * Checks whether the method call is a close of a stream or not.
+     * 
+     * @param mc Method call.
+     * @return {@code true} if the call is a close of a stream, {@code false} otherwise.
      */
     public static boolean isStreamClose(MethodCall mc) {
         if ("close".equals(mc.getMethodName())) {
@@ -380,7 +395,13 @@ public class LoaderUtils {
     }
 
     /**
-     * Return a random numeric string.
+     * Returns a random numeric String of the given length {@code length} and starting with the given prefix
+     * {@code prefix}.
+     * 
+     * @param length String length.
+     * @param prefix Prefix.
+     * @return Random numeric String of the given length {@code length} and starting with the given prefix
+     *         {@code prefix}.
      */
     public static String randomName(int length, String prefix) {
         if (length < 1) {
@@ -399,21 +420,34 @@ public class LoaderUtils {
         return prefix + buffer.toString();
     }
 
-    // Check if the method is the main method
+    /**
+     * Checks whether the method is the main method or not.
+     * 
+     * @param m Method.
+     * @return {@code true} if the method is the main method, {@code false} otherwise.
+     * @throws NotFoundException When the CtClass parameter types cannot be found.
+     */
     public static boolean isMainMethod(CtMethod m) throws NotFoundException {
         return ("main".equals(m.getName()) && m.getParameterTypes().length == 1
                 && m.getParameterTypes()[0].getName().equals(String[].class.getCanonicalName()));
     }
 
     /**
-     * TODO javadoc.
+     * Returns whether the method is an orchestration element or not.
+     * 
+     * @param m Method.
+     * @return {@code true} if the method is annotated as orchestration, {@code false} otherwise.
      */
     public static boolean isOrchestration(CtMethod m) {
         return m.hasAnnotation(es.bsc.compss.types.annotations.Orchestration.class);
     }
 
     /**
-     * TODO javadoc.
+     * Returns whether the given method {@code method} is contained in the given list of methods {@code methods}.
+     * 
+     * @param methods List of methods.
+     * @param method Method to check.
+     * @return {@code true} if method is inside the list of methods, {@code false} otherwise.
      */
     public static boolean contains(CtMethod[] methods, CtMethod method) {
         for (CtMethod m : methods) {
@@ -425,7 +459,12 @@ public class LoaderUtils {
     }
 
     /**
-     * Add WithUR to the method name parameter of the executeTask call.
+     * Adds WithUR to the method name parameter of the executeTask call.
+     * 
+     * @param executeTask StringBuilder containing the complete executeTask call.
+     * @param methodName Execute task method name.
+     * @return StringBuilder containing the complete executeTask call after adding the WithUR to the method name
+     *         parameter.
      */
     public static StringBuilder replaceMethodName(StringBuilder executeTask, String methodName) {
         String patternStr = ",\"" + methodName + "\",";
@@ -435,11 +474,19 @@ public class LoaderUtils {
     }
 
     /**
-     * Add SLA params to the executeTask call.
+     * Adds SLA params to the executeTask call.
+     * 
+     * @param executeTask StringBuilder containing the current executeTask call.
+     * @param numParams Number of parameters.
+     * @param appNameParam Application name.
+     * @param slaIdParam SLA Id parameter.
+     * @param urNameParam UR Name parameter.
+     * @param primaryHostParam Primary host parameter.
+     * @param transferIdParam Transfer Id parameter.
+     * @return StringBuilder containing the complete executeTask call.
      */
     public static StringBuilder modifyString(StringBuilder executeTask, int numParams, String appNameParam,
-                                             String slaIdParam, String urNameParam, String primaryHostParam,
-                                             String transferIdParam) {
+            String slaIdParam, String urNameParam, String primaryHostParam, String transferIdParam) {
 
         // Number of new params we add
         int newParams = 5;
@@ -479,8 +526,19 @@ public class LoaderUtils {
     /**
      * TODO javadoc.
      */
+    /**
+     * Runs a method with a target object.
+     * 
+     * @param o Target object.
+     * @param methodClass Method class.
+     * @param methodName Method name.
+     * @param values Method parameter values.
+     * @param types Method parameter types.
+     * @return Return value after the method invocation (can be {@code null}).
+     * @throws InvocationTargetException If an error occurs while invoking the method into the given object.
+     */
     public static Object runMethodOnObject(Object o, Class<?> methodClass, String methodName, Object[] values,
-                                           Class<?>[] types) throws Throwable {
+            Class<?>[] types) throws InvocationTargetException {
         // Use reflection to get the requested method
         java.lang.reflect.Method method = null;
         try {
@@ -507,14 +565,17 @@ public class LoaderUtils {
         } catch (IllegalAccessException iae) {
             ErrorManager.error("Cannot access method " + methodName, iae);
         } catch (InvocationTargetException e) {
-            throw e.getCause(); // re-throw the user exception thrown by the method
+            throw e; // re-throw the user exception thrown by the method
         }
 
         return retValue;
     }
 
     /**
-     * TODO javadoc.
+     * Returns whether the call is deleting a file or not.
+     * 
+     * @param mc Method call.
+     * @return {@code true} if the method is deleting a file, {@code false} otherwise.
      */
     public static boolean isFileDelete(MethodCall mc) {
         if ("delete".equals(mc.getMethodName())) {

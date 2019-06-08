@@ -23,6 +23,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.List;
 
 
 public class ServiceImplementation extends Implementation implements Externalizable {
@@ -78,20 +79,21 @@ public class ServiceImplementation extends Implementation implements Externaliza
      * @return Signature built from the given parameters.
      */
     public static String getSignature(String namespace, String serviceName, String portName, String operation,
-            boolean hasTarget, int numReturns, Parameter[] parameters) {
+            boolean hasTarget, int numReturns, List<Parameter> parameters) {
+
         StringBuilder buffer = new StringBuilder();
 
         buffer.append(operation).append("(");
-        int numPars = parameters.length;
+        int numPars = parameters.size();
         if (hasTarget) {
             numPars--;
         }
 
         numPars -= numReturns;
         if (numPars > 0) {
-            buffer.append(parameters[0].getType());
+            buffer.append(parameters.get(0).getType());
             for (int i = 1; i < numPars; i++) {
-                buffer.append(",").append(parameters[i].getType());
+                buffer.append(",").append(parameters.get(i).getType());
             }
         }
         buffer.append(")").append(namespace).append(',').append(serviceName).append(',').append(portName);

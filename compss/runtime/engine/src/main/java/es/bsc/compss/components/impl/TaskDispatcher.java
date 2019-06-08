@@ -19,17 +19,17 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.ResourceUser;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.Task;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.Task;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
-import es.bsc.compss.types.request.td.PrintCurrentLoadRequest;
 import es.bsc.compss.types.request.td.ActionUpdate;
 import es.bsc.compss.types.request.td.CERegistration;
 import es.bsc.compss.types.request.td.ExecuteTasksRequest;
 import es.bsc.compss.types.request.td.MonitoringDataRequest;
 import es.bsc.compss.types.request.td.PrintCurrentGraphRequest;
+import es.bsc.compss.types.request.td.PrintCurrentLoadRequest;
 import es.bsc.compss.types.request.td.ShutdownRequest;
 import es.bsc.compss.types.request.td.TDRequest;
 import es.bsc.compss.types.request.td.TaskSummaryRequest;
@@ -82,7 +82,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
 
     /**
-     * Creates a new task dispatcher instance
+     * Creates a new task dispatcher instance.
      */
     @SuppressWarnings("unchecked")
     public <A extends WorkerResourceDescription> TaskDispatcher() {
@@ -164,9 +164,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new request to the task dispatcher
+     * Adds a new request to the task dispatcher.
      *
-     * @param request
+     * @param request New Task Dispatcher request.
      */
     private void addRequest(TDRequest request) {
         if (!requestQueue.offer(request)) {
@@ -175,9 +175,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new prioritary request to the task dispatcher
+     * Adds a new prioritary request to the task dispatcher.
      *
-     * @param request
+     * @param request New Task Dispatcher request.
      */
     private void addPrioritaryRequest(TDRequest request) {
         if (!requestQueue.offerFirst(request)) {
@@ -186,10 +186,10 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new execute task request
+     * Adds a new execute task request.
      *
-     * @param producer
-     * @param task
+     * @param producer Task producer.
+     * @param task Task to execute.
      */
     public void executeTask(TaskProducer producer, Task task) {
         if (DEBUG) {
@@ -198,6 +198,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             LOGGER.debug(sb);
         }
         ExecuteTasksRequest request = new ExecuteTasksRequest(producer, task);
+        addRequest(request);
+    }
+
+    // Notification thread
+    @Override
+    public void actionRunning(AllocatableAction action) {
+        ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.RUNNING);
         addRequest(request);
     }
 
@@ -216,9 +223,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new task summary request
+     * Adds a new tasks summary request.
      *
-     * @param logger
+     * @param logger Logger whether to print the tasks summary.
      */
     public void getTaskSummary(Logger logger) {
         Semaphore sem = new Semaphore(0);
@@ -232,9 +239,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Returns a string with the description of the tasks in the graph
+     * Returns a string with the description of the tasks in the graph.
      *
-     * @return description of the current tasks in the graph
+     * @return The description of the current tasks in the graph.
      */
     public String getCurrentMonitoringData() {
         Semaphore sem = new Semaphore(0);
@@ -249,7 +256,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new request to print the current state
+     * Adds a new request to print the current state.
      */
     public void printCurrentState() {
         PrintCurrentLoadRequest request = new PrintCurrentLoadRequest();
@@ -257,9 +264,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new request to print the current monitor graph
+     * Adds a new request to print the current monitor graph.
      *
-     * @param graph
+     * @param graph BufferedWriter whether to print the current monitor graph.
      */
     public void printCurrentGraph(BufferedWriter graph) {
         Semaphore sem = new Semaphore(0);
@@ -281,9 +288,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new request to add a new interface
+     * Adds a new request to add a new interface.
      *
-     * @param forName
+     * @param forName Class name of the interface.
      */
     public void addInterface(Class<?> forName) {
         if (DEBUG) {
@@ -305,9 +312,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Adds a new request to register a new CoreElement
+     * Adds a new request to register a new CoreElement.
      *
-     * @param ced
+     * @param ced CoreElementDefinition to register.
      */
     public void registerNewCoreElement(CoreElementDefinition ced) {
 
@@ -332,7 +339,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     /**
-     * Shuts down the component
+     * Shuts down the component.
      */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);

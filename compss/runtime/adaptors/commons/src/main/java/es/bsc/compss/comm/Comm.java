@@ -34,6 +34,11 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+import es.bsc.distrostreamlib.client.DistroStreamClient;
+import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
+import es.bsc.distrostreamlib.requests.StopRequest;
+import es.bsc.distrostreamlib.server.DistroStreamServer;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -61,20 +66,49 @@ import storage.StubItf;
  */
 public class Comm {
 
-    private static final String STORAGE_CONF = System.getProperty(COMPSsConstants.STORAGE_CONF);
-    private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
-
-    private static final Map<String, CommAdaptor> adaptors = new ConcurrentHashMap<>();
-
     // Log and debug
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
+    // Streaming
+    private static final StreamBackend STREAMING_BACKEND;
+    private static final int DEFAULT_STREAMING_PORT = 49_049;
+    private static final int STREAMING_PORT;
+
+    // Storage
+    private static final String STORAGE_CONF;
+
+    // Adaptors
+    private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
+    private static final Map<String, CommAdaptor> ADAPTORS;
+
     // Logical data
-    private static Map<String, LogicalData> data = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
+    private static final Map<String, LogicalData> DATA;
 
     // Master information
     private static MasterResource appHost;
+
+    static {
+        String streamBackendProperty = System.getProperty(COMPSsConstants.STREAMING_BACKEND);
+        String streamBackendPropertyFixed = (streamBackendProperty == null || streamBackendProperty.isEmpty()
+                || streamBackendProperty.toLowerCase().equals("null")
+                || streamBackendProperty.toLowerCase().equals("none")) ? "NONE" : streamBackendProperty.toUpperCase();
+        STREAMING_BACKEND = StreamBackend.valueOf(streamBackendPropertyFixed);
+
+        String streamMasterPortProperty = System.getProperty(COMPSsConstants.STREAMING_MASTER_PORT);
+        STREAMING_PORT = (streamMasterPortProperty == null || streamMasterPortProperty.isEmpty()
+                || streamMasterPortProperty.equals("null")) ? DEFAULT_STREAMING_PORT
+                        : Integer.parseInt(streamMasterPortProperty);
+
+        String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
+        STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))
+                ? null
+                : storageCfgProperty;
+
+        ADAPTORS = new ConcurrentHashMap<>();
+
+        DATA = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
+    }
 
 
     /**
@@ -90,23 +124,13 @@ public class Comm {
      * @param master Master resource
      */
     public static void init(MasterResource master) {
+        // Store master resource
         appHost = master;
-        try {
-            if (STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null")) {
-                LOGGER.warn("No storage configuration file passed");
-            } else {
-                LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);
-                StorageItf.init(STORAGE_CONF);
-            }
-        } catch (StorageException e) {
-            LOGGER.fatal("Error loading storage configuration file: " + STORAGE_CONF, e);
-            System.exit(1);
-        }
 
+        // Load communication adaptors
         loadAdaptorsJars();
-        /*
-         * Initializes the Tracer activation value to enable querying Tracer.isActivated()
-         */
+
+        // Start tracing system
         if (System.getProperty(COMPSsConstants.TRACING) != null
                 && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
@@ -117,22 +141,50 @@ public class Comm {
             }
         }
 
+        // Start streaming library
+        if (STREAMING_BACKEND.equals(StreamBackend.NONE)) {
+            LOGGER.warn("No streaming backend passed");
+        } else {
+            LOGGER.info("Initializing DS Library for type " + STREAMING_BACKEND.name());
+            // Server
+            LOGGER.debug("Initializing Streaming Server");
+            DistroStreamServer.initAndStart(master.getName(), STREAMING_PORT, STREAMING_BACKEND);
+            // Client
+            LOGGER.debug("Initializing Streaming Client");
+            try {
+                DistroStreamClient.initAndStart(master.getName(), STREAMING_PORT);
+            } catch (DistroStreamClientInitException dscie) {
+                ErrorManager.fatal("Error initializing DS client", dscie);
+            }
+        }
+
+        // Start storage interface
+        if (STORAGE_CONF == null) {
+            LOGGER.warn("No storage configuration file passed");
+        } else {
+            LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);
+            try {
+                StorageItf.init(STORAGE_CONF);
+            } catch (StorageException e) {
+                ErrorManager.fatal("Error loading storage configuration file: " + STORAGE_CONF, e);
+            }
+        }
     }
 
     /**
      * Initializes the internal adaptor and constructs a comm configuration.
      *
-     * @param adaptorName Adaptor name
-     * @param projectProperties Project properties
-     * @param resourcesProperties Resources properties
-     * @return Communication layer configuration
-     * @throws ConstructConfigurationException Error building the configuration
+     * @param adaptorName Adaptor name.
+     * @param projectProperties Properties from the project.xml file.
+     * @param resourcesProperties Properties from the resources.xml file.
+     * @return An adaptor configuration.
+     * @throws ConstructConfigurationException When adaptor class cannot be instantiated.
      */
     public static Configuration constructConfiguration(String adaptorName, Object projectProperties,
             Object resourcesProperties) throws ConstructConfigurationException {
 
         // Check if adaptor has already been used
-        CommAdaptor adaptor = adaptors.get(adaptorName);
+        CommAdaptor adaptor = ADAPTORS.get(adaptorName);
         if (adaptor == null) {
             // Create a new adaptor instance
             try {
@@ -148,7 +200,7 @@ public class Comm {
             adaptor.init();
 
             // Add adaptor to used adaptors
-            adaptors.put(adaptorName, adaptor);
+            ADAPTORS.put(adaptorName, adaptor);
         }
 
         if (DEBUG) {
@@ -162,23 +214,40 @@ public class Comm {
     /**
      * Returns the resource assigned as master node.
      *
-     * @return Master Resource
+     * @return The resource assigned as master node.
      */
     public static MasterResource getAppHost() {
         return appHost;
     }
 
     /**
-     * Initializes a worker with name @name and configuration @config.
-     *
-     * @param name Worker name
-     * @param config Worker configuration
-     * @return COMPSs worker node representation
+     * Returns the assigned streaming port.
+     * 
+     * @return The assigned streaming port.
      */
-    public static COMPSsWorker initWorker(String name, Configuration config) {
+    public static int getStreamingPort() {
+        return STREAMING_PORT;
+    }
+
+    /**
+     * Returns the streaming backend.
+     * 
+     * @return The streaming backend.
+     */
+    public static StreamBackend getStreamingBackend() {
+        return STREAMING_BACKEND;
+    }
+
+    /**
+     * Initializes a worker with name {@code name} and configuration {@code config}.
+     *
+     * @param config Adaptor configuration.
+     * @return A COMPSsWorker object representing the worker.
+     */
+    public static COMPSsWorker initWorker(Configuration config) {
         String adaptorName = config.getAdaptorName();
-        CommAdaptor adaptor = adaptors.get(adaptorName);
-        return adaptor.initWorker(name, config);
+        CommAdaptor adaptor = ADAPTORS.get(adaptorName);
+        return adaptor.initWorker(config);
     }
 
     /**
@@ -186,66 +255,86 @@ public class Comm {
      */
     public static void stop() {
         appHost.deleteIntermediate();
-        for (CommAdaptor adaptor : adaptors.values()) {
+        for (CommAdaptor adaptor : ADAPTORS.values()) {
             adaptor.stop();
         }
 
+        // Stop streaming
+        if (!STREAMING_BACKEND.equals(StreamBackend.NONE)) {
+            LOGGER.info("Stopping Streaming...");
+
+            LOGGER.debug("Stopping Streaming Client...");
+            StopRequest stopRequest = new StopRequest();
+            DistroStreamClient.request(stopRequest);
+            stopRequest.waitProcessed();
+            int errorCode = stopRequest.getErrorCode();
+            if (errorCode != 0) {
+                LOGGER.error("Error stopping Streaming Client");
+                LOGGER.error("Error Code: " + errorCode);
+                LOGGER.error("Error Message: " + stopRequest.getErrorMessage());
+            }
+
+            LOGGER.debug("Stopping Streaming Server...");
+            DistroStreamServer.setStop();
+        }
+
         // Stop Storage interface
-        if (STORAGE_CONF != null && !STORAGE_CONF.equals("") && !STORAGE_CONF.equals("null")) {
+        if (STORAGE_CONF != null) {
             try {
-                LOGGER.debug("Stopping Storage...");
+                LOGGER.info("Stopping Storage...");
                 StorageItf.finish();
-            } catch (StorageException e) {
-                LOGGER.error("Error releasing storage library: " + e.getMessage());
+            } catch (StorageException se) {
+                LOGGER.error("Error releasing storage library: " + se.getMessage(), se);
             }
         }
+
         // Stop tracing system
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.fini();
-        }else if (Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+        } else if (Tracer.scorepEnabled() || Tracer.mapEnabled()) {
             Tracer.fini();
         }
     }
 
     /**
-     * Registers a new data with id @dataId.
+     * Registers a new data with id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @return
+     * @param dataId Data Id.
+     * @return The LogicalData representing the dataId after its registration.
      */
     public static synchronized LogicalData registerData(String dataId) {
         LOGGER.debug("Register new data " + dataId);
 
         LogicalData logicalData = new LogicalData(dataId);
-        data.put(dataId, logicalData);
+        DATA.put(dataId, logicalData);
 
         return logicalData;
     }
 
     /**
-     * Registers a new location @location for the data with id @dataId dataId must exist.
+     * Registers a new location {@code location} for the data with id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @param location Data location
-     * @return modified logical data
+     * @param dataId Data Id. Must exist previously.
+     * @param location New location.
+     * @return The updated LogicalData for the given dataId with the new location.
      */
     public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
         LOGGER.debug("Registering new Location for data " + dataId + ":");
         LOGGER.debug("  * Location: " + location);
 
-        LogicalData logicalData = data.get(dataId);
+        LogicalData logicalData = DATA.get(dataId);
         logicalData.addLocation(location);
 
         return logicalData;
     }
 
     /**
-     * Registers a new value @value for the data with id @dataId dataId must exist.
+     * Registers a new value {@code value} for the data with id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @param value Data value
-     * @return Modified logical data
+     * @param dataId Data Id. Must exist previously.
+     * @param value New data value.
+     * @return The updated LogicalData for the given dataId with the new value.
      */
     public static synchronized LogicalData registerValue(String dataId, Object value) {
         LOGGER.debug("Register value " + value + " for data " + dataId);
@@ -259,7 +348,7 @@ public class Comm {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
         }
 
-        LogicalData logicalData = data.get(dataId);
+        LogicalData logicalData = DATA.get(dataId);
         logicalData.addLocation(location);
         logicalData.setValue(value);
 
@@ -275,22 +364,22 @@ public class Comm {
     }
 
     /**
-     * Registers a new value @value for the data with id @dataId dataId must exist.
+     * Registers a new collection with the given dataId {@code dataId}.
      * 
-     * @param dataId Identifier of the collection
-     * @param parameters Parameters of the collection
-     * @return LogicalData
+     * @param dataId Identifier of the collection.
+     * @param parameters Parameters of the collection.
+     * @return LogicalData representing the collection with its parameters.
      */
     public static synchronized LogicalData registerCollection(String dataId, List<?> parameters) {
         return registerValue(dataId, parameters);
     }
 
     /**
-     * Registers a new External PSCO id @id for the data with id @dataId dataId must exist.
+     * Registers a new External PSCO id {@code id} for the data with id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @param id PSCO identifier
-     * @return LogicalData
+     * @param dataId Data Id. Must exist previously.
+     * @param id PSCO Id.
+     * @return The LogicalData representing the given data Id with the associated PSCO Id.
      */
     public static synchronized LogicalData registerExternalPSCO(String dataId, String id) {
         LogicalData ld = registerPSCO(dataId, id);
@@ -300,35 +389,34 @@ public class Comm {
     }
 
     /**
-     * Registers a new Binding Object id @id for the data with id @dataId dataId must exist.
+     * Registers a new Binding Object {@code bo} for the data with id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @param bo BindingObject
-     * @return LogicalData
+     * @param dataId Data Id. Must exist previously.
+     * @param bo Binding Object.
+     * @return The LogicalData representing the given data Id with the associated Binding Object.
      */
     public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
         String targetPath = Protocol.BINDING_URI.getSchema() + bo.toString();
         DataLocation location = null;
         try {
-
             SimpleURI uri = new SimpleURI(targetPath);
             location = DataLocation.createLocation(appHost, uri);
         } catch (IOException ioe) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
         }
 
-        LogicalData logicalData = data.get(dataId);
+        LogicalData logicalData = DATA.get(dataId);
         logicalData.addLocation(location);
         logicalData.setValue(dataId + "#" + bo.getType() + "#" + bo.getElements());
         return logicalData;
     }
 
     /**
-     * Registers a new PSCO id @id for the data with id @dataId dataId must exist.
+     * Registers a new PSCO id {@code id} for the data with id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @param id PSCO Identifier
-     * @return
+     * @param dataId Data Id. Must previously exist.
+     * @param id PSCO Id.
+     * @return The LogicalData after registering the PSCO Id into the given data Id.
      */
     public static synchronized LogicalData registerPSCO(String dataId, String id) {
         String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;
@@ -340,43 +428,43 @@ public class Comm {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
         }
 
-        LogicalData logicalData = data.get(dataId);
+        LogicalData logicalData = DATA.get(dataId);
         logicalData.addLocation(location);
 
         return logicalData;
     }
 
     /**
-     * Clears the value of the data id @dataId.
+     * Clears the value of the data id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @return Data value
+     * @param dataId Data Id.
+     * @return The previously registered value.
      */
     public static synchronized Object clearValue(String dataId) {
         LOGGER.debug("Clear value of data " + dataId);
-        LogicalData logicalData = data.get(dataId);
+        LogicalData logicalData = DATA.get(dataId);
 
         return logicalData.removeValue();
     }
 
     /**
-     * Checks if a given dataId @renaming exists.
+     * Checks if a given dataId {@code renaming} exists.
      *
-     * @param renaming Data renaming
-     * @return True if exists, otherwise false
+     * @param renaming Data Id to check.
+     * @return {@code true} if the {@code renaming} exists, {@code false} otherwise.
      */
     public static synchronized boolean existsData(String renaming) {
-        return (data.get(renaming) != null);
+        return (DATA.get(renaming) != null);
     }
 
     /**
-     * Returns the data with id @dataId.
+     * Returns the data with id {@code dataId}.
      *
-     * @param dataId Data identifier
-     * @return Logical Data
+     * @param dataId Data Id.
+     * @return The associated LogicalData.
      */
     public static synchronized LogicalData getData(String dataId) {
-        LogicalData retVal = data.get(dataId);
+        LogicalData retVal = DATA.get(dataId);
         if (retVal == null) {
             LOGGER.warn("Get data " + dataId + " is null.");
         }
@@ -386,16 +474,16 @@ public class Comm {
     /**
      * Dumps the stored data (only for testing).
      *
-     * @return
+     * @return String dump of all the currently registered data.
      */
     public static synchronized String dataDump() {
         StringBuilder sb = new StringBuilder("DATA DUMP\n");
-        for (Entry<String, LogicalData> lde : data.entrySet()) {
+        for (Entry<String, LogicalData> lde : DATA.entrySet()) {
             sb.append("\t *").append(lde.getKey()).append(":\n");
             LogicalData ld = lde.getValue();
             for (MultiURI u : ld.getURIs()) {
                 sb.append("\t\t + ").append(u.toString()).append("\n");
-                for (String adaptor : adaptors.keySet()) {
+                for (String adaptor : ADAPTORS.keySet()) {
 
                     Object internal = null;
                     try {
@@ -413,10 +501,10 @@ public class Comm {
     }
 
     /**
-     * Returns all the data stored in a host @host.
+     * Returns all the data stored in a host {@code host}.
      *
-     * @param host Resource
-     * @return Set of LogicalData
+     * @param host Resource where to look for data.
+     * @return Set of LogicalData stored in the given host.
      */
     public static Set<LogicalData> getAllData(Resource host) {
         // logger.debug("Get all data from host: " + host.getName());
@@ -424,14 +512,14 @@ public class Comm {
     }
 
     /**
-     * Removes the data with id @renaming.
+     * Removes the data with id {@code renaming}.
      *
-     * @param renaming Data renaming
+     * @param renaming Data Id.
      */
     public static synchronized void removeData(String renaming) {
         LOGGER.debug("Removing data " + renaming);
 
-        LogicalData ld = data.remove(renaming);
+        LogicalData ld = DATA.remove(renaming);
         ld.isObsolete();
         for (DataLocation dl : ld.getLocations()) {
             MultiURI uri = dl.getURIInHost(appHost);
@@ -450,23 +538,26 @@ public class Comm {
     }
 
     /**
-     * Return the active adaptors.
+     * Returns the active adaptors.
      *
-     * @return
+     * @return A map containing the active adaptors.
      */
     public static Map<String, CommAdaptor> getAdaptors() {
-        return adaptors;
+        return ADAPTORS;
     }
 
     /**
      * Stops all the submitted jobs.
      */
     public static void stopSubmittedjobs() {
-        for (CommAdaptor adaptor : adaptors.values()) {
+        for (CommAdaptor adaptor : ADAPTORS.values()) {
             adaptor.stopSubmittedJobs();
         }
     }
 
+    /**
+     * Loads the adaptors jars into the classpath.
+     */
     private static void loadAdaptorsJars() {
         LOGGER.info("Loading Adaptors...");
         String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);

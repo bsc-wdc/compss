@@ -16,10 +16,44 @@
  */
 package es.bsc.compss.gat.master;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.exceptions.LangNotDefinedException;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.DecafImplementation;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.MPIImplementation;
+import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.types.implementations.OmpSsImplementation;
+import es.bsc.compss.types.implementations.OpenCLImplementation;
+import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.parameter.BasicTypeParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.Tracer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.TreeMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.GATContext;
@@ -38,43 +72,9 @@ import org.gridlab.gat.resources.ResourceBroker;
 import org.gridlab.gat.resources.ResourceDescription;
 import org.gridlab.gat.resources.SoftwareDescription;
 
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.COMPSsConstants.Lang;
-import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.parameter.BasicTypeParameter;
-import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.TaskDescription;
-import es.bsc.compss.types.data.DataAccessId;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.types.exceptions.LangNotDefinedException;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.BinaryImplementation;
-import es.bsc.compss.types.implementations.COMPSsImplementation;
-import es.bsc.compss.types.implementations.DecafImplementation;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
-import es.bsc.compss.types.implementations.MPIImplementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
-import es.bsc.compss.types.implementations.MultiNodeImplementation;
-import es.bsc.compss.types.implementations.OmpSsImplementation;
-import es.bsc.compss.types.implementations.OpenCLImplementation;
-import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
-import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
-
-import java.util.LinkedList;
-import java.util.List;
-
 
 /**
- * Representation of a Job execution for COMPSs with GAT Adaptor
+ * Representation of a Job execution for COMPSs with GAT Adaptor.
  */
 public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implements MetricListener {
 
@@ -119,7 +119,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     // Brokers - TODO: Problem if many resources used
     private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
 
-    private Job GATjob;
+    private Job gatJob;
     // GAT context
     private final GATContext context;
     // GAT broker adaptor information
@@ -130,17 +130,17 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
 
     /**
-     * New GAT Job instance
+     * New GAT Job instance.
      *
-     * @param taskId
-     * @param taskParams
-     * @param impl
-     * @param res
-     * @param listener
-     * @param context
-     * @param userNeeded
-     * @param usingGlobus
-     * @param slaveWorkersNodeNames
+     * @param taskId Associated task Id.
+     * @param taskParams Associated task parameters.
+     * @param impl Associated implementation.
+     * @param res Executing resource.
+     * @param listener Task listener.
+     * @param context Task context.
+     * @param userNeeded Whether a user is needed or not.
+     * @param usingGlobus Whether globus is active or not.
+     * @param slaveWorkersNodeNames Slave resources for multi-node executions.
      */
     public GATJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener,
             GATContext context, boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames) {
@@ -189,7 +189,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         }
 
         // Update mapping
-        GATjob = job;
+        gatJob = job;
     }
 
     protected static void stopAll() {
@@ -206,11 +206,11 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     @Override
     public void stop() throws Exception {
         LOGGER.debug("GAT stop job " + this.jobId);
-        if (GATjob != null) {
-            MetricDefinition md = GATjob.getMetricDefinitionByName(JOB_STATUS);
+        if (gatJob != null) {
+            MetricDefinition md = gatJob.getMetricDefinitionByName(JOB_STATUS);
             Metric m = md.createMetric();
-            GATjob.removeMetricListener(this, m);
-            GATjob.stop();
+            gatJob.removeMetricListener(this, m);
+            gatJob.stop();
         }
     }
 
@@ -245,7 +245,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     // Error file should always be in the same host as the IT
                     File localFile = GAT.createFile(context, errFile.toGATURI());
                     if (localFile.length() > 0) {
-                        GATjob = null;
+                        gatJob = null;
                         RUNNING_JOBS.remove(this);
                         ErrorManager.warn("Error when creating file.");
                         listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
@@ -260,7 +260,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     RUNNING_JOBS.remove(this);
                     listener.jobCompleted(this);
                 } else {
-                    GATjob = null;
+                    gatJob = null;
                     RUNNING_JOBS.remove(this);
                     listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                 }
@@ -279,7 +279,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                     RUNNING_JOBS.remove(this);
                     listener.jobCompleted(this);
                 } else {
-                    GATjob = null;
+                    gatJob = null;
                     RUNNING_JOBS.remove(this);
                     listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                 }
@@ -314,6 +314,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(getResourceNode().getLibPath());
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(STORAGE_CONF);
+        lArgs.add(Comm.getStreamingBackend().name());
+        lArgs.add(Comm.getAppHost().getName());
+        lArgs.add(String.valueOf(Comm.getStreamingPort()));
         lArgs.add(String.valueOf(DEBUG));
 
         LogicalData[] obsoleteFiles = getResource().pollObsoletes();
@@ -451,7 +454,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
         // Parameters
         int numReturns = taskParams.getNumReturns();
-        int numParams = taskParams.getParameters().length;
+        int numParams = taskParams.getParameters().size();
         numParams -= numReturns;
         if (taskParams.hasTargetObject()) {
             numParams--;
@@ -477,11 +480,12 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 sb.append("Parameter ").append(i).append("\n");
                 DataType type = param.getType();
                 sb.append("\t Type: ").append(param.getType()).append("\n");
-                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.BINDING_OBJECT_T) {
+                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.STREAM_T
+                        || type == DataType.BINDING_OBJECT_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
-                    if (type == DataType.OBJECT_T || type == DataType.BINDING_OBJECT_T) {
+                    if (type == DataType.OBJECT_T || type == DataType.STREAM_T || type == DataType.BINDING_OBJECT_T) {
                         if (dAccId.isWrite()) {
                             // For the worker to know it must write the object to disk
                             sb.append("\t Direction: " + "W").append("\n");
@@ -595,6 +599,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
         switch (type) {
             case FILE_T:
+            case EXTERNAL_STREAM_T:
                 DependencyParameter dFilePar = (DependencyParameter) param;
                 String originalName = dFilePar.getOriginalName();
                 paramDesc.add(originalName);
@@ -606,6 +611,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                 break;
             case OBJECT_T:
+            case STREAM_T:
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 paramDesc.add(dPar.getDataTarget());

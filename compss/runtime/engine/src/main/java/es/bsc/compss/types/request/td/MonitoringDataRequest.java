@@ -26,63 +26,40 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run
+ * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run.
  */
 public class MonitoringDataRequest extends TDRequest {
 
-    /**
-     * Semaphore where to synchronize until the operation is done
-     */
-    private Semaphore sem;
-    /**
-     * Applications progress description
-     */
+    private final Semaphore sem;
+
     private String response;
 
 
     /**
-     * Constructs a new TaskStateRequest
+     * Constructs a new TaskStateRequest.
      *
-     * @param sem semaphore where to synchronize until the current state is described
+     * @param sem semaphore where to synchronize until the current state is described.
      */
     public MonitoringDataRequest(Semaphore sem) {
         this.sem = sem;
     }
 
     /**
-     * Returns the semaphore where to synchronize until the current state is described
+     * Returns the semaphore where to synchronize until the current state is described.
      *
-     * @return the semaphore where to synchronize until the current state is described
+     * @return the semaphore where to synchronize until the current state is described.
      */
     public Semaphore getSemaphore() {
-        return sem;
+        return this.sem;
     }
 
     /**
-     * Sets the semaphore where to synchronize until the current state is described
+     * Returns the progress description in an xml format string.
      *
-     * @param sem the semaphore where to synchronize until the current state is described
-     */
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
-    /**
-     * Returns the progress description in an xml format string
-     *
-     * @return progress description in an xml format string
+     * @return progress description in an xml format string.
      */
     public String getResponse() {
-        return response;
-    }
-
-    /**
-     * Sets the current state description
-     *
-     * @param response current state description
-     */
-    public void setResponse(String response) {
-        this.response = response;
+        return this.response;
     }
 
     @Override
@@ -125,8 +102,8 @@ public class MonitoringDataRequest extends TDRequest {
         monitorData.append(prefix).append("\t").append("</Statistic>").append("\n");
         monitorData.append(prefix).append("</Statistics>").append("\n");
 
-        response = monitorData.toString();
-        sem.release();
+        this.response = monitorData.toString();
+        this.sem.release();
     }
 
     @Override

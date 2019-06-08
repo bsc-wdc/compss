@@ -21,16 +21,16 @@ import es.bsc.compss.exceptions.CopyException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.gat.master.exceptions.GATCopyException;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Type;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.operation.copy.ImmediateCopy;
 import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 
@@ -53,6 +53,16 @@ public class GATCopy extends ImmediateCopy {
     boolean isBindingObject = false;
 
 
+    /**
+     * Creates a new GATCOpy instance with the given source and target information.
+     * 
+     * @param srcData Source LogicalData.
+     * @param prefSrc Preferred DataLocation of the source.
+     * @param prefTgt Preferred DataLocation of the target.
+     * @param tgtData Target LogicalData.
+     * @param reason Transfer reason.
+     * @param listener Transfer listener.
+     */
     public GATCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
             Transferable reason, EventListener listener) {
 

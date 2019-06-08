@@ -19,6 +19,7 @@ package es.bsc.compss.executor.utils;
 import es.bsc.compss.binders.BindToMap;
 import es.bsc.compss.binders.BindToResource;
 import es.bsc.compss.binders.Unbinded;
+import es.bsc.compss.executor.types.InvocationResources;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InvalidMapException;
@@ -39,7 +40,9 @@ public class ResourceManager {
     private final ThreadBinder binderFPGAs;
 
 
-    /** Resource Manager constructor.
+    /**
+     * Resource Manager constructor.
+     * 
      * @param cusCPU CPU Computing units
      * @param cpuMap CPU Mapping
      * @param cusGPU GPU Computing units
@@ -166,41 +169,6 @@ public class ResourceManager {
         this.binderCPUs.releaseComputingUnits(jobId);
         this.binderGPUs.releaseComputingUnits(jobId);
         this.binderFPGAs.releaseComputingUnits(jobId);
-    }
-
-
-    public static class InvocationResources {
-
-        private final int[] cpus;
-        private final int[] gpus;
-        private final int[] fpgas;
-
-
-        /** 
-         * Invocation resources constructor.
-         * 
-         * @param cpus Assigned CPUs array
-         * @param gpus Assigned GPUs array
-         * @param fpgas Assigned FPGAs arrays
-         */
-        public InvocationResources(int[] cpus, int[] gpus, int[] fpgas) {
-            this.cpus = cpus;
-            this.gpus = gpus;
-            this.fpgas = fpgas;
-        }
-
-        public int[] getAssignedCPUs() {
-            return this.cpus;
-        }
-
-        public int[] getAssignedGPUs() {
-            return this.gpus;
-        }
-
-        public int[] getAssignedFPGAs() {
-            return this.fpgas;
-        }
-
     }
 
 }

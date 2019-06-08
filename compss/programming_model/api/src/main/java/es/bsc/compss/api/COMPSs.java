@@ -17,7 +17,7 @@
 package es.bsc.compss.api;
 
 /**
- * COMPSs API Class for JAVA
+ * COMPSs API Class for JAVA.
  */
 public class COMPSs {
 
@@ -25,7 +25,7 @@ public class COMPSs {
 
 
     /**
-     * Barrier
+     * Barrier.
      */
     public static void barrier() {
         // This is only a handler, it is never executed
@@ -33,9 +33,9 @@ public class COMPSs {
     }
 
     /**
-     * Barrier with noMoreTasks flag to avoid file transfers
+     * Barrier with noMoreTasks flag to avoid file transfers.
      * 
-     * @param noMoreTasks
+     * @param noMoreTasks Whether there are more tasks to be created or not.
      */
     public static void barrier(boolean noMoreTasks) {
         // This is only a handler, it is never executed
@@ -43,15 +43,20 @@ public class COMPSs {
     }
 
     /**
-     * Unregister the given object from the Runtime
+     * Unregister the given object from the Runtime.
      * 
-     * @param o
+     * @param o Object to unregister.
      */
     public static void deregisterObject(Object o) {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
 
+    /**
+     * Returns the file specified by the given abstract pathname.
+     * 
+     * @param fileName File path.
+     */
     public static void getFile(String fileName) {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);

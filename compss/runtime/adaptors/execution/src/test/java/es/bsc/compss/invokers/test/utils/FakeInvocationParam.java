@@ -17,7 +17,7 @@
 package es.bsc.compss.invokers.test.utils;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.annotations.parameter.Stream;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 
@@ -35,12 +35,14 @@ public class FakeInvocationParam implements InvocationParam {
 
     private final String prefix;
     private final String name;
-    private final Stream stream;
+    private final StdIOStream stream;
     private final boolean writeFinalValue;
     private final String dataMgmtId;
 
 
-    /** Fake Invocation parameter constructor.
+    /**
+     * Fake Invocation parameter constructor.
+     * 
      * @param type Type
      * @param prefix Prefix
      * @param name Name
@@ -49,7 +51,7 @@ public class FakeInvocationParam implements InvocationParam {
      * @param dataMgmtId Data Management Id
      * @param writeFinalValue Write final value flag
      */
-    public FakeInvocationParam(DataType type, String prefix, String name, Stream stream, String originalName,
+    public FakeInvocationParam(DataType type, String prefix, String name, StdIOStream stream, String originalName,
             String dataMgmtId, boolean writeFinalValue) {
         this.type = type;
         this.prefix = prefix;
@@ -91,7 +93,7 @@ public class FakeInvocationParam implements InvocationParam {
     }
 
     @Override
-    public Stream getStream() {
+    public StdIOStream getStdIOStream() {
         return this.stream;
     }
 

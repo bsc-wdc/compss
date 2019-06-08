@@ -206,7 +206,7 @@ public class SharedDiskManager {
             lds = new HashSet<>();
             sharedDisk2SharedFiles.put(diskName, lds);
         }
-        synchronized(lds){
+        synchronized (lds) {
             lds.add(ld);
         }
     }
@@ -221,7 +221,7 @@ public class SharedDiskManager {
     public static synchronized void removeLogicalData(String diskName, LogicalData obsolete) {
         Set<LogicalData> lds = sharedDisk2SharedFiles.get(diskName);
         if (lds != null) {
-            synchronized(lds){
+            synchronized (lds) {
                 lds.remove(obsolete);
             }
         }

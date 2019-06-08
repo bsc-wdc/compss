@@ -37,7 +37,7 @@ public class CannotLoadException extends Exception {
     /**
      * New nested @e Unstarted Node Exception.
      * 
-     * @param e Causing exception
+     * @param e Causing exception.
      */
     public CannotLoadException(Exception e) {
         super(e);
@@ -46,7 +46,7 @@ public class CannotLoadException extends Exception {
     /**
      * New Unstarted Node Exception with message @msg.
      * 
-     * @param msg Error message
+     * @param msg Error message.
      */
     public CannotLoadException(String msg) {
         super(msg);

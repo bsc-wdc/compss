@@ -21,6 +21,7 @@ DEFAULT_BINDINGS=true
 DEFAULT_PYCOMPSS=true
 DEFAULT_TRACING=true
 DEFAULT_AUTOPARALLEL=true
+DEFAULT_KAFKA=true
 DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 DEFAULT_MVN_TESTS=""
@@ -32,6 +33,7 @@ NO_BINDINGS="Warning: No bindings specified. Loading default value"
 NO_PYCOMPSS="Warning: No pycompss specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_AUTOPARALLEL="Warning: No autoparallel specified. Loading default value"
+NO_KAFKA="Warning: No Kafka module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
 
 
@@ -74,6 +76,10 @@ show_opts() {
     --autoparallel, -a          Enable autoparallel module installation
     --no-autoparallel, -A       Disable autoparallel module installation
                                 Default: ${DEFAULT_AUTOPARALLEL}
+   
+    --kafka, -k                 Enable Kafka module installation
+    --no-kafka, -K              Disable Kafka module installation
+                                Default: ${DEFAULT_KAFKA}
     
     --nothing, -N               Disable all previous options
                                 Default: unused
@@ -125,7 +131,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTaAN-: flag; do 
+  while getopts hvmMbBpPtTaAkKN-: flag; do 
     # Treat the argument
     case "$flag" in
       h)
@@ -163,7 +169,6 @@ get_args() {
         # Custom PyCOMPSs value
         pycompss=false
         ;;
-
       t)
         # Custom tracing value
         tracing=true
@@ -180,6 +185,14 @@ get_args() {
         # Custom autoparallel value
         autoparallel=false
         ;;
+      k)
+        # Custom kafka value
+        kafka=true
+        ;;
+      K)
+        # Custom Kafka value
+        kafka=false
+        ;;
       N)
         # Disables all flags
         tracing=false
@@ -187,6 +200,7 @@ get_args() {
         bindings=false
         pycompss=false
         autoparallel=false
+        kafka=false
         ;;
       -)
 	# Check more complex arguments
@@ -247,6 +261,14 @@ get_args() {
             # Custom autoparallel value
             autoparallel=false
             ;;
+          kafka)
+            # Custom Kafka value
+            kafka=true
+            ;;
+          no-kafka)
+            # Custom Kafka value
+            kafka=false
+            ;;
           nothing)
             # Disables all flags
             tracing=false
@@ -254,6 +276,7 @@ get_args() {
             bindings=false
             pycompss=false
             autoparallel=false
+            kafka=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution
@@ -312,6 +335,11 @@ check_args() {
     autoparallel=${DEFAULT_AUTOPARALLEL}
   fi
 
+  if [ -z "${kafka}" ]; then
+    display_warning "${NO_KAFKA}"
+    kafka=${DEFAULT_KAFKA}
+  fi
+
   if [ -z "${user_exec}" ]; then
     if [ -z "${SUDO_USER}" ]; then
       # Cannot retrieve sudo user from env
@@ -339,15 +367,16 @@ warn_and_log_parameters() {
   echo "    !! Remember to export JAVA_HOME on root"
   sleep 5
 
-  echo "- Target DIR   = ${targetDir}"
-  echo "- Monitor      = ${monitor}"
-  echo "- Bindings     = ${bindings}"
-  echo "- PyCOMPSs     = ${pycompss}"
-  echo "- Tracing      = ${tracing}"
-  echo "- AutoParallel = ${autoparallel}"
-  echo "- SCRIPT_DIR   = ${SCRIPT_DIR}"
-  echo "- SOURCES DIR  = ${SOURCES_DIR}"
-  echo "- TMP_DIR      = ${TMP_DIR}"
+  echo "- Target DIR     = ${targetDir}"
+  echo "- Monitor        = ${monitor}"
+  echo "- Bindings       = ${bindings}"
+  echo "- PyCOMPSs       = ${pycompss}"
+  echo "- Tracing        = ${tracing}"
+  echo "- AutoParallel   = ${autoparallel}"
+  echo "- Stream Backend = ${kafka}"
+  echo "- SCRIPT_DIR     = ${SCRIPT_DIR}"
+  echo "- SOURCES DIR    = ${SOURCES_DIR}"
+  echo "- TMP_DIR        = ${TMP_DIR}"
   sleep 5
 }
 
@@ -488,8 +517,35 @@ install_compss() {
     fi
     cd "${SCRIPT_DIR}"
   fi
+  # Kafka
+  if [ "${kafka}" = "true" ]; then
+    cp -r "${TMP_DIR}"/dependencies/kafka ${targetDir}/Dependencies/
 
-  # Config
+    cd "${targetDir}"/Dependencies/kafka
+    if which gradle; then
+      gradle
+      ev=$?
+    elif [ -n "${GRADLE_HOME}" ]; then
+      "${GRADLE_HOME}"/bin/gradle
+      ev=$?
+    else
+      echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
+      exit 1
+    fi
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to compile Kafka dependency"
+      exit 1
+    fi
+    ./gradlew jar
+    ev=$?
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to build Kafka dependency"
+      exit 1
+    fi
+    cd "${SCRIPT_DIR}"
+  fi
+
+  # CONFIG 
   echo "--- Copy configuration"
   find "${TMP_DIR}"/compss/runtime/config -name src -type d -prune -exec rm -r "{}" \;
   find "${TMP_DIR}"/compss/runtime/config -name target -type d -prune -exec rm -r "{}" \;

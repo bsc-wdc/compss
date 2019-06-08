@@ -16,56 +16,57 @@
  */
 package es.bsc.compss.nio.master;
 
-import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
+import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer.Destination;
+
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.resources.ExecutorShutdownListener;
-import es.bsc.compss.util.BindingDataManager;
-import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOMessageHandler;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
-import es.bsc.compss.nio.NIOURI;
-import es.bsc.compss.nio.commands.NIOData;
-import es.bsc.compss.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
-import es.bsc.compss.nio.dataRequest.DataRequest;
-import es.bsc.compss.nio.dataRequest.MasterDataRequest;
+import es.bsc.compss.nio.NIOUri;
+import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
-import es.bsc.compss.types.job.Job;
+import es.bsc.compss.nio.requests.DataRequest;
+import es.bsc.compss.nio.requests.MasterDataRequest;
+import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.Copy;
+import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.Job.JobHistory;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.util.BindingDataManager;
+import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
@@ -76,15 +77,15 @@ import org.apache.logging.log4j.Logger;
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
+    // Logging
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean WORKER_DEBUG = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
+
     public static final int MAX_SEND = 1_000;
     public static final int MAX_RECEIVE = 1_000;
 
     public static final int MAX_SEND_WORKER = 5;
     public static final int MAX_RECEIVE_WORKER = 5;
-
-    // Logging
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
-    private static final boolean WORKER_DEBUG = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
 
     /*
      * The master port can be: 1. Given by the MASTER_PORT property 2. A BASE_MASTER_PORT plus a random number
@@ -95,8 +96,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final int MASTER_PORT_CALCULATED = BASE_MASTER_PORT + RANDOM_VALUE;
     private static final String MASTER_PORT_PROPERTY = System.getProperty(COMPSsConstants.MASTER_PORT);
     public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty())
-                                          ? Integer.valueOf(MASTER_PORT_PROPERTY)
-                                          : MASTER_PORT_CALCULATED;
+            ? Integer.valueOf(MASTER_PORT_PROPERTY)
+            : MASTER_PORT_CALCULATED;
 
     // Final jobs log directory
     private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + File.separator;
@@ -117,20 +118,30 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private static final Map<Connection, Semaphore> PENDING_MODIFICATIONS = new HashMap<>();
 
-    private Semaphore tracingGeneration = new Semaphore(0);
-    private Semaphore workersDebugInfo = new Semaphore(0);
+    private final boolean persistentC;
+
+    private final Semaphore tracingGeneration;
+    private final Semaphore workersDebugInfo;
+
 
     /**
-     * New NIOAdaptor instance
+     * New NIOAdaptor instance.
      */
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
-        // Setting persistentC flag in the NIOAgent
+
+        // Setting persistentC flag
         String persistentCStr = System.getProperty(COMPSsConstants.WORKER_PERSISTENT_C);
         if (persistentCStr == null || persistentCStr.isEmpty() || persistentCStr.equals("null")) {
             persistentCStr = COMPSsConstants.DEFAULT_PERSISTENT_C;
         }
-        setPersistent(Boolean.parseBoolean(persistentCStr));
+        this.persistentC = Boolean.parseBoolean(persistentCStr);
+
+        // Initialize tracing and workers debug semaphores
+        this.tracingGeneration = new Semaphore(0);
+        this.workersDebugInfo = new Semaphore(0);
+
+        // Create jobs directory
         File file = new File(JOBS_DIR);
         if (!file.exists()) {
             file.mkdir();
@@ -155,9 +166,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
 
         /* Init tracing values */
-        tracing = System.getProperty(COMPSsConstants.TRACING) != null
+        this.tracing = System.getProperty(COMPSsConstants.TRACING) != null
                 && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0;
-        tracing_level = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
+        this.tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
 
         // Start the server
         LOGGER.debug("  Starting transfer server...");
@@ -167,75 +178,74 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             String errMsg = "Error starting transfer server";
             ErrorManager.error(errMsg, ce);
         }
-
-        // Start the Transfer Manager thread (starts the EventManager)
-        // LOGGER.debug(" Starting TransferManager Thread");
-        // TM.start();
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
 
-        NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
+        final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
-        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties props_project = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) project_properties;
-        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties props_resources = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resources_properties;
+        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject 
+            = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties;
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources 
+            = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties;
 
         // Get ports
-        int min_project = (props_project != null) ? props_project.getMinPort() : -1;
-        int min_resources = -1;
-        if (props_resources != null) {
-            min_resources = props_resources.getMinPort();
+        int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
+        int minResources = -1;
+        if (propsResources != null) {
+            minResources = propsResources.getMinPort();
         } else {
             // MinPort on resources is mandatory
             throw new ConstructConfigurationException("Resources file doesn't contain a minimum port value");
         }
-        int max_project = (props_project != null) ? props_project.getMaxPort() : -1;
-        int max_resources = (props_resources != null) ? props_resources.getMaxPort() : -1;
+        int maxProject = (propsProject != null) ? propsProject.getMaxPort() : -1;
+        int maxResources = (propsResources != null) ? propsResources.getMaxPort() : -1;
 
         // Merge port ranges
-        int min_final = -1;
-        if (min_project < 0) {
-            min_final = min_resources;
+        int minFinal = -1;
+        if (minProject < 0) {
+            minFinal = minResources;
         } else {
-            if (min_project < min_resources) {
+            if (minProject < minResources) {
                 LOGGER.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
-                min_final = min_resources;
+                minFinal = minResources;
             } else {
-                min_final = min_project;
+                minFinal = minProject;
             }
         }
 
-        int max_final = -1;
-        if (max_project < 0) {
-            if (max_resources < 0) {
+        int maxFinal = -1;
+        if (maxProject < 0) {
+            if (maxResources < 0) {
                 // No max port defined
                 LOGGER.warn("MaxPort not defined in resources.xml/project.xml. Loading no limit");
             } else {
                 LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
-                max_final = max_resources;
+                maxFinal = maxResources;
             }
         } else {
-            if (max_resources < 0) {
-                max_final = max_project;
+            if (maxResources < 0) {
+                maxFinal = maxProject;
             } else {
-                if (max_project < max_resources) {
-                    max_final = max_project;
+                if (maxProject < maxResources) {
+                    maxFinal = maxProject;
                 } else {
-                    LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
-                    max_final = max_resources;
+                    LOGGER.warn(
+                            "resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+                    maxFinal = maxResources;
                 }
             }
         }
 
-        LOGGER.info("NIO Min Port: " + min_final);
-        LOGGER.info("NIO MAX Port: " + max_final);
-        config.setMinPort(min_final);
-        config.setMaxPort(max_final);
+        LOGGER.info("NIO Min Port: " + minFinal);
+        LOGGER.info("NIO MAX Port: " + maxFinal);
+        config.setMinPort(minFinal);
+        config.setMaxPort(maxFinal);
 
         // Add remote execution command
-        String remoteExecutionCommand = props_resources.getRemoteExecutionCommand();
+        String remoteExecutionCommand = propsResources.getRemoteExecutionCommand();
         if (remoteExecutionCommand == null || remoteExecutionCommand.isEmpty()) {
             remoteExecutionCommand = NIOConfiguration.DEFAULT_REMOTE_EXECUTION_COMMAND;
         }
@@ -249,17 +259,24 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public NIOWorkerNode initWorker(String workerName, Configuration config) {
-        LOGGER.debug("Init NIO Worker Node named " + workerName);
-        NIOWorkerNode worker = new NIOWorkerNode(workerName, (NIOConfiguration) config, this);
+    public NIOWorkerNode initWorker(Configuration config) {
+        NIOConfiguration nioCfg = (NIOConfiguration) config;
+        LOGGER.debug("Init NIO Worker Node named " + nioCfg.getHost());
+
+        NIOWorkerNode worker = new NIOWorkerNode(nioCfg, this);
         NODES.add(worker);
         return worker;
     }
 
+    @Override
+    public boolean isPersistentCEnabled() {
+        return this.persistentC;
+    }
+
     /**
-     * Notice the removal of a worker
+     * Notice the removal of a worker.
      *
-     * @param worker
+     * @param worker Worker to remove.
      */
     public void removedNode(NIOWorkerNode worker) {
         LOGGER.debug("Remove worker " + worker.getName());
@@ -315,7 +332,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void receivedNewDataFetchOrder(NIOParam data, int transferId) {
-        //Only the master commands other nodes to fetch a data value
+        // Only the master commands other nodes to fetch a data value
     }
 
     @Override
@@ -362,7 +379,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     case PSCO_T:
                     case EXTERNAL_PSCO_T:
                         String pscoId = (String) tr.getParamValue(i);
-                        DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
+                        DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters().get(i);
                         updateParameter(newType, pscoId, dp);
                         break;
                     default:
@@ -446,6 +463,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         dp.setDataTarget(pscoId);
     }
 
+    /**
+     * Registers a new copy.
+     * 
+     * @param c New copy to register.
+     */
     public void registerCopy(Copy c) {
         for (EventListener el : c.getEventListeners()) {
             Integer groupId = el.getId();
@@ -546,15 +568,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         return new LinkedList<DataOperation>();
     }
 
-    public boolean checkData(NIOData d) {
-        boolean data = false;
-        /*
-         * for (Entry<String, LogicalData> e : Comm.DC.nameToLogicalData.entrySet()) { if
-         * (d.getSourceName().equals(e.getValue().getName())) { data = true; break; } }
-         */
-        return data;
-    }
-
     @Override
     public Object getObject(String name) throws SerializedObjectException {
         LogicalData ld = Comm.getData(name);
@@ -611,13 +624,42 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void completeMasterURI(MultiURI u) {
-        u.setInternalURI(ID, new NIOURI(masterNode, u.getPath(), u.getProtocol()));
+        u.setInternalURI(ID, new NIOUri(masterNode, u.getPath(), u.getProtocol()));
     }
 
+    /**
+     * Requests a new data.
+     * 
+     * @param c Associated copy.
+     * @param paramType Data type.
+     * @param d NIOData to request.
+     * @param path Target path.
+     */
+    public void requestData(Copy c, DataType paramType, NIOData d, String path) {
+        DataRequest dr = new MasterDataRequest(c, paramType, d, path);
+        addTransferRequest(dr);
+        requestTransfers();
+
+    }
+
+    /**
+     * Marks the worker to shutdown.
+     * 
+     * @param worker Worker node.
+     * @param c Connection.
+     * @param listener Listener.
+     */
     public void shuttingDown(NIOWorkerNode worker, Connection c, ShutdownListener listener) {
         STOPPING_NODES.put(c, new ClosingWorker(worker, listener));
     }
 
+    /**
+     * Marks the worker to shutdown only the execution manager.
+     * 
+     * @param worker Worker node.
+     * @param c Connection.
+     * @param listener Listener.
+     */
     public void shuttingDownEM(NIOWorkerNode worker, Connection c, ExecutorShutdownListener listener) {
         STOPPING_EXECUTORS.put(c, new ClosingExecutor(listener));
     }
@@ -704,30 +746,14 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
     }
 
+    /**
+     * Registers a pending modification of the current worker node.
+     * 
+     * @param c Connection.
+     * @param sem Semaphore to wait until the modification is performed.
+     */
     public void registerPendingResourceUpdateConfirmation(Connection c, Semaphore sem) {
         PENDING_MODIFICATIONS.put(c, sem);
-    }
-
-
-    private class ClosingWorker {
-
-        private final NIOWorkerNode worker;
-        private final ShutdownListener listener;
-
-        public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
-            worker = w;
-            listener = l;
-        }
-    }
-
-
-    private class ClosingExecutor {
-
-        private final ExecutorShutdownListener listener;
-
-        public ClosingExecutor(ExecutorShutdownListener l) {
-            listener = l;
-        }
     }
 
     @Override
@@ -749,6 +775,29 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     protected boolean isMaster() {
         return true;
+    }
+
+
+    private class ClosingWorker {
+
+        private final NIOWorkerNode worker;
+        private final ShutdownListener listener;
+
+
+        public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
+            this.worker = w;
+            this.listener = l;
+        }
+    }
+
+    private class ClosingExecutor {
+
+        private final ExecutorShutdownListener listener;
+
+
+        public ClosingExecutor(ExecutorShutdownListener l) {
+            this.listener = l;
+        }
     }
 
 }

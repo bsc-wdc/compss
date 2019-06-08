@@ -25,26 +25,25 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run
+ * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run.
  */
 public class TaskSummaryRequest extends TDRequest {
 
     /**
-     * Semaphore where to synchronize until the operation is done
+     * Semaphore where to synchronize until the operation is done.
      */
-    private Semaphore sem;
-
+    private final Semaphore sem;
     /**
-     * Logger where to print information
+     * Logger where to print information.
      */
     private final Logger logger;
 
 
     /**
-     * Constructs a new TaskStateRequest
+     * Constructs a new TaskStateRequest.
      *
-     * @param logger
-     * @param sem semaphore where to synchronize until the current state is described
+     * @param logger Logger where to dump the task state.
+     * @param sem semaphore where to synchronize until the current state is described.
      */
     public TaskSummaryRequest(Logger logger, Semaphore sem) {
         this.logger = logger;
@@ -52,21 +51,12 @@ public class TaskSummaryRequest extends TDRequest {
     }
 
     /**
-     * Returns the semaphore where to synchronize until the current state is described
+     * Returns the semaphore where to synchronize until the current state is described.
      *
-     * @return the semaphore where to synchronize until the current state is described
+     * @return the semaphore where to synchronize until the current state is described.
      */
     public Semaphore getSemaphore() {
-        return sem;
-    }
-
-    /**
-     * Sets the semaphore where to synchronize until the current state is described
-     *
-     * @param sem the semaphore where to synchronize until the current state is described
-     */
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
+        return this.sem;
     }
 
     @Override

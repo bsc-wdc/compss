@@ -9,27 +9,27 @@ digraph {
 2[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-1 -> 4[ label="d1v2" ];
+1 -> 4 [label="d1v2"];
 5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-2 -> 5[ label="d2v2" ];
+2 -> 5 [label="d2v2"];
 6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-3 -> 6[ label="d3v2" ];
+3 -> 6 [label="d3v2"];
 7[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-4 -> 7[ label="d1v3" ];
+4 -> 7 [label="d1v3"];
 8[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-5 -> 8[ label="d2v3" ];
+5 -> 8 [label="d2v3"];
 9[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-6 -> 9[ label="d3v3" ];
+6 -> 9 [label="d3v3"];
 10[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-7 -> 10[ label="d1v4" ];
+7 -> 10 [label="d1v4"];
 11[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-8 -> 11[ label="d2v4" ];
+8 -> 11 [label="d2v4"];
 12[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-9 -> 12[ label="d3v4" ];
+9 -> 12 [label="d3v4"];
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-10 -> Synchro1[ label="d1v6" ];
-11 -> Synchro1[ label="d2v6" ];
-12 -> Synchro1[ label="d3v6" ];  }
+10 -> Synchro1 [label="d1v6"];
+11 -> Synchro1 [label="d2v6"];
+12 -> Synchro1 [label="d3v6"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

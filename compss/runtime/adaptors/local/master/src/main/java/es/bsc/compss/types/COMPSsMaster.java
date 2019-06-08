@@ -32,13 +32,13 @@ import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.local.LocalJob;
 import es.bsc.compss.local.LocalParameter;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.DataLocation.Type;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -46,21 +46,23 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
+import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.types.resources.Resource;
-import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
+import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
+import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,11 +73,13 @@ import java.util.Collection;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
+
+import storage.StorageException;
 import storage.StorageItf;
 
 
 /**
- * Representation of the COMPSs Master Node Only 1 instance per execution
+ * Representation of the COMPSs Master Node Only 1 instance per execution.
  */
 public final class COMPSsMaster extends COMPSsWorker implements InvocationContext {
 
@@ -85,20 +89,19 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private static final String ERROR_TEMP_DIR = "ERROR: Cannot create temp directory";
     private static final String ERROR_JOBS_DIR = "ERROR: Cannot create jobs directory";
     private static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
-    private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this application. To avoid this warning please clean .COMPSs folder";
+    private static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this"
+            + " application. To avoid this warning please clean .COMPSs folder";
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
 
     private static final int MAX_OVERLOAD = 100; // Maximum number of executions of same application
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
 
-    private final String name;
-
     private final String storageConf;
     private final TaskExecution executionType;
 
     private final String userExecutionDirPath;
-    private final String COMPSsLogBaseDirPath;
+    private final String compssLogBaseDirPath;
     private final String appLogDirPath;
 
     private final String installDirPath;
@@ -115,24 +118,23 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream err;
     private boolean started = false;
 
+
     /**
-     * New COMPSs Master
-     *
-     * @param hostName
+     * New COMPSs Master.
      */
-    public COMPSsMaster(String hostName) {
-        super(hostName, null);
-        name = hostName;
+    public COMPSsMaster() {
+        super();
 
         // Gets user execution directory
-        userExecutionDirPath = System.getProperty("user.dir");
+        this.userExecutionDirPath = System.getProperty("user.dir");
 
         /* Creates base Runtime structure directories ************************** */
         boolean mustCreateExecutionSandbox = true;
         // Checks if specific log base dir has been given
         String specificOpt = System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR);
         if (specificOpt != null && !specificOpt.isEmpty()) {
-            COMPSsLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt : specificOpt + File.separator;
+            this.compssLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt
+                    : specificOpt + File.separator;
             mustCreateExecutionSandbox = false; // This is the only case where
             // the sandbox is provided
         } else {
@@ -140,16 +142,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             String baseOpt = System.getProperty(COMPSsConstants.BASE_LOG_DIR);
             if (baseOpt != null && !baseOpt.isEmpty()) {
                 baseOpt = baseOpt.endsWith(File.separator) ? baseOpt : baseOpt + File.separator;
-                COMPSsLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
+                this.compssLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
             } else {
                 // No option given - load default (user home)
-                COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
+                this.compssLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs"
+                        + File.separator;
             }
         }
 
-        if (!new File(COMPSsLogBaseDirPath).exists()) {
-            if (!new File(COMPSsLogBaseDirPath).mkdir()) {
-                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR + " at " + COMPSsLogBaseDirPath);
+        if (!new File(this.compssLogBaseDirPath).exists()) {
+            if (!new File(this.compssLogBaseDirPath).mkdir()) {
+                ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR + " at " + compssLogBaseDirPath);
             }
         }
 
@@ -164,7 +167,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                  */
                 String serviceName = System.getProperty(COMPSsConstants.SERVICE_NAME);
                 int overloadCode = 1;
-                String appLog = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
+                String appLog = this.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
                         + File.separator;
                 String oldest = appLog;
                 while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
@@ -175,10 +178,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     // Next step
                     overloadCode = overloadCode + 1;
                     if (overloadCode < 10) {
-                        appLog = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
+                        appLog = this.compssLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode)
                                 + File.separator;
                     } else {
-                        appLog = COMPSsLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode)
+                        appLog = this.compssLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode)
                                 + File.separator;
                     }
                 }
@@ -197,8 +200,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
 
                 // We have the final appLogDirPath
-                appLogDirPath = appLog;
-                if (!new File(appLogDirPath).mkdir()) {
+                this.appLogDirPath = appLog;
+                if (!new File(this.appLogDirPath).mkdir()) {
                     ErrorManager.error(ERROR_APP_LOG_DIR);
                 }
             } else {
@@ -207,7 +210,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                  * raises warning - Changes working directory to appName !!!!
                  */
                 int overloadCode = 1;
-                String appLog = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+                String appLog = this.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
+                        + File.separator;
                 String oldest = appLog;
                 while ((new File(appLog).exists()) && (overloadCode <= MAX_OVERLOAD)) {
                     // Check oldest file (for overload if needed)
@@ -217,9 +221,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     // Next step
                     overloadCode = overloadCode + 1;
                     if (overloadCode < 10) {
-                        appLog = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+                        appLog = this.compssLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode)
+                                + File.separator;
                     } else {
-                        appLog = COMPSsLogBaseDirPath + appName + "_" + String.valueOf(overloadCode) + File.separator;
+                        appLog = this.compssLogBaseDirPath + appName + "_" + String.valueOf(overloadCode)
+                                + File.separator;
                     }
                 }
                 if (overloadCode > MAX_OVERLOAD) {
@@ -237,42 +243,42 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
 
                 // We have the final appLogDirPath
-                appLogDirPath = appLog;
-                if (!new File(appLogDirPath).mkdir()) {
+                this.appLogDirPath = appLog;
+                if (!new File(this.appLogDirPath).mkdir()) {
                     ErrorManager.error(ERROR_APP_LOG_DIR);
                 }
             }
         } else {
             // The option specific_log_dir has been given. NO sandbox created
-            appLogDirPath = COMPSsLogBaseDirPath;
+            this.appLogDirPath = this.compssLogBaseDirPath;
         }
 
         // Set the environment property (for all cases) and reload logger
         // configuration
-        System.setProperty(COMPSsConstants.APP_LOG_DIR, appLogDirPath);
+        System.setProperty(COMPSsConstants.APP_LOG_DIR, this.appLogDirPath);
         ((LoggerContext) LogManager.getContext(false)).reconfigure();
 
         /*
          * Create a tmp directory where to store: - Files whose first opened stream is an input one - Object files
          */
-        tempDirPath = appLogDirPath + "tmpFiles" + File.separator;
-        if (!new File(tempDirPath).mkdir()) {
+        this.tempDirPath = this.appLogDirPath + "tmpFiles" + File.separator;
+        if (!new File(this.tempDirPath).mkdir()) {
             ErrorManager.error(ERROR_TEMP_DIR);
         }
 
         /*
          * Create a jobs dir where to store: - Jobs output files - Jobs error files
          */
-        jobsDirPath = appLogDirPath + "jobs" + File.separator;
-        if (!new File(jobsDirPath).mkdir()) {
+        this.jobsDirPath = this.appLogDirPath + "jobs" + File.separator;
+        if (!new File(this.jobsDirPath).mkdir()) {
             ErrorManager.error(ERROR_JOBS_DIR);
         }
 
         /*
          * Create a workers dir where to store: - Worker out files - Worker error files
          */
-        workersDirPath = appLogDirPath + "workers" + File.separator;
-        if (!new File(workersDirPath).mkdir()) {
+        this.workersDirPath = this.appLogDirPath + "workers" + File.separator;
+        if (!new File(this.workersDirPath).mkdir()) {
             System.err.println(ERROR_WORKERS_DIR);
             System.exit(1);
         }
@@ -295,10 +301,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
         this.executionType = TaskExecution.valueOf(executionType);
 
-        out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
-        err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
-        System.setErr(err);
-        System.setOut(out);
+        this.out = new ThreadedPrintStream(SUFFIX_OUT, System.out);
+        this.err = new ThreadedPrintStream(SUFFIX_ERR, System.err);
+        System.setErr(this.err);
+        System.setOut(this.out);
 
         // Get installDir classpath
         this.installDirPath = System.getenv(COMPSsConstants.COMPSS_HOME);
@@ -396,16 +402,16 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     @Override
     public void start() {
         synchronized (this) {
-            if (started) {
+            if (this.started) {
                 return;
             }
-            started = true;
+            this.started = true;
         }
     }
 
     @Override
     public String getName() {
-        return name;
+        return MASTER_NAME;
     }
 
     @Override
@@ -441,8 +447,19 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
     }
 
+    /**
+     * Retrieves a binding data.
+     * 
+     * @param ld Source LogicalData.
+     * @param source Preferred source location.
+     * @param target Preferred target location.
+     * @param tgtData Target LogicalData.
+     * @param reason Transfer reason.
+     * @param listener Transfer listener.
+     */
     public void obtainBindingData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
             Transferable reason, EventListener listener) {
+
         BindingObject tgtBO = ((BindingObjectLocation) target).getBindingObject();
         ld.lockHostRemoval();
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
@@ -461,13 +478,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                     + tgtBO.getName());
                         }
                         try {
-                            if (persistentEnabled) {
+                            if (this.persistentEnabled) {
                                 manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
-                            }else {
+                            } else {
                                 manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
                             }
                             listener.notifyEnd(null);
-                        }catch(Exception e){
+                        } catch (Exception e) {
                             LOGGER.error("ERROR: managing obtain binding object at cache", e);
                             listener.notifyFailure(null, e);
                         }
@@ -480,17 +497,19 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             Copy.waitForCopyTofinish(copy, this);
                             // try {
                             if (DEBUG) {
-                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
-                                        + tgtBO.getName());
+                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
+                                        + " to " + tgtBO.getName());
                             }
                             try {
-                                if (persistentEnabled) {
-                                    manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
-                                }else {
-                                    manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
+                                if (this.persistentEnabled) {
+                                    manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target,
+                                            reason);
+                                } else {
+                                    manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target,
+                                            reason);
                                 }
                                 listener.notifyEnd(null);
-                            }catch(Exception e){
+                            } catch (Exception e) {
                                 LOGGER.error("ERROR: managing obtain binding object at cache", e);
                                 listener.notifyFailure(null, e);
                             }
@@ -524,13 +543,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             + tgtBO.getName());
                 }
                 try {
-                    if(persistentEnabled) {
+                    if (this.persistentEnabled) {
                         manageObtainBindingObjectInCache(u.getPath(), tgtBO, tgtData, target, reason);
-                    }else {
+                    } else {
                         manageObtainBindingObjectAsFile(u.getPath(), tgtBO, tgtData, target, reason);
                     }
                     listener.notifyEnd(null);
-                }catch(Exception e){
+                } catch (Exception e) {
                     LOGGER.error("ERROR: managing obtain binding object at cache", e);
                     listener.notifyFailure(null, e);
                 }
@@ -566,13 +585,13 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     return;
                 } else {
                     try {
-                        if(persistentEnabled) {
+                        if (this.persistentEnabled) {
                             manageObtainBindingObjectInCache(sourcePath, tgtBO, tgtData, target, reason);
-                        }else {
+                        } else {
                             manageObtainBindingObjectAsFile(sourcePath, tgtBO, tgtData, target, reason);
                         }
                         listener.notifyEnd(null);
-                    }catch(Exception e){
+                    } catch (Exception e) {
                         LOGGER.error("ERROR: managing obtain binding object at cache", e);
                         listener.notifyFailure(null, e);
                     }
@@ -606,46 +625,49 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
             }
         }
-        LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName() + " and nothing done. Releasing listeners and locks");
+        LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName()
+                + " and nothing done. Releasing listeners and locks");
         listener.notifyEnd(null);
         ld.releaseHostRemoval();
     }
 
     private void manageObtainBindingObjectInCache(String initialPath, BindingObject tgtBO, LogicalData tgtData,
             DataLocation target, Transferable reason) throws Exception {
+
         BindingObject bo = BindingObject.generate(initialPath);
-        
+
         if (bo.getName().equals(tgtBO.getName())) {
             if (BindingDataManager.isInBinding(tgtBO.getName())) {
-                LOGGER.debug(
-                    "Current transfer is the same as expected. Nothing to do setting data target to "
-                    + initialPath);
+                LOGGER.debug("Current transfer is the same as expected. Nothing to do setting data target to "
+                        + initialPath);
                 reason.setDataTarget(initialPath);
-            }else {
+            } else {
                 String tgtPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
                 LOGGER.debug("Data " + tgtBO.getName() + " not in cache loading from file " + tgtPath);
-                if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(), tgtBO.getElements())!=0) {
-                    throw(new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
-                }   
+                if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(),
+                        tgtBO.getElements()) != 0) {
+                    throw (new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
+                }
                 reason.setDataTarget(target.getPath());
             }
         } else {
             if (BindingDataManager.isInBinding(tgtBO.getName())) {
                 LOGGER.debug("Making cache copy from " + bo.getName() + " to " + tgtBO.getName());
                 if (reason.isSourcePreserved()) {
-                    if(BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName())!=0){
-                        throw(new Exception("Error copying cache from " + bo.getName() + " to "+ tgtBO.getName()));
+                    if (BindingDataManager.copyCachedData(bo.getName(), tgtBO.getName()) != 0) {
+                        throw (new Exception("Error copying cache from " + bo.getName() + " to " + tgtBO.getName()));
                     }
                 } else {
-                    if(BindingDataManager.moveCachedData(bo.getName(), tgtBO.getName())!=0){
-                        throw(new Exception("Error moved cache from " + bo.getName() + " to "+ tgtBO.getName()));
+                    if (BindingDataManager.moveCachedData(bo.getName(), tgtBO.getName()) != 0) {
+                        throw (new Exception("Error moved cache from " + bo.getName() + " to " + tgtBO.getName()));
                     }
                 }
-            }else {
+            } else {
                 String tgtPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
-                LOGGER.debug("Data "+ tgtBO.getName()+" not in cache loading from file " + tgtPath);
-                if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(), tgtBO.getElements())!=0) {
-                    throw(new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
+                LOGGER.debug("Data " + tgtBO.getName() + " not in cache loading from file " + tgtPath);
+                if (BindingDataManager.loadFromFile(tgtBO.getName(), tgtPath, tgtBO.getType(),
+                        tgtBO.getElements()) != 0) {
+                    throw (new Exception("Error loading object " + tgtBO.getName() + " from " + tgtPath));
                 }
             }
             if (tgtData != null) {
@@ -654,37 +676,32 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             LOGGER.debug("BindingObject copied/moved set data target as " + target.getPath());
             reason.setDataTarget(target.getPath());
         }
-        
-        
+
     }
-    
+
     private void manageObtainBindingObjectAsFile(String initialPath, BindingObject tgtBO, LogicalData tgtData,
             DataLocation target, Transferable reason) throws Exception {
+
         BindingObject bo = BindingObject.generate(initialPath);
         if (bo.getName().equals(tgtBO.getName())) {
             LOGGER.debug(
-                    "Current transfer is the same as expected. Nothing to do setting data target to "
-                    + initialPath);
+                    "Current transfer is the same as expected. Nothing to do setting data target to " + initialPath);
             reason.setDataTarget(initialPath);
-        }else {
-            if(bo.getId().startsWith(File.separator)) {
+        } else {
+            if (bo.getId().startsWith(File.separator)) {
                 String iPath = getCompletePath(DataType.BINDING_OBJECT_T, bo.getName()).getPath();
                 String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
                 if (reason.isSourcePreserved()) {
-                        if (DEBUG) {
-                            LOGGER.debug("Master local copy of data" + bo.getName() + " from " + iPath + " to "
-                                + tPath);
-                        }
-                        Files.copy(new File(iPath).toPath(), new File(tPath).toPath(),
-                            StandardCopyOption.REPLACE_EXISTING);
+                    if (DEBUG) {
+                        LOGGER.debug("Master local copy of data" + bo.getName() + " from " + iPath + " to " + tPath);
+                    }
+                    Files.copy(new File(iPath).toPath(), new File(tPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
 
                 } else {
                     if (DEBUG) {
-                        LOGGER.debug("Master local move of data " + bo.getName() + " from " + iPath + " to "
-                        + tPath);
+                        LOGGER.debug("Master local move of data " + bo.getName() + " from " + iPath + " to " + tPath);
                     }
-                    Files.move(new File(iPath).toPath(), new File(tPath).toPath(),
-                            StandardCopyOption.REPLACE_EXISTING);
+                    Files.move(new File(iPath).toPath(), new File(tPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
             } else if (BindingDataManager.isInBinding(bo.getName())) {
                 String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
@@ -697,7 +714,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             if (tgtData != null) {
                 tgtData.addLocation(target);
             }
-            
+
             LOGGER.debug("BindingObject as file copied/moved set data target as " + target.getPath());
             reason.setDataTarget(target.getPath());
         }
@@ -712,12 +729,22 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
     }
 
+    /**
+     * Retrieves a file data.
+     * 
+     * @param ld Source LogicalData.
+     * @param source Preferred source location.
+     * @param target Preferred target location.
+     * @param tgtData Target LogicalData.
+     * @param reason Transfer reason.
+     * @param listener Transfer listener.
+     */
     public void obtainFileData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
             Transferable reason, EventListener listener) {
 
         String targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
 
-        //Check if file is already on the Path
+        // Check if file is already on the Path
         List<MultiURI> uris = ld.getURIs();
         for (MultiURI u : uris) {
             if (DEBUG) {
@@ -797,9 +824,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                                     + targetPath);
                         }
-                        Files.copy(
-                                (new File(u.getPath())).toPath(),
-                                new File(targetPath).toPath(),
+                        Files.copy((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
                                 StandardCopyOption.REPLACE_EXISTING);
 
                     } else {
@@ -807,9 +832,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
                                     + targetPath);
                         }
-                        Files.move(
-                                (new File(u.getPath())).toPath(),
-                                new File(targetPath).toPath(),
+                        Files.move((new File(u.getPath())).toPath(), new File(targetPath).toPath(),
                                 StandardCopyOption.REPLACE_EXISTING);
                         uris.remove(u);
                     }
@@ -977,18 +1000,18 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         }
 
         obtainFileData(ld, source, target, tgtData, reason, listener);
-
     }
 
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
-        //Copy already done on obtainData()
+        // Copy already done on obtainData()
         listener.notifyEnd(null);
     }
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
+
         return new LocalJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
 
@@ -1002,6 +1025,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             case OBJECT_T:
             case COLLECTION_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
+                break;
+            case STREAM_T:
+                path = Protocol.STREAM_URI.getSchema() + name;
+                break;
+            case EXTERNAL_STREAM_T:
+                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
@@ -1088,6 +1117,11 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         // No need to do it. The master no it's always up
     }
 
+    /**
+     * Starts the execution of a local job.
+     * 
+     * @param job Local job to run.
+     */
     public void runJob(LocalJob job) {
         Execution exec = new Execution(job, new ExecutionListener() {
 
@@ -1100,12 +1134,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 }
             }
         });
-        executionManager.enqueue(exec);
+        this.executionManager.enqueue(exec);
     }
 
     @Override
     public String getHostName() {
-        return this.name;
+        return MASTER_NAME;
     }
 
     @Override
@@ -1134,7 +1168,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public boolean isPersistentEnabled() {
+    public boolean isPersistentCEnabled() {
         return this.persistentEnabled;
     }
 
@@ -1145,14 +1179,14 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void registerOutputs(String path) {
-        err.registerThread(path);
-        out.registerThread(path);
+        this.err.registerThread(path);
+        this.out.registerThread(path);
     }
 
     @Override
     public void unregisterOutputs() {
-        err.unregisterThread();
-        out.unregisterThread();
+        this.err.unregisterThread();
+        this.out.unregisterThread();
     }
 
     @Override
@@ -1164,12 +1198,12 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public PrintStream getThreadOutStream() {
-        return out.getStream();
+        return this.out.getStream();
     }
 
     @Override
     public PrintStream getThreadErrStream() {
-        return err.getStream();
+        return this.err.getStream();
     }
 
     @Override
@@ -1178,52 +1212,76 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     @Override
-    public void loadParam(InvocationParam invParam) throws Exception {
+    public StreamBackend getStreamingBackend() {
+        return Comm.getStreamingBackend();
+    }
+
+    @Override
+    public String getStreamingMasterName() {
+        return MASTER_NAME;
+    }
+
+    @Override
+    public int getStreamingMasterPort() {
+        return Comm.getStreamingPort();
+    }
+
+    @Override
+    public void loadParam(InvocationParam invParam) throws UnloadableValueException {
         LocalParameter localParam = (LocalParameter) invParam;
 
         switch (localParam.getType()) {
             case FILE_T:
                 // No need to load anything. Value already on a file
                 break;
-            case OBJECT_T: {
+            case OBJECT_T:
+            case STREAM_T:
                 DependencyParameter dpar = (DependencyParameter) localParam.getParam();
                 String dataId = (String) localParam.getValue();
                 LogicalData ld = Comm.getData(dataId);
                 if (ld.isInMemory()) {
                     invParam.setValue(ld.getValue());
                 } else {
-                    Object o = Serializer.deserialize(dpar.getDataTarget());
-                    invParam.setValue(o);
+                    try {
+                        Object o = Serializer.deserialize(dpar.getDataTarget());
+                        invParam.setValue(o);
+                    } catch (ClassNotFoundException | IOException e) {
+                        throw new UnloadableValueException(e);
+                    }
                 }
                 break;
-            }
-            case PSCO_T: {
+            case PSCO_T:
                 String pscoId = (String) localParam.getValue();
-                Object o = StorageItf.getByID(pscoId);
-                invParam.setValue(o);
+                try {
+                    Object o = StorageItf.getByID(pscoId);
+                    invParam.setValue(o);
+                } catch (StorageException se) {
+                    throw new UnloadableValueException(se);
+                }
                 break;
-            }
             default:
-            // Already contains the proper value on the param
+                // Already contains the proper value on the param
+                break;
         }
     }
 
     @Override
-    public void storeParam(InvocationParam invParam) throws Exception {
+    public void storeParam(InvocationParam invParam) {
         LocalParameter localParam = (LocalParameter) invParam;
         Parameter param = localParam.getParam();
         switch (param.getType()) {
             case FILE_T:
+            case EXTERNAL_STREAM_T:
                 // No need to store anything. Already stored on disk
                 break;
-            case OBJECT_T: {
+            case OBJECT_T:
+            case STREAM_T:
                 String resultName = localParam.getDataMgmtId();
                 LogicalData ld = Comm.getData(resultName);
                 ld.setValue(invParam.getValue());
                 break;
-            }
             case BINDING_OBJECT_T:
-                //No need to store anything. Already stored on the binding
+                // No need to store anything. Already stored on the binding
                 break;
             default:
                 throw new UnsupportedOperationException("Not supported yet." + param.getType());
@@ -1231,7 +1289,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     }
 
     public String getCOMPSsLogBaseDirPath() {
-        return this.COMPSsLogBaseDirPath;
+        return this.compssLogBaseDirPath;
     }
 
     public String getWorkingDirectory() {
@@ -1260,21 +1318,21 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     @Override
     public void increaseComputingCapabilities(ResourceDescription descr) {
-        MethodResourceDescription description = (MethodResourceDescription) descr;
-        int cpuCount = description.getTotalCPUComputingUnits();
-        int GPUCount = description.getTotalGPUComputingUnits();
-        int FPGACount = description.getTotalFPGAComputingUnits();
-        int otherCount = description.getTotalOTHERComputingUnits();
-        executionManager.increaseCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
+        final MethodResourceDescription description = (MethodResourceDescription) descr;
+        final int cpuCount = description.getTotalCPUComputingUnits();
+        final int gpuCount = description.getTotalGPUComputingUnits();
+        final int fpgaCount = description.getTotalFPGAComputingUnits();
+        final int otherCount = description.getTotalOTHERComputingUnits();
+        this.executionManager.increaseCapabilities(cpuCount, gpuCount, fpgaCount, otherCount);
     }
 
     @Override
     public void reduceComputingCapabilities(ResourceDescription descr) {
-        MethodResourceDescription description = (MethodResourceDescription) descr;
-        int cpuCount = description.getTotalCPUComputingUnits();
-        int GPUCount = description.getTotalGPUComputingUnits();
-        int FPGACount = description.getTotalFPGAComputingUnits();
-        int otherCount = description.getTotalOTHERComputingUnits();
-        executionManager.reduceCapabilities(cpuCount, GPUCount, FPGACount, otherCount);
+        final MethodResourceDescription description = (MethodResourceDescription) descr;
+        final int cpuCount = description.getTotalCPUComputingUnits();
+        final int gpuCount = description.getTotalGPUComputingUnits();
+        final int fpgaCount = description.getTotalFPGAComputingUnits();
+        final int otherCount = description.getTotalOTHERComputingUnits();
+        this.executionManager.reduceCapabilities(cpuCount, gpuCount, fpgaCount, otherCount);
     }
 }

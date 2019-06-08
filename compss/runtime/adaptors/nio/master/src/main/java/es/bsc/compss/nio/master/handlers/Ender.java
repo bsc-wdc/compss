@@ -22,19 +22,27 @@ import es.bsc.compss.nio.master.WorkerStarter;
 
 public class Ender extends Thread {
 
-    private WorkerStarter workerStarter;
-    private NIOWorkerNode node;
-    private int pid;
+    private final WorkerStarter workerStarter;
+    private final NIOWorkerNode node;
+    private final int pid;
 
 
+    /**
+     * Creates a new Ender thread.
+     * 
+     * @param workerStarter Associated worker starter.
+     * @param node Associated node.
+     * @param pid Associated PID.
+     */
     public Ender(WorkerStarter workerStarter, NIOWorkerNode node, int pid) {
         this.workerStarter = workerStarter;
         this.node = node;
         this.pid = pid;
     }
 
+    @Override
     public void run() {
-        workerStarter.ender(node, pid);
+        this.workerStarter.ender(node, pid);
     }
 
 }

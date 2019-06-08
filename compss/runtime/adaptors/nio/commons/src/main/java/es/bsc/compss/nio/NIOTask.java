@@ -34,7 +34,7 @@ import java.util.List;
 
 
 /**
- * Representation of a Task *
+ * Representation of a Task.
  */
 public class NIOTask implements Externalizable, Invocation {
 
@@ -56,34 +56,35 @@ public class NIOTask implements Externalizable, Invocation {
 
 
     /**
-     * New NIO Task
+     * New NIO Task.
      */
     public NIOTask() {
         // Only for externalization
     }
 
     /**
-     * Creates a new task instance with the given parameters
+     * Creates a new task instance with the given parameters.
      *
-     * @param lang
-     * @param workerDebug
-     * @param impl
-     * @param hasTarget
-     * @param params
-     * @param numReturns
-     * @param numParams
-     * @param reqs
-     * @param slaveWorkersNodeNames
-     * @param taskId
-     * @param taskType
-     * @param jobId
-     * @param hist
-     * @param transferGroupId
+     * @param lang Task language.
+     * @param workerDebug Worker debug level.
+     * @param impl Implementation to execute.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param params List of task parameters.
+     * @param numReturns Number of returns.
+     * @param numParams Number of parameters.
+     * @param reqs Requirements.
+     * @param slaveWorkersNodeNames Slave node names.
+     * @param taskId Task Id.
+     * @param taskType Task type.
+     * @param jobId Job Id.
+     * @param hist Job history.
+     * @param transferGroupId Transfer group Id.
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns,
             LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
             List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
             int transferGroupId) {
+
         this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
@@ -95,11 +96,11 @@ public class NIOTask implements Externalizable, Invocation {
         // C, Java and Python params (arguments + self + results)
         for (int rIdx = 0; rIdx < numReturns; rIdx++) {
             NIOParam p = paramItr.next();
-            results.addFirst(p);
+            this.results.addFirst(p);
         }
         if (hasTarget) {
             NIOParam p = paramItr.next();
-            target = p;
+            this.target = p;
         }
         while (paramItr.hasNext()) {
             NIOParam p = paramItr.next();
@@ -117,9 +118,9 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the task lang
+     * Returns the task language.
      *
-     * @return
+     * @return The task language.
      */
     @Override
     public Lang getLang() {
@@ -127,9 +128,9 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns if the worker debug is enabled or not
+     * Returns whether the worker debug is enabled or not.
      *
-     * @return
+     * @return {@literal true} if the worker debug is enabled, {@literal false} otherwise.
      */
     @Override
     public boolean isDebugEnabled() {
@@ -137,18 +138,18 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the method definition
+     * Returns the method definition.
      *
-     * @return
+     * @return The method definition.
      */
     public String getMethodDefinition() {
         return this.impl.getMethodDefinition();
     }
 
     /**
-     * Returns the method implementation type
+     * Returns the method implementation type.
      *
-     * @return
+     * @return The method implementation type.
      */
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
@@ -171,18 +172,18 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the number of return parameters of the task
+     * Returns the number of return parameters of the task.
      *
-     * @return
+     * @return The number of return parameters of the task.
      */
     public int getNumReturns() {
         return this.numReturns;
     }
 
     /**
-     * Returns the task id
+     * Returns the task Id.
      *
-     * @return
+     * @return The task Id.
      */
     @Override
     public int getTaskId() {
@@ -190,9 +191,9 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the task type
+     * Returns the task type.
      *
-     * @return
+     * @return The task type.
      */
     @Override
     public TaskType getTaskType() {
@@ -200,9 +201,9 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the job id
+     * Returns the job Id.
      *
-     * @return
+     * @return The job Id.
      */
     @Override
     public int getJobId() {
@@ -210,9 +211,9 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the job history
+     * Returns the job history.
      *
-     * @return
+     * @return The job history.
      */
     @Override
     public JobHistory getHistory() {
@@ -220,18 +221,18 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the transfer group id
+     * Returns the transfer group Id.
      *
-     * @return
+     * @return The transfer group Id.
      */
     public int getTransferGroupId() {
         return this.transferGroupId;
     }
 
     /**
-     * Returns the resource description needed for the task execution
+     * Returns the resource description needed for the task execution.
      *
-     * @return
+     * @return The resource description needed for the task execution.
      */
     @Override
     public MethodResourceDescription getRequirements() {
@@ -239,9 +240,9 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     /**
-     * Returns the slave workers node names
+     * Returns the slave workers node names.
      *
-     * @return
+     * @return The slave workers node names.
      */
     @Override
     public List<String> getSlaveNodesNames() {

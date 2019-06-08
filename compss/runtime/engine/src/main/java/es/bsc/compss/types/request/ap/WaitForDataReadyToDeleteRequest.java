@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.types.request.ap;
 
-import java.util.concurrent.Semaphore;
-
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.data.location.DataLocation;
+
+import java.util.concurrent.Semaphore;
 
 
 public class WaitForDataReadyToDeleteRequest extends APRequest {
@@ -30,9 +30,17 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
     private final DataLocation loc;
     private final Semaphore sem;
     private final Semaphore semWait;
+
     private int nPermits;
 
 
+    /**
+     * Creates a new request to wait for the data to be ready to be deleted.
+     * 
+     * @param loc Data Location.
+     * @param sem Waiting semaphore.
+     * @param semWait Tasks semaphore.
+     */
     public WaitForDataReadyToDeleteRequest(DataLocation loc, Semaphore sem, Semaphore semWait) {
         this.loc = loc;
         this.sem = sem;
@@ -40,19 +48,29 @@ public class WaitForDataReadyToDeleteRequest extends APRequest {
         this.nPermits = 0;
     }
 
+    /**
+     * Returns the associated data location.
+     * 
+     * @return The associated data location.
+     */
     public DataLocation getLocation() {
-        return loc;
+        return this.loc;
     }
 
+    /**
+     * Returns the number of permits of the tasks waiting semaphore.
+     * 
+     * @return The number of permits of the tasks waiting semaphore.
+     */
     public int getNumPermits() {
-        return nPermits;
+        return this.nPermits;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + loc.getPath() + "to DIP...");
-        this.nPermits = dip.waitForDataReadyToDelete(loc, semWait);
-        sem.release();
+        LOGGER.info("[WaitForDataReadyToDelete] Notifying waiting data " + this.loc.getPath() + "to DIP...");
+        this.nPermits = dip.waitForDataReadyToDelete(this.loc, this.semWait);
+        this.sem.release();
     }
 
     @Override

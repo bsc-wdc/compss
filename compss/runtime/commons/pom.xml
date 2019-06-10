@@ -31,11 +31,14 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
+        <!-- COMPSs API classes used to interact with the runtime -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!-- Classes to handle the JVM environment -->
         <dependency>
             <groupId>commons-configuration</groupId>
             <artifactId>commons-configuration</artifactId>

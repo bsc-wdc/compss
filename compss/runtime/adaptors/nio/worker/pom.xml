@@ -32,11 +32,14 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
+        <!-- COMPSs Dependencies -->
+        <!-- NIO Adaptor commons classes (already includes Adaptors common classes)-->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-nio-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Classes to host task executions-->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-execution</artifactId>
@@ -55,6 +58,7 @@
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <!-- Compile Java code -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
@@ -64,7 +68,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Copia les dependencies a la carpeta lib -->
+            <!-- Copy dependencies into lib folder -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -83,7 +87,7 @@
                 </executions>
             </plugin>
 
-            <!-- Crea el Jar amb les dependencies -->
+            <!-- Create jar with dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -96,15 +100,25 @@
                         </goals>
                         <configuration>
                             <finalName>${project.artifactId}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!--Copy compss-adaptors-gat-master.jar to adaptor basedir -->
+            <!--Copy jar file to adaptor basedir -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+                <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-final-jar</id>
@@ -127,7 +141,7 @@
                 </executions>
             </plugin>
 			
-            <!--Remove final.jar to project basedir -->
+            <!-- Remove final *.jar from project basedir -->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>${maven-clean-plugin.version}</version>
@@ -141,6 +155,17 @@
                             </includes>
                         </fileset>
                     </filesets>
+                </configuration>
+            </plugin>
+            
+            <!-- Run unit tests-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <reuseForks>false</reuseForks>
+                    <forkCount>1</forkCount>
                 </configuration>
             </plugin>
         </plugins>

@@ -29,29 +29,29 @@
         <url>http://www.bsc.es</url>
     </organization>
 
-	<!-- DEPENDENCIES -->
-	<dependencies>
-		<!-- Runtime dependencies -->
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-loader</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-resources-commons</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-scheduler-commons</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-storage</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+    <!-- DEPENDENCIES -->
+    <dependencies>
+        <!-- Runtime dependencies -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-loader</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-resources-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-scheduler-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-storage</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- JUnit dependencies -->
         <dependency>
@@ -60,13 +60,13 @@
             <scope>test</scope>
         </dependency>
 
-		<!-- Log4j -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-		</dependency>
+        <!-- Log4j -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 
     <!-- BUILD -->
     <build>
@@ -78,7 +78,7 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Normal Compilation -->
+            <!-- Compile Java code -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
@@ -132,7 +132,7 @@
                 </executions>
             </plugin>
 
-            <!-- Crea el Jar amb les dependencies -->
+            <!-- Create jar with dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -145,12 +145,22 @@
                         </goals>
                         <configuration>
                             <finalName>${project.artifactId}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- Copiar el compss-engine.jar al basedir -->
+            <!--Copy jar file to adaptor basedir -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>${maven-resources-plugin.version}</version>
@@ -175,8 +185,8 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Clean compss-engine.jar -->
+			
+            <!-- Remove final *.jar from project basedir -->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>${maven-clean-plugin.version}</version>
@@ -187,11 +197,14 @@
                             <directory>${basedir}/..</directory>
                             <includes>
                                 <include>${project.artifactId}.jar</include>
+                                <include>dependency-reduced-pom.xml</include>
                             </includes>
                         </fileset>
                     </filesets>
                 </configuration>
             </plugin>
+            
+            <!-- Run unit tests-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

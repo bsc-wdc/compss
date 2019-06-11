@@ -44,14 +44,14 @@ public class Delete extends DataOperation {
         try {
             if (!this.getFile().delete()) {
                 FileDeletionException fde = new FileDeletionException("Error performing delete file");
-                this.end(DataOperation.OpEndState.OP_FAILED, fde);
+                this.end(OperationEndState.OP_FAILED, fde);
                 return;
             }
         } catch (SecurityException e) {
-            this.end(DataOperation.OpEndState.OP_FAILED, e);
+            this.end(OperationEndState.OP_FAILED, e);
             return;
         }
-        this.end(DataOperation.OpEndState.OP_OK);
+        this.end(OperationEndState.OP_OK);
     }
 
 }

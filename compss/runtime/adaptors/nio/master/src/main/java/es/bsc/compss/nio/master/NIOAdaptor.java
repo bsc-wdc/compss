@@ -46,6 +46,7 @@ import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobHistory;
@@ -493,7 +494,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             MasterDataRequest mdr = (MasterDataRequest) dr;
             Copy c = (Copy) mdr.getOperation();
             c.getSourceData().finishedCopy(c);
-            c.end(DataOperation.OpEndState.OP_FAILED); // Notify the copy has failed
+            c.end(OperationEndState.OP_FAILED); // Notify the copy has failed
         }
     }
 
@@ -510,7 +511,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     tgtData.setValue(object);
                 }
             }
-            c.end(DataOperation.OpEndState.OP_OK);
+            c.end(OperationEndState.OP_OK);
         }
 
         if (NIOTracer.extraeEnabled()) {

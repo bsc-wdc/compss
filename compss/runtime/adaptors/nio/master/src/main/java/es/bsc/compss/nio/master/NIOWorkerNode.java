@@ -49,8 +49,7 @@ import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.data.operation.DataOperation.OpEndState;
+import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.data.operation.copy.DeferredCopy;
 import es.bsc.compss.types.data.operation.copy.StorageCopy;
@@ -431,7 +430,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             currentLocations = StorageItf.getLocations(pscoId);
         } catch (StorageException se) {
             // Cannot obtain current locations from back-end
-            sc.end(OpEndState.OP_FAILED, se);
+            sc.end(OperationEndState.OP_FAILED, se);
             return;
         }
 
@@ -463,7 +462,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
 
         // Notify successful end
-        sc.end(OpEndState.OP_OK);
+        sc.end(OperationEndState.OP_OK);
     }
 
     private void newVersion(StorageCopy sc) {
@@ -496,7 +495,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             NIOData nd = new NIOData(srcLD.getName(), uri);
             sc.setProposedSource(nd);
         } catch (Exception e) {
-            sc.end(OpEndState.OP_FAILED, e);
+            sc.end(OperationEndState.OP_FAILED, e);
             return;
         } finally {
             if (Tracer.extraeEnabled()) {
@@ -505,7 +504,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
 
         // Notify successful end
-        sc.end(OpEndState.OP_OK);
+        sc.end(OperationEndState.OP_OK);
     }
 
     private void orderCopy(DeferredCopy c, COMPSsNode tgtNode) {
@@ -541,7 +540,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             ld.startCopy(c, c.getTargetLoc());
             commManager.registerCopy(c);
         }
-        c.end(DataOperation.OpEndState.OP_OK);
+        c.end(OperationEndState.OP_OK);
     }
 
     @Override

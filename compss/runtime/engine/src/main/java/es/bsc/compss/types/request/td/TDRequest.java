@@ -30,19 +30,6 @@ import org.apache.logging.log4j.Logger;
  */
 public abstract class TDRequest extends Request {
 
-    public enum TDRequestType {
-        ACTION_UPDATE, // Update action
-        CE_REGISTRATION, // Register new coreElement
-        EXECUTE_TASKS, // Execute task
-        GET_CURRENT_SCHEDULE, // get the current schedule status
-        PRINT_CURRENT_GRAPH, // print current task graph
-        MONITORING_DATA, // print data for monitoring
-        TD_SHUTDOWN, // shutdown
-        UPDATE_CEI_LOCAL, // Updates CEI locally
-        WORKER_UPDATE_REQUEST // Updates a worker definition
-    }
-
-
     // Logging
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();

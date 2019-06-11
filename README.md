@@ -131,6 +131,8 @@ Install the listed dependencies for each component you wish to install. For a co
   * sympy
   * enum34
   * islpy
+* Streaming dependencies
+  * Gradle
 * Testing dependencies
   * openmpi-bin
   * openmpi-doc

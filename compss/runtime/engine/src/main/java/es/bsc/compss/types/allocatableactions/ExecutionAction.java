@@ -45,7 +45,8 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.JobTransfersListener;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -352,7 +353,7 @@ public class ExecutionAction extends AllocatableAction {
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
                 slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
-        job.setHistory(Job.JobHistory.NEW);
+        job.setHistory(JobHistory.NEW);
 
         return job;
     }
@@ -376,7 +377,7 @@ public class ExecutionAction extends AllocatableAction {
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             ErrorManager.warn("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
-            job.setHistory(Job.JobHistory.RESUBMITTED);
+            job.setHistory(JobHistory.RESUBMITTED);
             this.profile.start();
             JobDispatcher.dispatch(job);
         } else {

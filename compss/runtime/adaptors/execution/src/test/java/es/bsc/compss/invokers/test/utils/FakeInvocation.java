@@ -21,7 +21,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.job.Job.JobHistory;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.LinkedList;
@@ -135,7 +135,9 @@ public class FakeInvocation implements Invocation {
             this.inv = inv;
         }
 
-        /** Set Job Id.
+        /**
+         * Set Job Id.
+         * 
          * @param jobId Job Id
          * @return
          */
@@ -145,7 +147,9 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set task Id.
+        /**
+         * Set task Id.
+         * 
          * @param taskId Task Id.
          * @return
          */
@@ -155,7 +159,9 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set type.
+        /**
+         * Set type.
+         * 
          * @param type Type
          * @return
          */
@@ -165,7 +171,9 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set Language.
+        /**
+         * Set Language.
+         * 
          * @param lang Lang
          * @return
          */
@@ -175,7 +183,9 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set Implementation.
+        /**
+         * Set Implementation.
+         * 
          * @param impl Implementation
          * @return
          */
@@ -185,7 +195,9 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set Requirements.
+        /**
+         * Set Requirements.
+         * 
          * @param requirements Requirements
          * @return
          */
@@ -195,7 +207,9 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set parameters.
+        /**
+         * Set parameters.
+         * 
          * @param params Parameters
          * @return
          */
@@ -205,7 +219,9 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set Target.
+        /**
+         * Set Target.
+         * 
          * @param target Target parameter
          * @return
          */
@@ -215,17 +231,21 @@ public class FakeInvocation implements Invocation {
                     this.inv.history));
         }
 
-        /** Set result.
+        /**
+         * Set result.
+         * 
          * @param results Resuts arameters
-         * @return 
+         * @return
          */
         public Builder setResult(List<InvocationParam> results) {
             return new Builder(new FakeInvocation(this.inv.jobId, this.inv.taskId, this.inv.type, this.inv.lang,
                     this.inv.impl, this.inv.requirements, this.inv.params, this.inv.target, results, this.inv.slaves,
                     this.inv.history));
         }
-        
-        /** Set Result.
+
+        /**
+         * Set Result.
+         * 
          * @param history job history
          * @return
          */
@@ -234,8 +254,10 @@ public class FakeInvocation implements Invocation {
                     this.inv.impl, this.inv.requirements, this.inv.params, this.inv.target, this.inv.results,
                     this.inv.slaves, history));
         }
-        
-        /** Set slaves.
+
+        /**
+         * Set slaves.
+         * 
          * @param slaves Slave nodes
          * @return
          */

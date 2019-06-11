@@ -22,6 +22,7 @@ import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -118,7 +119,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
                 slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
-        job.setHistory(Job.JobHistory.NEW);
+        job.setHistory(JobHistory.NEW);
 
         return job;
     }

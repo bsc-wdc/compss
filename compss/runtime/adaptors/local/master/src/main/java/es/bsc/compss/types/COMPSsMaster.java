@@ -49,6 +49,7 @@ import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -1130,7 +1131,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 if (success) {
                     job.getListener().jobCompleted(job);
                 } else {
-                    job.getListener().jobFailed(job, JobListener.JobEndStatus.EXECUTION_FAILED);
+                    job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED);
                 }
             }
         });

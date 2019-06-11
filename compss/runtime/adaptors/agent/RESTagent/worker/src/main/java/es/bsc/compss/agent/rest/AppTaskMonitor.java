@@ -24,7 +24,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import javax.ws.rs.client.Client;

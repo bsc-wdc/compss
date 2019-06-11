@@ -22,29 +22,17 @@ package es.bsc.compss.types.job;
 public interface JobListener {
 
     /**
-     * Job status types.
-     */
-    public enum JobEndStatus {
-    OK, // Success status
-    TO_RESCHEDULE, // Task must be rescheduled
-    TRANSFERS_FAILED, // Task transfers failed
-    SUBMISSION_FAILED, // Task submission failed
-    EXECUTION_FAILED; // Task execution failed
-    }
-
-
-    /**
      * Actions when job has successfully ended.
      * 
-     * @param job Job to notify completion
+     * @param job Job to notify completion.
      */
     public void jobCompleted(Job<?> job);
 
     /**
      * Actions when job has failed.
      * 
-     * @param job Job to notify completion
-     * @param endStatus Failure status
+     * @param job Job to notify completion.
+     * @param endStatus Failure status.
      */
     public void jobFailed(Job<?> job, JobEndStatus endStatus);
 

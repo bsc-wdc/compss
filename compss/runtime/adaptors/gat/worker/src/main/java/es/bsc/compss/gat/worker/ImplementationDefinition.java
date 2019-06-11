@@ -25,7 +25,7 @@ import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.job.Job.JobHistory;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;

@@ -26,8 +26,8 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
 

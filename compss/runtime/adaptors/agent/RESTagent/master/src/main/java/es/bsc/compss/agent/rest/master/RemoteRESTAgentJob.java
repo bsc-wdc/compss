@@ -35,8 +35,8 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -189,15 +189,14 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
         if (response.getStatusInfo().getStatusCode() != 200) {
             System.out.println(response.readEntity(String.class));
-            this.getListener().jobFailed(this, JobListener.JobEndStatus.SUBMISSION_FAILED);
+            this.getListener().jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
         } else {
             System.out.println("SUBMISSION[" + this.getJobId() + "] Job submitted.");
             String jobId = response.readEntity(String.class);
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
 
                 @Override
-                public void finishedExecution(JobListener.JobEndStatus endStatus, DataType[] paramTypes,
-                        String[] paramLocations) {
+                public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations) {
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
                     stageout(paramTypes, paramLocations);
                     if (endStatus == JobEndStatus.OK) {

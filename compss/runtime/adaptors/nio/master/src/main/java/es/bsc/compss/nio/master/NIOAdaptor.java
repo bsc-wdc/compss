@@ -48,7 +48,7 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.Job.JobHistory;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;

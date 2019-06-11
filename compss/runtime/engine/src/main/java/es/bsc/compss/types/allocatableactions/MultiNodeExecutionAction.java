@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.Task.TaskState;
+import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.resources.Worker;

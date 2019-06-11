@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.Task.TaskState;
+import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.allocatableactions.MultiNodeExecutionAction;
 import es.bsc.compss.types.allocatableactions.MultiNodeGroup;

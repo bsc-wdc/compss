@@ -22,24 +22,24 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 public interface Cost {
 
     /**
-     * Returns the total instance cost
+     * Returns the total instance cost.
      * 
-     * @return
+     * @return The total instance cost.
      */
     public Float getTotalCost();
 
     /**
-     * Returns the cost per hour
+     * Returns the cost per hour.
      * 
-     * @return
+     * @return The cost per hour.
      */
     public Float currentCostPerHour();
 
     /**
-     * Returns the cost per hour for a set of machines
+     * Returns the cost per hour for a set of machines.
      * 
-     * @param rc
-     * @return
+     * @param rc Resource description.
+     * @return The cost per hour for a set of machines.
      */
     public Float getMachineCostPerHour(CloudMethodResourceDescription rc);
 

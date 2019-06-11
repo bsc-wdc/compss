@@ -27,7 +27,7 @@ import org.json.JSONObject;
 
 
 /**
- * Implementation for the ReadyResourceScheduler
+ * Implementation for the ReadyResourceScheduler.
  *
  * @param <T>
  */

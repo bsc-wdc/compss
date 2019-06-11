@@ -23,6 +23,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
@@ -40,9 +41,9 @@ import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.SharedDiskManager;
+import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.util.HashSet;
@@ -52,8 +53,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
-
-import es.bsc.compss.util.Tracer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,6 +70,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
+
 
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
@@ -120,7 +120,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         for (String diskName : sharedDisks) {
             Set<LogicalData> sharedData = SharedDiskManager.getAllSharedFiles(diskName);
             if (sharedData != null) {
-                synchronized(sharedData) {
+                synchronized (sharedData) {
                     data.addAll(sharedData);
                 }
             }

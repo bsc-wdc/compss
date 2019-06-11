@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.types;
 
-import org.apache.logging.log4j.Logger;
-
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
+
+import org.apache.logging.log4j.Logger;
 
 
 public class ResourceCreationRequest {
@@ -34,31 +34,32 @@ public class ResourceCreationRequest {
 
     public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks,
             CloudProvider cp, String requestID) {
-        requested = requestedResource;
+
+        this.requested = requestedResource;
         this.provider = cp;
-        requestedSimultaneousTaskCount = simultaneousTasks;
-        requestedTime = System.currentTimeMillis();
+        this.requestedSimultaneousTaskCount = simultaneousTasks;
+        this.requestedTime = System.currentTimeMillis();
         this.requestID = requestID;
     }
 
     public long getRequestedTime() {
-        return requestedTime;
+        return this.requestedTime;
     }
 
     public int[][] requestedSimultaneousTaskCount() {
-        return requestedSimultaneousTaskCount;
+        return this.requestedSimultaneousTaskCount;
     }
 
     public void updateRequestedSimultaneousTaskCount(int[][] newRequestedSimultaneousTaskCount) {
-        requestedSimultaneousTaskCount = newRequestedSimultaneousTaskCount;
+        this.requestedSimultaneousTaskCount = newRequestedSimultaneousTaskCount;
     }
 
     public CloudMethodResourceDescription getRequested() {
-        return requested;
+        return this.requested;
     }
 
     public CloudProvider getProvider() {
-        return provider;
+        return this.provider;
     }
 
     public void print(Logger resourcesLogger, boolean debug) {
@@ -90,7 +91,7 @@ public class ResourceCreationRequest {
     }
 
     public String getRequestID() {
-        return requestID;
+        return this.requestID;
     }
 
 }

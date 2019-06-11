@@ -34,22 +34,6 @@ public abstract class AbstractMethodImplementation extends Implementation implem
 
     private static final Lang LANG;
 
-
-    /**
-     * Enum matching the different method types.
-     */
-    public enum MethodType {
-        METHOD, // For native methods
-        BINARY, // For binary methods
-        MPI, // For MPI methods
-        COMPSs, // For COMPSs nested applications
-        DECAF, // For decaf methods
-        MULTI_NODE, // For native multi-node methods
-        OMPSS, // For OmpSs methods
-        OPENCL // For OpenCL methods
-    }
-
-
     static {
         // Compute language
         Lang l = Lang.JAVA;

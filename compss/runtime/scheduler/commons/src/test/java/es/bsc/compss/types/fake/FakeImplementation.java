@@ -17,6 +17,7 @@
 package es.bsc.compss.types.fake;
 
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.TaskType;
 
 
 public class FakeImplementation extends Implementation {

@@ -16,28 +16,28 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.types.resources.description.CloudImageDescription;
-import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.connectors.Connector;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.connectors.Cost;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.description.CloudImageDescription;
+import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
+import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.CloudImageManager;
 import es.bsc.compss.util.CloudTypeManager;
 import es.bsc.compss.util.CoreManager;
 
 import java.lang.reflect.Constructor;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
-import java.util.Collection;
-import java.util.HashSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

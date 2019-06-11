@@ -19,7 +19,7 @@ package es.bsc.compss.gat.worker.implementations;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
 
 

@@ -16,6 +16,16 @@
  */
 package es.bsc.compss.connectors;
 
+import es.bsc.compss.connectors.utils.CreationThread;
+import es.bsc.compss.connectors.utils.DeletionThread;
+import es.bsc.compss.connectors.utils.Operations;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.ResourceCreationRequest;
+import es.bsc.compss.types.resources.CloudMethodWorker;
+import es.bsc.compss.types.resources.ShutdownListener;
+import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
+
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -27,19 +37,9 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import es.bsc.compss.connectors.utils.CreationThread;
-import es.bsc.compss.connectors.utils.DeletionThread;
-import es.bsc.compss.connectors.utils.Operations;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.CloudProvider;
-import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
-import es.bsc.compss.types.ResourceCreationRequest;
-import es.bsc.compss.types.resources.CloudMethodWorker;
-import es.bsc.compss.types.resources.ShutdownListener;
-
 
 /**
- * Abstract representation of a Runtime Cloud Connector
+ * Abstract representation of a Runtime Cloud Connector.
  */
 public abstract class AbstractConnector implements Connector, Operations, Cost {
 

@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.types.resources;
 
-import java.util.Map;
-
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+
+import java.util.Map;
 
 
 public class MethodWorker extends Worker<MethodResourceDescription> {
@@ -40,6 +40,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     private int maxFPGAtaskCount;
     private int usedOthersTaskCount = 0;
     private int maxOthersTaskCount;
+
 
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
             int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
@@ -347,7 +348,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public MethodResourceDescription runTask(MethodResourceDescription consumption) {
         MethodResourceDescription reserved = super.runTask(consumption);
         if (DEBUG) {
-            LOGGER.debug("Run task received. Reserving resource " + consumption +" on " + getName());
+            LOGGER.debug("Run task received. Reserving resource " + consumption + " on " + getName());
         }
         if (reserved != null) {
             // Consumption can be hosted

@@ -19,8 +19,8 @@ package es.bsc.compss.gat.worker.implementations;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 
 
 public class JavaMethodDefinition extends ImplementationDefinition {
@@ -29,6 +29,7 @@ public class JavaMethodDefinition extends ImplementationDefinition {
     private final String methodName;
 
     private final MethodImplementation impl;
+
 
     /**
      * Creates a new Java definition implementation.
@@ -39,10 +40,10 @@ public class JavaMethodDefinition extends ImplementationDefinition {
      */
     public JavaMethodDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + MethodImplementation.NUM_PARAMS);
-        
+
         this.className = args[execArgsIdx++];
         this.methodName = args[execArgsIdx];
-        
+
         this.impl = new MethodImplementation(this.className, this.methodName, null, null, null);
     }
 

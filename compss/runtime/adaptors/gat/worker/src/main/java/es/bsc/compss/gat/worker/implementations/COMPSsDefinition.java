@@ -20,8 +20,8 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 
 
 public class COMPSsDefinition extends ImplementationDefinition {
@@ -49,7 +49,7 @@ public class COMPSsDefinition extends ImplementationDefinition {
         this.flags = args[execArgsIdx++];
         this.appName = args[execArgsIdx++];
         this.workerInMaster = args[execArgsIdx++];
-        
+
         String wDir = args[execArgsIdx++];
         if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;

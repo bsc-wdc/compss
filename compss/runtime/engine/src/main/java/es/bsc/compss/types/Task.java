@@ -22,7 +22,7 @@ import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
 
 import java.util.LinkedList;

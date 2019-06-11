@@ -20,8 +20,8 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 
 
 public class BinaryDefinition extends ImplementationDefinition {
@@ -41,9 +41,9 @@ public class BinaryDefinition extends ImplementationDefinition {
      */
     public BinaryDefinition(boolean debug, String[] args, int execArgsIdx) {
         super(debug, args, execArgsIdx + BinaryImplementation.NUM_PARAMS);
-        
+
         this.binary = args[execArgsIdx++];
-        
+
         String wDir = args[execArgsIdx];
         if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
             this.workingDir = null;

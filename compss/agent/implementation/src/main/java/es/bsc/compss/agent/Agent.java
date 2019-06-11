@@ -53,8 +53,9 @@ public class Agent {
 
     private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
     private static final COMPSsRuntimeImpl RUNTIME;
+
     private static final Random APP_ID_GENERATOR = new Random();
-    private static final List<AgentInterface> interfaces;
+    private static final List<AgentInterface<?>> INTERFACES;
 
     static {
         String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);
@@ -106,9 +107,9 @@ public class Agent {
         }
         System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
 
-        interfaces = new LinkedList<>();
-        
+        INTERFACES = new LinkedList<>();
     }
+
 
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
@@ -139,8 +140,8 @@ public class Agent {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
 
-        Object[] paramsValues = new Object[]{
-            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime",// Runtime API
+        Object[] paramsValues = new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
+            "runtime", // Runtime API
             RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
             ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
             appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
@@ -150,12 +151,11 @@ public class Agent {
             new Object(), DataType.OBJECT_T, Direction.OUT, StdIOStream.UNSPECIFIED, "", "return" // Return value
         };
 
-        RUNTIME.executeTask(
-                mainAppId, // Task application ID
+        RUNTIME.executeTask(mainAppId, // Task application ID
                 monitor, // Corresponding task monitor
                 lang, "es.bsc.compss.agent.loader.Loader", "load", // Method to run
-                false, 1, false, false, //Scheduler hints
-                false, 8, //Parameters information
+                false, 1, false, false, // Scheduler hints
+                false, 8, // Parameters information
                 OnFailure.RETRY, // On failure behavior
                 paramsValues // Argument values
         );
@@ -242,12 +242,11 @@ public class Agent {
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
 
-            RUNTIME.executeTask(
-                    appId, // APP ID
+            RUNTIME.executeTask(appId, // APP ID
                     monitor, // Corresponding task monitor
                     lang, className, methodName, // Method to call
-                    false, 1, false, false, //Scheduling information
-                    target != null, paramsCount, //Parameter information
+                    false, 1, false, false, // Scheduling information
+                    target != null, paramsCount, // Parameter information
                     OnFailure.RETRY, // On failure behavior
                     params // Parameter values
             );
@@ -258,29 +257,13 @@ public class Agent {
         return appId;
     }
 
-    private static boolean isMaster(Resource r) {
-        String name = r.getName();
-        String hostName = name;
-        try {
-            if (!hostName.contains("://")) {
-                hostName = "http://" + hostName;
-            }
-            URI u = new URI(hostName);
-            hostName = u.getHost();
-        } catch (URISyntaxException ex) {
-            hostName = name;
-        }
-
-        return (name.equals(AGENT_NAME) || hostName.equals(AGENT_NAME) || name.equals("localhost"));
-    }
-
     /**
      * Adds new resources into the resource pool.
      *
      * @param r Description of the resources to add into the resource pool
      * @throws AgentException could not create a configuration to start using this resource
      */
-    public static void addResources(Resource r) throws AgentException {
+    public static void addResources(Resource<?,?> r) throws AgentException {
         String workerName = r.getName();
         String adaptor = r.getAdaptor();
         MethodResourceDescription description = r.getDescription();
@@ -367,29 +350,36 @@ public class Agent {
      * Starts an agent interface.
      *
      * @param conf Agent Interface configuration parameters
-     *
      * @throws ClassNotFoundException Could not find the specify agent interface class
      * @throws InstantiationException Could not instantiate the agent interface
      * @throws IllegalAccessException Could not call the empty constructor because is private
      * @throws AgentException Error during the interface boot process
      */
-    public final static void startInterface(AgentInterfaceConfig conf)
+    public static final void startInterface(AgentInterfaceConfig conf)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+
         Class<?> agentClass = Class.forName(conf.getInterfaceClass());
         AgentInterface itf = (AgentInterface) agentClass.newInstance();
         itf.start(conf);
-        interfaces.add(itf);
+        INTERFACES.add(itf);
     }
 
     private static AgentInterfaceConfig getConfig(String className, String arguments)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+
         Class<?> agentClass = Class.forName(className);
-        AgentInterface itf = (AgentInterface) agentClass.newInstance();
+        AgentInterface<?> itf = (AgentInterface<?>) agentClass.newInstance();
         return itf.configure(arguments);
     }
 
-    public final static void main(String[] args) throws Exception {
-        //TODO: Read Agents Setup
+    /**
+     * Entry point.
+     * 
+     * @param args Command line arguments.
+     * @throws Exception Any internal exception.
+     */
+    public static final void main(String[] args) throws Exception {
+        // TODO: Read Agents Setup
         LinkedList<AgentInterfaceConfig> agents = new LinkedList<>();
         agents.add(getConfig("es.bsc.compss.agent.rest.RESTAgent", args[0]));
 
@@ -400,7 +390,7 @@ public class Agent {
                 ErrorManager.warn("Could not start Agent", e);
             }
         }
-        if (interfaces.isEmpty()) {
+        if (INTERFACES.isEmpty()) {
             ErrorManager.fatal("Could not start any interface");
         }
     }

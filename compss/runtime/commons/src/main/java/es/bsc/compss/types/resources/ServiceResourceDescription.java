@@ -17,7 +17,7 @@
 package es.bsc.compss.types.resources;
 
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 
 import java.io.IOException;
 import java.io.ObjectInput;

@@ -23,23 +23,24 @@ import java.io.IOException;
 
 public class KeyManager {
 
-    private static String keyPair = null;
-    private static String keyType = null;
-    private static String publicKey = null;
-    private static String privateKey = null;
+    private static String KEY_PAIR = null;
+    private static String KEY_TYPE = null;
+    private static String PUBLIC_KEY = null;
+    private static String PRIVATE_KEY = null;
 
 
     public static String getKeyType() {
-        if (keyType != null) {
-            return keyType;
+        if (KEY_TYPE != null) {
+            return KEY_TYPE;
         }
         getKeyPair();
-        return keyType;
+        return KEY_TYPE;
     }
 
     public static String getKeyPair() {
-        if (keyPair != null)
-            return keyPair;
+        if (KEY_PAIR != null) {
+            return KEY_PAIR;
+        }
         String keyfile = null;
         String keyfilePub = null;
         String home = System.getProperty("user.home");
@@ -55,37 +56,37 @@ public class KeyManager {
         java.io.File keyf = new java.io.File(keyfile);
         keyfilePub = home + ".ssh" + fileSep + "id_dsa.pub";
         java.io.File keyfpub = new java.io.File(keyfilePub);
-        keyType = "id_dsa";
+        KEY_TYPE = "id_dsa";
         if (!keyf.exists() || !keyfpub.exists()) {
             keyfile = home + ".ssh" + fileSep + "id_rsa";
             keyf = new java.io.File(keyfile);
             keyfilePub = home + ".ssh" + fileSep + "id_rsa.pub";
             keyfpub = new java.io.File(keyfilePub);
-            keyType = "id_rsa";
+            KEY_TYPE = "id_rsa";
             if (!keyf.exists() || !keyfpub.exists()) {
                 keyfile = home + ".ssh" + fileSep + "identity";
                 keyf = new java.io.File(keyfile);
                 keyfilePub = home + ".ssh" + fileSep + "identity.pub";
                 keyfpub = new java.io.File(keyfilePub);
-                keyType = "identity";
+                KEY_TYPE = "identity";
                 if (!keyf.exists() || !keyfpub.exists()) {
                     keyfile = home + "ssh" + fileSep + "id_dsa";
                     keyf = new java.io.File(keyfile);
                     keyfilePub = home + "ssh" + fileSep + "id_dsa.pub";
                     keyfpub = new java.io.File(keyfilePub);
-                    keyType = "id_dsa";
+                    KEY_TYPE = "id_dsa";
                     if (!keyf.exists() || !keyfpub.exists()) {
                         keyfile = home + "ssh" + fileSep + "id_rsa";
                         keyf = new java.io.File(keyfile);
                         keyfilePub = home + "ssh" + fileSep + "id_rsa.pub";
                         keyfpub = new java.io.File(keyfilePub);
-                        keyType = "id_rsa";
+                        KEY_TYPE = "id_rsa";
                         if (!keyf.exists() || !keyfpub.exists()) {
                             keyfile = home + "ssh" + fileSep + "identity";
                             keyf = new java.io.File(keyfile);
                             keyfilePub = home + "ssh" + fileSep + "identity.pub";
                             keyfpub = new java.io.File(keyfilePub);
-                            keyType = "identity";
+                            KEY_TYPE = "identity";
                             if (!keyf.exists() || !keyfpub.exists()) {
                                 return null;
                             }
@@ -94,13 +95,13 @@ public class KeyManager {
                 }
             }
         }
-        keyPair = keyfile;
+        KEY_PAIR = keyfile;
         return keyfile;
     }
 
     public static String getPublicKey(String keyfile) throws IOException {
-        if (publicKey != null) {
-            return publicKey;
+        if (PUBLIC_KEY != null) {
+            return PUBLIC_KEY;
         }
 
         BufferedReader input = new BufferedReader(new FileReader(keyfile + ".pub"));
@@ -112,13 +113,13 @@ public class KeyManager {
         }
         input.close();
 
-        publicKey = key.toString();
-        return publicKey;
+        PUBLIC_KEY = key.toString();
+        return PUBLIC_KEY;
     }
 
     public static String getPrivateKey(String keyfile) throws IOException {
-        if (privateKey != null) {
-            return privateKey;
+        if (PRIVATE_KEY != null) {
+            return PRIVATE_KEY;
         }
 
         BufferedReader input = new BufferedReader(new FileReader(keyfile));
@@ -130,8 +131,8 @@ public class KeyManager {
         }
         input.close();
 
-        privateKey = key.toString();
-        return privateKey;
+        PRIVATE_KEY = key.toString();
+        return PRIVATE_KEY;
     }
 
 }

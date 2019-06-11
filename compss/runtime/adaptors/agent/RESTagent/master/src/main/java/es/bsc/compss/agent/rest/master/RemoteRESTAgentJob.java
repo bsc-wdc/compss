@@ -32,6 +32,7 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.job.JobListener.JobEndStatus;
@@ -357,13 +358,12 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
     }
 
     @Override
-    public Implementation.TaskType getType() {
-        return Implementation.TaskType.METHOD;
+    public TaskType getType() {
+        return TaskType.METHOD;
     }
 
     @Override
     public String toString() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

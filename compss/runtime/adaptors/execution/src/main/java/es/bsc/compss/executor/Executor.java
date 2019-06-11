@@ -43,11 +43,11 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.Tracer;
@@ -71,10 +71,10 @@ public class Executor implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_OUT_FILES
-            = "ERROR: One or more OUT files have not been created by task with Method Definition [";
-    private static final String WARN_ATOMIC_MOVE
-            = "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic";
+    private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not"
+            + " been created by task with Method Definition [";
+    private static final String WARN_ATOMIC_MOVE = "WARN: AtomicMoveNotSupportedException."
+            + " File cannot be atomically moved. Trying to move without atomic";
 
     // Attached component NIOWorker
     private final InvocationContext context;
@@ -87,15 +87,13 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
+
     /**
      * Instantiates a new Executor.
      *
-     * @param context
-     * Invocation context
-     * @param platform
-     * Executor context (Execution Platform
-     * @param executorId
-     * Executor Identifier
+     * @param context Invocation context
+     * @param platform Executor context (Execution Platform
+     * @param executorId Executor Identifier
      */
     public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
         LOGGER.info("Executor init");
@@ -416,12 +414,10 @@ public class Executor implements Runnable {
     /**
      * Check whether file1 corresponds to a file with a higher version than file2.
      *
-     * @param file1
-     * first file name
-     * @param file2
-     * second file name
+     * @param file1 first file name
+     * @param file2 second file name
      * @return True if file1 has a higher version. False otherwise (This includes the case where the name file's format
-     * is not correct)
+     *         is not correct)
      */
     private boolean isMajorVersion(String file1, String file2) {
         String[] version1array = file1.split("_")[0].split("v");
@@ -447,12 +443,9 @@ public class Executor implements Runnable {
     /**
      * Create symbolic links from files with the original name in task sandbox to the renamed file.
      *
-     * @param invocation
-     * task description
-     * @param sandbox
-     * created sandbox
-     * @throws IOException
-     * returns exception is a problem occurs during creation
+     * @param invocation task description
+     * @param sandbox created sandbox
+     * @throws IOException returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
         for (InvocationParam param : invocation.getParams()) {
@@ -507,8 +500,7 @@ public class Executor implements Runnable {
     /**
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file.
      *
-     * @param invocation
-     * task description
+     * @param invocation task description
      * @throws IOException Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
@@ -721,8 +713,7 @@ public class Executor implements Runnable {
             }
 
             @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                    throws IOException {
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
                 Files.delete(dir);
                 return FileVisitResult.CONTINUE;
             }
@@ -734,6 +725,7 @@ public class Executor implements Runnable {
 
         private final File workingDir;
         private final boolean isSpecific;
+
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

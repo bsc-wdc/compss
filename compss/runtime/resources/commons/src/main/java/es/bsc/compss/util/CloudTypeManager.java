@@ -18,7 +18,7 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 

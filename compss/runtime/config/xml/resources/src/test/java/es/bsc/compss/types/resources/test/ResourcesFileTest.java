@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.types.resources.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import es.bsc.compss.types.resources.ResourcesFile;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
 import es.bsc.compss.types.resources.jaxb.AdaptorType;
@@ -24,9 +27,6 @@ import es.bsc.compss.types.resources.jaxb.OSTypeType;
 import es.bsc.compss.types.resources.jaxb.ProcessorPropertyType;
 import es.bsc.compss.types.resources.jaxb.ProcessorType;
 import es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,6 +80,7 @@ public class ResourcesFileTest {
 
     /**
      * Before class method.
+     * 
      * @throws Exception Error in before class
      */
     @BeforeClass
@@ -119,6 +120,7 @@ public class ResourcesFileTest {
 
     /**
      * After class method.
+     * 
      * @throws Exception Error in after class method
      */
     @AfterClass
@@ -129,7 +131,7 @@ public class ResourcesFileTest {
     }
 
     /* ****************** CONSTRUCTOR TESTS *******************/
-    
+
     @Test
     public void creation_XMLfile_XSDschema()
             throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
@@ -233,8 +235,7 @@ public class ResourcesFileTest {
     }
 
     /*
-     * *************************************************************** 
-     * Dumpers checkers
+     * *************************************************************** Dumpers checkers
      ***************************************************************/
     @Test
     public void xmlToFile()
@@ -277,8 +278,7 @@ public class ResourcesFileTest {
     }
 
     /*
-     * ***************************************************************
-     *  Different types of XML checkers
+     * *************************************************************** Different types of XML checkers
      ***************************************************************/
     @Test
     public void fullXML()
@@ -386,8 +386,7 @@ public class ResourcesFileTest {
     }
 
     /*
-     * ***************************************************************
-     * XML String builder (PRIVATE)
+     * *************************************************************** XML String builder (PRIVATE)
      ***************************************************************/
     private String buildXMLString() {
         StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");

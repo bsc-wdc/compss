@@ -19,7 +19,7 @@ package es.bsc.compss.nio;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.Job.JobHistory;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 

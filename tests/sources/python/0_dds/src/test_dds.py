@@ -28,8 +28,8 @@ def test_loader_functions():
     with open(filename, "wb") as tmp_f:
         tmp_f.write(bytearray(content, "utf8"))
     dds = DDS().load_file(filename).collect()
-    assert dds[0] == content
     os.remove(filename)
+    assert dds[0] == content
 
     # Multiple files
     _dir = os.path.join(tempfile.gettempdir(), "multi")
@@ -43,17 +43,18 @@ def test_loader_functions():
             tmp_f.write(bytearray(str(_i), "utf8"))
 
     dds = DDS().load_files_from_dir(_dir).collect()
+    shutil.rmtree(_dir)
+
     dds = sorted(dds, key=lambda x: x[1])
     for _i in range(10):
         assert int(dds[_i][1]) == _i
-    shutil.rmtree(_dir)
 
     return True
 
 
 def word_count():
     # Word Count
-    vocabulary = ["Holala ", "World ", "test ", "COMPSs ", "Lorem ", "Ipsum "]
+    vocabulary = ["Holala", "World", "COMPSs", "Lorem", "Ipsum", "_filter_"]
 
     _dir = os.path.join(tempfile.gettempdir(), "wc")
     if not os.path.exists(_dir):
@@ -63,17 +64,19 @@ def word_count():
         file_path = os.path.join(_dir, filename)
         tmp_f = open(file_path, "w")
         for word in vocabulary:
-            tmp_f.write(word)
+            tmp_f.write(word + " ")
         tmp_f.close()
 
     dds = DDS().load_files_from_dir(_dir) \
         .map_and_flatten(lambda x: x[1].split())\
+        .filter(lambda x: "_" not in x)\
         .count_by_value(as_dict=True)
 
-    for value in dds.values():
-        assert value == 5
-
     shutil.rmtree(_dir)
+
+    for key, value in dds.items():
+        assert "_" not in key
+        assert value == 5
 
 
 def main_program():

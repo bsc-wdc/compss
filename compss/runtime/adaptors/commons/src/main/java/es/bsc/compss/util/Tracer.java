@@ -24,6 +24,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.TracingCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.transferable.TracingCopyTransferable;
 import es.bsc.compss.types.uri.SimpleURI;
 
@@ -684,7 +685,7 @@ public abstract class Tracer {
         // Create source and target locations for tar.gz file
         String filename = "master_compss_trace.tar.gz";
         DataLocation source = null;
-        String sourcePath = DataLocation.Protocol.FILE_URI.getSchema() + filename;
+        String sourcePath = ProtocolType.FILE_URI.getSchema() + filename;
         try {
             SimpleURI uri = new SimpleURI(sourcePath);
             source = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -692,7 +693,7 @@ public abstract class Tracer {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + sourcePath, e);
         }
         DataLocation target = null;
-        String targetPath = DataLocation.Protocol.FILE_URI.getSchema() + traceDirPath + filename;
+        String targetPath = ProtocolType.FILE_URI.getSchema() + traceDirPath + filename;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             target = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -766,7 +767,7 @@ public abstract class Tracer {
      * Removing the tracing temporal packages.
      */
     private static void cleanMasterPackage() {
-        String filename = DataLocation.Protocol.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
+        String filename = ProtocolType.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
 
         String filePath;
         try {

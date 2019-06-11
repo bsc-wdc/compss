@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.types.execution;
 
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 
 
 public interface InvocationParamURI {
 
     public boolean isHost(String hostName);
 
-    public Protocol getProtocol();
+    public ProtocolType getProtocol();
 
     public String getPath();
 

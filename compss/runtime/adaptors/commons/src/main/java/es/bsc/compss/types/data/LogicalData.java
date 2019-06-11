@@ -23,8 +23,8 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
@@ -159,7 +159,7 @@ public class LogicalData {
     public synchronized void addLocation(Resource res) {
         localLocations.add(res);
     }
-    
+
     /**
      * Adds a new location.
      *
@@ -191,7 +191,6 @@ public class LogicalData {
                 break;
         }
     }
-    
 
     /**
      * Obtain the all the URIs.
@@ -254,7 +253,6 @@ public class LogicalData {
      * Setters
      */
 
-
     /**
      * Removes the object from master main memory and removes its location.
      *
@@ -262,7 +260,7 @@ public class LogicalData {
      */
     public synchronized Object removeValue() {
         DataLocation loc = null;
-        String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+        String targetPath = ProtocolType.OBJECT_URI.getSchema() + this.name;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             loc = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -350,7 +348,7 @@ public class LogicalData {
     }
 
     private void addWrittenObjectLocation(String targetPath) throws IOException {
-        String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
+        String targetPathWithSchema = ProtocolType.FILE_URI.getSchema() + targetPath;
         SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
         DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
         this.isBeingSaved = false;
@@ -403,7 +401,7 @@ public class LogicalData {
                             continue;
                         }
 
-                        String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+                        String targetPath = ProtocolType.OBJECT_URI.getSchema() + this.name;
                         SimpleURI uri = new SimpleURI(targetPath);
                         try {
                             DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -434,7 +432,7 @@ public class LogicalData {
                         }
                     }
 
-                    String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+                    String targetPath = ProtocolType.OBJECT_URI.getSchema() + this.name;
                     SimpleURI uri = new SimpleURI(targetPath);
                     try {
                         DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -478,7 +476,7 @@ public class LogicalData {
         // location if needed. We only store the "best" location if any (by
         // choosing
         // any private location found or the first shared location)
-        
+
         DataLocation uniqueHostLocation = null;
         Iterator<DataLocation> it = this.locations.iterator();
         while (it.hasNext()) {
@@ -506,7 +504,7 @@ public class LogicalData {
                                 if (uniqueHostLocation == null) {
                                     this.isBeingSaved = true;
 
-                                    String targetPath = Protocol.FILE_URI.getSchema() + loc.getPath();
+                                    String targetPath = ProtocolType.FILE_URI.getSchema() + loc.getPath();
                                     try {
                                         SimpleURI uri = new SimpleURI(targetPath);
                                         uniqueHostLocation = DataLocation.createLocation(host, uri);
@@ -579,7 +577,7 @@ public class LogicalData {
     /**
      * Begins a copy of the LogicalData to a target host.
      *
-     * @param c Copy 
+     * @param c Copy
      * @param target Target data location
      */
     public synchronized void startCopy(Copy c, DataLocation target) {

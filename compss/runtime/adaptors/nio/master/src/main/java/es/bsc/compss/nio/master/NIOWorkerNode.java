@@ -48,7 +48,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.DataOperation.OpEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
@@ -492,7 +492,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (targetLD != null) {
                 targetLD.setPscoId(newId);
             }
-            NIOUri uri = new NIOUri(null, pscoId, Protocol.PERSISTENT_URI);
+            NIOUri uri = new NIOUri(null, pscoId, ProtocolType.PERSISTENT_URI);
             NIOData nd = new NIOData(srcLD.getName(), uri);
             sc.setProposedSource(nd);
         } catch (Exception e) {
@@ -573,29 +573,29 @@ public class NIOWorkerNode extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case OBJECT_T:
             case COLLECTION_T:
-                path = Protocol.OBJECT_URI.getSchema() + name;
+                path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case STREAM_T:
-                path = Protocol.STREAM_URI.getSchema() + name;
+                path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case PSCO_T:
                 // Search for the PSCO id
                 String id = Comm.getData(name).getPscoId();
-                path = Protocol.PERSISTENT_URI.getSchema() + id;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + id;
                 break;
             case EXTERNAL_PSCO_T:
                 // The value of the registered object in the runtime is the PSCO Id
-                path = Protocol.PERSISTENT_URI.getSchema() + name;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;

@@ -33,24 +33,25 @@ public class BindingObjectLocation extends DataLocation {
 
     /**
      * Binding location constructor.
+     * 
      * @param host Resource
      * @param bo BindingObject reference
      */
     public BindingObjectLocation(Resource host, BindingObject bo) {
         super();
         this.id = bo.getId();
-        this.uri = new MultiURI(Protocol.BINDING_URI, host, id + "#" + bo.getType() + "#" + bo.getElements());
+        this.uri = new MultiURI(ProtocolType.BINDING_URI, host, id + "#" + bo.getType() + "#" + bo.getElements());
         this.bindingObject = bo;
     }
 
     @Override
-    public DataLocation.Type getType() {
-        return DataLocation.Type.BINDING;
+    public LocationType getType() {
+        return LocationType.BINDING;
     }
 
     @Override
-    public Protocol getProtocol() {
-        return Protocol.BINDING_URI;
+    public ProtocolType getProtocol() {
+        return ProtocolType.BINDING_URI;
     }
 
     public String getId() {
@@ -87,7 +88,7 @@ public class BindingObjectLocation extends DataLocation {
 
     @Override
     public boolean isTarget(DataLocation target) {
-        if (target.getType() != DataLocation.Type.BINDING) {
+        if (target.getType() != LocationType.BINDING) {
             return false;
         }
 
@@ -131,7 +132,7 @@ public class BindingObjectLocation extends DataLocation {
         this.id = path;
         this.bindingObject = new BindingObject(path, bindingObject.getType(), bindingObject.getElements());
         MultiURI olduri = this.uri;
-        this.uri = new MultiURI(Protocol.BINDING_URI, olduri.getHost(),
+        this.uri = new MultiURI(ProtocolType.BINDING_URI, olduri.getHost(),
                 id + "#" + bindingObject.getType() + "#" + bindingObject.getElements());
 
     }

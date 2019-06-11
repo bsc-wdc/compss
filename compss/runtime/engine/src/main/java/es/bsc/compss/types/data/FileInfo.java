@@ -20,7 +20,7 @@ import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Type;
+import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
@@ -74,7 +74,7 @@ public class FileInfo extends DataInfo {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
                     if (uri != null) {
                         if (loc.equals(this.origLocation)) {
-                            if (loc.getType() != Type.SHARED) {
+                            if (loc.getType() != LocationType.SHARED) {
                                 nPermits = waitForEndingCopies(ld, loc, semWait);
                             } else {
                                 // Add a semaphore to notify if all readers to finish

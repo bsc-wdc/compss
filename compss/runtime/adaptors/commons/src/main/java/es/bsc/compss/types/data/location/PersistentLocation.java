@@ -39,13 +39,13 @@ public class PersistentLocation extends DataLocation {
     }
 
     @Override
-    public DataLocation.Type getType() {
-        return DataLocation.Type.PERSISTENT;
+    public LocationType getType() {
+        return LocationType.PERSISTENT;
     }
 
     @Override
-    public Protocol getProtocol() {
-        return Protocol.PERSISTENT_URI;
+    public ProtocolType getProtocol() {
+        return ProtocolType.PERSISTENT_URI;
     }
 
     public String getId() {
@@ -70,7 +70,7 @@ public class PersistentLocation extends DataLocation {
         for (String hostName : locations) {
             Resource host = ResourcesPool.getResource(hostName);
             if (host != null) {
-                uris.add(new MultiURI(Protocol.PERSISTENT_URI, host, this.id));
+                uris.add(new MultiURI(ProtocolType.PERSISTENT_URI, host, this.id));
             } else {
                 LOGGER.warn("Storage Back-End returned non-registered host " + hostName + ". Skipping URI in host");
             }
@@ -124,7 +124,7 @@ public class PersistentLocation extends DataLocation {
         // Get URIs in host
         for (String hostName : locations) {
             if (hostName.equals(targetHost.getName())) {
-                return new MultiURI(Protocol.PERSISTENT_URI, targetHost, this.id);
+                return new MultiURI(ProtocolType.PERSISTENT_URI, targetHost, this.id);
             }
         }
 
@@ -133,7 +133,7 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public boolean isTarget(DataLocation target) {
-        if (target.getType() != DataLocation.Type.PERSISTENT) {
+        if (target.getType() != LocationType.PERSISTENT) {
             return false;
         }
 
@@ -142,7 +142,7 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public String toString() {
-        return Protocol.PERSISTENT_URI.getSchema() + this.id;
+        return ProtocolType.PERSISTENT_URI.getSchema() + this.id;
     }
 
     @Override

@@ -29,6 +29,7 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
@@ -233,7 +234,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 SimpleURI uri = new SimpleURI(locString);
                 try {
                     DataLocation loc = DataLocation.createLocation(worker, uri);
-                    if (loc.getProtocol() == DataLocation.Protocol.PERSISTENT_URI) {
+                    if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
                         String pscoId = loc.getLocationKey();
                         type = returnParameter.getType();
                         if (type == DataType.OBJECT_T) {
@@ -266,7 +267,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 SimpleURI uri = new SimpleURI(locString);
                 try {
                     DataLocation loc = DataLocation.createLocation(worker, uri);
-                    if (loc.getProtocol() == DataLocation.Protocol.PERSISTENT_URI) {
+                    if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
                         String pscoId = loc.getLocationKey();
                         type = targetParameter.getType();
                         if (type == DataType.OBJECT_T) {
@@ -304,7 +305,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                         SimpleURI uri = new SimpleURI(locString);
                         try {
                             DataLocation loc = DataLocation.createLocation(worker, uri);
-                            if (loc.getProtocol() == DataLocation.Protocol.PERSISTENT_URI) {
+                            if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
                                 String pscoId = loc.getLocationKey();
                                 switch (type) {
                                     case FILE_T:

@@ -19,7 +19,7 @@ package es.bsc.compss.gat.master.utils;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.GATWorkerNode;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.RequestDispatcher;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
@@ -130,7 +130,7 @@ public class GATScriptExecutor {
                     user += "@";
                 }
                 SoftwareDescription sd = new SoftwareDescription();
-                sd.addAttribute("uri", Protocol.ANY_URI.getSchema() + user + script.getHost());
+                sd.addAttribute("uri", ProtocolType.ANY_URI.getSchema() + user + script.getHost());
                 sd.setExecutable(script.getPath());
                 sd.setArguments(cleanParam.split(" "));
 
@@ -142,12 +142,12 @@ public class GATScriptExecutor {
                 if (DEBUG) {
                     try {
                         org.gridlab.gat.io.File outFile = GAT.createFile(this.node.getContext(),
-                                Protocol.ANY_URI.getSchema() + File.separator
+                                ProtocolType.ANY_URI.getSchema() + File.separator
                                         + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
                                         + stdOutFileName + ".out");
                         sd.setStdout(outFile);
                         org.gridlab.gat.io.File errFile = GAT.createFile(this.node.getContext(),
-                                Protocol.ANY_URI.getSchema() + File.separator
+                                ProtocolType.ANY_URI.getSchema() + File.separator
                                         + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
                                         + stdOutFileName + ".err");
                         sd.setStderr(errFile);

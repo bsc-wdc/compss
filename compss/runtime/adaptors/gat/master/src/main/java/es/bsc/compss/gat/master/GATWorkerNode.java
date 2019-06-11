@@ -28,7 +28,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
@@ -105,7 +105,7 @@ public class GATWorkerNode extends COMPSsWorker {
         }
 
         try {
-            String initScriptPath = Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir
+            String initScriptPath = ProtocolType.ANY_URI.getSchema() + user + host + File.separator + installDir
                     + GAT_SCRIPT_PATH + INIT_SCRIPT_NAME;
             traceScripts.add(new URI(initScriptPath));
         } catch (URISyntaxException e) {
@@ -349,10 +349,10 @@ public class GATWorkerNode extends COMPSsWorker {
             case EXTERNAL_STREAM_T:
             case PSCO_T:
             case EXTERNAL_PSCO_T:
-                path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;
@@ -378,7 +378,7 @@ public class GATWorkerNode extends COMPSsWorker {
         }
 
         try {
-            traceScripts.add(new URI(Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir
+            traceScripts.add(new URI(ProtocolType.ANY_URI.getSchema() + user + host + File.separator + installDir
                     + GAT_SCRIPT_PATH + CLEANER_SCRIPT_NAME));
         } catch (URISyntaxException e) {
             LOGGER.error("Error deleting working dir " + workingDir + " in host " + getName(), e);

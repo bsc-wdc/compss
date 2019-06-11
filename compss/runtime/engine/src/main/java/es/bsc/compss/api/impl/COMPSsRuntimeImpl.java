@@ -43,8 +43,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
@@ -1169,7 +1169,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 try {
                     String fileName = (String) content;
                     String canonicalPath = new File(fileName).getCanonicalPath();
-                    String locationPath = Protocol.EXTERNAL_STREAM_URI.getSchema() + canonicalPath;
+                    String locationPath = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + canonicalPath;
                     DataLocation location = createLocation(locationPath);
                     String originalName = new File(fileName).getName();
                     pars.add(new ExternalStreamParameter(direction, stream, prefix, name, location, originalName));
@@ -1376,7 +1376,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (uri.getSchema().isEmpty()) {
             // Add default File scheme and wrap local paths
             String canonicalPath = new File(fileName).getCanonicalPath();
-            uri = new SimpleURI(Protocol.FILE_URI.getSchema() + canonicalPath);
+            uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);
         }
 
         // Check host

@@ -37,8 +37,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams;
 import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.BindingObjectTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
@@ -815,7 +815,7 @@ public class DataInfoProvider {
                     ErrorManager.error("Exception writing object to file.", e);
                 }
                 for (DataLocation loc : ld.getLocations()) {
-                    if (loc.getProtocol() != Protocol.OBJECT_URI) {
+                    if (loc.getProtocol() != ProtocolType.OBJECT_URI) {
                         MultiURI mu = loc.getURIInHost(Comm.getAppHost());
                         String path = mu.getPath();
                         try {
@@ -837,7 +837,7 @@ public class DataInfoProvider {
                         + Comm.getAppHost().getName());
             }
             DataLocation targetLocation = null;
-            String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
+            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
             try {
                 SimpleURI uri = new SimpleURI(path);
                 targetLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -957,7 +957,7 @@ public class DataInfoProvider {
 
                 // If no PSCO location is found, perform normal getData
 
-                if (rf.getOriginalLocation().getProtocol() == Protocol.BINDING_URI) {
+                if (rf.getOriginalLocation().getProtocol() == ProtocolType.BINDING_URI) {
                     // Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new BindingObjectTransferable(),
                     // listener);
                     if (DEBUG) {

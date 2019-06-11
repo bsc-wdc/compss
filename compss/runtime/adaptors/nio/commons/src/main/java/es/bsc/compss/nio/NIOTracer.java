@@ -21,7 +21,7 @@ import static java.lang.Math.abs;
 import es.bsc.cepbatools.extrae.Wrapper;
 
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
 
@@ -96,10 +96,10 @@ public class NIOTracer extends Tracer {
         }
 
         if (DEBUG) {
-            LOGGER.debug("NIO uri File: " + Protocol.ANY_URI.getSchema() + File.separator
+            LOGGER.debug("NIO uri File: " + ProtocolType.ANY_URI.getSchema() + File.separator
                     + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
-            LOGGER.debug(Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR)
-                    + traceOutRelativePath);
+            LOGGER.debug(ProtocolType.ANY_URI.getSchema() + File.separator
+                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
         }
     }
 

@@ -36,7 +36,7 @@ import es.bsc.compss.nio.utils.NIOBindingDataManager;
 import es.bsc.compss.nio.utils.NIOBindingObjectStream;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
@@ -319,7 +319,7 @@ public abstract class NIOAgent {
         }
 
         String path = d.getFirstURI().getPath();
-        Protocol scheme = d.getFirstURI().getProtocol();
+        ProtocolType scheme = d.getFirstURI().getProtocol();
         switch (scheme) {
             case FILE_URI:
             case SHARED_URI:

@@ -37,8 +37,8 @@ import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.types.data.location.DataLocation.Type;
+import es.bsc.compss.types.data.location.LocationType;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -942,7 +942,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                         + source.getProtocol().toString() + " " + source.getURIs().get(0));
             }
             if (target != null) {
-                if (target.getProtocol() != Protocol.PERSISTENT_URI) {
+                if (target.getProtocol() != ProtocolType.PERSISTENT_URI) {
                     LOGGER.debug("Target Data location: " + target.getType().toString() + " "
                             + target.getProtocol().toString() + " " + target.getURIs().get(0));
                 } else {
@@ -958,8 +958,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
          * Check if data is binding data
          */
         if (ld.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))
-                || (source != null && source.getType().equals(Type.BINDING))
-                || (target != null && target.getType().equals(Type.BINDING))) {
+                || (source != null && source.getType().equals(LocationType.BINDING))
+                || (target != null && target.getType().equals(LocationType.BINDING))) {
             obtainBindingData(ld, source, target, tgtData, reason, listener);
             return;
         }
@@ -968,7 +968,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
          */
 
         for (DataLocation loc : ld.getLocations()) {
-            if (loc.getProtocol().equals(Protocol.PERSISTENT_URI)) {
+            if (loc.getProtocol().equals(ProtocolType.PERSISTENT_URI)) {
                 LOGGER.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
                 reason.setDataTarget(loc.getPath());
                 listener.notifyEnd(null);
@@ -1020,26 +1020,26 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case OBJECT_T:
             case COLLECTION_T:
-                path = Protocol.OBJECT_URI.getSchema() + name;
+                path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case STREAM_T:
-                path = Protocol.STREAM_URI.getSchema() + name;
+                path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case PSCO_T:
-                path = Protocol.PERSISTENT_URI.getSchema() + name;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
             case EXTERNAL_PSCO_T:
-                path = Protocol.PERSISTENT_URI.getSchema() + name;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = Protocol.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             default:
                 return null;

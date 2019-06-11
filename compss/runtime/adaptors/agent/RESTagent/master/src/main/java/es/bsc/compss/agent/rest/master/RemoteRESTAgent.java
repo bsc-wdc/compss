@@ -26,7 +26,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.DeferredCopy;
 import es.bsc.compss.types.data.operation.copy.StorageCopy;
@@ -200,20 +200,20 @@ public class RemoteRESTAgent extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case OBJECT_T:
-                path = Protocol.OBJECT_URI.getSchema() + name;
+                path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case STREAM_T:
-                path = Protocol.STREAM_URI.getSchema() + name;
+                path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case PSCO_T:
             case EXTERNAL_PSCO_T:
-                path = Protocol.PERSISTENT_URI.getSchema() + name;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
             default:
                 return null;

@@ -28,6 +28,7 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
@@ -131,7 +132,7 @@ public class TransferOpenFileRequest extends APRequest {
         if (pscoId != null) {
             // It is an external object persisted inside the task
             try {
-                SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.PERSISTENT_URI.getSchema() + pscoId);
+                SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + pscoId);
                 targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
             } catch (IOException ioe) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
@@ -145,7 +146,7 @@ public class TransferOpenFileRequest extends APRequest {
             this.sem.release();
         } else {
             try {
-                SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+                SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
                 targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
             } catch (IOException ioe) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, ioe);
@@ -193,7 +194,7 @@ public class TransferOpenFileRequest extends APRequest {
         public void notifyEnd(DataOperation fOp) {
             String targetPath = this.reason.getDataTarget();
             try {
-                SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+                SimpleURI targetURI = new SimpleURI(ProtocolType.FILE_URI.getSchema() + targetPath);
                 DataLocation targetLocation = DataLocation.createLocation(Comm.getAppHost(), targetURI);
                 setLocation(targetLocation);
             } catch (IOException ioe) {

@@ -18,7 +18,7 @@ package es.bsc.compss.gat.master;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.master.utils.GATScriptExecutor;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
 
@@ -67,7 +67,7 @@ public class GATTracer extends Tracer {
         }
 
         SoftwareDescription sd = new SoftwareDescription();
-        String uriString = Protocol.ANY_URI.getSchema() + user + worker.getHost();
+        String uriString = ProtocolType.ANY_URI.getSchema() + user + worker.getHost();
         sd.addAttribute("uri", uriString);
         sd.setExecutable(worker.getInstallDir() + Tracer.TRACE_SCRIPT_PATH);
         sd.setArguments(
@@ -75,10 +75,10 @@ public class GATTracer extends Tracer {
 
         if (DEBUG) {
             try {
-                org.gridlab.gat.io.File outFile = GAT.createFile(worker.getContext(), Protocol.ANY_URI.getSchema()
+                org.gridlab.gat.io.File outFile = GAT.createFile(worker.getContext(), ProtocolType.ANY_URI.getSchema()
                         + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
                 sd.setStdout(outFile);
-                org.gridlab.gat.io.File errFile = GAT.createFile(worker.getContext(), Protocol.ANY_URI.getSchema()
+                org.gridlab.gat.io.File errFile = GAT.createFile(worker.getContext(), ProtocolType.ANY_URI.getSchema()
                         + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceErrRelativePath);
                 sd.setStderr(errFile);
             } catch (Exception e) {
@@ -178,7 +178,7 @@ public class GATTracer extends Tracer {
 
         try {
             traceScripts.add(new URI(
-                    Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + TRACE_SCRIPT_PATH));
+                    ProtocolType.ANY_URI.getSchema() + user + host + File.separator + installDir + TRACE_SCRIPT_PATH));
         } catch (URISyntaxException e) {
             LOGGER.error("Error deleting tracing host", e);
             return false;

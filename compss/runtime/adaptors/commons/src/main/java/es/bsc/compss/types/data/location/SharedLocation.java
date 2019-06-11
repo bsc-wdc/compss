@@ -29,7 +29,7 @@ public class SharedLocation extends DataLocation {
 
     private final String diskName;
     private String path;
-    private final Protocol protocol;
+    private final ProtocolType protocol;
 
 
     /** Shared location constructor.
@@ -37,7 +37,7 @@ public class SharedLocation extends DataLocation {
      * @param sharedDisk Shared disk name/identifier
      * @param path Path from mount point
      */
-    public SharedLocation(Protocol protocol, String sharedDisk, String path) {
+    public SharedLocation(ProtocolType protocol, String sharedDisk, String path) {
         this.diskName = sharedDisk;
         this.path = path;
         this.protocol = protocol;
@@ -57,12 +57,12 @@ public class SharedLocation extends DataLocation {
     }
 
     @Override
-    public DataLocation.Type getType() {
-        return DataLocation.Type.SHARED;
+    public LocationType getType() {
+        return LocationType.SHARED;
     }
 
     @Override
-    public Protocol getProtocol() {
+    public ProtocolType getProtocol() {
         return this.protocol;
     }
 
@@ -95,7 +95,7 @@ public class SharedLocation extends DataLocation {
     public boolean isTarget(DataLocation target) {
         String targetDisk;
         String targetPath;
-        if (target.getType().equals(DataLocation.Type.PRIVATE)) {
+        if (target.getType().equals(LocationType.PRIVATE)) {
             PrivateLocation privateLoc = (PrivateLocation) target;
             targetDisk = null; // TODO: extract from URI
             targetPath = privateLoc.getPath();

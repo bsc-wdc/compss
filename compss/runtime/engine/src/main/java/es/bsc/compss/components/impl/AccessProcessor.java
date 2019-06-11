@@ -38,7 +38,7 @@ import es.bsc.compss.types.data.accessparams.BindingObjectAccessParams;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.accessparams.ObjectAccessParams;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
@@ -323,7 +323,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 }
 
                 String rename = daId.getRenaming();
-                String path = DataLocation.Protocol.FILE_URI.getSchema() + destDir + rename;
+                String path = ProtocolType.FILE_URI.getSchema() + destDir + rename;
                 try {
                     SimpleURI uri = new SimpleURI(path);
                     tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -347,7 +347,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 daId = ra.getWrittenDataInstance();
             }
             String rename = daId.getRenaming();
-            String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + rename;
+            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + rename;
             try {
                 SimpleURI uri = new SimpleURI(path);
                 tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -474,7 +474,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         String lastRenaming = ((RWAccessId) oaId).getReadDataInstance().getRenaming();
         String newId = Comm.getData(lastRenaming).getPscoId();
 
-        return Protocol.PERSISTENT_URI.getSchema() + newId;
+        return ProtocolType.PERSISTENT_URI.getSchema() + newId;
     }
 
     private String obtainBindingObject(RAccessId oaId) {

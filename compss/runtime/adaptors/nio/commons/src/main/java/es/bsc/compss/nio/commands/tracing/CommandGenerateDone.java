@@ -18,6 +18,7 @@ package es.bsc.compss.nio.commands.tracing;
 
 import es.bsc.comm.Connection;
 import es.bsc.compss.nio.commands.Command;
+import es.bsc.compss.nio.commands.CommandType;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class CommandGenerateDone extends Command implements Externalizable {
 
     @Override
     public void handle(Connection c) {
-        agent.notifyTracingPackageGeneration();
+        this.agent.notifyTracingPackageGeneration();
     }
 
     @Override

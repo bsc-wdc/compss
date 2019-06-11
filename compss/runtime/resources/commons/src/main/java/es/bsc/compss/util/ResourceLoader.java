@@ -16,14 +16,6 @@
  */
 package es.bsc.compss.util;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.JAXBException;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.connectors.AbstractConnector;
@@ -31,10 +23,30 @@ import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.exceptions.NoResourceAvailableException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
-import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
-import es.bsc.compss.types.project.jaxb.*;
+import es.bsc.compss.types.project.jaxb.ApplicationType;
+import es.bsc.compss.types.project.jaxb.AttachedDiskType;
+import es.bsc.compss.types.project.jaxb.AttachedDisksListType;
+import es.bsc.compss.types.project.jaxb.CloudPropertiesType;
+import es.bsc.compss.types.project.jaxb.CloudPropertyType;
+import es.bsc.compss.types.project.jaxb.CloudProviderType;
+import es.bsc.compss.types.project.jaxb.CloudType;
+import es.bsc.compss.types.project.jaxb.ComputeNodeType;
+import es.bsc.compss.types.project.jaxb.DataNodeType;
+import es.bsc.compss.types.project.jaxb.ImageType;
+import es.bsc.compss.types.project.jaxb.ImagesType;
+import es.bsc.compss.types.project.jaxb.InstanceTypeType;
+import es.bsc.compss.types.project.jaxb.InstanceTypesType;
+import es.bsc.compss.types.project.jaxb.MasterNodeType;
+import es.bsc.compss.types.project.jaxb.MemoryType;
+import es.bsc.compss.types.project.jaxb.OSType;
+import es.bsc.compss.types.project.jaxb.PackageType;
+import es.bsc.compss.types.project.jaxb.PriceType;
+import es.bsc.compss.types.project.jaxb.ProcessorType;
+import es.bsc.compss.types.project.jaxb.ServiceType;
+import es.bsc.compss.types.project.jaxb.SoftwareListType;
+import es.bsc.compss.types.project.jaxb.StorageType;
 import es.bsc.compss.types.resources.DataResourceDescription;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -44,10 +56,17 @@ import es.bsc.compss.types.resources.ServiceResourceDescription;
 import es.bsc.compss.types.resources.ServiceWorker;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.configuration.ServiceConfiguration;
+import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.exceptions.ResourcesFileValidationException;
-import es.bsc.compss.types.resources.jaxb.EndpointType;
-import es.bsc.compss.types.resources.jaxb.ProcessorPropertyType;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,10 +92,21 @@ public class ResourceLoader {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
 
 
-    public static void load(String resources_XML, String resources_XSD, String project_XML, String project_XSD)
+    /**
+     * Loads the information present in the given XML files according to the given XSD schemas.
+     * 
+     * @param resourcesXML Resources XML file.
+     * @param resourcesXSD Resources XSD schema.
+     * @param projectXML Project XML file.
+     * @param projectXSD Project XSD schema.
+     * @throws ResourcesFileValidationException When resources file cannot be validated.
+     * @throws ProjectFileValidationException When project file cannot be validated.
+     * @throws NoResourceAvailableException When there is no resource available after parsing the given XML files.
+     */
+    public static void load(String resourcesXML, String resourcesXSD, String projectXML, String projectXSD)
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
 
-        init(resources_XML, resources_XSD, project_XML, project_XSD);
+        init(resourcesXML, resourcesXSD, projectXML, projectXSD);
         if ((ResourceLoader.resources_XML != null) && (ResourceLoader.project_XML != null)) {
             loadFiles();
             loadRuntime();
@@ -85,12 +115,12 @@ public class ResourceLoader {
         }
     }
 
-    private static void init(String resources_XML, String resources_XSD, String project_XML, String project_XSD) {
+    private static void init(String resourcesXML, String resourcesXSD, String projectXML, String projectXSD) {
         LOGGER.info("ResourceLoader init");
-        ResourceLoader.resources_XML = resources_XML;
-        ResourceLoader.resources_XSD = resources_XSD;
-        ResourceLoader.project_XML = project_XML;
-        ResourceLoader.project_XSD = project_XSD;
+        ResourceLoader.resources_XML = resourcesXML;
+        ResourceLoader.resources_XSD = resourcesXSD;
+        ResourceLoader.project_XML = projectXML;
+        ResourceLoader.project_XSD = projectXSD;
     }
 
     private static void loadFiles() throws ResourcesFileValidationException, ProjectFileValidationException {
@@ -136,28 +166,28 @@ public class ResourceLoader {
         // Load ComputeNodes
         List<ComputeNodeType> computeNodes = ResourceLoader.project.getComputeNodes_list();
         if (computeNodes != null) {
-            for (ComputeNodeType cn_project : computeNodes) {
-                es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources = ResourceLoader.resources
-                        .getComputeNode(cn_project.getName());
-                if (cn_resources != null) {
-                    exist = loadComputeNode(cn_project, cn_resources);
+            for (ComputeNodeType cnProject : computeNodes) {
+                es.bsc.compss.types.resources.jaxb.ComputeNodeType cnResources = ResourceLoader.resources
+                        .getComputeNode(cnProject.getName());
+                if (cnResources != null) {
+                    exist = loadComputeNode(cnProject, cnResources);
                     computeNodeExist = (computeNodeExist || exist);
                 } else {
-                    ErrorManager.warn("ComputeNode " + cn_project.getName() + " not defined in the resources file");
+                    ErrorManager.warn("ComputeNode " + cnProject.getName() + " not defined in the resources file");
                 }
             }
         }
         // Load Services
         List<ServiceType> services = ResourceLoader.project.getServices_list();
         if (services != null) {
-            for (ServiceType s_project : services) {
-                es.bsc.compss.types.resources.jaxb.ServiceType s_resources = ResourceLoader.resources
-                        .getService(s_project.getWsdl());
-                if (s_resources != null) {
-                    exist = loadService(s_project, s_resources);
+            for (ServiceType sProject : services) {
+                es.bsc.compss.types.resources.jaxb.ServiceType sResources = ResourceLoader.resources
+                        .getService(sProject.getWsdl());
+                if (sResources != null) {
+                    exist = loadService(sProject, sResources);
                     serviceExist = (serviceExist || exist);
                 } else {
-                    ErrorManager.warn("Service " + s_project.getWsdl() + " not defined in the resources file");
+                    ErrorManager.warn("Service " + sProject.getWsdl() + " not defined in the resources file");
                 }
             }
         }
@@ -165,13 +195,13 @@ public class ResourceLoader {
         // Load DataNodes
         List<DataNodeType> dataNodes = ResourceLoader.project.getDataNodes_list();
         if (dataNodes != null) {
-            for (DataNodeType dn_project : dataNodes) {
-                es.bsc.compss.types.resources.jaxb.DataNodeType dn_resources = ResourceLoader.resources
-                        .getDataNode(dn_project.getName());
-                if (dn_resources != null) {
-                    loadDataNode(dn_project, dn_resources);
+            for (DataNodeType dnProject : dataNodes) {
+                es.bsc.compss.types.resources.jaxb.DataNodeType dnResources = ResourceLoader.resources
+                        .getDataNode(dnProject.getName());
+                if (dnResources != null) {
+                    loadDataNode(dnProject, dnResources);
                 } else {
-                    ErrorManager.warn("DataNode " + dn_project.getName() + " not defined in the resources file");
+                    ErrorManager.warn("DataNode " + dnProject.getName() + " not defined in the resources file");
                 }
             }
         }
@@ -194,8 +224,8 @@ public class ResourceLoader {
         MethodResourceDescription mrd = new MethodResourceDescription();
         if (masterInformation != null) {
             for (Object obj : masterInformation) {
-                if (obj instanceof es.bsc.compss.types.project.jaxb.ProcessorType) {
-                    es.bsc.compss.types.project.jaxb.ProcessorType procNode = (es.bsc.compss.types.project.jaxb.ProcessorType) obj;
+                if (obj instanceof ProcessorType) {
+                    ProcessorType procNode = (ProcessorType) obj;
                     String procName = procNode.getName();
                     int computingUnits = project.getProcessorComputingUnits(procNode);
                     String architecture = project.getProcessorArchitecture(procNode);
@@ -208,21 +238,21 @@ public class ResourceLoader {
                     String propValue = (procProp != null) ? procProp.getValue() : "";
                     mrd.addProcessor(procName, computingUnits, architecture, speed, type, internalMemory, propKey,
                             propValue);
-                } else if (obj instanceof es.bsc.compss.types.project.jaxb.MemoryType) {
-                    es.bsc.compss.types.project.jaxb.MemoryType memNode = (es.bsc.compss.types.project.jaxb.MemoryType) obj;
+                } else if (obj instanceof MemoryType) {
+                    MemoryType memNode = (MemoryType) obj;
                     mrd.setMemorySize(project.getMemorySize(memNode));
                     mrd.setMemoryType(project.getMemoryType(memNode));
-                } else if (obj instanceof es.bsc.compss.types.project.jaxb.StorageType) {
-                    es.bsc.compss.types.project.jaxb.StorageType strNode = (es.bsc.compss.types.project.jaxb.StorageType) obj;
+                } else if (obj instanceof StorageType) {
+                    StorageType strNode = (StorageType) obj;
                     mrd.setStorageSize(project.getStorageSize(strNode));
                     mrd.setStorageType(project.getStorageType(strNode));
-                } else if (obj instanceof es.bsc.compss.types.project.jaxb.OSType) {
-                    es.bsc.compss.types.project.jaxb.OSType osNode = (es.bsc.compss.types.project.jaxb.OSType) obj;
+                } else if (obj instanceof OSType) {
+                    OSType osNode = (OSType) obj;
                     mrd.setOperatingSystemType(project.getOperatingSystemType(osNode));
                     mrd.setOperatingSystemDistribution(project.getOperatingSystemDistribution(osNode));
                     mrd.setOperatingSystemVersion(project.getOperatingSystemVersion(osNode));
-                } else if (obj instanceof es.bsc.compss.types.project.jaxb.SoftwareListType) {
-                    es.bsc.compss.types.project.jaxb.SoftwareListType softwares = (es.bsc.compss.types.project.jaxb.SoftwareListType) obj;
+                } else if (obj instanceof SoftwareListType) {
+                    SoftwareListType softwares = (SoftwareListType) obj;
                     List<String> apps = softwares.getApplication();
                     if (apps != null) {
                         for (String appName : apps) {
@@ -235,16 +265,17 @@ public class ResourceLoader {
                         List<AttachedDiskType> disksList = disks.getAttachedDisk();
                         if (disksList != null) {
                             for (AttachedDiskType disk : disksList) {
-                                es.bsc.compss.types.resources.jaxb.SharedDiskType disk_resources = ResourceLoader.resources
-                                        .getSharedDisk(disk.getName());
-                                if (disk_resources != null) {
+                                es.bsc.compss.types.resources.jaxb.SharedDiskType diskResources 
+                                    = ResourceLoader.resources.getSharedDisk(disk.getName());
+                                if (diskResources != null) {
                                     // TODO: Check the disk information against the resources file (size and type)
                                     String diskName = disk.getName();
                                     String diskMountPoint = disk.getMountPoint();
                                     sharedDisks.put(diskName, diskMountPoint);
                                 } else {
                                     ErrorManager.warn("SharedDisk " + disk.getName()
-                                            + " defined in the master node is not defined in the resources.xml. Skipping");
+                                            + " defined in the master node is not defined in the resources.xml."
+                                            + " Skipping");
                                 }
                             }
                         }
@@ -275,15 +306,15 @@ public class ResourceLoader {
         }
     }
 
-    private static boolean loadComputeNode(ComputeNodeType cn_project,
-            es.bsc.compss.types.resources.jaxb.ComputeNodeType cn_resources) {
+    private static boolean loadComputeNode(ComputeNodeType cnProject,
+            es.bsc.compss.types.resources.jaxb.ComputeNodeType cnResources) {
 
         // Add the name
-        String name = cn_project.getName();
+        String name = cnProject.getName();
 
         /* Add properties given by the resources file **************************************** */
         MethodResourceDescription mrd = new MethodResourceDescription();
-        List<es.bsc.compss.types.resources.jaxb.ProcessorType> processors = resources.getProcessors(cn_resources);
+        List<es.bsc.compss.types.resources.jaxb.ProcessorType> processors = resources.getProcessors(cnResources);
         if (processors != null) {
             for (es.bsc.compss.types.resources.jaxb.ProcessorType p : processors) {
                 String procName = p.getName();
@@ -292,34 +323,34 @@ public class ResourceLoader {
                 float speed = resources.getProcessorSpeed(p);
                 String type = resources.getProcessorType(p);
                 float internalMemory = resources.getProcessorMemorySize(p);
-                ProcessorPropertyType procProp = resources.getProcessorProperty(p);
+                es.bsc.compss.types.resources.jaxb.ProcessorPropertyType procProp = resources.getProcessorProperty(p);
                 String propKey = (procProp != null) ? procProp.getKey() : "";
                 String propValue = (procProp != null) ? procProp.getValue() : "";
                 mrd.addProcessor(procName, computingUnits, architecture, speed, type, internalMemory, propKey,
                         propValue);
             }
         }
-        mrd.setMemorySize(resources.getMemorySize(cn_resources));
-        mrd.setMemoryType(resources.getMemoryType(cn_resources));
-        mrd.setStorageSize(resources.getStorageSize(cn_resources));
-        mrd.setStorageType(resources.getStorageType(cn_resources));
-        mrd.setOperatingSystemType(resources.getOperatingSystemType(cn_resources));
-        mrd.setOperatingSystemDistribution(resources.getOperatingSystemDistribution(cn_resources));
-        mrd.setOperatingSystemVersion(resources.getOperatingSystemVersion(cn_resources));
-        List<String> apps = resources.getApplications(cn_resources);
+        mrd.setMemorySize(resources.getMemorySize(cnResources));
+        mrd.setMemoryType(resources.getMemoryType(cnResources));
+        mrd.setStorageSize(resources.getStorageSize(cnResources));
+        mrd.setStorageType(resources.getStorageType(cnResources));
+        mrd.setOperatingSystemType(resources.getOperatingSystemType(cnResources));
+        mrd.setOperatingSystemDistribution(resources.getOperatingSystemDistribution(cnResources));
+        mrd.setOperatingSystemVersion(resources.getOperatingSystemVersion(cnResources));
+        List<String> apps = resources.getApplications(cnResources);
         if (apps != null) {
             for (String appName : apps) {
                 mrd.addApplication(appName);
             }
         }
-        es.bsc.compss.types.resources.jaxb.PriceType p = resources.getPrice(cn_resources);
+        es.bsc.compss.types.resources.jaxb.PriceType p = resources.getPrice(cnResources);
         if (p != null) {
             mrd.setPriceTimeUnit(p.getTimeUnit());
             mrd.setPricePerUnit(p.getPricePerUnit());
         }
 
         // Add Shared Disks (Name, mountpoint)
-        Map<String, String> sharedDisks = resources.getSharedDisks(cn_resources);
+        Map<String, String> sharedDisks = resources.getSharedDisks(cnResources);
         if (sharedDisks != null) {
             List<String> declaredSharedDisks = resources.getSharedDisks_names();
             for (String diskName : sharedDisks.keySet()) {
@@ -335,28 +366,28 @@ public class ResourceLoader {
         // Add the adaptors properties (queue types and adaptor properties)
         // TODO Support multiple adaptor properties
         String loadedAdaptor = System.getProperty(COMPSsConstants.COMM_ADAPTOR);
-        List<String> queues_project = project.getAdaptorQueues(cn_project, loadedAdaptor);
-        List<String> queues_resources = resources.getAdaptorQueues(cn_resources, loadedAdaptor);
-        if (queues_project == null) {
+        List<String> queuesProject = project.getAdaptorQueues(cnProject, loadedAdaptor);
+        List<String> queuesResources = resources.getAdaptorQueues(cnResources, loadedAdaptor);
+        if (queuesProject == null) {
             // Has no tag adaptors on project, get default resources complete
-            for (String queue : queues_resources) {
+            for (String queue : queuesResources) {
                 mrd.addHostQueue(queue);
             }
         } else {
             // Project defines a subset of queues
-            for (String queue : queues_resources) {
-                if (queues_project.contains(queue)) {
+            for (String queue : queuesResources) {
+                if (queuesProject.contains(queue)) {
                     mrd.addHostQueue(queue);
                 }
             }
         }
-        Object adaptorProperties_project = project.getAdaptorProperties(cn_project, loadedAdaptor);
-        Object adaptorProperties_resources = resources.getAdaptorProperties(cn_resources, loadedAdaptor);
+        Object adaptorPropertiesProject = project.getAdaptorProperties(cnProject, loadedAdaptor);
+        Object adaptorPropertiesResources = resources.getAdaptorProperties(cnResources, loadedAdaptor);
 
         MethodConfiguration config = null;
         try {
-            config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorProperties_project,
-                    adaptorProperties_resources);
+            config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorPropertiesProject,
+                    adaptorPropertiesResources);
         } catch (ConstructConfigurationException cce) {
             ErrorManager.warn("Adaptor " + loadedAdaptor + " configuration constructor failed", cce);
             return false;
@@ -365,11 +396,11 @@ public class ResourceLoader {
         // If we have reached this point the config is SURELY not null
 
         /* Add properties given by the project file **************************************** */
-        config.setHost(cn_project.getName());
-        config.setUser(project.getUser(cn_project));
-        config.setInstallDir(project.getInstallDir(cn_project));
-        config.setWorkingDir(project.getWorkingDir(cn_project));
-        int limitOfTasks = project.getLimitOfTasks(cn_project);
+        config.setHost(cnProject.getName());
+        config.setUser(project.getUser(cnProject));
+        config.setInstallDir(project.getInstallDir(cnProject));
+        config.setWorkingDir(project.getWorkingDir(cnProject));
+        int limitOfTasks = project.getLimitOfTasks(cnProject);
         if (limitOfTasks >= 0) {
             config.setLimitOfTasks(limitOfTasks);
         } else {
@@ -380,7 +411,7 @@ public class ResourceLoader {
         config.setTotalFPGAComputingUnits(mrd.getTotalFPGAComputingUnits());
         config.setTotalOTHERComputingUnits(mrd.getTotalOTHERComputingUnits());
 
-        ApplicationType app = project.getApplication(cn_project);
+        ApplicationType app = project.getApplication(cnProject);
         if (app != null) {
             config.setAppDir(app.getAppDir());
             config.setLibraryPath(app.getLibraryPath());
@@ -396,25 +427,25 @@ public class ResourceLoader {
         return true;
     }
 
-    private static boolean loadService(ServiceType s_project,
-            es.bsc.compss.types.resources.jaxb.ServiceType s_resources) {
+    private static boolean loadService(ServiceType sProject,
+            es.bsc.compss.types.resources.jaxb.ServiceType sResources) {
 
         // Get service adaptor name from properties
         String serviceAdaptorName = COMPSsConstants.SERVICE_ADAPTOR;
 
         // Add the name
-        String wsdl = s_project.getWsdl();
+        String wsdl = sProject.getWsdl();
 
         /* Add properties given by the resources file **************************************** */
-        String serviceName = s_resources.getName();
-        String namespace = s_resources.getNamespace();
-        String port = s_resources.getPort();
-        ServiceResourceDescription srd = new ServiceResourceDescription(serviceName, namespace, port,
+        final String serviceName = sResources.getName();
+        final String namespace = sResources.getNamespace();
+        final String port = sResources.getPort();
+        final ServiceResourceDescription srd = new ServiceResourceDescription(serviceName, namespace, port,
                 Integer.MAX_VALUE);
 
         ServiceConfiguration config = null;
         try {
-            config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, s_project, s_resources);
+            config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, sProject, sResources);
         } catch (ConstructConfigurationException cce) {
             ErrorManager.warn("Service configuration constructor failed", cce);
             return false;
@@ -423,7 +454,7 @@ public class ResourceLoader {
         // If we have reached this point the mp is SURELY not null
 
         /* Add properties given by the project file **************************************** */
-        int limitOfTasks = s_project.getLimitOfTasks();
+        int limitOfTasks = sProject.getLimitOfTasks();
         if (limitOfTasks >= 0) {
             config.setLimitOfTasks(limitOfTasks);
         } else {
@@ -483,9 +514,9 @@ public class ResourceLoader {
 
         // Load cloud providers
         boolean cloudEnabled = false;
-        List<String> cp_resources = resources.getCloudProviders_names();
+        List<String> cpResources = resources.getCloudProviders_names();
         for (CloudProviderType cp : project.getCloudProviders_list()) {
-            if (cp_resources.contains(cp.getName())) {
+            if (cpResources.contains(cp.getName())) {
                 // Resources contains information, loading cp
                 boolean isEnabled = loadCloudProvider(cp, resources.getCloudProvider(cp.getName()));
                 cloudEnabled = (cloudEnabled || isEnabled);
@@ -497,29 +528,29 @@ public class ResourceLoader {
         return cloudEnabled;
     }
 
-    private static boolean loadCloudProvider(CloudProviderType cp_project,
-            es.bsc.compss.types.resources.jaxb.CloudProviderType cp_resources) {
+    private static boolean loadCloudProvider(CloudProviderType cpProject,
+            es.bsc.compss.types.resources.jaxb.CloudProviderType cpResources) {
 
-        String cpName = cp_project.getName();
+        String cpName = cpProject.getName();
         String runtimeConnector = System.getProperty(COMPSsConstants.CONN);
         String connectorJarPath = "";
         String connectorMainClass = "";
         Map<String, String> properties = new HashMap<>();
 
         /* Add Endpoint information from resources.xml */
-        EndpointType endpoint = cp_resources.getEndpoint();
+        es.bsc.compss.types.resources.jaxb.EndpointType endpoint = cpResources.getEndpoint();
         connectorJarPath = resources.getConnectorJarPath(endpoint);
         connectorMainClass = resources.getConnectorMainClass(endpoint);
 
         /* Add properties information ****************** */
         properties.put(AbstractConnector.PROP_SERVER, resources.getServer(endpoint));
         properties.put(AbstractConnector.PROP_PORT, resources.getPort(endpoint));
-        List<Object> objList = cp_project.getImagesOrInstanceTypesOrLimitOfVMs();
+        List<Object> objList = cpProject.getImagesOrInstanceTypesOrLimitOfVMs();
         if (objList != null) {
             for (Object obj : objList) {
                 if (obj instanceof CloudPropertiesType) {
-                    CloudPropertiesType cloud_props = (CloudPropertiesType) obj;
-                    for (CloudPropertyType prop : cloud_props.getProperty()) {
+                    CloudPropertiesType cloudProps = (CloudPropertiesType) obj;
+                    for (CloudPropertyType prop : cloudProps.getProperty()) {
                         // TODO CloudProperties have context, name, value. Consider context (it is ignored now)
                         properties.put(prop.getName(), prop.getValue());
                     }
@@ -538,17 +569,17 @@ public class ResourceLoader {
         int maxCreationTime = -1; // Seconds
         LinkedList<CloudImageDescription> images = new LinkedList<>();
         LinkedList<CloudInstanceTypeDescription> instanceTypes = new LinkedList<>();
-        objList = cp_project.getImagesOrInstanceTypesOrLimitOfVMs();
+        objList = cpProject.getImagesOrInstanceTypesOrLimitOfVMs();
         if (objList != null) {
             for (Object obj : objList) {
                 if (obj instanceof ImagesType) {
                     // Load images
                     ImagesType imageList = (ImagesType) obj;
-                    for (ImageType im_project : imageList.getImage()) {
+                    for (ImageType imProject : imageList.getImage()) {
                         // Try to create image
-                        es.bsc.compss.types.resources.jaxb.ImageType im_resources = resources.getImage(cp_resources,
-                                im_project.getName());
-                        CloudImageDescription cid = createImage(im_project, im_resources, properties);
+                        es.bsc.compss.types.resources.jaxb.ImageType imResources = resources.getImage(cpResources,
+                                imProject.getName());
+                        CloudImageDescription cid = createImage(imProject, imResources, properties);
 
                         // Add to images list
                         if (cid != null) {
@@ -563,13 +594,13 @@ public class ResourceLoader {
                 } else if (obj instanceof InstanceTypesType) {
                     // Load images
                     InstanceTypesType instancesList = (InstanceTypesType) obj;
-                    for (InstanceTypeType instance_project : instancesList.getInstanceType()) {
+                    for (InstanceTypeType instanceProject : instancesList.getInstanceType()) {
                         // Try to create instance
-                        String instanceName = instance_project.getName();
-                        es.bsc.compss.types.resources.jaxb.InstanceTypeType instance_resources = resources
-                                .getInstance(cp_resources, instanceName);
-                        if (instance_resources != null) {
-                            CloudInstanceTypeDescription cmrd = createInstance(instance_resources);
+                        String instanceName = instanceProject.getName();
+                        es.bsc.compss.types.resources.jaxb.InstanceTypeType instanceResources = resources
+                                .getInstance(cpResources, instanceName);
+                        if (instanceResources != null) {
+                            CloudInstanceTypeDescription cmrd = createInstance(instanceResources);
 
                             // Add to instance list
                             if (cmrd != null) {
@@ -608,35 +639,35 @@ public class ResourceLoader {
         return true;
     }
 
-    private static CloudImageDescription createImage(ImageType im_project,
-            es.bsc.compss.types.resources.jaxb.ImageType im_resources, Map<String, String> properties) {
+    private static CloudImageDescription createImage(ImageType imProject,
+            es.bsc.compss.types.resources.jaxb.ImageType imResources, Map<String, String> properties) {
 
-        String imageName = im_project.getName();
+        String imageName = imProject.getName();
         LOGGER.debug("Loading Image" + imageName);
         CloudImageDescription cid = new CloudImageDescription(imageName, properties);
 
         /* Add properties given by the resources file **************************************** */
-        cid.setOperatingSystemType(resources.getOperatingSystemType(im_resources));
-        cid.setOperatingSystemDistribution(resources.getOperatingSystemDistribution(im_resources));
-        cid.setOperatingSystemVersion(resources.getOperatingSystemVersion(im_resources));
+        cid.setOperatingSystemType(resources.getOperatingSystemType(imResources));
+        cid.setOperatingSystemDistribution(resources.getOperatingSystemDistribution(imResources));
+        cid.setOperatingSystemVersion(resources.getOperatingSystemVersion(imResources));
 
-        List<String> apps = resources.getApplications(im_resources);
+        List<String> apps = resources.getApplications(imResources);
         if (apps != null) {
             for (String appName : apps) {
                 cid.addApplication(appName);
             }
         }
 
-        es.bsc.compss.types.resources.jaxb.PriceType p = resources.getPrice(im_resources);
+        es.bsc.compss.types.resources.jaxb.PriceType p = resources.getPrice(imResources);
         if (p != null) {
             cid.setPriceTimeUnit(p.getTimeUnit());
             cid.setPricePerUnit(p.getPricePerUnit());
         }
 
-        cid.setCreationTime(resources.getCreationTime(im_resources));
+        cid.setCreationTime(resources.getCreationTime(imResources));
 
         // Add Shared Disks (Name, mountpoint)
-        Map<String, String> sharedDisks = resources.getSharedDisks(im_resources);
+        Map<String, String> sharedDisks = resources.getSharedDisks(imResources);
         if (sharedDisks != null) {
             List<String> declaredSharedDisks = resources.getSharedDisks_names();
             for (String diskName : sharedDisks.keySet()) {
@@ -653,20 +684,20 @@ public class ResourceLoader {
         // Add the adaptors properties (queue types and adaptor properties)
         // TODO Support multiple adaptor properties
         String loadedAdaptor = System.getProperty(COMPSsConstants.COMM_ADAPTOR);
-        List<String> queues_project = project.getAdaptorQueues(im_project, loadedAdaptor);
-        List<String> queues_resources = resources.getAdaptorQueues(im_resources, loadedAdaptor);
-        for (String queue : queues_resources) {
-            if (queues_project.contains(queue)) {
+        List<String> queuesProject = project.getAdaptorQueues(imProject, loadedAdaptor);
+        List<String> queuesResources = resources.getAdaptorQueues(imResources, loadedAdaptor);
+        for (String queue : queuesResources) {
+            if (queuesProject.contains(queue)) {
                 cid.addQueue(queue);
             }
         }
-        Object adaptorProperties_project = project.getAdaptorProperties(im_project, loadedAdaptor);
-        Object adaptorProperties_resources = resources.getAdaptorProperties(im_resources, loadedAdaptor);
+        Object adaptorPropertiesProject = project.getAdaptorProperties(imProject, loadedAdaptor);
+        Object adaptorPropertiesResources = resources.getAdaptorProperties(imResources, loadedAdaptor);
 
         MethodConfiguration config = null;
         try {
-            config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorProperties_project,
-                    adaptorProperties_resources);
+            config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorPropertiesProject,
+                    adaptorPropertiesResources);
         } catch (ConstructConfigurationException cce) {
             ErrorManager.warn("Adaptor configuration constructor failed", cce);
             return null;
@@ -674,19 +705,19 @@ public class ResourceLoader {
 
         // If we have reached this point the mp is SURELY not null
         /* Add properties given by the project file **************************************** */
-        config.setHost(im_project.getName());
-        config.setUser(project.getUser(im_project));
-        config.setInstallDir(project.getInstallDir(im_project));
-        config.setWorkingDir(project.getWorkingDir(im_project));
-        config.setLimitOfTasks(project.getLimitOfTasks(im_project));
-        ApplicationType app = project.getApplication(im_project);
+        config.setHost(imProject.getName());
+        config.setUser(project.getUser(imProject));
+        config.setInstallDir(project.getInstallDir(imProject));
+        config.setWorkingDir(project.getWorkingDir(imProject));
+        config.setLimitOfTasks(project.getLimitOfTasks(imProject));
+        ApplicationType app = project.getApplication(imProject);
         if (app != null) {
             config.setAppDir(app.getAppDir());
             config.setLibraryPath(app.getLibraryPath());
             config.setClasspath(app.getClasspath());
             config.setPythonpath(app.getClasspath());
         }
-        List<PackageType> packages = project.getPackages(im_project);
+        List<PackageType> packages = project.getPackages(imProject);
         for (PackageType pack : packages) {
             cid.addPackage(pack.getSource(), pack.getTarget());
 
@@ -704,10 +735,11 @@ public class ResourceLoader {
 
     private static CloudInstanceTypeDescription createInstance(
             es.bsc.compss.types.resources.jaxb.InstanceTypeType instance) {
+
         // Add the name
         // String name = instance.getName();
-        String type = instance.getName();
-        MethodResourceDescription mrd = new MethodResourceDescription();
+        final String type = instance.getName();
+        final MethodResourceDescription mrd = new MethodResourceDescription();
 
         List<es.bsc.compss.types.resources.jaxb.ProcessorType> processors = resources.getProcessors(instance);
         if (processors != null) {
@@ -718,7 +750,7 @@ public class ResourceLoader {
                 float speed = resources.getProcessorSpeed(p);
                 String procType = resources.getProcessorType(p);
                 float internalMemory = resources.getProcessorMemorySize(p);
-                ProcessorPropertyType procProp = resources.getProcessorProperty(p);
+                es.bsc.compss.types.resources.jaxb.ProcessorPropertyType procProp = resources.getProcessorProperty(p);
                 String propKey = (procProp != null) ? procProp.getKey() : "";
                 String propValue = (procProp != null) ? procProp.getValue() : "";
                 mrd.addProcessor(procName, computingUnits, architecture, speed, procType, internalMemory, propKey,
@@ -741,18 +773,18 @@ public class ResourceLoader {
         return new CloudInstanceTypeDescription(type, mrd);
     }
 
-    private static void loadDataNode(DataNodeType dn_project,
-            es.bsc.compss.types.resources.jaxb.DataNodeType dn_resources) {
+    private static void loadDataNode(DataNodeType dnProject,
+            es.bsc.compss.types.resources.jaxb.DataNodeType dnResources) {
 
         // Add the name
-        String name = dn_project.getName();
-        String host = resources.getHost(dn_resources);
-        String path = resources.getPath(dn_resources);
+        String name = dnProject.getName();
+        String host = resources.getHost(dnResources);
+        String path = resources.getPath(dnResources);
 
         /* Add properties given by the resources file **************************************** */
         DataResourceDescription dd = new DataResourceDescription(host, path);
-        dd.setStorageSize(resources.getStorageSize(dn_resources));
-        dd.setStorageType(resources.getStorageType(dn_resources));
+        dd.setStorageSize(resources.getStorageSize(dnResources));
+        dd.setStorageType(resources.getStorageType(dnResources));
 
         // Add the adaptors properties (queue types and adaptor properties)
         // TODO Support adaptor properties on DataNodes

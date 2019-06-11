@@ -21,11 +21,11 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.TreeSet;
 
 
@@ -42,107 +42,146 @@ public class WorkerPool {
     // TreeSet : Priority on criticalSet based on cost
     private final Set<DynamicMethodWorker> criticalOrder;
 
+
+    /**
+     * Creates a new worker pool instance.
+     */
     public WorkerPool() {
-        staticSet = new HashMap<>();
-        criticalSet = new HashMap<>();
-        nonCriticalSet = new HashMap<>();
-        criticalOrder = new TreeSet<>();
+        this.staticSet = new HashMap<>();
+        this.criticalSet = new HashMap<>();
+        this.nonCriticalSet = new HashMap<>();
+        this.criticalOrder = new TreeSet<>();
     }
 
-    // Adds a new Resource on the Physical list
+    /**
+     * Adds a new Resource on the Physical set.
+     * 
+     * @param newResource Resource to add to the physical set.
+     */
     public void addStaticResource(Worker<? extends WorkerResourceDescription> newResource) {
-        staticSet.put(newResource.getName(), newResource);
+        this.staticSet.put(newResource.getName(), newResource);
     }
 
-    // Adds a new Resource on the Critical list
+    /**
+     * Adds a new Resource on the Critical list.
+     * 
+     * @param newResource Resource to add to the critical set.
+     */
     public void addDynamicResource(DynamicMethodWorker newResource) {
-        criticalSet.put(newResource.getName(), newResource);
-        criticalOrder.add(newResource);
+        this.criticalSet.put(newResource.getName(), newResource);
+        this.criticalOrder.add(newResource);
     }
 
+    /**
+     * Updates the registered core elements.
+     * 
+     * @param newCores New core elements.
+     */
     public void coreElementUpdates(List<Integer> newCores) {
-        for (Worker<? extends WorkerResourceDescription> r : staticSet.values()) {
+        for (Worker<? extends WorkerResourceDescription> r : this.staticSet.values()) {
             r.updatedCoreElements(newCores);
         }
-        for (DynamicMethodWorker r : criticalSet.values()) {
+        for (DynamicMethodWorker r : this.criticalSet.values()) {
             r.updatedCoreElements(newCores);
         }
-        for (DynamicMethodWorker r : nonCriticalSet.values()) {
+        for (DynamicMethodWorker r : this.nonCriticalSet.values()) {
             r.updatedCoreElements(newCores);
         }
     }
 
+    /**
+     * Returns the static resources.
+     * 
+     * @return The static resources.
+     */
     public Collection<Worker<? extends WorkerResourceDescription>> getStaticResources() {
-        return staticSet.values();
+        return this.staticSet.values();
     }
 
+    /**
+     * Returns the resource object of the static resource with the given name.
+     * 
+     * @param resourceName Resource name.
+     * @return Resource object.
+     */
     public Worker<? extends WorkerResourceDescription> getStaticResource(String resourceName) {
-        return staticSet.get(resourceName);
+        return this.staticSet.get(resourceName);
     }
 
-    public DynamicMethodWorker getDynamicResource(String resourceName) {
-        DynamicMethodWorker resource = null;
-        resource = criticalSet.get(resourceName);
-        if (resource == null) {
-            resource = nonCriticalSet.get(resourceName);
-        }
-        return resource;
-    }
-
+    /**
+     * Returns the list of dynamic resources.
+     * 
+     * @return A list of all the dynamic resources.
+     */
     public List<DynamicMethodWorker> getDynamicResources() {
         List<DynamicMethodWorker> resources = new LinkedList<>();
-        resources.addAll(criticalSet.values());
-        resources.addAll(nonCriticalSet.values());
+        resources.addAll(this.criticalSet.values());
+        resources.addAll(this.nonCriticalSet.values());
 
         return resources;
     }
 
     /**
-     * Returns all the resource information
+     * Returns the resource object of the dynamic resource with the given name.
+     * 
+     * @param resourceName Resource name.
+     * @return Resource object.
+     */
+    public DynamicMethodWorker getDynamicResource(String resourceName) {
+        DynamicMethodWorker resource = null;
+        resource = this.criticalSet.get(resourceName);
+        if (resource == null) {
+            resource = this.nonCriticalSet.get(resourceName);
+        }
+        return resource;
+    }
+
+    /**
+     * Returns all the resource information.
      *
-     * @param resourceName
-     *
-     * @return
+     * @param resourceName Resource name.
+     * @return Resource information.
      */
     public Worker<? extends WorkerResourceDescription> getResource(String resourceName) {
         Worker<? extends WorkerResourceDescription> resource = null;
-        resource = staticSet.get(resourceName);
+        resource = this.staticSet.get(resourceName);
         if (resource == null) {
-            resource = criticalSet.get(resourceName);
+            resource = this.criticalSet.get(resourceName);
         }
         if (resource == null) {
-            resource = nonCriticalSet.get(resourceName);
+            resource = this.nonCriticalSet.get(resourceName);
         }
 
         return resource;
     }
 
     /**
-     * Deletes a resource from the pool
+     * Deletes a resource from the pool.
      *
-     * @param resource
+     * @param resource Resource to delete.
      */
     public void delete(Worker<? extends WorkerResourceDescription> resource) {
         String resourceName = resource.getName();
         DynamicMethodWorker worker;
         // Remove resource from sets
-        if (nonCriticalSet.remove(resourceName) == null) {
-            if ((worker = criticalSet.remove(resourceName)) == null) {
-                staticSet.remove(resourceName);
+        if (this.nonCriticalSet.remove(resourceName) == null) {
+            if ((worker = this.criticalSet.remove(resourceName)) == null) {
+                this.staticSet.remove(resourceName);
             } else {
-                criticalOrder.remove(worker);
+                this.criticalOrder.remove(worker);
             }
 
         }
     }
 
     /**
-     * @param res
-     *
-     * @return list with all coreIds that can be executed by the resource res
+     * Returns the executable cores of the given resource name.
+     * 
+     * @param resourceName Resource Name.
+     * @return List with all coreIds that can be executed by the resource res
      */
-    public List<Integer> getExecutableCores(String res) {
-        Worker<? extends WorkerResourceDescription> resource = getResource(res);
+    public List<Integer> getExecutableCores(String resourceName) {
+        Worker<? extends WorkerResourceDescription> resource = getResource(resourceName);
         if (resource == null) {
             return new LinkedList<>();
         }
@@ -150,7 +189,7 @@ public class WorkerPool {
     }
 
     /**
-     * Selects a subset of the critical set able to execute all the cores
+     * Selects a subset of the critical set able to execute all the cores.
      */
     public void defineCriticalSet() {
         synchronized (this) {
@@ -161,7 +200,7 @@ public class WorkerPool {
             }
 
             String resourceName;
-            for (Worker<? extends WorkerResourceDescription> res : staticSet.values()) {
+            for (Worker<? extends WorkerResourceDescription> res : this.staticSet.values()) {
                 List<Integer> cores = res.getExecutableCores();
                 for (int i = 0; i < cores.size(); i++) {
                     runnable[cores.get(i)] = true;
@@ -169,7 +208,7 @@ public class WorkerPool {
             }
 
             LinkedList<DynamicMethodWorker> criticalOrderRemovals = new LinkedList<>();
-            for (DynamicMethodWorker resource : criticalOrder) {
+            for (DynamicMethodWorker resource : this.criticalOrder) {
                 resourceName = resource.getName();
                 List<Integer> executableCores = resource.getExecutableCores();
                 boolean needed = false;
@@ -181,48 +220,50 @@ public class WorkerPool {
                         runnable[executableCores.get(i)] = true;
                     }
                 } else {
-                    criticalSet.remove(resourceName);
+                    this.criticalSet.remove(resourceName);
                     criticalOrderRemovals.add(resource);
-                    nonCriticalSet.put(resourceName, resource);
+                    this.nonCriticalSet.put(resourceName, resource);
                 }
             }
             for (DynamicMethodWorker resource : criticalOrderRemovals) {
-                criticalOrder.remove(resource);
+                this.criticalOrder.remove(resource);
             }
         }
     }
 
     public Collection<DynamicMethodWorker> getNonCriticalResources() {
-        return nonCriticalSet.values();
+        return this.nonCriticalSet.values();
     }
 
     public Collection<DynamicMethodWorker> getCriticalResources() {
-        return criticalSet.values();
+        return this.criticalSet.values();
     }
 
     /**
-     * @return a list with all the resources available
+     * Returns a list with all the available resources.
+     * 
+     * @return A list with all the available resources.
      */
     @SuppressWarnings("unchecked")
     public List<Worker<? extends WorkerResourceDescription>> findAllResources() {
         List<Worker<? extends WorkerResourceDescription>> workers = new LinkedList<>();
 
-        if (staticSet != null && !staticSet.isEmpty()) {
-            Object[] arrayStaticSet = staticSet.values().toArray();
+        if (this.staticSet != null && !this.staticSet.isEmpty()) {
+            Object[] arrayStaticSet = this.staticSet.values().toArray();
             for (int i = 0; i < arrayStaticSet.length; i++) {
                 workers.add((Worker<? extends WorkerResourceDescription>) arrayStaticSet[i]);
             }
         }
 
-        if (criticalSet != null && !criticalSet.isEmpty()) {
-            Object[] arrayCriticalSet = criticalSet.values().toArray();
+        if (this.criticalSet != null && !this.criticalSet.isEmpty()) {
+            Object[] arrayCriticalSet = this.criticalSet.values().toArray();
             for (int i = 0; i < arrayCriticalSet.length; i++) {
                 workers.add((Worker<? extends WorkerResourceDescription>) arrayCriticalSet[i]);
             }
         }
 
-        if (nonCriticalSet != null && !nonCriticalSet.isEmpty()) {
-            Object[] arrayNonCriticalSet = nonCriticalSet.values().toArray();
+        if (this.nonCriticalSet != null && !this.nonCriticalSet.isEmpty()) {
+            Object[] arrayNonCriticalSet = this.nonCriticalSet.values().toArray();
             for (int i = 0; i < arrayNonCriticalSet.length; i++) {
                 workers.add((Worker<? extends WorkerResourceDescription>) arrayNonCriticalSet[i]);
             }
@@ -231,6 +272,13 @@ public class WorkerPool {
         return workers;
     }
 
+    /**
+     * Returns whether the given reduction can be removed without affecting the critical set or not.
+     * 
+     * @param slotReductionImpls Reduction to perform.
+     * @return {@literal true} if the given reduction can be removed without affecting the critical set,
+     *         {@literal false} otherwise.
+     */
     public boolean isCriticalRemovalSafe(int[][] slotReductionImpls) {
         int coreCount = CoreManager.getCoreCount();
         // Compute cores from impl
@@ -244,7 +292,7 @@ public class WorkerPool {
         }
 
         int[] slots = new int[coreCount];
-        for (DynamicMethodWorker r : criticalSet.values()) {
+        for (DynamicMethodWorker r : this.criticalSet.values()) {
             int[] resSlots = r.getSimultaneousTasks();
             for (int coreId = 0; coreId < coreCount; coreId++) {
                 slots[coreId] += resSlots[coreId];
@@ -259,6 +307,12 @@ public class WorkerPool {
         return true;
     }
 
+    /**
+     * Dumps the current resources state.
+     * 
+     * @param prefix String prefix.
+     * @return String containing the dump of the current resources state.
+     */
     public String getCurrentState(String prefix) {
         StringBuilder sb = new StringBuilder();
         // Resources
@@ -283,22 +337,6 @@ public class WorkerPool {
         }
         sb.append(prefix).append("]").append("\n");
 
-        /*
-         * //Cores sb.append(prefix).append("CORES = [").append("\n"); for (int i = 0; i < CoreManager.getCoreCount();
-         * i++) { sb.append(prefix).append("\t").append("CORE = [").append("\n");
-         * sb.append(prefix).append("\t").append("\t").append("ID = ").append(i).append("\n");
-         * sb.append(prefix).append("\t").append("\t").append("MAXTASKCOUNT = ").append(coreMaxTaskCount[i]).append("\n"
-         * ); sb.append(prefix).append("\t").append("\t").append("TORESOURCE = [").append("\n"); for (Worker<?,?> r :
-         * coreToResource[i]) {
-         * sb.append(prefix).append("\t").append("\t").append("\t").append("RESOURCE = [").append("\n");
-         * sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("NAME = ").append(r.getName()).
-         * append("\n");
-         * sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SIMTASKS = ").append(r.
-         * getSimultaneousTasks()[i]).append("\n");
-         * sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n"); }
-         * sb.append(prefix).append("\t").append("\t").append("]").append("\n");
-         * sb.append(prefix).append("\t").append("]").append("\n"); } sb.append(prefix).append("]").append("\n");
-         */
         return sb.toString();
     }
 

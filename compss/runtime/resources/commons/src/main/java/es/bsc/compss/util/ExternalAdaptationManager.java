@@ -16,12 +16,6 @@
  */
 package es.bsc.compss.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CloudProvider;
@@ -33,6 +27,12 @@ import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,6 +58,9 @@ public class ExternalAdaptationManager extends Thread {
     private boolean canBeStarted = false;
 
 
+    /**
+     * Creates a new ExternalAdaptationManager instance.
+     */
     public ExternalAdaptationManager() {
         MasterResource master = Comm.getAppHost();
         if (master == null) {
@@ -106,7 +109,7 @@ public class ExternalAdaptationManager extends Thread {
     }
 
     /**
-     * Shutdown the adaptation manager
+     * Shutdown the adaptation manager.
      */
     public void shutdown() {
         if (this.canBeStarted) {
@@ -147,9 +150,9 @@ public class ExternalAdaptationManager extends Thread {
     }
 
     /**
-     * Manages remove messages
+     * Manages remove messages.
      *
-     * @param params
+     * @param params Remove parameters.
      */
     private void manageRemove(String[] params) {
         // Cloud provider message : (cloudProvider name, ip) Connector will destroy the resource
@@ -169,9 +172,9 @@ public class ExternalAdaptationManager extends Thread {
     }
 
     /**
-     * Manages create messages
+     * Manages create messages.
      *
-     * @param params
+     * @param params Create parameters.
      */
     private void manageCreate(String[] params) {
         // Cloud creation message : (cloudProvider name, cloudInstanceType name, image name) Connector will create the

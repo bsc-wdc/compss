@@ -16,10 +16,13 @@
  */
 package es.bsc.compss.util;
 
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.fake.FakeMethodAdaptor;
 import es.bsc.compss.comm.fake.FakeServiceAdaptor;
 import es.bsc.compss.components.ResourceUser;
+import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ExtendedCloudMethodWorker;
 import es.bsc.compss.types.ResourceCreationRequest;
@@ -37,12 +40,12 @@ import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -80,16 +83,13 @@ public class ResourceManagerTest {
     }
 
     @Test
-    public void testStaticWorkersOperations() {
+    public void testStaticWorkersOperations() throws ConstructConfigurationException {
         // Add Method Resource 1
         MethodResourceDescription mrd1 = new MethodResourceDescription();
         Float memory1 = 10f + (float) Math.random();
         mrd1.setMemorySize(memory1);
-        MethodConfiguration mc1 = null;
-        try {
-            mc1 = (MethodConfiguration) Comm.constructConfiguration(FakeMethodAdaptor.class.getName(), null, null);
-        } catch (Exception e) {
-        }
+        MethodConfiguration mc1 = (MethodConfiguration) Comm.constructConfiguration(FakeMethodAdaptor.class.getName(),
+                null, null);
         String worker1Name = "Worker" + (int) (Math.random() * 10000);
         MethodWorker mw1 = createMethodWorker(worker1Name, mrd1, new HashMap<>(), mc1);
         ResourceManager.addStaticResource(mw1);
@@ -115,11 +115,8 @@ public class ResourceManagerTest {
         MethodResourceDescription mrd2 = new MethodResourceDescription();
         Float memory2 = 10f + (float) Math.random();
         mrd2.setMemorySize(memory2);
-        MethodConfiguration mc2 = null;
-        try {
-            mc2 = (MethodConfiguration) Comm.constructConfiguration(FakeMethodAdaptor.class.getName(), null, null);
-        } catch (Exception e) {
-        }
+        MethodConfiguration mc2 = (MethodConfiguration) Comm.constructConfiguration(FakeMethodAdaptor.class.getName(),
+                null, null);
         String worker2Name = "Worker" + (int) (Math.random() * 10000);
         MethodWorker mw2 = createMethodWorker(worker2Name, mrd2, new HashMap<>(), mc2);
         ResourceManager.addStaticResource(mw2);
@@ -141,11 +138,8 @@ public class ResourceManagerTest {
         }
         // Add Service Resource 1
         ServiceResourceDescription srd1 = new ServiceResourceDescription("service1", "namespace1", "port1", 2);
-        ServiceConfiguration sc1 = null;
-        try {
-            sc1 = (ServiceConfiguration) Comm.constructConfiguration(FakeServiceAdaptor.class.getName(), null, null);
-        } catch (Exception e) {
-        }
+        ServiceConfiguration sc1 = (ServiceConfiguration) Comm
+                .constructConfiguration(FakeServiceAdaptor.class.getName(), null, null);
         String wsdl1 = "WSDL" + (int) (Math.random() * 10000);
         ServiceWorker sw1 = createServiceWorker(wsdl1, srd1, sc1);
         ResourceManager.addStaticResource(sw1);
@@ -303,13 +297,13 @@ public class ResourceManagerTest {
         CloudProvider cp1 = addProvider();
         CloudProvider cp2 = addProvider();
 
-        CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
+        final CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
         ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);
 
-        CloudMethodResourceDescription cmrd2 = createResourceDescriptionFromProvider(cp2);
+        final CloudMethodResourceDescription cmrd2 = createResourceDescriptionFromProvider(cp2);
         ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd1);
 
-        CloudMethodResourceDescription cmrd3 = createResourceDescriptionFromProvider(cp1);
+        final CloudMethodResourceDescription cmrd3 = createResourceDescriptionFromProvider(cp1);
         ResourceCreationRequest rcr3 = cp1.requestResourceCreation(cmrd3);
 
         if (ResourceManager.getPendingCreationRequests().size() != 3

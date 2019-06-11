@@ -35,37 +35,36 @@ import org.apache.logging.log4j.Logger;
 
 public class CloudTypeManager {
 
-    /**
-     * Relation between the name of an template and its features
-     */
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.CM_COMP);
+
+    // Relation between the name of an template and its features.
     private final HashMap<String, CloudInstanceTypeDescription> types;
 
-    private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
-
 
     /**
-     * Constructs a new CloudImageManager
+     * Constructs a new CloudImageManager.
      */
     public CloudTypeManager() {
-        logger.debug("Initializing CloudTypeManager");
-        types = new HashMap<>();
+        LOGGER.debug("Initializing CloudTypeManager");
+        this.types = new HashMap<>();
     }
 
     /**
-     * Adds a new instance type which can be used by the Cloud Provider
+     * Adds a new instance type which can be used by the Cloud Provider.
      *
-     * @param type Description of the resource
+     * @param type Description of the resource.
      */
     public void addType(CloudInstanceTypeDescription type) {
-        logger.debug("Add new type description " + type.getName());
-        types.put(type.getName(), type);
+        LOGGER.debug("Add new type description " + type.getName());
+        this.types.put(type.getName(), type);
     }
 
     /**
      * Finds all the types provided by the Cloud Provider which fulfill the resource description.
      *
-     * @param requested description of the features that the image must provide
-     * @return The best instance type provided by the Cloud Provider which fulfills the resource description
+     * @param requested description of the features that the image must provide.
+     * @return The best instance type provided by the Cloud Provider which fulfills the resource description.
      */
     public List<CloudInstanceTypeDescription> getCompatibleTypes(MethodResourceDescription requested) {
         List<CloudInstanceTypeDescription> compatiblesList = new LinkedList<>();
@@ -85,42 +84,55 @@ public class CloudTypeManager {
     }
 
     /**
-     * Return all the instance type names offered by that Cloud Provider
+     * Return all the instance type names offered by that Cloud Provider.
      *
-     * @return set of instance type names offered by that Cloud Provider
+     * @return set of instance type names offered by that Cloud Provider.
      */
     public Set<String> getAllTypeNames() {
-        return types.keySet();
+        return this.types.keySet();
     }
 
     /**
-     * Return all the instance types offered by that Cloud Provider
+     * Return all the instance types offered by that Cloud Provider.
      *
-     * @return set of instance types offered by that Cloud Provider
+     * @return set of instance types offered by that Cloud Provider.
      */
     public Collection<CloudInstanceTypeDescription> getAllTypes() {
-        return types.values();
+        return this.types.values();
     }
 
     /**
-     * @param name
-     * @return instance type description associated to that name
+     * Returns the type of the instance.
+     * 
+     * @param name Instance name.
+     * @return Instance type description associated to that name.
      */
     public CloudInstanceTypeDescription getType(String name) {
-        return types.get(name);
+        return this.types.get(name);
     }
 
+    /**
+     * Returns the simultaneous implementations that a given type can run.
+     * 
+     * @param type Instance type.
+     * @return Simultaneous implementations per each implementation of each coreElement.
+     */
     public int[][] getSimultaneousImpls(String type) {
-        CloudInstanceTypeDescription t = types.get(type);
+        CloudInstanceTypeDescription t = this.types.get(type);
         if (t != null) {
             return t.getSlotsImpl();
         }
         return null;
     }
 
+    /**
+     * Updates the coreElements information.
+     * 
+     * @param newCores New coreElements.
+     */
     public void newCoreElementsDetected(List<Integer> newCores) {
         int coreCount = CoreManager.getCoreCount();
-        for (CloudInstanceTypeDescription type : types.values()) {
+        for (CloudInstanceTypeDescription type : this.types.values()) {
             int[][] slotsI = new int[coreCount][];
             // Copy actual values
             int[] slotsC = Arrays.copyOf(type.getSlotsCore(), coreCount);
@@ -148,12 +160,18 @@ public class CloudTypeManager {
         }
     }
 
+    /**
+     * Dumps the current state.
+     * 
+     * @param prefix Prefix to append to the dump.
+     * @return String representing the dump of the current state.
+     */
     public String getCurrentState(String prefix) {
         int coreCount = CoreManager.getCoreCount();
         StringBuilder sb = new StringBuilder();
         // Types
         sb.append(prefix).append("TYPES = [").append("\n");
-        for (java.util.Map.Entry<String, CloudInstanceTypeDescription> type : types.entrySet()) {
+        for (java.util.Map.Entry<String, CloudInstanceTypeDescription> type : this.types.entrySet()) {
             sb.append(prefix).append("\t").append("TYPE = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("KEY = ").append(type.getKey()).append("\n");
             sb.append(prefix).append("\t").append("\t").append("CORES = [").append("\n");

@@ -97,7 +97,8 @@ public class CloudProviderTest {
 
         Set<String> imageNames = cp.getAllImageNames();
         if (!imageNames.contains(image1Name)) {
-            fail("Cloud Provider is not storing properly the Images. Cannot find the Image name on the one single image scenario.");
+            fail("Cloud Provider is not storing properly the Images."
+                    + " Cannot find the Image name on the one single image scenario.");
         }
         if (imageNames.size() != 1) {
             fail("Cloud Provider is not storing properly the Images. only two images are supposed to be in the group.");
@@ -147,10 +148,12 @@ public class CloudProviderTest {
         }
         switch (contains) {
             case 0:
-                fail("Cloud Provider is not storing properly the Images. Cannot find any image name on the two images scenario.");
+                fail("Cloud Provider is not storing properly the Images."
+                        + " Cannot find any image name on the two images scenario.");
                 break;
             case 1:
-                fail("Cloud Provider is not storing properly the Images. Cannot find one image name on the two images scenario.");
+                fail("Cloud Provider is not storing properly the Images."
+                        + " Cannot find one image name on the two images scenario.");
                 break;
             default:
                 // Works properly
@@ -212,10 +215,12 @@ public class CloudProviderTest {
 
         Set<String> instanceNames = cp.getAllInstanceTypeNames();
         if (!instanceNames.contains(type1Name)) {
-            fail("Cloud Provider is not storing properly the Images. Cannot find the template name with one single template.");
+            fail("Cloud Provider is not storing properly the Images."
+                    + " Cannot find the template name with one single template.");
         }
         if (instanceNames.size() != 1) {
-            fail("Cloud Provider is not storing properly the Images. only one template is supposed to be in the group.");
+            fail("Cloud Provider is not storing properly the Images."
+                    + " Only one template is supposed to be in the group.");
         }
         CloudInstanceTypeDescription retrieved1 = cp.getInstanceType(type1Name);
         try {
@@ -261,17 +266,20 @@ public class CloudProviderTest {
         }
         switch (contains) {
             case 0:
-                fail("Cloud Provider is not storing properly the Templates. Cannot find any template name on the two templates scenario.");
+                fail("Cloud Provider is not storing properly the Templates."
+                        + " Cannot find any template name on the two templates scenario.");
                 break;
             case 1:
-                fail("Cloud Provider is not storing properly the Templates. Cannot find one template name on the two templates scenario.");
+                fail("Cloud Provider is not storing properly the Templates."
+                        + " Cannot find one template name on the two templates scenario.");
                 break;
             default:
                 // Works properly
         }
 
         if (instanceNames.size() != 2) {
-            fail("Cloud Provider is not storing properly the Templates. only two templates are supposed to be in the set.");
+            fail("Cloud Provider is not storing properly the Templates."
+                    + " only two templates are supposed to be in the set.");
         }
 
         CloudInstanceTypeDescription retrieved1 = cp.getInstanceType(type1Name);

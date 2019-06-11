@@ -27,9 +27,9 @@ import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
 import es.bsc.compss.types.resources.Resource.Type;
-import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -66,7 +66,8 @@ public class ResourceManager {
     // Error messages
     private static final String ERROR_RESOURCES_XML = "ERROR: Cannot parse resources.xml file";
     private static final String ERROR_PROJECT_XML = "ERROR: Cannot parse project.xml file";
-    private static final String ERROR_NO_RES = "ERROR: No computational resource available (ComputeNode, service or CloudProvider)";
+    private static final String ERROR_NO_RES = "ERROR: No computational resource available"
+            + " (ComputeNode, service or CloudProvider)";
     protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
     private static final String DEL_VM_ERR = "ERROR: Canot delete VMs";
 
@@ -134,9 +135,9 @@ public class ResourceManager {
     }
 
     /**
-     * Reinitializes the ResourceManager
+     * Reinitializes the ResourceManager.
      *
-     * @param resUser object to notify resource changes
+     * @param resUser object to notify resource changes.
      */
     public static void clear(ResourceUser resUser) {
         resourceUser = resUser;
@@ -146,7 +147,7 @@ public class ResourceManager {
     }
 
     /**
-     * Stops all the nodes within the pool
+     * Stops all the nodes within the pool.
      */
     public static void stopNodes() {
         // Log resource
@@ -217,36 +218,38 @@ public class ResourceManager {
      ********************************************************************
      */
     /**
-     * Returns a worker instance with the given name @name
+     * Returns a worker instance with the given name {@code name}.
      *
-     * @param name
-     * @return
+     * @param name Worker name.
+     * @return The worker instance with the given name.
      */
     public static Worker<? extends WorkerResourceDescription> getWorker(String name) {
         return pool.getResource(name);
     }
 
     /**
-     * Return a list of all the resources
+     * Return a list of all the resources.
      *
-     * @return list of all the resources
+     * @return List of all the resources.
      */
     public static List<Worker<? extends WorkerResourceDescription>> getAllWorkers() {
         return pool.findAllResources();
     }
 
     /**
-     * Returns the number of available workers
+     * Returns the number of available workers.
      *
-     * @return the number of available workers
+     * @return The number of available workers.
      */
     public static int getTotalNumberOfWorkers() {
         return pool.findAllResources().size();
     }
 
     /**
-     * @param <T>
-     * @param worker
+     * Adds a new static resource.
+     * 
+     * @param <T> WorkerResourceDescription extension.
+     * @param worker Worker to add.
      */
     public static <T extends WorkerResourceDescription> void addStaticResource(Worker<T> worker) {
         synchronized (pool) {
@@ -266,6 +269,11 @@ public class ResourceManager {
                 + " available in the pool. Name = " + worker.getName());
     }
 
+    /**
+     * Removes a given worker.
+     * 
+     * @param r Worker description.
+     */
     public static void removeWorker(Worker<? extends WorkerResourceDescription> r) {
         pool.delete(r);
         int[] maxTaskCount = r.getSimultaneousTasks();
@@ -275,9 +283,9 @@ public class ResourceManager {
     }
 
     /**
-     * Updates the coreElement information
+     * Updates the coreElement information.
      *
-     * @param updatedCores
+     * @param updatedCores New coreElement information.
      */
     public static void coreElementUpdates(List<Integer> updatedCores) {
         synchronized (pool) {
@@ -311,11 +319,11 @@ public class ResourceManager {
      ********************************************************************
      */
     /**
-     * Sets the boundaries on the cloud elasticity
+     * Sets the boundaries on the cloud elasticity.
      *
-     * @param minVMs lower number of VMs allowed
-     * @param initialVMs initial number of VMs
-     * @param maxVMs higher number of VMs allowed
+     * @param minVMs Lower number of VMs allowed.
+     * @param initialVMs Initial number of VMs.
+     * @param maxVMs Higher number of VMs allowed.
      */
     public static void setCloudVMsBoundaries(Integer minVMs, Integer initialVMs, Integer maxVMs) {
         cloudManager.setInitialVMs(initialVMs);
@@ -324,16 +332,16 @@ public class ResourceManager {
     }
 
     /**
-     * Adds a new Provider to the Cloud section management (and enables the cloud usage)
+     * Adds a new Provider to the Cloud section management (and enables the cloud usage).
      *
-     * @param providerName
-     * @param limitOfVMs
-     * @param runtimeConnectorClass
-     * @param connectorJarPath
-     * @param connectorMainClass
-     * @param connectorProperties
-     * @return
-     * @throws es.bsc.compss.connectors.ConnectorException
+     * @param providerName Cloud provider name.
+     * @param limitOfVMs Provider limit of VMs.
+     * @param runtimeConnectorClass Runtime connector abstract class.
+     * @param connectorJarPath Path to the connector JAR.
+     * @param connectorMainClass Connector main class.
+     * @param connectorProperties Connector specific properties.
+     * @return A cloud provider instance.
+     * @throws ConnectorException When connector cannot be instantiated.
      */
     public static CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs,
             String runtimeConnectorClass, String connectorJarPath, String connectorMainClass,
@@ -344,10 +352,10 @@ public class ResourceManager {
     }
 
     /**
-     * Adds a dynamic worker
+     * Adds a dynamic worker.
      *
-     * @param worker
-     * @param granted
+     * @param worker Worker to add.
+     * @param granted Worker resource description granted by the connector.
      */
     public static void addDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription granted) {
         synchronized (pool) {
@@ -370,11 +378,11 @@ public class ResourceManager {
     }
 
     /**
-     * Adds a cloud worker
+     * Adds a cloud worker.
      *
-     * @param origin
-     * @param worker
-     * @param granted
+     * @param origin Creation request.
+     * @param worker Worker to add.
+     * @param granted Worker resource description granted by the connector.
      */
     public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
             CloudMethodResourceDescription granted) {
@@ -384,10 +392,10 @@ public class ResourceManager {
     }
 
     /**
-     * Increases the capabilities of a given dynamic worker
+     * Increases the capabilities of a given dynamic worker.
      *
-     * @param worker
-     * @param extension
+     * @param worker Worker to update.
+     * @param extension Description of the increase.
      */
     public static void increasedDynamicWorker(DynamicMethodWorker worker, MethodResourceDescription extension) {
 
@@ -414,11 +422,11 @@ public class ResourceManager {
     }
 
     /**
-     * Increases the capabilities of a given cloud worker
+     * Increases the capabilities of a given cloud worker.
      *
-     * @param origin
-     * @param worker
-     * @param extension
+     * @param origin Creation request.
+     * @param worker Worker to increase.
+     * @param extension Description of the increase.
      */
     public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
             CloudMethodResourceDescription extension) {
@@ -428,33 +436,56 @@ public class ResourceManager {
     }
 
     /**
-     * Decreases the capabilities of a given cloud worker
+     * Decreases the capabilities of a given cloud worker.
      *
-     * @param worker
-     * @param reduction
+     * @param worker Worker to decrease.
+     * @param reduction Description of the decrease.
      */
     public static void requestWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(reduction);
         resourceUser.updatedResource(worker, modification);
     }
 
+    /**
+     * Decrease all the capabilities of a given worker.
+     * 
+     * @param name Worker name.
+     */
     public static void requestWholeWorkerReduction(String name) {
         MethodWorker worker = (MethodWorker) pool.getResource(name);
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy());
         resourceUser.updatedResource(worker, modification);
     }
 
+    /**
+     * Decrease all the capabilities of a given worker.
+     * 
+     * @param worker Worker.
+     */
     public static void requestWholeWorkerReduction(MethodWorker worker) {
         ResourceUpdate<MethodResourceDescription> modification = new PendingReduction<>(worker.getDescription().copy());
         resourceUser.updatedResource(worker, modification);
     }
 
+    /**
+     * Confirms the reduction of a given worker.
+     * 
+     * @param worker Decreased worker.
+     * @param reduction Decreased reduction.
+     */
     public static <T extends WorkerResourceDescription> void confirmWorkerReduction(Worker<T> worker,
             PendingReduction<T> reduction) {
+
         ResourceUpdate<T> ru = new PerformedReduction<>(reduction.getModification());
         resourceUser.updatedResource(worker, ru);
     }
 
+    /**
+     * Notifies when the worker has been reduced.
+     * 
+     * @param worker Worker to reduce.
+     * @param reduction Reduction performed.
+     */
     public static void notifyWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
         worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
         MethodResourceDescription modification = reduction;
@@ -462,6 +493,11 @@ public class ResourceManager {
         resourceUser.updatedResource(worker, ru);
     }
 
+    /**
+     * Notifies the reduction of the whole worker.
+     * 
+     * @param name Worker name.
+     */
     public static void notifyWholeWorkerReduction(String name) {
         DynamicMethodWorker worker = (DynamicMethodWorker) pool.getResource(name);
         MethodResourceDescription reduction = worker.getDescription();
@@ -471,6 +507,11 @@ public class ResourceManager {
         resourceUser.updatedResource(worker, ru);
     }
 
+    /**
+     * Notifies the reduction of the whole worker.
+     * 
+     * @param worker Worker.
+     */
     public static void notifyWholeWorkerReduction(DynamicMethodWorker worker) {
         MethodResourceDescription reduction = worker.getDescription();
         worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
@@ -480,11 +521,11 @@ public class ResourceManager {
     }
 
     /**
-     * Decreases the capabilities of a given cloud worker
+     * Decreases the capabilities of a given cloud worker.
      *
-     * @param <R>
-     * @param worker
-     * @param reduction
+     * @param <R> WorkerResourceDescription extension.
+     * @param worker Worker to reduce.
+     * @param reduction Reduction to perform.
      */
     @SuppressWarnings("unchecked")
     public static <R extends WorkerResourceDescription> void reduceDynamicWorker(DynamicMethodWorker worker,

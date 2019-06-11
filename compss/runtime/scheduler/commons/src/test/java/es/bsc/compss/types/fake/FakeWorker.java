@@ -20,6 +20,7 @@ import es.bsc.compss.types.fake.FakeNode;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceType;
 import es.bsc.compss.types.resources.Worker;
 
 
@@ -30,8 +31,8 @@ public class FakeWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
-    public Resource.Type getType() {
-        return Resource.Type.WORKER;
+    public ResourceType getType() {
+        return ResourceType.WORKER;
     }
 
     @Override

@@ -37,12 +37,6 @@ import java.util.Set;
 
 public interface Resource extends Comparable<Resource> {
 
-    public enum Type {
-        MASTER, // For the master node
-        WORKER, // For the worker nodes
-        SERVICE // For services
-    }
-
     /**
      * Starts a resource execution.
      *
@@ -251,6 +245,6 @@ public interface Resource extends Comparable<Resource> {
      *
      * @return
      */
-    public Type getType();
+    public ResourceType getType();
 
 }

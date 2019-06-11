@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.scheduler.types;
 
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.scheduler.multiobjective.MOResourceScheduler;
 import es.bsc.compss.scheduler.multiobjective.types.MOProfile;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
@@ -24,15 +26,16 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
+
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -43,18 +46,18 @@ public class MOResourceSchedulerTest {
     private static final double DEFAULT_IDLE_POWER = 1;
     private static final double DEFAULT_IDLE_PRICE = 0;
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
-    private static final long DEFAULT_AVG_EXECUTION_TIME = 100l;
+    private static final long DEFAULT_AVG_EXECUTION_TIME = 100L;
     private static final long DEFAULT_MAX_EXECUTION_TIME = Long.MIN_VALUE;
-    private static final long DEFAULT_EXECUTION_COUNT = 0l;
-    private static final double DEFAULT_POWER = 0l;
-    private static final double DEFAULT_PRICE = 0l;
+    private static final long DEFAULT_EXECUTION_COUNT = 0L;
+    private static final double DEFAULT_POWER = 0L;
+    private static final double DEFAULT_PRICE = 0L;
 
     private static final double SET_IDLE_POWER = 100;
     private static final double SET_IDLE_PRICE = 0.1;
     private static final long SET_MIN_EXECUTION_TIME = 2;
     private static final long SET_AVG_EXECUTION_TIME = 5;
     private static final long SET_MAX_EXECUTION_TIME = 10;
-    private static final long SET_EXECUTION_COUNT = 3l;
+    private static final long SET_EXECUTION_COUNT = 3L;
     private static final double SET_POWER = 4.3;
     private static final double SET_PRICE = 0.45;
 
@@ -313,7 +316,7 @@ public class MOResourceSchedulerTest {
     private class CheckerException extends Exception {
 
         /**
-         * Runtime exceptions are always 2L
+         * Runtime exceptions are always 2L.
          */
         private static final long serialVersionUID = 2L;
 

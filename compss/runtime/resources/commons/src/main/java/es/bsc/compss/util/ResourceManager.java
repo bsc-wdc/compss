@@ -29,7 +29,7 @@ import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
-import es.bsc.compss.types.resources.Resource.Type;
+import es.bsc.compss.types.resources.ResourceType;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -265,7 +265,7 @@ public class ResourceManager {
         // Log new resource
         RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
-        RUNTIME_LOGGER.info("New " + ((worker.getType() == Type.SERVICE) ? "service" : "computeNode")
+        RUNTIME_LOGGER.info("New " + ((worker.getType() == ResourceType.SERVICE) ? "service" : "computeNode")
                 + " available in the pool. Name = " + worker.getName());
     }
 
@@ -778,7 +778,7 @@ public class ResourceManager {
                 resourceState.append("\t").append("RESOURCE = [").append("\n");
                 resourceState.append("\t\t").append("NAME = ").append(resource.getName()).append("\n");
                 resourceState.append("\t\t").append("TYPE = ").append(resource.getType().toString()).append("\n");
-                if (resource.getType() == Type.SERVICE) {
+                if (resource.getType() == ResourceType.SERVICE) {
                     resourceState.append("\t\t").append("CPUS = 0\n");
                     resourceState.append("\t\t").append("MEMORY = 0\n");
                 } else {
@@ -810,14 +810,14 @@ public class ResourceManager {
                 resourceState.append("\t").append("CREATION_TIME = ")
                         .append(Long.toString(cloudManager.getNextCreationTime())).append("\n");
             } catch (Exception ex) {
-                resourceState.append("\t").append("CREATION_TIME = ").append(120000l).append("\n");
+                resourceState.append("\t").append("CREATION_TIME = ").append(120_000L).append("\n");
             }
             resourceState.append("\t").append("PENDING_RESOURCES = [").append("\n");
             for (ResourceCreationRequest rcr : cloudManager.getPendingRequests()) {
                 resourceState.append("\t\t").append("RESOURCE = [").append("\n");
                 CloudMethodResourceDescription cmrd = rcr.getRequested();
                 resourceState.append("\t\t\t").append("NAME = ").append(cmrd.getName()).append("\n");
-                resourceState.append("\t\t\t").append("TYPE = ").append(Type.WORKER.toString()).append("\n");
+                resourceState.append("\t\t\t").append("TYPE = ").append(ResourceType.WORKER.toString()).append("\n");
                 resourceState.append("\t\t\t").append("CPUS = ").append(cmrd.getTotalCPUComputingUnits()).append("\n");
                 resourceState.append("\t\t\t").append("MEMORY = ").append(cmrd.getMemorySize()).append("\n");
                 resourceState.append("\t\t\t").append("CAN_RUN = [").append("\n");

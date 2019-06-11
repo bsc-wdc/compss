@@ -59,8 +59,8 @@ public class DynamicMethodWorker extends MethodWorker {
     }
 
     @Override
-    public Type getType() {
-        return Type.WORKER;
+    public ResourceType getType() {
+        return ResourceType.WORKER;
     }
 
     @Override

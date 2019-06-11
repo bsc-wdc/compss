@@ -153,7 +153,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
      */
     @Override
     public final void addObsolete(LogicalData obsolete) {
-        if (getType() == Type.WORKER) {
+        if (getType() == ResourceType.WORKER) {
             synchronized (obsoletes) {
                 obsoletes.add(obsolete);
             }
@@ -381,7 +381,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
             LOGGER.debug("Unique files saved for " + this.getName());
         }
 
-        if (this.getType() != Type.SERVICE) {
+        if (this.getType() != ResourceType.SERVICE) {
             shutdownExecutionManager();
 
             if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {

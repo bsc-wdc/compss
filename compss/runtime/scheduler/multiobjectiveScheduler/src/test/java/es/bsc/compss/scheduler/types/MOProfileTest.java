@@ -16,7 +16,10 @@
  */
 package es.bsc.compss.scheduler.types;
 
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.scheduler.multiobjective.types.MOProfile;
+
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -24,22 +27,20 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 
 public class MOProfileTest {
 
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
-    private static final long DEFAULT_AVG_EXECUTION_TIME = 100l;
+    private static final long DEFAULT_AVG_EXECUTION_TIME = 100L;
     private static final long DEFAULT_MAX_EXECUTION_TIME = Long.MIN_VALUE;
-    private static final long DEFAULT_EXECUTION_COUNT = 0l;
-    private static final double DEFAULT_POWER = 0l;
-    private static final double DEFAULT_PRICE = 0l;
+    private static final long DEFAULT_EXECUTION_COUNT = 0L;
+    private static final double DEFAULT_POWER = 0L;
+    private static final double DEFAULT_PRICE = 0L;
 
     private static final long SET_MIN_EXECUTION_TIME = 2;
     private static final long SET_AVG_EXECUTION_TIME = 5;
     private static final long SET_MAX_EXECUTION_TIME = 10;
-    private static final long SET_EXECUTION_COUNT = 3l;
+    private static final long SET_EXECUTION_COUNT = 3L;
     private static final double SET_POWER = 4.3;
     private static final double SET_PRICE = 0.45;
 

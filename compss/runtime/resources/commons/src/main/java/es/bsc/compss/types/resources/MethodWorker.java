@@ -240,8 +240,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
-    public Type getType() {
-        return Type.WORKER;
+    public ResourceType getType() {
+        return ResourceType.WORKER;
     }
 
     @Override

@@ -88,13 +88,13 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
     }
 
     @Override
-    public Type getType() {
-        return Type.MASTER;
+    public ResourceType getType() {
+        return ResourceType.MASTER;
     }
 
     @Override
     public int compareTo(Resource t) {
-        if (t.getType() == Type.MASTER) {
+        if (t.getType() == ResourceType.MASTER) {
             return getName().compareTo(t.getName());
         } else {
             return 1;

@@ -116,7 +116,8 @@ def init_streaming(streaming_backend, streaming_master_name, streaming_master_po
 
     # Init stream backend if needed
     if streaming_enabled:
-        logger.debug("Starting DistroStream library")
+        if __debug__:
+            logger.debug("Starting DistroStream library")
         DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,
                                                  master_port=int(streaming_master_port))
 
@@ -125,7 +126,8 @@ def init_streaming(streaming_backend, streaming_master_name, streaming_master_po
 
 
 def stop_streaming(logger):
-    logger.debug("Stopping DistroStream library")
+    if __debug__:
+        logger.debug("Stopping DistroStream library")
     DistroStreamClientHandler.set_stop()
 
 
@@ -190,11 +192,13 @@ def compss_main():
             logger.debug('PyCOMPSs Log path: %s' % binding_log_path)
 
         # Start persistent storage
-        logger.debug("[LOG] Starting storage")
+        if __debug__:
+            logger.debug("[LOG] Starting storage")
         persistent_storage = init_storage(storage_conf, logger)
 
         # Start streaming
-        logger.debug("[LOG] Starting streaming")
+        if __debug__:
+            logger.debug("[LOG] Starting streaming")
         streaming = init_streaming(args.streaming_backend,
                                    args.streaming_master_name,
                                    args.streaming_master_port,
@@ -211,12 +215,14 @@ def compss_main():
             execfile(app_path, globals())  # MAIN EXECUTION
 
         # Stop streaming
-        logger.debug("[LOG] Stopping streaming")
+        if __debug__:
+            logger.debug("[LOG] Stopping streaming")
         if streaming:
             stop_streaming(logger)
 
         # Stop persistent storage
-        logger.debug("[LOG] Stopping storage")
+        if __debug__:
+            logger.debug("[LOG] Stopping storage")
         if persistent_storage:
             stop_storage()
 

@@ -46,6 +46,7 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
@@ -334,8 +335,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(Boolean.toString(Tracer.extraeEnabled()));
         if (Tracer.extraeEnabled()) {
             lArgs.add(String.valueOf(Tracer.getRuntimeEventsType())); // Runtime event type
-            lArgs.add(String.valueOf(Tracer.Event.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
-            lArgs.add(String.valueOf(Tracer.Event.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
+            lArgs.add(String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
+            lArgs.add(String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
 
             lArgs.add(String.valueOf(Tracer.getTaskEventsType())); // event type
             int slot = Tracer.getNextSlot(targetHost);

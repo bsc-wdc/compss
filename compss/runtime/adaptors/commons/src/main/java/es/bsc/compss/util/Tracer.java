@@ -42,6 +42,31 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class Tracer {
 
+    // Logger
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+    protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
+
+    // Tracing script and file paths
+    protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
+            + File.separator + "system" + File.separator + "trace" + File.separator + "trace.sh";
+    protected static final String TRACE_OUT_RELATIVE_PATH = File.separator + "trace" + File.separator + "tracer.out";
+    protected static final String TRACE_ERR_RELATIVE_PATH = File.separator + "trace" + File.separator + "tracer.err";
+
+    // Extrae loaded properties
+    private static final boolean IS_CUSTOM_EXTRAE_FILE = (System
+            .getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) != null)
+            && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()
+            && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).equals("null");
+    private static final String EXTRAE_FILE = IS_CUSTOM_EXTRAE_FILE
+            ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
+            : "null";
+
+    // Extrae environment flags
+    public static final String LD_PRELOAD = "LD_PRELOAD";
+    public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
+
+    // Description tags for Paraver
     private static final String taskDesc = "Task";
     private static final String apiDesc = "Runtime";
     private static final String taskIdDesc = "Task IDs";
@@ -50,146 +75,25 @@ public abstract class Tracer {
     private static final String storageDesc = "Storage API";
     private static final String insideTaskDesc = "Events inside tasks";
 
-    protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
-            + File.separator + "system" + File.separator + "trace" + File.separator + "trace.sh";
-    protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
-    protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
-
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
-    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-    protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
-
-    private static final int TASKS_FUNC_TYPE = 8_000_000;
-    private static final int RUNTIME_EVENTS = 8_000_001;
-    private static final int TASKS_ID_TYPE = 8_000_002;
-    private static final int TASK_TRANSFERS = 8_000_003;
-    private static final int DATA_TRANSFERS = 8_000_004;
-    private static final int STORAGE_TYPE = 8_000_005;
-    private static final int READY_COUNTS = 8_000_006;
-    private static final int SYNC_TYPE = 8_000_666;
-    private static final int INSIDE_TASKS_TYPE = 60_000_100;
+    // Event codes
+    protected static final int TASKS_FUNC_TYPE = 8_000_000;
+    protected static final int RUNTIME_EVENTS = 8_000_001;
+    protected static final int TASKS_ID_TYPE = 8_000_002;
+    protected static final int TASK_TRANSFERS = 8_000_003;
+    protected static final int DATA_TRANSFERS = 8_000_004;
+    protected static final int STORAGE_TYPE = 8_000_005;
+    protected static final int READY_COUNTS = 8_000_006;
+    protected static final int SYNC_TYPE = 8_000_666;
+    protected static final int INSIDE_TASKS_TYPE = 60_000_100;
 
     public static final int EVENT_END = 0;
 
+    // Tracing modes
     public static final int BASIC_MODE = 1;
-
     public static final int SCOREP_MODE = -1;
     public static final int MAP_MODE = -2;
 
-    public static final String LD_PRELOAD = "LD_PRELOAD";
-    public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
-
     protected static int tracingLevel = 0;
-
-    private static final boolean isCustomExtraeFile = (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) != null)
-            && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()
-            && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).equals("null");
-    private static final String extraeFile = isCustomExtraeFile ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
-            : "null";
-
-
-    public enum Event {
-        STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"), // Static COMPSs
-        START(2, RUNTIME_EVENTS, "Start"), // Start
-        STOP(3, RUNTIME_EVENTS, "Stop"), // Stop
-        TASK(4, RUNTIME_EVENTS, "Execute Task"), // Execute task
-        NO_MORE_TASKS(5, RUNTIME_EVENTS, "Waiting for tasks end"), // No more tasks
-        WAIT_FOR_ALL_TASKS(6, RUNTIME_EVENTS, "Barrier"), // Waiting for tasks
-        OPEN_FILE(7, RUNTIME_EVENTS, "Waiting for open file"), // Open file
-        GET_FILE(8, RUNTIME_EVENTS, "Waiting for get file"), // Get file
-        GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"), // Get Object
-        TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"), // Task running
-        DELETE(12, RUNTIME_EVENTS, "Delete File"), // Delete file
-        WORKER_RECEIVED_NEW_TASK(13, RUNTIME_EVENTS, "Received new task"), // New task at worker
-
-        // Access Processor Events
-        DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"), // Debug
-        ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"), // Analyse task
-        UPDATE_GRAPH(19, RUNTIME_EVENTS, "Access Processor: Update graph"), // Update graph
-        WAIT_FOR_TASK(20, RUNTIME_EVENTS, "Access Processor: Wait for task"), // wait for task
-        END_OF_APP(21, RUNTIME_EVENTS, "Access Processor: End of app"), // End of application
-        ALREADY_ACCESSED(22, RUNTIME_EVENTS, "Access Processor: Already accessed"), // Already accessed
-        REGISTER_DATA_ACCESS(23, RUNTIME_EVENTS, "Access Processor: Register data access"), // Register data access
-        TRANSFER_OPEN_FILE(24, RUNTIME_EVENTS, "Access Processor: Transfer open file"), // Transfer open file
-        TRANSFER_RAW_FILE(25, RUNTIME_EVENTS, "Access Processor: Transfer raw file"), // Transfer raw file
-        TRANSFER_OBJECT(26, RUNTIME_EVENTS, "Access Processor: Transfer object"), // Transfer object
-        NEW_VERSION_SAME_VALUE(27, RUNTIME_EVENTS, "Access Processor: New version same value"), // New version
-        IS_OBJECT_HERE(28, RUNTIME_EVENTS, "Access Processor: Is object here"), // Is object here
-        SET_OBJECT_VERSION_VALUE(29, RUNTIME_EVENTS, "Access Processor: Set object version value"), // Set version
-        GET_LAST_RENAMING(30, RUNTIME_EVENTS, "Access Processor: Get last renaming"), // Get last renaming
-        BLOCK_AND_GET_RESULT_FILES(31, RUNTIME_EVENTS, "Access Processor: Block and get result files"), // Get files
-        UNBLOCK_RESULT_FILES(32, RUNTIME_EVENTS, "Access Processor: Unblock result files"), // Unblock result files
-        SHUTDOWN(33, RUNTIME_EVENTS, "Access Processor: Shutdown"), // Shutdown
-        GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"), // Graph state
-        TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"), // Task state
-        DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"), // Delete file
-        FINISH_ACCESS_FILE(37, RUNTIME_EVENTS, "Access Processor: Finish acess to file"), // Finish access to file
-
-        // Storage Events
-        STORAGE_GETBYID(38, STORAGE_TYPE, "getByID"), // Get By Id
-        STORAGE_NEWREPLICA(39, STORAGE_TYPE, "newReplica"), // New replica
-        STORAGE_NEWVERSION(40, STORAGE_TYPE, "newVersion"), // New version
-        STORAGE_INVOKE(41, STORAGE_TYPE, "invoke"), // Invoke
-        STORAGE_EXECUTETASK(42, STORAGE_TYPE, "executeTask"), // Execute task
-        STORAGE_GETLOCATIONS(43, STORAGE_TYPE, "getLocations"), // Get locations
-        STORAGE_CONSOLIDATE(44, STORAGE_TYPE, "consolidateVersion"), // Consolidate version
-
-        // Task Dispatcher Events
-        ACTION_UPDATE(45, RUNTIME_EVENTS, "Task Dispatcher: Action update"), // Action update
-        CE_REGISTRATION(46, RUNTIME_EVENTS, "Task Dispatcher: CE registration"), // CE registration
-        EXECUTE_TASKS(47, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"), // Execute task
-        GET_CURRENT_SCHEDULE(48, RUNTIME_EVENTS, "Task Dispatcher: Get current schedule"), // Get schedule
-        PRINT_CURRENT_GRAPH(49, RUNTIME_EVENTS, "Task Dispatcher: Print current graph"), // Print graph
-        MONITORING_DATA(50, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"), // Get monitor data
-        TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), // Shutdown
-        UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), // Update CEI
-        WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"), // Update worker
-
-        // Task Events
-        CREATING_TASK_SANDBOX(54, RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
-        REMOVING_TASK_SANDBOX(55, RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
-        TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"), // Execute python task
-        USER_CODE_PYTHON1(2, INSIDE_TASKS_TYPE, "User code execution 1"), // User code 1
-        USER_CODE_PYTHON2(3, INSIDE_TASKS_TYPE, "User code execution 2"), // User code 2
-        USER_CODE_PYTHON3(4, INSIDE_TASKS_TYPE, "User code execution 3"), // User code 3
-        IMPORTING_MODULES_PYTHON(5, INSIDE_TASKS_TYPE, "Importing modules"), // Import python
-        THREAD_BINDING_PYTHON(6, INSIDE_TASKS_TYPE, "Thread binding"), // Thread binding
-        DESERIALIZE_OBJECT_PYTHON1(7, INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-        DESERIALIZE_OBJECT_PYTHON2(8, INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-        SERIALIZE_OBJECT_PYTHON(9, INSIDE_TASKS_TYPE, "Serializing object"), // Serialize
-        CREATE_THREADS_PYTHON(10, INSIDE_TASKS_TYPE, "Create persistent threads"), // Create threads python
-        GET_BY_ID(11, INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
-        MAKE_PERSISTENT(12, INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
-        DELETE_PERSISTENT(13, INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
-        WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"), // Worker running
-
-        READY_COUNT(1, READY_COUNTS, "Ready queue count");// Ready count
-
-        private final int id;
-        private final int type;
-        private final String signature;
-
-
-        private Event(int id, int type, String signature) {
-            this.id = id;
-            this.type = type;
-            this.signature = signature;
-        }
-
-        public int getId() {
-            return this.id;
-        }
-
-        public int getType() {
-            return this.type;
-        }
-
-        public String getSignature() {
-            return this.signature;
-        }
-    }
-
-
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
@@ -293,7 +197,7 @@ public abstract class Tracer {
      * @return path of extrae config file
      */
     public static String getExtraeFile() {
-        return extraeFile;
+        return EXTRAE_FILE;
     }
 
     /**
@@ -398,8 +302,8 @@ public abstract class Tracer {
         return INSIDE_TASKS_TYPE;
     }
 
-    public static Event getAcessProcessorRequestEvent(String eventType) {
-        return Event.valueOf(eventType);
+    public static TraceEvent getAcessProcessorRequestEvent(String eventType) {
+        return TraceEvent.valueOf(eventType);
     }
 
     /**
@@ -408,10 +312,10 @@ public abstract class Tracer {
      * @param eventType of the TD
      * @return the tracing event ID associated with eventType
      */
-    public static Event getTaskDispatcherRequestEvent(String eventType) {
-        Event event = null;
+    public static TraceEvent getTaskDispatcherRequestEvent(String eventType) {
+        TraceEvent event = null;
         try {
-            event = Event.valueOf(eventType);
+            event = TraceEvent.valueOf(eventType);
         } catch (Exception e) {
             LOGGER.error("Task Dispatcher event " + eventType + " is not present in Tracer's list ");
         }
@@ -485,7 +389,7 @@ public abstract class Tracer {
      */
     private static int getSizeByEventType(int type) {
         int size = 0;
-        for (Event task : Event.values()) {
+        for (TraceEvent task : TraceEvent.values()) {
             if (task.getType() == type) {
                 ++size;
             }
@@ -512,7 +416,7 @@ public abstract class Tracer {
         values[0] = 0;
         descriptionValues[0] = "End";
         int i = 1;
-        for (Event task : Event.values()) {
+        for (TraceEvent task : TraceEvent.values()) {
             if (task.getType() == RUNTIME_EVENTS) {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
@@ -558,7 +462,7 @@ public abstract class Tracer {
         values[0] = 0;
         descriptionValues[0] = "End";
         i = 1;
-        for (Event task : Event.values()) {
+        for (TraceEvent task : TraceEvent.values()) {
             if (task.getType() == TASK_TRANSFERS) {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
@@ -580,7 +484,7 @@ public abstract class Tracer {
         values[0] = 0;
         descriptionValues[0] = "End";
         i = 1;
-        for (Event task : Event.values()) {
+        for (TraceEvent task : TraceEvent.values()) {
             if (task.getType() == STORAGE_TYPE) {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
@@ -602,7 +506,7 @@ public abstract class Tracer {
         values[0] = 0;
         descriptionValues[0] = "End";
         i = 1;
-        for (Event task : Event.values()) {
+        for (TraceEvent task : TraceEvent.values()) {
             if (task.getType() == INSIDE_TASKS_TYPE) {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();

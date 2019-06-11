@@ -49,6 +49,7 @@ import es.bsc.compss.util.ExternalAdaptationManager;
 import es.bsc.compss.util.JSONStateManager;
 import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.Collection;
@@ -326,7 +327,7 @@ public class TaskScheduler {
         Integer coreId = action.getCoreId();
         if (coreId != null) {
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.Event.READY_COUNT.getId(), Tracer.Event.READY_COUNT.getType());
+                Tracer.emitEvent(TraceEvent.READY_COUNT.getId(), TraceEvent.READY_COUNT.getType());
             }
             this.readyCounts[coreId]++;
         }
@@ -343,7 +344,7 @@ public class TaskScheduler {
             Integer coreId = action.getImplementations()[0].getCoreId();
             if (coreId != null) {
                 if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.READY_COUNT.getType());
+                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.READY_COUNT.getType());
                 }
                 this.readyCounts[coreId]--;
             }

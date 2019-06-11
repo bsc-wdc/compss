@@ -65,7 +65,7 @@ import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.TraceEvent;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -437,15 +437,15 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (!currentLocations.contains(targetHostname)) {
             // Perform replica
             LOGGER.debug("Performing new replica for PSCO " + pscoId);
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
+            if (NIOTracer.extraeEnabled()) {
+                NIOTracer.emitEvent(TraceEvent.STORAGE_NEWREPLICA.getId(), TraceEvent.STORAGE_NEWREPLICA.getType());
             }
             try {
                 // TODO: WARN New replica is NOT necessary because we can't prefetch data
                 // StorageItf.newReplica(pscoId, targetHostname);
             } finally {
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWREPLICA.getType());
+                if (NIOTracer.extraeEnabled()) {
+                    NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_NEWREPLICA.getType());
                 }
             }
         } else {
@@ -481,8 +481,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(TraceEvent.STORAGE_NEWVERSION.getId(), TraceEvent.STORAGE_NEWVERSION.getType());
         }
         try {
             String newId = StorageItf.newVersion(pscoId, preserveSource, targetHostname);
@@ -498,8 +498,8 @@ public class NIOWorkerNode extends COMPSsWorker {
             sc.end(OperationEndState.OP_FAILED, e);
             return;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
+            if (NIOTracer.extraeEnabled()) {
+                NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_NEWVERSION.getType());
             }
         }
 

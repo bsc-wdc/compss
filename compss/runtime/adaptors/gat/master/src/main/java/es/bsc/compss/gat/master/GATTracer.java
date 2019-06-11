@@ -76,10 +76,10 @@ public class GATTracer extends Tracer {
         if (DEBUG) {
             try {
                 org.gridlab.gat.io.File outFile = GAT.createFile(worker.getContext(), ProtocolType.ANY_URI.getSchema()
-                        + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
+                        + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
                 sd.setStdout(outFile);
                 org.gridlab.gat.io.File errFile = GAT.createFile(worker.getContext(), ProtocolType.ANY_URI.getSchema()
-                        + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceErrRelativePath);
+                        + File.separator + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_ERR_RELATIVE_PATH);
                 sd.setStderr(errFile);
             } catch (Exception e) {
                 ErrorManager.warn("Error initializing tracing system in node " + worker.getHost(), e);

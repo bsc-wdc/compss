@@ -33,6 +33,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -137,7 +138,7 @@ public class Comm {
             LOGGER.debug("Tracing is activated [" + tracingLevel + ']');
             Tracer.init(tracingLevel);
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
+                Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
             }
         }
 

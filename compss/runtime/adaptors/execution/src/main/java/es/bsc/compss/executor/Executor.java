@@ -50,6 +50,7 @@ import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import java.io.File;
 import java.io.IOException;
@@ -244,7 +245,7 @@ public class Executor implements Runnable {
 
     private boolean execute(Invocation invocation) {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.TASK_RUNNING.getId(), Tracer.Event.TASK_RUNNING.getType());
+            Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
         }
 
         TaskWorkingDir twd = null;
@@ -318,7 +319,7 @@ public class Executor implements Runnable {
 
             // Always end task tracing
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.TASK_RUNNING.getType());
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
             }
         }
     }

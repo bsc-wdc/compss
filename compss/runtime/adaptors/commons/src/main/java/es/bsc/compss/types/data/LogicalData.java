@@ -33,6 +33,7 @@ import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.SharedDiskManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
@@ -418,7 +419,7 @@ public class LogicalData {
                     PersistentLocation pLoc = (PersistentLocation) loc;
 
                     if (Tracer.extraeEnabled()) {
-                        Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+                        Tracer.emitEvent(TraceEvent.STORAGE_GETBYID.getId(), TraceEvent.STORAGE_GETBYID.getType());
                     }
                     try {
                         this.value = StorageItf.getByID(pLoc.getId());
@@ -428,7 +429,7 @@ public class LogicalData {
                         continue;
                     } finally {
                         if (Tracer.extraeEnabled()) {
-                            Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+                            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETBYID.getType());
                         }
                     }
 

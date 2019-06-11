@@ -23,6 +23,7 @@ import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.StreamGobbler;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
@@ -97,9 +98,9 @@ public class NIOTracer extends Tracer {
 
         if (DEBUG) {
             LOGGER.debug("NIO uri File: " + ProtocolType.ANY_URI.getSchema() + File.separator
-                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
+                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
             LOGGER.debug(ProtocolType.ANY_URI.getSchema() + File.separator
-                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + traceOutRelativePath);
+                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
         }
     }
 
@@ -171,7 +172,7 @@ public class NIOTracer extends Tracer {
             LOGGER.debug("[NIOTracer] Generating trace package of " + nodeName);
         }
         if (Tracer.extraeEnabled()) {
-            emitEvent(Event.STOP.getId(), Event.STOP.getType());
+            emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
             emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 
             try {

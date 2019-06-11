@@ -62,7 +62,7 @@ import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
@@ -178,7 +178,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.tracingLevel = Integer.parseInt(traceFlag);
         NIOTracer.init(this.tracingLevel);
         if (NIOTracer.extraeEnabled()) {
-            NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
+            NIOTracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
 
             if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
                 try {
@@ -227,8 +227,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
                 computingUnitsFPGA, fpgaMap, limitOfTasks);
 
-        if (this.tracingLevel == Tracer.BASIC_MODE) {
-            Tracer.enablePThreads();
+        if (this.tracingLevel == NIOTracer.BASIC_MODE) {
+            NIOTracer.enablePThreads();
         }
 
         try {
@@ -237,8 +237,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
-        if (this.tracingLevel == Tracer.BASIC_MODE) {
-            Tracer.disablePThreads();
+        if (this.tracingLevel == NIOTracer.BASIC_MODE) {
+            NIOTracer.disablePThreads();
         }
     }
 
@@ -278,9 +278,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             }
         }
 
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.WORKER_RECEIVED_NEW_TASK.getId(),
-                    Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK.getId(),
+                    TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
         final long obsolSt = System.currentTimeMillis();
         // Remove obsolete
@@ -318,12 +318,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         // Request the transfers
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(listener.getTask().getTaskId(), Tracer.getTaskTransfersType());
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(listener.getTask().getTaskId(), NIOTracer.getTaskTransfersType());
         }
         requestTransfers();
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType());
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
         }
         final long paramsEnd = System.currentTimeMillis();
         final long paramsDuration = paramsEnd - obsolEnd;
@@ -332,8 +332,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.times.put(task.getJobId(), paramsEnd);
         listener.enable();
 
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
     }
 
@@ -350,12 +350,12 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         // Request the transfers
         /*
-         * if (Tracer.extraeEnabled()) { Tracer.emitEvent(listener.getTask().getTaskId(),
-         * Tracer.getTaskTransfersType()); }
+         * if (NIOTracer.extraeEnabled()) { NIOTracer.emitEvent(listener.getTask().getTaskId(),
+         * NIOTracer.getTaskTransfersType()); }
          */
         requestTransfers();
         /*
-         * if (Tracer.extraeEnabled()) { Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType()); }
+         * if (NIOTracer.extraeEnabled()) { NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType()); }
          */
 
     }
@@ -994,7 +994,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         if (NIOTracer.extraeEnabled()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.START.getType());
+            NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.START.getType());
         }
 
         /*

@@ -51,6 +51,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
@@ -937,8 +938,8 @@ public class DataInfoProvider {
                     if (loc instanceof PersistentLocation) {
                         String pscoId = ((PersistentLocation) loc).getId();
                         if (Tracer.extraeEnabled()) {
-                            Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(),
-                                    Tracer.Event.STORAGE_CONSOLIDATE.getType());
+                            Tracer.emitEvent(TraceEvent.STORAGE_CONSOLIDATE.getId(),
+                                    TraceEvent.STORAGE_CONSOLIDATE.getType());
                         }
                         try {
                             StorageItf.consolidateVersion(pscoId);
@@ -946,7 +947,7 @@ public class DataInfoProvider {
                             LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
                         } finally {
                             if (Tracer.extraeEnabled()) {
-                                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
+                                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_CONSOLIDATE.getType());
                             }
                         }
                         LOGGER.debug("Returned because persistent object");

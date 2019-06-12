@@ -296,7 +296,6 @@ Release date: June-2019
 -------------------------------
 New features:
          * Runtime:
-		 - New task property "targetDirection" to indicate direction of the target object in object methods. Substitutes the "isModifier" task property.
                  - New Concurrent direction type for task parameter.
 		 - Multi-node tasks support for native (Java, Python) tasks. Previously, multi-node tasks were only posible with @mpi or @decaf tasks.
                  - @Compss decorator for executing compss applications as tasks.
@@ -307,7 +306,6 @@ New features:
          * Python:
                  - Partial support of numba in tasks.
                  - Support for collection as task parameter.
-		 - Warnings for deprecated or incorrect task parameters.
                  - Supported task inheritance.
                  - New persistent MPI worker mode (alternative to subprocess).
                  - Support to ARM MAP and DDT tools (with MPI worker mode).
@@ -316,6 +314,8 @@ New features:
                  - Support for task without parameters and applications without src folder.
 
 Improvements:
+         - New task property "targetDirection" to indicate direction of the target object in object methods. Substitutes the "isModifier" task property.
+         - Warnings for deprecated or incorrect task parameters.
          - Improvements in Jupyter for Supercomputers.
          - Upgrade of runcompss_docker script to docker stack interface.
          - Several bug fixes.

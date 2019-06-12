@@ -61,7 +61,7 @@ def _invert_files(pair):
     res = dict()
     for word in pair[1].split():
         res[word] = [pair[0]]
-    return res.items()
+    return list(res.items())
 
 
 def word_count():
@@ -278,9 +278,9 @@ def main_program():
     # reduce_example()
     # load_n_map_example()
     # run_terasort()
-    terasort(5, 5, 3)
+    # terasort(5, 5, 3)
     # test_new_dds()
-    # inverted_indexing()
+    inverted_indexing()
 
 
 if __name__ == '__main__':

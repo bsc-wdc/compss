@@ -563,7 +563,7 @@ class DDS(object):
             for key, val in partition:
                 res[key] = combiner_func(res[key], val) if key in res \
                                                         else creator_func(val)
-            return res.items()
+            return list(res.items())
 
         def merge_partition(partition):
             """
@@ -572,7 +572,7 @@ class DDS(object):
             for key, val in partition:
                 res[key] = merger_function(res[key], val) if key in res \
                                                         else val
-            return res.items()
+            return list(res.items())
 
         ret = self.map_partitions(combine_partition)\
             .partition_by(num_of_partitions=total_parts)\

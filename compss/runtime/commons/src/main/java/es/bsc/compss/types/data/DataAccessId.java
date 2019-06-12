@@ -34,7 +34,8 @@ public abstract class DataAccessId implements Serializable {
         R, // Read
         RW, // Read and write
         W, // Write
-        C // Concurrent
+        C, // Concurrent
+        CV //Commutative
     }
 
 

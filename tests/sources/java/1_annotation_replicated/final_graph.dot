@@ -1,6 +1,7 @@
 digraph {
   rankdir=TB;
   labeljust="l";
+  compound= true;
   subgraph dependence_graph {
     ranksep=0.20;
     node[height=0.75];

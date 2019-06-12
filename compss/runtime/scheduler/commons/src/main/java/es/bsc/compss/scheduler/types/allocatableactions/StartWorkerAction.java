@@ -35,6 +35,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 
 import java.util.LinkedList;
+import java.util.List;
 
 
 public class StartWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
@@ -242,5 +243,16 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
+    }
+
+    @Override
+    public boolean taskIsReadyForExecution() {
+        return true;
+    }
+
+    @Override
+    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
+        // TODO Auto-generated method stub
+        
     }
 }

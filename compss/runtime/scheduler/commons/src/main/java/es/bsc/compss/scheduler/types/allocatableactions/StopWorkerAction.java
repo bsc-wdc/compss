@@ -40,6 +40,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 
@@ -254,5 +255,16 @@ public class StopWorkerAction extends AllocatableAction {
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
+    }
+
+    @Override
+    public boolean taskIsReadyForExecution() {
+        return true;
+    }
+
+    @Override
+    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
+        // TODO Auto-generated method stub
+        
     }
 }

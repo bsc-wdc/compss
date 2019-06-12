@@ -1014,6 +1014,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             case CONCURRENT:
                 am = AccessMode.C;
                 break;
+            case COMMUTATIVE:
+                am = AccessMode.CV;
+                break;
         }
 
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
@@ -1075,6 +1078,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 break;
             case CONCURRENT:
                 am = AccessMode.C;
+                break;
+            case COMMUTATIVE:
+                am = AccessMode.CV;
                 break;
         }
 

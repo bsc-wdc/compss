@@ -28,6 +28,7 @@ enum direction {
     out_dir,
     inout_dir,
     concurrent_dir,
+    commutative_dir,
     null_dir
 };
 

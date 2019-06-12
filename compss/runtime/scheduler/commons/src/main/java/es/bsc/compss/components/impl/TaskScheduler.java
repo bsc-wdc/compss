@@ -340,13 +340,15 @@ public class TaskScheduler {
      */
     private void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
-        if (action.getImplementations().length > 0) {
-            Integer coreId = action.getImplementations()[0].getCoreId();
-            if (coreId != null) {
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.READY_COUNT.getType());
+        if(action.getImplementations()!=null) {
+            if (action.getImplementations().length > 0) {
+                Integer coreId = action.getImplementations()[0].getCoreId();
+                if (coreId != null) {
+                    if (Tracer.extraeEnabled()) {
+                        Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.READY_COUNT.getType());
+                    }
+                    this.readyCounts[coreId]--;
                 }
-                this.readyCounts[coreId]--;
             }
         }
     }

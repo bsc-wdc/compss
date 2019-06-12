@@ -59,6 +59,7 @@ jobject jobjParDirIN; 		        /* Instance of the es.bsc.compss.types.annotatio
 jobject jobjParDirOUT; 		        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirINOUT; 	        /* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 jobject jobjParDirCONCURRENT; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
+jobject jobjParDirCOMMUTATIVE; 		/* Instance of the es.bsc.compss.types.annotations.parameter.Direction class */
 
 jobject jobjParStreamSTDIN;         /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
 jobject jobjParStreamSTDOUT;        /* Instance of the es.bsc.compss.types.annotations.parameter.StdIOStream class */
@@ -305,6 +306,10 @@ void init_master_jni_types() {
     jobjParDirCONCURRENT = (jobject)m_env->NewGlobalRef(objLocal);
     check_and_treat_exception(m_env, "Error getting Direction.CONCURRENT object");
 
+    objLocal =  m_env->CallStaticObjectMethod(clsParDir, midParDirCon, m_env->NewStringUTF("COMMUTATIVE"));
+    check_and_treat_exception(m_env, "Error getting Direction.COMMUTATIVE object");
+    jobjParDirCOMMUTATIVE = (jobject)m_env->NewGlobalRef(objLocal);
+    check_and_treat_exception(m_env, "Error getting Direction.COMMUTATIVE object");
 
     // Parameter streams
 
@@ -648,6 +653,9 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         break;
     case concurrent_dir:
         m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCONCURRENT);
+        break;
+    case commutative_dir:
+        m_env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirCOMMUTATIVE);
         break;
     default:
         break;
@@ -1008,6 +1016,9 @@ void GS_Open_File(char *file_name, int mode, char **buf) {
     case concurrent_dir:
         jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirCONCURRENT);
         break;
+    case commutative_dir:
+        jstr = (jstring)local_env->CallObjectMethod(jobjIT, midOpenFile, filename_str, jobjParDirCOMMUTATIVE);
+        break;
     default:
         break;
     }
@@ -1043,6 +1054,9 @@ void GS_Close_File(char *file_name, int mode) {
         break;
     case concurrent_dir:
         m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirCONCURRENT);
+        break;
+    case commutative_dir:
+        m_env->CallVoidMethod(jobjIT, midCloseFile, m_env->NewStringUTF(file_name), jobjParDirCOMMUTATIVE);
         break;
     default:
         break;

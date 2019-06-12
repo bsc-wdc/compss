@@ -808,8 +808,8 @@ class task(object):
         """
 
         # We are the 'self' or 'cls' in an instance or classmethod that
-        # modifies the given class, so we are an INOUT or CONCURRENT
-        self_dirs = [parameter.DIRECTION.INOUT, parameter.DIRECTION.CONCURRENT]
+        # modifies the given class, so we are an INOUT, CONCURRENT or COMMUTATIVE
+        self_dirs = [parameter.DIRECTION.INOUT, parameter.DIRECTION.CONCURRENT, parameter.DIRECTION.COMMUTATIVE]
         if 'targetDirection' in self.decorator_arguments:
             target_label = 'targetDirection'
         else:
@@ -1184,8 +1184,8 @@ class task(object):
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
-            if param.direction == parameter.DIRECTION.INOUT and not (
-                    arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
+            if (param.direction == parameter.DIRECTION.INOUT or param.direction == parameter.DIRECTION.COMMUTATIVE) and not (
+            arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
                 # If it si INOUT and not PSCO, serialize to file
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
                 from pycompss.util.serializer import serialize_to_file

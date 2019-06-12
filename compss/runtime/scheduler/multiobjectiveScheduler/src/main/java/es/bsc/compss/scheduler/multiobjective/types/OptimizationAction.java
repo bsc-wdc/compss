@@ -29,6 +29,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.LinkedList;
+import java.util.List;
 
 
 public class OptimizationAction extends AllocatableAction {
@@ -153,6 +154,17 @@ public class OptimizationAction extends AllocatableAction {
     @Override
     public String toString() {
         return "Scheduling blocking action";
+    }
+
+    @Override
+    public boolean taskIsReadyForExecution() {
+        return false;
+    }
+
+    @Override
+    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

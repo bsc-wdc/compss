@@ -18,6 +18,7 @@ package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
@@ -75,7 +76,8 @@ public class PrintCurrentGraphRequest extends TDRequest {
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
         try {
-            PriorityQueue<Task> pending = new PriorityQueue<>();
+            PriorityQueue<AbstractTask> pending = new PriorityQueue<>();
+
             Set<Task> tasks = new HashSet<>();
             String prefix = "  ";
 
@@ -230,11 +232,11 @@ public class PrintCurrentGraphRequest extends TDRequest {
             this.graph.newLine();
 
             while (!pending.isEmpty()) {
-                Task t = pending.poll();
+                AbstractTask t = pending.poll();
                 if (!tasks.contains(t)) {
                     this.graph.write(prefix + prefix + t.getDotDescription());
                     this.graph.newLine();
-                    tasks.add(t);
+                    tasks.add((Task) t);
                     pending.addAll(t.getSuccessors());
                 }
             }
@@ -245,9 +247,9 @@ public class PrintCurrentGraphRequest extends TDRequest {
 
             /* Write edges *************************************************** */
             for (Task t : tasks) {
-                Set<Task> successors = new HashSet<>();
+                Set<AbstractTask> successors = new HashSet<>();
                 successors.addAll(t.getSuccessors());
-                for (Task t2 : successors) {
+                for (AbstractTask t2 : successors) {
                     this.graph.write(prefix + t.getId() + " -> " + t2.getId() + ";");
                     this.graph.newLine();
                 }

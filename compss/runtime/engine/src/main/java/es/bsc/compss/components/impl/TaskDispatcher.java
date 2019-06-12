@@ -22,6 +22,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.td.ActionUpdate;
@@ -191,14 +192,16 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
      * @param producer Task producer.
      * @param task Task to execute.
      */
-    public void executeTask(TaskProducer producer, Task task) {
-        if (DEBUG) {
-            StringBuilder sb = new StringBuilder("Schedule task: ");
-            sb.append(task.getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
-            LOGGER.debug(sb);
+    public void executeTask(TaskProducer producer, AbstractTask task) {
+        if (task instanceof Task) {
+            if (DEBUG) {
+                StringBuilder sb = new StringBuilder("Schedule task: ");
+                sb.append(((Task)task).getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
+                LOGGER.debug(sb);
+            }
+            ExecuteTasksRequest request = new ExecuteTasksRequest(producer, (Task)task);
+            addRequest(request);
         }
-        ExecuteTasksRequest request = new ExecuteTasksRequest(producer, task);
-        addRequest(request);
     }
 
     // Notification thread

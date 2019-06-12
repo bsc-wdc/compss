@@ -1,0 +1,133 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"                                                                                                                                                                                                                          
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1 
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1 
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1 
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    : 
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1 
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1 
+  fi
+  
+  
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+
+  jobs=38
+  writtenN=2
+  resultN=6
+
+  # Checks if file 1 has been written as expected
+  result=$(cat /tmp/sharedDisk/CGfile1.txt)
+  if [[ $result != 2 ]]; then
+    echo "ERROR: The number written in file "file1.txt" is not correct. "${result}" (Expected 1) "
+    exit 1
+  fi
+
+  # Checks if file 2 has been written as expected
+  result=$(cat /tmp/sharedDisk/CGfile2.txt)
+  if [ $result -ne 2 ]; then
+    echo "ERROR: The number written in file "file2.txt" is not correct. ${result} (Expected 2) "
+    exit 1
+  fi
+  
+  # Checks if file 3 has been written as expected
+  result=$(cat /tmp/sharedDisk/CGfile3.txt)
+  if [ $result -ne 1 ]; then
+    echo "ERROR: The number written in file "file3.txt" is not correct. ${result} (Expected 3) "
+    exit 1
+  fi
+  
+  # Checks if file 4 has been written as expected
+  result=$(cat /tmp/sharedDisk/CGfile4.txt)
+  if [ $result -ne 1 ]; then
+    echo "ERROR: The number written in file "file4.txt" is not correct. ${result} (Expected 4) "
+    exit 1
+  fi
+  
+  # Checks if file 5 has been written as expected
+  result=$(cat /tmp/sharedDisk/CGfile5.txt)
+  if [ $result -ne 9 ]; then
+    echo "ERROR: The number of writing commutative tasks is not correct in "file5.txt". $result (Expected  9)"
+    exit 1
+  fi
+  
+  # Checks if file 6 has been writen as as expected
+  result=$(cat /tmp/sharedDisk/CGfile6.txt)
+  if [ $result -ne 31 ]; then
+    echo "ERROR: The number of writing commutative tasks is not correct in "file6.txt". $result (Expected 31)"
+    exit 1
+  fi
+
+  # Checks if file 7 has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/CGfile7.txt)
+  if [ ${#result} -ne ${resultN} ]; then
+    echo "ERROR: The number of writing tasks in "file7.txt" is not correct. ${#result} (Expected 6)"
+    exit 1
+  fi
+  
+  # Checks if file 8 has been writen as many times as expected
+  result=$(cat /tmp/sharedDisk/CGfile8.txt)
+  if [ ${#result} -ne ${resultN} ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} (Expected 6)"
+    exit 1
+  fi
+  
+   # Checks if file 9 has been written as expected
+  result=$(cat /tmp/sharedDisk/CGfile9.txt)
+  if [ $result -ne 15 ]; then
+    echo "ERROR: The number of writing commutative tasks is not correct in "file9.txt". $result (Expected  11)"
+    exit 1
+  fi
+  
+  # Checks if all the tasks have been executed through the creation of a job for each
+  if [ ! -f "${target_log_folder}"/jobs/job"$jobs"_NEW.out ]; then
+    echo "ERROR: All tasks have not completed succesfully."
+    exit 1
+  fi
+
+  if [ -f "${target_log_folder}/jobs/job$((jobs+1))_NEW.out" ]; then
+    echo "ERROR: More tasks than expected have been executed."
+    exit 1
+  fi
+
+
+
+  #---------------------------------------------------------------------------------- 
+  # ALL OK. Report result status
+  exit 0

@@ -56,6 +56,7 @@ class DIRECTION(object):
     OUT = 1
     INOUT = 2
     CONCURRENT = 3
+    COMMUTATIVE = 4
 
 
 # Numbers match both C and Java enums
@@ -118,6 +119,7 @@ IN = Parameter()
 OUT = Parameter(p_direction=DIRECTION.OUT)
 INOUT = Parameter(p_direction=DIRECTION.INOUT)
 CONCURRENT = Parameter(p_direction=DIRECTION.CONCURRENT)
+COMMUTATIVE = Parameter(p_direction=DIRECTION.COMMUTATIVE)
 
 # Aliases for streams (just stream direction)
 STDIN = STREAM.STDIN
@@ -130,6 +132,7 @@ FILE_IN = Parameter(p_type=TYPE.FILE)
 FILE_OUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.OUT)
 FILE_INOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT)
 FILE_CONCURRENT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT)
+FILE_COMMUTATIVE = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.COMMUTATIVE)
 
 # Aliases for files with stream
 FILE_STDIN = Parameter(p_type=TYPE.FILE, p_stream=STREAM.STDIN)
@@ -149,6 +152,9 @@ FILE_INOUT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.INOUT, p_s
 FILE_CONCURRENT_STDIN = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT, p_stream=STREAM.STDIN)
 FILE_CONCURRENT_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT, p_stream=STREAM.STDERR)
 FILE_CONCURRENT_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.CONCURRENT, p_stream=STREAM.STDOUT)
+FILE_COMMUTATIVE_STDIN = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.COMMUTATIVE, p_stream=STREAM.STDIN)
+FILE_COMMUTATIVE_STDERR = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.COMMUTATIVE, p_stream=STREAM.STDERR)
+FILE_COMMUTATIVE_STDOUT = Parameter(p_type=TYPE.FILE, p_direction=DIRECTION.COMMUTATIVE, p_stream=STREAM.STOUT)
 
 # Aliases for parameter definition as dictionary
 Type = "type"  # parameter type

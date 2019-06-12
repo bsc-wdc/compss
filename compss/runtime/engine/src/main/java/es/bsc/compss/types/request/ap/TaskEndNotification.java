@@ -20,12 +20,12 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
-import es.bsc.compss.types.Task;
+import es.bsc.compss.types.AbstractTask;
 
 
 public class TaskEndNotification extends APRequest {
 
-    private final Task task;
+    private AbstractTask task;
 
 
     /**
@@ -33,7 +33,7 @@ public class TaskEndNotification extends APRequest {
      * 
      * @param task Ended task.
      */
-    public TaskEndNotification(Task task) {
+    public TaskEndNotification(AbstractTask task) {
         this.task = task;
     }
 
@@ -42,8 +42,12 @@ public class TaskEndNotification extends APRequest {
      * 
      * @return The associated ended task.
      */
-    public Task getTask() {
+    public AbstractTask getTask() {
         return this.task;
+    }
+
+    public void setTask(AbstractTask task) {
+        this.task = task;
     }
 
     @Override

@@ -18,47 +18,31 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
-import es.bsc.compss.types.allocatableactions.ExecutionAction;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
  * Representation of a Task.
  */
-public class Task implements Comparable<Task> {
 
-    // Task ID management
-    private static final int FIRST_TASK_ID = 1;
-    private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
-
-    // Task fields
-    private final long appId;
-    private final int taskId;
-    private TaskState status;
+public class Task extends AbstractTask{
     private final TaskDescription taskDescription;
-
-    // Data Dependencies
-    private final List<Task> predecessors;
-    private final List<Task> successors;
-
-    // Stream Dependencies
-    private final List<Task> streamDataProducers; // Previous tasks that produce a stream
-    private final List<Task> streamDataConsumers; // Next tasks that consumer a stream
-
-    // Syncrhonization point to which the task belongs
-    private int synchronizationId;
 
     // Scheduling info
     private Task enforcingTask;
-    private final List<ExecutionAction> executions;
 
     // Execution count information
     private int executionCount;
@@ -69,6 +53,7 @@ public class Task implements Comparable<Task> {
     // On failure behavior
     private final OnFailure onFailure;
 
+    private TreeMap<Integer, CommutativeGroupTask>  commutativeGroup;
 
     /**
      * Creates a new METHOD task with the given parameters.
@@ -90,18 +75,12 @@ public class Task implements Comparable<Task> {
             boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
             OnFailure onFailure) {
 
-        this.appId = appId;
-        this.taskId = nextTaskId.getAndIncrement();
-        this.status = TaskState.TO_ANALYSE;
+        super(appId);
         this.taskDescription = new TaskDescription(lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
                 hasTarget, numReturns, parameters);
-        this.predecessors = new LinkedList<>();
-        this.successors = new LinkedList<>();
-        this.streamDataProducers = new LinkedList<>();
-        this.streamDataConsumers = new LinkedList<>();
-        this.executions = new LinkedList<>();
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
+        this.commutativeGroup = new TreeMap<>();
     }
 
     /**
@@ -122,149 +101,12 @@ public class Task implements Comparable<Task> {
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
             boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure) {
 
-        this.appId = appId;
-        this.taskId = nextTaskId.getAndIncrement();
-        this.status = TaskState.TO_ANALYSE;
+        super(appId);
         this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget,
                 numReturns, parameters);
-        this.predecessors = new LinkedList<>();
-        this.successors = new LinkedList<>();
-        this.streamDataProducers = new LinkedList<>();
-        this.streamDataConsumers = new LinkedList<>();
-        this.executions = new LinkedList<>();
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
-    }
-
-    /**
-     * Returns the current number of generated tasks.
-     *
-     * @return The number of generated tasks.
-     */
-    public static int getCurrentTaskCount() {
-        return nextTaskId.get();
-    }
-
-    /**
-     * Adds a data dependency from the given task {@code producer} to this task.
-     *
-     * @param producer Producer task.
-     */
-    public void addDataDependency(Task producer) {
-        producer.successors.add(this);
-        this.predecessors.add(producer);
-    }
-
-    /**
-     * Adds a stream dependency from the given producer task to this task.
-     * 
-     * @param producer Stream producer task.
-     */
-    public void addStreamDataDependency(Task producer) {
-        producer.streamDataConsumers.add(this);
-        this.streamDataProducers.add(producer);
-    }
-
-    /**
-     * Releases all the tasks that are data dependent to this task.
-     */
-    public void releaseDataDependents() {
-        for (Task t : this.successors) {
-            synchronized (t) {
-                t.predecessors.remove(this);
-            }
-        }
-        this.successors.clear();
-    }
-
-    /**
-     * Returns all the successor tasks.
-     *
-     * @return A list containing the successor tasks of this task.
-     */
-    public List<Task> getSuccessors() {
-        return this.successors;
-    }
-
-    /**
-     * Returns all the predecessor tasks.
-     *
-     * @return A list containing the predecessor tasks of this task.
-     */
-    public List<Task> getPredecessors() {
-        return this.predecessors;
-    }
-
-    /**
-     * Returns all the tasks producing stream elements used by the current task.
-     * 
-     * @return All the tasks producing stream elements used by the current task.
-     */
-    public List<Task> getStreamProducers() {
-        return this.streamDataProducers;
-    }
-
-    /**
-     * Returns all the tasks consuming stream elements from the current task.
-     * 
-     * @return All the tasks consuming stream elements from the current task.
-     */
-    public List<Task> getStreamConsumers() {
-        return this.streamDataConsumers;
-    }
-
-    /**
-     * Sets the synchronization id of the task to the given synchronization Id {@code syncId}.
-     *
-     * @param syncId Task synchronization Id.
-     */
-    public void setSynchronizationId(int syncId) {
-        this.synchronizationId = syncId;
-    }
-
-    /**
-     * Returns the synchronization Id of the task.
-     *
-     * @return Task synchronization Id.
-     */
-    public int getSynchronizationId() {
-        return this.synchronizationId;
-    }
-
-    /**
-     * Returns the application Id.
-     *
-     * @return The application Id.
-     */
-    public long getAppId() {
-        return this.appId;
-    }
-
-    /**
-     * Returns the task Id.
-     *
-     * @return The task Id.
-     */
-    public int getId() {
-        return this.taskId;
-    }
-
-    /**
-     * Returns the task status.
-     *
-     * @return The task status.
-     */
-    public TaskState getStatus() {
-        return this.status;
-    }
-
-    /**
-     * Sets a new task status.
-     *
-     * @param status New task status.
-     */
-    public void setStatus(TaskState status) {
-        this.status = status;
+        this.commutativeGroup = new TreeMap<>();
     }
 
     /**
@@ -326,6 +168,41 @@ public class Task implements Comparable<Task> {
      */
     public Task getEnforcingTask() {
         return this.enforcingTask;
+    }
+    
+    /**
+     * Registers a new commutative group for the dataId @daId
+     *
+     * @param daId DataId of the group.
+     * @param com Commutative group task to be set.
+     */
+    public void setCommutativeGroup(CommutativeGroupTask com, DataAccessId daId) {
+        this.commutativeGroup.put(daId.getDataId(),com);
+    }
+
+    /**
+     * Returns the specific commutative group for the data @daId
+     *
+     * @param daId DataId of the group.
+     * 
+     * @return The commutative group for the particular dataId.
+     */
+    public CommutativeGroupTask getCommutativeGroup(Integer daId) {
+        return this.commutativeGroup.get(daId);
+    }
+    
+    /**
+     * Returns the list of commutative groups associated to the task
+     *
+     * @return A list of all the commutative groups the task is part of.
+     */
+    public List<CommutativeGroupTask> getCommutativeGroupList() {
+        LinkedList<CommutativeGroupTask> commutativeGroupList = new LinkedList<CommutativeGroupTask>();
+        for(Map.Entry<Integer,CommutativeGroupTask> entry : commutativeGroup.entrySet()) {
+          CommutativeGroupTask comTask = entry.getValue();
+          commutativeGroupList.add(comTask);
+        }
+        return commutativeGroupList;
     }
 
     /**
@@ -393,30 +270,59 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Adds a new execution to the task.
-     *
-     * @param execution New task execution.
-     */
-    public void addExecution(ExecutionAction execution) {
-        this.executions.add(execution);
-    }
-
-    /**
-     * Returns the executions of the task.
-     *
-     * @return List of executions of the task.
-     */
-    public List<ExecutionAction> getExecutions() {
-        return executions;
-    }
-
-    /**
      * Returns the monitor associated to the Task.
      *
      * @return The associated monitor to the task.
      */
     public TaskMonitor getTaskMonitor() {
         return this.taskMonitor;
+    }
+    
+    /**
+     * Returns if the task can be executed depending on if the groups are executing other tasks
+     *
+     * @return A boolean stating if the task can be executed or not.
+     */
+    public boolean canBeExecuted() {
+        if (!this.commutativeGroup.isEmpty()) {
+            for (CommutativeGroupTask com: commutativeGroup.values()) {
+                if (com.processingExecution(this.getId())){
+                    return false;
+                }
+            }
+        } 
+        return true;
+    }
+
+    /**
+     * Sets new version for the data @daId
+     *
+     * @param daId
+     */
+    public void setVersion (DataAccessId daId) {
+        for (Parameter p : this.getTaskDescription().getParameters()) {
+            if (p instanceof DependencyParameter && ((DependencyParameter)p).getDataAccessId().getDataId() == daId.getDataId()) {
+                ((DependencyParameter) p).setDataAccessId(daId);
+            }
+        }
+    }
+    
+    
+    /**
+     * Returns if any of the parameters of the task has a commutative direction
+     *
+     * @return A boolean with value true if the task has commutative parameters and false otherwise
+     */
+    public boolean hasCommutativeParams() {
+        for (Parameter p : this.getTaskDescription().getParameters()) {
+            if (p instanceof DependencyParameter) {
+                
+                if (p.getDirection() == Direction.COMMUTATIVE) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -426,20 +332,6 @@ public class Task implements Comparable<Task> {
      */
     public OnFailure getOnFailure() {
         return this.onFailure;
-    }
-
-    @Override
-    public int compareTo(Task task) {
-        if (task == null) {
-            throw new NullPointerException();
-        }
-
-        return this.getId() - task.getId();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return (o instanceof Task) && (this.taskId == ((Task) o).taskId);
     }
 
     @Override

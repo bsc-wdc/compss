@@ -493,14 +493,10 @@ class DDS(object):
 
         def combine_lists(_partition):
             # Elements of the partition are grouped by their previous partitions
-            ret = defaultdict(list)
-            for list_of_pp in _partition:
-                # Attention!
-                if not list_of_pp:
-                    continue
-                for element in list_of_pp:
-                    ret[element[0]].extend(element[1])
-            return ret.items()
+            ret = list()
+            for _li in _partition:
+                ret.extend(_li)
+            return ret
 
         nop = len(self.partitions) if num_of_partitions == -1 \
             else num_of_partitions

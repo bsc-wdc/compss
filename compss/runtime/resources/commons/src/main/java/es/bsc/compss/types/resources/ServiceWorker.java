@@ -91,8 +91,8 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     }
 
     @Override
-    public Type getType() {
-        return Type.SERVICE;
+    public ResourceType getType() {
+        return ResourceType.SERVICE;
     }
 
     @Override

@@ -30,7 +30,7 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.types.resources.Resource.Type;
+import es.bsc.compss.types.resources.ResourceType;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -71,7 +71,7 @@ public class StopWorkerAction extends AllocatableAction {
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         this.ru = (PerformedReduction<WorkerResourceDescription>) modification;
-        if (worker.getResource().getType() == Type.WORKER) {
+        if (worker.getResource().getType() == ResourceType.WORKER) {
             this.impl = new MethodImplementation("", "", null, null, new MethodResourceDescription());
         } else {
             this.impl = new ServiceImplementation(null, "", "", "", "");

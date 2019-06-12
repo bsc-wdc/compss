@@ -48,9 +48,8 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.data.operation.DataOperation.OpEndState;
+import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.data.operation.copy.DeferredCopy;
 import es.bsc.compss.types.data.operation.copy.StorageCopy;
@@ -66,7 +65,7 @@ import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.util.Tracer;
+import es.bsc.compss.util.TraceEvent;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -431,22 +430,22 @@ public class NIOWorkerNode extends COMPSsWorker {
             currentLocations = StorageItf.getLocations(pscoId);
         } catch (StorageException se) {
             // Cannot obtain current locations from back-end
-            sc.end(OpEndState.OP_FAILED, se);
+            sc.end(OperationEndState.OP_FAILED, se);
             return;
         }
 
         if (!currentLocations.contains(targetHostname)) {
             // Perform replica
             LOGGER.debug("Performing new replica for PSCO " + pscoId);
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
+            if (NIOTracer.extraeEnabled()) {
+                NIOTracer.emitEvent(TraceEvent.STORAGE_NEWREPLICA.getId(), TraceEvent.STORAGE_NEWREPLICA.getType());
             }
             try {
                 // TODO: WARN New replica is NOT necessary because we can't prefetch data
                 // StorageItf.newReplica(pscoId, targetHostname);
             } finally {
-                if (Tracer.extraeEnabled()) {
-                    Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWREPLICA.getType());
+                if (NIOTracer.extraeEnabled()) {
+                    NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_NEWREPLICA.getType());
                 }
             }
         } else {
@@ -463,7 +462,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
 
         // Notify successful end
-        sc.end(OpEndState.OP_OK);
+        sc.end(OperationEndState.OP_OK);
     }
 
     private void newVersion(StorageCopy sc) {
@@ -482,8 +481,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         // Perform version
         LOGGER.debug("Performing new version for PSCO " + pscoId);
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(TraceEvent.STORAGE_NEWVERSION.getId(), TraceEvent.STORAGE_NEWVERSION.getType());
         }
         try {
             String newId = StorageItf.newVersion(pscoId, preserveSource, targetHostname);
@@ -492,20 +491,20 @@ public class NIOWorkerNode extends COMPSsWorker {
             if (targetLD != null) {
                 targetLD.setPscoId(newId);
             }
-            NIOUri uri = new NIOUri(null, pscoId, Protocol.PERSISTENT_URI);
+            NIOUri uri = new NIOUri(null, pscoId, ProtocolType.PERSISTENT_URI);
             NIOData nd = new NIOData(srcLD.getName(), uri);
             sc.setProposedSource(nd);
         } catch (Exception e) {
-            sc.end(OpEndState.OP_FAILED, e);
+            sc.end(OperationEndState.OP_FAILED, e);
             return;
         } finally {
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(NIOTracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
+            if (NIOTracer.extraeEnabled()) {
+                NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_NEWVERSION.getType());
             }
         }
 
         // Notify successful end
-        sc.end(OpEndState.OP_OK);
+        sc.end(OperationEndState.OP_OK);
     }
 
     private void orderCopy(DeferredCopy c, COMPSsNode tgtNode) {
@@ -541,7 +540,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             ld.startCopy(c, c.getTargetLoc());
             commManager.registerCopy(c);
         }
-        c.end(DataOperation.OpEndState.OP_OK);
+        c.end(OperationEndState.OP_OK);
     }
 
     @Override
@@ -573,29 +572,29 @@ public class NIOWorkerNode extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case OBJECT_T:
             case COLLECTION_T:
-                path = Protocol.OBJECT_URI.getSchema() + name;
+                path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case STREAM_T:
-                path = Protocol.STREAM_URI.getSchema() + name;
+                path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case PSCO_T:
                 // Search for the PSCO id
                 String id = Comm.getData(name).getPscoId();
-                path = Protocol.PERSISTENT_URI.getSchema() + id;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + id;
                 break;
             case EXTERNAL_PSCO_T:
                 // The value of the registered object in the runtime is the PSCO Id
-                path = Protocol.PERSISTENT_URI.getSchema() + name;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
             case BINDING_OBJECT_T:
-                path = Protocol.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                path = ProtocolType.BINDING_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             default:
                 return null;

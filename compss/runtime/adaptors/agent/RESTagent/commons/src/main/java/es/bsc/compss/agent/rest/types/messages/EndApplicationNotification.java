@@ -17,7 +17,7 @@
 package es.bsc.compss.agent.rest.types.messages;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.job.JobEndStatus;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
@@ -29,10 +29,14 @@ public class EndApplicationNotification {
     private DataType[] paramTypes;
     private String[] paramLocations;
 
+
     public EndApplicationNotification() {
+        // Nothing to do
     }
 
-    public EndApplicationNotification(String jobId, JobEndStatus status, DataType[] paramTypes, String[] paramLocations) {
+    public EndApplicationNotification(String jobId, JobEndStatus status, DataType[] paramTypes,
+            String[] paramLocations) {
+
         this.jobId = jobId;
         this.endStatus = status;
         this.paramTypes = paramTypes;

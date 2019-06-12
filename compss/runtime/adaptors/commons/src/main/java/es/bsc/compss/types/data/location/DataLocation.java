@@ -35,59 +35,6 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class DataLocation implements Comparable<DataLocation> {
 
-    /**
-     * DataLocation Types.
-     */
-    public enum Type {
-    PRIVATE, // For private objects and files
-    SHARED, // For shared locations
-    PERSISTENT, // For persistent storages
-    BINDING // For binding objects
-    }
-
-    /**
-     * Supported Protocols.
-     */
-    public enum Protocol {
-        FILE_URI("file://"), // File protocol
-        SHARED_URI("shared://"), // Shared protocol
-        OBJECT_URI("object://"), // Object protocol
-        STREAM_URI("stream://"), // Stream protocol
-        EXTERNAL_STREAM_URI("extStream://"), // External Stream protocol
-        PERSISTENT_URI("storage://"), // Persistent protocol
-        BINDING_URI("binding://"), // Binding protocol
-        ANY_URI("any://"); // Other
-
-        private final String schema;
-
-
-        private Protocol(String schema) {
-            this.schema = schema;
-        }
-
-        public String getSchema() {
-            return this.schema;
-        }
-
-        /**
-         * Get protocol by Schema.
-         * 
-         * @param schema Scheme
-         * @return Protocol related to the schema. Null if there is no protocol bind to the schema
-         */
-        public static Protocol getBySchema(String schema) {
-            for (Protocol p : Protocol.values()) {
-                if (p.schema.equals(schema)) {
-                    return p;
-                }
-            }
-
-            return null;
-        }
-
-    }
-
-
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final String ERROR_INVALID_LOCATION = "ERROR: Invalid location URI";
@@ -105,11 +52,11 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      * @throws IOException Error creating location
      */
     public static DataLocation createLocation(Resource host, SimpleURI uri) throws IOException {
-        Protocol protocol = Protocol.getBySchema(uri.getSchema());
+        ProtocolType protocol = ProtocolType.getBySchema(uri.getSchema());
         if (protocol == null) {
             LOGGER.warn("WARN: Unrecognised protocol [ " + uri.getSchema() + " ] for createLocation. Switching to "
-                    + Protocol.ANY_URI.getSchema());
-            protocol = Protocol.ANY_URI;
+                    + ProtocolType.ANY_URI.getSchema());
+            protocol = ProtocolType.ANY_URI;
         }
         DataLocation loc = null;
         switch (protocol) {
@@ -126,7 +73,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 }
                 LOGGER.debug(
                         "Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
-                loc = createLocation(Protocol.FILE_URI, host, canonicalPath);
+                loc = createLocation(ProtocolType.FILE_URI, host, canonicalPath);
                 break;
             case SHARED_URI:
                 // Shared file of the form: shared://sharedDisk/path/file
@@ -134,21 +81,21 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 String diskName = uri.getPath().substring(0, splitIndex);
                 String path = uri.getPath().substring(splitIndex + 1);
                 LOGGER.debug("Creating new SharedLocation: " + protocol.getSchema() + "@" + diskName + path);
-                loc = new SharedLocation(Protocol.SHARED_URI, diskName, path);
+                loc = new SharedLocation(ProtocolType.SHARED_URI, diskName, path);
                 break;
             case OBJECT_URI:
                 // Object
                 String objectName = uri.getPath(); // The Object name is stored as path in the URI
                 LOGGER.debug(
                         "Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
-                loc = createLocation(Protocol.OBJECT_URI, host, objectName);
+                loc = createLocation(ProtocolType.OBJECT_URI, host, objectName);
                 break;
             case STREAM_URI:
                 // Stream
                 String streamName = uri.getPath(); // The Object name is stored as path in the URI
                 LOGGER.debug(
                         "Creating new StreamLocation: " + protocol.getSchema() + host.getName() + "@" + streamName);
-                loc = createLocation(Protocol.STREAM_URI, host, streamName);
+                loc = createLocation(ProtocolType.STREAM_URI, host, streamName);
                 break;
             case EXTERNAL_STREAM_URI:
                 // External stream
@@ -163,7 +110,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 }
                 LOGGER.debug("Creating new ExternalStreamLocation: " + protocol.getSchema() + host.getName() + "@"
                         + streamCompletePath);
-                loc = createLocation(Protocol.EXTERNAL_STREAM_URI, host, streamCompletePath);
+                loc = createLocation(ProtocolType.EXTERNAL_STREAM_URI, host, streamCompletePath);
                 break;
             case PERSISTENT_URI:
                 String id = uri.getPath(); // The PSCO Id is stored as path in the URI
@@ -178,9 +125,9 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 loc = new BindingObjectLocation(host, bo);
                 break;
             case ANY_URI:
-                LOGGER.debug("Creating new AnyLocation: " + Protocol.ANY_URI.getSchema() + host.getName() + "@"
+                LOGGER.debug("Creating new AnyLocation: " + ProtocolType.ANY_URI.getSchema() + host.getName() + "@"
                         + uri.getPath());
-                loc = createLocation(Protocol.ANY_URI, host, uri.getPath());
+                loc = createLocation(ProtocolType.ANY_URI, host, uri.getPath());
                 break;
         }
         return loc;
@@ -194,7 +141,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      * @param protocol Protocol
      * @return Data location object
      */
-    private static DataLocation createLocation(Protocol protocol, Resource host, String path) {
+    private static DataLocation createLocation(ProtocolType protocol, Resource host, String path) {
         String diskName = SharedDiskManager.getSharedName(host, path);
         if (diskName != null) {
             String mountpoint = SharedDiskManager.getMounpoint(host, diskName);
@@ -206,9 +153,9 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         }
     }
 
-    public abstract Type getType();
+    public abstract LocationType getType();
 
-    public abstract Protocol getProtocol();
+    public abstract ProtocolType getProtocol();
 
     public abstract List<MultiURI> getURIs();
 

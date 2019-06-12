@@ -16,20 +16,18 @@
  */
 package es.bsc.compss.connectors;
 
-import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
 
 /**
- * Representation of a VM
+ * Representation of a VM.
  */
 public class VM implements Comparable<VM> {
 
     private final Object envId;
     private final CloudMethodResourceDescription rd;
 
-    private COMPSsWorker node;
     private CloudMethodWorker worker;
 
     private long requestTime;
@@ -40,10 +38,10 @@ public class VM implements Comparable<VM> {
 
 
     /**
-     * New VM object with envId @envId and description @description
+     * New VM object with envId {@code envId} and description {@code description}.
      * 
-     * @param envId
-     * @param description
+     * @param envId VM Id.
+     * @param description VM description.
      */
     public VM(Object envId, CloudMethodResourceDescription description) {
         this.envId = envId;
@@ -55,124 +53,115 @@ public class VM implements Comparable<VM> {
     }
 
     /**
-     * Returns the envId
+     * Returns the VM Id.
      * 
-     * @return
+     * @return The VM Id.
      */
     public Object getEnvId() {
-        return envId;
+        return this.envId;
     }
 
     /**
-     * Returns the name
+     * Returns the VM name.
      * 
-     * @return
+     * @return The VM name.
      */
     public String getName() {
-        return rd.getName();
+        return this.rd.getName();
     }
 
     /**
-     * Returns the VM description
+     * Returns the VM description.
      * 
-     * @return
+     * @return The VM description.
      */
     public CloudMethodResourceDescription getDescription() {
         return this.rd;
     }
 
     /**
-     * Returns the VM node
+     * Returns the VM worker.
      * 
-     * @return
-     */
-    public COMPSsWorker getNode() {
-        return node;
-    }
-
-    /**
-     * Returns the VM worker
-     * 
-     * @return
+     * @return The associated VM worker.
      */
     public CloudMethodWorker getWorker() {
-        return worker;
+        return this.worker;
     }
 
     /**
-     * Returns the start time
+     * Returns the start time.
      * 
-     * @return
+     * @return The VM start time.
      */
     public long getStartTime() {
-        return startTime;
+        return this.startTime;
     }
 
     /**
-     * Returns the creation time
+     * Returns the creation time.
      * 
-     * @return
+     * @return The VM creation time.
      */
     public long getCreationTime() {
-        return creationTime;
+        return this.creationTime;
     }
 
     /**
-     * Returns the image name
+     * Returns the image name.
      * 
-     * @return
+     * @return The image name.
      */
     public String getImage() {
-        return rd.getImage().getImageName();
+        return this.rd.getImage().getImageName();
     }
 
     /**
-     * Returns if the VM is to delete or not
+     * Returns whether the VM is to delete or not.
      * 
-     * @return
+     * @return {@literal true} if the VM is to delete, {@literal false} otherwise.
      */
     public boolean isToDelete() {
-        return toDelete;
+        return this.toDelete;
     }
 
     /**
-     * Computes the creation time (stored internally)
+     * Computes the creation time (stored internally).
      */
     public void computeCreationTime() {
-        creationTime = this.startTime - this.requestTime;
+        this.creationTime = this.startTime - this.requestTime;
     }
 
     /**
-     * Sets the start time
+     * Sets the start time.
      * 
-     * @param startTime
+     * @param startTime New start time.
      */
     public void setStartTime(long startTime) {
         this.startTime = startTime;
     }
 
     /**
-     * Sets the request time
+     * Sets the request time.
      * 
-     * @param requestTime
+     * @param requestTime New request time.
      */
     public void setRequestTime(long requestTime) {
         this.requestTime = requestTime;
     }
 
     /**
-     * Sets the worker representing this VM
+     * Sets the worker representing this VM.
      * 
-     * @param worker
+     * @param worker Associated worker.
      */
     public void setWorker(CloudMethodWorker worker) {
         this.worker = worker;
     }
 
     /**
-     * Sets if the VM is to delete or not
+     * Sets whether the VM is to delete or not.
      * 
-     * @param toDelete
+     * @param toDelete Boolean indicating whether the VM is to delete or not.
      */
     public void setToDelete(boolean toDelete) {
         this.toDelete = toDelete;
@@ -213,12 +202,12 @@ public class VM implements Comparable<VM> {
 
     @Override
     public String toString() {
-        return "VM " + envId + " (ip = " + rd.getName() + ", request time = " + requestTime + ", start time = "
-                + startTime + ", creation time = " + creationTime + ", image = " + rd.getImage().getImageName()
-                + ", procs = CPU: " + rd.getTotalCPUComputingUnits() + ", GPU: " + rd.getTotalGPUComputingUnits()
-                + ", FPGA: " + rd.getTotalFPGAComputingUnits() + ", OTHER: " + rd.getTotalOTHERComputingUnits()
-                + ", memory = " + rd.getMemorySize() + ", disk = " + rd.getStorageSize() + ", to delete = " + toDelete
-                + ")";
+        return "VM " + this.envId + " (ip = " + this.rd.getName() + ", request time = " + this.requestTime
+                + ", start time = " + this.startTime + ", creation time = " + this.creationTime + ", image = "
+                + this.rd.getImage().getImageName() + ", procs = CPU: " + this.rd.getTotalCPUComputingUnits()
+                + ", GPU: " + this.rd.getTotalGPUComputingUnits() + ", FPGA: " + this.rd.getTotalFPGAComputingUnits()
+                + ", OTHER: " + this.rd.getTotalOTHERComputingUnits() + ", memory = " + this.rd.getMemorySize()
+                + ", disk = " + this.rd.getStorageSize() + ", to delete = " + this.toDelete + ")";
     }
 
 }

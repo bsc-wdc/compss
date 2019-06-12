@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.connectors;
 
-import es.bsc.conn.Connector;
-import es.bsc.conn.types.VirtualResource;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.connectors.conn.util.ConnectorProxy;
 import es.bsc.compss.connectors.conn.util.Converter;
@@ -26,6 +24,9 @@ import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.Classpath;
+
+import es.bsc.conn.Connector;
+import es.bsc.conn.types.VirtualResource;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,7 +39,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Default SSH Connector implementation to use specific SSH connectors' interface
+ * Default SSH Connector implementation to use specific SSH connectors' interface.
  */
 public class DefaultNoSSHConnector extends AbstractConnector {
 
@@ -56,13 +57,13 @@ public class DefaultNoSSHConnector extends AbstractConnector {
 
 
     /**
-     * Constructs a new Default SSH Connector and instantiates the specific connector implementation
+     * Constructs a new Default SSH Connector and instantiates the specific connector implementation.
      *
-     * @param provider
-     * @param connectorJarPath
-     * @param connectorMainClass
-     * @param connectorProperties
-     * @throws ConnectorException
+     * @param provider Cloud provider.
+     * @param connectorJarPath Path to the connector JAR.
+     * @param connectorMainClass Main class of the connector implementation.
+     * @param connectorProperties Specific connector properties for initialization.
+     * @throws ConnectorException When the connector instantiation fails.
      */
     public DefaultNoSSHConnector(CloudProvider provider, String connectorJarPath, String connectorMainClass,
             Map<String, String> connectorProperties) throws ConnectorException {
@@ -112,28 +113,28 @@ public class DefaultNoSSHConnector extends AbstractConnector {
             if (conn == null) {
                 LOGGER.fatal("Connector constructor null");
             }
-            connector = new ConnectorProxy(conn);
+            this.connector = new ConnectorProxy(conn);
         }
     }
 
     @Override
     public void destroy(Object id) throws ConnectorException {
         LOGGER.debug("Destroy connection with id " + id);
-        connector.destroy(id);
+        this.connector.destroy(id);
     }
 
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
         LOGGER.debug("Create connection " + name);
-        return connector.create(name, Converter.getHardwareDescription(cmrd), Converter.getSoftwareDescription(cmrd),
-                cmrd.getImage().getProperties());
+        return this.connector.create(name, Converter.getHardwareDescription(cmrd),
+                Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
     }
 
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested)
             throws ConnectorException {
         LOGGER.debug("Waiting for " + id);
-        VirtualResource vr = connector.waitUntilCreation(id);
+        VirtualResource vr = this.connector.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);
         LOGGER.debug("Return cloud method resource description " + cmrd.toString());
         return cmrd;
@@ -141,28 +142,28 @@ public class DefaultNoSSHConnector extends AbstractConnector {
 
     @Override
     public float getMachineCostPerTimeSlot(CloudMethodResourceDescription cmrd) {
-        return connector.getPriceSlot(Converter.getVirtualResource("-1", cmrd), UNASSIGNED_FLOAT);
+        return this.connector.getPriceSlot(Converter.getVirtualResource("-1", cmrd), UNASSIGNED_FLOAT);
     }
 
     @Override
     public long getTimeSlot() {
-        return connector.getTimeSlot(TWO_MIN);
+        return this.connector.getTimeSlot(TWO_MIN);
     }
 
     @Override
     protected void close() {
         LOGGER.debug("Close connector");
-        connector.close();
+        this.connector.close();
     }
 
     @Override
-    public void configureAccess(String IP, String user, String password) throws ConnectorException {
-        // TODO Nothing to do
+    public void configureAccess(String ip, String user, String password) throws ConnectorException {
+        // Nothing to do
     }
 
     @Override
-    public void prepareMachine(String IP, CloudImageDescription cid) throws ConnectorException {
-        // TODO Nothing to do
+    public void prepareMachine(String ip, CloudImageDescription cid) throws ConnectorException {
+        // Nothing to do
     }
 
 }

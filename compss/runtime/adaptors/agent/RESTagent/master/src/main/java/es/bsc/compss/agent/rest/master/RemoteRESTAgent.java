@@ -26,8 +26,8 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
-import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.DeferredCopy;
 import es.bsc.compss.types.data.operation.copy.StorageCopy;
 import es.bsc.compss.types.implementations.Implementation;
@@ -110,8 +110,8 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public void updateTaskCount(int i) {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        // TODO: Support this operation
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -127,6 +127,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
+
         return new RemoteRESTAgentJob(this, taskId, taskParams, impl, res, listener);
     }
 
@@ -200,20 +201,20 @@ public class RemoteRESTAgent extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case OBJECT_T:
-                path = Protocol.OBJECT_URI.getSchema() + name;
+                path = ProtocolType.OBJECT_URI.getSchema() + name;
                 break;
             case STREAM_T:
-                path = Protocol.STREAM_URI.getSchema() + name;
+                path = ProtocolType.STREAM_URI.getSchema() + name;
                 break;
             case EXTERNAL_STREAM_T:
-                path = Protocol.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                path = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case PSCO_T:
             case EXTERNAL_PSCO_T:
-                path = Protocol.PERSISTENT_URI.getSchema() + name;
+                path = ProtocolType.PERSISTENT_URI.getSchema() + name;
                 break;
             default:
                 return null;
@@ -285,18 +286,16 @@ public class RemoteRESTAgent extends COMPSsWorker {
             currentLocations = StorageItf.getLocations(pscoId);
         } catch (StorageException se) {
             // Cannot obtain current locations from back-end
-            sc.end(DataOperation.OpEndState.OP_FAILED, se);
+            sc.end(OperationEndState.OP_FAILED, se);
             return;
         }
 
         if (!currentLocations.contains(targetHostname)) {
             // Perform replica
             LOGGER.debug("Performing new replica for PSCO " + pscoId);
-            try {
-                // TODO: WARN New replica is NOT necessary because we can't prefetch data
-                // StorageItf.newReplica(pscoId, targetHostname);
-            } finally {
-            }
+
+            // TODO: WARN New replica is NOT necessary because we can't prefetch data
+            // StorageItf.newReplica(pscoId, targetHostname);
         } else {
             LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
@@ -308,11 +307,10 @@ public class RemoteRESTAgent extends COMPSsWorker {
         }
 
         // Notify successful end
-        sc.end(DataOperation.OpEndState.OP_OK);
+        sc.end(OperationEndState.OP_OK);
     }
 
     private void newVersion(StorageCopy sc) {
-
         String targetHostname = this.getName();
         LogicalData srcLD = sc.getSourceData();
         LogicalData targetLD = sc.getTargetData();
@@ -337,12 +335,12 @@ public class RemoteRESTAgent extends COMPSsWorker {
                 targetLD.setPscoId(newId);
             }
         } catch (Exception e) {
-            sc.end(DataOperation.OpEndState.OP_FAILED, e);
+            sc.end(OperationEndState.OP_FAILED, e);
             return;
         }
 
         // Notify successful end
-        sc.end(DataOperation.OpEndState.OP_OK);
+        sc.end(OperationEndState.OP_OK);
     }
 
     @Override

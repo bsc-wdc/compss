@@ -26,7 +26,7 @@ import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
@@ -275,7 +275,7 @@ public class DataManagerImpl implements DataManager {
                         case BINDING_URI:
                             if (loc.isHost(this.hostName)) {
                                 WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
-                                        + (loc.getProtocol() == Protocol.OBJECT_URI ? "N OBJECT "
+                                        + (loc.getProtocol() == ProtocolType.OBJECT_URI ? "N OBJECT "
                                                 : " BINDING OBJECT "));
                             }
                             break;

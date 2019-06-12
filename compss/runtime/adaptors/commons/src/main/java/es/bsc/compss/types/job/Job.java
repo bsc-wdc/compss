@@ -22,11 +22,12 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.Resource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 
 /**
  * Abstract representation of a job.
@@ -34,15 +35,6 @@ import org.apache.logging.log4j.Logger;
  * @param <T> COMPSs Worker
  */
 public abstract class Job<T extends COMPSsWorker> {
-
-    // Job history
-    public enum JobHistory {
-        NEW, // New job
-        RESUBMITTED_FILES, // Resubmit transfers
-        RESUBMITTED, // Resubmit job
-        FAILED // Completely failed (can create new job for reschedule)
-    }
-
 
     // Job identifier management
     protected static final int FIRST_JOB_ID = 1;
@@ -193,8 +185,8 @@ public abstract class Job<T extends COMPSsWorker> {
     }
 
     /**
-     * Returns the job classpath.
-     *.
+     * Returns the job classpath. .
+     * 
      * @return
      */
     public String getClasspath() {

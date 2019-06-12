@@ -20,8 +20,8 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.DecafImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 
 
 public class DecafDefinition extends ImplementationDefinition {

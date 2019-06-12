@@ -26,7 +26,8 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Type;
+import es.bsc.compss.types.data.location.LocationType;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.copy.ImmediateCopy;
 import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.resources.Resource;
@@ -69,8 +70,8 @@ public class GATCopy extends ImmediateCopy {
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
         this.reason = reason;
         if (srcData.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))
-                || (prefSrc != null && prefSrc.getType().equals(Type.BINDING))
-                || (prefTgt != null && prefTgt.getType().equals(Type.BINDING))) {
+                || (prefSrc != null && prefSrc.getType().equals(LocationType.BINDING))
+                || (prefTgt != null && prefTgt.getType().equals(LocationType.BINDING))) {
             isBindingObject = true;
         }
         for (MultiURI uri : prefTgt.getURIs()) {
@@ -194,7 +195,7 @@ public class GATCopy extends ImmediateCopy {
                             boElements = bo.getElements();
                         }
                     }
-                    URI gatSrc = new URI(DataLocation.Protocol.ANY_URI.getSchema() + src.getHost() + "/" + srcPath);
+                    URI gatSrc = new URI(ProtocolType.ANY_URI.getSchema() + src.getHost() + "/" + srcPath);
                     String tgtPath = tgt.getPath();
                     if (isBindingObject) {
                         if (tgtPath.contains("#")) {
@@ -204,7 +205,7 @@ public class GATCopy extends ImmediateCopy {
                             boElements = bo.getElements();
                         }
                     }
-                    URI gatTgt = new URI(DataLocation.Protocol.ANY_URI.getSchema() + tgt.getHost() + "/" + tgtPath);
+                    URI gatTgt = new URI(ProtocolType.ANY_URI.getSchema() + tgt.getHost() + "/" + tgtPath);
 
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(DBG_PREFIX + "Copying file From: " + gatSrc + " to " + gatTgt);

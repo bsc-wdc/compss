@@ -24,44 +24,44 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 public interface Connector {
 
     /**
-     * Starts a resource
+     * Starts a resource.
      * 
-     * @param name
-     * @param rR
+     * @param name Resource name.
+     * @param rR Resource creation request.
      * @return
      */
     public boolean turnON(String name, ResourceCreationRequest rR);
 
     /**
-     * Sets the stop flag
+     * Sets the stop flag.
      */
     public void stopReached();
 
     /**
-     * Returns the expected creation time for next request
+     * Returns the expected creation time for the next request.
      * 
-     * @return
-     * @throws ConnectorException
+     * @return The expected creation time for the next request.
+     * @throws ConnectorException When an internal connector exception occurs.
      */
     public Long getNextCreationTime() throws ConnectorException;
 
     /**
-     * Returns the time slot size
+     * Returns the time slot size.
      * 
-     * @return
+     * @return The time slot size.
      */
     public long getTimeSlot();
 
     /**
-     * Terminates an specific machine
+     * Terminates an specific machine.
      * 
-     * @param worker
-     * @param reduction
+     * @param worker CloudMethodWorker to terminate.
+     * @param reduction Resource reduction.
      */
     public void terminate(CloudMethodWorker worker, CloudMethodResourceDescription reduction);
 
     /**
-     * Terminates all instances
+     * Terminates all instances.
      */
     public void terminateAll();
 

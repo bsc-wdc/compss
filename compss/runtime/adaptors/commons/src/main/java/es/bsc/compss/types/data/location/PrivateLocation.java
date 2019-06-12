@@ -28,18 +28,18 @@ public class PrivateLocation extends DataLocation {
     private MultiURI uri;
 
 
-    public PrivateLocation(Protocol protocol, Resource host, String path) {
+    public PrivateLocation(ProtocolType protocol, Resource host, String path) {
         super();
         this.uri = new MultiURI(protocol, host, path);
     }
 
     @Override
-    public DataLocation.Type getType() {
-        return DataLocation.Type.PRIVATE;
+    public LocationType getType() {
+        return LocationType.PRIVATE;
     }
 
     @Override
-    public Protocol getProtocol() {
+    public ProtocolType getProtocol() {
         return this.uri.getProtocol();
     }
 
@@ -69,7 +69,7 @@ public class PrivateLocation extends DataLocation {
 
     @Override
     public boolean isTarget(DataLocation target) {
-        if (target.getType() != DataLocation.Type.PRIVATE) {
+        if (target.getType() != LocationType.PRIVATE) {
             return false;
         }
         MultiURI targetURI = ((PrivateLocation) target).uri;

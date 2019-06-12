@@ -20,8 +20,8 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
 import es.bsc.compss.types.implementations.MPIImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 
 
 public class MPIDefinition extends ImplementationDefinition {
@@ -45,14 +45,14 @@ public class MPIDefinition extends ImplementationDefinition {
 
         this.mpiRunner = args[execArgsIdx++];
         this.mpiBinary = args[execArgsIdx++];
-        
+
         String wDir = args[execArgsIdx++];
         if (wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED)) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;
         }
-        
+
         this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, null, null, null);
     }
 

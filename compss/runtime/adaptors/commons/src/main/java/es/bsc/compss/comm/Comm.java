@@ -24,7 +24,7 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.resources.MasterResource;
 import es.bsc.compss.types.resources.Resource;
@@ -33,6 +33,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
@@ -137,7 +138,7 @@ public class Comm {
             LOGGER.debug("Tracing is activated [" + tracingLevel + ']');
             Tracer.init(tracingLevel);
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
+                Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
             }
         }
 
@@ -339,7 +340,7 @@ public class Comm {
     public static synchronized LogicalData registerValue(String dataId, Object value) {
         LOGGER.debug("Register value " + value + " for data " + dataId);
 
-        String targetPath = Protocol.OBJECT_URI.getSchema() + dataId;
+        String targetPath = ProtocolType.OBJECT_URI.getSchema() + dataId;
         DataLocation location = null;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
@@ -396,7 +397,7 @@ public class Comm {
      * @return The LogicalData representing the given data Id with the associated Binding Object.
      */
     public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
-        String targetPath = Protocol.BINDING_URI.getSchema() + bo.toString();
+        String targetPath = ProtocolType.BINDING_URI.getSchema() + bo.toString();
         DataLocation location = null;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
@@ -419,7 +420,7 @@ public class Comm {
      * @return The LogicalData after registering the PSCO Id into the given data Id.
      */
     public static synchronized LogicalData registerPSCO(String dataId, String id) {
-        String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;
+        String targetPath = ProtocolType.PERSISTENT_URI.getSchema() + id;
         DataLocation location = null;
         try {
             SimpleURI uri = new SimpleURI(targetPath);

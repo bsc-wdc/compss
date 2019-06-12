@@ -262,6 +262,12 @@ public class Loader {
         return isMatch;
     }
 
+    /**
+     * Invokes by reflection the printCOMPSsVariables method of a given class.
+     * 
+     * @param app Application class.
+     * @throws Exception Any internal exception.
+     */
     public static void printVariables(Class<?> app) throws Exception {
         Method setter = app.getDeclaredMethod("printCOMPSsVariables", new Class<?>[] {});
         Object[] values = new Object[] {};

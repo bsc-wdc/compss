@@ -29,8 +29,8 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.Task.TaskState;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -41,10 +41,12 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.JobTransfersListener;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
@@ -351,7 +353,7 @@ public class ExecutionAction extends AllocatableAction {
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
                 slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
-        job.setHistory(Job.JobHistory.NEW);
+        job.setHistory(JobHistory.NEW);
 
         return job;
     }
@@ -375,7 +377,7 @@ public class ExecutionAction extends AllocatableAction {
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             ErrorManager.warn("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
                     + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
-            job.setHistory(Job.JobHistory.RESUBMITTED);
+            job.setHistory(JobHistory.RESUBMITTED);
             this.profile.start();
             JobDispatcher.dispatch(job);
         } else {
@@ -456,37 +458,37 @@ public class ExecutionAction extends AllocatableAction {
             String targetProtocol;
             switch (dp.getType()) {
                 case FILE_T:
-                    targetProtocol = DataLocation.Protocol.FILE_URI.getSchema();
+                    targetProtocol = ProtocolType.FILE_URI.getSchema();
                     break;
                 case OBJECT_T:
-                    targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
+                    targetProtocol = ProtocolType.OBJECT_URI.getSchema();
                     break;
                 case STREAM_T:
                 case EXTERNAL_STREAM_T:
                     // FTM already knows about this datum
                     return null;
                 case COLLECTION_T:
-                    targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
+                    targetProtocol = ProtocolType.OBJECT_URI.getSchema();
                     CollectionParameter cp = (CollectionParameter) p;
                     for (Parameter elem : cp.getParameters()) {
                         storeOutputParameter(job, w, elem);
                     }
                     break;
                 case PSCO_T:
-                    targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                    targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
                     break;
                 case EXTERNAL_PSCO_T:
                     // Its value is the PSCO Id
-                    targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                    targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
                     break;
                 case BINDING_OBJECT_T:
                     // Its value is the PSCO Id
-                    targetProtocol = DataLocation.Protocol.BINDING_URI.getSchema();
+                    targetProtocol = ProtocolType.BINDING_URI.getSchema();
                     break;
                 default:
                     // Should never reach this point because only DependencyParameter types are treated
                     // Ask for any_uri just in case
-                    targetProtocol = DataLocation.Protocol.ANY_URI.getSchema();
+                    targetProtocol = ProtocolType.ANY_URI.getSchema();
                     break;
             }
 

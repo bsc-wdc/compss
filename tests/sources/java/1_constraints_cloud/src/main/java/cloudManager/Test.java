@@ -2,8 +2,8 @@ package cloudManager;
 
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.description.CloudImageDescription;

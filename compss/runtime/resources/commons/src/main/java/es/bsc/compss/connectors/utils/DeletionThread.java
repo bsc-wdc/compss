@@ -29,7 +29,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Support thread for VM destruction
+ * Support thread for VM destruction.
  */
 public class DeletionThread extends Thread {
 
@@ -37,7 +37,7 @@ public class DeletionThread extends Thread {
     private static final Logger RUNTIME_LOGGER = LogManager.getLogger(Loggers.RM_COMP);
     private static final boolean DEBUG = RESOURCE_LOGGER.isDebugEnabled();
 
-    private final static AtomicInteger COUNT = new AtomicInteger(0);
+    private static final AtomicInteger COUNT = new AtomicInteger(0);
 
     private final Operations operations;
     private final CloudMethodWorker worker;

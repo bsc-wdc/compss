@@ -24,19 +24,19 @@ import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
-import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.rest.types.messages.IncreaseNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.ReduceNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
+import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.types.annotations.parameter.DataType;
-
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
+import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;
+
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -44,9 +44,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import org.eclipse.jetty.server.Server;
 
 
@@ -55,6 +55,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
     private int port;
     private Server server = null;
+
 
     @Override
     public RESTAgentConf configure(String arguments) throws AgentException {
@@ -71,7 +72,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     @Override
     public synchronized void start(RESTAgentConf args) throws AgentException {
         if (server != null) {
-            //Server already started. Ignore start;
+            // Server already started. Ignore start;
             return;
         }
         RESTServiceLauncher launcher = null;
@@ -117,7 +118,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     @Consumes(MediaType.APPLICATION_XML)
     public Response addResource(IncreaseNodeNotification notification) {
         Resource r = notification.getResource();
-        //Updating processors
+        // Updating processors
         MethodResourceDescription description = r.getDescription();
         List<Processor> procs = description.getProcessors();
         description.setProcessors(procs);
@@ -200,9 +201,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         try {
             params = request.getParamsValuesContent();
         } catch (Exception cnfe) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(
-                    "Could not recover an input parameter value. " + cnfe.getLocalizedMessage()
-            ).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Could not recover an input parameter value. " + cnfe.getLocalizedMessage()).build();
         }
         AppMainMonitor monitor = new AppMainMonitor();
         long appId;

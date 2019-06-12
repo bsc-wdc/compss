@@ -29,12 +29,14 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.accessid.WAccessId;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.Job;
+import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
@@ -187,15 +189,14 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
         if (response.getStatusInfo().getStatusCode() != 200) {
             System.out.println(response.readEntity(String.class));
-            this.getListener().jobFailed(this, JobListener.JobEndStatus.SUBMISSION_FAILED);
+            this.getListener().jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
         } else {
             System.out.println("SUBMISSION[" + this.getJobId() + "] Job submitted.");
             String jobId = response.readEntity(String.class);
             RemoteJobsRegistry.registerJobListener(jobId, new RemoteJobListener() {
 
                 @Override
-                public void finishedExecution(JobListener.JobEndStatus endStatus, DataType[] paramTypes,
-                        String[] paramLocations) {
+                public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations) {
                     System.out.println("SUBMISSION[" + getJobId() + "] Job completed.");
                     stageout(paramTypes, paramLocations);
                     if (endStatus == JobEndStatus.OK) {
@@ -232,7 +233,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 SimpleURI uri = new SimpleURI(locString);
                 try {
                     DataLocation loc = DataLocation.createLocation(worker, uri);
-                    if (loc.getProtocol() == DataLocation.Protocol.PERSISTENT_URI) {
+                    if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
                         String pscoId = loc.getLocationKey();
                         type = returnParameter.getType();
                         if (type == DataType.OBJECT_T) {
@@ -265,7 +266,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 SimpleURI uri = new SimpleURI(locString);
                 try {
                     DataLocation loc = DataLocation.createLocation(worker, uri);
-                    if (loc.getProtocol() == DataLocation.Protocol.PERSISTENT_URI) {
+                    if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
                         String pscoId = loc.getLocationKey();
                         type = targetParameter.getType();
                         if (type == DataType.OBJECT_T) {
@@ -303,7 +304,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                         SimpleURI uri = new SimpleURI(locString);
                         try {
                             DataLocation loc = DataLocation.createLocation(worker, uri);
-                            if (loc.getProtocol() == DataLocation.Protocol.PERSISTENT_URI) {
+                            if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
                                 String pscoId = loc.getLocationKey();
                                 switch (type) {
                                     case FILE_T:
@@ -357,13 +358,12 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
     }
 
     @Override
-    public Implementation.TaskType getType() {
-        return Implementation.TaskType.METHOD;
+    public TaskType getType() {
+        return TaskType.METHOD;
     }
 
     @Override
     public String toString() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

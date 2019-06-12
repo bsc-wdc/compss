@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.agent;
 
-
 /**
  * Interface that any external component might call to invoke the agent.
  *
@@ -25,22 +24,19 @@ package es.bsc.compss.agent;
 public interface AgentInterface<T extends AgentInterfaceConfig> {
 
     /**
-     * Constructs the configuration description for the agent parsing a string
+     * Constructs the configuration description for the agent parsing a string.
      *
-     * @param arguments string containing the arguments
-     *
-     * @return configuration object obtained from parsing the string
-     *
-     * @throws AgentException Could not properly parse the string to generate a configuration description
+     * @param arguments String containing the arguments.
+     * @return Configuration object obtained from parsing the string.
+     * @throws AgentException Could not properly parse the string to generate a configuration description.
      */
     public T configure(String arguments) throws AgentException;
 
     /**
      * Starts any underlying mechanism required by the interface to receive messages from other processes.
      *
-     * @param conf description of the configuration values required by the interface
-     *
-     * @throws es.bsc.compss.agent.AgentException Some error raised during the Interface start up.
+     * @param conf Description of the configuration values required by the interface.
+     * @throws AgentException Some error raised during the Interface start up.
      */
     public void start(T conf) throws AgentException;
 

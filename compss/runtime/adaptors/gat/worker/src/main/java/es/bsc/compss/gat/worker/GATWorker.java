@@ -39,7 +39,7 @@ import es.bsc.compss.types.execution.ThreadBinder;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.distrostreamlib.client.DistroStreamClient;

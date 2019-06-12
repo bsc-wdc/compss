@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * Representation of a Scheduler that considers only ready tasks
+ * Representation of a Scheduler that considers only ready tasks.
  */
 public abstract class ReadyScheduler extends TaskScheduler {
 
@@ -47,7 +47,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
 
 
     /**
-     * Constructs a new Ready Scheduler instance
+     * Constructs a new Ready Scheduler instance.
      */
     public ReadyScheduler() {
         super();

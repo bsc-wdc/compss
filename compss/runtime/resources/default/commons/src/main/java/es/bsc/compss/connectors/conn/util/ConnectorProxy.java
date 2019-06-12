@@ -16,12 +16,13 @@
  */
 package es.bsc.compss.connectors.conn.util;
 
+import es.bsc.compss.connectors.ConnectorException;
+
 import es.bsc.conn.Connector;
 import es.bsc.conn.exceptions.ConnException;
 import es.bsc.conn.types.HardwareDescription;
 import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.VirtualResource;
-import es.bsc.compss.connectors.ConnectorException;
 
 import java.util.Map;
 
@@ -34,6 +35,12 @@ public class ConnectorProxy {
     private final Connector connector;
 
 
+    /**
+     * Creates a new ConnectorProxy instance with an associated Connector.
+     * 
+     * @param conn Associated connector.
+     * @throws ConnectorException If an invalid connector is provided.
+     */
     public ConnectorProxy(Connector conn) throws ConnectorException {
         if (conn == null) {
             throw new ConnectorException(ERROR_NO_CONN);
@@ -41,60 +48,99 @@ public class ConnectorProxy {
         this.connector = conn;
     }
 
+    /**
+     * Creates a new machine in the given connector with the given information.
+     * 
+     * @param name Machine name.
+     * @param hardwareDescription Connector hardware properties.
+     * @param softwareDescription Connector software properties.
+     * @param properties Specific properties.
+     * @return Machine Object.
+     * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
+     */
     public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription,
             Map<String, String> properties) throws ConnectorException {
 
-        if (connector == null) {
+        if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
         Object created;
         try {
-            created = connector.create(name, hardwareDescription, softwareDescription, properties);
+            created = this.connector.create(name, hardwareDescription, softwareDescription, properties);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }
         return created;
     }
 
+    /**
+     * Destroys a given machine in the connector.
+     * 
+     * @param id Machine Id.
+     * @throws ConnectorException If an invalid connector is set.
+     */
     public void destroy(Object id) throws ConnectorException {
-        if (connector == null) {
+        if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
 
-        connector.destroy(id);
+        this.connector.destroy(id);
     }
 
+    /**
+     * Stops the current thread until the machine has been created.
+     * 
+     * @param id Machine Id.
+     * @return Virtual Resoure representing the machine.
+     * @throws ConnectorException If an invalid connector is set.
+     */
     public VirtualResource waitUntilCreation(Object id) throws ConnectorException {
-        if (connector == null) {
+        if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
 
         VirtualResource vr;
         try {
-            vr = connector.waitUntilCreation(id);
+            vr = this.connector.waitUntilCreation(id);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }
         return vr;
     }
 
+    /**
+     * Returns the price slot of the given virtual resource.
+     * 
+     * @param vr Virtual Resource.
+     * @param defaultPrice Default slot price.
+     * @return The virtual resource price slot.
+     */
     public float getPriceSlot(VirtualResource vr, float defaultPrice) {
-        if (connector == null) {
+        if (this.connector == null) {
             return defaultPrice;
         }
 
-        return connector.getPriceSlot(vr);
+        return this.connector.getPriceSlot(vr);
     }
 
+    /**
+     * Returns the time slot of the connector.
+     * 
+     * @param defaultLength Default time slot.
+     * @return The time slot of the connector.
+     */
     public long getTimeSlot(long defaultLength) {
-        if (connector == null) {
+        if (this.connector == null) {
             return defaultLength;
         }
-        return connector.getTimeSlot();
+        return this.connector.getTimeSlot();
     }
 
+    /**
+     * Closes the associated connector.
+     */
     public void close() {
-        connector.close();
+        this.connector.close();
     }
 
 }

@@ -19,7 +19,7 @@ package es.bsc.compss.types.resources;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.components.Processor.ProcessorType;
 import es.bsc.compss.util.EnvironmentLoader;

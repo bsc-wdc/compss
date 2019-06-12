@@ -26,7 +26,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -88,7 +88,7 @@ public abstract class Invoker {
         /* Parse execution infrastructure **************************************** */
         // ComputingUnits flags
         ResourceDescription rd = this.invocation.getRequirements();
-        if (this.invocation.getTaskType() == Implementation.TaskType.METHOD) {
+        if (this.invocation.getTaskType() == TaskType.METHOD) {
             this.computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
         } else {
             this.computingUnits = 0;

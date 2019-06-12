@@ -43,8 +43,8 @@ import es.bsc.compss.types.data.accessparams.AccessParams.AccessMode;
 import es.bsc.compss.types.data.accessparams.FileAccessParams;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
 import es.bsc.compss.types.data.location.PersistentLocation;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
@@ -63,6 +63,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
@@ -428,7 +429,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public synchronized void startIT() {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-            Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
+            Tracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
         }
 
         // Console Log
@@ -498,7 +499,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public void stopIT(boolean terminate) {
         synchronized (this) {
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
+                Tracer.emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
             }
 
             // Add task summary
@@ -643,7 +644,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             boolean hasTarget, int parameterCount, OnFailure onFailure, Object... parameters) {
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
+            Tracer.emitEvent(TraceEvent.TASK.getId(), TraceEvent.TASK.getType());
         }
 
         if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
@@ -705,7 +706,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Tracing flag for task creation
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
+            Tracer.emitEvent(TraceEvent.TASK.getId(), TraceEvent.TASK.getType());
         }
 
         // Log the details
@@ -774,7 +775,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public void noMoreTasks(Long appId) {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
+            Tracer.emitEvent(TraceEvent.NO_MORE_TASKS.getId(), TraceEvent.NO_MORE_TASKS.getType());
         }
 
         LOGGER.info("No more tasks for app " + appId);
@@ -797,7 +798,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public void barrier(Long appId, boolean noMoreTasks) {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
+            Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS.getId(), TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
 
         // Wait until all tasks have finished
@@ -811,7 +812,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
     }
 
@@ -826,7 +827,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Emit event
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
+            Tracer.emitEvent(TraceEvent.DELETE.getId(), TraceEvent.DELETE.getType());
         }
 
         // Parse the file name and translate the access mode
@@ -863,7 +864,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public void getFile(Long appId, String fileName) {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
+            Tracer.emitEvent(TraceEvent.GET_FILE.getId(), TraceEvent.GET_FILE.getType());
         }
         String destDir = Comm.getAppHost().getTempDirPath();
         // Parse the destination path
@@ -927,7 +928,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          * it and this method would not have been called.
          */
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
+            Tracer.emitEvent(TraceEvent.GET_OBJECT.getId(), TraceEvent.GET_OBJECT.getType());
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -988,7 +989,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         LOGGER.info("Opening " + fileName + " in mode " + mode);
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
+            Tracer.emitEvent(TraceEvent.OPEN_FILE.getId(), TraceEvent.OPEN_FILE.getType());
         }
         // Parse arguments to internal structures
         DataLocation loc;
@@ -1046,8 +1047,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public void closeFile(String fileName, Direction mode) {
         // if (Tracer.isActivated()) {
-        // Tracer.emitEvent(Tracer.Event.CLOSE_FILE.getId(),
-        // Tracer.Event.CLOSE_FILE.getType());
+        // Tracer.emitEvent(TraceEvent.CLOSE_FILE.getId(),
+        // TraceEvent.CLOSE_FILE.getType());
         // }
 
         LOGGER.info("Closing " + fileName + " in mode " + mode);
@@ -1126,7 +1127,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         // Emit event
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
+            Tracer.emitEvent(TraceEvent.DELETE.getId(), TraceEvent.DELETE.getType());
         }
 
         // Parse the binding object name and translate the access mode
@@ -1169,7 +1170,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 try {
                     String fileName = (String) content;
                     String canonicalPath = new File(fileName).getCanonicalPath();
-                    String locationPath = Protocol.EXTERNAL_STREAM_URI.getSchema() + canonicalPath;
+                    String locationPath = ProtocolType.EXTERNAL_STREAM_URI.getSchema() + canonicalPath;
                     DataLocation location = createLocation(locationPath);
                     String originalName = new File(fileName).getName();
                     pars.add(new ExternalStreamParameter(direction, stream, prefix, name, location, originalName));
@@ -1376,7 +1377,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (uri.getSchema().isEmpty()) {
             // Add default File scheme and wrap local paths
             String canonicalPath = new File(fileName).getCanonicalPath();
-            uri = new SimpleURI(Protocol.FILE_URI.getSchema() + canonicalPath);
+            uri = new SimpleURI(ProtocolType.FILE_URI.getSchema() + canonicalPath);
         }
 
         // Check host

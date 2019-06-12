@@ -17,7 +17,7 @@
 package es.bsc.compss.nio;
 
 import es.bsc.comm.nio.NIONode;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.InvocationParamURI;
 
 import java.io.Externalizable;
@@ -34,7 +34,7 @@ public class NIOUri implements Externalizable, InvocationParamURI {
 
     private NIONode host;
     private String path;
-    private Protocol protocol;
+    private ProtocolType protocol;
 
 
     public NIOUri() {
@@ -48,7 +48,7 @@ public class NIOUri implements Externalizable, InvocationParamURI {
      * @param path Path.
      * @param schema Schema.
      */
-    public NIOUri(NIONode host, String path, Protocol schema) {
+    public NIOUri(NIONode host, String path, ProtocolType schema) {
         this.host = host;
         this.path = path;
         this.protocol = schema;
@@ -64,7 +64,7 @@ public class NIOUri implements Externalizable, InvocationParamURI {
     }
 
     @Override
-    public Protocol getProtocol() {
+    public ProtocolType getProtocol() {
         return this.protocol;
     }
 
@@ -114,7 +114,7 @@ public class NIOUri implements Externalizable, InvocationParamURI {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.host = (NIONode) in.readObject();
         this.path = in.readUTF();
-        this.protocol = Protocol.getBySchema(in.readUTF());
+        this.protocol = ProtocolType.getBySchema(in.readUTF());
     }
 
 }

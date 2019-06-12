@@ -22,7 +22,7 @@ import es.bsc.compss.types.allocatableactions.ExecutionAction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
 
 import java.util.LinkedList;
@@ -38,19 +38,6 @@ public class Task implements Comparable<Task> {
     // Task ID management
     private static final int FIRST_TASK_ID = 1;
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
-
-
-    /**
-     * Task states.
-     */
-    public enum TaskState {
-        TO_ANALYSE, // Task is being analysed
-        TO_EXECUTE, // Task can be executed
-        FINISHED, // Task has finished successfully
-        CANCELED, // Task has been canceled
-        FAILED // Task has failed
-    }
-
 
     // Task fields
     private final long appId;

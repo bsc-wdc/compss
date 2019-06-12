@@ -17,11 +17,11 @@
 package es.bsc.compss.agent.rest.types;
 
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.job.JobEndStatus;
 
 
 public interface RemoteJobListener {
 
-    public void finishedExecution(JobListener.JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations);
+    public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations);
 
 }

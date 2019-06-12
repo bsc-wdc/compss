@@ -35,8 +35,9 @@ public class FakeMethodAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
+
         return new MethodConfiguration(this.getClass().getName());
     }
 
@@ -48,7 +49,7 @@ public class FakeMethodAdaptor implements CommAdaptor {
 
     @Override
     public void stop() {
-
+        // Nothing to do
     }
 
     @Override
@@ -58,12 +59,12 @@ public class FakeMethodAdaptor implements CommAdaptor {
 
     @Override
     public void completeMasterURI(MultiURI u) {
-
+        // Nothing to do
     }
 
     @Override
     public void stopSubmittedJobs() {
-
+        // Nothing to do
     }
 
 }

@@ -33,7 +33,7 @@ public abstract class DataOperation {
     private final int operationId;
     // Identifiers of the groups to which the operation belongs
     private final List<EventListener> listeners;
-    private OpEndState endState = null;
+    private OperationEndState endState = null;
     private Exception endException = null;
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
@@ -42,17 +42,9 @@ public abstract class DataOperation {
     private String name;
 
 
-    public enum OpEndState {
-        OP_OK, // Success
-        OP_IN_PROGRESS, // In progress
-        OP_FAILED, // Failed
-        OP_PREPARATION_FAILED, // Preparation failed
-        OP_WAITING_SOURCES; // Waiting for resources
-    }
-
-
     /**
      * Data Operation constructor.
+     * 
      * @param ld Logical data to operate
      * @param listener Data operation listener
      */
@@ -66,6 +58,7 @@ public abstract class DataOperation {
 
     /**
      * Data Operation constructor.
+     * 
      * @param ld Logical data to operate
      * @param eventListeners List of ata operation listeners
      */
@@ -90,6 +83,7 @@ public abstract class DataOperation {
 
     /**
      * Add listener to a data operation.
+     * 
      * @param eventListener Listener to add
      */
     public void addEventListener(EventListener eventListener) {
@@ -115,6 +109,7 @@ public abstract class DataOperation {
 
     /**
      * Add a list of listener to a data operation.
+     * 
      * @param eventListeners Listeners to add
      */
     public void addEventListeners(List<EventListener> eventListeners) {
@@ -142,15 +137,15 @@ public abstract class DataOperation {
         }
     }
 
-    public void end(OpEndState state) {
+    public void end(OperationEndState state) {
         notifyEnd(state, null);
     }
 
-    public void end(OpEndState state, Exception e) {
+    public void end(OperationEndState state, Exception e) {
         notifyEnd(state, e);
     }
 
-    private void notifyEnd(OpEndState state, Exception e) {
+    private void notifyEnd(OperationEndState state, Exception e) {
         synchronized (listeners) {
             endState = state;
             endException = e;

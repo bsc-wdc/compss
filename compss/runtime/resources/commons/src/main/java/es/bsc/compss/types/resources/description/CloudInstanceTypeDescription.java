@@ -17,6 +17,7 @@
 package es.bsc.compss.types.resources.description;
 
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
 import java.util.List;
@@ -45,7 +46,7 @@ public class CloudInstanceTypeDescription {
             this.slotsImpl[coreId] = new int[implsSize];
             for (int implId = 0; implId < implsSize; ++implId) {
                 Implementation impl = impls.get(implId);
-                if (impl.getTaskType() == Implementation.TaskType.METHOD) {
+                if (impl.getTaskType() == TaskType.METHOD) {
                     MethodResourceDescription reqs = (MethodResourceDescription) impl.getRequirements();
                     Integer into = rd.canHostSimultaneously(reqs);
                     this.slotsCore[coreId] = Math.max(this.slotsCore[coreId], into);

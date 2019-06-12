@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.util;
 
+import static org.junit.Assert.fail;
+
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.ExtendedCloudMethodWorker;
 import es.bsc.compss.types.ResourceCreationRequest;
@@ -24,12 +26,12 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -256,8 +258,8 @@ public class CloudManagerTest {
     public void testVMsManagement() {
         CloudManager cm = new CloudManager();
 
-        CloudProvider cp1 = createProvider(cm);
-        CloudProvider cp2 = createProvider(cm);
+        final CloudProvider cp1 = createProvider(cm);
+        final CloudProvider cp2 = createProvider(cm);
 
         CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
         ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);

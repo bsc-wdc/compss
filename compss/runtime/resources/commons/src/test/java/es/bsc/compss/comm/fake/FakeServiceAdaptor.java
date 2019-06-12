@@ -35,8 +35,9 @@ public class FakeServiceAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
             throws ConstructConfigurationException {
+
         return new ServiceConfiguration(this.getClass().getName(), "WSDL");
     }
 
@@ -49,7 +50,7 @@ public class FakeServiceAdaptor implements CommAdaptor {
 
     @Override
     public void stop() {
-
+        // Nothing to do
     }
 
     @Override
@@ -59,12 +60,12 @@ public class FakeServiceAdaptor implements CommAdaptor {
 
     @Override
     public void completeMasterURI(MultiURI u) {
-
+        // Nothing to do
     }
 
     @Override
     public void stopSubmittedJobs() {
-
+        // Nothing to do
     }
 
 }

@@ -3,12 +3,12 @@ package resourceManager;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.MethodWorker;
-import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.ResourceType;
 import es.bsc.compss.types.resources.ServiceResourceDescription;
 import es.bsc.compss.types.resources.ServiceWorker;
 import es.bsc.compss.types.resources.Worker;
@@ -120,12 +120,12 @@ public class TestCompatible {
     }
 
     private static String checkResourcesAssignedToImpl(Implementation impl, Worker<?> resource) {
-        if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(Resource.Type.SERVICE))
-                || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(Resource.Type.WORKER))) {
+        if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(ResourceType.SERVICE))
+                || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(ResourceType.WORKER))) {
             return "types";
         }
 
-        if (resource.getType() == Worker.Type.WORKER) {
+        if (resource.getType() == ResourceType.WORKER) {
             MethodImplementation mImpl = (MethodImplementation) impl;
             MethodResourceDescription iDescription = mImpl.getRequirements();
             MethodWorker worker = (MethodWorker) resource;
@@ -270,7 +270,7 @@ public class TestCompatible {
                 return "hostQueues";
             }
 
-        } else if (resource.getType() == Worker.Type.SERVICE) {
+        } else if (resource.getType() == ResourceType.SERVICE) {
             ServiceImplementation sImpl = (ServiceImplementation) impl;
             ServiceResourceDescription iDescription = sImpl.getRequirements();
             ServiceWorker worker = (ServiceWorker) resource;

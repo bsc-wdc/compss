@@ -44,11 +44,12 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
-import es.bsc.compss.types.job.Job.JobHistory;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -493,7 +494,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             MasterDataRequest mdr = (MasterDataRequest) dr;
             Copy c = (Copy) mdr.getOperation();
             c.getSourceData().finishedCopy(c);
-            c.end(DataOperation.OpEndState.OP_FAILED); // Notify the copy has failed
+            c.end(OperationEndState.OP_FAILED); // Notify the copy has failed
         }
     }
 
@@ -510,7 +511,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     tgtData.setValue(object);
                 }
             }
-            c.end(DataOperation.OpEndState.OP_OK);
+            c.end(OperationEndState.OP_OK);
         }
 
         if (NIOTracer.extraeEnabled()) {
@@ -576,7 +577,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Check if the object has been serialized meanwhile
         if (o == null) {
             for (MultiURI loc : ld.getURIs()) {
-                if (!loc.getProtocol().equals(Protocol.OBJECT_URI) && loc.getHost().equals(Comm.getAppHost())) {
+                if (!loc.getProtocol().equals(ProtocolType.OBJECT_URI) && loc.getHost().equals(Comm.getAppHost())) {
                     // The object is null because it has been serialized by the master, raise exception
                     throw new SerializedObjectException(name);
                 }
@@ -595,7 +596,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Get a Master location
         for (MultiURI loc : ld.getURIs()) {
-            if (!loc.getProtocol().equals(Protocol.OBJECT_URI) && loc.getHost().equals(Comm.getAppHost())) {
+            if (!loc.getProtocol().equals(ProtocolType.OBJECT_URI) && loc.getHost().equals(Comm.getAppHost())) {
                 return loc.getPath();
             }
         }

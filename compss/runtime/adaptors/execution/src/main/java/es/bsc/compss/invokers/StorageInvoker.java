@@ -21,6 +21,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
@@ -42,8 +43,8 @@ import storage.StubItf;
 public class StorageInvoker extends JavaInvoker {
 
     private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Target object class not found";
-    private static final String ERROR_EXTERNAL_NO_PSCO = 
-            "ERROR: External ExecuteTask can only be used with target PSCOs";
+    private static final String ERROR_EXTERNAL_NO_PSCO 
+        = "ERROR: External ExecuteTask can only be used with target PSCOs";
     private static final String ERROR_STORAGE_CALL = "ERROR: External executeTask call failed";
     private static final String ERROR_CALLBACK_INTERRUPTED = "ERROR: External callback interrupted";
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
@@ -101,7 +102,7 @@ public class StorageInvoker extends JavaInvoker {
         }
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
+            Tracer.emitEvent(TraceEvent.STORAGE_EXECUTETASK.getId(), TraceEvent.STORAGE_EXECUTETASK.getType());
         }
 
         List<? extends InvocationParam> params = invocation.getParams();
@@ -126,7 +127,7 @@ public class StorageInvoker extends JavaInvoker {
             throw new JobExecutionException(ERROR_CALLBACK_INTERRUPTED, e);
         } finally {
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_EXECUTETASK.getType());
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_EXECUTETASK.getType());
             }
         }
 

@@ -18,8 +18,8 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.ServiceImplementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;

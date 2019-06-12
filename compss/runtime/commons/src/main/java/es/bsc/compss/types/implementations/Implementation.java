@@ -26,15 +26,6 @@ import java.io.ObjectOutput;
 
 public abstract class Implementation implements Externalizable {
 
-    /**
-     * Enum to match the implementation global type.
-     */
-    public enum TaskType {
-        METHOD, // Generic method type
-        SERVICE // Services type
-    }
-
-
     protected Integer coreId;
     protected Integer implementationId;
     protected WorkerResourceDescription requirements;

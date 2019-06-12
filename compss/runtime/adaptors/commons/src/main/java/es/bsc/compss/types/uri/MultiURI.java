@@ -17,7 +17,7 @@
 package es.bsc.compss.types.uri;
 
 import es.bsc.compss.exceptions.UnstartedNodeException;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.Resource;
 
 import java.io.File;
@@ -30,7 +30,7 @@ import java.util.Map.Entry;
  */
 public class MultiURI implements Comparable<MultiURI> {
 
-    private final Protocol protocol;
+    private final ProtocolType protocol;
     private final Resource host;
     private final String path;
     private final HashMap<String, Object> internal;
@@ -38,11 +38,12 @@ public class MultiURI implements Comparable<MultiURI> {
 
     /**
      * Constructor.
+     * 
      * @param protocol Protocol
      * @param host Resource
      * @param path Path in the resource
      */
-    public MultiURI(Protocol protocol, Resource host, String path) {
+    public MultiURI(ProtocolType protocol, Resource host, String path) {
         this.protocol = protocol;
         this.host = host;
         this.path = path;
@@ -62,7 +63,9 @@ public class MultiURI implements Comparable<MultiURI> {
         internal.put(adaptor, uri);
     }
 
-    /** Get the internal URI for a given adaptor.
+    /**
+     * Get the internal URI for a given adaptor.
+     * 
      * @param adaptor Adaptor name
      * @return Returns the URI in the adaptors format
      * @throws UnstartedNodeException Error because host of the MultiURI not started
@@ -86,7 +89,7 @@ public class MultiURI implements Comparable<MultiURI> {
         return this.path;
     }
 
-    public Protocol getProtocol() {
+    public ProtocolType getProtocol() {
         return this.protocol;
     }
 
@@ -101,7 +104,8 @@ public class MultiURI implements Comparable<MultiURI> {
 
     /**
      * Extended toString version for debugging purposes.
-     * @return 
+     * 
+     * @return
      */
     public String debugString() {
         StringBuilder sb = new StringBuilder(

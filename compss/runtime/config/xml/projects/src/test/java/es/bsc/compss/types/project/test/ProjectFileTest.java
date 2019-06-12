@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.types.project.test;
 
-import es.bsc.compss.types.project.ProjectFile;
-import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import es.bsc.compss.types.project.ProjectFile;
+import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,6 +113,7 @@ public class ProjectFileTest {
 
     /**
      * After class method.
+     * 
      * @throws Exception Error in after class
      */
     @AfterClass

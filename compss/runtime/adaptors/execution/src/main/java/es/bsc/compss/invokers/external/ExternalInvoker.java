@@ -25,11 +25,10 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
-import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -92,9 +91,8 @@ public abstract class ExternalInvoker extends Invoker {
     private static ArrayList<String> addArguments(InvocationContext context, Invocation invocation)
             throws JobExecutionException {
         // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
-        if (invocation.getMethodImplementation().getMethodType() != AbstractMethodImplementation.MethodType.METHOD
-                && invocation.getMethodImplementation()
-                        .getMethodType() != AbstractMethodImplementation.MethodType.MULTI_NODE) {
+        if (invocation.getMethodImplementation().getMethodType() != MethodType.METHOD
+                && invocation.getMethodImplementation().getMethodType() != MethodType.MULTI_NODE) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
 
@@ -277,7 +275,7 @@ public abstract class ExternalInvoker extends Invoker {
 
         ResourceDescription rd = invocation.getRequirements();
         int computingUnits;
-        if (invocation.getTaskType() == Implementation.TaskType.METHOD) {
+        if (invocation.getTaskType() == TaskType.METHOD) {
             computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
         } else {
             computingUnits = 0;

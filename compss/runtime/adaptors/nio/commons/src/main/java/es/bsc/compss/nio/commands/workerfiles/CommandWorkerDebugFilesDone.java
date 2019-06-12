@@ -19,6 +19,7 @@ package es.bsc.compss.nio.commands.workerfiles;
 import es.bsc.comm.Connection;
 
 import es.bsc.compss.nio.commands.Command;
+import es.bsc.compss.nio.commands.CommandType;
 
 import java.io.Externalizable;
 import java.io.IOException;

@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.AbstractMethodImplementation.MethodType;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.util.CoreManager;
 
 import org.junit.After;

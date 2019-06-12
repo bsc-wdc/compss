@@ -18,8 +18,8 @@ package es.bsc.compss.connectors.utils;
 
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.connectors.VM;
-import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.CloudMethodWorker;
+import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 
 

@@ -18,8 +18,8 @@ package es.bsc.compss.types.execution;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
-import es.bsc.compss.types.job.Job.JobHistory;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.List;
 

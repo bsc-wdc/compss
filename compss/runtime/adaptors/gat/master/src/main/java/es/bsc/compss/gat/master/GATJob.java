@@ -25,27 +25,28 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.location.DataLocation.Protocol;
+import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.Implementation.TaskType;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
+import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
-import es.bsc.compss.types.job.JobListener.JobEndStatus;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 
 import java.util.ArrayList;
@@ -334,8 +335,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(Boolean.toString(Tracer.extraeEnabled()));
         if (Tracer.extraeEnabled()) {
             lArgs.add(String.valueOf(Tracer.getRuntimeEventsType())); // Runtime event type
-            lArgs.add(String.valueOf(Tracer.Event.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
-            lArgs.add(String.valueOf(Tracer.Event.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
+            lArgs.add(String.valueOf(TraceEvent.CREATING_TASK_SANDBOX.getId())); // sandbox creation id
+            lArgs.add(String.valueOf(TraceEvent.REMOVING_TASK_SANDBOX.getId())); // sandbox removal id
 
             lArgs.add(String.valueOf(Tracer.getTaskEventsType())); // event type
             int slot = Tracer.getNextSlot(targetHost);
@@ -531,20 +532,20 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
          * sd.addAttribute(SoftwareDescription.SANDBOX_POSTSTAGE_STDERR, "false");
          */
         if (DEBUG) { // Set standard output file for job
-            File outFile = GAT.createFile(context, Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job"
+            File outFile = GAT.createFile(context, ProtocolType.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job"
                     + jobId + "_" + this.getHistory() + ".out");
             sd.setStdout(outFile);
         }
 
         if (DEBUG || usingGlobus) {
             // Set standard error file for job
-            File errFile = GAT.createFile(context, Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job"
+            File errFile = GAT.createFile(context, ProtocolType.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job"
                     + jobId + "_" + this.getHistory() + ".err");
             sd.setStderr(errFile);
         }
 
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RES_ATTR, Protocol.ANY_URI.getSchema() + targetUser + targetHost);
+        attributes.put(RES_ATTR, ProtocolType.ANY_URI.getSchema() + targetUser + targetHost);
         attributes.put("Jobname", "compss_remote_job_" + jobId);
         ResourceDescription rd = new HardwareResourceDescription(attributes);
 

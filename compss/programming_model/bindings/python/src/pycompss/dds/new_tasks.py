@@ -208,7 +208,7 @@ def task_collect_samples(partition, num_of_samples, key_func):
     """
     ret = list()
     total = len(partition)
-    step = max(total / num_of_samples, 1)
+    step = max(total // num_of_samples, 1)
     for _i in range(0, total, step):
         ret.append(key_func(partition[_i][0]))
 

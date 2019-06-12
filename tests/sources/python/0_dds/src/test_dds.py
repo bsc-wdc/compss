@@ -10,11 +10,13 @@ PyCOMPSs DDS test
 """
 
 import os
+import random
 import shutil
 import tempfile
+from collections import defaultdict
 
-from tasks import gen_fragment
 from pycompss.dds import DDS
+from tasks import gen_fragment
 
 
 def test_loader_functions():
@@ -49,8 +51,6 @@ def test_loader_functions():
     dds = sorted(dds, key=lambda x: x[1])
     for _i in range(10):
         assert int(dds[_i][1]) == _i
-
-    return True
 
 
 def test_word_count():
@@ -91,15 +91,52 @@ def test_terasort():
         prev = i
 
 
+def inverted_indexing():
+
+    def _invert_files(pair):
+        res = dict()
+        for word in pair[1].split():
+            res[word] = [pair[0]]
+        return res.items()
+
+    vocabulary = ["Holala", "World", "COMPSs", "Lorem", "Ipsum"]
+    files = list()
+    pairs = defaultdict(list)
+
+    _dir = os.path.join(tempfile.gettempdir(), "ii")
+    if not os.path.exists(_dir):
+        os.mkdir(_dir)
+
+    # Create Files
+    for _i in range(len(vocabulary)//2):
+        desc, filename = tempfile.mkstemp(dir=_dir, suffix=".txt")
+        files.append(filename)
+
+    for word in vocabulary:
+        _files = random.sample(files, 2)
+        for _f in _files:
+            file_path = os.path.join(_dir, _f)
+            tmp_f = open(file_path, "a")
+            tmp_f.write(word + " ")
+            tmp_f.close()
+            pairs[word].append(file_path)
+
+    result = DDS().load_files_from_dir(_dir).map_and_flatten(_invert_files)\
+        .reduce_by_key(lambda a, b: a + b).collect()
+
+    shutil.rmtree(_dir)
+
+    for word, files in result:
+        assert set(pairs[word]).issubset(set(files))
+
+
 def main_program():
 
     print("____________TEST DDS______________")
-    if not test_loader_functions():
-        print("- Test DDS Loader Functions: FAILED")
-        # If loader functions fail, quit the tests..
-        return
+    test_loader_functions()
     test_word_count()
     test_terasort()
+    inverted_indexing()
     print("- Test DDS: OK")
 
 

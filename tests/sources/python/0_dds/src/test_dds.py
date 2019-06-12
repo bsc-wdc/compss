@@ -9,10 +9,11 @@ PyCOMPSs DDS test
     Tests of DDS Library
 """
 
-# Imports
+import os
+import shutil
 import tempfile
-import os, shutil
 
+from tasks import gen_fragment
 from pycompss.dds import DDS
 
 
@@ -52,7 +53,7 @@ def test_loader_functions():
     return True
 
 
-def word_count():
+def test_word_count():
     # Word Count
     vocabulary = ["Holala", "World", "COMPSs", "Lorem", "Ipsum", "_filter_"]
 
@@ -79,6 +80,17 @@ def word_count():
         assert value == 5
 
 
+def test_terasort():
+
+    dataset = [gen_fragment() for _ in range(10)]
+    dds = DDS().load(dataset, -1).sort_by_key().collect()
+    prev = 0
+
+    for i, k in dds:
+        assert i > prev
+        prev = i
+
+
 def main_program():
 
     print("____________TEST DDS______________")
@@ -86,7 +98,8 @@ def main_program():
         print("- Test DDS Loader Functions: FAILED")
         # If loader functions fail, quit the tests..
         return
-    word_count()
+    test_word_count()
+    test_terasort()
     print("- Test DDS: OK")
 
 

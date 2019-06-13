@@ -153,6 +153,15 @@
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym
+
+  elif [ "$action" == "scorep-gentrace" ]; then
+    appName=$1
+    numberOfResources=$2
+
+    # TODO: Unpack the tar.gz of each worker
+
+    # TODO: Merge the traces. Example: otf2-merger --traceFile /path/to/trace/A.otf2 --traceFile /path/to/trace/B.otf2 --traceFile /path/to/trace/C.otf2 --outputPath /path/to/output/dir
+
   fi
 
   #-------------------------------------

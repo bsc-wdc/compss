@@ -671,7 +671,11 @@ public abstract class Tracer {
         }
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
         String appName = System.getProperty(COMPSsConstants.APP_NAME);
-        ProcessBuilder pb = new ProcessBuilder(script, "gentrace", System.getProperty(COMPSsConstants.APP_LOG_DIR),
+        String mode = "gentrace";
+        if (Tracer.scorepEnabled()) {
+            mode = "scorep-gentrace";
+        }
+        ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR),
                 appName, String.valueOf(hostToSlots.size() + 1));
         Process p;
         pb.environment().remove(LD_PRELOAD);

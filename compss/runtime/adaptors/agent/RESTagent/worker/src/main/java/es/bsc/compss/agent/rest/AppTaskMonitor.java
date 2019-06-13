@@ -53,7 +53,6 @@ public class AppTaskMonitor extends AppMonitor {
         this.successful = false;
         this.paramTypes = new DataType[numParams];
         this.paramLocations = new String[numParams];
-
     }
 
     @Override

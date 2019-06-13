@@ -19,13 +19,10 @@ package es.bsc.compss.agent.rest;
 import es.bsc.compss.agent.AgentInterfaceConfig;
 
 
-/**
- *
- * @author flordan
- */
 public class RESTAgentConf extends AgentInterfaceConfig {
 
     private final int port;
+
 
     public RESTAgentConf(int port) {
         super(RESTAgent.class.getCanonicalName());

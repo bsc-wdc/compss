@@ -84,9 +84,9 @@ usage() {
   # Commit modifications
   echo "- Commit modifications"
   cd "${documentation_dir}" || exit 1
-  git tag COMPSs_Manuals_${version} -f
+  git tag COMPSs_Manuals_v${version} -f
   if [ "$commitChanges" == "true" ]; then
-      git commit -am "Adding documentation new tag ${version}"
+      git commit -am "Adding documentation new tag v${version}"
       git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git master
       git push http://${credentials}@compss.bsc.es/gitlab/documents/documentation.git --tags --force
   fi

@@ -291,6 +291,9 @@ worker_cmd() {
   local fpgaMap=${12}
   local lot=${13}
 
+  streaming_port=44000
+  streaming_backend="null"
+
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
   local maxSend=5
   local maxReceive=5
@@ -307,6 +310,7 @@ worker_cmd() {
   WCMD="$WCMD ${library_path} \
             ${appdir} \
             ${cp} \
+            ${streaming_backend} \
             ${jvm_opts_size} \
             ${jvm_opts_str} \
             ${fpga_reprog_size} \
@@ -318,6 +322,7 @@ worker_cmd() {
             ${worker_port} \
             ${mName} \
             ${master_port} \
+            ${streaming_port} \
             ${cusCPU} \
             ${cusGPU} \
             ${cusFPGA} \

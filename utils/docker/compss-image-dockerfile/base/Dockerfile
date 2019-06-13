@@ -69,8 +69,8 @@ RUN apt-get update && \
 # Testing dependencies
     pip3 install enum34 tabulate && \
 # Numba dependencies
-    pip2 install numba && \
-    pip3 install numba && \
+    pip2 install llvmlite numba && \
+    pip3 install llvmlite numba && \
 # Configure user environment
 # =============================================================================
 # System configuration

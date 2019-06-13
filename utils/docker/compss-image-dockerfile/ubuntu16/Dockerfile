@@ -64,8 +64,8 @@ RUN apt-get update && \
     apt-get -y install libgmp3-dev flex bison libbison-dev texinfo libffi-dev && \
     pip2 install astor sympy enum34 islpy && \
 # Numba dependencies
-    pip2 install numba && \
-    pip3 install numba && \
+    pip2 install llvmlite numba && \
+    pip3 install llvmlite numba && \
 # Configure user environment
 # =============================================================================
 # System configuration

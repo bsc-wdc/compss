@@ -36,6 +36,7 @@ EOF
   # Add trap to clean folder
   clean() {
     rm -rf /tmp/PSCO/
+    rm -rf /tmp/sharedDisk/
   }
   trap clean EXIT
 

@@ -19,14 +19,13 @@ package es.bsc.compss.types;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.types.annotations.parameter.Direction;
-import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
+import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.implementations.TaskType;
-import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-
+import es.bsc.compss.types.parameter.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,8 +36,8 @@ import java.util.TreeMap;
 /**
  * Representation of a Task.
  */
+public class Task extends AbstractTask {
 
-public class Task extends AbstractTask{
     private final TaskDescription taskDescription;
 
     // Scheduling info
@@ -53,7 +52,8 @@ public class Task extends AbstractTask{
     // On failure behavior
     private final OnFailure onFailure;
 
-    private TreeMap<Integer, CommutativeGroupTask>  commutativeGroup;
+    private TreeMap<Integer, CommutativeGroupTask> commutativeGroup;
+
 
     /**
      * Creates a new METHOD task with the given parameters.
@@ -169,38 +169,37 @@ public class Task extends AbstractTask{
     public Task getEnforcingTask() {
         return this.enforcingTask;
     }
-    
+
     /**
-     * Registers a new commutative group for the dataId @daId
+     * Registers a new commutative group for the dataId {@code daId}.
      *
      * @param daId DataId of the group.
      * @param com Commutative group task to be set.
      */
     public void setCommutativeGroup(CommutativeGroupTask com, DataAccessId daId) {
-        this.commutativeGroup.put(daId.getDataId(),com);
+        this.commutativeGroup.put(daId.getDataId(), com);
     }
 
     /**
-     * Returns the specific commutative group for the data @daId
+     * Returns the specific commutative group for the data {@code daId}.
      *
      * @param daId DataId of the group.
-     * 
      * @return The commutative group for the particular dataId.
      */
     public CommutativeGroupTask getCommutativeGroup(Integer daId) {
         return this.commutativeGroup.get(daId);
     }
-    
+
     /**
-     * Returns the list of commutative groups associated to the task
+     * Returns the list of commutative groups associated to the task.
      *
      * @return A list of all the commutative groups the task is part of.
      */
     public List<CommutativeGroupTask> getCommutativeGroupList() {
         LinkedList<CommutativeGroupTask> commutativeGroupList = new LinkedList<CommutativeGroupTask>();
-        for(Map.Entry<Integer,CommutativeGroupTask> entry : commutativeGroup.entrySet()) {
-          CommutativeGroupTask comTask = entry.getValue();
-          commutativeGroupList.add(comTask);
+        for (Map.Entry<Integer, CommutativeGroupTask> entry : commutativeGroup.entrySet()) {
+            CommutativeGroupTask comTask = entry.getValue();
+            commutativeGroupList.add(comTask);
         }
         return commutativeGroupList;
     }
@@ -277,46 +276,46 @@ public class Task extends AbstractTask{
     public TaskMonitor getTaskMonitor() {
         return this.taskMonitor;
     }
-    
+
     /**
-     * Returns if the task can be executed depending on if the groups are executing other tasks
+     * Returns whether the task can be executed depending on if the groups are executing other tasks.
      *
-     * @return A boolean stating if the task can be executed or not.
+     * @return {@literal true} if the task can be executed, {@literal false} otherwise.
      */
     public boolean canBeExecuted() {
         if (!this.commutativeGroup.isEmpty()) {
-            for (CommutativeGroupTask com: commutativeGroup.values()) {
-                if (com.processingExecution(this.getId())){
+            for (CommutativeGroupTask com : commutativeGroup.values()) {
+                if (com.processingExecution(this.getId())) {
                     return false;
                 }
             }
-        } 
+        }
         return true;
     }
 
     /**
-     * Sets new version for the data @daId
+     * Sets new version for the data {@code daId}.
      *
-     * @param daId
+     * @param daId New data version.
      */
-    public void setVersion (DataAccessId daId) {
+    public void setVersion(DataAccessId daId) {
         for (Parameter p : this.getTaskDescription().getParameters()) {
-            if (p instanceof DependencyParameter && ((DependencyParameter)p).getDataAccessId().getDataId() == daId.getDataId()) {
+            if (p instanceof DependencyParameter
+                    && ((DependencyParameter) p).getDataAccessId().getDataId() == daId.getDataId()) {
                 ((DependencyParameter) p).setDataAccessId(daId);
             }
         }
     }
-    
-    
+
     /**
-     * Returns if any of the parameters of the task has a commutative direction
+     * Returns whether any of the parameters of the task has a commutative direction.
      *
-     * @return A boolean with value true if the task has commutative parameters and false otherwise
+     * @return {@literal true} if the task has commutative parameters, {@literal false} otherwise.
      */
     public boolean hasCommutativeParams() {
         for (Parameter p : this.getTaskDescription().getParameters()) {
             if (p instanceof DependencyParameter) {
-                
+
                 if (p.getDirection() == Direction.COMMUTATIVE) {
                     return true;
                 }

@@ -224,9 +224,9 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Returns if the task is ready for execution
+     * Returns whether the task is ready for execution or not.
      *
-     * @return
+     * @return {@literal true} if the task is ready for execution, {@literal false} otherwise.
      */
     public abstract boolean taskIsReadyForExecution();
 
@@ -491,16 +491,15 @@ public abstract class AllocatableAction {
         // Gets the lock on the action
         this.lock.lock();
         boolean readyForExecution = taskIsReadyForExecution();
-        if ( // has an assigned resource where to run
-       selectedResource != null && // has not been started yet
-               state == State.RUNNABLE && // has no data dependencies with other methods
-               !hasDataPredecessors() && // scheduler does not block the execution
-               schedulingInfo.isExecutable() &&
-               readyForExecution) { // there are no tasks being executed in a commutative group
 
-
+        if (selectedResource != null // has an assigned resource where to run
+                && state == State.RUNNABLE // has not been started yet
+                && !hasDataPredecessors() // has no data dependencies with other methods
+                && schedulingInfo.isExecutable() // scheduler does not block the execution
+                && readyForExecution // there are no tasks being executed in a commutative group
+            ) {
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
-            // task is not to stop; or the assigned resour   ce is not the required
+            // task is not to stop; or the assigned resour ce is not the required
             if ((this.selectedResource.isRemoved() && !isToStopResource())
                     || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
                             && this.selectedResource != this.schedulingInfo.getEnforcedTargetResource())) {
@@ -701,12 +700,12 @@ public abstract class AllocatableAction {
             }
             this.treatDependencyFreeAction(freeTasks);
         }
-        
+
         if (dataSuccessors.isEmpty()) {
             this.treatDependencyFreeAction(freeTasks);
 
         }
-        
+
         this.dataSuccessors.clear();
         return freeTasks;
     }

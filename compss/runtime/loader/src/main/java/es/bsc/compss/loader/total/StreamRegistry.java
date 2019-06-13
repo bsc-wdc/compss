@@ -680,8 +680,8 @@ public class StreamRegistry {
             // Obtain the renaming
             String renaming = null;
             switch (direction) {
-                case CONCURRENT:
                 case IN:
+                case CONCURRENT:
                     /*
                      * LEGACY CODE. The last version of the file must be transferred to a temp directory without the
                      * Integrated Toolkit keeping track of this operation. Forthcoming streams on the same file will use
@@ -693,6 +693,7 @@ public class StreamRegistry {
                     // Must ask the IT to open the file in W mode
                     renaming = itApi.openFile(path, Direction.OUT);
                     break;
+                case COMMUTATIVE:
                 case INOUT:
                     // Must ask the IT to open the file in RW mode
                     renaming = itApi.openFile(path, Direction.INOUT);

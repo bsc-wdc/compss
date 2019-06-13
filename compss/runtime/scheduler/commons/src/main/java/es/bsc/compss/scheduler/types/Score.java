@@ -191,11 +191,12 @@ public class Score implements Comparable<Score> {
                     DependencyParameter dp = (DependencyParameter) p;
                     DataInstanceId dId = null;
                     switch (dp.getDirection()) {
-                        case CONCURRENT:
                         case IN:
+                        case CONCURRENT:
                             RAccessId raId = (RAccessId) dp.getDataAccessId();
                             dId = raId.getReadDataInstance();
                             break;
+                        case COMMUTATIVE:
                         case INOUT:
                             RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
                             dId = rwaId.getReadDataInstance();

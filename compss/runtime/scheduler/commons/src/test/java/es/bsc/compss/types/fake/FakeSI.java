@@ -33,6 +33,11 @@ public class FakeSI extends SchedulingInformation {
     private final LinkedList<AllocatableAction> resourceSuccessors;
 
 
+    /**
+     * Creates a new Fake SchedulingInformation instance.
+     * 
+     * @param enforcedTargetResource Enforced Target resource.
+     */
     public <T extends WorkerResourceDescription> FakeSI(ResourceScheduler<T> enforcedTargetResource) {
         super(enforcedTargetResource);
         this.resourcePredecessors = new LinkedList<>();

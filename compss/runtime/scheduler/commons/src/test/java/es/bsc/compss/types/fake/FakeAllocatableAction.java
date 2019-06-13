@@ -42,15 +42,22 @@ public class FakeAllocatableAction extends AllocatableAction {
     private int fakeId;
 
 
+    /**
+     * Creates a new FakeAllocatableAction instance.
+     * 
+     * @param td Associated task dispatcher.
+     * @param id AllocatableAction id.
+     */
     public FakeAllocatableAction(ActionOrchestrator td, int id) {
         super(new FakeSI(null), td);
         this.fakeId = id;
     }
 
-    public int getFakeId() {
-        return this.fakeId;
-    }
-
+    /**
+     * Resizes the FakeAllocatableAction pool.
+     * 
+     * @param size New pool size.
+     */
     public static void resize(int size) {
         FakeAllocatableAction.executions = new int[size];
         FakeAllocatableAction.error = new int[size];
@@ -78,6 +85,10 @@ public class FakeAllocatableAction extends AllocatableAction {
         return FakeAllocatableAction.cancelled[id];
     }
 
+    public int getFakeId() {
+        return this.fakeId;
+    }
+
     @Override
     public void doAction() {
         executions[this.fakeId]++;
@@ -85,11 +96,12 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     protected void doAbort() {
+        // Nothing to do
     }
 
     @Override
     public void doCompleted() {
-
+        // Nothing to do
     }
 
     @Override
@@ -112,7 +124,7 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     protected void doFailIgnored() {
-
+        // Nothing to do
     }
 
     @Override
@@ -123,6 +135,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     @Override
     public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
             ResourceScheduler<T> r) {
+
         return null;
     }
 
@@ -158,24 +171,25 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-
+        // Nothing to do
     }
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-
+        // Nothing to do
     }
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
             throws BlockedActionException, UnassignedActionException {
-
+        // Nothing to do
     }
 
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {
+
         return null;
     }
 
@@ -201,8 +215,7 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // TODO Auto-generated method stub
-        
+        // Nothing to do
     }
 
 }

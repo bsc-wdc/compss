@@ -16,26 +16,18 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.scheduler.types.AllocatableAction;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.scheduler.types.AllocatableAction;
-
-
 /**
- * Representation of a Task
+ * Representation of a Task.
  */
 public abstract class AbstractTask implements Comparable<AbstractTask> {
 
- // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
-    
     // Task ID management
     private static final int FIRST_TASK_ID = 1;
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
@@ -48,62 +40,53 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     // Data Dependencies
     private final List<AbstractTask> predecessors;
     private final List<AbstractTask> successors;
-    
+
     // Stream Dependencies
     private final List<AbstractTask> streamDataProducers; // Previous tasks that produce a stream
     private final List<AbstractTask> streamDataConsumers; // Next tasks that consumer a stream
-    
+
     // Syncrhonization point to which the task belongs
     private int synchronizationId;
 
     // Add execution to task
     private final List<AllocatableAction> executions;
-    
+
+
     /**
-     * Creates a new METHOD task with the given parameters
+     * Creates a new Abstract Method Task with the given parameters.
      *
-     * @param appId
-     * @param lang
-     * @param signature
-     * @param isPrioritary
-     * @param numNodes
-     * @param isReplicated
-     * @param isDistributed
-     * @param numReturns
-     * @param hasTarget
-     * @param parameters
-     * @param monitor
+     * @param appId Application id.
      */
     public AbstractTask(Long appId) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
-        this.status = TaskState.TO_ANALYSE;       
+        this.status = TaskState.TO_ANALYSE;
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
         this.streamDataProducers = new LinkedList<>();
         this.streamDataConsumers = new LinkedList<>();
     }
-    
+
     /**
-     * Returns the current number of generated tasks
+     * Returns the current number of generated tasks.
      *
-     * @return
+     * @return The current number of generated tasks.
      */
     public static int getCurrentTaskCount() {
         return nextTaskId.get();
     }
 
     /**
-     * Adds a data dependency from the @producer to this task
+     * Adds a data dependency from the {@code producer} to this task.
      *
-     * @param producer
+     * @param producer Producer task.
      */
     public void addDataDependency(AbstractTask producer) {
         producer.successors.add(this);
         this.predecessors.add(producer);
     }
-    
+
     /**
      * Adds a stream dependency from the given producer task to this task.
      * 
@@ -115,7 +98,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     }
 
     /**
-     * Release all the tasks that are data dependent to this task
+     * Release all the tasks that are data dependent to this task.
      */
     public void releaseDataDependents() {
         for (AbstractTask t : this.successors) {
@@ -127,21 +110,21 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     }
 
     /**
-     * Returns all the successor tasks
+     * Returns all the successor tasks.
      *
-     * @return
+     * @return All the successor tasks.
      */
     public List<AbstractTask> getSuccessors() {
-        return successors;
+        return this.successors;
     }
 
     /**
-     * Returns all the predecessor tasks
+     * Returns all the predecessor tasks.
      *
-     * @return
+     * @return All the predecessor tasks.
      */
     public List<AbstractTask> getPredecessors() {
-        return predecessors;
+        return this.predecessors;
     }
 
     /**
@@ -163,100 +146,98 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     }
 
     /**
-     * Sets the synchronization id of the task to @syncId
+     * Sets the synchronization id of the task to {@code syncId}.
      *
-     * @param syncId
+     * @param syncId Synchronization Id.
      */
     public void setSynchronizationId(int syncId) {
         this.synchronizationId = syncId;
     }
 
     /**
-     * Returns the syncrhonization Id of the task
+     * Returns the synchronization Id of the task.
      *
-     * @return
+     * @return The synchronization Id of the task.
      */
     public int getSynchronizationId() {
         return this.synchronizationId;
     }
 
     /**
-     * Returns the app id
+     * Returns the application Id.
      *
-     * @return
+     * @return The application Id.
      */
     public long getAppId() {
-        return appId;
+        return this.appId;
     }
 
     /**
-     * Returns the task id
+     * Returns the task Id.
      *
-     * @return
+     * @return The task Id.
      */
     public int getId() {
-        return taskId;
+        return this.taskId;
     }
 
     /**
-     * Returns the task status
+     * Returns the task status.
      *
-     * @return
+     * @return The task status.
      */
     public TaskState getStatus() {
-        return status;
+        return this.status;
     }
 
     /**
-     * Sets a new task status
+     * Sets a new task status.
      *
-     * @param status
+     * @param status New task status.
      */
     public void setStatus(TaskState status) {
         this.status = status;
     }
 
     /**
-     * Returns the DOT description of the task (only for monitoring)
+     * Adds a new execution to the task.
      *
-     * @return
-     */
-    public abstract String getDotDescription();
-
-    /**
-     * Returns the task legend description (only for monitoring)
-     *
-     * @return
-     */
-    public abstract String getLegendDescription(); 
-
-    
-
-    /**
-     * Returns the task color (only for monitoring)
-     *
-     * @return
-     */
-    public abstract String getColor(); 
-
-    /**
-     * Adds a new execution to the task
-     *
-     * @param execution
+     * @param execution The new execution to add.
      */
     public void addExecution(AllocatableAction execution) {
         this.executions.add(execution);
     }
 
     /**
-     * Returns the executions of the task
+     * Returns the executions of the task.
      *
-     * @return
+     * @return The executions of the task.
      */
     public List<AllocatableAction> getExecutions() {
-        return executions;
+        return this.executions;
     }
-    
+
+    /**
+     * Returns the DOT description of the task (only for monitoring).
+     *
+     * @return A string containing the DOT description of the task.
+     */
+    public abstract String getDotDescription();
+
+    /**
+     * Returns the task legend description (only for monitoring).
+     *
+     * @return The task legend description (only for monitoring).
+     */
+    public abstract String getLegendDescription();
+
+    /**
+     * Returns the task color (only for monitoring).
+     *
+     * @return The task color (only for monitoring).
+     */
+    public abstract String getColor();
+
     @Override
     public int compareTo(AbstractTask task) {
         if (task == null) {

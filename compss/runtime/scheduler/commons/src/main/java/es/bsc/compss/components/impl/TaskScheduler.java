@@ -340,7 +340,7 @@ public class TaskScheduler {
      */
     private void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
-        if(action.getImplementations()!=null) {
+        if (action.getImplementations() != null) {
             if (action.getImplementations().length > 0) {
                 Integer coreId = action.getImplementations()[0].getCoreId();
                 if (coreId != null) {
@@ -1418,7 +1418,8 @@ public class TaskScheduler {
 
     private class WorkersMap {
 
-        private final Map<Worker<? extends WorkerResourceDescription>, ResourceScheduler<? extends WorkerResourceDescription>> map;
+        private final Map<Worker<? extends WorkerResourceDescription>, 
+            ResourceScheduler<? extends WorkerResourceDescription>> map;
 
 
         public WorkersMap() {

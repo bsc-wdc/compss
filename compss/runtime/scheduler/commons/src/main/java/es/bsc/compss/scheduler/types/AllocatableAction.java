@@ -224,6 +224,13 @@ public abstract class AllocatableAction {
     }
 
     /**
+     * Returns if the task is ready for execution
+     *
+     * @return
+     */
+    public abstract boolean taskIsReadyForExecution();
+
+    /**
      * Adds a data predecessor.
      *
      * @param predecessor Predecessor Allocatable Action.
@@ -480,18 +487,20 @@ public abstract class AllocatableAction {
      *
      * @throws InvalidSchedulingException When an invalid scheduling state has been reached.
      */
-    public final void tryToLaunch() throws InvalidSchedulingException {
+    public void tryToLaunch() throws InvalidSchedulingException {
         // Gets the lock on the action
         this.lock.lock();
-        if (this.selectedResource != null // has an assigned resource where to run
-                && this.state == State.RUNNABLE // has not been started yet
-                && !hasDataPredecessors()// has no data dependencies with other methods
-                && !hasStreamProducers() // has no stream data producers pending to schedule
-                && this.schedulingInfo.isExecutable()// scheduler does not block the execution
-        ) {
+        boolean readyForExecution = taskIsReadyForExecution();
+        if ( // has an assigned resource where to run
+       selectedResource != null && // has not been started yet
+               state == State.RUNNABLE && // has no data dependencies with other methods
+               !hasDataPredecessors() && // scheduler does not block the execution
+               schedulingInfo.isExecutable() &&
+               readyForExecution) { // there are no tasks being executed in a commutative group
+
 
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
-            // task is not to stop; or the assigned resource is not the required
+            // task is not to stop; or the assigned resour   ce is not the required
             if ((this.selectedResource.isRemoved() && !isToStopResource())
                     || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
                             && this.selectedResource != this.schedulingInfo.getEnforcedTargetResource())) {
@@ -690,7 +699,14 @@ public abstract class AllocatableAction {
             if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                 freeTasks.add(aa);
             }
+            this.treatDependencyFreeAction(freeTasks);
         }
+        
+        if (dataSuccessors.isEmpty()) {
+            this.treatDependencyFreeAction(freeTasks);
+
+        }
+        
         this.dataSuccessors.clear();
         return freeTasks;
     }
@@ -722,15 +738,19 @@ public abstract class AllocatableAction {
         // Mark as finished
         this.state = State.FINISHED;
 
-        // Release resources and run tasks blocked on the resource
-        releaseResources();
-        this.selectedResource.unhostAction(this);
-        this.selectedResource.tryToLaunchBlockedActions();
+        if (this.getAssignedResource() != null) {
+            // Release resources and run tasks blocked on the resource
+            releaseResources();
+            selectedResource.unhostAction(this);
+            selectedResource.tryToLaunchBlockedActions();
+        }
 
         // Action notification
         doCompleted();
         return releaseDataSuccessors();
     }
+
+    protected abstract void treatDependencyFreeAction(List<AllocatableAction> freeTasks);
 
     /**
      * Operations to perform when AA has raised an error. Calls specific operation doError.

@@ -20,6 +20,9 @@ import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.components.monitor.impl.EdgeType;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CommutativeGroupTask;
+import es.bsc.compss.types.CommutativeIdentifier;
+import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskState;
@@ -60,6 +63,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Collection;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -100,9 +104,13 @@ public class TaskAnalyser {
     // Map: app id -> set of written data ids (for result SCOs)
     private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
-    private Hashtable<Task, List<Semaphore>> waitedTasks;
+    private Hashtable<AbstractTask, List<Semaphore>> waitedTasks;
     // Concurrent tasks being waited on: taskId -> semaphore where to notify end of task
     private TreeMap<Integer, List<Task>> concurrentAccessMap;
+    // Tasks that are accessed commutatively. Map: data id -> commutative group tasks
+    private TreeMap<String, CommutativeGroupTask> commutativeGroup;
+    // Tasks that are accessed commutatively and are pending to be drawn in graph. Map: commutative group identifier -> list of tasks from group
+    private TreeMap<String, LinkedList<Task>> pendingToDrawCommutative;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -124,7 +132,9 @@ public class TaskAnalyser {
         this.appIdToSCOWrittenIds = new HashMap<>();
         this.waitedTasks = new Hashtable<>();
         this.concurrentAccessMap = new TreeMap<>();
-
+        this.commutativeGroup = new TreeMap<>();
+        this.pendingToDrawCommutative = new TreeMap<>();
+        
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
 
@@ -167,9 +177,19 @@ public class TaskAnalyser {
             case CONCURRENT:
                 am = AccessMode.C;
                 break;
+            case COMMUTATIVE:
+                am = AccessMode.CV;
+                break;
         }
+        
+        // First DataAccess registered on a commutative group
+        DataAccessId firstRegistered = null;
+
         // Inform the Data Manager about the new accesses
         DataAccessId daId = null;
+        
+        int coreId = 0;
+
         switch (p.getType()) {
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
@@ -221,13 +241,31 @@ public class TaskAnalyser {
                 // This is a basic type, there are no accesses to register
                 return null;
         }
+        if (am == AccessMode.CV) {
+            coreId = currentTask.getTaskDescription().getId();
+            CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
+            CommutativeGroupTask com = null;
+            for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
+                if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
+                    com = cgt;
+                }
+            }
+            if (com == null) {
+                firstRegistered = daId;
+                LOGGER.debug("The FIRST registered daId in the commutative group " + comId.toString() + " is " + daId);
+            } else {
+                com.addVersionToList(daId);
+                daId = com.getRegisteredVersion();
+                LOGGER.debug("Registering daId " + daId + " in commutative group " + comId.toString());
+            }
+        }
         DependencyParameter dp = (DependencyParameter) p;
         dp.setDataAccessId(daId);
-        addDependencies(am, currentTask, isConstraining, dp);
+        addDependencies(am, currentTask, isConstraining, dp, firstRegistered, coreId);
         return daId;
     }
 
-    private void addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp) {
+    private void addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp, DataAccessId firstRegistered, int coreId) {
         // Add dependencies to the graph and register output values for future dependencies
         DataAccessId daId = dp.getDataAccessId();
         switch (am) {
@@ -248,16 +286,16 @@ public class TaskAnalyser {
                                     case STREAM_T:
                                     case EXTERNAL_STREAM_T:
                                         // Retrieve all the stream writers and enforce the execution to be near any
-                                        List<Task> lastWriters = wi.getStreamWriters();
+                                        List<AbstractTask> lastWriters = wi.getStreamWriters();
                                         if (!lastWriters.isEmpty()) {
-                                            currentTask.setEnforcingTask(lastWriters.get(0));
+                                            currentTask.setEnforcingTask((Task)(lastWriters.get(0)));
                                         }
                                         break;
                                     default:
                                         // Retrieve the writer and enforce the execution to be near the writer task
-                                        Task lastWriter = wi.getDataWriter();
+                                        AbstractTask lastWriter = wi.getDataWriter();
                                         if (lastWriter != null) {
-                                            currentTask.setEnforcingTask(lastWriter);
+                                            currentTask.setEnforcingTask((Task)lastWriter);
                                         }
                                         break;
                                 }
@@ -283,16 +321,16 @@ public class TaskAnalyser {
                                 switch (wi.getDataType()) {
                                     case STREAM_T:
                                         // Retrieve all the stream writers and enforce the execution to be near any
-                                        List<Task> lastWriters = wi.getStreamWriters();
+                                        List<AbstractTask> lastWriters = wi.getStreamWriters();
                                         if (!lastWriters.isEmpty()) {
-                                            currentTask.setEnforcingTask(lastWriters.get(0));
+                                            currentTask.setEnforcingTask((Task)lastWriters.get(0));
                                         }
                                         break;
                                     default:
                                         // Retrieve the writer and enforce the execution to be near the writer task
-                                        Task lastWriter = wi.getDataWriter();
+                                        AbstractTask lastWriter = wi.getDataWriter();
                                         if (lastWriter != null) {
-                                            currentTask.setEnforcingTask(lastWriter);
+                                            currentTask.setEnforcingTask((Task)lastWriter);
                                         }
                                         break;
                                 }
@@ -316,6 +354,50 @@ public class TaskAnalyser {
                     this.concurrentAccessMap.put(daId.getDataId(), tasks);
                 }
                 tasks.add(currentTask);
+                break;
+            case CV:
+                CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
+                CommutativeGroupTask com = null;
+                LinkedList<Task> pendingToDraw = null;
+                for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
+                    if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
+                        com = cgt;
+                        if (IS_DRAW_GRAPH) {
+                            pendingToDraw = this.pendingToDrawCommutative.get(comId.toString());
+                        }
+                    }
+                }
+                if (IS_DRAW_GRAPH) {
+    
+                    if (pendingToDraw == null) {
+                        pendingToDraw = new LinkedList<Task>();
+                    }
+                    pendingToDraw.add(currentTask);
+                    this.pendingToDrawCommutative.put(comId.toString(), pendingToDraw);
+                }
+                if (com == null) {
+                    LOGGER.info("Creating a new commutative group " + comId);
+                    com = new CommutativeGroupTask(currentTask.getAppId(), comId);
+
+                    if (IS_DRAW_GRAPH) {
+                        LOGGER.debug("Checking if previous group in graph");
+                        checkIfPreviousGroupInGraph(daId.getDataId(), currentTask);
+                    }
+                    WritersInfo wi = this.writers.get(daId.getDataId());
+                    if (wi != null) {
+                        AbstractTask predecessor = wi.getDataWriter();
+                        com.setParentDataDependency(predecessor);
+                        LOGGER.debug("Setting parent data dependency");
+                    }
+                    this.commutativeGroup.put(comId.toString(), com); 
+                    com.setRegisteredVersion(firstRegistered);                
+                    registerOutputValues(com, dp); 
+
+                 }
+           
+                com.setFinalVersion(((RWAccessId)daId).getWVersionId());
+                checkDependencyForCommutative(currentTask, dp, com);
+                registerOutputValues(com, dp);
                 break;
         }
     }
@@ -402,95 +484,133 @@ public class TaskAnalyser {
      *
      * @param task Ended task.
      */
-    public void endTask(Task task) {
-        int taskId = task.getId();
-        boolean isFree = task.isFree();
-        TaskState taskState = task.getStatus();
-        OnFailure onFailure = task.getOnFailure();
-        LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
+    public void endTask(AbstractTask task) {
+        if (task instanceof Task) {
+            int taskId = task.getId();
+            boolean isFree = ((Task)task).isFree();
+            TaskState taskState = task.getStatus();
+            OnFailure onFailure = ((Task)task).getOnFailure();
+            LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
+    
+            // Check status
+            if (!isFree) {
+                LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
+                return;
+            }
+    
+            TaskMonitor registeredMonitor = ((Task)task).getTaskMonitor();
+            switch (taskState) {
+                case FAILED:
+                    registeredMonitor.onFailure();
+                    if (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL) {
+                        ErrorManager.error(TASK_FAILED + task);
+                        return;
+                    }
+                    if (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS) {
+                        // Show warning
+                        ErrorManager.warn(TASK_FAILED + task);
+                    }
+                    break;
+                case CANCELED:
+                    registeredMonitor.onCancellation();
 
-        // Check status
-        if (!isFree) {
-            LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
-            return;
-        }
-
-        TaskMonitor registeredMonitor = task.getTaskMonitor();
-        switch (taskState) {
-            case FAILED:
-                registeredMonitor.onFailure();
-                if (onFailure == OnFailure.RETRY || onFailure == OnFailure.FAIL) {
-                    ErrorManager.error(TASK_FAILED + task);
-                    return;
-                }
-                if (onFailure == OnFailure.IGNORE || onFailure == OnFailure.CANCEL_SUCCESSORS) {
                     // Show warning
-                    ErrorManager.warn(TASK_FAILED + task);
+                    ErrorManager.warn(TASK_CANCELED + task);
+                    break;
+                default:
+                    registeredMonitor.onCompletion();
+            }
+
+            // Free barrier dependencies
+            if (DEBUG) {
+                LOGGER.debug("Freeing barriers for task " + taskId);
+                LOGGER.debug("Ending task " + taskId);
+            }
+            
+            // Free dependencies
+            Long appId = task.getAppId();
+            Integer taskCount = this.appIdToTaskCount.get(appId) - 1;
+            this.appIdToTaskCount.put(appId, taskCount);
+            if (taskCount == 0) {
+                // Remove the appId from the barrier flags (if existent, otherwise do nothing)
+                this.appIdBarrierFlags.remove(appId);
+                Semaphore sem = this.appIdToSemaphore.remove(appId);
+                if (sem != null) {
+                    // Application was synchronized on a barrier flag or a no more tasks
+                    // Release the application semaphore
+                    this.appIdToTaskCount.remove(appId);
+                    sem.release();
                 }
-                break;
-            case CANCELED:
-                registeredMonitor.onCancellation();
-                // Show warning
-                ErrorManager.warn(TASK_CANCELED + task);
-                break;
-            default:
-                registeredMonitor.onCompletion();
-        }
-
-        // Free barrier dependencies
-        if (DEBUG) {
-            LOGGER.debug("Freeing barriers for task " + taskId);
-        }
-        Long appId = task.getAppId();
-        Integer taskCount = this.appIdToTaskCount.get(appId) - 1;
-        this.appIdToTaskCount.put(appId, taskCount);
-        if (taskCount == 0) {
-            // Remove the appId from the barrier flags (if existent, otherwise do nothing)
-            this.appIdBarrierFlags.remove(appId);
-
-            Semaphore sem = this.appIdToSemaphore.remove(appId);
-            if (sem != null) {
-                // Application was synchronized on a barrier flag or a no more tasks
-                // Release the application semaphore
-                this.appIdToTaskCount.remove(appId);
-                sem.release();
             }
-        }
-
-        // Free task data dependencies
-        if (DEBUG) {
-            LOGGER.debug("Releasing waiting tasks for task " + taskId);
-        }
-        List<Semaphore> sems = this.waitedTasks.remove(task);
-        if (sems != null) {
-            for (Semaphore sem : sems) {
-                sem.release();
+    
+            // Free task data dependencies
+            if (DEBUG) {
+                LOGGER.debug("Releasing waiting tasks for task " + taskId);
             }
-        }
-
-        // Mark parameter accesses
-        if (DEBUG) {
-            LOGGER.debug("Marking accessed parameters for task " + taskId);
-        }
-        for (Parameter param : task.getTaskDescription().getParameters()) {
-            updateParameterAccess(task, param);
-        }
-
-        // Check if the finished task was the last writer of a file, but only if task generation has finished
-        // Task generation is finished if we are on noMoreTasks but we are not on a barrier
-        if (DEBUG) {
-            LOGGER.debug("Checking result file transfers for task " + taskId);
-        }
-        if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
-            checkResultFileTransfer(task);
-        }
-
+            List<Semaphore> sems = this.waitedTasks.remove(task);
+            if (sems != null) {
+                for (Semaphore sem : sems) {
+                    sem.release();
+                }
+            }
+                
+            // Mark parameter accesses
+            if (DEBUG) {
+                LOGGER.debug("Marking accessed parameters for task " + taskId);
+            }
+            for (Parameter param : ((Task)task).getTaskDescription().getParameters()) {
+                updateParameterAccess((Task)task, param);
+            }
+            
+            // Check if the finished task was the last writer of a file, but only if task generation has finished
+            // Task generation is finished if we are on noMoreTasks but we are not on a barrier
+            if (DEBUG) {
+                LOGGER.debug("Checking result file transfers for task " + taskId);
+            }
+            if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
+                checkResultFileTransfer((Task)task);
+            }
+    
+            // Release data dependent tasks
+            if (DEBUG) {
+                LOGGER.debug("Releasing data dependant tasks for task " + taskId);
+            }
+         // Releases commutative groups dependent and releases all the waiting tasks
+            releaseCommutativeGroups(task);
+        } 
+    
         // Release data dependent tasks
-        if (DEBUG) {
-            LOGGER.debug("Releasing data dependant tasks for task " + taskId);
-        }
         task.releaseDataDependents();
     }
+
+    /**
+     * Releases the commutative groups dependencies
+     *
+     * @param task
+     */
+    private void releaseCommutativeGroups(AbstractTask task) {
+        if (!((Task)task).getCommutativeGroupList().isEmpty()) {
+           for (CommutativeGroupTask group : ((Task)task).getCommutativeGroupList()) {
+               group.setStatus(TaskState.FINISHED);
+               group.removePredecessor((Task)task);
+               if (group.getPredecessors().isEmpty()) {
+                   group.releaseDataDependents();
+                   // Check if task is being waited
+                   List<Semaphore> sems = this.waitedTasks.remove(group);
+                   if (sems != null) {
+                       for (Semaphore sem : sems) {
+                           sem.release();
+                       }
+                   }
+                   if (DEBUG) {
+                       LOGGER.debug("Group " + group.getId() +" ended execution");
+                       LOGGER.debug("Data dependents of group " + group.getCommutativeIdentifier() +  " released ");
+                   }
+               }
+           }
+        }
+    }
+
 
     /**
      * Checks if a finished task is the last writer of its file parameters and, eventually, order the necessary
@@ -508,6 +628,7 @@ public class TaskAnalyser {
                         case IN:
                         case CONCURRENT:
                             break;
+                        case COMMUTATIVE:
                         case INOUT:
                             DataInstanceId dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
                             WritersInfo wi = this.writers.get(dId.getDataId());
@@ -518,7 +639,7 @@ public class TaskAnalyser {
                                         // Streams have no result files regarding their direction
                                         break;
                                     default:
-                                        Task lastWriter = wi.getDataWriter();
+                                        AbstractTask lastWriter = wi.getDataWriter();
                                         if (lastWriter != null && lastWriter == t) {
                                             fileIds.add(dId);
                                         }
@@ -535,7 +656,7 @@ public class TaskAnalyser {
                                         // Streams have no result files regarding their direction
                                         break;
                                     default:
-                                        Task lastWriter = wi.getDataWriter();
+                                        AbstractTask lastWriter = wi.getDataWriter();
                                         if (lastWriter != null && lastWriter == t) {
                                             fileIds.add(dId);
                                         }
@@ -584,8 +705,8 @@ public class TaskAnalyser {
                 case STREAM_T:
                 case EXTERNAL_STREAM_T:
                     // Mark the data accesses
-                    List<Task> lastStreamWriters = wi.getStreamWriters();
-                    for (Task lastWriter : lastStreamWriters) {
+                    List<AbstractTask> lastStreamWriters = wi.getStreamWriters();
+                    for (AbstractTask lastWriter : lastStreamWriters) {
                         treatDataAccess(lastWriter, am, dataId);
                     }
                     // We do not wait for stream task to complete
@@ -593,7 +714,7 @@ public class TaskAnalyser {
                     break;
                 default:
                     // Retrieve last writer task
-                    Task lastWriter = wi.getDataWriter();
+                    AbstractTask lastWriter = wi.getDataWriter();
                     // Mark the data access
                     if (lastWriter != null) {
                         treatDataAccess(lastWriter, am, dataId);
@@ -624,7 +745,7 @@ public class TaskAnalyser {
      * @param am Access mode.
      * @param dataId Data Id.
      */
-    private void treatDataAccess(Task lastWriter, AccessMode am, int dataId) {
+    private void treatDataAccess(AbstractTask lastWriter, AccessMode am, int dataId) {
         // Add to writers if needed
         if (am == AccessMode.RW) {
             WritersInfo wi = this.writers.get(dataId);
@@ -710,6 +831,8 @@ public class TaskAnalyser {
         Long appId = request.getAppId();
         Integer count = this.appIdToTaskCount.get(appId);
         if (IS_DRAW_GRAPH) {
+            // Addition of missing commutative groups to graph
+            addMissingCommutativeTasksToGraph();
             addNewBarrier();
 
             // We can draw the graph on a barrier while we wait for tasks
@@ -735,6 +858,7 @@ public class TaskAnalyser {
         Integer count = this.appIdToTaskCount.get(appId);
 
         if (IS_DRAW_GRAPH) {
+            addMissingCommutativeTasksToGraph();
             this.gm.commitGraph();
         }
 
@@ -762,6 +886,21 @@ public class TaskAnalyser {
     public void shutdown() {
         if (IS_DRAW_GRAPH) {
             GraphGenerator.removeTemporaryGraph();
+        }
+    }
+
+    /**
+     * Print the missing commutative tasks at the graph
+     *
+     */
+    private void addMissingCommutativeTasksToGraph() {
+        LinkedList<String> identifiers = new LinkedList<String>();
+        for (String identifier : this.pendingToDrawCommutative.keySet()) {
+            addCommutativeGroupTaskToGraph(identifier);
+            identifiers.add(identifier);
+        }
+        for (String identifier:identifiers) {
+            this.pendingToDrawCommutative.remove(identifier);
         }
     }
 
@@ -808,7 +947,7 @@ public class TaskAnalyser {
                     // No data to delete
                     break;
                 default:
-                    Task task = wi.getDataWriter();
+                    AbstractTask task = wi.getDataWriter();
                     if (task != null) {
                         // Cannot delete data because task is still running
                         return;
@@ -874,7 +1013,7 @@ public class TaskAnalyser {
 
     private void addStreamDependency(Task currentTask, DependencyParameter dp, WritersInfo wi) {
         int dataId = dp.getDataAccessId().getDataId();
-        List<Task> lastStreamWriters = wi.getStreamWriters();
+        List<AbstractTask> lastStreamWriters = wi.getStreamWriters();
         if (!lastStreamWriters.isEmpty()) {
             if (DEBUG) {
                 StringBuilder sb = new StringBuilder();
@@ -887,7 +1026,7 @@ public class TaskAnalyser {
                     sb.append(dataId);
                     sb.append(" is task ");
                 }
-                for (Task lastWriter : lastStreamWriters) {
+                for (AbstractTask lastWriter : lastStreamWriters) {
                     sb.append(lastWriter.getId());
                     sb.append(" ");
                 }
@@ -895,7 +1034,7 @@ public class TaskAnalyser {
             }
 
             // Add dependencies
-            for (Task lastWriter : lastStreamWriters) {
+            for (AbstractTask lastWriter : lastStreamWriters) {
                 // Debug message
                 if (DEBUG) {
                     LOGGER.debug("Adding stream dependency between task " + lastWriter.getId() + " and task "
@@ -908,6 +1047,7 @@ public class TaskAnalyser {
                 // Add edge to graph
                 if (IS_DRAW_GRAPH) {
                     drawEdges(currentTask, dp, lastWriter);
+                    checkIfPreviousGroupInGraph(dataId, currentTask);
                 }
             }
         } else {
@@ -920,7 +1060,7 @@ public class TaskAnalyser {
 
     private void addRegularDependency(Task currentTask, DependencyParameter dp, WritersInfo wi) {
         int dataId = dp.getDataAccessId().getDataId();
-        Task lastWriter = wi.getDataWriter();
+        AbstractTask lastWriter = wi.getDataWriter();
         if (lastWriter != null && lastWriter != currentTask) {
             if (DEBUG) {
                 LOGGER.debug("Last writer for datum " + dataId + " is task " + lastWriter.getId());
@@ -928,21 +1068,51 @@ public class TaskAnalyser {
                         "Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
 
+            if (lastWriter instanceof Task && ((Task)lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()) != null) {
+                currentTask.addDataDependency(((Task)lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()));
+            }
             // Add dependency
             currentTask.addDataDependency(lastWriter);
-
-            // Add edge to graph
-            if (IS_DRAW_GRAPH) {
-                drawEdges(currentTask, dp, lastWriter);
-            }
         } else {
             // Task is free
             if (DEBUG) {
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
         }
+
+        // Add edge to graph
+        if (IS_DRAW_GRAPH) {
+            drawEdges(currentTask, dp, lastWriter);
+            checkIfPreviousGroupInGraph(dataId, currentTask);
+        }
+    
     }
 
+    /**
+     * Checks the dependencies of a commutative @currentTask considering the parameter @dp and adding it to the commutative group @commutativeGroup
+     *
+     * @param currentTask
+     * @param dp
+     * @param commutativeGroup
+     */
+    private void checkDependencyForCommutative(Task currentTask, DependencyParameter dp, CommutativeGroupTask commutativeGroup) {
+    
+        // Addition of a dependency to the task which generates commutative data
+        AbstractTask t = commutativeGroup.getParentDataDependency();
+        if (t!=null) {       
+            LOGGER.debug("Adding dependency with parent task of commutative group");
+            currentTask.addDataDependency(t); 
+        }
+        if (IS_DRAW_GRAPH) {
+            drawEdges(currentTask, dp, t);
+        }
+        // Addition of a dependency between the task and the commutative group
+        commutativeGroup.addDataDependency(currentTask);
+        commutativeGroup.addCommutativeTask(currentTask);
+        currentTask.setCommutativeGroup(commutativeGroup, dp.getDataAccessId());
+    
+    }
+    
     /**
      * Adds edges to graph.
      *
@@ -950,7 +1120,7 @@ public class TaskAnalyser {
      * @param dp Dependency parameter causing the dependency.
      * @param lastWriter Last writer task.
      */
-    private void drawEdges(Task currentTask, DependencyParameter dp, Task lastWriter) {
+    private void drawEdges(Task currentTask, DependencyParameter dp, AbstractTask lastWriter) {
         // Retrieve common information
         int dataId = dp.getDataAccessId().getDataId();
         Direction d = dp.getDataAccessId().getDirection();
@@ -976,7 +1146,15 @@ public class TaskAnalyser {
                 break;
             default:
                 if (lastWriter != null && lastWriter != currentTask) {
-                    addDataEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+                    if(lastWriter instanceof Task ) {
+                        if (lastWriter.getSuccessors().contains(currentTask.getCommutativeGroup(dataId))) {
+                            addEdgeFromCommutativeToTask(currentTask, dataId, dataVersion, ((CommutativeGroupTask)lastWriter), 0); 
+                        } else {
+                            addDataEdgeFromTaskToTask((Task)lastWriter, currentTask, dataId, dataVersion);
+                        }
+                    } else if (!(lastWriter instanceof Task && !currentTask.hasCommutativeParams())){
+                        addEdgeFromCommutativeToTask(currentTask, dataId, dataVersion, ((CommutativeGroupTask)lastWriter), 1); 
+                    }
                 } else {
                     addDataEdgeFromMainToTask(currentTask, dataId, dataVersion);
                 }
@@ -1019,7 +1197,7 @@ public class TaskAnalyser {
      * @param currentTask Task.
      * @param dp Dependency Parameter.
      */
-    private void registerOutputValues(Task currentTask, DependencyParameter dp) {
+    private void registerOutputValues(AbstractTask currentTask, DependencyParameter dp) {
         int currentTaskId = currentTask.getId();
         int dataId = dp.getDataAccessId().getDataId();
         Long appId = currentTask.getAppId();
@@ -1087,11 +1265,60 @@ public class TaskAnalyser {
      */
     private void addNewTask(Task task) {
         // Add task to graph
-        this.gm.addTaskToGraph(task);
+        if (!task.hasCommutativeParams()) {
+            //In case task has commutative params, it will be added to graph with the group
+            addTaskToGraph(task);
+        }
         // Set the syncId of the task
         task.setSynchronizationId(this.synchronizationId);
         // Update current sync status
         this.taskDetectedAfterSync = true;
+    }
+
+    /**
+     * Adds the task to the graph to print
+     * 
+     * @param task
+     */
+    private void addTaskToGraph(Task task) {
+        // Add task to graph
+        this.gm.addTaskToGraph(task);
+    }
+
+    /**
+     * Puts a new commutative group to the graph
+     * 
+     * @param identifier
+     */
+    private void addCommutativeGroupTaskToGraph(String identifier) {
+        LOGGER.debug("Adding commutative group to graph");
+        this.gm.addCommutativeGroupToGraph(identifier);
+        for(Task t : this.pendingToDrawCommutative.get(identifier)) {
+            addTaskToGraph(t);
+        }
+        this.gm.closeGroupInGraph();
+    }
+
+    /**
+     * Checks if the previous group was printed on the graph
+     *
+     * @param dataId
+     * @param currentTask
+     */
+    private void checkIfPreviousGroupInGraph(int dataId, Task currentTask) {
+        WritersInfo wi = this.writers.get(dataId);
+        if (wi != null) {
+            AbstractTask lastWriter = wi.getDataWriter();
+            
+            if (lastWriter instanceof CommutativeGroupTask && !((CommutativeGroupTask)lastWriter).getGraphDrawn()) {
+                CommutativeIdentifier comId = ((CommutativeGroupTask)lastWriter).getCommutativeIdentifier();
+                
+                //Adds the group to the graph and removes task from pendingToDraw
+                addCommutativeGroupTaskToGraph(comId.toString());
+                ((CommutativeGroupTask)lastWriter).setGraphDrawn();
+                this.pendingToDrawCommutative.remove(((CommutativeGroupTask)lastWriter).getCommutativeIdentifier().toString());
+            } 
+        }
     }
 
     /**
@@ -1121,14 +1348,14 @@ public class TaskAnalyser {
      * We will execute a task whose data is produced by another task. STEPS: Add an edge from the previous task or the
      * last synchronization point to the new task.
      *
-     * @param source Source task.
+     * @param lastWriter Source task.
      * @param dest Destination task.
      * @param dataId Data causing the dependency.
      * @param dataVersion Data version.
      */
-    private void addStreamEdgeFromTaskToTask(Task source, Task dest, int dataId, int dataVersion) {
+    private void addStreamEdgeFromTaskToTask(AbstractTask lastWriter, Task dest, int dataId, int dataVersion) {
         // Streams do not consider main synchro points, add dependency between tasks
-        String src = String.valueOf(source.getId());
+        String src = String.valueOf(lastWriter.getId());
         String dst = String.valueOf(dest.getId());
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
         this.gm.addEdgeToGraph(src, dst, EdgeType.STREAM_DEPENDENCY, dep);
@@ -1157,7 +1384,7 @@ public class TaskAnalyser {
      * @param edgeType Type of edge for the DOT representation.
      * @param dataId Data causing the dependency.
      */
-    private void addEdgeFromTaskToMain(Task task, EdgeType edgeType, int dataId, int dataVersion) {
+    private void addEdgeFromTaskToMain(AbstractTask task, EdgeType edgeType, int dataId, int dataVersion) {
         // Add Sync if any task has been created
         if (this.taskDetectedAfterSync) {
             this.taskDetectedAfterSync = false;
@@ -1173,9 +1400,39 @@ public class TaskAnalyser {
         }
 
         // Add edge from task to sync
-        String src = String.valueOf(task.getId());
         String dest = "Synchro" + this.synchronizationId;
-        this.gm.addEdgeToGraph(src, dest, edgeType, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
+        String src;
+        if (task instanceof CommutativeGroupTask && !((CommutativeGroupTask)task).getCommutativeTasks().isEmpty()) {
+            src = String.valueOf(((CommutativeGroupTask)task).getCommutativeTasks().get(0).getId());
+            this.gm.addEdgeToGraphFromCommutative(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion), ((CommutativeGroupTask)task).getCommutativeIdentifier().toString());
+            
+        } else {
+         // Add edge from task to sync
+            src = String.valueOf(task.getId());
+            this.gm.addEdgeToGraph(src, dest, edgeType, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
+            
+        }
+    }
+
+    /**
+     * Addition of an edge from the commutative group to a task
+     *
+     * @param dest
+     * @param dataId
+     * @param dataVersion
+     * @param cgt
+     * @param comToTask
+     */
+    private void addEdgeFromCommutativeToTask(Task dest, int dataId, int dataVersion, CommutativeGroupTask cgt, int comToTask) {
+        String src = String.valueOf(cgt.getCommutativeTasks().get(0).getId());
+        String dst = String.valueOf(dest.getId());
+        String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
+        String comId = cgt.getCommutativeIdentifier().toString();
+        if (comToTask == 1) {
+            this.gm.addEdgeToGraphFromCommutative(src, dst, dep, comId);
+        } else {
+            this.gm.addEdgeToGraphFromCommutative(dst, src, dep, comId);
+        }
     }
 
     /**
@@ -1198,11 +1455,11 @@ public class TaskAnalyser {
         }
 
         // Add edges from writers to barrier
-        HashSet<Task> uniqueWriters = new HashSet<>();
+        HashSet<AbstractTask> uniqueWriters = new HashSet<>();
         for (WritersInfo wi : this.writers.values()) {
             if (wi != null) {
                 // Add data writers
-                Task dataWriter = wi.getDataWriter();
+                AbstractTask dataWriter = wi.getDataWriter();
                 if (dataWriter != null) {
                     uniqueWriters.add(dataWriter);
                 }
@@ -1210,7 +1467,7 @@ public class TaskAnalyser {
                 uniqueWriters.addAll(wi.getStreamWriters());
             }
         }
-        for (Task writer : uniqueWriters) {
+        for (AbstractTask writer : uniqueWriters) {
             if (writer != null && writer.getSynchronizationId() == oldSync) {
                 String taskId = String.valueOf(writer.getId());
                 this.gm.addEdgeToGraph(taskId, newSyncStr, EdgeType.USER_DEPENDENCY, "");
@@ -1222,17 +1479,17 @@ public class TaskAnalyser {
     private static class WritersInfo {
 
         private final DataType dataType;
-        private final Task dataWriter;
-        private final List<Task> streamWriters;
+        private final AbstractTask dataWriter;
+        private final List<AbstractTask> streamWriters;
 
 
-        public WritersInfo(DataType dataType, Task dataWriter) {
+        public WritersInfo(DataType dataType, AbstractTask dataWriter) {
             this.dataType = dataType;
             this.dataWriter = dataWriter;
             this.streamWriters = new ArrayList<>();
         }
 
-        public WritersInfo(DataType dataType, List<Task> streamWriters) {
+        public WritersInfo(DataType dataType, List<AbstractTask> streamWriters) {
             this.dataType = dataType;
             this.dataWriter = null;
             this.streamWriters = new ArrayList<>();
@@ -1245,15 +1502,15 @@ public class TaskAnalyser {
             return this.dataType;
         }
 
-        public Task getDataWriter() {
+        public AbstractTask getDataWriter() {
             return this.dataWriter;
         }
 
-        public List<Task> getStreamWriters() {
+        public List<AbstractTask> getStreamWriters() {
             return this.streamWriters;
         }
 
-        public void addStreamWriter(Task writerTask) {
+        public void addStreamWriter(AbstractTask writerTask) {
             if (writerTask != null) {
                 this.streamWriters.add(writerTask);
             }
@@ -1266,7 +1523,7 @@ public class TaskAnalyser {
             sb.append("dataType = ").append(this.dataType).append(", ");
             sb.append("dataWriter = ").append(this.dataWriter != null ? this.dataWriter.getId() : "null").append(", ");
             sb.append("streamWriters = [");
-            for (Task t : this.streamWriters) {
+            for (AbstractTask t : this.streamWriters) {
                 sb.append(t.getId()).append(" ");
             }
             sb.append("]");

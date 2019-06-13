@@ -26,6 +26,7 @@ PyCOMPSs API
         - stop
         - open
         - delete file
+        - wait on file
         - delete object
         - barrier
         - wait_on
@@ -113,7 +114,7 @@ if context.in_pycompss():
 
     def compss_wait_on_file(file_name):
         """
-        Delete a file -> Calls runtime.
+        Gets a file -> Calls runtime.
 
         :param file_name: File name.
         :return: True if success. False otherwise.

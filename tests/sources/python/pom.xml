@@ -32,6 +32,7 @@
 
 	<!-- SUB-MODULES -->
 	<modules>
+	<!-- 0_annotation_commutative -->
         <!-- 0_annotation_concurrent -->
         <!-- 0_api_barrier -->
         <!-- 0_api_delete -->

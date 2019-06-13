@@ -461,7 +461,8 @@ public class DataInfoProvider {
                     LOGGER.debug(sb.toString());
                 }
                 break;
-
+                
+            case CV:
             case RW:
                 di.willBeRead();
                 DataVersion readInstance = di.getCurrentDataVersion();
@@ -496,6 +497,7 @@ public class DataInfoProvider {
                 case W:
                     daId = new WAccessId(di.getCurrentDataVersion());
                     break;
+                case CV:
                 case RW:
                     DataVersion readInstance = di.getPreviousDataVersion();
                     if (readInstance != null) {
@@ -528,6 +530,7 @@ public class DataInfoProvider {
                 rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
                 deleted = di.versionHasBeenRead(rVersionId);
                 break;
+            case CV:
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
                 di.versionHasBeenRead(rVersionId);

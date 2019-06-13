@@ -706,6 +706,8 @@ def get_compss_mode(pymode):
         return DIRECTION.INOUT
     elif pymode.startswith('c'):
         return DIRECTION.CONCURRENT
+    elif pymode.startswith('cv'):
+        return DIRECTION.COMMUTATIVE
     else:
         return DIRECTION.IN
 
@@ -1204,7 +1206,7 @@ def _turn_into_file(name, p):
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
         serialize_to_file(p.object, file_name)
     elif obj_id in _objs_written_by_mp:
-        if p.direction == DIRECTION.INOUT:
+        if p.direction == DIRECTION.INOUT or p.direction == DIRECTION.COMMUTATIVE:
             pending_to_synchronize[obj_id] = p.object
         # Main program generated the last version
         compss_file = _objs_written_by_mp.pop(obj_id)

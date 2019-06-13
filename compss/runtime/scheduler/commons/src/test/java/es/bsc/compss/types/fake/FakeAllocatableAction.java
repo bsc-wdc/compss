@@ -29,6 +29,7 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
+import java.util.List;
 
 
 public class FakeAllocatableAction extends AllocatableAction {
@@ -191,6 +192,17 @@ public class FakeAllocatableAction extends AllocatableAction {
     @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
+    }
+
+    @Override
+    public boolean taskIsReadyForExecution() {
+        return true;
+    }
+
+    @Override
+    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

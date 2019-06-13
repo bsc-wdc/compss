@@ -350,6 +350,73 @@ public class GraphGenerator {
         }
     }
 
+
+    /**
+     * Adds an edge to the graph from a commutative group to a task from @src to @tgt with label @label
+     * 
+     * @param src Node from which the dependency arrow starts.
+     * @param tgt Node to which the task is dependent.
+     * @param label Data Id and version of the dependency.
+     * @param identifier Commutative group identifier.
+     */
+    public void addEdgeToGraphFromCommutative(String src, String tgt, String label, String identifier) {
+        try {
+            full_graph.newLine();
+            full_graph.write(src + " -> " + tgt + (label.isEmpty() ? "" : "[ label=\"d" + label + "\" ]") + "[ ltail=\"clusterCommutative" + identifier +"\" ];");
+        } catch (IOException e) {
+            LOGGER.error(ERROR_ADDING_EDGE, e);
+        }
+    }
+    
+    /**
+     * Adds a commutative group to the graph
+     * 
+     * @param identifier Identifier of the group.
+     */
+    public void addCommutativeGroupToGraph(String identifier) {
+        try {
+            full_graph.newLine();
+            full_graph.write("subgraph clusterCommutative" + identifier + " {\n");
+            full_graph.write(
+                    "shape=rect;\n" + 
+                    "node[height=0.75];\n" + 
+                    "color=\"#A9A9A9\"; \n" + 
+                    "rank=same;\n"
+                    + "label=\"CGT" + identifier + "\";\n");
+        } catch (IOException e) {
+            LOGGER.error(ERROR_ADDING_DATA, e);
+        }
+    }
+    
+    /**
+     * Ends a commutative group subgraph
+     * 
+     */
+    public void closeGroupInGraph() {
+        try {
+            full_graph.newLine();
+            full_graph.write("}\n");
+        } catch (IOException e) {
+            LOGGER.error(ERROR_ADDING_DATA, e);
+        }
+    }
+    
+    /**
+     * Starts a new subgraph
+     * 
+     */
+    public void createNewSubgraph() {
+        try {
+            full_graph.newLine();
+            full_graph.write("subgraph{\n");
+            full_graph.newLine();
+            full_graph.write("                node[height=0.75];\n");
+        } catch (IOException e) {
+            LOGGER.error(ERROR_ADDING_DATA, e);
+        }
+    }
+
+    
     /*
      * ***************************************************************************************************************
      * PRIVATE STATIC METHODS
@@ -376,6 +443,8 @@ public class GraphGenerator {
         graph.write("  rankdir=TB;");
         graph.newLine();
         graph.write("  labeljust=\"l\";");
+        graph.newLine();
+        graph.write("  compound= true;");
         graph.newLine();
         graph.flush();
     }

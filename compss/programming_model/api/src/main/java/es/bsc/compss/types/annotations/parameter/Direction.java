@@ -23,5 +23,6 @@ public enum Direction {
     IN, // Read
     OUT, // Write
     INOUT, // Read-write
-    CONCURRENT; // Read-write concurrent
+    CONCURRENT, // Read-write concurrent
+    COMMUTATIVE; // Read-write commutative
 }

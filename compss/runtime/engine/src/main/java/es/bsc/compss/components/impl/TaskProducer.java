@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
-import es.bsc.compss.types.Task;
+import es.bsc.compss.types.AbstractTask;
 
 
 /**
@@ -29,6 +29,6 @@ public interface TaskProducer {
      * 
      * @param task Ended task.
      */
-    public void notifyTaskEnd(Task task);
+    public void notifyTaskEnd(AbstractTask task);
 
 }

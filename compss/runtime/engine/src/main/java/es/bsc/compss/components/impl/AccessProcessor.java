@@ -23,6 +23,7 @@ import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
@@ -249,7 +250,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     // Notification thread (JM)
     @Override
-    public void notifyTaskEnd(Task task) {
+    public void notifyTaskEnd(AbstractTask task) {
         if (!this.requestQueue.offer(new TaskEndNotification(task))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "notify task end");
         }
@@ -339,7 +340,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
             // Mode contains W
             LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
             DataInstanceId daId;
-            if (fap.getMode() == AccessMode.RW) {
+            if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
                 RWAccessId ra = (RWAccessId) faId;
                 daId = ra.getWrittenDataInstance();
             } else {

@@ -168,4 +168,14 @@ public class Action extends AllocatableAction {
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
     }
+
+    @Override
+    public boolean taskIsReadyForExecution() {
+        return true;
+    }
+
+    @Override
+    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
+        
+    }
 }

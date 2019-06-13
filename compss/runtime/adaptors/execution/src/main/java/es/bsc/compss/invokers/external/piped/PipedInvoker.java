@@ -95,7 +95,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                     }
                 }
             } catch (ExternalExecutorException e) {
-                throw new JobExecutionException("Notification pipe closed");
+                throw new JobExecutionException("Notification pipe closed",e);
             }
         }
     }

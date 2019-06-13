@@ -26,6 +26,7 @@ PyCOMPSs API - Parameter
         - OUT
         - INOUT
         - CONCURRENT
+        - COMMUTATIVE
     2. TYPE.
         - FILE
         - BOOLEAN
@@ -67,7 +68,7 @@ class DIRECTION(object):
     OUT = 1
     INOUT = 2
     CONCURRENT = 3
-
+    COMMUTATIVE = 4
 
 # Numbers match both C and Java enums
 class IOSTREAM(object):
@@ -156,6 +157,9 @@ _param_conversion_dict_ = {
     'CONCURRENT': {
         'p_direction': DIRECTION.CONCURRENT
     },
+    'COMMUTATIVE': {
+        'p_direction': DIRECTION.COMMUTATIVE
+    },
     'FILE': {
         'p_type': TYPE.FILE
     },
@@ -173,6 +177,10 @@ _param_conversion_dict_ = {
     'FILE_CONCURRENT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT
+    },
+    'FILE_COMMUTATIVE': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.COMMUTATIVE
     },
     'FILE_STDIN': {
         'p_type': TYPE.FILE,
@@ -244,6 +252,21 @@ _param_conversion_dict_ = {
     'FILE_CONCURRENT_STDOUT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT,
+        'p_stream': IOSTREAM.STDOUT
+    },
+    'FILE_COMMUTATIVE_STDIN': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.COMMUTATIVE,
+        'p_stream': IOSTREAM.STDIN
+    },
+    'FILE_COMMUTATIVE_STDERR': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.COMMUTATIVE,
+        'p_stream': IOSTREAM.STDERR
+    },
+    'FILE_COMMUTATIVE_STDOUT': {
+        'p_type': TYPE.FILE,
+        'p_direction': DIRECTION.COMMUTATIVE,
         'p_stream': IOSTREAM.STDOUT
     },
     'COLLECTION': {
@@ -529,6 +552,7 @@ IN = _Param('IN')
 OUT = _Param('OUT')
 INOUT = _Param('INOUT')
 CONCURRENT = _Param('CONCURRENT')
+COMMUTATIVE = _Param('COMMUTATIVE')
 
 # Aliases for files with direction
 FILE = _Param('FILE')
@@ -536,6 +560,7 @@ FILE_IN = _Param('FILE_IN')
 FILE_OUT = _Param('FILE_OUT')
 FILE_INOUT = _Param('FILE_INOUT')
 FILE_CONCURRENT = _Param('FILE_CONCURRENT')
+FILE_COMMUTATIVE = _Param('FILE_COMMUTATIVE')
 
 # Aliases for files with stream
 FILE_STDIN = _Param('FILE_STDIN')
@@ -555,6 +580,9 @@ FILE_INOUT_STDOUT = _Param('FILE_INOUT_STDOUT')
 FILE_CONCURRENT_STDIN = _Param('FILE_CONCURRENT_STDIN')
 FILE_CONCURRENT_STDERR = _Param('FILE_CONCURRENT_STDERR')
 FILE_CONCURRENT_STDOUT = _Param('FILE_CONCURRENT_STDOUT')
+FILE_COMMUTATIVE_STDIN = _Param('FILE_COMMUTATIVE_STDIN')
+FILE_COMMUTATIVE_STDERR = _Param('FILE_COMMUTATIVE_STDERR')
+FILE_COMMUTATIVE_STDOUT = _Param('FILE_COMMUTATIVE_STDOUT')
 
 # Aliases for collections
 COLLECTION = _Param('COLLECTION')

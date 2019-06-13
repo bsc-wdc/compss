@@ -431,7 +431,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             # within the task decorator, the task_execution returns the value
             # of target_direction in order to know here if self has to be
             # serialized. This solution avoids to use inspect.
-            if target_direction.direction == parameter.DIRECTION.INOUT:
+            if target_direction.direction == parameter.DIRECTION.INOUT or target_direction.direction == parameter.DIRECTION.COMMUTATIVE:
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.

@@ -31,7 +31,8 @@ public abstract class AccessParams implements Serializable {
         R, // Read
         W, // Write
         RW, // ReadWrite
-        C // Concurrent
+        C, // Concurrent
+        CV // Commutative
     }
 
 

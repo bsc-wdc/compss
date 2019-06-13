@@ -85,6 +85,8 @@ FILE* compss_fopen(char * filename, char * mode) {
         dir = inout_dir;
     } else if (strcmp(mode, "c") == 0) {
         dir = concurrent_dir;
+    } else if (strcmp(mode, "cv") == 0) {
+        dir = commutative_dir;
     }
 
     GS_Open_File(filename, dir, &runtime_filename);

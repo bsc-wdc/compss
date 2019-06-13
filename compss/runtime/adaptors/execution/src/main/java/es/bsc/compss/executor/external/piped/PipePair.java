@@ -175,7 +175,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     }
 
     @Override
-    public PipeCommand readCommand() throws ClosedPipeException, ExternalExecutorException {
+    public PipeCommand readCommand() throws ExternalExecutorException {
         PipeCommand readCommand = null;
         synchronized (this) {
             if (this.closed) {

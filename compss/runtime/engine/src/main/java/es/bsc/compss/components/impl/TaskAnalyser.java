@@ -317,6 +317,34 @@ public class TaskAnalyser {
         }
     }
 
+
+    private void updateParameterAccess(Task t, Parameter p) {
+        DataType type = p.getType();
+
+        if( type == DataType.COLLECTION_T ) {
+            for(Parameter subParam: ((CollectionParameter)p).getParameters()) {
+                updateParameterAccess(t, subParam);
+            }
+        }
+
+        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
+                || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T
+                || type == DataType.COLLECTION_T) {
+
+            DependencyParameter dPar = (DependencyParameter) p;
+            DataAccessId dAccId = dPar.getDataAccessId();
+            if (DEBUG) {
+                LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
+            }
+            if (t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
+                    && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED)) {
+                this.DIP.dataAccessHasBeenCanceled(dAccId);
+            } else {
+                this.DIP.dataHasBeenAccessed(dAccId);
+            }
+        }
+    }
+
     /**
      * Registers the end of execution of task @task
      *
@@ -388,18 +416,7 @@ public class TaskAnalyser {
         }
 
         for (Parameter param : task.getTaskDescription().getParameters()) {
-            DataType type = param.getType();
-            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
-                    || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T) {
-                DependencyParameter dPar = (DependencyParameter) param;
-                DataAccessId dAccId = dPar.getDataAccessId();
-                LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                if (task.getOnFailure() == OnFailure.CANCEL_SUCCESSORS && (task.getStatus() == TaskState.FAILED || task.getStatus() == TaskState.CANCELED)) {
-                    this.DIP.dataAccessHasBeenCanceled(dAccId);
-                } else {
-                    this.DIP.dataHasBeenAccessed(dAccId);
-                }
-            }
+			updateParameterAccess(task, param);
         }
         // Check if the finished task was the last writer of a file, but only if task generation has finished
         // Task generation is finished if we are on noMoreTasks but we are not on a barrier

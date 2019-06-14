@@ -49,7 +49,8 @@
 
   uuid=$(uuidgen)
   SCTMP_DIR=${SC_DIR}/tmp_${uuid}
-  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" mkdir -p ${SCTMP_DIR}
+  # shellcheck disable=SC2029
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no "${SCuser}"@"${SCloginNode}" mkdir -p "${SCTMP_DIR}"
 
   SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   SOURCES_DIR=${SCRIPT_DIR}/../../..
@@ -97,6 +98,32 @@
   cd "${SOURCES_DIR}"
   mvn -U clean
   cd "${SCRIPT_DIR}"
+
+  # Compile streaming backend (kafka)
+  echo "- Compiling Streaming Backend (Kafka)"
+  cd "${TMP_DIR}"/dependencies/kafka
+  if which gradle; then
+    gradle
+    ev=$?
+  elif [ -n "${GRADLE_HOME}" ]; then
+    "${GRADLE_HOME}"/bin/gradle
+    ev=$?
+  else
+    echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
+    exit 1
+  fi
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Failed to compile Kafka dependency"
+    exit 1
+  fi
+  ./gradlew jar
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "ERROR: Failed to build Kafka dependency"
+    exit 1
+  fi
+  cd "${SCRIPT_DIR}"
+
   # COMPSs Monitor APACHE
   echo "- Downloading Apache for COMSPs Monitor"
   cd "${TMP_DIR}"

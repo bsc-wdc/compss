@@ -25,32 +25,38 @@
     echo " "
     exit 1
   }
-# INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
-# REQUIRES 2 PARAMETERS: 
-#  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
-#  $2 PATH WHERE TO INSTALL THE ADAPTOR
+
+  # INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
+  # REQUIRES 2 PARAMETERS: 
+  #  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
+  #  $2 PATH WHERE TO INSTALL THE ADAPTOR
   install_adaptor() {
-    adaptor_name=$(basename "$1")
+    local src_path=$1
+    local dest_path=$2
+
+    adaptor_name=$(basename "${src_path}")
     echo "------ Copying ${adaptor_name} adaptor"
-      mkdir "$2/${adaptor_name}"
-      mkdir "$2/${adaptor_name}"/master
-      cp "$1"/master/*.jar "$2"/"${adaptor_name}"/master
+      mkdir "${dest_path}/${adaptor_name}"
+      mkdir "${dest_path}/${adaptor_name}"/master
+      cp "${src_path}"/master/*.jar "${dest_path}/${adaptor_name}"/master
       
-    if [ -f "$1"/master/properties ]; then
-      cp "$1"/master/properties "$2"/"${adaptor_name}"/master
+    if [ -f "${src_path}"/master/properties ]; then
+      cp "${src_path}"/master/properties "${dest_path}/${adaptor_name}"/master
     fi
-    if [ -d "$1"/worker/ ]; then
-      mkdir "$2/${adaptor_name}"/worker
-      cp "$1"/worker/*.jar "$2"/"${adaptor_name}"/worker
+    if [ -d "${src_path}"/worker/ ]; then
+      mkdir "${dest_path}/${adaptor_name}"/worker
+      cp "${src_path}"/worker/*.jar "${dest_path}/${adaptor_name}"/worker
     fi
-    if [ -f "$1"/worker/properties ]; then 
-      cp "$1"/worker/properties "$2"/"${adaptor_name}"/worker
+    if [ -f "${src_path}"/worker/properties ]; then 
+      cp "${src_path}"/worker/properties "${dest_path}/${adaptor_name}"/worker
     fi
-    if [ -d "$1"/scripts/ ]; then
+    if [ -d "${src_path}"/scripts/ ]; then
       mkdir -p "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
-      cp -r "$1"/scripts/* "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
+      cp -r "${src_path}"/scripts/* "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
     fi
   }
+
+
   ####################
   # MAIN
   ####################
@@ -185,14 +191,17 @@
     cd "${SCRIPT_DIR}" || exit 1
   fi
 
+  # Streaming dependencies
+  cp -r "${TMP_DIR}"/dependencies/kafka "${targetDir}"/Dependencies/
+
   # Restore original path
   export PATH=${originalPath}
 
   # Config
   echo "--- Copy configuration"
-  find "${TMP_DIR}"/compss/runtime/config -name src -print0 | xargs rm -rf
-  find "${TMP_DIR}"/compss/runtime/config -name target -print0 | xargs rm -rf
-  find "${TMP_DIR}"/compss/runtime/config -name pom.xml -print0 | xargs rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name src -print0 | xargs -r rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name target -print0 | xargs -r rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name pom.xml -print0 | xargs -r rm -rf
   cp -r "${TMP_DIR}"/compss/runtime/config/* "${targetDir}"/Runtime/configuration/
   sed -i -e 's#/opt/COMPSs/#'"${targetDir}"'#g'  "${targetDir}"/Runtime/configuration/xml/projects/default_project.xml
 
@@ -211,7 +220,7 @@
   path_target=${targetDir}/Runtime/adaptors
   for adaptor in ${path_source}/*; do
     adaptor_name=$(basename "${adaptor}")
-    if [ "${adaptor_name}" != "agent" ] && [ "${adaptor_name}" != "target" ]; then
+    if [ "${adaptor_name}" != "agent" ] && [ "${adaptor_name}" != "target" ] && [ "${adaptor_name}" != "checkstyle-cachefile" ]; then
       install_adaptor "${adaptor}" "${path_target}"
     else
       for agent in ${adaptor}/*; do

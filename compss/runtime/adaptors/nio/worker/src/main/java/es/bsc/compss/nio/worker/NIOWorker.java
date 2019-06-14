@@ -179,14 +179,13 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         NIOTracer.init(this.tracingLevel);
         if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
-
-            if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
-                try {
-                    this.tracingId = Integer.parseInt(traceHost);
-                    NIOTracer.setWorkerInfo(installDir, hostName, workingDir, this.tracingId);
-                } catch (Exception e) {
-                    WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
-                }
+        }
+        if (NIOTracer.extraeEnabled() || NIOTracer.scorepEnabled() || NIOTracer.mapEnabled()) {
+            try {
+                this.tracingId = Integer.parseInt(traceHost);
+                NIOTracer.setWorkerInfo(installDir, hostName, workingDir, this.tracingId);
+            } catch (Exception e) {
+                WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + hostName);
             }
         }
 

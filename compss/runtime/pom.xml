@@ -32,6 +32,7 @@
 
     <!-- SUB-MODULES -->
     <modules>
+        <module>api</module>
         <module>commons</module>
         <module>storage</module>
         <module>loader</module>

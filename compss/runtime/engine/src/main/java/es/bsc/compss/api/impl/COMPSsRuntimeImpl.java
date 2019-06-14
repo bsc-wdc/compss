@@ -33,6 +33,7 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.DoNothingTaskMonitor;
+import es.bsc.compss.types.FatalErrorHandler;
 import es.bsc.compss.types.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -82,7 +83,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
+public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHandler {
 
     // Exception constants definition
     private static final String WARN_IT_FILE_NOT_READ = "WARNING: COMPSs Properties file could not be read";
@@ -108,7 +109,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
     protected static final Lang DEFAULT_LANG = ((DEFAULT_LANG_STR == null) ? Lang.JAVA
-            : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
+                                                : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
 
     // Registries
     private static ObjectRegistry oReg;
@@ -155,7 +156,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init(new MasterResourceImpl());
     }
-
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -386,7 +386,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * ************************************* CONSTRUCTOR *************************************
      * *********************************************************************************************************
      */
-
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -424,7 +423,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * COMPSsRuntime INTERFACE IMPLEMENTATION
      * *********************************************************************************************************
      */
-
     @Override
     public synchronized void startIT() {
         if (Tracer.extraeEnabled()) {
@@ -493,6 +491,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
+    }
+
+    @Override
+    public void fatalError() {
+        this.stopIT(true);
     }
 
     @Override
@@ -589,7 +592,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Registers a new core element definition into the Runtime.
-     * 
+     *
      * @param ced Core Element definition.
      */
     public void registerCoreElement(CoreElementDefinition ced) {
@@ -684,7 +687,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * @param appId Application Id.
      * @param monitor Task monitor.
      * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
-     *            and methodClass parameters
+     * and methodClass parameters
      * @param methodClass Method class.
      * @param methodName Method name.
      * @param signature Method signature.
@@ -766,7 +769,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
                     && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T
-                            || type == DataType.BINDING_OBJECT_T));
+                    || type == DataType.BINDING_OBJECT_T));
         }
 
         return hasReturn;
@@ -860,7 +863,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * *********************************** LoaderAPI INTERFACE IMPLEMENTATION **********************************
      * *********************************************************************************************************
      */
-
     @Override
     public void getFile(Long appId, String fileName) {
         if (Tracer.extraeEnabled()) {
@@ -983,7 +985,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * *********************************** COMMON IN BOTH APIs ***********************************
      * *********************************************************************************************************
      */
-
     @Override
     public String openFile(String fileName, Direction mode) {
         LOGGER.info("Opening " + fileName + " in mode " + mode);

@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.util;
 
-import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.FatalErrorHandler;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -47,7 +47,7 @@ public final class ErrorManager {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.ERROR_MANAGER);
 
-    private static COMPSsRuntime compssRuntime = null;
+    private static FatalErrorHandler handler = null;
     private static Integer errorRequest = -1;
 
     private static boolean stopping = false;
@@ -60,9 +60,9 @@ public final class ErrorManager {
         @Override
         public void run() {
             if (errorRequest == REQUEST_ERROR || errorRequest == REQUEST_FATAL) {
-                if (compssRuntime != null) {
+                if (handler != null) {
                     LOGGER.error(PREFIX_ERRMGR + "Error detected. Shutting down COMPSs");
-                    compssRuntime.stopIT(true);
+                    handler.fatalError();
                 }
 
                 System.exit(1);
@@ -70,19 +70,18 @@ public final class ErrorManager {
         }
     };
 
-
     /**
      * Initializes the ErrorManager.
-     * 
-     * @param compssRuntime Attached COMPSs Runtime execution.
+     *
+     * @param handler Class to invoke on a fatal error case.
      */
-    public static void init(COMPSsRuntime compssRuntime) {
-        ErrorManager.compssRuntime = compssRuntime;
+    public static void init(FatalErrorHandler handler) {
+        ErrorManager.handler = handler;
     }
 
     /**
      * Handles a warning message and/or exception (prints it).
-     * 
+     *
      * @param msg Warning message.
      * @param e Warning exception.
      */
@@ -100,7 +99,7 @@ public final class ErrorManager {
 
     /**
      * Handles a warning exception (prints it).
-     * 
+     *
      * @param e Warning exception.
      */
     public static void warn(Exception e) {
@@ -109,7 +108,7 @@ public final class ErrorManager {
 
     /**
      * Handles a warning message (prints it).
-     * 
+     *
      * @param msg Warning message.
      */
     public static void warn(String msg) {
@@ -118,7 +117,7 @@ public final class ErrorManager {
 
     /**
      * Handles an error message and/or exception (prints it and stops the Runtime).
-     * 
+     *
      * @param msg Error message.
      * @param e Error exception.
      */
@@ -141,7 +140,7 @@ public final class ErrorManager {
 
     /**
      * Handles an error exception (prints it and stops the Runtime).
-     * 
+     *
      * @param e Error exception.
      */
     public static void error(Exception e) {
@@ -150,7 +149,7 @@ public final class ErrorManager {
 
     /**
      * Handles an error message (prints it and stops the Runtime).
-     * 
+     *
      * @param msg Error message.
      */
     public static void error(String msg) {
@@ -159,7 +158,7 @@ public final class ErrorManager {
 
     /**
      * Handles an fatal message and/or exception (prints it and stops the Runtime).
-     * 
+     *
      * @param msg Fatal message.
      * @param e Fatal exception.
      */
@@ -182,7 +181,7 @@ public final class ErrorManager {
 
     /**
      * Handles an fatal exception (prints it and stops the Runtime).
-     * 
+     *
      * @param e Fatal exception.
      */
     public static void fatal(Exception e) {
@@ -191,7 +190,7 @@ public final class ErrorManager {
 
     /**
      * Handles an fatal message (prints it and stops the Runtime).
-     * 
+     *
      * @param msg Fatal message.
      */
     public static void fatal(String msg) {
@@ -202,11 +201,10 @@ public final class ErrorManager {
      * *************************************************************************************************************
      * PRIVATE METHODS
      **************************************************************************************************************/
-
     /**
      * Indents every line so that a single warning, error or fatal shows as a unique block, including exceptions and
      * stack trace.
-     * 
+     *
      * @param prefix Print prefix.
      * @param msg Print message.
      * @param e Print exception.
@@ -237,7 +235,7 @@ public final class ErrorManager {
 
     /**
      * Adds indentation to a string.
-     * 
+     *
      * @param str Input string.
      * @param indentation Indentation value.
      * @return The given string {@code str} prepended with {@code indentation} indentation spaces.

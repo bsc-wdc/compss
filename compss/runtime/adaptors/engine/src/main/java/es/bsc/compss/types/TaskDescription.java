@@ -45,11 +45,10 @@ public class TaskDescription implements Externalizable {
     private int numNodes;
     private boolean mustReplicate;
     private boolean mustDistribute;
-
-    private List<Parameter> parameters;
-    private boolean hasTarget;
-    private int numReturns;
-
+    private final List<Parameter> parameters;
+    private final boolean hasTarget;
+    private final int numReturns;
+    private final int timeOut;
 
     /**
      * No-parameter constructor only used for deserialization.
@@ -85,7 +84,7 @@ public class TaskDescription implements Externalizable {
      */
     public TaskDescription(TaskType type, Lang lang, String signature, int coreId, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
-            List<Parameter> parameters) {
+            int timeOut, List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;
@@ -100,6 +99,7 @@ public class TaskDescription implements Externalizable {
         this.hasTarget = hasTarget;
         this.parameters = parameters;
         this.numReturns = numReturns;
+        this.timeOut = timeOut;
 
         if (this.numNodes < Constants.SINGLE_NODE) {
             ErrorManager.error("Invalid number of nodes " + this.numNodes + " on executeTask " + this.signature);
@@ -219,6 +219,15 @@ public class TaskDescription implements Externalizable {
      */
     public TaskType getType() {
         return this.type;
+    }
+    
+    /**
+     * Returns the set time out.
+     * 
+     * @return The time out.
+     */
+    public int getTimeOut() {
+        return timeOut;
     }
 
     @Override

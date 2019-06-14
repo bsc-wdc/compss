@@ -407,6 +407,7 @@ public class ITAppEditor extends ExprEditor {
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
         OnFailure onFailure = OnFailure.RETRY;
+        int timeOut = 0;
         int numNodes = Constants.SINGLE_NODE;
 
         // Scheduler hints values
@@ -430,6 +431,7 @@ public class ITAppEditor extends ExprEditor {
                         .getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.priority()));
                 onFailure = methodAnnot.onFailure();
+                timeOut = Integer.valueOf(methodAnnot.timeOut());
             } else if (declaredMethod.isAnnotationPresent(Binary.class)) {
                 Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
@@ -498,7 +500,10 @@ public class ITAppEditor extends ExprEditor {
         executeTask.append(numParams).append(',');
 
         // Add the onFailure behavior
-        executeTask.append(OnFailure.class.getCanonicalName() + "." + onFailure);
+        executeTask.append(OnFailure.class.getCanonicalName() + "." + onFailure).append(',');
+        
+        // Add the timeOut time
+        executeTask.append(timeOut);
 
         if (numParams == 0) {
             executeTask.append(",null);");

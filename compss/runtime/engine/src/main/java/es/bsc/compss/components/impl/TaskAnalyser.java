@@ -25,6 +25,7 @@ import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -48,6 +49,7 @@ import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierRequest;
+import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
@@ -55,15 +57,18 @@ import es.bsc.compss.util.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
+import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -111,6 +116,10 @@ public class TaskAnalyser {
     // Tasks that are accessed commutatively and are pending to be drawn in graph. Map: commutative group identifier ->
     // list of tasks from group
     private TreeMap<String, LinkedList<Task>> pendingToDrawCommutative;
+    // Task groups. Map: group name -> commutative group tasks
+    private TreeMap<String, TaskGroup> taskGroups;
+    // Stack of current task groups
+    private Stack<TaskGroup> currentTaskGroups;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -134,6 +143,8 @@ public class TaskAnalyser {
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
+        this.currentTaskGroups = new Stack<>();
+        this.taskGroups = new TreeMap<>();
 
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
@@ -445,6 +456,18 @@ public class TaskAnalyser {
         if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
             constrainingParam = params.getParameters().size() - 1 - params.getNumReturns();
         }
+        
+        //Set task group
+        if (!this.currentTaskGroups.empty()) {
+            Iterator<TaskGroup> currentGroups = this.currentTaskGroups.iterator(); 
+            while(currentGroups.hasNext()) {
+                TaskGroup nextGroup = currentGroups.next();
+                currentTask.setTaskGroup(nextGroup);
+                nextGroup.addTask(currentTask);
+                LOGGER.debug("MARTA: Task " + currentTask.getId() + " added to group " + nextGroup.getName());
+            }
+         }
+
         List<Parameter> parameters = params.getParameters();
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam,
@@ -575,12 +598,28 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Releasing data dependant tasks for task " + taskId);
             }
+
+            // Release task groups of the task
+            releaseTaskGroups(task);
+
             // Releases commutative groups dependent and releases all the waiting tasks
             releaseCommutativeGroups(task);
         }
 
         // Release data dependent tasks
         task.releaseDataDependents();
+    }
+    
+    /**
+     * Releases the commutative groups dependencies.
+     *
+     * @param task Task to release groups.
+     */
+    private void releaseTaskGroups(AbstractTask task) {
+        for (TaskGroup group : ((Task) task).getTaskGroupList()) {
+            group.removeTask((Task) task);
+            LOGGER.debug("Group " + group.getName() + " released a task");
+        }
     }
 
     /**
@@ -848,6 +887,33 @@ public class TaskAnalyser {
     }
 
     /**
+     * Barrier for group
+     *
+     * @param request
+     */
+    public void barrierGroup(BarrierGroupRequest request) {
+        String groupName = request.getGroupName();
+        Long appId = request.getAppId();
+        TaskGroup tg = this.taskGroups.get(groupName);
+
+        // Addition of missing commutative groups to graph
+        if (IS_DRAW_GRAPH) {
+            addMissingCommutativeTasksToGraph();
+            addNewBarrier();
+            LOGGER.debug("MARTA: Barrier added to graph");
+            // We can draw the graph on a barrier while we wait for tasks
+            this.gm.commitGraph();
+        }
+        LOGGER.debug("MARTA: BarrierGroup for tg appId " + appId);
+        // Release the semaphore only if all application tasks have finished
+        if (!tg.hasPendingTasks()) {
+            request.getSemaphore().release();
+        } else {
+            this.appIdToSemaphore.put(appId, request.getSemaphore());
+        }
+    }
+
+    /**
      * End of execution barrier.
      *
      * @param request End of execution request.
@@ -877,6 +943,40 @@ public class TaskAnalyser {
      */
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {
         return this.appIdToWrittenFiles.remove(appId);
+    }
+
+    /**
+     * Sets the current task group to assign to tasks
+     * 
+     * @param taskGroup
+     */
+    public void setCurrentTaskGroup(String groupName) {
+        LOGGER.debug("MARTA: Setting new task group " + groupName);
+        TaskGroup tg = new TaskGroup(groupName);
+        this.taskGroups.put(groupName,tg);
+        this.currentTaskGroups.push(tg);
+        LOGGER.debug("MARTA: CurrentTaskGroups - " + this.currentTaskGroups);
+        if (IS_DRAW_GRAPH) {
+            this.gm.addTaskGroupToGraph(tg.getName());
+            tg.setGraphDrawn();
+            LOGGER.debug("MARTA: Group added to graph");
+        }
+    }
+    
+    /**
+     * Closes the task group
+     * 
+     */
+    public void closeCurrentTaskGroup() { //Stack on vas apilant i quan es treu es treu lultim 
+        //tREEMAP DE GRUPS I NAMES PER QUAN S'HAGI DE CANCELAR (
+        //Compss barrier group per anar al hashmap Nomes shan de borrar quan totes les d'un grup shan dexecutar
+        // group set semaphore quan arriba un barrier i quan totes les tasques acaben el semafor s'allibera
+        LOGGER.debug("MARTA: CurrentTaskGroups - " + this.currentTaskGroups);
+        this.currentTaskGroups.pop();
+        if (IS_DRAW_GRAPH) {
+            this.gm.closeGroupInGraph();
+            LOGGER.debug("MARTA: Group closed in graph");
+        }
     }
 
     /**

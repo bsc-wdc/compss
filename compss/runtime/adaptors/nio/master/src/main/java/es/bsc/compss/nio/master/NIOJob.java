@@ -112,7 +112,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
         NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, this.taskParams.hasTargetObject(),
                 this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
                 this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history,
-                this.transferId);
+                this.transferId, this.getTimeOut());
+
 
         return nt;
     }

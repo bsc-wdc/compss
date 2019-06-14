@@ -49,5 +49,7 @@ public interface Invocation {
     public ResourceDescription getRequirements();
 
     public List<String> getSlaveNodesNames();
+    
+    public int getTimeOut();
 
 }

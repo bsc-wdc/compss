@@ -76,6 +76,11 @@ public class FakeInvocation implements Invocation {
     }
 
     @Override
+    public int getTimeOut() {
+        return 0;
+    }
+
+    @Override
     public Lang getLang() {
         return this.lang;
     }

@@ -170,7 +170,7 @@ public class Agent {
                 false, 1, false, false, // Scheduler hints
                 false, 8, // Parameters information
                 OnFailure.RETRY, // On failure behavior
-                paramsValues // Argument values
+                0, paramsValues // Argument values
         );
         return mainAppId;
     }
@@ -292,6 +292,7 @@ public class Agent {
                     false, 1, false, false, // Scheduling information
                     target != null, paramsCount, // Parameter information
                     OnFailure.RETRY, // On failure behavior
+                    0, // Time out of the task
                     params // Parameter values
             );
 

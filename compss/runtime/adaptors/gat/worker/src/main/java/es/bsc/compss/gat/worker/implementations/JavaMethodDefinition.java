@@ -76,5 +76,10 @@ public class JavaMethodDefinition extends ImplementationDefinition {
         sb.append(super.toString());
         return sb.toString();
     }
+    
+    @Override
+    public int getTimeOut() {
+        return 0;
+    }
 
 }

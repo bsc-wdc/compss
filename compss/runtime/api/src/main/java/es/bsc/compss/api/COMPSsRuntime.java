@@ -73,6 +73,7 @@ public interface COMPSsRuntime {
      * @param appId The application id.
      * @param methodClass The method class.
      * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for an application time out.
      * @param methodName The method name.
      * @param isPrioritary Whether the task is set as prioritary or not.
      * @param hasTarget Whether the task has a target parameter or not.
@@ -81,8 +82,8 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String onFailure, String methodName, boolean isPrioritary,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName, 
+            boolean isPrioritary, boolean hasTarget, Integer numReturns,int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding.
@@ -90,6 +91,7 @@ public interface COMPSsRuntime {
      * @param appId The application id.
      * @param signature The method signature.
      * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for an application time out.
      * @param isPrioritary Whether the task is set as prioritary or not.
      * @param numNodes The number of nodes required to execute the task.
      * @param isReplicated Whether the task must be replicated or not.
@@ -100,7 +102,7 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String signature, String onFailure, boolean isPrioritary, int numNodes,
+    public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary, int numNodes, 
             boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
             Object... parameters);
 
@@ -119,12 +121,13 @@ public interface COMPSsRuntime {
      * @param hasTarget Whether the task has a target parameter or not.
      * @param parameterCount The number of parameters of the method.
      * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for an application time out.
      * @param parameters An object array containing the method parameters.
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-            int parameterCount, OnFailure onFailure, Object... parameters);
+            int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
 
     /**
      * New service task.
@@ -142,12 +145,13 @@ public interface COMPSsRuntime {
      * @param hasTarget Whether the task has a target parameter or not.
      * @param parameterCount The number of parameters of the method.
      * @param onFailure On task failure behavior.
+     * @param timeOut Amount of time for a task timeOut.
      * @param parameters An object array containing the method parameters.
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
             String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, OnFailure onFailure, Object... parameters);
+            boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId.
@@ -172,6 +176,15 @@ public interface COMPSsRuntime {
      */
     public void barrier(Long appId, boolean noMoreTasks);
 
+   /**
+    * Freezes the task generation until all the tasks of the group have finished execution. The name of the group to wait is 
+    * given as a parameter.
+    *
+    * @param appId       The application id.
+    * @param groupName   Name of the group to wait.
+    */
+   public void barrierGroup(Long appId, String groupName); 
+
     /**
      * Unregisters an object to eventually free its memory.
      *
@@ -179,6 +192,22 @@ public interface COMPSsRuntime {
      * @param o The object to register.
      */
     public void deregisterObject(Long appId, Object o);
+
+    /**
+     * Creates a new task group
+     *
+     * @param groupName Group name.
+     *
+     */
+    public void openTaskGroup(String groupName);
+    
+    /**
+     * Closes an existing task group
+     *
+     * @param groupName Group name.
+     *
+     */
+    public void closeTaskGroup(String groupName);
 
     /*
      * *****************************************************************************************************************

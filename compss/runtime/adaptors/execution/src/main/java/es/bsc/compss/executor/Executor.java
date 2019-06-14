@@ -52,6 +52,8 @@ import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.TimeOutTask;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -63,6 +65,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
+import java.util.Timer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -274,8 +278,15 @@ public class Executor implements Runnable {
                 // Execute task
                 LOGGER.debug("Executing Task of Job " + invocation.getJobId());
                 long startExec = System.currentTimeMillis();
+                Timer timer = new Timer("Timer"+invocation.getTaskId());
+                Long time = (long) invocation.getTimeOut();
+                LOGGER.debug("MARTA: Time starts counting " + time + "  " + invocation.getTimeOut());
+                TimeOutTask timerTask = new TimeOutTask(invocation.getTaskId());
+                timer.schedule(timerTask, time);
                 executeTask(assignedResources, invocation, twd.getWorkingDir());
                 execDuration = System.currentTimeMillis() - startExec;
+                LOGGER.debug("MARTA: Timer cancelled");
+                timerTask.cancel();
 
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);

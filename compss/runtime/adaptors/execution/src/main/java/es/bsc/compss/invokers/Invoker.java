@@ -32,6 +32,8 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsWorker;
+import es.bsc.compss.worker.TimeOutTask;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -41,6 +43,7 @@ import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.Timer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -331,6 +334,7 @@ public abstract class Invoker {
 
     private void setEnvironmentVariables() {
         // Setup properties
+        System.setProperty(COMPSsWorker.COMPSS_TASK_ID, String.valueOf(this.invocation.getTaskId()));
         System.setProperty(COMPSS_NUM_NODES, String.valueOf(this.numWorkers));
         System.setProperty(COMPSS_HOSTNAMES, this.workers);
         System.setProperty(COMPSS_NUM_THREADS, String.valueOf(this.computingUnits));

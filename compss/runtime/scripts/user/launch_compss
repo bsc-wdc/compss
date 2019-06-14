@@ -26,6 +26,9 @@ DEFAULT_FPGA_AFFINITY="automatic"
 DEFAULT_FPGA_REPROGRAM=""
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_STORAGE_CONF=null
+DEFAULT_STREAMING="null"
+BASE_STREAMING_PORT=49049
+STREAMING_PORT_RAND_RANGE=100
 DEFAULT_PERSISTENT_WORKER_C=false
 DEFAULT_PYTHON_INTERPRETER=python
 DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
@@ -290,9 +293,13 @@ worker_cmd() {
   local gpuMap=${11}
   local fpgaMap=${12}
   local lot=${13}
+  local streaming_backend=${14}
+  local streaming_master_port=${15}
 
-  streaming_port=44000
-  streaming_backend="null"
+  if [ -z "${streaming_master_port}" ] || [ "${streaming_master_port}" == "null" ]; then
+    # Value will be ignored, just add a random number so that the parser does not complain
+    streaming_master_port=44000
+  fi
 
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
   local maxSend=5
@@ -322,7 +329,7 @@ worker_cmd() {
             ${worker_port} \
             ${mName} \
             ${master_port} \
-            ${streaming_port} \
+            ${streaming_master_port} \
             ${cusCPU} \
             ${cusGPU} \
             ${cusFPGA} \
@@ -370,6 +377,8 @@ master_cmd() {
             --specific_log_dir=${specific_log_dir} \
             --master_name=${master_name} \
             --master_port=${master_port} \
+            --streaming=${streaming} \
+            --streaming_master_port=${streaming_master_port} \
             --jvm_master_opts=${jvm_master_opts} \
             --jvm_workers_opts=${jvm_workers_opts}"
 }
@@ -901,17 +910,17 @@ get_args() {
           ;;
         cpu_affinity=*)
           cpu_affinity=${OPTARG//cpu_affinity=}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         gpu_affinity=*)
           gpu_affinity=${OPTARG//gpu_affinity=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         fpga_affinity=*)
           fpga_affinity=${OPTARG//fpga_affinity=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         fpga_reprogram=*)
@@ -937,47 +946,56 @@ get_args() {
           ;;
         lang=*)
           lang=${OPTARG//lang=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
+          ;;
+        streaming=*)                                                                                                                                                                                                                    
+          streaming=${OPTARG//streaming=/}
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
+        streaming_master_port=*)
+          streaming_master_port=${OPTARG//streaming_master_port=/}
+          # Keep the argument because we will overwrite it
           ;;
         library_path=*)
           library_path=${OPTARG//library_path=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         classpath=*)
           cp=${OPTARG//classpath=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         pythonpath=*)
           pythonpath=${OPTARG//pythonpath=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         appdir=*)
           appdir=${OPTARG//appdir=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         log_level=*)
           log_level=${OPTARG//log_level=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         debug)
           log_level=${DEFAULT_LOG_LEVEL_ARG}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         tracing=*)
           tracing=${OPTARG//tracing=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         tracing)
           tracing=${DEFAULT_TRACING_ARG}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         extrae_config_file=*)
@@ -987,7 +1005,7 @@ get_args() {
           ;;
         comm=*)
           comm=${OPTARG//comm=/}
-          #Keep it for runcompss (to add them to master)
+          # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
         jvm_master_opts=*)
@@ -1040,7 +1058,7 @@ get_args() {
           numEpilogActions=$((numEpilogActions + 1))
           ;;
         uuid=*)
-          #Modified for heterogeneity
+          # Modified for heterogeneity
           uuid=${OPTARG//uuid=/}
           ;;
         specific_log_dir=*)
@@ -1050,7 +1068,7 @@ get_args() {
         base_log_dir=*)
           # Base log dir is automatically generated by launch_compss.sh. Remove it from COMPSs flags
           # echo "WARNING: base_log_dir is automatically generated. Omitting parameter"
-        base_log_dir=${OPTARG//base_log_dir=/}
+          base_log_dir=${OPTARG//base_log_dir=/}
           ;;
         master_name=*)
           # Master name is automatically generated by launch_compss.sh. Remove it from COMPSs flags
@@ -1089,7 +1107,7 @@ get_args() {
           cpus_per_task="true"
           ;;
         constraints=*)
-          #Added for elasticity
+          # Added for elasticity
           constraints=${OPTARG//constraints=/}
           ;;
         jupyter_notebook)
@@ -1101,15 +1119,15 @@ get_args() {
           jupyter_notebook_path=${OPTARG//jupyter_notebook=/}
           ;;
         xmls_phase=*)
-          #Added for heterogeneity
+          # Added for heterogeneity
           xmls_phase=${OPTARG//xmls_phase=/}
           ;;
         xmls_suffix=*)
-          #Added for heterogeneity
+          # Added for heterogeneity
           xmls_suffix=${OPTARG//xmls_suffix=/}
           ;;
         initial_hostid=*)
-          #Added for tracing in heterogeneity
+          # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
         *)
@@ -1408,6 +1426,18 @@ check_args() {
   if [ -z "$appdir" ]; then
     appdir=${DEFAULT_APPDIR}
   fi
+
+  # Streaming
+  if [ -z "${streaming}" ]; then
+    streaming=${DEFAULT_STREAMING}
+  fi
+  if [ "${streaming}" != "null" ] && [ "${streaming}" != "NONE" ]; then
+    if [ -z "${streaming_master_port}" ]; then
+      streaming_master_port=$((BASE_STREAMING_PORT + RANDOM % STREAMING_PORT_RAND_RANGE))
+    fi
+  else
+    streaming_master_port="null"
+  fi
 }
 
 
@@ -1535,10 +1565,12 @@ log_variables() {
   echo "Master JVM Opts:           ${jvm_master_opts}"
   echo "Workers JVM Opts:          ${jvm_workers_opts}"
   echo "Worker in Master JVM Opts: ${jvm_worker_in_master_opts}"
+  echo "Streaming Backend:         ${streaming}"
+  echo "Streaming Master Port:     ${streaming_master_port}"
   echo "Library Path:              ${library_path}"
   echo "Classpath:                 ${cp}"
   echo "Pythonpath:                ${pythonpath}"
-  echo "Appdir:			   ${appdir}"
+  echo "Appdir:			           ${appdir}"
   echo "Lang:                      ${lang}"
   echo "Python Interpreter:        ${python_interpreter}"
   echo "Python version:            ${python_version}"
@@ -1600,8 +1632,8 @@ launch() {
         jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
         fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
         fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
-        # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
-        worker_cmd "$hostid" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
+        # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
+        worker_cmd "$hostid" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
@@ -1628,8 +1660,8 @@ launch() {
       fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
       fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
       for node in ${worker_nodes}; do
-        # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
-        worker_cmd $hostid "$node${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}"
+        # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
+        worker_cmd $hostid "$node${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
             node=$(${NODE_NAME_QUEUE} ${node})
@@ -1674,9 +1706,10 @@ launch() {
       MCMD="${MCMD} ${args_pass}"
       echo "CMD Master: $MCMD"
       $MCMD
-      if [ $? -ne 0 ]; then
+      ev=$?
+      if [ $ev -ne 0 ]; then
         echo "Master execution failed. Exiting job."
-        exit 1
+        exit $ev
       fi
     else
       # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
@@ -1702,7 +1735,7 @@ launch() {
       export COMPSS_STORAGE_CONF="${storage_conf}"
       # Run jupyter notebook instead of the master within the jupyter_notebook_path
       # The master will be started when the user wants later from the notebook (the workers have already been launched)
-      (cd ${jupyter_notebook_path} && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
+      (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
     fi
   fi
 }

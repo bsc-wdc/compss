@@ -258,7 +258,7 @@ process_task(PyObject *self, PyObject *args) {
     debug("####C#### PROCESS TASK\n");
     long app_id;
     char *signature, *on_failure;
-    int priority, num_nodes, replicated, distributed, has_target, num_returns;
+    int priority, num_nodes, replicated, distributed, has_target, num_returns, time_out;
     PyObject *values;
     PyObject *names;
     PyObject *compss_types;
@@ -266,7 +266,7 @@ process_task(PyObject *self, PyObject *args) {
     PyObject *compss_streams;
     PyObject *compss_prefixes;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lssiiiiiiOOOOOO", &app_id, &signature, &on_failure, &priority,
+    if(!PyArg_ParseTuple(args, "lssiiiiiiiOOOOOO", &app_id, &signature, &on_failure, &time_out, &priority,
                          &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
                          &compss_directions, &compss_streams, &compss_prefixes)) {
         // Return NULL after ParseTuple automatically translates to "wrong
@@ -276,6 +276,7 @@ process_task(PyObject *self, PyObject *args) {
     debug("####C#### App id: %ld\n", app_id);
     debug("####C#### Signature: %s\n", signature);
     debug("####C#### On Failure: %s\n", on_failure);
+    debug("####C#### Time Out: %d\n", time_out);
     debug("####C#### Priority: %d\n", priority);
     debug("####C#### MPI Num nodes: %d\n", num_nodes);
     debug("####C#### Replicated: %d\n", replicated);
@@ -346,6 +347,7 @@ process_task(PyObject *self, PyObject *args) {
         app_id,
         signature,
         on_failure,
+        time_out,
         priority,
         num_nodes,
         replicated,
@@ -446,6 +448,44 @@ barrier(PyObject *self, PyObject *args) {
 }
 
 /*
+  Notify the runtime that our current application wants to "execute" a barrier for a group.
+  Program will be blocked in GS_BarrierGroup until all running tasks part of the group have ended.
+*/
+static PyObject *
+barrier_group(PyObject *self, PyObject *args) {
+    debug("####C#### BARRIER OF GROUP\n");
+     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    char *group_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    debug("####C#### COMPSs barrier for group: %s \n", (group_name));
+    GS_BarrierGroup(app_id, group_name);
+    Py_RETURN_NONE;
+}
+
+/*
+  Creates a new task group that will include all the subsequent tasks.
+*/
+static PyObject*
+open_task_group(PyObject *self, PyObject *args) {
+    debug("####C#### TASK GROUP CREATION\n");
+    char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    debug("####C#### COMPSs task group: %s created\n", (group_name));
+    GS_OpenTaskGroup(group_name);
+    Py_RETURN_NONE;
+}
+
+/*
+  Closes the opened task group.
+*/
+static PyObject*
+close_task_group(PyObject *self, PyObject *args) {
+    debug("####C#### CLOSING TASK GROUP\n");
+    char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    debug("####C#### COMPSs task group: %s closed\n", (group_name));
+    GS_CloseTaskGroup(group_name);
+    Py_RETURN_NONE;
+}
+
+/*
   Returns the logging path.
 */
 static PyObject *
@@ -509,6 +549,9 @@ static PyMethodDef CompssMethods[] = {
     { "close_file", close_file, METH_VARARGS, "Close a file." },
     { "get_file", get_file, METH_VARARGS, "Get last version of file with its original name." },
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
+    { "open_task_group", open_task_group, METH_VARARGS, "Opens a new task group." },
+    { "close_task_group", close_task_group, METH_VARARGS, "Closes a new task group." },
+    { "barrier_group", barrier_group, METH_VARARGS, "Barrier for a task group." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
     { NULL, NULL } /* sentinel */

@@ -51,12 +51,17 @@ if context.in_pycompss():
     from pycompss.runtime.binding import get_file
     from pycompss.runtime.binding import delete_object
     from pycompss.runtime.binding import barrier
+    from pycompss.runtime.binding import barrier_group
+    from pycompss.runtime.binding import open_task_group
+    from pycompss.runtime.binding import close_task_group
     from pycompss.runtime.binding import synchronize
     from pycompss.runtime.binding import get_compss_mode
     from pycompss.runtime.binding import pending_to_synchronize
     from pycompss.runtime.binding import Future
     from pycompss.runtime.binding import EmptyReturn
     from pycompss.runtime.commons import IS_PYTHON3
+
+    from contextlib import contextmanager
 
     if IS_PYTHON3:
         listType = list
@@ -143,6 +148,15 @@ if context.in_pycompss():
 
         barrier(no_more_tasks)
 
+    def compss_barrier_group(group_name):
+        """
+        Perform a barrier to a group when called.
+        Stop until all the tasks of a group have finished.
+
+        :param group_name: Name of the group to wait
+        """
+
+        barrier_group(group_name)
 
     def compss_wait_on(*args, **kwargs):
         """
@@ -203,6 +217,20 @@ if context.in_pycompss():
                     ret.remove(elem)
         return ret
 
+
+    class TaskGroup(object):
+        def __init__(self, group_name):
+            self.group_name = group_name
+
+        def __enter__(self):
+            # Group creation
+            open_task_group(self.group_name)
+
+        def __exit__(self, type, value, traceback):
+            # Group closing
+            close_task_group(self.group_name)
+
+
 else:
     # ################################################################# #
     #                    Dummmy API redirections                        #
@@ -216,7 +244,10 @@ else:
     from pycompss.api.dummy.api import compss_wait_on_file as __dummy_compss_wait_on_file__
     from pycompss.api.dummy.api import compss_delete_object as __dummy_compss_delete_object__
     from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
+    from pycompss.api.dummy.api import compss_barrier_group as __dummy_compss_barrier_group__
     from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
+    from pycompss.api.dummy.api import compss_open_task_group as __dummy_compss_open_task_group__
+    from pycompss.api.dummy.api import compss_close_task_group as __dummy_compss_close_task_group__
 
 
     def compss_start():
@@ -234,8 +265,10 @@ else:
     def compss_delete_file(file_name):
         return __dummy_compss_delete_file__(file_name)
 
+
     def compss_wait_on_file(file_name):
         return __dummy_compss_wait_on_file__(file_name)
+
 
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)
@@ -245,5 +278,18 @@ else:
         __dummy_compss_barrier__(no_more_tasks)
 
 
+    def compss_barrier_group(group_name):
+        __dummy_compss_barrier_group__(group_name)
+
+
     def compss_wait_on(*args):
         return __dummy_compss_wait_on__(*args)
+
+
+    def compss_open_task_group(group_name):
+        return __dummy_compss_open_task_group__(group_name)
+
+
+    def compss_close_task_group(group_name):
+        return __dummy_compss_close_task_group__(group_name)
+

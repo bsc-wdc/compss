@@ -40,16 +40,18 @@ extern "C" void GS_RegisterCE(char *CESignature,
 extern "C" void GS_ExecuteTask(long appId,
                                char *class_name,
                                char *on_failure,
+                               int time_out,
                                char *method_name,
                                int priority,
                                int has_target,
                                int num_returns,
-			       int num_params,
+			                   int num_params,
                                void **params
                               );
 extern "C" void GS_ExecuteTaskNew(long appId,
                                   char *signature,
                                   char *on_failure,
+                                  int time_out,
                                   int priority,
                                   int num_nodes,
                                   int replicated,
@@ -69,6 +71,9 @@ extern "C" void GS_Get_File(long appId, char *file_name);
 // COMPSs API Calls
 extern "C" void GS_Barrier(long appId);
 extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
+extern "C" void GS_BarrierGroup(long _appId, char *group_name);
+extern "C" void GS_OpenTaskGroup(char *group_name);
+extern "C" void GS_CloseTaskGroup(char *group_name);
 
 // Misc functions
 extern "C" void GS_Get_AppDir(char **buf);

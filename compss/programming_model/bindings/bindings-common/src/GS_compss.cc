@@ -51,6 +51,9 @@ jmethodID midGetFile;               /* ID of the getFile method in the es.bsc.co
 
 jmethodID midBarrier; 		        /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midBarrierNew;            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midBarrierGroup;            /* ID of the barrierGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midOpenTaskGroup;         /* ID of the openTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midCloseTaskGroup;        /* ID of the closeTaskGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midgetBindingObject;		/* ID of the getBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midDeleteBindingObject; 	/* ID of the deleteBindingObject method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class  */
@@ -188,14 +191,14 @@ void init_master_jni_types() {
     check_and_treat_exception(m_env, "Looking for getApplicationDirectory method");
 
     // executeTask method - C binding
-    midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    midExecute = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
     }
 
     // executeTask method - Python binding
-    midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
+    midExecuteNew = m_env->GetMethodID(clsITimpl, "executeTask", "(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;IZIZZZLjava/lang/Integer;I[Ljava/lang/Object;)I");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -210,6 +213,27 @@ void init_master_jni_types() {
 
     // barrier method (with no more tasks flag)
     midBarrierNew = m_env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;Z)V");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    // openTaskGroup method
+    midBarrierGroup = m_env->GetMethodID(clsITimpl, "barrierGroup", "(Ljava/lang/Long;Ljava/lang/String;)V");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    // openTaskGroup method
+    midOpenTaskGroup = m_env->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;)V");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    // openTaskGroup method
+    midCloseTaskGroup = m_env->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -843,7 +867,7 @@ void GS_Get_AppDir(char **buf) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_AppDir  -  directory name: %s\n", *buf);
 }
 
-void GS_ExecuteTask(long _appId, char *class_name, char *on_failure, char *method_name, int priority, int has_target, int num_returns, int num_params, void **params) {
+void GS_ExecuteTask(long _appId, char *class_name, char *on_failure, int time_out, char *method_name, int priority, int has_target, int num_returns, int num_params, void **params) {
 
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
@@ -873,7 +897,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *on_failure, char *metho
         process_param(params, i, jobjOBJArr);
     }
 
-    m_env->CallVoidMethod(jobjIT, midExecute, appId, m_env->NewStringUTF(class_name), m_env->NewStringUTF(on_failure), m_env->NewStringUTF(method_name), _priority, _has_target, num_returns_integer, num_params, jobjOBJArr);
+    m_env->CallVoidMethod(jobjIT, midExecute, appId, m_env->NewStringUTF(class_name), m_env->NewStringUTF(on_failure), time_out, m_env->NewStringUTF(method_name), _priority, _has_target, num_returns_integer, num_params, jobjOBJArr);
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling executeTask.\n");
         m_env->ExceptionDescribe();
@@ -886,7 +910,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *on_failure, char *metho
     release_lock();
 }
 
-void GS_ExecuteTaskNew(long _appId, char *signature, char *on_failure, int priority, int num_nodes, int replicated, int distributed,
+void GS_ExecuteTaskNew(long _appId, char *signature, char *on_failure, int time_out, int priority, int num_nodes, int replicated, int distributed,
                        int has_target, int num_returns, int num_params, void **params) {
 
     jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
@@ -931,6 +955,7 @@ void GS_ExecuteTaskNew(long _appId, char *signature, char *on_failure, int prior
                           appId,
                           m_env->NewStringUTF(signature),
                           m_env->NewStringUTF(on_failure),
+                          time_out,
                           _priority,
                           num_nodes,
                           _replicated,
@@ -1201,6 +1226,60 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
         m_jvm->DetachCurrentThread();
     }
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
+}
+
+void GS_BarrierGroup(long _appId, char *group_name) {
+    jstring jstr = NULL;
+    get_lock();
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
+    release_lock();
+    local_env->CallVoidMethod(jobjIT, midBarrierGroup, appId, local_env->NewStringUTF(group_name));
+
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
+        exit(1);
+    }
+    if (isAttached==1) {
+        m_jvm->DetachCurrentThread();
+    }
+    debug_printf("[BINDING-COMMONS]  -  @GS_BarrierGroup  -  COMPSs group name: %s\n", group_name);
+}
+
+void GS_OpenTaskGroup(char *group_name){
+    jstring jstr = NULL;
+    get_lock();
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
+    release_lock();
+    local_env->CallVoidMethod(jobjIT, midOpenTaskGroup, local_env->NewStringUTF(group_name));
+
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
+        exit(1);
+    }
+    if (isAttached==1) {
+        m_jvm->DetachCurrentThread();
+    }
+    debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  COMPSs group name: %s\n", group_name);
+}
+
+void GS_CloseTaskGroup(char *group_name){
+    jstring jstr = NULL;
+    get_lock();
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
+    release_lock();
+    local_env->CallVoidMethod(jobjIT, midCloseTaskGroup, local_env->NewStringUTF(group_name));
+
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
+        exit(1);
+    }
+    if (isAttached==1) {
+        m_jvm->DetachCurrentThread();
+    }
+    debug_printf("[BINDING-COMMONS]  -  @GS_CloseTaskGroup  -  COMPSs group name: %s\n", group_name);
 }
 
 void GS_EmitEvent(int type, long id) {

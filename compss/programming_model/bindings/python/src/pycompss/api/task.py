@@ -46,6 +46,7 @@ SUPPORTED_ARGUMENTS = ['compss_tracing',  # private
                        'returns',
                        'priority',
                        'on_failure',
+                       'time_out',
                        'is_replicated',
                        'is_distributed',
                        'varargs_type',
@@ -110,6 +111,7 @@ class task(object):
             'returns': False,
             'priority': False,
             'on_failure': 'RETRY',
+            'time_out' : 0,
             'is_replicated': False,
             'is_distributed': False,
             'computing_nodes': 1,
@@ -781,7 +783,8 @@ class task(object):
             self.computing_nodes,
             is_replicated,
             is_distributed,
-            self.decorator_arguments['on_failure']
+            self.decorator_arguments['on_failure'],
+            self.decorator_arguments['time_out']
         )
         master_lock.release()
         return ret

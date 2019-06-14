@@ -319,7 +319,7 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error execution the binary.
      */
     public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-            PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {
+            PrintStream outLog, PrintStream errLog, String pythonPath) throws InvokeExecutionException {
 
         // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -330,7 +330,8 @@ public class BinaryRunner {
         builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
         builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
         builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
-
+        builder.environment().put("PYTHONPATH", pythonPath);
+        
         String fileInPath = stdIOStreamValues.getStdIn();
         if (fileInPath != null) {
             builder.redirectInput(new File(fileInPath));
@@ -374,6 +375,74 @@ public class BinaryRunner {
         return exitValue;
     }
 
+    
+    /**
+     * Executes a given command {@code cmd} with the stream redirections {@code streamValues}.
+     *
+     * @param cmd Command to execute.
+     * @param stdIOStreamValues Stream values.
+     * @param taskSandboxWorkingDir Execution sandbox.
+     * @param outLog Execution output stream.
+     * @param errLog Execution error stream.
+     * @return Exit value as object.
+     * @throws InvokeExecutionException Error execution the binary.
+     */
+    public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
+            PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {
+
+        // Prepare command working dir, environment and STD redirections
+        ProcessBuilder builder = new ProcessBuilder(cmd);
+        builder.directory(taskSandboxWorkingDir);
+
+        builder.environment().remove(Tracer.LD_PRELOAD);
+        builder.environment().put(Invoker.COMPSS_HOSTNAMES, System.getProperty(Invoker.COMPSS_HOSTNAMES));
+        builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
+        builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
+        builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
+        
+        String fileInPath = stdIOStreamValues.getStdIn();
+        if (fileInPath != null) {
+            builder.redirectInput(new File(fileInPath));
+        }
+        String fileOutPath = stdIOStreamValues.getStdOut();
+        if (fileOutPath != null) {
+            builder.redirectOutput(Redirect.appendTo(new File(fileOutPath)));
+        }
+        String fileErrPath = stdIOStreamValues.getStdErr();
+        if (fileErrPath != null) {
+            builder.redirectError(Redirect.appendTo(new File(fileErrPath)));
+        }
+
+        // Launch command
+        Process process = null;
+        int exitValue = -1;
+        try {
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            outLog.println("[BINARY EXECUTION WRAPPER] Executing binary command");
+            process = builder.start();
+
+            // Disable inputs to process
+            process.getOutputStream().close();
+
+            // Log binary execution
+            logBinaryExecution(process, fileOutPath, fileErrPath, outLog, errLog);
+
+            // Wait and retrieve exit value
+            exitValue = process.waitFor();
+
+            // Print all process execution information
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            outLog.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        } catch (IOException | InvokeExecutionException | InterruptedException e) {
+            errLog.println(ERROR_PROC_EXEC);
+            throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
+        }
+
+        // Return exit value if requested, null if none
+        return exitValue;
+    }
+    
     private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
             PrintStream errLog) throws InvokeExecutionException {
 

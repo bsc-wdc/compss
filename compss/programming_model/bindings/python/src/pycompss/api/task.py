@@ -478,9 +478,15 @@ class task(object):
             # Get only the decorators used. Remove @ and parameters.
             decorators = [l[1:].split('(')[0] for l in full_decorators]
             # Look for the decorator used from the filter list and return it when found
+            # if @mpi and no binary then this is an python_mpi task
+            index = 0
             for filt in dec_filter:
                 if filt in decorators:
+                    if filt == "mpi":
+                       if "binary" not in full_decorators[index]:
+                           filt = "PYTHON_MPI"
                     return filt
+                index += 1    
             # The decorator stack did not contain any of the filtering keys, then
             # return the default key.
             return default_values
@@ -517,13 +523,13 @@ class task(object):
                                                                            self.module_name,
                                                                            str(top_decorator)))
         f.__who_registers__ = top_decorator
-
         # not usual tasks - handled by the runtime without invoking the PyCOMPSs
         # worker. Needed to filter in order not to code the strings when using
         # them in these type of tasks
         decorator_filter = ("binary", "mpi", "compss", "decaf", "ompss", "opencl")
         default = 'task'
         task_type = _get_task_type(func_code, decorator_filter, default)
+
         if __debug__:
             logger.debug("[@TASK] Task type of function %s in module %s: %s" % (f.__name__,
                                                                                 self.module_name,
@@ -532,8 +538,13 @@ class task(object):
         if task_type == default:
             f.__code_strings__ = True
         else:
-            f.__code_strings__ = False
-
+           if task_type == "PYTHON_MPI":
+              for line in func_code[0]:
+                 if "@mpi" in line:
+                    f.__code_strings__ = "binary" not in line
+           else:
+              f.__code_strings__ = False
+              
         # Get the task signature
         # To do this, we will check the frames
         import inspect
@@ -590,6 +601,10 @@ class task(object):
         if current_core_element.get_impl_type_args() is None:
             current_core_element.set_impl_type_args(impl_type_args)
 
+        if current_core_element.get_impl_type() == "PYTHON_MPI":
+           current_core_element.set_impl_signature("MPI." + impl_signature)
+           current_core_element.set_impl_type_args(impl_type_args+current_core_element.get_impl_type_args()[1:])
+                   
         return impl_signature
 
     def register_task(self, f):
@@ -1182,7 +1197,10 @@ class task(object):
         def get_file_name(file_path):
             return file_path.split(':')[-1]
 
-
+        python_MPI = False
+        if kwargs["python_MPI"]:
+           python_MPI = True
+           
         # Deal with INOUTs
         from pycompss.util.persistent_storage import is_psco
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
@@ -1193,6 +1211,7 @@ class task(object):
                 # If it si INOUT and not PSCO, serialize to file
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
                 from pycompss.util.serializer import serialize_to_file
+                from pycompss.util.serializer import serialize_to_file_multienv
                 if arg.type == parameter.TYPE.COLLECTION:
                     def get_collection_objects(content, arg):
                         if arg.type == parameter.TYPE.COLLECTION:
@@ -1201,11 +1220,17 @@ class task(object):
                                     yield sub_elem
                         else:
                             yield (content, arg)
+                   
                     for (content, elem) in get_collection_objects(arg.content, arg):
-                        serialize_to_file(content, get_file_name(elem.file_name))
-                else:
-                    from pycompss.util.serializer import serialize_to_file
-                    serialize_to_file(arg.content, get_file_name(arg.file_name))
+                        if python_MPI:
+                           serialize_to_file_multienv(content, get_file_name(elem.file_name), False)
+                        else:
+                           serialize_to_file(content, get_file_name(elem.file_name))
+                else:                    
+                    if python_MPI:
+                       serialize_to_file_multienv(arg.content, get_file_name(arg.file_name), False)
+                    else:
+                       serialize_to_file(arg.content, get_file_name(arg.file_name))
 
         # Deal with returns (if any)
         if num_returns > 0:
@@ -1223,7 +1248,12 @@ class task(object):
                 # This is due to the asymmetry in worker-master communications and because it also makes it easier
                 # for us to deal with returns in that format
                 from pycompss.util.serializer import serialize_to_file
-                serialize_to_file(obj, get_file_name(param.file_name))
+                from pycompss.util.serializer import serialize_to_file_multienv                
+                
+                if python_MPI:
+                   serialize_to_file_multienv(obj, get_file_name(param.file_name), True)
+                else:
+                   serialize_to_file(obj, get_file_name(param.file_name))
 
         # We must notify COMPSs when types are updated
         # Potential update candidates are returns and INOUTs

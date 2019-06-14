@@ -35,6 +35,7 @@ from pycompss.worker.pipe_constants import END_TASK_TAG
 from pycompss.worker.pipe_constants import PING_TAG
 from pycompss.worker.pipe_constants import PONG_TAG
 from pycompss.worker.pipe_constants import QUIT_TAG
+from pycompss.worker.executor_commons import build_return_params_message
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
 
@@ -339,7 +340,7 @@ def executor(queue, process_name, pipe, conf):
                     if exit_value == 0:
                         # Task has finished without exceptions
                         # endTask jobId exitValue message
-                        params = _build_return_params_message(new_types, new_values)
+                        params = build_return_params_message(new_types, new_values)
                         message = END_TASK_TAG + " " + str(job_id) \
                                   + " " + str(exit_value) \
                                   + " " + str(params) + "\n"
@@ -447,23 +448,3 @@ def executor(queue, process_name, pipe, conf):
 
     pipe.write(QUIT_TAG)
     pipe.close()
-
-
-def _build_return_params_message(types, values):
-    """
-    Build the return message with the parameters output.
-
-    :param types: List of the parameter's types
-    :param values: List of the parameter's values
-    :return: Message as string
-    """
-
-    assert len(types) == len(values), 'Inconsistent state: return type-value length mismatch for return message.'
-
-    pairs = list(zip(types, values))
-    num_params = len(pairs)
-    params = ''
-    for pair in pairs:
-        params = params + str(pair[0]) + ' ' + str(pair[1]) + ' '
-    message = str(num_params) + ' ' + params
-    return message

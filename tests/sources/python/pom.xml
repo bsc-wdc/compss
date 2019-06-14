@@ -58,7 +58,8 @@
         <!-- 2_argparse -->
         <!-- 2_inheritance -->
         <!-- 2_get_file -->
-        <!-- 2_kill_processes -->
+	<!-- 2_kill_processes -->
+	<!-- 2_task_groups -->
         <!-- 3_module_basic -->
         <!-- 3_module_binary -->
         <!-- 3_module_binary_constrained -->

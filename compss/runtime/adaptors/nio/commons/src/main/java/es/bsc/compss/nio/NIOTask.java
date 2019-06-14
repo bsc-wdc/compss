@@ -54,7 +54,6 @@ public class NIOTask implements Externalizable, Invocation {
     private int numReturns;
     private int timeOut;
 
-
     /**
      * New NIO Task.
      */
@@ -291,7 +290,7 @@ public class NIOTask implements Externalizable, Invocation {
     public List<String> getSlaveNodesNames() {
         return this.slaveWorkersNodeNames;
     }
-
+    
     @Override
     public int getTimeOut() {
         return this.timeOut;

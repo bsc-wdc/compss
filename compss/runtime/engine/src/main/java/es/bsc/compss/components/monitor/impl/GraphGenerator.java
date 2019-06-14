@@ -412,7 +412,28 @@ public class GraphGenerator {
     }
 
     /**
+
+     * Adds a task group to the graph
+     * 
+     * @param dataId
+     */
+    public void addTaskGroupToGraph(String identifier) {
+        try {
+            full_graph.newLine();
+            full_graph.write("subgraph clusterTasks" + identifier + " {\n");
+            full_graph.write(
+                    "shape=rect;\n" + 
+                    "node[height=0.75];\n" + 
+                    "color=\"#A9A9A9\"; \n" + 
+                    "label=\"" + identifier + "\";\n");
+        } catch (IOException e) {
+            LOGGER.error(ERROR_ADDING_DATA, e);
+        }
+    }
+    
+    /**
      * Ends a commutative group subgraph.
+     * 
      */
     public void closeGroupInGraph() {
         try {

@@ -50,7 +50,7 @@ public class BarrierGroupRequest extends APRequest {
     public Long getAppId() {
         return this.appId;
     }
-
+    
     public String getGroupName() {
         return this.groupName;
     }
@@ -70,7 +70,7 @@ public class BarrierGroupRequest extends APRequest {
     public COMPSsException getException() {
         return this.exception;
     }
-
+    
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.barrierGroup(this);

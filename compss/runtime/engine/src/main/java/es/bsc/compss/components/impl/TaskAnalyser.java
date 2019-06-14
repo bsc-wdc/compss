@@ -50,12 +50,14 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
+import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -68,6 +70,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
+import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -687,6 +690,18 @@ public class TaskAnalyser {
             }
         }
     }
+    
+    /**
+     * Releases the commutative groups dependencies.
+     *
+     * @param task Task to release groups.
+     */
+    private void releaseTaskGroups(AbstractTask task) {
+        for (TaskGroup group : ((Task) task).getTaskGroupList()) {
+            group.removeTask((Task) task);
+            LOGGER.debug("Group " + group.getName() + " released a task");
+        }
+    }
 
     /**
      * Releases the commutative groups dependencies.
@@ -986,7 +1001,6 @@ public class TaskAnalyser {
             this.appIdBarrierFlags.add(appId);
             this.appIdToSemaphore.put(appId, request.getSemaphore());
         }
-
     }
 
     /**

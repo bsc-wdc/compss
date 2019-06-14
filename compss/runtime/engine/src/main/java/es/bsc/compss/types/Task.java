@@ -227,8 +227,13 @@ public class Task extends AbstractTask {
     }
 
     /**
+<<<<<<< HEAD
      * Returns whether the task is scheduling forced or not.
      * Registers a new task group for the dataId @daId.
+=======
+     * Returns whether the task is scheduling forced or not
+     * Registers a new task group for the dataId @daId
+>>>>>>> Java runtime addition of task time out and task groups
      * 
      * @param taskGroup Group of tasks.
      */

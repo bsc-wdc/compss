@@ -712,7 +712,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new object version value");
         }
     }
-
+    
     /**
      * Sets the task group to assign to all the following tasks.
      * 

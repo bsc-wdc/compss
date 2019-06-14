@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class TaskGroup implements AutoCloseable {
+
     
     // Tasks that access the data
     private final List<Task> tasks;
@@ -89,7 +90,7 @@ public class TaskGroup implements AutoCloseable {
     public boolean getGraphDrawn() {
         return this.graphDrawn;
     }
-    
+
     /**
      * Removes a task from the group.
      * 

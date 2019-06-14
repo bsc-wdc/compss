@@ -50,6 +50,7 @@ import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
@@ -676,6 +677,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     // C
     @Override
     public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
+
             boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);

@@ -30,6 +30,23 @@
         <url>http://www.bsc.es</url>
     </organization>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Adaptor commons classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-adaptors-commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- Adaptor engine classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-adaptors-engine</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
     <!-- SUB-MODULES -->
     <modules>
         <module>master</module>

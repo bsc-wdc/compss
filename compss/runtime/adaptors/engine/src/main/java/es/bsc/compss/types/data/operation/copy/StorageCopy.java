@@ -40,7 +40,6 @@ public class StorageCopy extends DataOperation {
     private Transferable reason;
     private final boolean preserveSourceData;
 
-
     /**
      * Create a new Storage Copy.
      *
@@ -67,12 +66,14 @@ public class StorageCopy extends DataOperation {
         if (dAccId instanceof RAccessId) {
             // Parameter is a R, has sources
             this.preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
-        } else if (dAccId instanceof RWAccessId) {
-            // Parameter is a RW, has sources
-            this.preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
         } else {
-            // Parameter is a W, it has no sources
-            this.preserveSourceData = false;
+            if (dAccId instanceof RWAccessId) {
+                // Parameter is a RW, has sources
+                this.preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
+            } else {
+                // Parameter is a W, it has no sources
+                this.preserveSourceData = false;
+            }
         }
 
         if (DEBUG) {

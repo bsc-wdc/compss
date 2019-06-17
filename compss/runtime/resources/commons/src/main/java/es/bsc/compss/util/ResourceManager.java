@@ -487,7 +487,7 @@ public class ResourceManager {
      * @param reduction Reduction performed.
      */
     public static void notifyWorkerReduction(DynamicMethodWorker worker, MethodResourceDescription reduction) {
-        worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
+        worker.applyReduction(new PendingReduction<>(reduction));
         MethodResourceDescription modification = reduction;
         ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
         resourceUser.updatedResource(worker, ru);
@@ -501,7 +501,7 @@ public class ResourceManager {
     public static void notifyWholeWorkerReduction(String name) {
         DynamicMethodWorker worker = (DynamicMethodWorker) pool.getResource(name);
         MethodResourceDescription reduction = worker.getDescription();
-        worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
+        worker.applyReduction(new PendingReduction<>(reduction));
         MethodResourceDescription modification = reduction;
         ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
         resourceUser.updatedResource(worker, ru);
@@ -514,7 +514,7 @@ public class ResourceManager {
      */
     public static void notifyWholeWorkerReduction(DynamicMethodWorker worker) {
         MethodResourceDescription reduction = worker.getDescription();
-        worker.applyReduction(new PendingReduction<MethodResourceDescription>(reduction));
+        worker.applyReduction(new PendingReduction<>(reduction));
         MethodResourceDescription modification = reduction;
         ResourceUpdate<MethodResourceDescription> ru = new PerformedReduction<>(modification);
         resourceUser.updatedResource(worker, ru);

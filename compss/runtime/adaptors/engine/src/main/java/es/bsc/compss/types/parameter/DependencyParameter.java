@@ -24,6 +24,7 @@ import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.parameter.Parameter;
 
 
 public class DependencyParameter extends Parameter implements Transferable {

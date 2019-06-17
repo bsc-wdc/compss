@@ -21,7 +21,6 @@ import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +30,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * The TPRequest class represents any interaction with the TaskProcessor component.
  */
-public abstract class APRequest extends Request {
+public abstract class APRequest {
 
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 

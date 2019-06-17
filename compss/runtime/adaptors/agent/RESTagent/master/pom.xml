@@ -25,6 +25,12 @@
             <artifactId>compss-adaptors-agent-rest-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Adaptor engine classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-engine</artifactId>
+            <scope>provided</scope>
+        </dependency>
         
         <!-- REST Service -->
         <!-- Jersey Service-->

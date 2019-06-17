@@ -18,7 +18,6 @@ package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.request.Request;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 import org.apache.logging.log4j.LogManager;
@@ -28,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * The TDRequest class represents any interaction with the TaskDispatcher component.
  */
-public abstract class TDRequest extends Request {
+public abstract class TDRequest {
 
     // Logging
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);

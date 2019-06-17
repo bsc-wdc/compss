@@ -19,21 +19,19 @@ package es.bsc.compss.util;
 
 import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.listener.TracingCopyListener;
-import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.data.transferable.TracingCopyTransferable;
 import es.bsc.compss.types.uri.SimpleURI;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
@@ -41,6 +39,10 @@ import org.apache.logging.log4j.Logger;
 
 
 public abstract class Tracer {
+
+    // Error messages
+    private static final String ERROR_MASTER_PACKAGE_FILEPATH
+            = " Cannot locate master tracing package on working directory";
 
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
@@ -59,8 +61,8 @@ public abstract class Tracer {
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).equals("null");
     private static final String EXTRAE_FILE = IS_CUSTOM_EXTRAE_FILE
-            ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
-            : "null";
+                                              ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
+                                              : "null";
 
     // Extrae environment flags
     public static final String LD_PRELOAD = "LD_PRELOAD";
@@ -98,14 +100,14 @@ public abstract class Tracer {
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
 
-
     /**
      * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
      * (master) sets its nodeID (taskID in extrae) to 0, and its number of tasks to 1 (a single program).
      *
+     * @param logDirPath Path to the log directory
      * @param level type of tracing: -3: arm-ddt, -2: arm-map, -1: scorep, 0: off, 1: extrae-basic, 2: extrae-advanced
      */
-    public static void init(int level) {
+    public static void init(String logDirPath, int level) {
         if (DEBUG) {
             LOGGER.debug("Initializing tracing with level " + level);
         }
@@ -113,7 +115,10 @@ public abstract class Tracer {
         hostId = new AtomicInteger(1);
         hostToSlots = new HashMap<>();
 
-        traceDirPath = Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator;
+        if (!logDirPath.endsWith(File.separator)) {
+            logDirPath += logDirPath;
+        }
+        traceDirPath = logDirPath + "trace" + File.separator;
         if (!new File(traceDirPath).mkdir()) {
             ErrorManager.error(ERROR_TRACE_DIR);
         }
@@ -121,19 +126,35 @@ public abstract class Tracer {
         tracingLevel = level;
 
         if (Tracer.extraeEnabled()) {
+            setUpWrapper(0, 1);
+        } else {
+            if (Tracer.scorepEnabled()) {
+                if (DEBUG) {
+                    LOGGER.debug("Initializing scorep.");
+                }
+            } else {
+                if (Tracer.mapEnabled()) {
+                    if (DEBUG) {
+                        LOGGER.debug("Initializing arm-map.");
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Initialized the Extrae wrapper.
+     *
+     * @param taskId taskId of the node
+     * @param numTasks num of tasks for that node
+     */
+    protected static void setUpWrapper(int taskId, int numTasks) {
+        synchronized (Tracer.class) {
             if (DEBUG) {
                 LOGGER.debug("Initializing extrae Wrapper.");
             }
-            Wrapper.SetTaskID(0);
-            Wrapper.SetNumTasks(1);
-        } else if (Tracer.scorepEnabled()) {
-            if (DEBUG) {
-                LOGGER.debug("Initializing scorep.");
-            }
-        } else if (Tracer.mapEnabled()) {
-            if (DEBUG) {
-                LOGGER.debug("Initializing arm-map.");
-            }
+            Wrapper.SetTaskID(taskId);
+            Wrapper.SetNumTasks(numTasks);
         }
     }
 
@@ -357,6 +378,26 @@ public abstract class Tracer {
     }
 
     /**
+     * Emits a new communication event.
+     *
+     * @param send Whether it is a send event or not.
+     * @param ownID Transfer own Id.
+     * @param partnerID Transfer partner Id.
+     * @param tag Transfer tag.
+     * @param size Transfer size.
+     */
+    public static void emitCommEvent(boolean send, int ownID, int partnerID, int tag, long size) {
+        synchronized (Tracer.class) {
+            Wrapper.Comm(send, tag, (int) size, partnerID, ownID);
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", "
+                    + partnerID + ", " + ownID + "]");
+        }
+    }
+
+    /**
      * End the extrae tracing system. Finishes master's tracing, generates both master and worker's packages, merges the
      * packages, and clean the intermediate traces.
      */
@@ -369,9 +410,7 @@ public abstract class Tracer {
             if (extraeEnabled()) {
                 defineEvents();
 
-                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
-                Wrapper.Fini();
-                Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
+                Tracer.stopWrapper();
 
                 generateMasterPackage("package");
                 transferMasterPackage();
@@ -382,8 +421,24 @@ public abstract class Tracer {
     }
 
     /**
+     * Stops the extrae wrapper.
+     */
+    protected static void stopWrapper() {
+        synchronized (Tracer.class) {
+            LOGGER.debug("[Tracer] Disabling pthreads");
+            Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
+            Wrapper.Fini();
+            // End wrapper
+            if (DEBUG) {
+                LOGGER.debug("[Tracer] Finishing extrae");
+            }
+            Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
+        }
+    }
+
+    /**
      * Returns how many events of a given type exist.
-     * 
+     *
      * @param type of the events
      * @return how many events does that type of event contains.
      */
@@ -586,39 +641,22 @@ public abstract class Tracer {
             LOGGER.debug("Tracing: Transferring master package");
         }
 
-        // Create source and target locations for tar.gz file
-        String filename = "master_compss_trace.tar.gz";
-        DataLocation source = null;
-        String sourcePath = ProtocolType.FILE_URI.getSchema() + filename;
+        String filename = ProtocolType.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
+        String filePath = "";
         try {
-            SimpleURI uri = new SimpleURI(sourcePath);
-            source = DataLocation.createLocation(Comm.getAppHost(), uri);
+            SimpleURI uri = new SimpleURI(filename);
+            filePath = new File(uri.getPath()).getCanonicalPath();
         } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + sourcePath, e);
-        }
-        DataLocation target = null;
-        String targetPath = ProtocolType.FILE_URI.getSchema() + traceDirPath + filename;
-        try {
-            SimpleURI uri = new SimpleURI(targetPath);
-            target = DataLocation.createLocation(Comm.getAppHost(), uri);
-        } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
+            return;
         }
 
-        // Ask for data
-        Semaphore sem = new Semaphore(0);
-        TracingCopyListener tracingListener = new TracingCopyListener(sem);
-        tracingListener.addOperation();
-
-        Comm.getAppHost().getNode().obtainData(new LogicalData("tracing master package"), source, target,
-                new LogicalData("tracing master package"), new TracingCopyTransferable(), tracingListener);
-
-        // Wait for data
-        tracingListener.enable();
         try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            ErrorManager.warn("Error waiting for tracing files in master to get saved");
+            Path source = Paths.get(filePath);
+            Path target = Paths.get(traceDirPath + "master_compss_trace.tar.gz");
+            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ioe) {
+            ErrorManager.error("Could not copy the master trace package into " + traceDirPath, ioe);
         }
     }
 
@@ -671,14 +709,14 @@ public abstract class Tracer {
      * Removing the tracing temporal packages.
      */
     private static void cleanMasterPackage() {
-        String filename = ProtocolType.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
 
-        String filePath;
+        String filename = ProtocolType.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
+        String filePath = "";
         try {
             SimpleURI uri = new SimpleURI(filename);
             filePath = new File(uri.getPath()).getCanonicalPath();
         } catch (Exception e) {
-            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + filename, e);
+            ErrorManager.error(ERROR_MASTER_PACKAGE_FILEPATH, e);
             return;
         }
 
@@ -692,8 +730,10 @@ public abstract class Tracer {
             boolean deleted = f.delete();
             if (!deleted) {
                 ErrorManager.warn("Unable to remove tracing temporary files of master node.");
-            } else if (DEBUG) {
-                LOGGER.debug("Deleted master tracing package.");
+            } else {
+                if (DEBUG) {
+                    LOGGER.debug("Deleted master tracing package.");
+                }
             }
         } catch (Exception e) {
             ErrorManager.warn("Exception while trying to remove tracing temporary " + "files of master node.", e);
@@ -706,7 +746,6 @@ public abstract class Tracer {
         private boolean[] slots;
         private int numFreeSlots;
         private int nextSlot;
-
 
         private TraceHost(int nslots) {
             this.slots = new boolean[nslots];

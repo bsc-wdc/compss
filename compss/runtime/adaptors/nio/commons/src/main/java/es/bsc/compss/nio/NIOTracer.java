@@ -18,8 +18,6 @@ package es.bsc.compss.nio;
 
 import static java.lang.Math.abs;
 
-import es.bsc.cepbatools.extrae.Wrapper;
-
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.util.StreamGobbler;
@@ -42,10 +40,9 @@ public class NIOTracer extends Tracer {
     // Id for the end of a transfer event
     public static final String TRANSFER_END = "0";
 
-
     /**
      * Initializes the tracing at the given level.
-     * 
+     *
      * @param level Tracing level.
      */
     public static void init(int level) {
@@ -55,7 +52,7 @@ public class NIOTracer extends Tracer {
 
     /**
      * Initializes the tracing structures.
-     * 
+     *
      * @param scriptDir COMPSs scripts directory.
      * @param nodeName Node name.
      * @param workingDir Node working directory.
@@ -67,11 +64,8 @@ public class NIOTracer extends Tracer {
         NIOTracer.nodeName = nodeName;
         NIOTracer.hostID = String.valueOf(hostID);
 
-        if (NIOTracer.extraeEnabled()) {
-            synchronized (Tracer.class) {
-                Wrapper.SetTaskID(hostID);
-                Wrapper.SetNumTasks(hostID + 1);
-            }
+        if (Tracer.extraeEnabled()) {
+            Tracer.setUpWrapper(hostID, hostID + 1);
         }
 
         if (DEBUG) {
@@ -82,7 +76,7 @@ public class NIOTracer extends Tracer {
 
     /**
      * Starts the tracing system at a given worker.
-     * 
+     *
      * @param workerName Worker name.
      * @param workerUser User to connect to the worker.
      * @param workerHost Worker host name.
@@ -106,7 +100,7 @@ public class NIOTracer extends Tracer {
 
     /**
      * Returns the host Id.
-     * 
+     *
      * @return The host Id.
      */
     public static String getHostID() {
@@ -115,7 +109,7 @@ public class NIOTracer extends Tracer {
 
     /**
      * Emits a new data transfer event for the given data.
-     * 
+     *
      * @param data Data code to emit the event.
      */
     public static void emitDataTransferEvent(String data) {
@@ -135,32 +129,25 @@ public class NIOTracer extends Tracer {
 
     /**
      * Emits a new communication event.
-     * 
+     *
      * @param send Whether it is a send event or not.
      * @param partnerID Transfer partner Id.
      * @param tag Transfer tag.
      */
     public static void emitCommEvent(boolean send, int partnerID, int tag) {
-        emitCommEvent(send, partnerID, tag, 0);
+        emitCommEvent(send, ID, partnerID, tag, 0);
     }
 
     /**
      * Emits a new communication event.
-     * 
+     *
      * @param send Whether it is a send event or not.
      * @param partnerID Transfer partner Id.
      * @param tag Transfer tag.
      * @param size Transfer size.
      */
     public static void emitCommEvent(boolean send, int partnerID, int tag, long size) {
-        synchronized (Tracer.class) {
-            Wrapper.Comm(send, tag, (int) size, partnerID, ID);
-        }
-
-        if (DEBUG) {
-            LOGGER.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", "
-                    + partnerID + ", " + ID + "]");
-        }
+        emitCommEvent(send, ID, partnerID, tag, size);
     }
 
     /**
@@ -180,28 +167,21 @@ public class NIOTracer extends Tracer {
             } catch (InterruptedException e1) {
                 e1.printStackTrace();
             }
-
-            // Stopping Extrae
-            synchronized (Tracer.class) {
-                LOGGER.debug("[NIOTracer] Disabling pthreads");
-                Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
-
-                // End wrapper
-                if (DEBUG) {
-                    LOGGER.debug("[NIOTracer] Finishing extrae");
-                }
-                Wrapper.Fini();
-            }
+            Tracer.stopWrapper();
             mode = "package";
-        } else if (Tracer.scorepEnabled()) {
-            mode = "package-scorep";
-            if (DEBUG) {
-                LOGGER.debug("[NIOTracer] Finishing scorep");
-            }
-        } else if (Tracer.mapEnabled()) {
-            mode = "package-map";
-            if (DEBUG) {
-                LOGGER.debug("[NIOTracer] Finishing map");
+        } else {
+            if (Tracer.scorepEnabled()) {
+                mode = "package-scorep";
+                if (DEBUG) {
+                    LOGGER.debug("[NIOTracer] Finishing scorep");
+                }
+            } else {
+                if (Tracer.mapEnabled()) {
+                    mode = "package-map";
+                    if (DEBUG) {
+                        LOGGER.debug("[NIOTracer] Finishing map");
+                    }
+                }
             }
         }
 

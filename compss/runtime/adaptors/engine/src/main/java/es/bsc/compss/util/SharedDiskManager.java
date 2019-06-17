@@ -18,6 +18,7 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
 import java.util.HashMap;

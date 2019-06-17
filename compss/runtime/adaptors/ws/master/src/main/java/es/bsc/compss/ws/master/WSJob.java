@@ -74,7 +74,6 @@ public class WSJob extends Job<ServiceInstance> {
 
     private Object returnValue;
 
-
     /**
      * Initializes the WSJob structures.
      */
@@ -99,7 +98,7 @@ public class WSJob extends Job<ServiceInstance> {
 
     /**
      * Creates a new WSJob instance.
-     * 
+     *
      * @param taskId Associated task Id.
      * @param taskParams Associated task parameters.
      * @param impl Task implementation.

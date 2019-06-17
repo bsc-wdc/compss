@@ -40,7 +40,7 @@ public interface Resource extends Comparable<Resource> {
     /**
      * Starts a resource execution.
      *
-     * @throws es.bsc.compss.exceptions.InitNodeException Error starting a resource
+     * @throws InitNodeException Error starting a resource
      */
     public void start() throws InitNodeException;
 

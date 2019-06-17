@@ -18,9 +18,9 @@ package es.bsc.compss.nio.utils;
 
 import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.stage.Transfer;
+import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
-import es.bsc.compss.util.BindingDataManager;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +40,7 @@ public class NIOBindingDataManager extends BindingDataManager {
     private static final Map<NIOConnection, NIOBindingObjectTransferListener> LISTENERS;
 
     static {
-        LISTENERS = new ConcurrentHashMap<NIOConnection, NIOBindingObjectTransferListener>();
+        LISTENERS = new ConcurrentHashMap<>();
         System.loadLibrary("bindings_common");
     }
 

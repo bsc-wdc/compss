@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
@@ -29,7 +30,6 @@ import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.SharedDiskManager;
@@ -253,7 +253,6 @@ public class LogicalData {
     /*
      * Setters
      */
-
     /**
      * Removes the object from master main memory and removes its location.
      *
@@ -311,10 +310,12 @@ public class LogicalData {
             // decide the id where the object is stored in the binding
             if (this.bindingId != null) {
                 id = this.bindingId;
-            } else if (this.value != null) {
-                id = (String) this.value;
             } else {
-                id = this.name;
+                if (this.value != null) {
+                    id = (String) this.value;
+                } else {
+                    id = this.name;
+                }
             }
             if (id.contains("#")) {
                 id = BindingObject.generate(id).getName();
@@ -329,19 +330,21 @@ public class LogicalData {
                 LOGGER.error(DBG_PREFIX + " Error " + id + " not found in binding");
                 throw (new Exception(" Error " + id + " not found in binding"));
             }
-        } else if (this.pscoId != null) {
-            // It is a persistent object that is already persisted
-            // Nothing to do
-            // If the PSCO is not persisted we treat it as a normal object
         } else {
+            if (this.pscoId != null) {
+                // It is a persistent object that is already persisted
+                // Nothing to do
+                // If the PSCO is not persisted we treat it as a normal object
+            } else {
 
-            // The object must be written to file
-            String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
-            if (DEBUG) {
-                LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to file " + targetPath);
+                // The object must be written to file
+                String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
+                if (DEBUG) {
+                    LOGGER.debug(DBG_PREFIX + "Writting object " + this.name + " to file " + targetPath);
+                }
+                Serializer.serialize(value, targetPath);
+                addWrittenObjectLocation(targetPath);
             }
-            Serializer.serialize(value, targetPath);
-            addWrittenObjectLocation(targetPath);
         }
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Object " + this.name + " written to storage");
@@ -477,7 +480,6 @@ public class LogicalData {
         // location if needed. We only store the "best" location if any (by
         // choosing
         // any private location found or the first shared location)
-
         DataLocation uniqueHostLocation = null;
         Iterator<DataLocation> it = this.locations.iterator();
         while (it.hasNext()) {
@@ -674,7 +676,6 @@ public class LogicalData {
 
         private final Copy c;
         private final DataLocation loc;
-
 
         public CopyInProgress(Copy c, DataLocation loc) {
             this.c = c;

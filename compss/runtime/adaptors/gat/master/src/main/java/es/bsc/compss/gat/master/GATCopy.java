@@ -17,6 +17,7 @@
 package es.bsc.compss.gat.master;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.CopyException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
 import es.bsc.compss.gat.master.exceptions.GATCopyException;
@@ -32,7 +33,6 @@ import es.bsc.compss.types.data.operation.copy.ImmediateCopy;
 import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;

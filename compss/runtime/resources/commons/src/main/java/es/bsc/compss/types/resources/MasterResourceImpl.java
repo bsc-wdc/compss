@@ -38,13 +38,13 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
                 0, // Limit of GPU tasks
                 0, // Limit of FPGA tasks
                 0, // Limit of OTHER tasks
-                new HashMap<String, String>()// Shared disks
+                new HashMap<>()// Shared disks
         );
     }
 
     /**
      * Returns the COMPSs base log directory.
-     * 
+     *
      * @return The COMPSs base log directory.
      */
     public String getCOMPSsLogBaseDirPath() {
@@ -103,14 +103,6 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
 
     @Override
     public void updateDisks(Map<String, String> sharedDisks) {
-        /*
-         * (MethodResourceDescription mrd,) this.description.mimic(mrd); this.available.mimic(mrd);
-         * this.setMaxCPUTaskCount(mrd.getTotalCPUComputingUnits());
-         * this.setMaxGPUTaskCount(mrd.getTotalGPUComputingUnits());
-         * this.setMaxFPGATaskCount(mrd.getTotalFPGAComputingUnits());
-         * this.setMaxOthersTaskCount(mrd.getTotalOTHERComputingUnits()); ((COMPSsMaster)
-         * this.getNode()).setUpExecutionCapabilities(mrd, mrd.getTotalCPUComputingUnits());
-         */
         super.sharedDisks = sharedDisks;
     }
 

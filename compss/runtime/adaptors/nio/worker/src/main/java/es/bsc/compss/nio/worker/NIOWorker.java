@@ -131,10 +131,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         System.setOut(OUT);
     }
 
-
     /**
      * Creates a new NIOWorker instance.
-     * 
+     *
      * @param transferLogs Whether to transfer the output/error files or not.
      * @param snd Number of senders.
      * @param rcv Number of receivers.
@@ -421,7 +420,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     /**
      * Starts a new connection.
-     * 
+     *
      * @return The new connection.
      */
     public Connection startConnection() {
@@ -430,7 +429,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     /**
      * Sends a task done notification for the given invocation and with the given result.
-     * 
+     *
      * @param invocation Associated Invocation.
      * @param successful Whether the task has ended successfully or not.
      */
@@ -476,7 +475,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     /**
      * Checks whether a STD IO stream file (OUT / ERR) exists or not.
-     * 
+     *
      * @param taskFileName Task file name.
      * @param streamName Stream name.
      * @param errorMessage Error message.
@@ -495,7 +494,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     /**
      * Executes the given task.
-     * 
+     *
      * @param task Task to execute.
      */
     public void executeTask(NIOTask task) {
@@ -529,7 +528,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     /**
      * Remove obsolete objects.
-     * 
+     *
      * @param obsolete List of obsolete objects.
      */
     public void removeObsolete(List<String> obsolete) {
@@ -687,8 +686,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    protected boolean isMaster() {
-        return false;
+    protected String getPossiblyRenamedFileName(File originalFile, NIOData d) {
+        return originalFile.getParentFile().getAbsolutePath() + File.separator + d.getDataMgmtId();
     }
 
     // ********************************************************************
@@ -845,10 +844,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     // **************************************
     // *************** MAIN *****************
     // **************************************
-
     /**
      * Entry Point.
-     * 
+     *
      * @param args Command line arguments.
      */
     public static void main(String[] args) {

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.util;
+package es.bsc.compss.data;
 
 import java.nio.ByteBuffer;
 

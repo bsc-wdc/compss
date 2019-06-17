@@ -91,10 +91,9 @@ public class ResourceLoader {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
 
-
     /**
      * Loads the information present in the given XML files according to the given XSD schemas.
-     * 
+     *
      * @param resourcesXML Resources XML file.
      * @param resourcesXSD Resources XSD schema.
      * @param projectXML Project XML file.
@@ -238,53 +237,65 @@ public class ResourceLoader {
                     String propValue = (procProp != null) ? procProp.getValue() : "";
                     mrd.addProcessor(procName, computingUnits, architecture, speed, type, internalMemory, propKey,
                             propValue);
-                } else if (obj instanceof MemoryType) {
-                    MemoryType memNode = (MemoryType) obj;
-                    mrd.setMemorySize(project.getMemorySize(memNode));
-                    mrd.setMemoryType(project.getMemoryType(memNode));
-                } else if (obj instanceof StorageType) {
-                    StorageType strNode = (StorageType) obj;
-                    mrd.setStorageSize(project.getStorageSize(strNode));
-                    mrd.setStorageType(project.getStorageType(strNode));
-                } else if (obj instanceof OSType) {
-                    OSType osNode = (OSType) obj;
-                    mrd.setOperatingSystemType(project.getOperatingSystemType(osNode));
-                    mrd.setOperatingSystemDistribution(project.getOperatingSystemDistribution(osNode));
-                    mrd.setOperatingSystemVersion(project.getOperatingSystemVersion(osNode));
-                } else if (obj instanceof SoftwareListType) {
-                    SoftwareListType softwares = (SoftwareListType) obj;
-                    List<String> apps = softwares.getApplication();
-                    if (apps != null) {
-                        for (String appName : apps) {
-                            mrd.addApplication(appName);
-                        }
-                    }
-                } else if (obj instanceof AttachedDisksListType) {
-                    AttachedDisksListType disks = (AttachedDisksListType) obj;
-                    if (disks != null) {
-                        List<AttachedDiskType> disksList = disks.getAttachedDisk();
-                        if (disksList != null) {
-                            for (AttachedDiskType disk : disksList) {
-                                es.bsc.compss.types.resources.jaxb.SharedDiskType diskResources 
-                                    = ResourceLoader.resources.getSharedDisk(disk.getName());
-                                if (diskResources != null) {
-                                    // TODO: Check the disk information against the resources file (size and type)
-                                    String diskName = disk.getName();
-                                    String diskMountPoint = disk.getMountPoint();
-                                    sharedDisks.put(diskName, diskMountPoint);
+                } else {
+                    if (obj instanceof MemoryType) {
+                        MemoryType memNode = (MemoryType) obj;
+                        mrd.setMemorySize(project.getMemorySize(memNode));
+                        mrd.setMemoryType(project.getMemoryType(memNode));
+                    } else {
+                        if (obj instanceof StorageType) {
+                            StorageType strNode = (StorageType) obj;
+                            mrd.setStorageSize(project.getStorageSize(strNode));
+                            mrd.setStorageType(project.getStorageType(strNode));
+                        } else {
+                            if (obj instanceof OSType) {
+                                OSType osNode = (OSType) obj;
+                                mrd.setOperatingSystemType(project.getOperatingSystemType(osNode));
+                                mrd.setOperatingSystemDistribution(project.getOperatingSystemDistribution(osNode));
+                                mrd.setOperatingSystemVersion(project.getOperatingSystemVersion(osNode));
+                            } else {
+                                if (obj instanceof SoftwareListType) {
+                                    SoftwareListType softwares = (SoftwareListType) obj;
+                                    List<String> apps = softwares.getApplication();
+                                    if (apps != null) {
+                                        for (String appName : apps) {
+                                            mrd.addApplication(appName);
+                                        }
+                                    }
                                 } else {
-                                    ErrorManager.warn("SharedDisk " + disk.getName()
-                                            + " defined in the master node is not defined in the resources.xml."
-                                            + " Skipping");
+                                    if (obj instanceof AttachedDisksListType) {
+                                        AttachedDisksListType disks = (AttachedDisksListType) obj;
+                                        if (disks != null) {
+                                            List<AttachedDiskType> disksList = disks.getAttachedDisk();
+                                            if (disksList != null) {
+                                                for (AttachedDiskType disk : disksList) {
+                                                    es.bsc.compss.types.resources.jaxb.SharedDiskType diskResources
+                                                            = ResourceLoader.resources.getSharedDisk(disk.getName());
+                                                    if (diskResources != null) {
+                                                        // TODO: Check the disk information against the resources file (size and type)
+                                                        String diskName = disk.getName();
+                                                        String diskMountPoint = disk.getMountPoint();
+                                                        sharedDisks.put(diskName, diskMountPoint);
+                                                    } else {
+                                                        ErrorManager.warn("SharedDisk " + disk.getName()
+                                                                + " defined in the master node is not defined in the resources.xml."
+                                                                + " Skipping");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        if (obj instanceof PriceType) {
+                                            // TODO: Consider the price for the master node
+                                        } else {
+                                            // The XML is validated, we should never execute this part of code
+                                            LOGGER.warn("MasterNode has an unrecognized parameter: " + obj.getClass());
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                } else if (obj instanceof PriceType) {
-                    // TODO: Consider the price for the master node
-                } else {
-                    // The XML is validated, we should never execute this part of code
-                    LOGGER.warn("MasterNode has an unrecognized parameter: " + obj.getClass());
                 }
             }
         }
@@ -591,28 +602,32 @@ public class ResourceLoader {
                             }
                         }
                     }
-                } else if (obj instanceof InstanceTypesType) {
-                    // Load images
-                    InstanceTypesType instancesList = (InstanceTypesType) obj;
-                    for (InstanceTypeType instanceProject : instancesList.getInstanceType()) {
-                        // Try to create instance
-                        String instanceName = instanceProject.getName();
-                        es.bsc.compss.types.resources.jaxb.InstanceTypeType instanceResources = resources
-                                .getInstance(cpResources, instanceName);
-                        if (instanceResources != null) {
-                            CloudInstanceTypeDescription cmrd = createInstance(instanceResources);
+                } else {
+                    if (obj instanceof InstanceTypesType) {
+                        // Load images
+                        InstanceTypesType instancesList = (InstanceTypesType) obj;
+                        for (InstanceTypeType instanceProject : instancesList.getInstanceType()) {
+                            // Try to create instance
+                            String instanceName = instanceProject.getName();
+                            es.bsc.compss.types.resources.jaxb.InstanceTypeType instanceResources = resources
+                                    .getInstance(cpResources, instanceName);
+                            if (instanceResources != null) {
+                                CloudInstanceTypeDescription cmrd = createInstance(instanceResources);
 
-                            // Add to instance list
-                            if (cmrd != null) {
-                                instanceTypes.add(cmrd);
+                                // Add to instance list
+                                if (cmrd != null) {
+                                    instanceTypes.add(cmrd);
+                                }
+                            } else {
+                                ErrorManager.warn("Instance " + instanceName + " not defined in resources.xml. Skipping");
                             }
-                        } else {
-                            ErrorManager.warn("Instance " + instanceName + " not defined in resources.xml. Skipping");
-                        }
 
+                        }
+                    } else {
+                        if (obj instanceof Integer) { // Limit Of VMs
+                            limitOfVMs = (Integer) obj;
+                        }
                     }
-                } else if (obj instanceof Integer) { // Limit Of VMs
-                    limitOfVMs = (Integer) obj;
                 }
             }
         }

@@ -41,7 +41,6 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-agent-commons</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>

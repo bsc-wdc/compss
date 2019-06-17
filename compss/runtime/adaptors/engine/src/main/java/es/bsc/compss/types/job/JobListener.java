@@ -14,10 +14,28 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.request;
+package es.bsc.compss.types.job;
+
+import es.bsc.compss.types.job.JobEndStatus;
 
 /**
- * The Request class represents any interaction with the main components of the COMPSs runtime.
+ * Abstract Representation of a listener for the job execution.
  */
-public class Request {
+public interface JobListener {
+
+    /**
+     * Actions when job has successfully ended.
+     * 
+     * @param job Job to notify completion.
+     */
+    public void jobCompleted(Job<?> job);
+
+    /**
+     * Actions when job has failed.
+     * 
+     * @param job Job to notify completion.
+     * @param endStatus Failure status.
+     */
+    public void jobFailed(Job<?> job, JobEndStatus endStatus);
+
 }

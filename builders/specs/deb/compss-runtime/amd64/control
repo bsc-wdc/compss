@@ -1,8 +1,0 @@
-Package: compss-runtime
-Version: 
-Priority: optional
-Architecture: amd64
-Essential: no
-Depends: compss-engine, compss-worker
-Maintainer: COMPSs Support <support-compss@bsc.es>
-Description: The BSC COMP Superscalar Runtime.

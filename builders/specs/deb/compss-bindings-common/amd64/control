@@ -1,8 +1,0 @@
-Package: compss-bindings-common
-Version: 
-Priority: optional
-Architecture: amd64
-Essential: no
-Depends: compss-engine, libtool, automake, build-essential
-Maintainer: COMPSs Support <support-compss@bsc.es>
-Description: The C libraries shared by BSC COMP Superscalar Bindings.

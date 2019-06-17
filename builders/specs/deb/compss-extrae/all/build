@@ -1,7 +1,0 @@
-#!/bin/bash -e
-
-  trunk_rel_path=../../../../
-  COMPSs_target=$(pwd)/tmp/opt/COMPSs
-
-  cp -r ${trunk_rel_path}/dependencies/extrae ${COMPSs_target}/Dependencies/extrae_install
-

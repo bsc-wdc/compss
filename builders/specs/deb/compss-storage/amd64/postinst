@@ -1,8 +1,0 @@
-#!/bin/bash -e
-  
-  action=$1
-
-  if [ "$action" == "configure" ]; then
-    chmod -R 775 /opt/COMPSs/Tools/storage
-  fi
-

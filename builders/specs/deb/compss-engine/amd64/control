@@ -1,9 +1,0 @@
-Package: compss-engine
-Version: 
-Priority: optional
-Architecture: amd64
-Essential: no
-Depends: openjdk-8-jre, graphviz, xdg-utils, uuid-runtime
-Replaces: compss-worker
-Maintainer: COMPSs Support <support-compss@bsc.es>
-Description: The BSC COMP Superscalar Engine.

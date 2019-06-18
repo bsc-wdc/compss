@@ -32,6 +32,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
+import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
@@ -190,8 +191,7 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException 
-                    | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 
                 throw new ConstructConfigurationException(e);
             }
@@ -252,8 +252,10 @@ public class Comm {
 
     /**
      * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob.
+     *
+     * @param runtimeEvents label-Id pairs for the runtimeEvents
      */
-    public static void stop() {
+    public static void stop(Map<String, Integer> runtimeEvents) {
         appHost.deleteIntermediate();
         for (CommAdaptor adaptor : ADAPTORS.values()) {
             adaptor.stop();
@@ -288,14 +290,14 @@ public class Comm {
             }
         }
 
-        // Stop tracing system
         if (Tracer.extraeEnabled()) {
+            // Emit last EVENT_END event 
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-            Tracer.fini();
-        } else {
-            if (Tracer.scorepEnabled() || Tracer.mapEnabled()) {
-                Tracer.fini();
-            }
+        }
+
+        // Stop tracing system
+        if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+            Tracer.fini(runtimeEvents);
         }
     }
 

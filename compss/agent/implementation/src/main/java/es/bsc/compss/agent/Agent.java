@@ -26,11 +26,12 @@ import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.ImplementationDefinition;
+
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
@@ -108,16 +109,15 @@ public class Agent {
         INTERFACES = new LinkedList<>();
     }
 
-
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
      *
-     * @param lang programming language of the method
-     * @param ceiClass Core Element interface to detect nested tasks in the code
-     * @param className name of the class containing the method to execute
+     * @param lang       programming language of the method
+     * @param ceiClass   Core Element interface to detect nested tasks in the code
+     * @param className  name of the class containing the method to execute
      * @param methodName name of the method to execute
-     * @param params parameter values to pass in to the method
-     * @param monitor monitor to notify changes on the method execution
+     * @param params     parameter values to pass in to the method
+     * @param monitor    monitor to notify changes on the method execution
      * @return Identifier of the application associated to the main task
      * @throws AgentException error parsing the CEI
      */
@@ -138,8 +138,8 @@ public class Agent {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
 
-        Object[] paramsValues = new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
-                "runtime", // Runtime API
+        Object[] paramsValues = new Object[]{
+                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
                 RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
                 ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
                 appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
@@ -163,13 +163,13 @@ public class Agent {
     /**
      * Requests the execution of a method as a task.
      *
-     * @param lang programming language of the method
-     * @param className name of the class containing the method to execute
+     * @param lang       programming language of the method
+     * @param className  name of the class containing the method to execute
      * @param methodName name of the method to execute
-     * @param sarParams paramter description of the task
-     * @param target paramter description of the task callee
-     * @param hasResult true if the task returns any value
-     * @param monitor monitor to notify changes on the method execution
+     * @param sarParams  paramter description of the task
+     * @param target     paramter description of the task callee
+     * @param hasResult  true if the task returns any value
+     * @param monitor    monitor to notify changes on the method execution
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
@@ -304,7 +304,7 @@ public class Agent {
      * Requests the agent to stop using some resources from a node.
      *
      * @param workerName name of the worker to whom the resources belong.
-     * @param reduction description of the resources to stop using.
+     * @param reduction  description of the resources to stop using.
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
@@ -351,7 +351,7 @@ public class Agent {
      * @throws ClassNotFoundException Could not find the specify agent interface class
      * @throws InstantiationException Could not instantiate the agent interface
      * @throws IllegalAccessException Could not call the empty constructor because is private
-     * @throws AgentException Error during the interface boot process
+     * @throws AgentException         Error during the interface boot process
      */
     public static final void startInterface(AgentInterfaceConfig conf)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
@@ -372,7 +372,7 @@ public class Agent {
 
     /**
      * Entry point.
-     * 
+     *
      * @param args Command line arguments.
      * @throws Exception Any internal exception.
      */

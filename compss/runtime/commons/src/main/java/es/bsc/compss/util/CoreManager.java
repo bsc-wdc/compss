@@ -18,7 +18,7 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.ResourceDescription;

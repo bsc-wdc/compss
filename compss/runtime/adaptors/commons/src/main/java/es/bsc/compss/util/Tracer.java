@@ -247,7 +247,7 @@ public abstract class Tracer {
      *
      * @param name of the host
      * @param slots number of threads the host is expected to have (used in GAT, in NIO is 0, because they will be
-     *            computed automatically
+     * computed automatically
      * @return the next ID to be used during the initialization of the tracing in the given host.
      */
     public static int registerHost(String name, int slots) {
@@ -400,15 +400,17 @@ public abstract class Tracer {
     /**
      * End the extrae tracing system. Finishes master's tracing, generates both master and worker's packages, merges the
      * packages, and clean the intermediate traces.
+     *
+     * @param runtimeEvents label-Id pairs for the runtimeEvents
      */
-    public static void fini() {
+    public static void fini(Map<String, Integer> runtimeEvents) {
         if (DEBUG) {
             LOGGER.debug("Tracing: finalizing");
         }
 
         synchronized (Tracer.class) {
             if (extraeEnabled()) {
-                defineEvents();
+                defineEvents(runtimeEvents);
 
                 Tracer.stopWrapper();
 
@@ -454,11 +456,12 @@ public abstract class Tracer {
 
     /**
      * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
+     *
+     * @param runtimeEvents label-Id pairs for the runtimeEvents
      */
-    private static void defineEvents() {
-        Map<String, Integer> signatureToId = CoreManager.getSignaturesToId();
+    private static void defineEvents(Map<String, Integer> runtimeEvents) {
         if (DEBUG) {
-            LOGGER.debug("SignatureToId size: " + signatureToId.size());
+            LOGGER.debug("SignatureToId size: " + runtimeEvents.size());
         }
 
         int size = getSizeByEventType(RUNTIME_EVENTS) + 1;
@@ -485,7 +488,7 @@ public abstract class Tracer {
 
         Wrapper.defineEventType(RUNTIME_EVENTS, apiDesc, values, descriptionValues);
 
-        size = signatureToId.entrySet().size() + 1;
+        size = runtimeEvents.entrySet().size() + 1;
 
         values = new long[size];
         descriptionValues = new String[size];
@@ -493,7 +496,7 @@ public abstract class Tracer {
         descriptionValues[0] = "End";
 
         i = 1;
-        for (Entry<String, Integer> entry : signatureToId.entrySet()) {
+        for (Entry<String, Integer> entry : runtimeEvents.entrySet()) {
             String signature = entry.getKey();
             Integer methodId = entry.getValue();
             values[i] = methodId + 1;

@@ -18,9 +18,9 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.Iterator;
 
@@ -57,7 +57,6 @@ public class CoreManager {
 
     // Structure counters
     private static int coreCount = 0;
-
 
     /**
      * Private constructor to avoid instantiation.
@@ -349,7 +348,7 @@ public class CoreManager {
      */
     /**
      * Returns a debug string describing the currently registered cores.
-     * 
+     *
      * @return A string containing all the information about the registered cores.
      */
     public static String debugString() {
@@ -366,7 +365,7 @@ public class CoreManager {
 
     /**
      * Returns a debug string describing the signatures of the currently registered cores.
-     * 
+     *
      * @return A string containing all the signatures of the registered cores.
      */
     public static String debugSignaturesString() {

@@ -31,9 +31,10 @@ public class COMPSsConstants {
      * Accepted Execution modes.
      */
     public static enum TaskExecution {
-    COMPSS, // Internal Execution
-    STORAGE // External execution
+        COMPSS, // Internal Execution
+        STORAGE // External execution
     }
+
 
     /**
      * Languages.
@@ -44,6 +45,7 @@ public class COMPSsConstants {
         PYTHON, // For Python applications
         UNKNOWN // For Services
     }
+
 
     /**
      * Python Interpreters.
@@ -175,14 +177,14 @@ public class COMPSsConstants {
     public static final long DEFAULT_MONITOR_INTERVAL = 0;
 
     public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
-    
+
     public static final String DEFAULT_CONFIG_DIR = System.getenv(COMPSS_HOME) + File.separator + "Runtime"
             + File.separator + "configuration";
 
-    public static final String DEFAULT_RES_SCHEMA =  DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator 
+    public static final String DEFAULT_RES_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator
             + "resources" + File.separator + "resource_schema.xsd";
-    
-    public static final String DEFAULT_PROJECT_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator 
+
+    public static final String DEFAULT_PROJECT_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator
             + "projects" + File.separator + "project_schema.xsd";
 
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib"
@@ -194,7 +196,6 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT = "null";
     public static final String DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "true";
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
-
 
     /**
      * Private constructor to avoid instantiation.

@@ -69,13 +69,13 @@ public abstract class Tracer {
     public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
 
     // Description tags for Paraver
-    private static final String taskDesc = "Task";
-    private static final String apiDesc = "Runtime";
-    private static final String taskIdDesc = "Task IDs";
-    private static final String dataTransfersDesc = "Data Transfers";
-    private static final String tasksTransfersDesc = "Task Transfers Request";
-    private static final String storageDesc = "Storage API";
-    private static final String insideTaskDesc = "Events inside tasks";
+    private static final String TASK_DESC = "Task";
+    private static final String API_DESC = "Runtime";
+    private static final String TASKID_DESC = "Task IDs";
+    private static final String DATA_TRANSFERS_DESC = "Data Transfers";
+    private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
+    private static final String STORAGE_DESC = "Storage API";
+    private static final String INSIDE_TASK_DESC = "Events inside tasks";
 
     // Event codes
     protected static final int TASKS_FUNC_TYPE = 8_000_000;
@@ -247,7 +247,7 @@ public abstract class Tracer {
      *
      * @param name of the host
      * @param slots number of threads the host is expected to have (used in GAT, in NIO is 0, because they will be
-     * computed automatically
+     *     computed automatically
      * @return the next ID to be used during the initialization of the tracing in the given host.
      */
     public static int registerHost(String name, int slots) {
@@ -486,7 +486,7 @@ public abstract class Tracer {
             }
         }
 
-        Wrapper.defineEventType(RUNTIME_EVENTS, apiDesc, values, descriptionValues);
+        Wrapper.defineEventType(RUNTIME_EVENTS, API_DESC, values, descriptionValues);
 
         size = runtimeEvents.entrySet().size() + 1;
 
@@ -510,7 +510,7 @@ public abstract class Tracer {
             i++;
         }
 
-        Wrapper.defineEventType(TASKS_FUNC_TYPE, taskDesc, values, descriptionValues);
+        Wrapper.defineEventType(TASKS_FUNC_TYPE, TASK_DESC, values, descriptionValues);
 
         // Definition of TRANSFER_TYPE events
         size = getSizeByEventType(TASK_TRANSFERS) + 1;
@@ -532,7 +532,7 @@ public abstract class Tracer {
             }
         }
 
-        Wrapper.defineEventType(TASK_TRANSFERS, tasksTransfersDesc, values, descriptionValues);
+        Wrapper.defineEventType(TASK_TRANSFERS, TASK_TRANSFERS_DESC, values, descriptionValues);
 
         // Definition of STORAGE_TYPE events
         size = getSizeByEventType(STORAGE_TYPE) + 1;
@@ -554,7 +554,7 @@ public abstract class Tracer {
             }
         }
 
-        Wrapper.defineEventType(STORAGE_TYPE, storageDesc, values, descriptionValues);
+        Wrapper.defineEventType(STORAGE_TYPE, STORAGE_DESC, values, descriptionValues);
 
         // Definition of Events inside task
         size = getSizeByEventType(INSIDE_TASKS_TYPE) + 1;
@@ -576,7 +576,7 @@ public abstract class Tracer {
             }
         }
 
-        Wrapper.defineEventType(INSIDE_TASKS_TYPE, insideTaskDesc, values, descriptionValues);
+        Wrapper.defineEventType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC, values, descriptionValues);
 
         // Definition of Scheduling and Transfer time events
         size = 0;
@@ -584,7 +584,7 @@ public abstract class Tracer {
 
         descriptionValues = new String[size];
 
-        Wrapper.defineEventType(TASKS_ID_TYPE, taskIdDesc, values, descriptionValues);
+        Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, values, descriptionValues);
 
         // Definition of Data transfers
         size = 0;
@@ -592,7 +592,7 @@ public abstract class Tracer {
 
         descriptionValues = new String[size];
 
-        Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
+        Wrapper.defineEventType(DATA_TRANSFERS, DATA_TRANSFERS_DESC, values, descriptionValues);
     }
 
     /**

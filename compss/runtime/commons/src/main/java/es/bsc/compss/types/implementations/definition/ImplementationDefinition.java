@@ -55,7 +55,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
      * @param implTypeArgs Implementation specific arguments.
      * @return A new implementation definition from the given parameters.
      * @throws IllegalArgumentException If the number of specific parameters does not match the required number of
-     * parameters by the implementation type.
+     *     parameters by the implementation type.
      */
     public static final <T extends ResourceDescription> ImplementationDefinition<T> defineImplementation(
             String implType, String implSignature, T implConstraints, String... implTypeArgs)

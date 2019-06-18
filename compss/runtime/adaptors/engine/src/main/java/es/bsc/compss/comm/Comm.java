@@ -32,7 +32,6 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.Classpath;
-import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
@@ -191,8 +190,8 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException 
+                    | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new ConstructConfigurationException(e);
             }
 

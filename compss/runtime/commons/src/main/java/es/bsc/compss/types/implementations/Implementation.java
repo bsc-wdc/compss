@@ -25,6 +25,11 @@ import java.io.ObjectOutput;
 
 
 public abstract class Implementation implements Externalizable {
+    
+    /*
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Enum to match the implementation global type.
@@ -34,7 +39,7 @@ public abstract class Implementation implements Externalizable {
         SERVICE // Services type
     }
 
-
+    
     protected Integer coreId;
     protected Integer implementationId;
     protected WorkerResourceDescription requirements;

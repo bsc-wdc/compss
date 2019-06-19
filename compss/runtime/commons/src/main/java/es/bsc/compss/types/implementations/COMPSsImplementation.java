@@ -27,6 +27,11 @@ import java.io.ObjectOutput;
 
 public class COMPSsImplementation extends AbstractMethodImplementation implements Externalizable {
 
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
     public static final int NUM_PARAMS = 5;
 
     private static final String DEFAULT_RUNCOMPSS = "runcompss";

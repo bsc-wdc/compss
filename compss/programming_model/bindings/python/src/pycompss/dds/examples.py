@@ -18,7 +18,7 @@
 import sys
 import time
 
-from pycompss.dds import DDS
+from pycompss.dds.new_dds import DDS
 from pycompss.dds.tasks import gen_fragment
 
 
@@ -27,11 +27,6 @@ def to_list(a): return [a]
 
 def append(a, b):
     a.append(b)
-    return a
-
-
-def extender(a, b):
-    a.extend(b)
     return a
 
 
@@ -50,21 +45,33 @@ def inside(_):
         return True
 
 
-def reduce_example():
-    test = DDS(range(100), 50).reduce((lambda b, a: b + a), initial=100,
-                                      arity=3, collect=False)\
-                              .map(lambda a: a+1).collect()
-    print(test)
+def files_to_pairs(element):
+    tuples = list()
+    lines = element[1].split("\n")
+    for _l in lines:
+        if not _l:
+            continue
+        k_v = _l.split(",")
+        tuples.append(tuple(k_v))
+
+    return tuples
+
+
+def _invert_files(pair):
+    res = dict()
+    for word in pair[1].split():
+        res[word] = [pair[0]]
+    return list(res.items())
 
 
 def word_count():
 
     path_file = sys.argv[1]
-    size_block = int(sys.argv[3])
-
     start = time.time()
-    result = DDS().load_file(path_file, chunk_size=size_block, worker_read=True)\
-        .map_and_flatten(lambda x: x.split()).count_by_value(as_dict=True)
+
+    results = DDS().load_files_from_dir(path_file).\
+        map_and_flatten(lambda x: x[1].split())\
+        .count_by_value(arity=4, as_dict=True)
 
     print("Elapsed Time: ", time.time()-start)
     return
@@ -86,14 +93,9 @@ def pi_estimation():
 
 def example_1():
     print("Creating a DDS with range(10) and 5 partitions:")
-    dds = DDS(range(10), 5)
+    dds = DDS().load(range(10), 5).filter(lambda x: x % 2).collect()
     print("Elements of the DDS:")
-    print(dds.collect())
-
-    print("Elements & Partitions of the DDS:")
-    dds = DDS(range(10), 5)
-    print(dds.collect(True))
-    print('______________END OF THE EXAMPLE________________\n')
+    print(dds)
 
 
 def example_2():
@@ -106,23 +108,31 @@ def example_2():
     print(occurrences)
     print("Retrieve the letters that have more than 5 occurrences in total:")
 
-    dds = DDS(occurrences)
+    dds = DDS().load(occurrences)
     print(dds.reduce_by_key(_sum).filter(lambda x: x[1] > 5).keys().collect())
     print('______________END OF THE EXAMPLE________________\n')
 
 
 def example_3():
+
+    def extender(a, b):
+        a.extend(b)
+        return a
+
     print("Given: ID's of players and their points from different tries are:")
-    results = [(1, 10), (2, 5), (3, 8), (1, 7), (2, 6), (3, 15), (1, 5), (2, 6)]
+    results = [(1, 10), (1, 7), (2, 5), (3, 8), (2, 6), (3, 15), (1, 5), (2, 6)]
     print(results)
     print("Knowing that maximum tries is 3, show the results of the players "
           "who have finished the game :)")
-    dds = DDS(results)
-    completed = dds.combine_by_key(to_list, append, extender).filter(
-        _finished).collect()
+    dds = DDS().load(results, 3)
+    completed = dds.map(lambda x: (x[0], x[1] + 1))\
+        .combine_by_key(to_list, append, extender)\
+        .filter(_finished).collect()
+
     for k, v in completed:
         print("Player ID: ", k)
         print("Points: ", v)
+
     print('______________END OF THE EXAMPLE________________\n')
 
 
@@ -141,11 +151,11 @@ def example_4():
     print(letters)
 
     # Extract single letter words from 'words' and count them
-    dds_words = DDS().load(words, 10).map_and_flatten(lambda x: x.split(" "))\
+    dds_words = DDS().load(words, 10).map_and_flatten(lambda x: x.split(" ")) \
         .filter(lambda x: len(x) == 1).count_by_value()
 
     # Extract letters from 'letters' and count them
-    dds_letters = DDS().load(letters, 5).map_and_flatten(lambda x: list(x))\
+    dds_letters = DDS().load(letters, 5).map_and_flatten(lambda x: list(x)) \
         .count_by_value()
     print()
     print("Amongst single letter words and letters, the highest occurrence is:")
@@ -164,11 +174,11 @@ def example_5():
         f.write("This one doesn't have a sharp {}\n")
     f.close()
 
-    results = DDS().load_text_file(file_name, chunk_size=100)\
-        .filter(lambda line: '#' in line)\
+    results = DDS().load_text_file(file_name, chunk_size=100) \
+        .filter(lambda line: '#' in line) \
         .map_and_flatten(lambda line: line.split(" ")) \
-        .count_by_value()\
-        .filter(lambda x: len(x[0]) > 2)\
+        .count_by_value() \
+        .filter(lambda x: len(x[0]) > 2) \
         .collect_as_dict()
 
     print("Words of lines containing '#':")
@@ -179,7 +189,7 @@ def example_5():
     print("______________END OF THE EXAMPLE________________\n")
 
 
-def terasort(num_fragments, num_entries, num_buckets, seed):
+def terasort(num_fragments, num_entries, seed):
     """
     ----------------------
     Terasort main program
@@ -190,54 +200,69 @@ def terasort(num_fragments, num_entries, num_buckets, seed):
 
     :param num_fragments: Number of fragments to generate
     :param num_entries: Number of entries (k,v tuples) within each fragment
-    :param num_buckets: Number of buckets to consider.
     :param seed: Initial seed for the random number generator.
     """
 
     dataset = [gen_fragment(num_entries, seed + i) for i in range(num_fragments)]
-    dds = DDS(dataset, -1).sort_by_key().collect(True)
-    for i in range(len(dds)):
-        if dds[i][0] < dds[i-1][0] and i > 0:
-            print("Failed:", i)
+    dds = DDS().load(dataset, -1).partition_by().sort_by_key().collect()
+    temp = 0
+    for i, k in dds:
+        if i < temp:
+            print("FAILED")
             break
+        temp = i
+    print(dds[-1:])
 
 
 def run_terasort():
-    arg1 = sys.argv[1] if len(sys.argv) > 1 else 16
-    arg2 = sys.argv[2] if len(sys.argv) > 2 else 50
+    """
+    """
 
-    num_fragments = int(arg1)  # Default: 16
-    num_entries = int(arg2)  # Default: 50
-    # be very careful with the following argument (since it is in a decorator)
-    num_buckets = 10  # int(sys.argv[3])
-    seed = 5
+    dir_path = sys.argv[1]
+    partitions = sys.argv[2] if len(sys.argv) > 2 else -1
 
     start_time = time.time()
-    terasort(num_fragments, num_entries, num_buckets, seed)
+
+    dds = DDS().load_files_from_dir(dir_path, partitions)\
+        .map_and_flatten(files_to_pairs)\
+        .sort_by_key().collect()
+
+    temp = 0
+    for i, k in dds:
+        if i < temp:
+            print("FAILED")
+            break
+        temp = i
+    print(dds[-1:])
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
-def load_n_map_example():
+def inverted_indexing():
 
-    fayl = 'test.txt'
-    test = open(fayl, 'w')
-    for number in range(100):
-        test.write("This is line # {} \n".format(number))
-    test.close()
+    path = sys.argv[1]
+    start_time = time.time()
+    result = DDS().load_files_from_dir(path).map_and_flatten(_invert_files)\
+        .reduce_by_key(lambda a, b: a + b).collect()
 
-    def sum_line_numbers(partition, initial=0):
-        """
-        Doesn't return a list, but a single value...
-        """
-        sum = initial
-        for line in partition:
-            sum += int(line.split()[-1])
-        return sum
+    print("Elapsed Time {} (s)".format(time.time() - start_time))
 
-    result = DDS().load_and_map_partitions(fayl, sum_line_numbers, initial=9).collect()
-    import os
-    os.remove(fayl)
-    print(result)
+
+def test_new_dds():
+
+    path_file = sys.argv[1]
+
+    test = DDS().\
+        load_files_from_dir(path_file).\
+        map(lambda x: x).\
+        map_and_flatten(lambda x: x[1].split()).\
+        map(lambda x: (x, x)).\
+        filter(lambda x: True).\
+        map_partitions(lambda x: x).\
+        map(lambda x: x[0]).\
+        count_by_value(arity=4, as_dict=True)
+
+    print(test)
+    return
 
 
 def main_program():
@@ -252,7 +277,10 @@ def main_program():
     # word_count()
     # reduce_example()
     # load_n_map_example()
-    run_terasort()
+    # run_terasort()
+    # terasort(5, 5, 3)
+    # test_new_dds()
+    inverted_indexing()
 
 
 if __name__ == '__main__':

@@ -187,10 +187,13 @@ def task_merge(a, b, merger_function):
     return a
 
 
-@task(dic1=INOUT)
-def reduce_dicts(dic1, dic2):
-    for k in dic2:
-        dic1[k] += dic2[k]
+@task(first=INOUT)
+def reduce_dicts(first, *args):
+    dicts = iter(args)
+
+    for _dict in dicts:
+        for k in _dict:
+            first[k] += _dict[k]
 
 
 @task(returns=list, iterator=IN)

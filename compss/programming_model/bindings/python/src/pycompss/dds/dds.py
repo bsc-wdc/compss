@@ -355,7 +355,7 @@ class DDS(object):
         return self.map(lambda x: (x, None))\
             .reduce_by_key(lambda x, _: x).map(lambda x: x[0])
 
-    def reduce(self, f, initial=marker, arity=-1, collect=True):
+    def reduce(self, f, initial=marker, arity=2, collect=True):
         """
         Reduce the whole data set.
         :param f: A reduce function which should take two parameters as inputs
@@ -378,10 +378,9 @@ class DDS(object):
         if initial != marker:
             local_results.append(initial)
 
-        arity = arity if arity > 0 else len(self.partitions)
         branch = list()
         while local_results:
-            while local_results and len(branch) < arity:
+            while len(branch) < arity:
                 temp = local_results.popleft()
                 branch.append(temp)
 
@@ -450,7 +449,7 @@ class DDS(object):
         """
         return self.map(lambda x: 1).sum()
 
-    def count_by_value(self, as_dict=False):
+    def count_by_value(self, arity=2, as_dict=False):
         """
         Amount of each element on this data set.
         :return: list of tuples (element, number)
@@ -473,24 +472,25 @@ class DDS(object):
         # Create a deque from partitions and start reduce
         future_objects = deque(self.partitions)
         ret = []
+        branch = list()
         while future_objects:
-            first = future_objects.popleft()
-            if future_objects:
-                second = future_objects.popleft()
-                reduce_dicts(first, second)
-                future_objects.append(first)
-            else:
-                # If it's the last item in the queue, retrieve it:
-                if as_dict:
-                    # As a dict if necessary
-                    first = compss_wait_on(first)
-                    return dict(first)
+            branch = []
+            while future_objects and len(branch) < arity:
+                temp = future_objects.popleft()
+                branch.append(temp)
 
-                # As a list of future objects
-                # TODO: Optimizations required!
-                length = len(self.partitions)
-                for i in range(length):
-                    ret.append(task_dict_to_list(first, length, i))
+            if len(branch) == 1:
+                break
+            reduce_dicts(*branch)
+            future_objects.append(branch[0])
+
+        if as_dict:
+            branch[0] = compss_wait_on(branch[0])
+            return dict(branch[0])
+
+        length = len(self.partitions)
+        for i in range(length):
+            ret.append(task_dict_to_list(branch[0], length, i))
 
         self.partitions = ret
         return self

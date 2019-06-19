@@ -1,6 +1,3 @@
-<h1 align="center">
-    <img src="docs/logos/pycompssisc-logo-full.png" alt="The Distributed Computing Library" height="90px">
-</h1>
 
 <h3 align="center">PyCOMPSs programming model interactive for Supercomputers</h3>
 

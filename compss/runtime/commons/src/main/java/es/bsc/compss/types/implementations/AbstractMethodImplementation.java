@@ -32,6 +32,11 @@ import java.util.List;
 
 public abstract class AbstractMethodImplementation extends Implementation implements Externalizable {
 
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
     private static final Lang LANG;
 
     static {

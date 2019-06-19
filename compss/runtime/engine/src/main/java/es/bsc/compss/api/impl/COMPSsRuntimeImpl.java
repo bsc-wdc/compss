@@ -109,7 +109,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
     protected static final Lang DEFAULT_LANG = ((DEFAULT_LANG_STR == null) ? Lang.JAVA
-                                                : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
+            : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
 
     // Registries
     private static ObjectRegistry oReg;
@@ -156,6 +156,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
          */
         Comm.init(new MasterResourceImpl());
     }
+
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -687,7 +688,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * @param appId Application Id.
      * @param monitor Task monitor.
      * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
-     * and methodClass parameters
+     *            and methodClass parameters
      * @param methodClass Method class.
      * @param methodName Method name.
      * @param signature Method signature.
@@ -769,7 +770,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
                     && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T
-                    || type == DataType.BINDING_OBJECT_T));
+                            || type == DataType.BINDING_OBJECT_T));
         }
 
         return hasReturn;

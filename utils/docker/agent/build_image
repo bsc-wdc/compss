@@ -5,11 +5,11 @@ rm -rf ${SANDBOX}
 mkdir -p ${SANDBOX}
 
 INIT_DIR=$(pwd)
-RUNTIME_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../../.. && pwd )"
+RUNTIME_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 
 echo "Copying framework to ${SANDBOX}"
 cp -r "${RUNTIME_DIR}" ${SANDBOX}
-cp "${RUNTIME_DIR}/utils/docker/compss-image-dockerfile/agent/Dockerfile" ${SANDBOX}/framework/Dockerfile
+cp "${RUNTIME_DIR}/utils/docker/agent/Dockerfile" ${SANDBOX}/framework/Dockerfile
 
 echo "Removing Tests from maven"
 sed -i -e 's#<module>tests/sources</module># #g'  ${SANDBOX}/framework/pom.xml

@@ -2,10 +2,10 @@
 <h1 align="center">
   <br>
   <a href="https://www.bsc.es/">
-    <img src="doc/logos/bsc_logo.png" alt="Barcelona Supercomputing Center" height="60px">
+    <img src="files/logos/bsc_logo.png" alt="Barcelona Supercomputing Center" height="60px">
   </a>
   <a href="https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar/">
-    <img src="doc/logos/COMPSs_logo.png" alt="COMP Superscalar" height="60px">
+    <img src="files/logos/COMPSs_logo.png" alt="COMP Superscalar" height="60px">
   </a>
   <br>
   <br>

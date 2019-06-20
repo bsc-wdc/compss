@@ -291,9 +291,9 @@ def create_init_config_file(compss_home,
     :param summary: <Boolean> Enable/Disable summary (True|False)
     :param task_execution: <String> Who performs the task execution (normally "compss")
     :param storage_conf: None|<String> Storage configuration file path
-    :param streaming_backend: Streaming backend
-    :param streaming_master_name: Streaming master name
-    :param streaming_master_port: Streaming master port
+    :param streaming_backend: Streaming backend (default: None => 'null')
+    :param streaming_master_name: Streaming master name (default: None => 'null')
+    :param streaming_master_port: Streaming master port (default: None => 'null')
     :param task_count: <Integer> Number of tasks (for structure initialization purposes)
     :param app_name: <String> Application name
     :param uuid: None|<String> Application UUID
@@ -364,6 +364,20 @@ def create_init_config_file(compss_home,
     else:
         jvm_options_file.write('-Dcompss.storage.conf=' + storage_conf + '\n')
 
+    # Add streaming properties
+    if streaming_backend is None:
+        jvm_options_file.write('-Dcompss.streaming=null\n')
+    else:
+        jvm_options_file.write('-Dcompss.streaming=' + str(streaming_backend) + '\n')
+    if streaming_master_name is None:
+        jvm_options_file.write('-Dcompss.streaming.masterName=null\n')
+    else:
+        jvm_options_file.write('-Dcompss.streaming.masterName=' + str(streaming_master_name) + '\n')
+    if streaming_master_port is None:
+        jvm_options_file.write('-Dcompss.streaming.masterPort=null\n')
+    else:
+        jvm_options_file.write('-Dcompss.streaming.masterPort=' + str(streaming_master_port) + '\n')
+
     jvm_options_file.write('-Dcompss.core.count=' + str(task_count) + '\n')
 
     jvm_options_file.write('-Dcompss.appName=' + app_name + '\n')
@@ -420,11 +434,6 @@ def create_init_config_file(compss_home,
         jvm_options_file.write('-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor\n')
     else:
         jvm_options_file.write('-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor\n')
-
-    # Add streaming properties
-    jvm_options_file.write('-Dcompss.streaming=' + str(streaming_backend) + '\n')
-    jvm_options_file.write('-Dcompss.streaming.masterName=' + str(streaming_master_name) + '\n')
-    jvm_options_file.write('-Dcompss.streaming.masterPort=' + str(streaming_master_port) + '\n')
 
     # INTERNAL COMPONENTS JVM FLAGS
     jvm_options_file.write('-Dcompss.conn=' + conn + '\n')

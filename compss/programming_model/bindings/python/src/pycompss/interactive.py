@@ -42,13 +42,22 @@ from pycompss.util.launcher import prepare_tracing_environment
 from pycompss.util.launcher import check_infrastructure_variables
 from pycompss.util.launcher import create_init_config_file
 from pycompss.util.launcher import setup_logger
+
+# Storage imports
 from pycompss.util.persistent_storage import init_storage
 from pycompss.util.persistent_storage import stop_storage
 
+# Streaming imports
+from pycompss.streams.environment import init_streaming
+from pycompss.streams.environment import stop_streaming
+
+
+# GLOBAL VARIABLES
+app_path = 'InteractiveMode'
 # Warning! The name should start with 'InteractiveMode' due to @task checks
 # it explicitly. If changed, it is necessary to update the task decorator.
-app_path = 'InteractiveMode'
 persistent_storage = False
+streaming = False
 myUuid = 0
 process = None
 log_path = '/tmp/'
@@ -67,6 +76,9 @@ def start(log_level='off',
           task_execution='compss',
           storage_impl=None,
           storage_conf=None,
+          streaming_backend=None,
+          streaming_master_name=None,
+          streaming_master_port=None,
           task_count=50,
           app_name='Interactive',
           uuid=None,
@@ -105,6 +117,9 @@ def start(log_level='off',
     :param task_execution: Task execution (default: 'compss')
     :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
+    :param streaming_backend: Streaming backend (default: None)
+    :param streaming_master_name: Streaming master name (default: None)
+    :param streaming_master_port: Streaming master port (default: None)
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
     :param uuid: UUId
@@ -161,6 +176,9 @@ def start(log_level='off',
                 'task_execution': task_execution,
                 'storage_impl': storage_impl,
                 'storage_conf': storage_conf,
+                'streaming_backend': streaming_backend,
+                'streaming_master_name': streaming_master_name,
+                'streaming_master_port': streaming_master_port,
                 'task_count': task_count,
                 'app_name': app_name,
                 'uuid': uuid,
@@ -247,8 +265,17 @@ def start(log_level='off',
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % log_path)
+
+    logger.debug("Starting storage")
     global persistent_storage
     persistent_storage = init_storage(all_vars['storage_conf'], logger)
+
+    logger.debug("Starting streaming")
+    global streaming
+    streaming = init_streaming(all_vars['streaming_backend'],
+                               all_vars['streaming_master_name'],
+                               all_vars['streaming_master_port'],
+                               logger)
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -346,7 +373,12 @@ def stop(sync=False):
         print("Warning: some of the variables used with PyCOMPSs may")
         print("         have not been brought to the master.")
 
+    if streaming:
+        logger.debug("Stopping streaming")
+        stop_streaming(logger)
+
     if persistent_storage:
+        logger.debug("Stopping persistent storage")
         stop_storage()
 
     compss_stop()

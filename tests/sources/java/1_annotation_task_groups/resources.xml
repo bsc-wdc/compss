@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
-	<SharedDisk Name="Disk1">
-		<Storage>
-			<Size>100.0</Size>
-		</Storage>
-	</SharedDisk>
 	<ComputeNode Name="COMPSsWorker01">
 		<Processor Name="MainProcessor1">
 			<ComputingUnits>1</ComputingUnits>
@@ -29,11 +24,6 @@
 				<BrokerAdaptor>sshtrilead</BrokerAdaptor>
 			</Adaptor>
 		</Adaptors>
-		<SharedDisks>
-			<AttachedDisk Name="Disk1">
-				<MountPoint>/tmp/sharedDisk/</MountPoint>
-			</AttachedDisk>
-		</SharedDisks>
 	</ComputeNode>
 
 	<ComputeNode Name="COMPSsWorker02">
@@ -60,10 +50,5 @@
 				<BrokerAdaptor>sshtrilead</BrokerAdaptor>
 			</Adaptor>
 		</Adaptors>
-		<SharedDisks>
-			<AttachedDisk Name="Disk1">
-				<MountPoint>/tmp/sharedDisk/</MountPoint>
-			</AttachedDisk>
-		</SharedDisks>
 	</ComputeNode>
 </ResourcesList>

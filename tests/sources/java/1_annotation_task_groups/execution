@@ -50,7 +50,7 @@ EOF
   echo "*** RUNNING JAVA APPLICATION CONCURRENT"
   output_log="${target_log_folder}/commutative_annotation_0${retry_num}.outputlog"
   error_log="${target_log_folder}/commutative_anotation_0${retry_num}.errorlog"
-  expectedTime=80s
+  expectedTime=260s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

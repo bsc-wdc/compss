@@ -20,7 +20,7 @@
 """
 PyCOMPSs Binding - Interactive Mode Helpers
 ===========================================
-Provides auxiliar methods for the interactive mode.
+Provides auxiliary methods for the interactive mode.
 """
 
 import os
@@ -69,7 +69,8 @@ def update_tasks_code_file(f, file_path):
     classes_code = _get_classes()         # {'name': str(line\nline\n...)}
     functions_code = _get_functions()     # {'name': str(line\nline\n...)}
     task_code = _get_task_code(f)         # {'name': str(line\nline\n...)}
-    old_code = _get_old_code(file_path)   # {'imports':[import\n, import\n, ...], 'tasks':{'name':str(line\nline\n...), 'name':str(line\nline\n...), ...}}
+    old_code = _get_old_code(file_path)   # Next line defines the structure of old_code
+    # {'imports':[import\n, import\n, ...], 'tasks':{'name':str(line\nline\n...), 'name':str(line\nline\n...), ...}}
 
     # Look for new/modified pieces of code. Compares the existing code with the new additions.
     new_imports = _update_imports(imports, old_code['imports'])
@@ -158,6 +159,7 @@ def _get_ipython_globals():
         found_one = False
         for l in lines:
             # if the line starts without spaces and is a variable assignation
+            glob_name = ''
             if not (l.startswith(' ') or l.startswith('\t')) and _is_variable_assignation(l):
                 glob_name = l.split()[0]
                 glob_lines[glob_name] = l.strip()
@@ -214,6 +216,7 @@ def _get_classes():
         # Look for classes in the block
         class_found = False
         for line in lines:
+            class_name = ''
             if line.startswith('class'):
                 # Class header: find name and include it in the functions dict
                 # split and remove empty spaces
@@ -223,7 +226,10 @@ def _get_classes():
                 # create an entry in the functions dict
                 classes[class_name] = [line + '\n']
                 class_found = True
-            elif (line.startswith("  ") or (line.startswith("\t")) or (line.startswith('\n')) or (line == '')) and class_found:
+            elif (line.startswith("  ") or
+                  (line.startswith("\t")) or
+                  (line.startswith('\n')) or
+                  (line == '')) and class_found:
                 # class body: append
                 classes[class_name].append(line + '\n')
             else:
@@ -262,6 +268,7 @@ def _get_functions():
                 is_function = True
                 is_task = False
             if is_function:
+                func_name = ''
                 if line.startswith("def"):
                     # Function header: find name and include it in the functions dict
                     # split and remove empty spaces
@@ -271,7 +278,10 @@ def _get_functions():
                     # create an entry in the functions dict
                     functions[func_name] = [line + '\n']
                     function_found = True
-                elif (line.startswith("  ") or (line.startswith("\t")) or (line.startswith('\n')) or (line == '')) and function_found:
+                elif (line.startswith("  ") or
+                      (line.startswith("\t")) or
+                      (line.startswith('\n')) or
+                      (line == '')) and function_found:
                     # Function body: append
                     functions[func_name].append(line + '\n')
                 else:
@@ -359,13 +369,25 @@ def _get_old_code(file_path):
         elif line == SEPARATORS['tasks_separator'] + '\n':
             found_task_separator = True
         else:
-            if not found_glob_separator and not found_class_separator and not found_func_separator and not found_task_separator:
+            if not found_glob_separator and \
+                    not found_class_separator and \
+                    not found_func_separator and \
+                    not found_task_separator:
                 file_imports.append(line)
-            elif found_glob_separator and not found_class_separator and not found_func_separator and not found_task_separator:
+            elif found_glob_separator and \
+                    not found_class_separator and \
+                    not found_func_separator and \
+                    not found_task_separator:
                 file_globals.append(line)
-            elif found_glob_separator and found_class_separator and not found_func_separator and not found_task_separator:
+            elif found_glob_separator and \
+                    found_class_separator and \
+                    not found_func_separator and \
+                    not found_task_separator:
                 file_classes.append(line)
-            elif found_glob_separator and found_class_separator and found_func_separator and not found_task_separator:
+            elif found_glob_separator and \
+                    found_class_separator and \
+                    found_func_separator and \
+                    not found_task_separator:
                 file_functions.append(line)
             else:
                 file_tasks.append(line)
@@ -449,7 +471,8 @@ def _get_old_code(file_path):
         task_name = task_header.replace('(', ' (').split(' ')[1].strip()
         tasks[task_name] = task_code
 
-    return {'imports': file_imports, 'globals': file_globals, 'classes': classes, 'functions': functions, 'tasks': tasks}
+    old = {'imports': file_imports, 'globals': file_globals, 'classes': classes, 'functions': functions, 'tasks': tasks}
+    return old
 
 
 # #######################
@@ -494,7 +517,8 @@ def _update_globals(new_globals, old_globals):
     else:
         for gName in list(new_globals.keys()):
             if DEBUG and gName in old_globals and (not new_globals[gName] == old_globals[gName]):
-                print("WARNING! Global variable " + gName + " has been redefined with changes (the previous will be deprecated).")
+                print("WARNING! Global variable " + gName +
+                      " has been redefined with changes (the previous will be deprecated).")
             old_globals[gName] = new_globals[gName]
         return old_globals
 
@@ -515,7 +539,8 @@ def _update_classes(new_classes, old_classes):
     else:
         for cName in list(new_classes.keys()):
             if DEBUG and cName in old_classes and (not new_classes[cName] == old_classes[cName]):
-                print("WARNING! Class " + cName + " has been redefined with changes (the previous will be deprecated).")
+                print("WARNING! Class " + cName +
+                      " has been redefined with changes (the previous will be deprecated).")
             old_classes[cName] = new_classes[cName]
         return old_classes
 
@@ -536,7 +561,8 @@ def _update_functions(new_functions, old_functions):
     else:
         for fName in list(new_functions.keys()):
             if DEBUG and fName in old_functions and (not new_functions[fName] == old_functions[fName]):
-                print("WARNING! Function " + fName + " has been redefined with changes (the previous will be deprecated).")
+                print("WARNING! Function " + fName +
+                      " has been redefined with changes (the previous will be deprecated).")
             old_functions[fName] = new_functions[fName]
         return old_functions
 

@@ -652,4 +652,5 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions, new_
                 code_file.write(line)
             code_file.write('\n')
             code_file.write('\n')
+    code_file.flush()
     code_file.close()

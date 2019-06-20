@@ -18,14 +18,17 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.colors.ColorConfiguration;
 import es.bsc.compss.types.colors.ColorNode;
 import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.util.CoreManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -58,25 +61,27 @@ public class Task extends AbstractTask {
     /**
      * Creates a new METHOD task with the given parameters.
      *
-     * @param appId Application Id.
-     * @param lang Application language.
-     * @param signature Task signature.
-     * @param isPrioritary Whether the task has priority or not.
-     * @param numNodes Number of nodes used by the task.
-     * @param isReplicated Whether the task must be replicated or not.
+     * @param appId         Application Id.
+     * @param lang          Application language.
+     * @param signature     Task signature.
+     * @param isPrioritary  Whether the task has priority or not.
+     * @param numNodes      Number of nodes used by the task.
+     * @param isReplicated  Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed round-robin or not.
-     * @param numReturns Number of returns of the task.
-     * @param hasTarget Whether the task has a target object or not.
-     * @param parameters Task parameter values.
-     * @param monitor Task monitor.
-     * @param onFailure On failure mechanisms.
+     * @param numReturns    Number of returns of the task.
+     * @param hasTarget     Whether the task has a target object or not.
+     * @param parameters    Task parameter values.
+     * @param monitor       Task monitor.
+     * @param onFailure     On failure mechanisms.
      */
     public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
             OnFailure onFailure) {
 
         super(appId);
-        this.taskDescription = new TaskDescription(lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
+        int coreId = CoreManager.getCoreId(signature);
+        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, coreId,
+                isPrioritary, numNodes, isReplicated, isDistributed,
                 hasTarget, numReturns, parameters);
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
@@ -86,24 +91,33 @@ public class Task extends AbstractTask {
     /**
      * Creates a new SERVICE task with the given parameters.
      *
-     * @param appId Application Id.
-     * @param namespace Service namespace.
-     * @param service Service name.
-     * @param port Service port.
-     * @param operation Service operation.
+     * @param appId        Application Id.
+     * @param namespace    Service namespace.
+     * @param service      Service name.
+     * @param port         Service port.
+     * @param operation    Service operation.
      * @param isPrioritary Whether the task has priority or not.
-     * @param hasTarget Whether the task has a target object or not.
-     * @param numReturns Number of returns of the task.
-     * @param parameters Task parameter values.
-     * @param monitor Task monitor.
-     * @param onFailure On failure mechanisms.
+     * @param hasTarget    Whether the task has a target object or not.
+     * @param numReturns   Number of returns of the task.
+     * @param parameters   Task parameter values.
+     * @param monitor      Task monitor.
+     * @param onFailure    On failure mechanisms.
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
             boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure) {
-
+        
         super(appId);
-        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget,
+        String signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget,
                 numReturns, parameters);
+        int coreId = CoreManager.getCoreId(signature);
+        
+        int numNodes = Constants.SINGLE_NODE;
+        boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
+        boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
+
+        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, coreId,
+                isPrioritary, numNodes, isReplicated, isDistributed,
+                hasTarget, numReturns, parameters);
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
         this.commutativeGroup = new TreeMap<>();
@@ -174,7 +188,7 @@ public class Task extends AbstractTask {
      * Registers a new commutative group for the dataId {@code daId}.
      *
      * @param daId DataId of the group.
-     * @param com Commutative group task to be set.
+     * @param com  Commutative group task to be set.
      */
     public void setCommutativeGroup(CommutativeGroupTask com, DataAccessId daId) {
         this.commutativeGroup.put(daId.getDataId(), com);
@@ -210,18 +224,20 @@ public class Task extends AbstractTask {
      * @return A string representing the description of the task in DOT format.
      */
     public String getDotDescription() {
-        int monitorTaskId = taskDescription.getId() + 1; // Coherent with Trace.java
+        int monitorTaskId = taskDescription.getCoreId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
         String shape;
         if (taskDescription.getType() == TaskType.METHOD) {
             if (this.taskDescription.isReplicated()) {
                 shape = "doublecircle";
-            } else if (this.taskDescription.isDistributed()) {
-                // Its only a scheduler hint, no need to show them differently
-                shape = "circle";
             } else {
-                shape = "circle";
+                if (this.taskDescription.isDistributed()) {
+                    // Its only a scheduler hint, no need to show them differently
+                    shape = "circle";
+                } else {
+                    shape = "circle";
+                }
             }
         } else { // Service
             shape = "diamond";
@@ -263,7 +279,7 @@ public class Task extends AbstractTask {
      * @return The task color.
      */
     public String getColor() {
-        int monitorTaskId = this.taskDescription.getId() + 1; // Coherent with Trace.java
+        int monitorTaskId = this.taskDescription.getCoreId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
         return color.getFillColor();
     }
@@ -326,7 +342,7 @@ public class Task extends AbstractTask {
 
     /**
      * Returns the on-failure mechanisms.
-     * 
+     *
      * @return The on-failure mechanisms.
      */
     public OnFailure getOnFailure() {

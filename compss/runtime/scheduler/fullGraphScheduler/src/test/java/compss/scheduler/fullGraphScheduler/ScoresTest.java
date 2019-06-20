@@ -16,23 +16,25 @@
  */
 package es.bsc.compss.scheduler.fullGraphScheduler;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.ITConstants;
 import es.bsc.compss.comm.Comm;
-import es.bsc.es.bsc.compss.scheduler.exceptions.BlockedActionException;
-import es.bsc.es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler;
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.utils.Verifiers;
-import es.bsc.es.bsc.compss.scheduler.types.FullGraphScore;
-import es.bsc.es.bsc.compss.scheduler.types.Score;
-import es.bsc.es.bsc.compss.scheduler.types.fake.FakeActionOrchestrator;
-import es.bsc.es.bsc.compss.scheduler.types.fake.FakeAllocatableAction;
-import es.bsc.es.bsc.compss.scheduler.types.fake.FakeImplementation;
-import es.bsc.es.bsc.compss.scheduler.types.fake.FakeProfile;
-import es.bsc.es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
-import es.bsc.es.bsc.compss.scheduler.types.fake.FakeResourceScheduler;
-import es.bsc.es.bsc.compss.scheduler.types.fake.FakeWorker;
+import es.bsc.compss.scheduler.exceptions.BlockedActionException;
+import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullGraphScheduler.utils.Verifiers;
+import es.bsc.compss.scheduler.types.FullGraphScore;
+import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.scheduler.types.fake.FakeActionOrchestrator;
+import es.bsc.compss.scheduler.types.fake.FakeAllocatableAction;
+import es.bsc.compss.scheduler.types.fake.FakeImplementation;
+import es.bsc.compss.scheduler.types.fake.FakeProfile;
+import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
+import es.bsc.compss.scheduler.types.fake.FakeResourceScheduler;
+import es.bsc.compss.scheduler.types.fake.FakeWorker;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -42,6 +44,7 @@ import es.bsc.compss.types.data.DataAccessId.RAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -68,7 +71,6 @@ public class ScoresTest {
     private static long CORE2;
     private static long CORE4_0;
     private static long CORE4_1;
-
 
     public ScoresTest() {
         ds = new FullGraphScheduler<FakeProfile, FakeResourceDescription, FakeImplementation>();
@@ -219,8 +221,8 @@ public class ScoresTest {
         DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED, Constants.PREFIX_EMPTY);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
-        TaskDescription params = new TaskDescription("task", false, Constants.SINGLE_NODE, false, false, false, false,
-                new Parameter[] { dpD1V1, dpD2V2 });
+        TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", 0, false, Constants.SINGLE_NODE, false, false, false, 0,
+                new Parameter[]{dpD1V1, dpD2V2});
         FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation> actionScore = (FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation>) ds
                 .generateActionScore(action1);
 
@@ -251,7 +253,8 @@ public class ScoresTest {
         drs1.clear();
         // No resources and no dependencies
         FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
-        TaskDescription tp1 = new TaskDescription("task", false, Constants.SINGLE_NODE, false, false, false, false, new Parameter[0]);
+        TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", 0, false, Constants.SINGLE_NODE, false, false,
+                false, 0, new Parameter[]{});
         FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation> score1 = (FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation>) ds
                 .generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);

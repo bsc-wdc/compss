@@ -707,12 +707,12 @@ public class ExecutionAction extends AllocatableAction {
      */
     @Override
     public final List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
-        return getCoreElementExecutors(this.task.getTaskDescription().getId());
+        return getCoreElementExecutors(this.task.getTaskDescription().getCoreId());
     }
 
     @Override
     public final Implementation[] getImplementations() {
-        List<Implementation> coreImpls = CoreManager.getCoreImplementations(this.task.getTaskDescription().getId());
+        List<Implementation> coreImpls = CoreManager.getCoreImplementations(this.task.getTaskDescription().getCoreId());
 
         int coreImplsSize = coreImpls.size();
         Implementation[] impls = (Implementation[]) new Implementation[coreImplsSize];
@@ -724,18 +724,18 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r) {
-        return r.canRun(this.task.getTaskDescription().getId());
+        return r.canRun(this.task.getTaskDescription().getCoreId());
     }
 
     @Override
     public final <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
             ResourceScheduler<T> r) {
-        return r.getExecutableImpls(this.task.getTaskDescription().getId());
+        return r.getExecutableImpls(this.task.getTaskDescription().getCoreId());
     }
 
     @Override
     public final Integer getCoreId() {
-        return this.task.getTaskDescription().getId();
+        return this.task.getTaskDescription().getCoreId();
     }
 
     @Override
@@ -844,7 +844,7 @@ public class ExecutionAction extends AllocatableAction {
 
         if (targetWorker == null
                 // Resource is not compatible with the Core
-                || !targetWorker.getResource().canRun(task.getTaskDescription().getId())
+                || !targetWorker.getResource().canRun(task.getTaskDescription().getCoreId())
                 // already ran on the resource
                 || this.getExecutingResources().contains(targetWorker)) {
 

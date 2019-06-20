@@ -292,7 +292,7 @@ public class GraphGenerator {
         try {
             full_graph.newLine();
             full_graph.write(task.getDotDescription());
-            int taskId = task.getTaskDescription().getId();
+            int taskId = task.getTaskDescription().getCoreId();
             if (!legendTasks.contains(taskId)) {
                 legendTasks.add(taskId);
                 legend.write(task.getLegendDescription());

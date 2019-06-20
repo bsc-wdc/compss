@@ -27,6 +27,7 @@ public class TestTaskGroupsImpl {
         }
         System.out.println("File contents : " + contents);
         System.out.println("Before cancellation point");
+        // Cancellation point to check time out
         COMPSsWorker.cancellationPoint();
         System.out.println("After the cancellation point");
     }
@@ -38,6 +39,7 @@ public class TestTaskGroupsImpl {
             e1.printStackTrace();
         }
         System.out.println("Before cancellation point");
+        // Cancellation point to check time out
         COMPSsWorker.cancellationPoint();
         System.out.println("After the cancellation point");
     }

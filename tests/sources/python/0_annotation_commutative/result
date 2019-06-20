@@ -4,6 +4,7 @@
   output_file=$1
   error_file=$2
   target_log_folder=$3
+  final_graph_expected=$4
 
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
@@ -118,6 +119,14 @@
     exit 1
   fi
 
+    #----------------------------------------------------------------------------------
+  # Check dot file
+  final_graph_got=${target_log_folder}/monitor/complete_graph.dot
+  graph_status=$(diff -U 0 "${final_graph_expected}" "${final_graph_got}" | grep -v ^@ | grep -v "#" | tail -n+3)
+  if [ ! -z "${graph_status}" ]; then
+    echo "[ERROR] Obtained graph file is not as expected" | tee -a "${output_file}"
+    exit 1
+  fi
 
   #----------------------------------------------------------------------------------
   # ALL OK. Report result status

@@ -24,32 +24,34 @@ public class TestTaskGroups {
         testTaskGroups();
         System.out.println("[LOG] Test task time out");
         testTaskTimeOut();
+        
         COMPSs.getFile(FILE_NAME);
-//             
-//        // Shell commands to execute to check contents of file
-//        ArrayList<String> commands = new ArrayList<String>();
-//        commands.add("/bin/cat");
-//        commands.add(FILE_NAME);
-//
-//        // ProcessBuilder start
-//        ProcessBuilder pb = new ProcessBuilder(commands);
-//        pb.redirectErrorStream(true);
-//        Process process = null;
-//        try {
-//            process = pb.start();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        // Read file content
-//        readContents(process);
+        
+        //Check file contents
+        // Shell commands to execute to check contents of file
+        ArrayList<String> commands = new ArrayList<String>();
+        commands.add("/bin/cat");
+        commands.add(FILE_NAME);
+
+        // ProcessBuilder start
+        ProcessBuilder pb = new ProcessBuilder(commands);
+        pb.redirectErrorStream(true);
+        Process process = null;
+        try {
+            process = pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Read file content
+        readContents(process);
 
     }
 
     private static void testTaskGroups() throws Exception{
+        // Check of nested groups
         try (COMPSsGroup group1 = new COMPSsGroup("BigGroup") ) {
-            
-            // Launch NUM_TASKS writing tasks
+            // Create several nested groups containing writing tasks
             for (int i=0; i<M; i++) {
                 try (COMPSsGroup n = new COMPSsGroup("group"+i)){
                     for (int j=0; j<N; j++) {
@@ -59,10 +61,12 @@ public class TestTaskGroups {
             }
         } 
 
+        // Perform a barrier for every created group
         for (int i=0; i<N; i++) {
             COMPSs.barrierGroup("group"+i);
         }
-            
+        
+        // Creation of individual group of M tasks
         try (COMPSsGroup group = new COMPSsGroup("Group1")) {
             for (int i=0; i < M; i++) {
                 TestTaskGroupsImpl.writeTwo(FILE_NAME);
@@ -70,9 +74,10 @@ public class TestTaskGroups {
         }
     }
     
+    // Two tasks to check time out. The second takes more time than expected
     private static void testTaskTimeOut() throws Exception {
         TestTaskGroupsImpl.timeOutTaskFast(FILE_NAME);
-//        TestTaskGroupsImpl.timeOutTaskSlow(FILE_NAME);
+        TestTaskGroupsImpl.timeOutTaskSlow(FILE_NAME);
     }
     
 
@@ -109,9 +114,9 @@ public class TestTaskGroups {
             e.printStackTrace();
         }
         // Exception if number of writers has not been correct
-//        if (out.toString() == "2222222222222222") {
-//            throw new Exception("Incorrect number of writers " + out);
-//        }
+        if (out.toString() == "2222222222222222") {
+            throw new Exception("Incorrect number of writers " + out);
+        }
     }
 
 

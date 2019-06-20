@@ -37,6 +37,7 @@ def write_two(file_path):
 
 @task(file_path=FILE_IN, time_out=2)
 def wait_fast(file_path):
+    # Task sleeps less than time out
     time.sleep(TASK_SLEEP_TIME_FAST)
     # Write value
     with open(file_path, 'r') as fis:
@@ -44,6 +45,7 @@ def wait_fast(file_path):
 
 @task(file_path=FILE_IN, time_out=2)
 def wait_slow(file_path):
+    # Time out is less than sleeping time
     time.sleep(TASK_SLEEP_TIME_SLOW)
     # Write value
     with open(file_path, 'r') as fis:
@@ -59,17 +61,18 @@ def test_task_groups(file_name):
     open(file_name, 'w').close()
 
     with TaskGroup('bigGroup'):
-        # Launch NUM_TASKS reading tasks
+        # Inside a big group, more groups are created
         for i in range(NUM_GROUPS):
             with(TaskGroup('group'+str(i))):
                 for j in range(NUM_TASKS):
                      write_one(file_name)
 
+    # Barrier for groups
     for i in range(NUM_GROUPS):
         compss_barrier_group('group'+str(i))
 
+    # Creation of group
     with TaskGroup('individualGroup'):
-        # Launch NUM_TASKS reading tasks
         for i in range(NUM_TASKS):
             write_two(file_name)
 

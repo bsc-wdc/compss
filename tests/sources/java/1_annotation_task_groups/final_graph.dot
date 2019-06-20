@@ -1,0 +1,123 @@
+digraph {
+  rankdir=TB;
+  labeljust="l";
+  compound= true;
+  subgraph dependence_graph {
+    ranksep=0.20;
+    node[height=0.75];
+
+subgraph clusterTasksBigGroup {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="BigGroup";
+
+subgraph clusterTasksgroup0 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group0";
+
+1[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+2[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+1 -> 2 [label="d1v2"];
+3[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+2 -> 3 [label="d1v3"];
+}
+
+subgraph clusterTasksgroup1 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group1";
+
+4[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+3 -> 4 [label="d1v4"];
+5[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+4 -> 5 [label="d1v5"];
+6[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+5 -> 6 [label="d1v6"];
+}
+
+subgraph clusterTasksgroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group2";
+
+7[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+6 -> 7 [label="d1v7"];
+8[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+7 -> 8 [label="d1v8"];
+9[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+8 -> 9 [label="d1v9"];
+}
+
+subgraph clusterTasksgroup3 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group3";
+
+10[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+9 -> 10 [label="d1v10"];
+11[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+10 -> 11 [label="d1v11"];
+12[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+11 -> 12 [label="d1v12"];
+}
+
+}
+
+Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+12 -> Synchro1 [color=grey];
+Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro1 -> Synchro2 [color=grey];
+Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro2 -> Synchro3 [color=grey];
+subgraph clusterTasksGroup1 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="Group1";
+
+13[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+Synchro3 -> 13 [label="d1v13"];
+14[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+13 -> 14 [label="d1v14"];
+15[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+14 -> 15 [label="d1v15"];
+16[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+15 -> 16 [label="d1v16"];
+}
+
+17[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+16 -> 17 [label="d1v17"];
+18[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+16 -> 18 [label="d1v17"];
+Synchro4[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro3 -> Synchro4;
+16 -> Synchro4 [label="d1v17"];  }
+  subgraph legend {
+    rank=sink;
+    node [shape=plaintext, height=0.75];
+    ranksep=0.20;
+    label = "Legend";
+    key [label=<
+      <table border="0" cellpadding="2" cellspacing="0" cellborder="1">
+<tr>
+<td align="right">writeTwo</td>
+<td bgcolor="#ff0000">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">timeOutTaskFast</td>
+<td bgcolor="#0000ff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">timeOutTaskSlow</td>
+<td bgcolor="#ffffff">&nbsp;</td>
+</tr>
+      </table>
+    >]
+  }
+}

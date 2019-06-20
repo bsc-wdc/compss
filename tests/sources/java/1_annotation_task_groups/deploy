@@ -23,3 +23,4 @@
   mkdir -p "${target_base_dir}"/jars/
   cp "${source_base_dir}"/../../../../utils/storage/dummyPSCO/target/compss-dummyPSCO.jar "${target_base_dir}"/jars/compss-dummyPSCO.jar
 
+  cp "${source_base_dir}"/final_graph.dot "${target_base_dir}"/final_graph.dot

@@ -23,3 +23,5 @@
 
   # Copy Python storage
   cp -r "${source_base_dir}"/storage "${target_base_dir}"
+
+    cp "${source_base_dir}"/final_graph.dot "${target_base_dir}"/final_graph.dot

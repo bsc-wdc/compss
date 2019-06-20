@@ -51,6 +51,7 @@ EOF
   echo "*** RUNNING JAVA APPLICATION CONCURRENT"
   output_log="${target_log_folder}/commutative_annotation_0${retry_num}.outputlog"
   error_log="${target_log_folder}/commutative_anotation_0${retry_num}.errorlog"
+  final_graph_expected="${base_app_dir}/final_graph.dot"
   expectedTime=80s
   
   # shellcheck disable=SC2086
@@ -81,7 +82,7 @@ EOF
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   
      # Check result
-     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
+     "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" "${final_graph_expected}"
      exit_value=$?
   fi
   

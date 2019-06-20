@@ -584,7 +584,6 @@ public class TaskAnalyser {
                 LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
                 return;
             }
-
             TaskMonitor registeredMonitor = task.getTaskMonitor();
             switch (taskState) {
                 case FAILED:
@@ -645,7 +644,6 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Marking accessed parameters for task " + taskId);
             }
-
             for (Parameter param : task.getTaskDescription().getParameters()) {
                 updateParameterAccess(task, param);
             }
@@ -691,22 +689,6 @@ public class TaskAnalyser {
         }
     }
     
-    /**
-     * Releases the commutative groups dependencies.
-     *
-     * @param task Task to release groups.
-     */
-    private void releaseTaskGroups(AbstractTask task) {
-       for (TaskGroup group : ((Task)task).getTaskGroupList()) {
-           group.removeTask((Task)task);
-           LOGGER.debug("Group " + group.getName() +" released a task");
-           if (!group.hasPendingTasks()) {
-               this.taskGroups.remove(group.getName());
-               LOGGER.debug("All tasks of group " + group.getName() +" have finished execution");
-           }
-       }
-    }
-
     /**
      * Releases the commutative groups dependencies.
      *
@@ -1134,7 +1116,6 @@ public class TaskAnalyser {
                 default:
                     AbstractTask task = wi.getDataWriter();
                     if (task != null) {
-                        LOGGER.debug("MARTA: Task is not null at deleteData taskAnalyser "+ task);
                         // Cannot delete data because task is still running
                         return;
                     } else {

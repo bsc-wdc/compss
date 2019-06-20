@@ -620,10 +620,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
         // Wait for response
         sem.acquireUninterruptibly();
-
+        
         if (taskAnalyser.getTaskGroup(groupName).hasException()) {
             throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
         }
+        
         LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 

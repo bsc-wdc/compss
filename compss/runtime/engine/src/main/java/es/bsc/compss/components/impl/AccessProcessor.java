@@ -616,6 +616,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
 
+        // Wait for response
+        sem.acquireUninterruptibly();
+        
         LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 

@@ -11,7 +11,6 @@ public class COMPSsWorker {
         String taskIdStr = System.getProperty(COMPSS_TASK_ID);
         if (taskIdStr != null && tasksToCancel !=null) {
             Boolean toCancel = tasksToCancel.get(Integer.parseInt(taskIdStr));
-           System.out.println("MARTA: ToCancel value is " + toCancel);
             if (toCancel!=null && toCancel) {
                 throw new Exception("Task " + taskIdStr + " has been cancelled.");
             }
@@ -23,6 +22,5 @@ public class COMPSsWorker {
             tasksToCancel = new HashMap<>();
         }
         tasksToCancel.put(taskId, true);
-        System.out.println("MARTA: Task to cancel true");
     }
 }

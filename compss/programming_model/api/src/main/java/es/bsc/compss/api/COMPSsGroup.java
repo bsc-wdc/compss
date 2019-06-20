@@ -10,7 +10,7 @@ public class COMPSsGroup implements AutoCloseable{
 
     @Override
     public void close() throws Exception {
-       System.out.println("MARTA: COMPSsGroup closed");
+       System.out.println("Group " + groupName + " closed");
         
     }
 }

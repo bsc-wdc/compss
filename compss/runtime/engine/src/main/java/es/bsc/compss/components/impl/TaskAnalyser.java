@@ -506,12 +506,13 @@ public class TaskAnalyser {
      *
      * @param task Ended task.
      */
-    public void endTask(AbstractTask task) {
-        if (task instanceof Task) {
+    public void endTask(AbstractTask aTask) {
+        if (aTask instanceof Task) {
+            Task task = (Task)aTask;
             int taskId = task.getId();
-            boolean isFree = ((Task) task).isFree();
+            boolean isFree = task.isFree();
             TaskState taskState = task.getStatus();
-            OnFailure onFailure = ((Task) task).getOnFailure();
+            OnFailure onFailure = task.getOnFailure();
             LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
 
             // Check status
@@ -519,8 +520,8 @@ public class TaskAnalyser {
                 LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
                 return;
             }
-
-            TaskMonitor registeredMonitor = ((Task) task).getTaskMonitor();
+    
+            TaskMonitor registeredMonitor = task.getTaskMonitor();
             switch (taskState) {
                 case FAILED:
                     registeredMonitor.onFailure();
@@ -580,8 +581,9 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Marking accessed parameters for task " + taskId);
             }
-            for (Parameter param : ((Task) task).getTaskDescription().getParameters()) {
-                updateParameterAccess((Task) task, param);
+            
+            for (Parameter param : task.getTaskDescription().getParameters()) {
+                updateParameterAccess(task, param);
             }
 
             // Check if the finished task was the last writer of a file, but only if task generation has finished
@@ -590,7 +592,7 @@ public class TaskAnalyser {
                 LOGGER.debug("Checking result file transfers for task " + taskId);
             }
             if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
-                checkResultFileTransfer((Task) task);
+                checkResultFileTransfer(task);
             }
 
             // Release data dependent tasks
@@ -606,7 +608,7 @@ public class TaskAnalyser {
         }
 
         // Release data dependent tasks
-        task.releaseDataDependents();
+        aTask.releaseDataDependents();
     }
     
     /**
@@ -614,9 +616,9 @@ public class TaskAnalyser {
      *
      * @param task Task to release groups.
      */
-    private void releaseTaskGroups(AbstractTask task) {
-       for (TaskGroup group : ((Task)task).getTaskGroupList()) {
-           group.removeTask((Task)task);
+    private void releaseTaskGroups(Task task) {
+       for (TaskGroup group : task.getTaskGroupList()) {
+           group.removeTask(task);
            LOGGER.debug("Group " + group.getName() +" released a task");
            if (!group.hasPendingTasks()) {
                this.taskGroups.remove(group.getName());
@@ -630,26 +632,26 @@ public class TaskAnalyser {
      *
      * @param task Commutative group to release.
      */
-    private void releaseCommutativeGroups(AbstractTask task) {
-        if (!((Task) task).getCommutativeGroupList().isEmpty()) {
-            for (CommutativeGroupTask group : ((Task) task).getCommutativeGroupList()) {
-                group.setStatus(TaskState.FINISHED);
-                group.removePredecessor((Task) task);
-                if (group.getPredecessors().isEmpty()) {
-                    group.releaseDataDependents();
-                    // Check if task is being waited
-                    List<Semaphore> sems = this.waitedTasks.remove(group);
-                    if (sems != null) {
-                        for (Semaphore sem : sems) {
-                            sem.release();
-                        }
-                    }
-                    if (DEBUG) {
-                        LOGGER.debug("Group " + group.getId() + " ended execution");
-                        LOGGER.debug("Data dependents of group " + group.getCommutativeIdentifier() + " released ");
-                    }
-                }
-            }
+    private void releaseCommutativeGroups(Task task) {
+        if (!task.getCommutativeGroupList().isEmpty()) {
+           for (CommutativeGroupTask group : task.getCommutativeGroupList()) {
+               group.setStatus(TaskState.FINISHED);
+               group.removePredecessor(task);
+               if (group.getPredecessors().isEmpty()) {
+                   group.releaseDataDependents();
+                   // Check if task is being waited
+                   List<Semaphore> sems = this.waitedTasks.remove(group);
+                   if (sems != null) {
+                       for (Semaphore sem : sems) {
+                           sem.release();
+                       }
+                   }
+                   if (DEBUG) {
+                       LOGGER.debug("Group " + group.getId() +" ended execution");
+                       LOGGER.debug("Data dependents of group " + group.getCommutativeIdentifier() +  " released ");
+                   }
+               }
+           }
         }
     }
 
@@ -906,12 +908,19 @@ public class TaskAnalyser {
             // We can draw the graph on a barrier while we wait for tasks
             this.gm.commitGraph();
         }
-        // Release the semaphore only if all application tasks have finished
-        if (!tg.hasPendingTasks()) {
+        if (tg != null) {
+            // Release the semaphore only if all application tasks have finished
+            if (!tg.hasPendingTasks()) {
+                request.getSemaphore().release();
+            } else {
+                this.appIdBarrierFlags.add(appId);
+                this.appIdToSemaphore.put(appId, request.getSemaphore());
+            }
+        } else { 
+            //Groups have already finished and have been erased of taskGroups
             request.getSemaphore().release();
-        } else {
-            this.appIdToSemaphore.put(appId, request.getSemaphore());
         }
+       
     }
 
     /**
@@ -1042,7 +1051,6 @@ public class TaskAnalyser {
                 default:
                     AbstractTask task = wi.getDataWriter();
                     if (task != null) {
-                        LOGGER.debug("MARTA: Task is not null at deleteData taskAnalyser "+ task);
                         // Cannot delete data because task is still running
                         return;
                     } else {

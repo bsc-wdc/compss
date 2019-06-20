@@ -127,8 +127,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private static RuntimeMonitor runtimeMonitor;
 
     // Logger
-//    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
     private static final TaskMonitor DO_NOTHING_MONITOR = new DoNothingTaskMonitor();
 
     static {
@@ -961,7 +960,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      */
     @Override
     public void getFile(Long appId, String fileName) {
-        LOGGER.debug("MARTA: getFile");
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.GET_FILE.getId(), TraceEvent.GET_FILE.getType());
         }
@@ -984,7 +982,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         String renamedPath = openFile(fileName, Direction.IN);
         String intermediateTmpPath = renamedPath + ".tmp";
-        LOGGER.debug("MARTA: getFile intermediate path: " + intermediateTmpPath + " renamedPath " + renamedPath);
         rename(renamedPath, intermediateTmpPath);
         closeFile(fileName, Direction.IN);
         ap.markForDeletion(sourceLocation);
@@ -992,7 +989,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sReg != null) {
             sReg.deleteTaskFile(fileName);
         }
-        LOGGER.debug("MARTA: getFile intermediate TMP path: " + intermediateTmpPath + " filename " + fileName);
         
         rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {

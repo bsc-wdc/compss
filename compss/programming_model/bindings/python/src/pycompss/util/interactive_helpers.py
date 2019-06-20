@@ -176,11 +176,11 @@ def _get_ipython_globals():
             if not (l.startswith(' ') or l.startswith('\t')) and _is_variable_assignation(l):
                 line_parts = l.split()
                 glob_name = line_parts[0]
-                if any(call in line_parts[2:] for call in api_calls):
-                    # It is an assignation that does not contain a master api call
-                    found_one = False
-                elif not glob_name.isupper():
+                if not glob_name.isupper():
                     # It is an assignation where the variable name is not in caps
+                    found_one = False
+                elif any(call in line_parts[2:] for call in api_calls):
+                    # It is an assignation that does not contain a master api call
                     found_one = False
                 else:
                     glob_lines[glob_name] = l.strip()

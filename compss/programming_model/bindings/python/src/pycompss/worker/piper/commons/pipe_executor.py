@@ -30,13 +30,13 @@ import sys
 import time
 import thread_affinity
 
-from pycompss.worker.pipe_constants import EXECUTE_TASK_TAG
-from pycompss.worker.pipe_constants import END_TASK_TAG
-from pycompss.worker.pipe_constants import COMPSS_EXCEPTION_TAG
-from pycompss.worker.pipe_constants import PING_TAG
-from pycompss.worker.pipe_constants import PONG_TAG
-from pycompss.worker.pipe_constants import QUIT_TAG
-from pycompss.worker.executor_commons import build_return_params_message
+from pycompss.worker.piper.commons.pipe_constants import EXECUTE_TASK_TAG
+from pycompss.worker.piper.commons.pipe_constants import END_TASK_TAG
+from pycompss.worker.piper.commons.pipe_constants import COMPSS_EXCEPTION_TAG
+from pycompss.worker.piper.commons.pipe_constants import PING_TAG
+from pycompss.worker.piper.commons.pipe_constants import PONG_TAG
+from pycompss.worker.piper.commons.pipe_constants import QUIT_TAG
+from pycompss.worker.commons.executor_commons import build_return_params_message
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
 
@@ -323,12 +323,12 @@ def executor(queue, process_name, pipe, conf):
                         logger.debug("\t - Number of threads: %s" % (str(cu)))
 
                     # Execute task
-                    from pycompss.worker.worker_commons import execute_task
+                    from pycompss.worker.commons.worker_commons import execute_task
                     exit_value, new_types, new_values, timed_out, exception_message = execute_task(process_name,
-                                                                                     storage_conf,
-                                                                                     current_line[9:],
-                                                                                     tracing,
-                                                                                     logger)
+                                                                                                   storage_conf,
+                                                                                                   current_line[9:],
+                                                                                                   tracing,
+                                                                                                   logger)
 
                     # Restore out/err wrappers
                     sys.stdout = stdout

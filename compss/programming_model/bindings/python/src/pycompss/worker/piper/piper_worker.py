@@ -29,10 +29,10 @@ import signal
 from multiprocessing import Process
 from multiprocessing import Queue
 from pycompss.util.logs import init_logging_worker
-from pycompss.worker.pipe_constants import *
-from pycompss.worker.piper_executor import Pipe
-from pycompss.worker.piper_executor import ExecutorConf
-from pycompss.worker.piper_executor import executor
+from pycompss.worker.piper.commons.pipe_constants import *
+from pycompss.worker.piper.commons.pipe_executor import Pipe
+from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
+from pycompss.worker.piper.commons.pipe_executor import executor
 
 # Persistent worker global variables
 PROCESSES = {}  # IN_PIPE -> PROCESS
@@ -126,13 +126,13 @@ def load_loggers(debug, persistent_storage):
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if debug:
         # Debug
-        init_logging_worker(worker_path + '/../../log/logging_debug.json')
+        init_logging_worker(worker_path + '/../../../log/logging_debug.json')
     else:
         # Default
-        init_logging_worker(worker_path + '/../../log/logging_off.json')
+        init_logging_worker(worker_path + '/../../../log/logging_off.json')
 
     # Define logger facilities
-    logger = logging.getLogger('pycompss.worker.piper_worker')
+    logger = logging.getLogger('pycompss.worker.piper.piper_worker')
     storage_loggers = []
     if persistent_storage:
         storage_loggers.append(logging.getLogger('dataclay'))

@@ -24,11 +24,11 @@ PyCOMPSs Persistent Worker
 """
 import signal
 
-from pycompss.worker.pipe_constants import *
-from pycompss.worker.piper_executor import ExecutorConf
-from pycompss.worker.piper_executor import executor
-from pycompss.worker.piper_worker import load_loggers
-from pycompss.worker.piper_worker import PiperWorkerConfiguration
+from pycompss.worker.piper.commons.pipe_constants import *
+from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
+from pycompss.worker.piper.commons.pipe_executor import executor
+from pycompss.worker.piper.piper_worker import load_loggers
+from pycompss.worker.piper.piper_worker import PiperWorkerConfiguration
 from mpi4py import MPI
 
 # Persistent worker global variables

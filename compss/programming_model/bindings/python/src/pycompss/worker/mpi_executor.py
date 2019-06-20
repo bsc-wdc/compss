@@ -31,12 +31,12 @@ import time
 import thread_affinity
 from mpi4py import MPI
 
-from pycompss.worker.pipe_constants import EXECUTE_TASK_TAG
-from pycompss.worker.pipe_constants import END_TASK_TAG
-from pycompss.worker.pipe_constants import PING_TAG
-from pycompss.worker.pipe_constants import PONG_TAG
-from pycompss.worker.pipe_constants import QUIT_TAG
-from pycompss.worker.executor_commons import build_return_params_message
+from pycompss.worker.piper.commons.pipe_constants import EXECUTE_TASK_TAG
+from pycompss.worker.piper.commons.pipe_constants import END_TASK_TAG
+from pycompss.worker.piper.commons.pipe_constants import PING_TAG
+from pycompss.worker.piper.commons.pipe_constants import PONG_TAG
+from pycompss.worker.piper.commons.pipe_constants import QUIT_TAG
+from pycompss.worker.commons.executor_commons import build_return_params_message
 
 from pycompss.util.logs import init_logging_worker
 

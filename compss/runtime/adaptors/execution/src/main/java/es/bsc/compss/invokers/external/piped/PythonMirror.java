@@ -43,9 +43,9 @@ public class PythonMirror extends PipedMirror {
             + "bindings-common" + File.separator + "lib";
     public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
     private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
-            + File.separator + "piper_worker.py";
+            + File.separator + "piper" + File.separator + "piper_worker.py";
     private static final String MPI_WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
-            + File.separator + "mpi_piper_worker.py";
+            + File.separator + "piper" + File.separator + "mpi_piper_worker.py";
 
     // Environment variable names
     private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";

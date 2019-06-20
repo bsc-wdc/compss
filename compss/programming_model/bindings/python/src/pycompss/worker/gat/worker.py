@@ -31,7 +31,7 @@ import sys
 
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logs import init_logging_worker
-from pycompss.worker.worker_commons import execute_task
+from pycompss.worker.commons.worker_commons import execute_task
 
 if IS_PYTHON3:
     long = int
@@ -70,7 +70,7 @@ def compss_worker(tracing, task_id, storage_conf, params):
     """
 
     if __debug__:
-        logger = logging.getLogger('pycompss.worker.worker')
+        logger = logging.getLogger('pycompss.worker.gat.worker')
         logger.debug("Starting Worker")
 
     # Set the binding in worker mode
@@ -142,13 +142,13 @@ def main():
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == 'true' or log_level == "debug":
         # Debug
-        init_logging_worker(worker_path + '/../../log/logging_debug.json')
+        init_logging_worker(worker_path + '/../../../log/logging_debug.json')
     elif log_level == "info" or log_level == "off":
         # Info or no debug
-        init_logging_worker(worker_path + '/../../log/logging_off.json')
+        init_logging_worker(worker_path + '/../../../log/logging_off.json')
     else:
         # Default
-        init_logging_worker(worker_path + '/../../log/logging.json')
+        init_logging_worker(worker_path + '/../../../log/logging.json')
 
     if persistent_storage:
         # Initialize storage

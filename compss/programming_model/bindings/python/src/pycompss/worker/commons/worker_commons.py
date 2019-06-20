@@ -355,7 +355,6 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
     # Get all parameter values
     if __debug__:
         logger.debug("Processing parameters:")
-    from pycompss.worker.worker_commons import get_input_params
     values = get_input_params(num_params, logger, args, process_name)
     types = [x.type for x in values]
 

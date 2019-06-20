@@ -19,7 +19,7 @@ public class TimeOutTask extends TimerTask {
     
     @Override
     public void run() {
-        LOGGER.info("MARTA: SetCancelled! tId: " + taskId);
+        LOGGER.info("The task " + taskId + " timed out");
         COMPSsWorker.setCancelled(taskId);
 
     }

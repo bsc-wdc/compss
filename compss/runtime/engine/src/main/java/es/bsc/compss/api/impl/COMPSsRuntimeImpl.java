@@ -26,6 +26,7 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.loader.LoaderAPI;
+import es.bsc.compss.loader.total.COMPSsGroupLoader;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
@@ -126,7 +127,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private static RuntimeMonitor runtimeMonitor;
 
     // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+//    private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     private static final TaskMonitor DO_NOTHING_MONITOR = new DoNothingTaskMonitor();
 
     static {
@@ -959,6 +961,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      */
     @Override
     public void getFile(Long appId, String fileName) {
+        LOGGER.debug("MARTA: getFile");
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.GET_FILE.getId(), TraceEvent.GET_FILE.getType());
         }
@@ -981,6 +984,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         String renamedPath = openFile(fileName, Direction.IN);
         String intermediateTmpPath = renamedPath + ".tmp";
+        LOGGER.debug("MARTA: getFile intermediate path: " + intermediateTmpPath + " renamedPath " + renamedPath);
         rename(renamedPath, intermediateTmpPath);
         closeFile(fileName, Direction.IN);
         ap.markForDeletion(sourceLocation);
@@ -988,6 +992,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sReg != null) {
             sReg.deleteTaskFile(fileName);
         }
+        LOGGER.debug("MARTA: getFile intermediate TMP path: " + intermediateTmpPath + " filename " + fileName);
+        
         rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -1508,14 +1514,5 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         // This will remove the object from the Object Registry and the Data Info Provider
         // eventually allowing the garbage collector to free it (better use of memory)
         ap.deregisterObject(o);
-    }
-
-    public static class COMPSsGroup {
-        String groupName;
-    
-        public COMPSsGroup(String groupName) {
-            this.groupName = groupName;
-        }
-        
     }
 }

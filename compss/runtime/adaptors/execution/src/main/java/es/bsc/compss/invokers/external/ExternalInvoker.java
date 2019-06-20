@@ -124,6 +124,7 @@ public abstract class ExternalInvoker extends Invoker {
         lArgs.add(String.valueOf(methodType));
         lArgs.add(methodClass);
         lArgs.add(methodName);
+        lArgs.add(String.valueOf(invocation.getTimeOut()));
 
         // Slave nodes and cus description
         lArgs.add(String.valueOf(invocation.getSlaveNodesNames().size()));

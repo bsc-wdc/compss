@@ -117,5 +117,21 @@ public interface LoaderAPI {
      * @param hashcode Object hashcode.
      */
     public void removeObject(Object o, int hashcode);
+    
+    /**
+     * Creates a new task group
+     *
+     * @param groupName Group name.
+     *
+     */
+    public void openTaskGroup(String groupName);
+    
+    /**
+     * Closes an existing task group
+     *
+     * @param groupName Group name.
+     *
+     */
+    public void closeTaskGroup(String groupName);
 
 }

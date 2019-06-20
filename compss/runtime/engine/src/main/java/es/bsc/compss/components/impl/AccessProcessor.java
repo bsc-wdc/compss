@@ -616,7 +616,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
 
-        LOGGER.info("Barrier: End of tasks of group");
+        LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 
     /**

@@ -180,8 +180,8 @@ public interface COMPSsRuntime {
     * Freezes the task generation until all the tasks of the group have finished execution. The name of the group to wait is 
     * given as a parameter.
     *
-    * @param appId       The application id.
-    * @param groupName   Name of the group to wait.
+    * @param appId The application id.
+    * @param groupName Name of the group to wait.
     */
    public void barrierGroup(Long appId, String groupName); 
 
@@ -282,5 +282,4 @@ public interface COMPSsRuntime {
      * @param id Event id.
      */
     public void emitEvent(int type, long id);
-
 }

@@ -17,11 +17,11 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.Loggers;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
-
 
 // Information about a datum and its versions
 public abstract class DataInfo {
@@ -207,7 +207,7 @@ public abstract class DataInfo {
         this.deletionBlocks--;
         if (this.deletionBlocks == 0) {
             for (DataVersion version : this.pendingDeletions) {
-                if (version.markToDelete()) {
+                if (version.markToDelete()) { 
                     Comm.removeData(version.getDataInstanceId().getRenaming());
                     this.versions.remove(version.getDataInstanceId().getVersionId());
                 }
@@ -236,7 +236,6 @@ public abstract class DataInfo {
                     if (ld != null) {
                         ld.removeValue();
                     }
-
                     Comm.removeData(sourceName);
                     removedVersions.add(version.getDataInstanceId().getVersionId());
                 }

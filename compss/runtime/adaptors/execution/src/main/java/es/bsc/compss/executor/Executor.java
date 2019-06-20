@@ -280,12 +280,10 @@ public class Executor implements Runnable {
                 long startExec = System.currentTimeMillis();
                 Timer timer = new Timer("Timer"+invocation.getTaskId());
                 Long time = (long) invocation.getTimeOut();
-                LOGGER.debug("MARTA: Time starts counting " + time + "  " + invocation.getTimeOut());
                 TimeOutTask timerTask = new TimeOutTask(invocation.getTaskId());
                 timer.schedule(timerTask, time);
                 executeTask(assignedResources, invocation, twd.getWorkingDir());
                 execDuration = System.currentTimeMillis() - startExec;
-                LOGGER.debug("MARTA: Timer cancelled");
                 timerTask.cancel();
 
             } catch (Exception e) {

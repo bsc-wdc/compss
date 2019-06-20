@@ -464,7 +464,6 @@ public class TaskAnalyser {
                 TaskGroup nextGroup = currentGroups.next();
                 currentTask.setTaskGroup(nextGroup);
                 nextGroup.addTask(currentTask);
-                LOGGER.debug("MARTA: Task " + currentTask.getId() + " added to group " + nextGroup.getName());
             }
          }
 
@@ -616,10 +615,14 @@ public class TaskAnalyser {
      * @param task Task to release groups.
      */
     private void releaseTaskGroups(AbstractTask task) {
-        for (TaskGroup group : ((Task) task).getTaskGroupList()) {
-            group.removeTask((Task) task);
-            LOGGER.debug("Group " + group.getName() + " released a task");
-        }
+       for (TaskGroup group : ((Task)task).getTaskGroupList()) {
+           group.removeTask((Task)task);
+           LOGGER.debug("Group " + group.getName() +" released a task");
+           if (!group.hasPendingTasks()) {
+               this.taskGroups.remove(group.getName());
+               LOGGER.debug("All tasks of group " + group.getName() +" have finished execution");
+           }
+       }
     }
 
     /**
@@ -900,11 +903,9 @@ public class TaskAnalyser {
         if (IS_DRAW_GRAPH) {
             addMissingCommutativeTasksToGraph();
             addNewBarrier();
-            LOGGER.debug("MARTA: Barrier added to graph");
             // We can draw the graph on a barrier while we wait for tasks
             this.gm.commitGraph();
         }
-        LOGGER.debug("MARTA: BarrierGroup for tg appId " + appId);
         // Release the semaphore only if all application tasks have finished
         if (!tg.hasPendingTasks()) {
             request.getSemaphore().release();
@@ -951,15 +952,13 @@ public class TaskAnalyser {
      * @param taskGroup
      */
     public void setCurrentTaskGroup(String groupName) {
-        LOGGER.debug("MARTA: Setting new task group " + groupName);
         TaskGroup tg = new TaskGroup(groupName);
         this.taskGroups.put(groupName,tg);
         this.currentTaskGroups.push(tg);
-        LOGGER.debug("MARTA: CurrentTaskGroups - " + this.currentTaskGroups);
         if (IS_DRAW_GRAPH) {
             this.gm.addTaskGroupToGraph(tg.getName());
             tg.setGraphDrawn();
-            LOGGER.debug("MARTA: Group added to graph");
+            LOGGER.debug("Group " + groupName + " added to graph");
         }
     }
     
@@ -967,15 +966,11 @@ public class TaskAnalyser {
      * Closes the task group
      * 
      */
-    public void closeCurrentTaskGroup() { //Stack on vas apilant i quan es treu es treu lultim 
-        //tREEMAP DE GRUPS I NAMES PER QUAN S'HAGI DE CANCELAR (
-        //Compss barrier group per anar al hashmap Nomes shan de borrar quan totes les d'un grup shan dexecutar
+    public void closeCurrentTaskGroup() { 
         // group set semaphore quan arriba un barrier i quan totes les tasques acaben el semafor s'allibera
-        LOGGER.debug("MARTA: CurrentTaskGroups - " + this.currentTaskGroups);
         this.currentTaskGroups.pop();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
-            LOGGER.debug("MARTA: Group closed in graph");
         }
     }
 
@@ -1047,6 +1042,7 @@ public class TaskAnalyser {
                 default:
                     AbstractTask task = wi.getDataWriter();
                     if (task != null) {
+                        LOGGER.debug("MARTA: Task is not null at deleteData taskAnalyser "+ task);
                         // Cannot delete data because task is still running
                         return;
                     } else {

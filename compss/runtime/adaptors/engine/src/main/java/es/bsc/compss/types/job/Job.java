@@ -295,7 +295,6 @@ public abstract class Job<T extends COMPSsWorker> {
      * @return time out of the task
      */
     public int getTimeOut() {
-        LOGGER.info("MARTA: The timeOut of the job is " + this.taskParams.getTimeOut());
         return this.taskParams.getTimeOut();
     }
 

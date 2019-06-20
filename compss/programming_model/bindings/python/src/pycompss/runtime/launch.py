@@ -54,7 +54,8 @@ from pycompss.util.persistent_storage import init_storage
 from pycompss.util.persistent_storage import stop_storage
 
 # Streaming imports
-from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
+from pycompss.streams.environment import init_streaming
+from pycompss.streams.environment import stop_streaming
 
 # Global variable also used within decorators
 app_path = None
@@ -101,34 +102,6 @@ def parse_arguments():
     parser.add_argument('streaming_master_port', help='Streaming Master Port [*]')
     parser.add_argument('app_path', help='Application path')
     return parser.parse_args()
-
-
-def init_streaming(streaming_backend, streaming_master_name, streaming_master_port, logger):
-    # Fix options if necessary
-    if streaming_master_name is None or not streaming_master_name or streaming_master_name == "null":
-        streaming_master_name = "localhost"
-
-    # Check if the stream backend is enabled
-    streaming_enabled = streaming_backend is not None \
-                        and streaming_backend \
-                        and streaming_backend != "null" \
-                        and streaming_backend != "NONE"
-
-    # Init stream backend if needed
-    if streaming_enabled:
-        if __debug__:
-            logger.debug("Starting DistroStream library")
-        DistroStreamClientHandler.init_and_start(master_ip=streaming_master_name,
-                                                 master_port=int(streaming_master_port))
-
-    # Return whether the streaming backend is enabled or not
-    return streaming_enabled
-
-
-def stop_streaming(logger):
-    if __debug__:
-        logger.debug("Stopping DistroStream library")
-    DistroStreamClientHandler.set_stop()
 
 
 def compss_main():
@@ -311,9 +284,9 @@ def launch_pycompss_application(app, func,
     :param task_execution: Task execution (default: 'compss')
     :param storage_impl: Storage implementation path
     :param storage_conf: Storage configuration file path
-    :param streaming_backend: Streaming backend
-    :param streaming_master_name: Streaming master name
-    :param streaming_master_port: Streaming master port
+    :param streaming_backend: Streaming backend (default: None)
+    :param streaming_master_name: Streaming master name (default: None)
+    :param streaming_master_port: Streaming master port (default: None)
     :param task_count: Task count (default: 50)
     :param app_name: Application name (default: Interactive_date)
     :param uuid: UUId

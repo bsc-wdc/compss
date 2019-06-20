@@ -27,6 +27,11 @@ import java.io.ObjectOutput;
 
 public class DecafImplementation extends AbstractMethodImplementation implements Externalizable {
 
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
     public static final int NUM_PARAMS = 5;
 
     public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator

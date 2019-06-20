@@ -27,6 +27,11 @@ import java.io.ObjectOutput;
 
 public class ServiceImplementation extends Implementation implements Externalizable {
 
+    /**
+     * Runtime Objects have serialization ID 1L.
+     */
+    private static final long serialVersionUID = 1L;
+
     public static final int NUM_PARAMS = 4;
 
     private String operation;

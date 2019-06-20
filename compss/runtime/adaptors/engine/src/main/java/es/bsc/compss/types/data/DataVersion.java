@@ -20,6 +20,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import es.bsc.compss.log.Loggers;
+
 public class DataVersion {
 
     private final DataInstanceId dataInstanceId;

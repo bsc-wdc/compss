@@ -17,6 +17,7 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.log.Loggers;
 
 import java.util.LinkedList;
 import java.util.TreeMap;

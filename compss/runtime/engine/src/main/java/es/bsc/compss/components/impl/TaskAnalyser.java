@@ -697,10 +697,14 @@ public class TaskAnalyser {
      * @param task Task to release groups.
      */
     private void releaseTaskGroups(AbstractTask task) {
-        for (TaskGroup group : ((Task) task).getTaskGroupList()) {
-            group.removeTask((Task) task);
-            LOGGER.debug("Group " + group.getName() + " released a task");
-        }
+       for (TaskGroup group : ((Task)task).getTaskGroupList()) {
+           group.removeTask((Task)task);
+           LOGGER.debug("Group " + group.getName() +" released a task");
+           if (!group.hasPendingTasks()) {
+               this.taskGroups.remove(group.getName());
+               LOGGER.debug("All tasks of group " + group.getName() +" have finished execution");
+           }
+       }
     }
 
     /**
@@ -1130,6 +1134,7 @@ public class TaskAnalyser {
                 default:
                     AbstractTask task = wi.getDataWriter();
                     if (task != null) {
+                        LOGGER.debug("MARTA: Task is not null at deleteData taskAnalyser "+ task);
                         // Cannot delete data because task is still running
                         return;
                     } else {

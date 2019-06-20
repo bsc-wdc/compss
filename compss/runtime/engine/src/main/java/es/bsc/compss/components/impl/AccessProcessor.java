@@ -618,14 +618,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (!requestQueue.offer(new BarrierGroupRequest(appId, groupName, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
-
         // Wait for response
         sem.acquireUninterruptibly();
 
         if (taskAnalyser.getTaskGroup(groupName).hasException()) {
             throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
         }
-        
         LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 

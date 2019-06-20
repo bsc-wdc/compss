@@ -145,8 +145,21 @@ def _get_ipython_globals():
     """
     Finds the user global variables.
 
+    WARNING: Assignations using any of the master api calls will be ignored
+             in order to avoid the worker to try to call the runtime.
+
+    WARNING2: We will consider only global variables that must be seen by the
+              workers if the variable name is defined in capital letters.
+              Please, take caution with the modification on the global variables
+              since they can lead to raise conditions in the user code execution.
+
     :return: A list of lines: [var\n, var\n, ...]
     """
+    api_calls = ['compss_open',
+                 'compss_delete_file',
+                 'compss_wait_on_file',
+                 'compss_delete_object',
+                 'compss_wait_on']
 
     raw_code = _get_raw_code()
     glob_lines = {}
@@ -159,9 +172,17 @@ def _get_ipython_globals():
         for l in lines:
             # if the line starts without spaces and is a variable assignation
             if not (l.startswith(' ') or l.startswith('\t')) and _is_variable_assignation(l):
-                glob_name = l.split()[0]
-                glob_lines[glob_name] = l.strip()
-                found_one = True
+                line_parts = l.split()
+                glob_name = line_parts[0]
+                if not glob_name.isupper():
+                    # It is an assignation where the variable name is not in caps
+                    found_one = False
+                elif any(call in line_parts[2:] for call in api_calls):
+                    # It is an assignation that does not contain a master api call
+                    found_one = False
+                else:
+                    glob_lines[glob_name] = l.strip()
+                    found_one = True
                 continue
             # if the next line/s start with space or tab belong also to the global variable
             if found_one and (l.startswith(' ') or l.startswith('\t')):
@@ -631,4 +652,5 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions, new_
                 code_file.write(line)
             code_file.write('\n')
             code_file.write('\n')
+    code_file.flush()
     code_file.close()

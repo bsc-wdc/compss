@@ -146,6 +146,10 @@ def _get_ipython_globals():
     """
     Finds the user global variables.
 
+    WARNING: Assignations using any of the master api calls will be ignored
+             in order to avoid the worker to try to call the runtime.
+             This is checked in the _is_variable_assignation function.
+
     :return: A list of lines: [var\n, var\n, ...]
     """
 
@@ -180,23 +184,35 @@ def _is_variable_assignation(line):
     * if contains a '=' (assignation) and does not start with import, nor @, nor def, nor class.
     * then it is ==> is a global variable assignation.
 
+    WARNING; It will ignore the assignations that contain any of the master api calls that
+             return something.
+
     :param line: Line to parse
     :return: <Boolean>
     """
+    api_calls = ['compss_open',
+                 'compss_delete_file',
+                 'compss_wait_on_file',
+                 'compss_delete_object',
+                 'compss_wait_on']
 
     if '=' in line:
-        parts = line.split()
-        if not (line.startswith("from") or
-                line.startswith("import") or
-                line.startswith("@") or
-                line.startswith("def") or
-                line.startswith("class")) \
-                and len(parts) >= 3 and parts[1] == '=':
-            # It is actually an assignation
-            return True
-        else:
-            # It is an import/function/decorator/class definition
+        if any(call in line for call in api_calls):
             return False
+        else:
+            # It is an assignation that does not contain an apy call
+            parts = line.split()
+            if not (line.startswith("from") or
+                    line.startswith("import") or
+                    line.startswith("@") or
+                    line.startswith("def") or
+                    line.startswith("class")) \
+                    and len(parts) >= 3 and parts[1] == '=':
+                # It is actually an assignation
+                return True
+            else:
+                # It is an import/function/decorator/class definition
+                return False
     else:
         # Not an assignation if does not contain '='
         return False

@@ -148,10 +148,19 @@ def _get_ipython_globals():
 
     WARNING: Assignations using any of the master api calls will be ignored
              in order to avoid the worker to try to call the runtime.
-             This is checked in the _is_variable_assignation function.
+
+    WARNING2: We will consider only global variables that must be seen by the
+              workers if the variable name is defined in capital letters.
+              Please, take caution with the modification on the global variables
+              since they can lead to raise conditions in the user code execution.
 
     :return: A list of lines: [var\n, var\n, ...]
     """
+    api_calls = ['compss_open',
+                 'compss_delete_file',
+                 'compss_wait_on_file',
+                 'compss_delete_object',
+                 'compss_wait_on']
 
     raw_code = _get_raw_code()
     glob_lines = {}
@@ -165,9 +174,17 @@ def _get_ipython_globals():
             # if the line starts without spaces and is a variable assignation
             glob_name = ''
             if not (l.startswith(' ') or l.startswith('\t')) and _is_variable_assignation(l):
-                glob_name = l.split()[0]
-                glob_lines[glob_name] = l.strip()
-                found_one = True
+                line_parts = l.split()
+                glob_name = line_parts[0]
+                if any(call in line_parts[2:] for call in api_calls):
+                    # It is an assignation that does not contain a master api call
+                    found_one = False
+                elif not glob_name.isupper():
+                    # It is an assignation where the variable name is not in caps
+                    found_one = False
+                else:
+                    glob_lines[glob_name] = l.strip()
+                    found_one = True
                 continue
             # if the next line/s start with space or tab belong also to the global variable
             if found_one and (l.startswith(' ') or l.startswith('\t')):
@@ -184,35 +201,23 @@ def _is_variable_assignation(line):
     * if contains a '=' (assignation) and does not start with import, nor @, nor def, nor class.
     * then it is ==> is a global variable assignation.
 
-    WARNING; It will ignore the assignations that contain any of the master api calls that
-             return something.
-
     :param line: Line to parse
     :return: <Boolean>
     """
-    api_calls = ['compss_open',
-                 'compss_delete_file',
-                 'compss_wait_on_file',
-                 'compss_delete_object',
-                 'compss_wait_on']
 
     if '=' in line:
-        if any(call in line for call in api_calls):
-            return False
+        parts = line.split()
+        if not (line.startswith("from") or
+                line.startswith("import") or
+                line.startswith("@") or
+                line.startswith("def") or
+                line.startswith("class")) \
+                and len(parts) >= 3 and parts[1] == '=':
+            # It is actually an assignation
+            return True
         else:
-            # It is an assignation that does not contain an apy call
-            parts = line.split()
-            if not (line.startswith("from") or
-                    line.startswith("import") or
-                    line.startswith("@") or
-                    line.startswith("def") or
-                    line.startswith("class")) \
-                    and len(parts) >= 3 and parts[1] == '=':
-                # It is actually an assignation
-                return True
-            else:
-                # It is an import/function/decorator/class definition
-                return False
+            # It is an import/function/decorator/class definition
+            return False
     else:
         # Not an assignation if does not contain '='
         return False

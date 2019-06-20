@@ -43,6 +43,16 @@ public class COMPSs {
     }
 
     /**
+     * Barrier for a group of tasks.
+     * 
+     * @param groupName Name of the group to perform the barrier.
+     */
+    public static void barrierGroup(String groupName) {
+        // This is only a handler, it is never executed
+        System.out.println(SKIP_MESSAGE);
+    }
+    
+    /**
      * Unregister the given object from the Runtime.
      * 
      * @param o Object to unregister.
@@ -61,5 +71,6 @@ public class COMPSs {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
+   
 
 }

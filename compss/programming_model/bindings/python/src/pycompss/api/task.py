@@ -886,7 +886,7 @@ class task(object):
                 # Default value = IN if not class or instance method and isModifier, INOUT otherwise
                 # see self.get_default_direction
                 # Note that if we have something like @task(self = IN) it will have priority over the default
-                # direction resolution, even if this implies a contradiction with the isModifier flag
+                # direction resolution, even if this implies a contradiction with the targetDirection flag
                 self.parameters[var_name] = self.decorator_arguments.get(var_name, self.get_default_direction(var_name))
             # If the parameter is a FILE then its type will already be defined, and get_compss_type will misslabel it
             # as a TYPE.STRING
@@ -1266,7 +1266,7 @@ class task(object):
         # Add self type and value if exist
         if has_self:
             if self.decorator_arguments[target_label].direction == parameter.DIRECTION.INOUT:
-                # Check if self is a PSCO that has been persisted inside the task and isModifier
+                # Check if self is a PSCO that has been persisted inside the task and target_direction
                 # Update self type and value
                 self_type = parameter.get_compss_type(args[0])
                 if self_type == parameter.TYPE.EXTERNAL_PSCO:

@@ -16,33 +16,41 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.types.data.DataAccessId;
+
 import java.util.LinkedList;
 import java.util.List;
 
-import es.bsc.compss.types.data.DataAccessId;
 
-public class CommutativeGroupTask extends AbstractTask{
-    
-    private final CommutativeIdentifier comId;    
-    
+public class CommutativeGroupTask extends AbstractTask {
+
+    private final CommutativeIdentifier comId;
+
     // Tasks that access the data
     private final List<Task> commutativeTasks;
-    
+
     private AbstractTask parentDataDependency;
-    int executionCount;
-    
+    private int executionCount;
+
     // Version control
     private int finalVersion;
     private LinkedList<DataAccessId> versions;
     private DataAccessId registeredVersion;
-    
+
     // Task currently being executed
     private boolean currentlyExecuting;
     private int taskExecuting;
-    
+
     private boolean graphDrawn;
-    
-    public CommutativeGroupTask (Long appId, CommutativeIdentifier comId) {
+
+
+    /**
+     * Creates a new CommutativeTaskGroup instance.
+     * 
+     * @param appId Application Id.
+     * @param comId Commutative group identifier.
+     */
+    public CommutativeGroupTask(Long appId, CommutativeIdentifier comId) {
         super(appId);
         this.commutativeTasks = new LinkedList<Task>();
         this.finalVersion = 0;
@@ -54,205 +62,195 @@ public class CommutativeGroupTask extends AbstractTask{
         this.graphDrawn = false;
         this.taskExecuting = 0;
     }
-    
+
     /**
-     * Returns commutative tasks of group
+     * Returns the commutative tasks associated to the group.
      * 
-     * @return
+     * @return The commutative tasks associated to the group.
      */
-    public List<Task> getCommutativeTasks () {
-        return commutativeTasks;
+    public List<Task> getCommutativeTasks() {
+        return this.commutativeTasks;
     }
-    
+
     /**
-     * Returns commutative identifier
+     * Returns the commutative identifier.
      * 
-     *@return
+     * @return The commutative identifier.
      */
     public CommutativeIdentifier getCommutativeIdentifier() {
         return this.comId;
     }
-    
+
     /**
-     * Adds commutative task to group
+     * Adds commutative task to group.
      *
-     * @param task
+     * @param task Task to add.
      */
     public void addCommutativeTask(Task task) {
-        commutativeTasks.add(task);
+        this.commutativeTasks.add(task);
     }
-    
+
     /**
-     * Sets final version
+     * Sets the final version.
      *
-     * @param version
+     * @param version Final version.
      */
-    public void setFinalVersion (int version) {
+    public void setFinalVersion(int version) {
         this.finalVersion = version;
     }
 
     /**
-     * Removes predecessor from group
+     * Removes predecessor from group.
      *
-     * @param t
+     * @param t Predecessor to remove.
      */
-    public void removePredecessor (Task t) {
+    public void removePredecessor(Task t) {
         super.getPredecessors().remove(t);
     }
-    
+
     /**
-     * Group starts processing execution
+     * Group starts processing execution.
      *
-     * @param taskId
+     * @param taskId Task being executed.
      */
     public void taskBeingExecuted(int taskId) {
         this.currentlyExecuting = true;
         this.taskExecuting = taskId;
     }
-    
+
     /**
-     * The group ends processing execution
-     *
+     * The group ends processing execution.
      */
     public void taskEndedExecution() {
         this.currentlyExecuting = false;
         this.taskExecuting = 0;
     }
-    
+
     /**
-     * Adds version to list of versions
-     *
+     * Adds version to list of versions.
      */
     public void addVersionToList(DataAccessId daId) {
         this.versions.add(daId);
     }
-    
+
     /**
-     * Returns the current version
-     *
+     * Returns the current version.
      */
     public DataAccessId getRegisteredVersion() {
-        if (registeredVersion == null) {
-            registeredVersion = versions.get(0);
+        if (this.registeredVersion == null) {
+            this.registeredVersion = this.versions.get(0);
         }
-        return registeredVersion;
+        return this.registeredVersion;
     }
-    
+
     /**
-     * Sets the current version
+     * Sets the current version.
      *
-     * @param daId
+     * @param daId Data Id of the current version.
      */
     public void setRegisteredVersion(DataAccessId daId) {
-        registeredVersion = daId;
+        this.registeredVersion = daId;
     }
-    
+
     /**
-     * Changes the current version of the data
-     *
+     * Changes the current version of the data.
      */
     public void nextVersion() {
-        if (!versions.isEmpty()) {
-            this.registeredVersion = versions.getFirst();
-            versions.remove(this.registeredVersion);
-            for (Task t : commutativeTasks) {
-                t.setVersion(registeredVersion);
+        if (!this.versions.isEmpty()) {
+            this.registeredVersion = this.versions.getFirst();
+            this.versions.remove(this.registeredVersion);
+            for (Task t : this.commutativeTasks) {
+                t.setVersion(this.registeredVersion);
             }
         }
     }
-    
+
     /**
-     * Sets the graph of the group as drawn
-     *
+     * Sets the graph of the group as drawn.
      */
     public void setGraphDrawn() {
         this.graphDrawn = true;
     }
-    
+
     /**
-     * Returns if the graph of the group has been drawn
+     * Returns whether the graph of the group has been drawn or not.
      *
-     * @return
+     * @return {@literal true} if the group has already been drawn, {@literal false} otherwise.
      */
     public boolean getGraphDrawn() {
         return this.graphDrawn;
     }
-    
+
     /**
-     * Returns the executions of the task
+     * Returns the number of executions of the group.
      *
-     * @return
+     * @return The number of executions of the group.
      */
     public int getExecutionCount() {
-        return executionCount;
+        return this.executionCount;
     }
 
     /**
-     * Returns the executions of the task
-     *
-     * @return
+     * Increases the number of executions of the group.
      */
     public void increaseExecutionCount() {
-        executionCount = executionCount + 1;
+        this.executionCount = this.executionCount + 1;
     }
+
+    /**
+     * Returns the parent task causing a data dependency.
+     *
+     * @return The parent task causing a data dependency.
+     */
+    public AbstractTask getParentDataDependency() {
+        return this.parentDataDependency;
+    }
+
+    /**
+     * Sets parent task.
+     *
+     * @param t Parent task.
+     */
+    public void setParentDataDependency(AbstractTask t) {
+        this.parentDataDependency = t;
+    }
+
+    /**
+     * Returns whether the group is processing the given task or not.
+     *
+     * @param taskId Task to ask if it is being executed.
+     * @return {@literal true} if the group is executing the given task, {@literal false} otherwise.
+     */
+    public boolean processingExecution(int taskId) {
+        if (this.currentlyExecuting) {
+            if (taskId == this.taskExecuting) {
+                return false;
+            }
+        }
+        return this.currentlyExecuting;
+    }
+
+    /**
+     * Returns the final version of the data.
+     *
+     * @return The final version of the data.
+     */
+    public int getFinalVersion() {
+        return this.finalVersion;
+    }
+
     @Override
     public String getDotDescription() {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public String getLegendDescription() {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public String getColor() {
-        // TODO Auto-generated method stub
         return null;
     }
-
-    /**
-    * Returns the dependency with parent task
-    *
-    * @return
-    */
-    public AbstractTask getParentDataDependency() {
-        return parentDataDependency;
-    }
-    
-    /**
-    * Sets parent task
-    *
-    * @param t
-    */
-    public void setParentDataDependency(AbstractTask t) {
-        parentDataDependency = t;
-    }
-
-    /**
-    * Returns if group is processing execution
-    *
-    *@param taskId
-    * @return
-    */
-    public boolean processingExecution(int taskId) {
-        if (currentlyExecuting) {
-            if (taskId == this.taskExecuting) {
-                return false;
-            }
-        }
-        return currentlyExecuting;    
-    }
-    
-    /**
-    * Returns the final version of the data
-    *
-    * @return
-    */
-    public int getFinalVersion() {
-        return finalVersion;
-    }
 }
-

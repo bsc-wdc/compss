@@ -71,13 +71,13 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
     @Override
     public synchronized void start(RESTAgentConf args) throws AgentException {
-        if (server != null) {
+        if (this.server != null) {
             // Server already started. Ignore start;
             return;
         }
         RESTServiceLauncher launcher = null;
         try {
-            port = args.getPort();
+            this.port = args.getPort();
             System.setProperty(RESTAgentConstants.COMPSS_AGENT_PORT, Integer.toString(port));
             launcher = new RESTServiceLauncher(port);
             new Thread(launcher).start();
@@ -88,15 +88,15 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         if (launcher.getStartError() != null) {
             throw new AgentException(launcher.getStartError());
         } else {
-            server = launcher.getServer();
+            this.server = launcher.getServer();
         }
     }
 
     @Override
     public synchronized void stop() {
-        if (server != null) {
+        if (this.server != null) {
             try {
-                server.stop();
+                this.server.stop();
             } catch (Exception ex) {
                 ErrorManager.warn("Could not stop the REST server for the Agent at port " + port, ex);
             } finally {

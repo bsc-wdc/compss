@@ -28,7 +28,7 @@ public class TaskProfile {
 
 
     /**
-     * Initializes a new TaskProfile instance
+     * Initializes a new TaskProfile instance.
      */
     public TaskProfile() {
         this.taskReception = System.currentTimeMillis();

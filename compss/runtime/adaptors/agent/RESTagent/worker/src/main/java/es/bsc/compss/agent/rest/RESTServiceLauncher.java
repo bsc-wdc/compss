@@ -33,6 +33,7 @@ public class RESTServiceLauncher implements Runnable {
     private Server server;
     private Exception startError = null;
 
+
     public RESTServiceLauncher(int port) {
         this.port = port;
         this.sem = new Semaphore(0);
@@ -41,57 +42,59 @@ public class RESTServiceLauncher implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("REST Agent Service");
+
         try {
             ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
             context.setContextPath("/");
 
-            server = new Server(port);
-            server.setHandler(context);
+            this.server = new Server(this.port);
+            this.server.setHandler(context);
 
             ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/*");
             jerseyServlet.setInitOrder(0);
 
-            jerseyServlet.setInitParameter("jersey.config.server.provider.classnames", RESTAgent.class.getCanonicalName());
+            jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",
+                    RESTAgent.class.getCanonicalName());
             try {
-                server.start();
+                this.server.start();
             } catch (Exception e) {
-                startError = e;
-                server.destroy();
-                server = null;
+                this.startError = e;
+                this.server.destroy();
+                this.server = null;
             }
         } catch (Exception e) {
-            startError = e;
-            server = null;
+            this.startError = e;
+            this.server = null;
         }
-        sem.release();
+        this.sem.release();
         // If server is up keep running
-        if (server != null) {
+        if (this.server != null) {
             try {
-                server.join();
+                this.server.join();
             } catch (Exception e) {
-                //TODO: Send a notification to stop the Agent
+                // TODO: Send a notification to stop the Agent
             } finally {
-                server.destroy();
-                server = null;
+                this.server.destroy();
+                this.server = null;
             }
         }
     }
 
     public Server getServer() {
-        return server;
+        return this.server;
     }
 
     public Exception getStartError() {
-        return startError;
+        return this.startError;
     }
 
     /**
-     * Returns a sempahore that return false until
+     * Waits for the service to be operative.
      *
-     * @throws java.lang.InterruptedException
+     * @throws InterruptedException If the waiting semaphore is interrupted.
      */
     public void waitForBoot() throws InterruptedException {
-        sem.acquire();
+        this.sem.acquire();
     }
 
 }

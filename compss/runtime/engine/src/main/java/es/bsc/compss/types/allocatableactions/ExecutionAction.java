@@ -28,9 +28,9 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.types.Task;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
+import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -113,31 +113,31 @@ public class ExecutionAction extends AllocatableAction {
 
         // Register data dependencies
         synchronized (this.task) {
-            List<AbstractTask> predecessors = this.task.getPredecessors();              
+            List<AbstractTask> predecessors = this.task.getPredecessors();
             for (AbstractTask predecessor : predecessors) {
                 if (!(predecessor instanceof CommutativeGroupTask)) {
                     for (AllocatableAction e : predecessor.getExecutions()) {
                         if (e != null && e.isPending()) {
-                            addDataPredecessor(e);   
-                        }   
+                            addDataPredecessor(e);
+                        }
                     }
                 } else {
                     LOGGER.debug("Task has a commutative group as a predecessor");
-                    for (Task t :((CommutativeGroupTask)predecessor).getCommutativeTasks()) {
+                    for (Task t : ((CommutativeGroupTask) predecessor).getCommutativeTasks()) {
                         for (AllocatableAction com : t.getExecutions()) {
                             if (!com.getDataPredecessors().contains(this)) {
                                 this.addDataPredecessor(com);
                             }
                         }
                     }
-                } 
+                }
             }
         }
 
         // Register stream producers
         synchronized (this.task) {
             for (AbstractTask predecessor : this.task.getStreamProducers()) {
-                for (AllocatableAction e : ((Task)predecessor).getExecutions()) {
+                for (AllocatableAction e : ((Task) predecessor).getExecutions()) {
                     if (e != null && e.isPending()) {
                         addStreamProducer(e);
                     }
@@ -150,7 +150,7 @@ public class ExecutionAction extends AllocatableAction {
         Task resourceConstraintTask = this.task.getEnforcingTask();
         if (resourceConstraintTask != null) {
             for (AllocatableAction e : resourceConstraintTask.getExecutions()) {
-                addResourceConstraint((ExecutionAction)e);
+                addResourceConstraint((ExecutionAction) e);
             }
         }
     }
@@ -192,7 +192,7 @@ public class ExecutionAction extends AllocatableAction {
         TaskMonitor monitor = task.getTaskMonitor();
         monitor.onSubmission();
         doInputTransfers();
-        for (CommutativeGroupTask com: this.getTask().getCommutativeGroupList()) {
+        for (CommutativeGroupTask com : this.getTask().getCommutativeGroupList()) {
             com.taskBeingExecuted(this.getTask().getId());
         }
     }
@@ -201,7 +201,7 @@ public class ExecutionAction extends AllocatableAction {
     public boolean taskIsReadyForExecution() {
         return task.canBeExecuted();
     }
-    
+
     private void doInputTransfers() {
         JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);
@@ -471,9 +471,12 @@ public class ExecutionAction extends AllocatableAction {
                     dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                     break;
                 case COMMUTATIVE:
-                    CommutativeGroupTask cgt = this.getTask().getCommutativeGroup(((DependencyParameter) p).getDataAccessId().getDataId());
+                    CommutativeGroupTask cgt = this.getTask()
+                            .getCommutativeGroup(((DependencyParameter) p).getDataAccessId().getDataId());
                     cgt.getCommutativeTasks().remove(this.getTask());
                     cgt.nextVersion();
+                    dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                    break;
                 case INOUT:
                     dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                     break;
@@ -551,6 +554,7 @@ public class ExecutionAction extends AllocatableAction {
                     case IN:
                     case CONCURRENT:
                     case INOUT:
+                    case COMMUTATIVE:
                         // Return value is OUT, skip the current parameter
                         continue;
                     case OUT:
@@ -592,7 +596,7 @@ public class ExecutionAction extends AllocatableAction {
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSuccesfulExecution();
 
-        for (CommutativeGroupTask com: this.getTask().getCommutativeGroupList()) {
+        for (CommutativeGroupTask com : this.getTask().getCommutativeGroupList()) {
             com.taskEndedExecution();
         }
 
@@ -908,13 +912,13 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        
-        for (CommutativeGroupTask cgt: this.getTask().getCommutativeGroupList()) {
-            for (Task t:cgt.getCommutativeTasks()) { 
-                if (t.getStatus()== TaskState.TO_EXECUTE)
-                    for (AllocatableAction aa:t.getExecutions()) {
+
+        for (CommutativeGroupTask cgt : this.getTask().getCommutativeGroupList()) {
+            for (Task t : cgt.getCommutativeTasks()) {
+                if (t.getStatus() == TaskState.TO_EXECUTE) {
+                    for (AllocatableAction aa : t.getExecutions()) {
                         if (!aa.hasDataPredecessors()) {
-                            if (!freeTasks.contains(aa)){
+                            if (!freeTasks.contains(aa)) {
                                 freeTasks.add(aa);
                             }
                         }
@@ -922,5 +926,6 @@ public class ExecutionAction extends AllocatableAction {
                 }
             }
         }
-     
+    }
+
 }

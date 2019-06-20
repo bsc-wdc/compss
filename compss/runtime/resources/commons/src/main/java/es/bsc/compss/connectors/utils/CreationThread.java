@@ -73,13 +73,13 @@ public class CreationThread extends Thread {
 
 
     /**
-     * New helper thread for VM creation with the given properties
+     * New helper thread for VM creation with the given properties.
      *
-     * @param operations
-     * @param name
-     * @param provider
-     * @param rR
-     * @param reused
+     * @param operations Operations to perform.
+     * @param name Thread name.
+     * @param provider Associated cloud provider.
+     * @param rR Resource creation request.
+     * @param reused Reused VM description.
      */
     public CreationThread(Operations operations, String name, CloudProvider provider, ResourceCreationRequest rR,
             VM reused) {

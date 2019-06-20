@@ -178,7 +178,8 @@ public class CloudProviderTest {
         }
     }
 
-    public void checkRetrievedImage(CloudImageDescription retrieved, String name, String imgProperty) throws Exception {
+    private void checkRetrievedImage(CloudImageDescription retrieved, String name, String imgProperty)
+            throws Exception {
         if (retrieved == null) {
             throw new Exception("The provider cannot find the Image by its name");
         }
@@ -298,7 +299,9 @@ public class CloudProviderTest {
         }
     }
 
-    public void checkRetrievedType(CloudInstanceTypeDescription retrieved, String name, float memory) throws Exception {
+    private void checkRetrievedType(CloudInstanceTypeDescription retrieved, String name, float memory)
+            throws Exception {
+
         if (retrieved == null) {
             throw new Exception("The provider cannot find the type by its name");
         }
@@ -612,21 +615,21 @@ public class CloudProviderTest {
         CloudInstanceTypeDescription citd = new CloudInstanceTypeDescription(typeName, mrd1);
         cp.addInstanceType(citd);
 
-        CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        final CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
+        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
 
-        CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        final CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
+        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
         if (cp.getCurrentVMCount() != 2) {
             fail("Cloud Provider is not properly accounting the number of requested VMs");
         }
 
-        String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
+        final String vmName = "VM" + (int) (Math.random() * 1000);
+        final CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
                 new HashMap<>());
 
-        String vmName2 = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw2 = new CloudMethodWorker(vmName2, cp, cmrd, new FakeNode(vmName2), 0, 0, 0, 0,
+        final String vmName2 = "VM" + (int) (Math.random() * 1000);
+        final CloudMethodWorker cmw2 = new CloudMethodWorker(vmName2, cp, cmrd, new FakeNode(vmName2), 0, 0, 0, 0,
                 new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
@@ -689,14 +692,14 @@ public class CloudProviderTest {
         CloudInstanceTypeDescription citd = new CloudInstanceTypeDescription(typeName, mrd1);
         cp.addInstanceType(citd);
 
-        CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        final CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
+        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
 
-        CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        final CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
+        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
+        final CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
                 new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
@@ -872,11 +875,11 @@ public class CloudProviderTest {
         CloudInstanceTypeDescription citd = new CloudInstanceTypeDescription(typeName, mrd1);
         cp.addInstanceType(citd);
 
-        CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
+        final CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription(citd, cid);
+        final ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
 
-        CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
-        ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
+        final CloudMethodResourceDescription cmrd2 = new CloudMethodResourceDescription(citd, cid);
+        final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw = new ExtendedCloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0,

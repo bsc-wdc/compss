@@ -46,16 +46,16 @@ public class DeletionThread extends Thread {
 
 
     /**
-     * Creates a new support thread for VM reduction with the given properties
+     * Creates a new support thread for VM reduction with the given properties.
      *
-     * @param connector
-     * @param worker
-     * @param reduction
+     * @param ops Operations to perform.
+     * @param worker Associated worker.
+     * @param reduction Reduction description.
      */
-    public DeletionThread(Operations connector, CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
+    public DeletionThread(Operations ops, CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         this.setName("DeletionThread " + worker.getName());
 
-        this.operations = connector;
+        this.operations = ops;
         this.worker = worker;
         this.reduction = reduction;
         this.vm = null;
@@ -64,15 +64,15 @@ public class DeletionThread extends Thread {
     }
 
     /**
-     * Creates a new support thread for VM destruction with the given properties
+     * Creates a new support thread for VM destruction with the given properties.
      *
-     * @param connector
-     * @param vm
+     * @param ops Operations to perform.
+     * @param vm Associated VM description.
      */
-    public DeletionThread(Operations connector, VM vm) {
+    public DeletionThread(Operations ops, VM vm) {
         this.setName("DeletionThread " + vm.getName());
 
-        this.operations = connector;
+        this.operations = ops;
         this.worker = null;
         this.reduction = null;
         this.vm = vm;
@@ -82,14 +82,15 @@ public class DeletionThread extends Thread {
 
     @Override
     public void run() {
-        if (reduction != null) {
+        if (this.reduction != null) {
             if (DEBUG) {
-                RUNTIME_LOGGER.debug("[Deletion Thread] Pausing worker " + worker.getName());
+                RUNTIME_LOGGER.debug("[Deletion Thread] Pausing worker " + this.worker.getName());
             }
-            this.vm = this.operations.pause(worker);
+            this.vm = this.operations.pause(this.worker);
         }
-        if (vm != null) {
-            CloudMethodWorker cloudWorker = vm.getWorker();
+
+        if (this.vm != null) {
+            CloudMethodWorker cloudWorker = this.vm.getWorker();
             // I think this part now is not needed
             /*
              * if (cloudWorker.shouldBeStopped()) { cloudWorker.retrieveData(true); Semaphore sem = new Semaphore(0);
@@ -107,7 +108,7 @@ public class DeletionThread extends Thread {
                         .debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }
             try {
-                this.operations.poweroff(vm);
+                this.operations.poweroff(this.vm);
             } catch (ConnectorException e) {
                 RESOURCE_LOGGER.error("ERROR: Powering off the resource", e);
             }
@@ -121,9 +122,9 @@ public class DeletionThread extends Thread {
     }
 
     /**
-     * Returns the number of active deletion threads
+     * Returns the number of active deletion threads.
      *
-     * @return
+     * @return The number of active deletion threads.
      */
     public static int getCount() {
         return COUNT.get();

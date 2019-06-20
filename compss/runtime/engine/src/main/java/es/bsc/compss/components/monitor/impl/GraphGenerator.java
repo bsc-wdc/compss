@@ -350,9 +350,9 @@ public class GraphGenerator {
         }
     }
 
-
     /**
-     * Adds an edge to the graph from a commutative group to a task from @src to @tgt with label @label
+     * Adds an edge to the graph from a commutative group to a task from {@code src} to {@code tgt} with label
+     * {@code label}.
      * 
      * @param src Node from which the dependency arrow starts.
      * @param tgt Node to which the task is dependent.
@@ -360,37 +360,50 @@ public class GraphGenerator {
      * @param identifier Commutative group identifier.
      */
     public void addEdgeToGraphFromCommutative(String src, String tgt, String label, String identifier) {
+        // Build message
+        StringBuilder sb = new StringBuilder();
+        sb.append(src).append(" -> ").append(tgt);
+        if (!label.isEmpty()) {
+            sb.append("[ label=\"d").append(label).append("\" ]");
+        }
+        sb.append("[ ltail=\"clusterCommutative").append(identifier).append("\" ];");
+
+        // Print message
         try {
             full_graph.newLine();
-            full_graph.write(src + " -> " + tgt + (label.isEmpty() ? "" : "[ label=\"d" + label + "\" ]") + "[ ltail=\"clusterCommutative" + identifier +"\" ];");
+            full_graph.write(sb.toString());
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_EDGE, e);
         }
     }
-    
+
     /**
-     * Adds a commutative group to the graph
+     * Adds a commutative group to the graph.
      * 
      * @param identifier Identifier of the group.
      */
     public void addCommutativeGroupToGraph(String identifier) {
         try {
             full_graph.newLine();
-            full_graph.write("subgraph clusterCommutative" + identifier + " {\n");
-            full_graph.write(
-                    "shape=rect;\n" + 
-                    "node[height=0.75];\n" + 
-                    "color=\"#A9A9A9\"; \n" + 
-                    "rank=same;\n"
-                    + "label=\"CGT" + identifier + "\";\n");
+
+            StringBuilder msg1 = new StringBuilder();
+            msg1.append("subgraph clusterCommutative").append(identifier).append(" {\n");
+            full_graph.write(msg1.toString());
+
+            StringBuilder msg2 = new StringBuilder();
+            msg2.append("shape=rect;\n");
+            msg2.append("node[height=0.75];\n");
+            msg2.append("color=\"#A9A9A9\";\n");
+            msg2.append("rank=same;\n");
+            msg2.append("label=\"CGT").append(identifier).append("\";\n");
+            full_graph.write(msg2.toString());
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
     }
-    
+
     /**
-     * Ends a commutative group subgraph
-     * 
+     * Ends a commutative group subgraph.
      */
     public void closeGroupInGraph() {
         try {
@@ -400,10 +413,9 @@ public class GraphGenerator {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
     }
-    
+
     /**
-     * Starts a new subgraph
-     * 
+     * Starts a new subgraph.
      */
     public void createNewSubgraph() {
         try {
@@ -416,7 +428,6 @@ public class GraphGenerator {
         }
     }
 
-    
     /*
      * ***************************************************************************************************************
      * PRIVATE STATIC METHODS

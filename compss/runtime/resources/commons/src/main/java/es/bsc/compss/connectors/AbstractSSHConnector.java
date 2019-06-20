@@ -66,7 +66,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
 
     // Error messages
-    private static final String ERROR_NO_KEYPAIR = "Error: There is no key pair to configure. Please create one with the ssh-keygen tool";
+    private static final String ERROR_NO_KEYPAIR = "Error: There is no key pair to configure."
+            + " Please create one with the ssh-keygen tool";
     private static final String ERROR_CONFIGURING_ACCESS = "Error configuring access for ";
     private static final String ERROR_PREPARING_MACHINE = "Error: Failed to prepare Machine ";
     private static final String ERROR_TRANSFER_PACKAGES = "Error: Cannot transfer packages to Machine";
@@ -79,7 +80,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final String ERROR_EXCEPTION_EXEC_COMMAND = "Exception running command on ";
     private static final String ERROR_SESSION_CREATION = "Error creating session to ";
     private static final String WARN_INPUTSTREAM_CLOSE = "Warn: InputStream for remote command cannot be closed";
-    private static final String WARN_DEFAULT_KEYPAIR = "Warn: Neither password nor key-pair specified. Trying with default key-pair";
+    private static final String WARN_DEFAULT_KEYPAIR = "Warn: Neither password nor key-pair specified."
+            + " Trying with default key-pair";
 
     // Attributes
     private String defaultUser;
@@ -88,47 +90,61 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private final String keyPairLocation;
 
 
+    /**
+     * Creates a new Abstract SSH Connector instance.
+     * 
+     * @param provider Associated Cloud Provider.
+     * @param props Specific connector properties.
+     */
     public AbstractSSHConnector(CloudProvider provider, Map<String, String> props) {
         super(provider, props);
 
         String propUser = props.get(VM_USER);
-        defaultUser = (propUser != null) ? propUser : DEFAULT_DEFAULT_USER;
+        this.defaultUser = (propUser != null) ? propUser : DEFAULT_DEFAULT_USER;
 
         String propKeypairName = props.get(VM_KEYPAIR_NAME);
-        keyPairName = (propKeypairName != null) ? propKeypairName : DEFAULT_KEYPAIR_NAME;
+        this.keyPairName = (propKeypairName != null) ? propKeypairName : DEFAULT_KEYPAIR_NAME;
 
         String propKeypairLocation = props.get(VM_KEYPAIR_LOCATION);
-        keyPairLocation = (propKeypairLocation != null) ? propKeypairLocation : DEFAULT_KEYPAIR_LOCATION;
+        this.keyPairLocation = (propKeypairLocation != null) ? propKeypairLocation : DEFAULT_KEYPAIR_LOCATION;
 
-        defaultPassword = props.get(VM_PASS);
+        this.defaultPassword = props.get(VM_PASS);
     }
 
     /**
-     * @return the defaultUser
+     * Returns the default connector user.
+     * 
+     * @return The default connector user.
      */
     public String getDefaultUser() {
-        return defaultUser;
+        return this.defaultUser;
     }
 
     /**
-     * @param defaultUser the defaultUser to set
+     * Sets a new default user.
+     * 
+     * @param defaultUser New default user.
      */
     protected void setDefaultUser(String defaultUser) {
         this.defaultUser = defaultUser;
     }
 
     /**
-     * @return the keyPairName
+     * Returns the keyPair file name.
+     * 
+     * @return The keyPair file name.
      */
     public String getKeyPairName() {
-        return keyPairName;
+        return this.keyPairName;
     }
 
     /**
-     * @return the keyPairLocation
+     * Returns the keyPair file location.
+     * 
+     * @return The keyPair file location.
      */
     public String getKeyPairLocation() {
-        return keyPairLocation;
+        return this.keyPairLocation;
     }
 
     @Override
@@ -144,19 +160,19 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             String passwordOrKeyPair = null;
             boolean setPassword = false;
             if (user == null) {
-                user = defaultUser;
+                user = this.defaultUser;
             }
-            if (password != null || defaultPassword != null) {
+            if (password != null || this.defaultPassword != null) {
                 setPassword = true;
                 if (password == null) {
-                    passwordOrKeyPair = defaultPassword;
+                    passwordOrKeyPair = this.defaultPassword;
                 } else {
                     passwordOrKeyPair = password;
                 }
                 LOGGER.debug("First access done by password");
-            } else if (keyPairName != null) {
+            } else if (this.keyPairName != null) {
                 setPassword = false;
-                passwordOrKeyPair = keyPairLocation + File.separator + keyPairName;
+                passwordOrKeyPair = this.keyPairLocation + File.separator + this.keyPairName;
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("First access done by key pair: " + passwordOrKeyPair);
                 }
@@ -195,7 +211,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 extractPackages(ip, user, false, null, packages);
 
                 addPackagesToClasspath(ip, user, false, null, packages);
-
             } catch (Exception e) {
                 LOGGER.error(ERROR_PREPARING_MACHINE + ip, e);
                 throw new ConnectorException(ERROR_PREPARING_MACHINE + ip, e);
@@ -557,10 +572,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     private Session getSession(String host, String user, boolean password, String keyPairOrPassword)
             throws ConnectorException {
-        // String[] client2server =
-        // ("aes256-ctr,aes192-ctr,aes128-ctr,blowfish-ctr,aes256-cbc,aes192-cbc,aes128-cbc,blowfish-cbc").split(",");
-        // String[] server2client =
-        // ("aes256-ctr,aes192-ctr,aes128-ctr,blowfish-ctr,aes256-cbc,aes192-cbc,aes128-cbc,blowfish-cbc").split(",");
 
         Properties config = new Properties();
         config.put("StrictHostKeyChecking", "no");

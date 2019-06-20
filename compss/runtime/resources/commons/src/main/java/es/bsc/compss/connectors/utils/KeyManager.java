@@ -29,6 +29,11 @@ public class KeyManager {
     private static String PRIVATE_KEY = null;
 
 
+    /**
+     * Returns the key type.
+     * 
+     * @return The key type.
+     */
     public static String getKeyType() {
         if (KEY_TYPE != null) {
             return KEY_TYPE;
@@ -37,6 +42,11 @@ public class KeyManager {
         return KEY_TYPE;
     }
 
+    /**
+     * Returns the key pair.
+     * 
+     * @return The key pair.
+     */
     public static String getKeyPair() {
         if (KEY_PAIR != null) {
             return KEY_PAIR;
@@ -99,6 +109,13 @@ public class KeyManager {
         return keyfile;
     }
 
+    /**
+     * Returns the public key associated with the given key file.
+     * 
+     * @param keyfile Key file.
+     * @return The public key.
+     * @throws IOException When an error occurs processing the given key file.
+     */
     public static String getPublicKey(String keyfile) throws IOException {
         if (PUBLIC_KEY != null) {
             return PUBLIC_KEY;
@@ -117,6 +134,13 @@ public class KeyManager {
         return PUBLIC_KEY;
     }
 
+    /**
+     * Returns the private key associated with the given key file.
+     * 
+     * @param keyfile Key file.
+     * @return The private key.
+     * @throws IOException When an error occurs processing the given key file.
+     */
     public static String getPrivateKey(String keyfile) throws IOException {
         if (PRIVATE_KEY != null) {
             return PRIVATE_KEY;

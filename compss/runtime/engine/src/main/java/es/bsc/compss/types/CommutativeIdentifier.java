@@ -17,32 +17,40 @@
 package es.bsc.compss.types;
 
 public class CommutativeIdentifier implements Comparable<CommutativeIdentifier> {
-    int coreId;
-    int dataId;
-    
+
+    private final int coreId;
+    private final int dataId;
+
+
+    /**
+     * Creates a new Commutative group identifier for the given core and data.
+     * 
+     * @param coreId Associated coreElement Id.
+     * @param dataId Associated data Id.
+     */
     public CommutativeIdentifier(int coreId, int dataId) {
         this.coreId = coreId;
         this.dataId = dataId;
     }
-    
+
     /**
-     * Returns the core Id
+     * Returns the associated coreElement Id.
      *
-     * @return
+     * @return The associated coreElement Id.
      */
     public int getCoreId() {
         return this.coreId;
     }
-    
+
     /**
-     * Returns the core Id
+     * Returns the associated data Id.
      *
-     * @return
+     * @return The associated data Id.
      */
     public int getDataId() {
         return this.dataId;
     }
-    
+
     @Override
     public int compareTo(CommutativeIdentifier comId) {
         if (comId == null) {
@@ -50,10 +58,9 @@ public class CommutativeIdentifier implements Comparable<CommutativeIdentifier> 
         }
         return (this.coreId == comId.getCoreId() && this.dataId == comId.getDataId()) ? 1 : 0;
     }
-    
+
     @Override
     public String toString() {
-        return (dataId + "_" + coreId);
+        return this.dataId + "_" + this.coreId;
     }
 }
-

@@ -86,10 +86,10 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
 
     /**
-     * New abstract connector implementation
+     * New abstract connector implementation.
      *
-     * @param provider
-     * @param props
+     * @param provider Cloud provider.
+     * @param props Connector specific properties.
      */
     public AbstractConnector(CloudProvider provider, Map<String, String> props) {
         this.provider = provider;

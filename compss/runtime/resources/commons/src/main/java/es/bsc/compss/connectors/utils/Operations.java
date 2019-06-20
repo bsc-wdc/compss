@@ -29,87 +29,87 @@ public interface Operations {
 
 
     /**
-     * Power on a machine
+     * Power on a machine.
      * 
-     * @param name
-     * @param rd
-     * @return
-     * @throws ConnectorException
+     * @param name Machine name.
+     * @param rd Associated resource description.
+     * @return The VM description.
+     * @throws ConnectorException When the connector raises an exception.
      */
     public Object poweron(String name, CloudMethodResourceDescription rd) throws ConnectorException;
 
     /**
-     * Destroy a machine
+     * Destroy a machine.
      * 
-     * @param envId
-     * @throws ConnectorException
+     * @param envId Machine Id.
+     * @throws ConnectorException When the connector raises an exception.
      */
     public void destroy(Object envId) throws ConnectorException;
 
     /**
-     * Wait for creation completion
+     * Wait for creation completion.
      * 
-     * @param envId
-     * @param request
-     * @return
-     * @throws ConnectorException
+     * @param envId Machine Id.
+     * @param request Request description.
+     * @return The VM description of the granted machine by the connector.
+     * @throws ConnectorException When the connector raises an exception.
      */
     public VM waitCreation(Object envId, CloudMethodResourceDescription request) throws ConnectorException;
 
     /**
-     * Allow access from master and between VM
+     * Allow access from master and between VM.
      * 
-     * @param IP
-     * @param user
-     * @param password
-     * @throws ConnectorException
+     * @param ip Machine IP.
+     * @param user Machine login user.
+     * @param password Machine login password.
+     * @throws ConnectorException When the connector raises an exception.
      */
-    public void configureAccess(String IP, String user, String password) throws ConnectorException;
+    public void configureAccess(String ip, String user, String password) throws ConnectorException;
 
     /**
-     * Prepare Machine to run tasks
+     * Prepare Machine to run tasks.
      * 
-     * @param IP
-     * @param cid
-     * @throws ConnectorException
+     * @param ip Machine IP.
+     * @param cid Machine description.
+     * @throws ConnectorException When the connector raises an exception.
      */
-    public void prepareMachine(String IP, CloudImageDescription cid) throws ConnectorException;
+    public void prepareMachine(String ip, CloudImageDescription cid) throws ConnectorException;
 
     /**
-     * Notification that the vm is available and fully operative
+     * Notification that the VM is available and fully operative.
      * 
-     * @param vm
-     * @throws ConnectorException
+     * @param vm VM to be ready.
+     * @throws ConnectorException When the connector raises an exception.
      */
     public void vmReady(VM vm) throws ConnectorException;
 
     /**
-     * Shutdown an existing machine
+     * Shutdown an existing machine.
      * 
-     * @param rd
-     * @throws ConnectorException
+     * @param rd Machine VM description.
+     * @throws ConnectorException When the connector raises an exception.
      */
     public void poweroff(VM rd) throws ConnectorException;
 
     /**
-     * Pause an existing machine
+     * Pause an existing machine.
      * 
-     * @param worker
-     * @return
+     * @param worker Associated worker.
+     * @return VM description of the paused machine.
      */
     public VM pause(CloudMethodWorker worker);
 
     /**
-     * Data needed to check if VM is useful
+     * Returns whether the operation can be terminated or not.
      * 
-     * @return
+     * @return {@literal true} if the operation can be terminated, {@literal false} otherwise.
      */
     public boolean getTerminate();
 
     /**
-     * Data needed to check if VM is useful
+     * Data needed to check if VM is useful.
      * 
-     * @return
+     * @return Data needed to check if VM is useful.
      */
     public boolean getCheck();
 

@@ -20,10 +20,11 @@ import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.configuration.Configuration;
+import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,7 +37,8 @@ public class Adaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws ConstructConfigurationException {
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+            throws ConstructConfigurationException {
 
         AgentConfiguration ac = new AgentConfiguration(this.getClass().getName());
 
@@ -44,10 +46,10 @@ public class Adaptor implements CommAdaptor {
         for (ResourcesPropertyAdaptorType prop : eap.getProperty()) {
             ac.addProperty(prop.getName(), prop.getValue());
         }
-        /*ac.setHost((String) props.get("host"));
-        MethodResourceDescription mrd = (MethodResourceDescription) props.get("description");
-        ac.setDescription(mrd);
-        ac.setLimitOfTasks(mrd.getTotalCPUComputingUnits());*/
+        /*
+         * ac.setHost((String) props.get("host")); MethodResourceDescription mrd = (MethodResourceDescription)
+         * props.get("description"); ac.setDescription(mrd); ac.setLimitOfTasks(mrd.getTotalCPUComputingUnits());
+         */
         return ac;
     }
 

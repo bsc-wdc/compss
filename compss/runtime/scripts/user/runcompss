@@ -149,6 +149,8 @@ show_opts() {
     --streaming=<type>                      Enable the streaming mode for the given type.
                                             Supported types: FILES, OBJECTS, PSCOS, ALL, NONE
                                             Default: ${DEFAULT_STREAMING}
+    --streaming_master_port=<int>           Use an specific port for the streaming master.
+                                            Default: null
     --scheduler=<className>                 Class that implements the Scheduler for COMPSs
                                             Supported schedulers: es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
                                                                   | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
@@ -247,7 +249,7 @@ show_version() {
 show_full_version() {
   cat << EOF
         .-~~-.--.            _____        _____
-       :         )          |____ \      | ____|
+       :         )          |____ \\      | ____|
  .~ ~ -.\\       /.- ~~ .     ___) |     | |___
  >       \`.   .'       <    / ___/      |____ \
 (         .- -.         )   | |____   _   ____) |
@@ -468,6 +470,9 @@ get_args() {
             ;;
           streaming=*)
             streaming=${OPTARG//streaming=/}
+            ;;
+          streaming_master_port=*)
+            streaming_master_port=${OPTARG//streaming_master_port=/}
             ;;
 	      task_execution=*)
 	        # Task execution under COMPSs or Storage
@@ -821,7 +826,9 @@ check_args() {
     else
       streaming_master_name=${master_name}
     fi
-    streaming_master_port=$((BASE_STREAMING_PORT + RANDOM % STREAMING_PORT_RAND_RANGE))
+    if [ -z "${streaming_master_port}" ]; then
+      streaming_master_port=$((BASE_STREAMING_PORT + RANDOM % STREAMING_PORT_RAND_RANGE))
+    fi
   else
     streaming_master_name="null"
     streaming_master_port="null"
@@ -949,11 +956,11 @@ check_args() {
     fi
 
     # Add application folder to PYTHONPATH
-    module_name=$(basename ${fullAppPath})
-    if [ -e ${DEFAULT_APPDIR}/${module_name} ]; then
+    module_name=$(basename "${fullAppPath}")
+    if [ -e "${DEFAULT_APPDIR}/${module_name}" ]; then
       pythonpath=${DEFAULT_APPDIR}:${pythonpath}
     else
-      module_folder=$(readlink -f ${fullAppPath} | xargs dirname)
+      module_folder=$(readlink -f "${fullAppPath}" | xargs dirname)
       pythonpath=${module_folder}:${pythonpath}
     fi
 

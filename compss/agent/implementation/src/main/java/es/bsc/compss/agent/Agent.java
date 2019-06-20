@@ -39,8 +39,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,7 +49,7 @@ import storage.StorageItf;
 
 public class Agent {
 
-    private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
+    // private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
     private static final COMPSsRuntimeImpl RUNTIME;
 
     private static final Random APP_ID_GENERATOR = new Random();
@@ -141,14 +139,14 @@ public class Agent {
         }
 
         Object[] paramsValues = new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
-            "runtime", // Runtime API
-            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
-            ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
-            appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
-            className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
-            methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
-            params, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "params", // Method arguments
-            new Object(), DataType.OBJECT_T, Direction.OUT, StdIOStream.UNSPECIFIED, "", "return" // Return value
+                "runtime", // Runtime API
+                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
+                ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
+                appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
+                className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
+                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
+                params, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "params", // Method arguments
+                new Object(), DataType.OBJECT_T, Direction.OUT, StdIOStream.UNSPECIFIED, "", "return" // Return value
         };
 
         RUNTIME.executeTask(mainAppId, // Task application ID
@@ -263,7 +261,7 @@ public class Agent {
      * @param r Description of the resources to add into the resource pool
      * @throws AgentException could not create a configuration to start using this resource
      */
-    public static void addResources(Resource<?,?> r) throws AgentException {
+    public static void addResources(Resource<?, ?> r) throws AgentException {
         String workerName = r.getName();
         String adaptor = r.getAdaptor();
         MethodResourceDescription description = r.getDescription();

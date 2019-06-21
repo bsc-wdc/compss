@@ -1111,6 +1111,7 @@ class task(object):
         # get the return values
         if self.decorator_arguments['numba']:
             from numba import jit
+            from numba import njit
             from numba import generated_jit
             from numba import vectorize
             from numba import guvectorize
@@ -1138,9 +1139,8 @@ class task(object):
                                                             **user_kwargs)
             elif numba_mode == 'njit':
                 numba_flags['cache'] = True  # Always force cache
-                numba_flags['nopython'] = True
-                user_returns = jit(self.user_function,
-                                   **numba_flags)(*user_args, **user_kwargs)
+                user_returns = njit(self.user_function,
+                                    **numba_flags)(*user_args, **user_kwargs)
             elif numba_mode == 'vectorize':
                 numba_signature = self.decorator_arguments['numba_signature']
                 user_returns = vectorize(

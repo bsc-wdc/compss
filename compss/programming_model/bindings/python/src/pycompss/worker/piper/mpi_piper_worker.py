@@ -22,8 +22,9 @@ PyCOMPSs Persistent Worker
 ===========================
     This file contains the worker code.
 """
-import signal
 
+import sys
+import signal
 from pycompss.worker.piper.commons.pipe_constants import *
 from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
 from pycompss.worker.piper.commons.pipe_executor import executor
@@ -32,11 +33,12 @@ from pycompss.worker.piper.piper_worker import PiperWorkerConfiguration
 from mpi4py import MPI
 
 # Persistent worker global variables
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
-
+COMM = MPI.COMM_WORLD
+SIZE = COMM.Get_size()
+RANK = COMM.Get_rank()
 PROCESSES = {}  # IN_PIPE -> PROCESS ID
+TRACING = False
+WORKER_CONF = None
 
 
 def is_worker():
@@ -45,7 +47,7 @@ def is_worker():
 
     :return: the process should act as a worker
     """
-    return rank == 0
+    return RANK == 0
 
 
 def shutdown_handler(signal, frame):
@@ -59,7 +61,7 @@ def shutdown_handler(signal, frame):
     if is_worker():
         print("[PYTHON WORKER] Shutdown signal handler")
     else:
-        print("[PYTHON EXECUTOR %s] Shutdown signal handler" % rank)
+        print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
 
 ######################
@@ -74,7 +76,7 @@ def compss_persistent_worker(config):
     :return: None
     """
     import os
-    pids = comm.gather(str(os.getpid()), root=0)
+    pids = COMM.gather(str(os.getpid()), root=0)
 
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
@@ -93,8 +95,8 @@ def compss_persistent_worker(config):
     logger, storage_loggers = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] mpi_piper_worker.py rank: " + str(rank)
-                     + " wake up")
+        logger.debug("[PYTHON WORKER] mpi_piper_worker.py rank: " + str(RANK) +
+                     " wake up")
         config.print_on_logger(logger)
 
     # Start storage
@@ -175,7 +177,7 @@ def compss_persistent_executor(config):
     :return: None
     """
     import os
-    comm.gather(str(os.getpid()), root=0)
+    COMM.gather(str(os.getpid()), root=0)
 
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
@@ -196,12 +198,15 @@ def compss_persistent_executor(config):
         from storage.api import initWorker as initStorageAtWorker
         initStorageAtWorker(config_file_path=config.storage_conf)
 
-    process_name = 'Rank-' + str(rank)
+    process_name = 'Rank-' + str(RANK)
     conf = ExecutorConf(TRACING,
-                        config.storage_conf, logger, storage_loggers,
-                        config.stream_backend, config.stream_master_name, config.stream_master_port)
-    executor(None, process_name, config.pipes[rank - 1], conf)
-
+                        config.storage_conf,
+                        logger,
+                        storage_loggers,
+                        config.stream_backend,
+                        config.stream_master_name,
+                        config.stream_master_port)
+    executor(None, process_name, config.pipes[RANK - 1], conf)
 
 
 ############################
@@ -209,11 +214,13 @@ def compss_persistent_executor(config):
 ############################
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     import sys
 
-    # Get args
+    # Configure the global tracing variable from the argument
     global TRACING
     TRACING = (int(sys.argv[2]) > 0)
+    # Configure the piper worker with the arguments
     WORKER_CONF = PiperWorkerConfiguration()
     WORKER_CONF.update_params(sys.argv)
 

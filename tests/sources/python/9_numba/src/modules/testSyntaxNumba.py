@@ -3,8 +3,8 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs NUMBA Testbench
-========================
+PyCOMPSs NUMBA Syntax Testbench
+===============================
 """
 
 # Imports

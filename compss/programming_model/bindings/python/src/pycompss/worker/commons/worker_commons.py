@@ -24,7 +24,20 @@ from pycompss.api.exceptions import COMPSsException
 import pycompss.api.parameter as parameter
 
 
-def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args=None, pos=None):
+def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
+                         args=None, pos=None):
+    """
+    Build task parameter object from the given parameters.
+
+    :param p_type: Parameter type
+    :param p_stream: Parameter stream
+    :param p_prefix: Parameter prefix
+    :param p_name: Parameter name
+    :param p_value: Parameter value
+    :param args: Arguments (Default: None)
+    :param pos: Position (Default: None)
+    :return: Parameter object
+    """
     from pycompss.api.parameter import TaskParameter
     if p_type in [parameter.TYPE.FILE, parameter.TYPE.COLLECTION]:
         # Maybe the file is a object, we dont care about this here
@@ -84,15 +97,17 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args=None,
                 from pycompss.runtime.commons import STR_ESCAPE
                 # try to recover the real object
                 if IS_PYTHON3:
-                    # decode removes double backslash, and encode returns as binary
-                    aux = deserialize_from_string(aux.decode(STR_ESCAPE).encode())
+                    # decode removes double backslash, and encode returns
+                    # the result as binary
+                    p_bin_str = aux.decode(STR_ESCAPE).encode()
+                    aux = deserialize_from_string(p_bin_str)
                 else:
                     # decode removes double backslash, and str casts the output
                     aux = deserialize_from_string(str(aux.decode(STR_ESCAPE)))
             except (SerializerException, ValueError, EOFError):
                 # was not an object
                 aux = str(real_value.decode())
-                #######
+            #######
 
         if IS_PYTHON3 and isinstance(aux, bytes):
             aux = aux.decode('utf-8')
@@ -105,17 +120,17 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args=None,
             content=aux
         ), num_substrings
     else:
-        # Basic numeric types. These are passed as command line arguments and only
-        # a cast is needed
+        # Basic numeric types. These are passed as command line arguments
+        # and only a cast is needed
         val = None
         if p_type == parameter.TYPE.INT:
             val = int(p_value)
         elif p_type == parameter.TYPE.LONG:
             val = parameter.PYCOMPSS_LONG(p_value)
             if val > parameter.JAVA_MAX_INT or val < parameter.JAVA_MIN_INT:
-                # A Python inparameter.t was converted to a Java long to prevent overflow
-                # We are sure we will not overflow Python int, otherwise this
-                # would have been passed as a serialized object.
+                # A Python in parameter was converted to a Java long to prevent
+                # overflow. We are sure we will not overflow Python int,
+                # otherwise this would have been passed as a serialized object.
                 val = int(val)
         elif p_type == parameter.TYPE.DOUBLE:
             val = float(p_value)
@@ -136,7 +151,8 @@ def get_input_params(num_params, logger, args, process_name):
 
     :param num_params: Number of parameters
     :param logger: Logger
-    :param args: Arguments (complete list of parameters with type, stream, prefix and value)
+    :param args: Arguments (complete list of parameters with type, stream,
+                            prefix and value)
     :param process_name: Process name
     :return: A list of TaskParameter objects
     """
@@ -159,7 +175,8 @@ def get_input_params(num_params, logger, args, process_name):
             logger.debug("\t * Name : %s" % str(p_name))
             logger.debug("\t * Value: %r" % p_value)
 
-        task_param, offset = build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, args, pos)
+        task_param, offset = build_task_parameter(p_type, p_stream, p_prefix,
+                                                  p_name, p_value, args, pos)
         ret.append(task_param)
         pos += offset + 5
 
@@ -182,7 +199,6 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
     :param storage_conf: Persistent storage configuration file
     :return: exit_code, new types, new_values, and target_direction
     """
-
     if __debug__:
         logger.debug("Starting task execution")
         logger.debug("module     : %s " % str(module))
@@ -269,7 +285,8 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
 
 def task_returns (exit_code, new_types, new_values, target_direction, timed_out, return_message, logger):
     if __debug__:
-        # The types may change (e.g. if the user does a makePersistent within the task)
+        # The types may change
+        # (e.g. if the user does a makePersistent within the task)
         logger.debug("Return Types : %s " % str(new_types))
         logger.debug("Return Values: %s " % str(new_values))
         logger.debug("Return target_direction: %s " % str(target_direction))
@@ -385,7 +402,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
             import importlib
             module = importlib.import_module(path)  # Python 2.7
             if __debug__:
-                logger.debug("Module successfully loaded (Python version >= 2.7)")
+                msg = "Module successfully loaded (Python version >= 2.7)"
+                logger.debug(msg)
         else:
             module = __import__(path, globals(), locals(), [path], -1)
             if __debug__:

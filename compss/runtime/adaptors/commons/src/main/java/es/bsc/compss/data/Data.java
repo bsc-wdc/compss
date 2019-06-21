@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.types.execution;
+package es.bsc.compss.data;
 
+import es.bsc.compss.types.execution.InvocationParamURI;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -30,7 +31,6 @@ public abstract class Data<T extends InvocationParamURI> implements Externalizab
     // Sources list
     private LinkedList<T> sources;
 
-
     public Data() {
         this.dataMgmtId = "";
         this.sources = new LinkedList<>();
@@ -41,7 +41,9 @@ public abstract class Data<T extends InvocationParamURI> implements Externalizab
         this.sources = new LinkedList<>();
     }
 
-    /** Data constructor.
+    /**
+     * Data constructor.
+     *
      * @param name Name/identifier
      * @param uri Initial data source URI
      */
@@ -55,11 +57,17 @@ public abstract class Data<T extends InvocationParamURI> implements Externalizab
         return dataMgmtId;
     }
 
+    public void addSource(T uri) {
+        sources.add(uri);
+    }
+
     public LinkedList<T> getSources() {
         return sources;
     }
 
-    /** Get first URI.
+    /**
+     * Get first URI.
+     *
      * @return
      */
     public T getFirstURI() {

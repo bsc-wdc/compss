@@ -30,9 +30,38 @@
         <url>http://www.bsc.es</url>
     </organization>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- COMPSs common classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- Resource configuration classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-resources-schema</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-project-schema</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+             <!-- COMPSs storage classes -->
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-storage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
     <!-- SUB-MODULES -->
     <modules>
         <module>commons</module>
+        <module>engine</module>
         <module>gat</module>
         <module>nio</module>
         <module>ws</module>

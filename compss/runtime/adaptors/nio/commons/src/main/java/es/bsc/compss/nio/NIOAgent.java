@@ -25,7 +25,7 @@ import es.bsc.comm.nio.NIOEventManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-import es.bsc.compss.comm.Comm;
+import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.CommandDataDemand;
 import es.bsc.compss.nio.commands.CommandTracingID;
@@ -38,7 +38,6 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
-import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 
@@ -100,7 +99,6 @@ public abstract class NIOAgent {
     protected int tracingId = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected HashMap<Connection, Integer> connection2partner;
 
-
     /**
      * Creates a NIOAgent instance.
      *
@@ -135,7 +133,7 @@ public abstract class NIOAgent {
 
     /**
      * Returns the associated Transfer Manager.
-     * 
+     *
      * @return The associated Transfer Manager.
      */
     public static TransferManager getTransferManager() {
@@ -380,13 +378,7 @@ public abstract class NIOAgent {
             } else {
                 // Not found check if it has been moved to the target name (renames
                 if (!f.getName().equals(d.getDataMgmtId())) {
-                    File renamed;
-                    if (isMaster()) { // renamed will be in the masters file path
-                        renamed = new File(
-                                Comm.getAppHost().getCompleteRemotePath(DataType.FILE_T, d.getDataMgmtId()).getPath());
-                    } else { // worker renamed will be in the same path
-                        renamed = new File(f.getParentFile().getAbsolutePath() + File.separator + d.getDataMgmtId());
-                    }
+                    File renamed = new File(getPossiblyRenamedFileName(f, d));
                     if (renamed.exists()) {
                         if (DEBUG) {
                             LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer file "
@@ -413,8 +405,6 @@ public abstract class NIOAgent {
             sendObject(c, path, d);
         }
     }
-
-    protected abstract boolean isMaster();
 
     private void sendBindingObject(Connection c, String path, NIOData d) {
         if (path.contains("#")) {
@@ -544,18 +534,16 @@ public abstract class NIOAgent {
             } else if (t.isObject()) {
                 receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
 
+            } else if (t.isByteBuffer()) {
+                String boPath = requests.get(0).getSource().getFirstURI().getPath();
+                BindingObject bo = getTargetBindingObject(targetName, boPath);
+                NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
+                receivedValue(t.getDestination(), targetName, bo.toString(), requests);
             } else {
-                if (t.isByteBuffer()) {
-                    BindingObject bo = getTargetBindingObject(targetName,
-                            requests.get(0).getSource().getFirstURI().getPath());
-                    NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
-                    receivedValue(t.getDestination(), targetName, bo.toString(), requests);
-                } else {
-                    // Object already store in the cache
-                    BindingObject bo = getTargetBindingObject(targetName,
-                            requests.get(0).getSource().getFirstURI().getPath());
-                    receivedValue(t.getDestination(), targetName, bo.toString(), requests);
-                }
+                // Object already store in the cache
+                BindingObject bo = getTargetBindingObject(targetName,
+                        requests.get(0).getSource().getFirstURI().getPath());
+                receivedValue(t.getDestination(), targetName, bo.toString(), requests);
             }
         } else {
             String workingDir = getWorkingDir();
@@ -628,17 +616,15 @@ public abstract class NIOAgent {
                             Files.copy((new File(t.getFileName())).toPath(), (new File(targetName)).toPath());
                             receivedValue(t.getDestination(), targetName, t.getObject(), byTarget.remove(targetName));
                         }
-
+                    } else if (t.isObject()) {
+                        Object o = Serializer.deserialize(t.getArray());
+                        receivedValue(t.getDestination(), getName(targetName), o, reqs);
                     } else {
-                        if (t.isObject()) {
-                            Object o = Serializer.deserialize(t.getArray());
-                            receivedValue(t.getDestination(), getName(targetName), o, reqs);
-                        } else {
-                            BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
-                            NIOBindingDataManager.copyCachedData(dataId, bo.getName());
-                            receivedValue(t.getDestination(), bo.getName(), bo.toString(), byTarget.remove(targetName));
-                        }
+                        BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
+                        NIOBindingDataManager.copyCachedData(dataId, bo.getName());
+                        receivedValue(t.getDestination(), bo.getName(), bo.toString(), byTarget.remove(targetName));
                     }
+                    
                 } catch (IOException | ClassNotFoundException e) {
                     LOGGER.warn("Can not replicate received Data", e);
                 }
@@ -794,7 +780,7 @@ public abstract class NIOAgent {
 
     /**
      * Returns whether the persistent C storage is enabled or not.
-     * 
+     *
      * @return {@code true} if the persistent C storage is enabled, {@code false} otherwise.
      */
     public abstract boolean isPersistentCEnabled();
@@ -812,6 +798,8 @@ public abstract class NIOAgent {
 
     // Must be implemented on both sides (Master will do anything)
     public abstract void setMaster(NIONode master);
+
+    protected abstract String getPossiblyRenamedFileName(File originalFile, NIOData d);
 
     public abstract boolean isMyUuid(String uuid, String nodeName);
 
@@ -864,7 +852,6 @@ public abstract class NIOAgent {
 
     public void receivedPartialBindingObjects(Connection c, Transfer t) {
         NIOBindingDataManager.receivedPartialBindingObject((NIOConnection) c, t);
-
     }
 
     public abstract void increaseResources(MethodResourceDescription description);

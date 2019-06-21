@@ -21,6 +21,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.COMPSsConstants.TaskExecution;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
+import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
@@ -60,7 +61,6 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
@@ -119,7 +119,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     private final ThreadedPrintStream err;
     private boolean started = false;
 
-
     /**
      * New COMPSs Master.
      */
@@ -135,7 +134,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         String specificOpt = System.getProperty(COMPSsConstants.SPECIFIC_LOG_DIR);
         if (specificOpt != null && !specificOpt.isEmpty()) {
             this.compssLogBaseDirPath = specificOpt.endsWith(File.separator) ? specificOpt
-                    : specificOpt + File.separator;
+                                        : specificOpt + File.separator;
             mustCreateExecutionSandbox = false; // This is the only case where
             // the sandbox is provided
         } else {
@@ -450,7 +449,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     /**
      * Retrieves a binding data.
-     * 
+     *
      * @param ld Source LogicalData.
      * @param source Preferred source location.
      * @param target Preferred target location.
@@ -704,12 +703,14 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     }
                     Files.move(new File(iPath).toPath(), new File(tPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
-            } else if (BindingDataManager.isInBinding(bo.getName())) {
-                String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
-                LOGGER.debug("Storing object data " + bo.getName() + " from cache to " + tPath);
-                BindingDataManager.storeInFile(bo.getName(), tPath);
             } else {
-                throw new Exception("Data " + bo.getName() + "not a filepath and its not in cache");
+                if (BindingDataManager.isInBinding(bo.getName())) {
+                    String tPath = getCompletePath(DataType.BINDING_OBJECT_T, tgtBO.getName()).getPath();
+                    LOGGER.debug("Storing object data " + bo.getName() + " from cache to " + tPath);
+                    BindingDataManager.storeInFile(bo.getName(), tPath);
+                } else {
+                    throw new Exception("Data " + bo.getName() + "not a filepath and its not in cache");
+                }
             }
 
             if (tgtData != null) {
@@ -732,7 +733,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     /**
      * Retrieves a file data.
-     * 
+     *
      * @param ld Source LogicalData.
      * @param source Preferred source location.
      * @param target Preferred target location.
@@ -1120,7 +1121,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
     /**
      * Starts the execution of a local job.
-     * 
+     *
      * @param job Local job to run.
      */
     public void runJob(LocalJob job) {

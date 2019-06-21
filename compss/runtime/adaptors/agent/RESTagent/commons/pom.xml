@@ -36,25 +36,20 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-commons</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <!-- Agent Interface -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-agent-commons</artifactId>
-            <version>${project.version}</version>
         </dependency>
-        
         <!-- Resource configuration classes -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-resources-schema</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-project-schema</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

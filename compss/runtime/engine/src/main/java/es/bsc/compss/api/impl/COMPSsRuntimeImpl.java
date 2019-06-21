@@ -34,7 +34,7 @@ import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.DoNothingTaskMonitor;
 import es.bsc.compss.types.FatalErrorHandler;
-import es.bsc.compss.types.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -62,6 +62,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.TraceEvent;
@@ -541,7 +542,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             }
 
             LOGGER.debug("Stopping Comm...");
-            Comm.stop();
+            Comm.stop(CoreManager.getSignaturesToId());
             LOGGER.debug("Runtime stopped");
 
         }

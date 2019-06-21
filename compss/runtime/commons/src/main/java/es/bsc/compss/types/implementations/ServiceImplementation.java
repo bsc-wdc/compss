@@ -37,7 +37,6 @@ public class ServiceImplementation extends Implementation implements Externaliza
 
     private String operation;
 
-
     /**
      * Creates a new ServiceImplementation for serialization.
      */
@@ -48,7 +47,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
 
     /**
      * Creates a new ServiceImplementation instance from the given parameters.
-     * 
+     *
      * @param coreId Core Id.
      * @param namespace Service namespace.
      * @param service Service name.
@@ -64,7 +63,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
 
     /**
      * Returns the service operation.
-     * 
+     *
      * @return
      */
     public String getOperation() {
@@ -73,7 +72,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
 
     /**
      * Builds a service signature from the given parameters.
-     * 
+     *
      * @param namespace Service namespace.
      * @param serviceName Service name.
      * @param portName Service port.

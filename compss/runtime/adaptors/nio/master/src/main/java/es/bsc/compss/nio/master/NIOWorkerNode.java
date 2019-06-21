@@ -66,6 +66,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
+import java.util.LinkedList;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -88,10 +89,9 @@ public class NIOWorkerNode extends COMPSsWorker {
     private boolean started = false;
     private WorkerStarter workerStarter;
 
-
     /**
      * Creates a new NIOWorkerNode instance.
-     * 
+     *
      * @param config Worker configuration.
      * @param adaptor Worker communication adaptor.
      */
@@ -134,7 +134,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the associated communication adaptor.
-     * 
+     *
      * @return The associated communication adaptor.
      */
     public NIOAdaptor getCommManager() {
@@ -143,7 +143,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the hostname of the worker node.
-     * 
+     *
      * @return The hostname of the worker node.
      */
     public String getHost() {
@@ -152,7 +152,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the installation directory of the worker node.
-     * 
+     *
      * @return The installation directory of the worker node.
      */
     public String getInstallDir() {
@@ -161,7 +161,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the base working directory of the worker node.
-     * 
+     *
      * @return The base working directory of the worker node.
      */
     public String getBaseWorkingDir() {
@@ -170,7 +170,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the sandboxed working directory of the worker node.
-     * 
+     *
      * @return The sandboxed working directory of the worker node.
      */
     public String getWorkingDir() {
@@ -179,7 +179,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the application directory.
-     * 
+     *
      * @return The application directory.
      */
     public String getAppDir() {
@@ -188,7 +188,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the library path.
-     * 
+     *
      * @return The library path.
      */
     public String getLibPath() {
@@ -207,7 +207,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the limit of tasks of the worker node.
-     * 
+     *
      * @return The limit of tasks of the worker node.
      */
     public int getLimitOfTasks() {
@@ -216,7 +216,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the total number of CPU computing units of the worker node.
-     * 
+     *
      * @return The total number of CPU computing units of the worker node.
      */
     public int getTotalComputingUnits() {
@@ -225,7 +225,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the total number of GPU computing units of the worker node.
-     * 
+     *
      * @return The total number of GPU computing units of the worker node.
      */
     public int getTotalGPUs() {
@@ -234,7 +234,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the total number of FPGA computing units of the worker node.
-     * 
+     *
      * @return The total number of FPGA computing units of the worker node.
      */
     public int getTotalFPGAs() {
@@ -243,7 +243,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Returns the worker node configuration.
-     * 
+     *
      * @return The worker node configuration.
      */
     public NIOConfiguration getConfiguration() {
@@ -333,8 +333,7 @@ public class NIOWorkerNode extends COMPSsWorker {
              * (DEBUG) { LOGGER.debug("Data " + ld.getName() + " already present at the master."); }
              * reason.setDataTarget(u.getPath()); listener.notifyEnd(null); return; } }
              */
-
-            NIOData d = new NIOData(ld);
+            NIOData d = getNIODatafromLogicalData(ld);
             if (source != null) {
                 for (MultiURI uri : source.getURIs()) {
                     try {
@@ -452,7 +451,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
 
-        NIOData nd = new NIOData(srcLD);
+        NIOData nd = getNIODatafromLogicalData(srcLD);
         sc.setProposedSource(nd);
 
         // Update information
@@ -533,7 +532,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             } else {
                 path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
             }
-            c.setProposedSource(new NIOData(ld));
+            c.setProposedSource(getNIODatafromLogicalData(ld));
             LOGGER.debug("Setting final target in deferred copy " + path);
             c.setFinalTarget(path);
             // TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
@@ -660,7 +659,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Submits a new task to the worker.
-     * 
+     *
      * @param job Job to submit.
      * @param obsolete List of obsolete objects to delete.
      * @throws UnstartedNodeException If the node has not started yet.
@@ -678,7 +677,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     /**
      * Marks the worker start status.
-     * 
+     *
      * @param b New worker start status.
      */
     public void setStarted(boolean b) {
@@ -715,5 +714,21 @@ public class NIOWorkerNode extends COMPSsWorker {
         } catch (InterruptedException ie) {
             // Do nothing
         }
+    }
+
+    private NIOData getNIODatafromLogicalData(LogicalData ld) {
+        NIOData data = new NIOData(ld.getName());
+
+        for (MultiURI uri : ld.getURIs()) {
+            try {
+                Object o = uri.getInternalURI(NIOAgent.ID);
+                if (o != null) {
+                    data.addSource((NIOUri) o);
+                }
+            } catch (UnstartedNodeException une) {
+                // Ignore internal URI.
+            }
+        }
+        return data;
     }
 }

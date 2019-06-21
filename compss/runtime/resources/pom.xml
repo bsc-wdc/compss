@@ -33,6 +33,7 @@
     <!-- DEPENDENCIES -->
     <dependencyManagement>
         <dependencies>
+            <!-- Adaptors --> 
             <dependency>
                 <groupId>es.bsc.compss</groupId>
                 <artifactId>compss-adaptors-commons</artifactId>
@@ -40,14 +41,16 @@
             </dependency>
             <dependency>
                 <groupId>es.bsc.compss</groupId>
+                <artifactId>compss-adaptors-engine</artifactId>
+                <version>${compss.version}</version>
+            </dependency>
+            <!-- Classes for Local adaptor on master --> 
+            <dependency>
+                <groupId>es.bsc.compss</groupId>
                 <artifactId>compss-adaptors-local-master</artifactId>
                 <version>${compss.version}</version>
             </dependency>
-            <dependency>
-                <groupId>es.bsc.compss</groupId>
-                <artifactId>compss-resources-commons</artifactId>
-                <version>${compss.version}</version>
-            </dependency>
+            <!-- Resource configuration classes -->
             <dependency>
                 <groupId>es.bsc.compss</groupId>
                 <artifactId>compss-resources-schema</artifactId>

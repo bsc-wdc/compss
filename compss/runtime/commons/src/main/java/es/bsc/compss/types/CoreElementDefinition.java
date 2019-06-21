@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import java.util.LinkedList;
 import java.util.List;
 

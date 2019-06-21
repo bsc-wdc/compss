@@ -33,7 +33,7 @@ public class Configuration {
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
     private final String adaptorName;
-    private final HashMap<String, String> additionalProperties = new HashMap<String, String>();
+    private final HashMap<String, String> additionalProperties = new HashMap<>();
     private int limitOfTasks = -1;
     private int limitOfGPUTasks = -1;
     private int limitOfFPGATasks = -1;

@@ -17,6 +17,7 @@
 package es.bsc.compss.nio.worker.components;
 
 import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.data.DataManager;
 import es.bsc.compss.data.DataProvider;
 import es.bsc.compss.data.FetchDataListener;
@@ -31,7 +32,6 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
 import es.bsc.compss.types.execution.exceptions.InitializationException;
 import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
-import es.bsc.compss.util.BindingDataManager;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -85,10 +85,9 @@ public class DataManagerImpl implements DataManager {
 
         String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
         STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))
-                ? null
-                : storageCfgProperty;
+                       ? null
+                       : storageCfgProperty;
     }
-
 
     /**
      * Instantiates a new Data Manager.
@@ -276,7 +275,7 @@ public class DataManagerImpl implements DataManager {
                             if (loc.isHost(this.hostName)) {
                                 WORKER_LOGGER.error("WORKER IS NOT AWARE OF THE PRESENCE OF A"
                                         + (loc.getProtocol() == ProtocolType.OBJECT_URI ? "N OBJECT "
-                                                : " BINDING OBJECT "));
+                                           : " BINDING OBJECT "));
                             }
                             break;
                         case SHARED_URI:
@@ -449,7 +448,7 @@ public class DataManagerImpl implements DataManager {
                     if (WORKER_LOGGER_DEBUG) {
                         WORKER_LOGGER.debug(
                                 "   - Parameter " + index + "(" + param.getValue() + ") found at host with location "
-                                        + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
+                                + loc.getPath() + " Checking if id " + bo.getName() + " is in host...");
                     }
 
                     File inFile = new File(bo.getId());
@@ -556,7 +555,7 @@ public class DataManagerImpl implements DataManager {
                         if (WORKER_LOGGER_DEBUG) {
                             WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
                                     + (param.isPreserveSourceData() ? "preserves sources. COPYING"
-                                            : "erases sources. MOVING"));
+                                       : "erases sources. MOVING"));
                             WORKER_LOGGER.debug("         Source: " + source);
                             WORKER_LOGGER.debug("         Target: " + target);
                         }

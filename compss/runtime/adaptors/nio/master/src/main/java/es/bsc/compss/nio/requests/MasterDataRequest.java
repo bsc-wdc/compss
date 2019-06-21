@@ -25,10 +25,9 @@ public class MasterDataRequest extends DataRequest {
 
     private final DataOperation fOp;
 
-
     /**
      * Creates a new MasterDataRequest instance.
-     * 
+     *
      * @param fOp Data operation.
      * @param type Data type.
      * @param source Data source.
@@ -41,7 +40,7 @@ public class MasterDataRequest extends DataRequest {
 
     /**
      * Returns the data operation.
-     * 
+     *
      * @return The data operation.
      */
     public DataOperation getOperation() {

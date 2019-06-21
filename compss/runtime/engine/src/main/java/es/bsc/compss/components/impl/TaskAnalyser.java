@@ -242,7 +242,7 @@ public class TaskAnalyser {
                 return null;
         }
         if (am == AccessMode.CV) {
-            coreId = currentTask.getTaskDescription().getId();
+            coreId = currentTask.getTaskDescription().getCoreId();
             CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
             CommutativeGroupTask com = null;
             for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
@@ -418,7 +418,7 @@ public class TaskAnalyser {
         }
 
         // Update task count
-        Integer methodId = params.getId();
+        Integer methodId = params.getCoreId();
         Integer actualCount = this.currentTaskCount.get(methodId);
         if (actualCount == null) {
             actualCount = 0;

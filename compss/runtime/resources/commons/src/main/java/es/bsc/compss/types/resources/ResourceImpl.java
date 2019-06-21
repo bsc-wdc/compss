@@ -72,7 +72,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
 
-
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
         this.node = Comm.initWorker(conf);

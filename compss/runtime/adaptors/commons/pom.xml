@@ -36,14 +36,12 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-commons</artifactId>
-            <version>${project.version}</version>
         </dependency>
                
         <!-- Storage -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-storage</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- Extrae -->

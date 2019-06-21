@@ -19,7 +19,7 @@ package es.bsc.compss.util.parsers;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElementDefinition;
-import es.bsc.compss.types.ImplementationDefinition;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.Constraints;
 import es.bsc.compss.types.annotations.Parameter;

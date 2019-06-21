@@ -24,6 +24,7 @@ import es.bsc.comm.stage.Transfer.Destination;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.comm.CommAdaptor;
+import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOAgent;
@@ -57,7 +58,6 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
-import es.bsc.compss.util.BindingDataManager;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
@@ -774,8 +774,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    protected boolean isMaster() {
-        return true;
+    protected String getPossiblyRenamedFileName(File originalFile, NIOData d) {
+        return Comm.getAppHost().getCompleteRemotePath(DataType.FILE_T, d.getDataMgmtId()).getPath();
     }
 
 

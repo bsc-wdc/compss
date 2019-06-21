@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.fake;
 
-import es.bsc.compss.types.fake.FakeNode;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;

@@ -16,7 +16,7 @@
  */
 #include <jni.h>
 #include "AbstractCache.h"
-/* Header for class es_bsc_compss_util_BindingDataManager */
+/* Header for class es_bsc_compss_data_BindingDataManager */
 
 #ifndef BindingDataManager
 #define BindingDataManager
@@ -40,56 +40,56 @@ int delete_object_from_runtime(char* name, int type, int elements);
 #ifdef __cplusplus
 extern "C" {
 #endif/*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    isInBinding
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_es_bsc_compss_util_BindingDataManager_isInBinding
+JNIEXPORT jboolean JNICALL Java_es_bsc_compss_data_BindingDataManager_isInBinding
 (JNIEnv *, jclass, jstring);
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    removeData
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_removeData
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_removeData
 (JNIEnv *, jclass, jstring);
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    storeInFile
  * Signature: (Ljava/lang/String;Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_storeInFile
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_storeInFile
 (JNIEnv *, jclass, jstring, jstring);
 
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_copyCachedData
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_copyCachedData
 (JNIEnv *, jclass, jstring, jstring);
 
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_moveCachedData
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_moveCachedData
 (JNIEnv *, jclass, jstring, jstring);
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    loadFromFile
  * Signature: (Ljava/lang/String;Ljava/lang/String;II)I
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_loadFromFile
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_loadFromFile
 (JNIEnv *, jclass, jstring, jstring, jint, jint);
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    getByteArray
  * Signature: (Ljava/lang/String;)Ljava/nio/ByteBuffer;
  */
-JNIEXPORT jobject JNICALL Java_es_bsc_compss_util_BindingDataManager_getByteArray
+JNIEXPORT jobject JNICALL Java_es_bsc_compss_data_BindingDataManager_getByteArray
 (JNIEnv *, jclass, jstring);
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    setByteArray
  * Signature: (Ljava/lang/String;Ljava/nio/ByteBuffer;II)V
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_setByteArray
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_setByteArray
 (JNIEnv *, jclass, jstring, jobject, jint, jint);
 
 /*

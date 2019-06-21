@@ -99,18 +99,17 @@ public class Comm {
         String streamMasterPortProperty = System.getProperty(COMPSsConstants.STREAMING_MASTER_PORT);
         STREAMING_PORT = (streamMasterPortProperty == null || streamMasterPortProperty.isEmpty()
                 || streamMasterPortProperty.equals("null")) ? DEFAULT_STREAMING_PORT
-                        : Integer.parseInt(streamMasterPortProperty);
+                         : Integer.parseInt(streamMasterPortProperty);
 
         String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
         STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))
-                ? null
-                : storageCfgProperty;
+                       ? null
+                       : storageCfgProperty;
 
         ADAPTORS = new ConcurrentHashMap<>();
 
         DATA = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
     }
-
 
     /**
      * Private constructor to avoid instantiation.
@@ -136,7 +135,7 @@ public class Comm {
                 && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
             LOGGER.debug("Tracing is activated [" + tracingLevel + ']');
-            Tracer.init(tracingLevel);
+            Tracer.init(Comm.getAppHost().getAppLogDirPath(), tracingLevel);
             if (Tracer.extraeEnabled()) {
                 Tracer.emitEvent(TraceEvent.STATIC_IT.getId(), TraceEvent.STATIC_IT.getType());
             }
@@ -191,9 +190,8 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException 
                     | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-
                 throw new ConstructConfigurationException(e);
             }
 
@@ -223,7 +221,7 @@ public class Comm {
 
     /**
      * Returns the assigned streaming port.
-     * 
+     *
      * @return The assigned streaming port.
      */
     public static int getStreamingPort() {
@@ -232,7 +230,7 @@ public class Comm {
 
     /**
      * Returns the streaming backend.
-     * 
+     *
      * @return The streaming backend.
      */
     public static StreamBackend getStreamingBackend() {
@@ -253,8 +251,10 @@ public class Comm {
 
     /**
      * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob.
+     *
+     * @param runtimeEvents label-Id pairs for the runtimeEvents
      */
-    public static void stop() {
+    public static void stop(Map<String, Integer> runtimeEvents) {
         appHost.deleteIntermediate();
         for (CommAdaptor adaptor : ADAPTORS.values()) {
             adaptor.stop();
@@ -289,12 +289,14 @@ public class Comm {
             }
         }
 
-        // Stop tracing system
         if (Tracer.extraeEnabled()) {
+            // Emit last EVENT_END event 
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-            Tracer.fini();
-        } else if (Tracer.scorepEnabled() || Tracer.mapEnabled()) {
-            Tracer.fini();
+        }
+
+        // Stop tracing system
+        if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+            Tracer.fini(runtimeEvents);
         }
     }
 
@@ -366,7 +368,7 @@ public class Comm {
 
     /**
      * Registers a new collection with the given dataId {@code dataId}.
-     * 
+     *
      * @param dataId Identifier of the collection.
      * @param parameters Parameters of the collection.
      * @return LogicalData representing the collection with its parameters.

@@ -16,16 +16,12 @@
  */
 package es.bsc.compss.nio;
 
-import es.bsc.compss.exceptions.UnstartedNodeException;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.execution.Data;
-import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.compss.data.Data;
 
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.LinkedList;
 
 
 public class NIOData extends Data<NIOUri> implements Externalizable {
@@ -39,33 +35,21 @@ public class NIOData extends Data<NIOUri> implements Externalizable {
 
     /**
      * Creates a new NIOData instance.
-     * 
+     *
+     * @param name Data name.
+     */
+    public NIOData(String name) {
+        super(name);
+    }
+
+    /**
+     * Creates a new NIOData instance.
+     *
      * @param name Data name.
      * @param uri Data URI.
      */
     public NIOData(String name, NIOUri uri) {
         super(name, uri);
-    }
-
-    /**
-     * Creates a new NIOData instance from the given LogicalData.
-     * 
-     * @param ld LogicalData containing the data information.
-     */
-    public NIOData(LogicalData ld) {
-        super(ld.getName());
-
-        LinkedList<NIOUri> sources = this.getSources();
-        for (MultiURI uri : ld.getURIs()) {
-            try {
-                Object o = uri.getInternalURI(NIOAgent.ID);
-                if (o != null) {
-                    sources.add((NIOUri) o);
-                }
-            } catch (UnstartedNodeException une) {
-                // Ignore internal URI.
-            }
-        }
     }
 
     @Override

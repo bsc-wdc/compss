@@ -109,11 +109,11 @@ void *sync_object_from_runtime(char* name, int type, int elements) {
     }
 }
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    isInBinding
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT jboolean JNICALL Java_es_bsc_compss_util_BindingDataManager_isInBinding(JNIEnv *env, jclass jClass, jstring id) {
+JNIEXPORT jboolean JNICALL Java_es_bsc_compss_data_BindingDataManager_isInBinding(JNIEnv *env, jclass jClass, jstring id) {
     if (cache != NULL) {
         const char *id_str = env->GetStringUTFChars(id, 0);
         jboolean res = (jboolean)cache->isInCache(id_str);
@@ -128,11 +128,11 @@ JNIEXPORT jboolean JNICALL Java_es_bsc_compss_util_BindingDataManager_isInBindin
 
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    removeData
  * Signature: (Ljava/lang/String;)V
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_removeData(JNIEnv *env, jclass jClass, jstring id) {
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_removeData(JNIEnv *env, jclass jClass, jstring id) {
     if (cache != NULL) {
         const char *id_str = env->GetStringUTFChars(id, 0);
         compss_pointer cp;
@@ -153,11 +153,11 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_removeData(JNI
 }
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    storeInFile
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_storeInFile(JNIEnv *env, jclass jClass, jstring id, jstring filename) {
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_storeInFile(JNIEnv *env, jclass jClass, jstring id, jstring filename) {
     if (cache != NULL) {
         const char *id_str = env->GetStringUTFChars(id, 0);
         const char *filename_str = env->GetStringUTFChars(filename, 0);
@@ -172,11 +172,11 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_storeInFile(JN
 }
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    loadFromFile
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_loadFromFile(JNIEnv *env, jclass jClass, jstring id, jstring filename, jint type, jint elements) {
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_loadFromFile(JNIEnv *env, jclass jClass, jstring id, jstring filename, jint type, jint elements) {
     if (cache != NULL) {
         const char *id_str = env->GetStringUTFChars(id, 0);
         const char *filename_str = env->GetStringUTFChars(filename, 0);
@@ -194,11 +194,11 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_loadFromFile(J
 }
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    copyCachedData
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_copyCachedData(JNIEnv *env, jclass jClass, jstring from_id, jstring to_id) {
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_copyCachedData(JNIEnv *env, jclass jClass, jstring from_id, jstring to_id) {
     if (cache != NULL) {
         const char *from_id_str = env->GetStringUTFChars(from_id, 0);
         const char *to_id_str = env->GetStringUTFChars(to_id, 0);
@@ -214,11 +214,11 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_copyCachedData
 }
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    copyCachedData
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_moveCachedData(JNIEnv *env, jclass jClass, jstring from_id, jstring to_id) {
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_moveCachedData(JNIEnv *env, jclass jClass, jstring from_id, jstring to_id) {
     if (cache != NULL) {
         const char *from_id_str = env->GetStringUTFChars(from_id, 0);
         const char *to_id_str = env->GetStringUTFChars(to_id, 0);
@@ -233,11 +233,11 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_moveCachedData
 }
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    getByteArray
  * Signature: (Ljava/lang/String;)Ljava/nio/ByteBuffer;
  */
-JNIEXPORT jobject JNICALL Java_es_bsc_compss_util_BindingDataManager_getByteArray
+JNIEXPORT jobject JNICALL Java_es_bsc_compss_data_BindingDataManager_getByteArray
 (JNIEnv *env, jclass jClass, jstring id) {
     jobject o = NULL;
     if (cache != NULL) {
@@ -260,11 +260,11 @@ JNIEXPORT jobject JNICALL Java_es_bsc_compss_util_BindingDataManager_getByteArra
 }
 
 /*
- * Class:     es_bsc_compss_util_BindingDataManager
+ * Class:     es_bsc_compss_data_BindingDataManager
  * Method:    setByteArray
  * Signature: (Ljava/lang/String;Ljava/nio/ByteBuffer;)V
  */
-JNIEXPORT jint JNICALL Java_es_bsc_compss_util_BindingDataManager_setByteArray(JNIEnv *env, jclass jClass, jstring id, jobject jobj, jint type, jint elements) {
+JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_setByteArray(JNIEnv *env, jclass jClass, jstring id, jobject jobj, jint type, jint elements) {
 	if (cache != NULL) {
         const char *id_str = env->GetStringUTFChars(id, 0);
         compss_pointer cp;

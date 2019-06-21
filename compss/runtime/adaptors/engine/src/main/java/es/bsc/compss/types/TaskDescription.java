@@ -18,58 +18,78 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
-import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
-import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
-import java.io.Serializable;
 import java.util.List;
 
 
-public class TaskDescription implements Serializable {
+public class TaskDescription implements Externalizable {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime.
      */
     private static final long serialVersionUID = 1L;
 
-    private final TaskType type;
-    private final Lang lang;
-    private final String signature;
-    private final Integer coreId;
+    private TaskType type;
+    private Lang lang;
+    private String signature;
+    private Integer coreId;
 
-    private final boolean priority;
-    private final int numNodes;
-    private final boolean mustReplicate;
-    private final boolean mustDistribute;
+    private boolean priority;
+    private int numNodes;
+    private boolean mustReplicate;
+    private boolean mustDistribute;
 
-    private final List<Parameter> parameters;
-    private final boolean hasTarget;
-    private final int numReturns;
-
+    private List<Parameter> parameters;
+    private boolean hasTarget;
+    private int numReturns;
 
     /**
-     * Task description creation for METHODS.
-     *
-     * @param lang Method language.
-     * @param signature Method signature.
-     * @param isPrioritary Whether the method is prioritary or not.
-     * @param numNodes Number of nodes required for the method execution.
-     * @param isReplicated Whether the method is replicated or not.
-     * @param isDistributed Whether the method is distributed or not.
-     * @param hasTarget Whether the method has a target parameter or not.
-     * @param numReturns Number of return values.
-     * @param parameters Number of parameters.
+     * No-parameter constructor only used for deserialization.
      */
-    public TaskDescription(Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters) {
+    public TaskDescription() {
+        this.type = null;
+        this.lang = null;
+        this.signature = null;
+        this.coreId = null;
+        this.priority = false;
+        this.numNodes = 0;
+        this.mustReplicate = false;
+        this.mustDistribute = false;
+        this.parameters = null;
+        this.hasTarget = false;
+        this.numReturns = 0;
+    }
 
-        this.type = TaskType.METHOD;
+    /**
+     * Task description constructor.
+     *
+     * @param type          Type of task.
+     * @param lang          Method language.
+     * @param signature     Method signature.
+     * @param coreId        Core Id.
+     * @param isPrioritary  Whether the method is prioritary or not.
+     * @param numNodes      Number of nodes required for the method execution.
+     * @param isReplicated  Whether the method is replicated or not.
+     * @param isDistributed Whether the method is distributed or not.
+     * @param hasTarget     Whether the method has a target parameter or not.
+     * @param numReturns    Number of return values.
+     * @param parameters    Number of parameters.
+     */
+    public TaskDescription(TaskType type, Lang lang, String signature, int coreId,
+            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, int numReturns, List<Parameter> parameters) {
+
+        this.type = type;
         this.lang = lang;
         this.signature = signature;
-        this.coreId = CoreManager.getCoreId(signature);
+        this.coreId = coreId;
 
         this.priority = isPrioritary;
         this.numNodes = numNodes;
@@ -86,42 +106,11 @@ public class TaskDescription implements Serializable {
     }
 
     /**
-     * Task description creation for SERVICES.
-     *
-     * @param namespace Service namespace.
-     * @param service Service name.
-     * @param port Service port.
-     * @param operation Service operation.
-     * @param isPrioritary Whether the service is prioritary or not.
-     * @param hasTarget Whether the service has a target parameter or not.
-     * @param numReturns Number of return values of the service.
-     * @param parameters Number of parameters.
-     */
-    public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary,
-            boolean hasTarget, int numReturns, List<Parameter> parameters) {
-
-        this.type = TaskType.SERVICE;
-        this.lang = Lang.UNKNOWN;
-        this.priority = isPrioritary;
-        this.numNodes = Constants.SINGLE_NODE;
-        this.mustReplicate = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
-        this.mustDistribute = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
-
-        this.hasTarget = hasTarget;
-        this.numReturns = numReturns;
-        this.parameters = parameters;
-
-        this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, numReturns,
-                parameters);
-        this.coreId = CoreManager.getCoreId(this.signature);
-    }
-
-    /**
      * Returns the task id.
      *
      * @return The task Id.
      */
-    public Integer getId() {
+    public Integer getCoreId() {
         return this.coreId;
     }
 
@@ -130,7 +119,6 @@ public class TaskDescription implements Serializable {
      *
      * @return The task language.
      */
-
     public Lang getLang() {
         return lang;
     }
@@ -258,6 +246,40 @@ public class TaskDescription implements Serializable {
         buffer.append(")]");
 
         return buffer.toString();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput oo) throws IOException {
+        oo.writeInt(type.ordinal());
+        oo.writeInt(lang.ordinal());
+        oo.writeUTF(signature);
+        oo.writeObject(coreId);
+
+        oo.writeBoolean(priority);
+        oo.writeInt(numNodes);
+        oo.writeBoolean(mustReplicate);
+        oo.writeBoolean(mustDistribute);
+
+        oo.writeObject(parameters);
+        oo.writeBoolean(hasTarget);
+        oo.writeInt(numReturns);
+    }
+
+    @Override
+    public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
+        this.type = TaskType.values()[oi.readInt()];
+        this.lang = Lang.values()[oi.readInt()];
+        this.signature = oi.readUTF();
+        this.coreId = (Integer) oi.readObject();
+
+        this.priority = oi.readBoolean();
+        this.numNodes = oi.readInt();
+        this.mustReplicate = oi.readBoolean();
+        this.mustDistribute = oi.readBoolean();
+        
+        this.parameters = (List<Parameter>) oi.readObject();
+        this.hasTarget = oi.readBoolean();
+        this.numReturns = oi.readInt();
     }
 
 }

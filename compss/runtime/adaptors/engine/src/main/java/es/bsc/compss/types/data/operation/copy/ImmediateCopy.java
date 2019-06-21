@@ -34,6 +34,10 @@ public abstract class ImmediateCopy extends Copy {
             Transferable reason, EventListener listener) {
 
         super(ld, prefSrc, prefTgt, tgtData, reason, listener);
+        
+        if (DEBUG) {
+            LOGGER.debug("Created Immediate Copy " + this.getName() + " (id: " + this.getId() + ")");
+        }
     }
 
     /**

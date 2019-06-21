@@ -23,43 +23,30 @@ import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
-import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.parameter.DependencyParameter;
 
 
 /**
  * Representation of a Storage Copy.
  */
-public class StorageCopy extends DataOperation {
+public class StorageCopy extends Copy {
 
-    private final LogicalData srcData;
-    private final DataLocation srcLoc;
-    private final LogicalData tgtData;
-    private DataLocation tgtLoc;
-
-    private Transferable reason;
     private final boolean preserveSourceData;
 
     /**
      * Create a new Storage Copy.
      *
-     * @param srcData Source logical data
-     * @param prefSrc preferred source location
-     * @param prefTgt preferred target location
-     * @param tgtData Target logical data
-     * @param reason Transferable action which requested the copy
+     * @param srcData  Source logical data
+     * @param prefSrc  preferred source location
+     * @param prefTgt  preferred target location
+     * @param tgtData  Target logical data
+     * @param reason   Transferable action which requested the copy
      * @param listener Listener to notify events
      */
     public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
             Transferable reason, EventListener listener) {
 
-        super(srcData, listener);
-
-        this.srcData = srcData;
-        this.srcLoc = prefSrc;
-        this.tgtData = tgtData;
-        this.tgtLoc = prefTgt;
-        this.reason = reason;
+        super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
 
         DependencyParameter dPar = (DependencyParameter) reason;
         DataAccessId dAccId = dPar.getDataAccessId();
@@ -81,74 +68,14 @@ public class StorageCopy extends DataOperation {
         }
     }
 
-    /**
-     * Returns the source data.
-     *
-     * @return
-     */
-    public LogicalData getSourceData() {
-        return this.srcData;
-    }
-
-    /**
-     * Returns the preferred location of the source data.
-     *
-     * @return
-     */
-    public DataLocation getPreferredSource() {
-        return this.srcLoc;
-    }
-
-    public void setProposedSource(Object source) {
-        reason.setDataSource(source);
-    }
-
-    /**
-     * Returns the target location.
-     *
-     * @return
-     */
-    public DataLocation getTargetLoc() {
-        return this.tgtLoc;
-    }
-
-    /**
-     * Returns the target data.
-     *
-     * @return
-     */
-    public LogicalData getTargetData() {
-        return this.tgtData;
-    }
 
     /**
      * Returns whether the source data must be preserved or not.
      *
-     * @return
+     * @return {@literal true}, if source data must be preserved
      */
     public boolean mustPreserveSourceData() {
         return this.preserveSourceData;
-    }
-
-    /**
-     * Sets a new final target data.
-     *
-     * @param targetAbsolutePath Absolute path
-     */
-    public void setFinalTarget(String targetAbsolutePath) {
-        if (DEBUG) {
-            LOGGER.debug(" Setting StorageCopy final target to : " + targetAbsolutePath);
-        }
-        this.reason.setDataTarget(targetAbsolutePath);
-    }
-
-    /**
-     * Returns whether the target data is registered or not.
-     *
-     * @return
-     */
-    public boolean isRegistered() {
-        return this.tgtData != null;
     }
 
     @Override

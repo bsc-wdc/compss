@@ -24,7 +24,7 @@ import java.util.List;
 public class CoreElementDefinition implements Comparable<CoreElementDefinition> {
 
     private String ceSignature;
-    private final List<ImplementationDefinition> implementations;
+    private final List<ImplementationDefinition<?>> implementations;
 
 
     /**
@@ -57,7 +57,7 @@ public class CoreElementDefinition implements Comparable<CoreElementDefinition> 
      * 
      * @param impl The new CoreElement implementation.
      */
-    public void addImplementation(ImplementationDefinition impl) {
+    public void addImplementation(ImplementationDefinition<?> impl) {
         this.implementations.add(impl);
     }
 
@@ -66,7 +66,7 @@ public class CoreElementDefinition implements Comparable<CoreElementDefinition> 
      * 
      * @return The registered implementations for the CoreElement.
      */
-    public List<ImplementationDefinition> getImplementations() {
+    public List<ImplementationDefinition<?>> getImplementations() {
         return this.implementations;
     }
 

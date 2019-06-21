@@ -50,6 +50,7 @@ public class TaskDescription implements Externalizable {
     private boolean hasTarget;
     private int numReturns;
 
+
     /**
      * No-parameter constructor only used for deserialization.
      */
@@ -70,21 +71,21 @@ public class TaskDescription implements Externalizable {
     /**
      * Task description constructor.
      *
-     * @param type          Type of task.
-     * @param lang          Method language.
-     * @param signature     Method signature.
-     * @param coreId        Core Id.
-     * @param isPrioritary  Whether the method is prioritary or not.
-     * @param numNodes      Number of nodes required for the method execution.
-     * @param isReplicated  Whether the method is replicated or not.
+     * @param type Type of task.
+     * @param lang Method language.
+     * @param signature Method signature.
+     * @param coreId Core Id.
+     * @param isPrioritary Whether the method is prioritary or not.
+     * @param numNodes Number of nodes required for the method execution.
+     * @param isReplicated Whether the method is replicated or not.
      * @param isDistributed Whether the method is distributed or not.
-     * @param hasTarget     Whether the method has a target parameter or not.
-     * @param numReturns    Number of return values.
-     * @param parameters    Number of parameters.
+     * @param hasTarget Whether the method has a target parameter or not.
+     * @param numReturns Number of return values.
+     * @param parameters Number of parameters.
      */
-    public TaskDescription(TaskType type, Lang lang, String signature, int coreId,
-            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int numReturns, List<Parameter> parameters) {
+    public TaskDescription(TaskType type, Lang lang, String signature, int coreId, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
+            List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;
@@ -265,6 +266,7 @@ public class TaskDescription implements Externalizable {
         oo.writeInt(numReturns);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
         this.type = TaskType.values()[oi.readInt()];
@@ -276,7 +278,7 @@ public class TaskDescription implements Externalizable {
         this.numNodes = oi.readInt();
         this.mustReplicate = oi.readBoolean();
         this.mustDistribute = oi.readBoolean();
-        
+
         this.parameters = (List<Parameter>) oi.readObject();
         this.hasTarget = oi.readBoolean();
         this.numReturns = oi.readInt();

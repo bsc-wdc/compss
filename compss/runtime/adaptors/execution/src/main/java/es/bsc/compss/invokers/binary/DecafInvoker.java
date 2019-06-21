@@ -93,7 +93,7 @@ public class DecafInvoker extends Invoker {
 
         // Close out streams if any
         try {
-            BinaryRunner.closeStreams(this.invocation.getParams(), this.jythonPycompssHome);
+            BinaryRunner.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
@@ -145,7 +145,7 @@ public class DecafInvoker extends Invoker {
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-                this.invocation.getTarget(), streamValues, this.jythonPycompssHome);
+                this.invocation.getTarget(), streamValues, this.pythonInterpreter);
 
         // Prepare command
         String args = new String();

@@ -184,7 +184,7 @@ def executor(queue, process_name, pipe, conf):
         except ImportError:
             if __debug__:
                 logger.info("[PYTHON EXECUTOR] [%s] Could not find initWorkerPostFork storage call. Ignoring it." %
-                            str(uprocess_name))
+                            str(process_name))
 
     # Start the streaming backend if necessary
     streaming = False

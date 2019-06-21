@@ -17,10 +17,20 @@
 
 import sys
 import signal
+import traceback
+import base64
 
-from pycompss.util.serializer import SerializerException
-from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.api.parameter import TaskParameter
 from pycompss.api.exceptions import COMPSsException
+from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.runtime.commons import STR_ESCAPE
+from pycompss.util.serializer import deserialize_from_string
+from pycompss.util.serializer import deserialize_from_file
+from pycompss.util.serializer import serialize_to_file
+from pycompss.util.serializer import SerializerException
+from pycompss.util.persistent_storage import storage_task_context
+from pycompss.util.persistent_storage import is_psco
+from pycompss.util.persistent_storage import get_by_id
 import pycompss.api.parameter as parameter
 
 
@@ -38,7 +48,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
     :param pos: Position (Default: None)
     :return: Parameter object
     """
-    from pycompss.api.parameter import TaskParameter
+    num_substrings = 0
     if p_type in [parameter.TYPE.FILE, parameter.TYPE.COLLECTION]:
         # Maybe the file is a object, we dont care about this here
         # We will decide whether to deserialize or to forward the value
@@ -84,7 +94,6 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
         # Note that we prepend a sharp to all strings in order to avoid
         # getting empty encodings in the case of empty strings, so we need
         # to remove it when decoding
-        import base64
         aux = base64.b64decode(aux.encode())[1:]
         if aux:
             #######
@@ -93,8 +102,6 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
             # - Option object_conversion
             real_value = aux
             try:
-                from pycompss.util.serializer import deserialize_from_string
-                from pycompss.runtime.commons import STR_ESCAPE
                 # try to recover the real object
                 if IS_PYTHON3:
                     # decode removes double backslash, and encode returns
@@ -157,9 +164,7 @@ def get_input_params(num_params, logger, args, process_name):
     :return: A list of TaskParameter objects
     """
     pos = 0
-
     ret = []
-
     for i in range(0, num_params):
         p_type = int(args[pos])
         p_stream = int(args[pos + 1])
@@ -222,7 +227,6 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         signal.signal(signal.SIGALRM, task_timed_out)
         signal.alarm(time_out)
         if persistent_storage:
-            from pycompss.util.persistent_storage import storage_task_context
             with storage_task_context(logger, values, config_file_path=storage_conf):
                 task_output = getattr(module, method_name)(*values,
                                                            compss_types=types,
@@ -244,7 +248,6 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
     except AttributeError:
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        import traceback
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" % process_name)
         logger.exception(''.join(line for line in lines))
@@ -256,7 +259,6 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
     except Exception:
         # Catch any other user/decorators exception.
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        import traceback
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("WORKER EXCEPTION IN %s" % process_name)
         logger.exception(''.join(line for line in lines))
@@ -417,21 +419,20 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
     if not import_error:
         # Module method declared as task
         exit_code, new_types, new_values, target_direction, timed_out, exception_message = task_execution(logger,
-                                                                                            process_name,
-                                                                                            module,
-                                                                                            method_name,
-                                                                                            time_out,
-                                                                                            types,
-                                                                                            values,
-                                                                                            compss_kwargs,
-                                                                                            persistent_storage,
-                                                                                            storage_conf)
+                                                                                                          process_name,
+                                                                                                          module,
+                                                                                                          method_name,
+                                                                                                          time_out,
+                                                                                                          types,
+                                                                                                          values,
+                                                                                                          compss_kwargs,
+                                                                                                          persistent_storage,
+                                                                                                          storage_conf)
         if exit_code != 0:
             return exit_code, new_types, new_values, timed_out, exception_message
 
     else:
         # Method declared as task in class
-
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
         module_name = '.'.join(path.split('.')[0:-1])
@@ -444,22 +445,24 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
         klass = getattr(module, class_name)
 
         if __debug__:
-            logger.debug("Method in class %s of module %s" % (class_name, module_name))
+            logger.debug("Method in class %s of module %s" % (class_name,
+                                                              module_name))
             logger.debug("Has target: %s" % str(has_target))
 
         if has_target == 'true':
             # Instance method
-            # The self object needs to be an object in order to call the function.
-            # Consequently, it can not be done in the @task decorator.
-            # Since the args structure is parameters + self + returns we pop the corresponding considering the
-            # return_length notified by the runtime (-1 due to index starts from 0).
+            # The self object needs to be an object in order to call the
+            # function. So, it can not be done in the @task decorator.
+            # Since the args structure is parameters + self + returns we pop
+            # the corresponding considering the return_length notified by the
+            # runtime (-1 due to index starts from 0).
             self_index = num_params - return_length - 1
             self_elem = values.pop(self_index)
             self_type = types.pop(self_index)
             if self_type == parameter.TYPE.EXTERNAL_PSCO:
                 if __debug__:
-                    logger.debug("Last element (self) is a PSCO with id: %s" % str(self_elem.key))
-                from pycompss.util.persistent_storage import get_by_id
+                    logger.debug("Last element (self) is a PSCO with id: %s" %
+                                 str(self_elem.key))
                 obj = get_by_id(self_elem.key)
             else:
                 obj = None
@@ -468,28 +471,27 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
                     file_name = self_elem.file_name.split(':')[-1]
                     if __debug__:
                         logger.debug("Deserialize self from file.")
-                    from pycompss.util.serializer import deserialize_from_file
                     obj = deserialize_from_file(file_name)
                     if __debug__:
-                        logger.debug('Deserialized self object is: %s' % self_elem.content)
-                        logger.debug("Processing callee, a hidden object of %s in file %s" % (
-                            file_name, type(self_elem.content)))
+                        logger.debug('Deserialized self object is: %s' %
+                                     self_elem.content)
+                        logger.debug("Processing callee, a hidden object of %s in file %s" %
+                                     (file_name, type(self_elem.content)))
             values.insert(0, obj)
             types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
             exit_code, new_types, new_values, target_direction, timed_out, exception_message = task_execution(logger,
-                                                                                                process_name,
-                                                                                                klass,
-                                                                                                method_name,
-                                                                                                time_out,
-                                                                                                types,
-                                                                                                values,
-                                                                                                compss_kwargs,
-                                                                                                persistent_storage,
-                                                                                                storage_conf)
+                                                                                                              process_name,
+                                                                                                              klass,
+                                                                                                              method_name,
+                                                                                                              time_out,
+                                                                                                              types,
+                                                                                                              values,
+                                                                                                              compss_kwargs,
+                                                                                                              persistent_storage,
+                                                                                                              storage_conf)
             if exit_code != 0:
                 return exit_code, new_types, new_values, timed_out, exception_message
-
 
             # Depending on the target_direction option, it is necessary to
             # serialize again self or not. Since this option is only visible
@@ -498,19 +500,18 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
             # serialized. This solution avoids to use inspect.
             if target_direction.direction == parameter.DIRECTION.INOUT or \
                     target_direction.direction == parameter.DIRECTION.COMMUTATIVE:
-                from pycompss.util.persistent_storage import is_psco
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.
                     # Consequently, the changes on the PSCO must have been
                     # pushed into the storage automatically on each PSCO
                     # modification.
                     if __debug__:
-                        logger.debug("The changes on the PSCO must have been automatically updated by the storage.")
+                        logger.debug("The changes on the PSCO must have been" +
+                                     " automatically updated by the storage.")
                     pass
                 else:
                     if __debug__:
                         logger.debug("Serializing self to file: %s" % file_name)
-                    from pycompss.util.serializer import serialize_to_file
                     serialize_to_file(obj, file_name)
                     if __debug__:
                         logger.debug("Obj: %r" % obj)
@@ -519,15 +520,15 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
             types.append(None)  # class must be first type
 
             exit_code, new_types, new_values, target_direction, timed_out, exception_message = task_execution(logger,
-                                                                                                process_name,
-                                                                                                klass,
-                                                                                                method_name,
-                                                                                                time_out,
-                                                                                                types,
-                                                                                                values,
-                                                                                                compss_kwargs,
-                                                                                                persistent_storage,
-                                                                                                storage_conf)
+                                                                                                              process_name,
+                                                                                                              klass,
+                                                                                                              method_name,
+                                                                                                              time_out,
+                                                                                                              types,
+                                                                                                              values,
+                                                                                                              compss_kwargs,
+                                                                                                              persistent_storage,
+                                                                                                              storage_conf)
             if exit_code != 0:
                 return exit_code, new_types, new_values, timed_out, exception_message
 
@@ -538,7 +539,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
         return 1, new_types, new_values, ""
 
 
-        # EVERYTHING OK
+    # EVERYTHING OK
     if __debug__:
         logger.debug("End task execution. Status: Ok")
 

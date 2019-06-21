@@ -28,6 +28,7 @@ import es.bsc.compss.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
 
+
 public abstract class Copy extends DataOperation {
 
     protected final LogicalData srcData;
@@ -36,13 +37,14 @@ public abstract class Copy extends DataOperation {
     protected DataLocation tgtLoc;
     protected final Transferable reason;
 
-
-    /** Data Copy Constructor.
-     * @param srcData source logical data
-     * @param prefSrc preferred source data location
-     * @param prefTgt preferred target data location
-     * @param tgtData target logical data
-     * @param reason Transfer reason
+    /**
+     * Data Copy Constructor.
+     *
+     * @param srcData  source logical data
+     * @param prefSrc  preferred source data location
+     * @param prefTgt  preferred target data location
+     * @param tgtData  target logical data
+     * @param reason   Transfer reason
      * @param listener listener to notify events
      */
     public Copy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
@@ -54,29 +56,33 @@ public abstract class Copy extends DataOperation {
         this.tgtData = tgtData;
         this.tgtLoc = prefTgt;
         this.reason = reason;
-        if (DEBUG) {
-            LOGGER.debug("Created copy " + this.getName() + " (id: " + this.getId() + ")");
-        }
     }
 
+    /**
+     * Returns the type of the data value being copied.
+     *
+     * @return type of value being copied
+     */
+    public DataType getType() {
+        return reason.getType();
+    }
+
+    /**
+     * Returns the source data.
+     *
+     * @return
+     */
     public LogicalData getSourceData() {
-        return srcData;
+        return this.srcData;
     }
 
+    /**
+     * Returns the preferred location of the source data.
+     *
+     * @return
+     */
     public DataLocation getPreferredSource() {
-        return srcLoc;
-    }
-
-    public DataLocation getTargetLoc() {
-        return tgtLoc;
-    }
-
-    public LogicalData getTargetData() {
-        return tgtData;
-    }
-
-    public boolean isRegistered() {
-        return tgtData != null;
+        return this.srcLoc;
     }
 
     public void setProposedSource(Object source) {
@@ -84,27 +90,52 @@ public abstract class Copy extends DataOperation {
     }
 
     /**
-     * Set the final target absolute path of a data.
-     * @param targetAbsolutePath final absolute path of the data copied
+     * Returns the target location.
+     *
+     * @return
+     */
+    public DataLocation getTargetLoc() {
+        return this.tgtLoc;
+    }
+
+    /**
+     * Returns the target data.
+     *
+     * @return
+     */
+    public LogicalData getTargetData() {
+        return this.tgtData;
+    }
+
+    /**
+     * Sets a new final target data.
+     *
+     * @param targetAbsolutePath Absolute path
      */
     public void setFinalTarget(String targetAbsolutePath) {
         if (DEBUG) {
-            LOGGER.debug(" Setting copy final target to : " + targetAbsolutePath);
+            LOGGER.debug(" Setting StorageCopy final target to : " + targetAbsolutePath);
         }
-        reason.setDataTarget(targetAbsolutePath);
+        this.reason.setDataTarget(targetAbsolutePath);
+    }
+
+    /**
+     * Returns whether the target data is registered or not.
+     *
+     * @return
+     */
+    public boolean isRegistered() {
+        return this.tgtData != null;
     }
 
     public String getFinalTarget() {
         return reason.getDataTarget();
     }
 
-    public DataType getType() {
-        return reason.getType();
-    }
-
     /**
      * Blocks the thread until a copy to a resource is finished.
-     * @param copy Copy to wait
+     *
+     * @param copy     Copy to wait
      * @param resource Resource
      */
     public static void waitForCopyTofinish(Copy copy, COMPSsNode resource) {

@@ -28,6 +28,10 @@ public class DeferredCopy extends Copy {
             Transferable reason, EventListener listener) {
 
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
+
+        if (DEBUG) {
+            LOGGER.debug("Created Deferred Copy " + this.getName() + " (id: " + this.getId() + ")");
+        }
     }
 
     @Override

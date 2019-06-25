@@ -1,8 +1,0 @@
-Package: compss-tools
-Version: 
-Priority: optional
-Architecture: all
-Essential: no
-Depends: compss-extrae, compss-monitor, compss-autoparallel, compss-storage
-Maintainer: COMPSs Support <support-compss@bsc.es>
-Description: The BSC COMP Superscalar Tools.

@@ -1,9 +1,0 @@
-Package: compss-extrae
-Version: 
-Priority: optional
-Architecture: amd64
-Essential: no
-Depends: compss-engine, libxml2 (>= 2.5), libxml2-dev (>= 2.5), gfortran
-Suggests: papi-tools, libpapi-dev
-Maintainer: COMPSs Support <support-compss@bsc.es>
-Description: Extrae trace extraction tool.

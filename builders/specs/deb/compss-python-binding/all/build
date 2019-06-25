@@ -1,7 +1,0 @@
-#!/bin/bash -e
-
-  trunk_rel_path=../../../../
-  COMPSs_target=$(pwd)/tmp/opt/COMPSs
-
-  cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
-

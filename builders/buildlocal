@@ -438,7 +438,6 @@ install_compss() {
   cp "${SOURCES_DIR}/changelog" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/compss" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/dependencies" "${TMP_DIR}"
-  cp -r "${SOURCES_DIR}/doc" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/files" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/maven-plugins" "${TMP_DIR}"
   cp -r "${SOURCES_DIR}/utils" "${TMP_DIR}"
@@ -481,8 +480,6 @@ install_compss() {
   echo "- Copy Runtime deployment files"
   # Doc
   echo "--- Copy docs"
-  find "${TMP_DIR}/doc/" -name "*.html" -delete
-  cp -r "${TMP_DIR}"/doc/* ${targetDir}/Doc
   cp "${TMP_DIR}/changelog" ${targetDir}
   cp "${TMP_DIR}/LICENSE" ${targetDir}
   cp "${TMP_DIR}/NOTICE" ${targetDir}

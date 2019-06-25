@@ -129,8 +129,6 @@
 
   # Doc
   echo "--- Copy docs"
-  find "${TMP_DIR}"/doc/ -name "*.html" -print0 | xargs rm -rf
-  cp -r "${TMP_DIR}"/doc/* "${targetDir}"/Doc
   cp "${TMP_DIR}"/changelog "${targetDir}"
   cp "${TMP_DIR}"/LICENSE "${targetDir}"
   cp "${TMP_DIR}"/NOTICE "${targetDir}"

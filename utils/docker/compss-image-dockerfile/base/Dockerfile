@@ -68,6 +68,9 @@ RUN apt-get update && \
     echo "GRADLE_HOME=/opt/gradle" >> /etc/environment && \
 # Testing dependencies
     pip3 install enum34 tabulate && \
+# Numba dependencies
+    pip2 install llvmlite numba && \
+    pip3 install llvmlite numba && \
 # Configure user environment
 # =============================================================================
 # System configuration

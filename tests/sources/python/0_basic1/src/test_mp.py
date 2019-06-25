@@ -10,6 +10,8 @@ PyCOMPSs Testbench
 """
 
 # Imports
+import sys
+
 from pycompss.api.api import compss_open, compss_wait_on
 from modules.test_tasks import empty_task
 from modules.test_tasks import function_primitives, function_files, function_objects, function_return_primitive

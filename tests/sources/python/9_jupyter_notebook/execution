@@ -36,23 +36,41 @@
     mkdir -p "${exec_target_log_folder}"
     expectedTime=60s
 
-    if [[ $python_interpreter == *"mpi"* ]]; then
-      # Jupyter not supported with MPI worker
-      echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
-      continue
-    fi
-
     if [[ $comm == *"GAT"* ]]; then
       echo "Running a jupyter notebook test with GAT"
+      if [[ $python_interpreter == *"mpi"* ]]; then
+        echo "[WARNING] MPI worker not supported with GAT" >> "${output_log}"
+        continue
+      fi
       app_ipynb="simpleGAT.ipynb"
     else
       echo "Running a jupyter notebook test with NIO"
-      app_ipynb="simple.ipynb"
+      if [[ $python_interpreter == *"mpi"* ]]; then
+        app_ipynb="simple_mpi.ipynb"
+      else
+        app_ipynb="simple.ipynb"
+      fi
     fi
+
+    kernel=""
+    if [[ $python_interpreter == "python2"* ]]; then
+      kernel="python2"
+    elif [[ $python_interpreter == "python3"* ]]; then
+      kernel="python3"
+    else
+      echo "[ERROR] KERNEL NOT DEFINED FOR INTERPRETER: ${python_interpreter}" >> "${error_log}"
+      exit 1
+    fi
+
+    echo "INFO: Running for ${python_interpreter} with kernel: ${kernel}"
+    echo "INFO: Running notebook ${app_ipynb}"
 
     timeout --signal=2 $expectedTime \
       jupyter nbconvert \
+      --ExecutePreprocessor.kernel_name=${kernel} \
       --execute "${base_app_dir}/src/${app_ipynb}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
+
+    mv "${COMPSs_log_folder}/${app_name}_01" "${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
 
     # Check timeout
     if [[ "$?" = "124" ]]; then

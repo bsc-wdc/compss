@@ -41,14 +41,16 @@ from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
 
 
-def prepare_environment(interactive, o_c, storage_impl, app, debug):
+def prepare_environment(interactive, o_c, storage_impl,
+                        app, debug, mpi_worker):
     """
     Setup the environment variable and retrieve their content.
     :param interactive: True | False If the environment is interactive or not.
     :param o_c: Object conversion to string
     :param storage_impl: Storage implementation
-    :param app: Appname
+    :param app: Application name
     :param debug: True | False If debug is enabled
+    :param mpi_worker: True | False if mpi worker is enabled
     :return: Dictionary contanining the compss_home, pythonpath, classpath, ld_library_path,
              cp, extrae_home, extrae_lib and file_name values.
     """
@@ -99,6 +101,9 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
         # Add environment variable to get binding-commons debug information
         os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
+    if debug == 'scorep' or debug == 'arm-map' or debug == 'arm-ddt':
+        mpi_worker = True
+
     env_vars = {'compss_home': compss_home,
                 'pythonpath': pythonpath,
                 'classpath': classpath,
@@ -106,7 +111,8 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
                 'cp': cp,
                 'extrae_home': extrae_home,
                 'extrae_lib': extrae_lib,
-                'file_name': file_name}
+                'file_name': file_name,
+                'mpi_worker': mpi_worker}
     return env_vars
 
 
@@ -279,6 +285,7 @@ def create_init_config_file(compss_home,
                             python_version,
                             python_virtual_environment,
                             propagate_virtual_environment,
+                            mpi_worker,
                             **kwargs):
     """
     Creates the initialization files for the runtime start (java options file).
@@ -325,6 +332,7 @@ def create_init_config_file(compss_home,
     :param python_version: <String> Python interpreter version
     :param python_virtual_environment: <String> Python virtual environment path
     :param propagate_virtual_environment: <Boolean> = Propagate python virtual environment to workers
+    :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
     :param kwargs: Other nominal parameters
     :return: None
     """
@@ -471,6 +479,10 @@ def create_init_config_file(compss_home,
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')
+    if mpi_worker:
+        jvm_options_file.write('-Dcompss.python.mpi_worker=true\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.mpi_worker=false\n')
 
     # Uncomment for debugging purposes
     # jvm_options_file.write('-Xcheck:jni\n')

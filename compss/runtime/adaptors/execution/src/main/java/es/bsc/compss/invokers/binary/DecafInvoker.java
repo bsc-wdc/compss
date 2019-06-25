@@ -135,12 +135,9 @@ public class DecafInvoker extends Invoker {
     }
 
     private Object runInvocation() throws InvokeExecutionException {
-        String dfRunner = this.context.getInstallDir() + DecafImplementation.SCRIPT_PATH;
-
         // Command similar to
         // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
         // 2 (--bind-to core) exec args
-        // Get COMPSS ENV VARS
 
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
@@ -162,6 +159,7 @@ public class DecafInvoker extends Invoker {
         } else {
             cmd = new String[NUM_BASE_DECAF_ARGS];
         }
+        final String dfRunner = this.context.getInstallDir() + DecafImplementation.SCRIPT_PATH;
         cmd[0] = dfRunner;
         cmd[1] = this.dfScript;
         cmd[2] = this.dfExecutor;

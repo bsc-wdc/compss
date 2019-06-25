@@ -62,9 +62,15 @@ def prepare_environment(interactive, o_c, storage_impl,
     os.environ['COMPSS_HOME'] = compss_home
 
     # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment variables values
-    pythonpath = os.getcwd() + ':.:' + os.environ['PYTHONPATH']
-    classpath = os.environ['CLASSPATH']
-    ld_library_path = os.environ['LD_LIBRARY_PATH']
+    pythonpath = os.getcwd() + ':.'
+    if 'PYTHONPATH' in os.environ:
+        pythonpath += ':' + os.environ['PYTHONPATH']
+    classpath = ''
+    if 'CLASSPATH' in os.environ:
+        classpath = os.environ['CLASSPATH']
+    ld_library_path = ''
+    if 'LD_LIBRARY_PATH' in os.environ:
+        ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Enable/Disable object to string conversion
     # set cross-module variable

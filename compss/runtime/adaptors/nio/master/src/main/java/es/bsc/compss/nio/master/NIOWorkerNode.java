@@ -66,7 +66,6 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
-import java.util.LinkedList;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -88,6 +87,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     private final NIOAdaptor commManager;
     private boolean started = false;
     private WorkerStarter workerStarter;
+
 
     /**
      * Creates a new NIOWorkerNode instance.

@@ -183,6 +183,7 @@ class DistroStreamClient(Thread):
             if __debug__:
                 logger.debug("Sending request to server: " + str(req_msg))
             req_msg = req_msg + "\n"
+            req_msg = req_msg.encode()
             s.sendall(req_msg)
 
             # Receive answer

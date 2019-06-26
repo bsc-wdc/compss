@@ -44,22 +44,23 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
     private final String signature;
     private final T constraints;
 
+
     /**
      * Creates a new implementation from the given parameters.
      *
      * @param <T> Type of resource description compatible with the implementation
-     *
      * @param implType Implementation type.
      * @param implSignature Implementation signature.
      * @param implConstraints Implementation constraints.
      * @param implTypeArgs Implementation specific arguments.
      * @return A new implementation definition from the given parameters.
      * @throws IllegalArgumentException If the number of specific parameters does not match the required number of
-     *     parameters by the implementation type.
+     *             parameters by the implementation type.
      */
     public static final <T extends ResourceDescription> ImplementationDefinition<T> defineImplementation(
             String implType, String implSignature, T implConstraints, String... implTypeArgs)
             throws IllegalArgumentException {
+
         ImplementationDefinition id = null;
 
         if (implType.toUpperCase().compareTo(TaskType.SERVICE.toString()) == 0) {
@@ -263,6 +264,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
         private final String serviceName;
         private final String operation;
         private final String port;
+
 
         protected ServiceDefinition(String signature, String namespace, String serviceName, String operation,
                 String port) {

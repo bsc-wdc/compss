@@ -26,7 +26,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING JAVA APPLICATION MPI"
+  echo "*** RUNNING JAVA APPLICATION DECAF"
   
   echo "MPI Binary: $VEC_SUM_MPI_BINARY"
     

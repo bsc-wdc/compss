@@ -12,10 +12,12 @@ import decaf.DECAF;
 public class Main {
 
     private static final int SLEEP_TIME = 5_000;
-    private static final String[] lines = {
-            "Executing decaf data-flow generator: " + System.getenv("PWD") + "/decaf/test.py ",
-            "Executing python script.", "Executing decaf data-flow: ./test.sh", "Executing binary" };
-    private static final String endLine0 = ".hostfile --args ";
+
+    private static final String[] LINES = { "[DECAF] Retrieve Decaf arguments",
+            "[DECAF] Executing Decaf data-flow generator",
+            "[DECAF] CMD: python " + System.getenv("PWD") + "/decaf/test.py ", "Executing python script.",
+            "[DECAF] Executing Decaf data-flow", "[DECAF] CMD: ./test.sh", "Executing binary" };
+    private static final String END_LINE2 = ".hostfile --args ";
 
 
     public static void main(String[] args) {
@@ -67,12 +69,12 @@ public class Main {
             String line;
             int lineNum = 0;
             while ((line = br.readLine()) != null) {
-                if (lineNum < lines.length) {
+                if (lineNum < LINES.length) {
                     // System.out.println("[RESULT] Decaf Task1: " + line);
                     checkLine(lineNum, 1, 2, arg1 + " " + arg2, line);
                     lineNum++;
                 } else {
-                    System.err.println("[ERROR] Process returned a file with more than " + lines.length + " lines ");
+                    System.err.println("[ERROR] Process returned a file with more than " + LINES.length + " lines ");
                     System.exit(1);
                 }
             }
@@ -91,9 +93,9 @@ public class Main {
             System.err.println("Cannot obtain hostname. Loading default value " + hostname);
         }
 
-        if (lineNum == 0) {
-            String startLine = lines[0] + "-n " + tasks + " --hostfile ";
-            String endLine = endLine0 + "\"" + arguments + "\"";
+        if (lineNum == 2) {
+            String startLine = LINES[2] + "-n " + tasks + " --hostfile ";
+            String endLine = END_LINE2 + "\"" + arguments + "\"";
             if (!line.startsWith(startLine)) {
                 System.err.println("[ERROR] line 0 is not starting correctly : \"" + line + "\" options is: \""
                         + startLine + "\"");
@@ -106,7 +108,7 @@ public class Main {
             }
 
         } else {
-            if (!line.equals(lines[lineNum])) {
+            if (!line.equals(LINES[lineNum])) {
                 System.err.println("[ERROR] line " + lineNum + " is not correct: " + line);
                 System.exit(1);
             }
@@ -125,12 +127,12 @@ public class Main {
             String line;
             int lineNum = 0;
             while ((line = br.readLine()) != null) {
-                if (lineNum < lines.length) {
+                if (lineNum < LINES.length) {
                     // System.out.println("[RESULT] Decaf Task1: " + line);
                     checkLine(lineNum, 2, 4, arg1 + " " + arg2, line);
                     lineNum++;
                 } else {
-                    System.err.println("[ERROR] Process returned a file with more than " + lines.length + " lines ");
+                    System.err.println("[ERROR] Process returned a file with more than " + LINES.length + " lines ");
                     System.exit(1);
                 }
             }
@@ -155,12 +157,12 @@ public class Main {
             String line;
             int lineNum = 0;
             while ((line = br.readLine()) != null) {
-                if (lineNum < lines.length) {
+                if (lineNum < LINES.length) {
                     // System.out.println("[RESULT] Decaf Task1: " + line);
                     checkLine(lineNum, 2, 2, arg1 + " " + arg2, line);
                     lineNum++;
                 } else {
-                    System.err.println("[ERROR] Process returned a file with more than " + lines.length + " lines ");
+                    System.err.println("[ERROR] Process returned a file with more than " + LINES.length + " lines ");
                     System.exit(1);
                 }
             }
@@ -172,12 +174,12 @@ public class Main {
             String line;
             int lineNum = 0;
             while ((line = br.readLine()) != null) {
-                if (lineNum < lines.length) {
+                if (lineNum < LINES.length) {
                     // System.out.println("[RESULT] Decaf Task1: " + line);
                     checkLine(lineNum, 2, 2, arg1 + " " + arg2, line);
                     lineNum++;
                 } else {
-                    System.err.println("[ERROR] Process returned a file with more than " + lines.length + " lines ");
+                    System.err.println("[ERROR] Process returned a file with more than " + LINES.length + " lines ");
                     System.exit(1);
                 }
             }

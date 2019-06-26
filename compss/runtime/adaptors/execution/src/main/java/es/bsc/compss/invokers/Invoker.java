@@ -16,14 +16,16 @@
  */
 package es.bsc.compss.invokers;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.exceptions.InvokeExecutionException;
 import es.bsc.compss.executor.types.InvocationResources;
-import es.bsc.compss.invokers.external.piped.PythonMirror;
+import es.bsc.compss.invokers.types.PythonParams;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
+import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -65,7 +67,7 @@ public abstract class Invoker {
     protected final int computingUnits;
     protected final String workers;
     protected final int numWorkers;
-    protected final String jythonPycompssHome;
+    protected final String pythonInterpreter;
 
 
     /**
@@ -123,9 +125,14 @@ public abstract class Invoker {
         }
         this.workers = hostnamesSTR.toString();
 
-        // Jython default pyCOMPSs home
-        this.jythonPycompssHome = this.context.getInstallDir() + PythonMirror.PYCOMPSS_RELATIVE_PATH + File.separator
-                + "2";
+        // Python interpreter for direct access on stream property calls
+        LanguageParams lp = this.context.getLanguageParams(Lang.PYTHON);
+        if (lp instanceof PythonParams) {
+            PythonParams pp = (PythonParams) this.context.getLanguageParams(Lang.PYTHON);
+            this.pythonInterpreter = pp.getPythonInterpreter();
+        } else {
+            this.pythonInterpreter = null;
+        }
 
         /* Parse the parameters ************************************ */
         AbstractMethodImplementation impl = invocation.getMethodImplementation();

@@ -29,11 +29,6 @@
         <url>http://www.bsc.es</url>
     </organization>
 
-    <!-- PROPERTIES -->
-    <properties>
-        <jython.version>2.7.0</jython.version>
-    </properties>
-
     <!-- DEPENDENCIES -->
     <dependencies>
         <!-- COMPSs Dependencies -->

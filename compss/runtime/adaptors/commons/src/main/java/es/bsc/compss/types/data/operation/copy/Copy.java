@@ -70,6 +70,10 @@ public abstract class Copy extends DataOperation {
     public DataLocation getTargetLoc() {
         return tgtLoc;
     }
+    
+    public void setTargetLoc(DataLocation loc ) {
+        tgtLoc = loc;
+    }
 
     public LogicalData getTargetData() {
         return tgtData;

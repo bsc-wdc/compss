@@ -369,7 +369,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public boolean isTransferingData(InvocationParam param) {
         List<DataRequest> requests = getDataRequests(((NIOParam) param).getData().getDataMgmtId());
-        return (requests!=null) && (!requests.isEmpty());
+        return (requests != null) && (!requests.isEmpty());
         
     }
     

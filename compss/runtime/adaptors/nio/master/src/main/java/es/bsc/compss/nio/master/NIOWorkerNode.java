@@ -527,8 +527,9 @@ public class NIOWorkerNode extends COMPSsWorker {
                 if (u != null) {
                     path = u.getPath();
                     try {
-                        c.setTargetLoc(DataLocation.createLocation(tgtRes, new SimpleURI(u.toString())));
-                    }catch (Exception e) {
+                        c.setTargetLoc(DataLocation.createLocation(tgtRes,
+                                new SimpleURI(u.getScheme(), u.getHost().getName(), u.getPath())));
+                    } catch (Exception e) {
                         c.end(OpEndState.OP_FAILED, e);
                         return;
                     }

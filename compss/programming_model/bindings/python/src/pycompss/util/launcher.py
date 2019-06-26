@@ -42,7 +42,7 @@ from pycompss.util.logs import init_logging
 
 
 def prepare_environment(interactive, o_c, storage_impl,
-                        app, debug, mpi_worker):
+                        app, debug, trace, mpi_worker):
     """
     Setup the environment variable and retrieve their content.
     :param interactive: True | False If the environment is interactive or not.
@@ -50,6 +50,7 @@ def prepare_environment(interactive, o_c, storage_impl,
     :param storage_impl: Storage implementation
     :param app: Application name
     :param debug: True | False If debug is enabled
+    :param trace: Trace mode (True | False | 'scorep' | 'arm-map' | 'arm-ddt')
     :param mpi_worker: True | False if mpi worker is enabled
     :return: Dictionary contanining the compss_home, pythonpath, classpath, ld_library_path,
              cp, extrae_home, extrae_lib and file_name values.
@@ -107,7 +108,8 @@ def prepare_environment(interactive, o_c, storage_impl,
         # Add environment variable to get binding-commons debug information
         os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
-    if debug == 'scorep' or debug == 'arm-map' or debug == 'arm-ddt':
+    if trace == 'scorep' or trace == 'arm-map' or trace == 'arm-ddt':
+        # Force mpi worker if using ScoreP, ARM-MAP or ARM-DDT
         mpi_worker = True
 
     env_vars = {'compss_home': compss_home,
@@ -314,7 +316,7 @@ def create_init_config_file(compss_home,
     :param specific_log_dir: None|<String> Specific log path
     :param graph: <Boolean> Enable/Disable graph generation
     :param monitor: None|<Integer> Disable/Frequency of the monitor
-    :param trace: <Boolean> Enable/Disable trace generation
+    :param trace: <Boolean> Enable/Disable trace generation. Also accepts String (scorep, arm-map, arm-ddt)
     :param extrae_cfg: None|<String> Default extrae configuration/User specific extrae configuration
     :param comm: <String> GAT/NIO
     :param conn: <String> Connector (normally: es.bsc.compss.connectors.DefaultSSHConnector)
@@ -429,14 +431,27 @@ def create_init_config_file(compss_home,
         jvm_options_file.write('-Dcompss.monitor=' + str(monitor) + '\n')
 
     if not trace or trace == 0:
+        # Deactivated
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
     elif trace == 1:
+        # Basic
         jvm_options_file.write('-Dcompss.tracing=1\n')
         os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
     elif trace == 2:
+        # Advanced
         jvm_options_file.write('-Dcompss.tracing=2\n')
         os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
+    elif trace == "scorep":
+        # ScoreP tracing
+        jvm_options_file.write('-Dcompss.tracing=-1\n')
+    elif trace == "arm-map":
+        # ARM-MAP profiling
+        jvm_options_file.write('-Dcompss.tracing=-2\n')
+    elif trace == "arm-ddt":
+        # ARM-DDT debuger
+        jvm_options_file.write('-Dcompss.tracing=-3\n')
     else:
+        # Any other case: deactivated
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
 
     if extrae_cfg is None:

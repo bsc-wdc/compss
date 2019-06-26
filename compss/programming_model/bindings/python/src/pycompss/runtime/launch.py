@@ -277,7 +277,7 @@ def launch_pycompss_application(app, func,
     :param o_c: Objects to string conversion [ True | False ] (default: False)
     :param debug: Debug mode [ True | False ] (default: False) (overrides log_level)
     :param graph: Generate graph [ True | False ] (default: False)
-    :param trace: Generate trace [ True | False ] (default: False)
+    :param trace: Generate trace [ True | False | 'scorep' | 'arm-map' | 'arm-ddt'] (default: False)
     :param monitor: Monitor refresh rate (default: None)
     :param project_xml: Project xml file path
     :param resources_xml: Resources xml file path
@@ -324,6 +324,8 @@ def launch_pycompss_application(app, func,
     # INITIALIZATION
     ##############################################################
 
+    # TODO: Check that input values are valid
+
     # Initial dictionary with the user defined parameters
     all_vars = {'log_level': log_level,
                 'debug': debug,
@@ -365,7 +367,7 @@ def launch_pycompss_application(app, func,
 
     # Prepare the environment
     env_vars = prepare_environment(True, o_c, storage_impl, app,
-                                   debug, mpi_worker)
+                                   debug, trace, mpi_worker)
     all_vars.update(env_vars)
 
     monitoring_vars = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)

@@ -100,6 +100,7 @@ def start(log_level='off',
           scheduler_config='',
           external_adaptation=False,
           propagate_virtual_environment=True,
+          mpi_worker=False,
           verbose=False
           ):
     """
@@ -109,7 +110,7 @@ def start(log_level='off',
     :param debug: Debug mode [ True | False ] (default: False) (overrides log-level)
     :param o_c: Objects to string conversion [ True | False ] (default: False)
     :param graph: Generate graph [ True | False ] (default: False)
-    :param trace: Generate trace [ True | False ] (default: False)
+    :param trace: Generate trace [ True | False | 'scorep' | 'arm-map' | 'arm-ddt' ] (default: False)
     :param monitor: Monitor refresh rate (default: None)
     :param project_xml: Project xml file path
     :param resources_xml: Resources xml file path
@@ -141,6 +142,7 @@ def start(log_level='off',
     :param scheduler_config: Scheduler configuration  (default: '')
     :param external_adaptation: External adaptation [ True | False ] (default: False)
     :param propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
+    :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
     :param verbose: Verbose mode [ True | False ] (default: False)
     :return: None
     """
@@ -162,6 +164,8 @@ def start(log_level='off',
     ##############################################################
     # INITIALIZATION
     ##############################################################
+
+    # TODO: Check that input values are valid
 
     # Initial dictionary with the user defined parameters
     all_vars = {'log_level': log_level,
@@ -199,10 +203,12 @@ def start(log_level='off',
                 'profile_output': profile_output,
                 'scheduler_config': scheduler_config,
                 'external_adaptation': external_adaptation,
-                'propagate_virtual_environment': propagate_virtual_environment}
+                'propagate_virtual_environment': propagate_virtual_environment,
+                'mpi_worker': mpi_worker}
 
     # Prepare the environment
-    env_vars = prepare_environment(True, o_c, storage_impl, None, debug)
+    env_vars = prepare_environment(True, o_c, storage_impl,
+                                   None, debug, trace, mpi_worker)
     all_vars.update(env_vars)
 
     # Update the log level and graph values if monitoring is enabled

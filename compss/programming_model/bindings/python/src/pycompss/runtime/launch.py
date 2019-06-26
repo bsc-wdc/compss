@@ -263,6 +263,7 @@ def launch_pycompss_application(app, func,
                                 scheduler_config='',
                                 external_adaptation=False,
                                 propagate_virtual_environment=True,
+                                mpi_worker=False,
                                 *args, **kwargs
                                 ):
     """
@@ -276,7 +277,7 @@ def launch_pycompss_application(app, func,
     :param o_c: Objects to string conversion [ True | False ] (default: False)
     :param debug: Debug mode [ True | False ] (default: False) (overrides log_level)
     :param graph: Generate graph [ True | False ] (default: False)
-    :param trace: Generate trace [ True | False ] (default: False)
+    :param trace: Generate trace [ True | False | 'scorep' | 'arm-map' | 'arm-ddt'] (default: False)
     :param monitor: Monitor refresh rate (default: None)
     :param project_xml: Project xml file path
     :param resources_xml: Resources xml file path
@@ -308,6 +309,7 @@ def launch_pycompss_application(app, func,
     :param scheduler_config: Scheduler configuration  (default: '')
     :param external_adaptation: External adaptation [ True | False ] (default: False)
     :param propagate_virtual_environment: Propagate virtual environment [ True | False ] (default: False)
+    :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
     :param args: Positional arguments
     :param kwargs: Named arguments
     :return: Execution result
@@ -321,6 +323,8 @@ def launch_pycompss_application(app, func,
     ##############################################################
     # INITIALIZATION
     ##############################################################
+
+    # TODO: Check that input values are valid
 
     # Initial dictionary with the user defined parameters
     all_vars = {'log_level': log_level,
@@ -358,10 +362,12 @@ def launch_pycompss_application(app, func,
                 'profile_output': profile_output,
                 'scheduler_config': scheduler_config,
                 'external_adaptation': external_adaptation,
-                'propagate_virtual_environment': propagate_virtual_environment}
+                'propagate_virtual_environment': propagate_virtual_environment,
+                'mpi_worker': mpi_worker}
 
     # Prepare the environment
-    env_vars = prepare_environment(True, o_c, storage_impl, app, debug)
+    env_vars = prepare_environment(True, o_c, storage_impl, app,
+                                   debug, trace, mpi_worker)
     all_vars.update(env_vars)
 
     monitoring_vars = prepare_loglevel_graph_for_monitoring(monitor, graph, debug, log_level)

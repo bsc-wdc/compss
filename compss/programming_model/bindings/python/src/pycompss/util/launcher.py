@@ -41,14 +41,17 @@ from pycompss.util.scs import get_storage_conf
 from pycompss.util.logs import init_logging
 
 
-def prepare_environment(interactive, o_c, storage_impl, app, debug):
+def prepare_environment(interactive, o_c, storage_impl,
+                        app, debug, trace, mpi_worker):
     """
     Setup the environment variable and retrieve their content.
     :param interactive: True | False If the environment is interactive or not.
     :param o_c: Object conversion to string
     :param storage_impl: Storage implementation
-    :param app: Appname
+    :param app: Application name
     :param debug: True | False If debug is enabled
+    :param trace: Trace mode (True | False | 'scorep' | 'arm-map' | 'arm-ddt')
+    :param mpi_worker: True | False if mpi worker is enabled
     :return: Dictionary contanining the compss_home, pythonpath, classpath, ld_library_path,
              cp, extrae_home, extrae_lib and file_name values.
     """
@@ -60,9 +63,15 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
     os.environ['COMPSS_HOME'] = compss_home
 
     # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment variables values
-    pythonpath = os.getcwd() + ':.:' + os.environ['PYTHONPATH']
-    classpath = os.environ['CLASSPATH']
-    ld_library_path = os.environ['LD_LIBRARY_PATH']
+    pythonpath = os.getcwd() + ':.'
+    if 'PYTHONPATH' in os.environ:
+        pythonpath += ':' + os.environ['PYTHONPATH']
+    classpath = ''
+    if 'CLASSPATH' in os.environ:
+        classpath = os.environ['CLASSPATH']
+    ld_library_path = ''
+    if 'LD_LIBRARY_PATH' in os.environ:
+        ld_library_path = os.environ['LD_LIBRARY_PATH']
 
     # Enable/Disable object to string conversion
     # set cross-module variable
@@ -99,6 +108,10 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
         # Add environment variable to get binding-commons debug information
         os.environ['COMPSS_BINDINGS_DEBUG'] = '1'
 
+    if trace == 'scorep' or trace == 'arm-map' or trace == 'arm-ddt':
+        # Force mpi worker if using ScoreP, ARM-MAP or ARM-DDT
+        mpi_worker = True
+
     env_vars = {'compss_home': compss_home,
                 'pythonpath': pythonpath,
                 'classpath': classpath,
@@ -106,7 +119,8 @@ def prepare_environment(interactive, o_c, storage_impl, app, debug):
                 'cp': cp,
                 'extrae_home': extrae_home,
                 'extrae_lib': extrae_lib,
-                'file_name': file_name}
+                'file_name': file_name,
+                'mpi_worker': mpi_worker}
     return env_vars
 
 
@@ -279,6 +293,7 @@ def create_init_config_file(compss_home,
                             python_version,
                             python_virtual_environment,
                             propagate_virtual_environment,
+                            mpi_worker,
                             **kwargs):
     """
     Creates the initialization files for the runtime start (java options file).
@@ -301,7 +316,7 @@ def create_init_config_file(compss_home,
     :param specific_log_dir: None|<String> Specific log path
     :param graph: <Boolean> Enable/Disable graph generation
     :param monitor: None|<Integer> Disable/Frequency of the monitor
-    :param trace: <Boolean> Enable/Disable trace generation
+    :param trace: <Boolean> Enable/Disable trace generation. Also accepts String (scorep, arm-map, arm-ddt)
     :param extrae_cfg: None|<String> Default extrae configuration/User specific extrae configuration
     :param comm: <String> GAT/NIO
     :param conn: <String> Connector (normally: es.bsc.compss.connectors.DefaultSSHConnector)
@@ -325,6 +340,7 @@ def create_init_config_file(compss_home,
     :param python_version: <String> Python interpreter version
     :param python_virtual_environment: <String> Python virtual environment path
     :param propagate_virtual_environment: <Boolean> = Propagate python virtual environment to workers
+    :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
     :param kwargs: Other nominal parameters
     :return: None
     """
@@ -415,14 +431,27 @@ def create_init_config_file(compss_home,
         jvm_options_file.write('-Dcompss.monitor=' + str(monitor) + '\n')
 
     if not trace or trace == 0:
+        # Deactivated
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
     elif trace == 1:
+        # Basic
         jvm_options_file.write('-Dcompss.tracing=1\n')
         os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
     elif trace == 2:
+        # Advanced
         jvm_options_file.write('-Dcompss.tracing=2\n')
         os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
+    elif trace == "scorep":
+        # ScoreP tracing
+        jvm_options_file.write('-Dcompss.tracing=-1\n')
+    elif trace == "arm-map":
+        # ARM-MAP profiling
+        jvm_options_file.write('-Dcompss.tracing=-2\n')
+    elif trace == "arm-ddt":
+        # ARM-DDT debuger
+        jvm_options_file.write('-Dcompss.tracing=-3\n')
     else:
+        # Any other case: deactivated
         jvm_options_file.write('-Dcompss.tracing=0' + '\n')
 
     if extrae_cfg is None:
@@ -471,6 +500,10 @@ def create_init_config_file(compss_home,
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
     else:
         jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')
+    if mpi_worker:
+        jvm_options_file.write('-Dcompss.python.mpi_worker=true\n')
+    else:
+        jvm_options_file.write('-Dcompss.python.mpi_worker=false\n')
 
     # Uncomment for debugging purposes
     # jvm_options_file.write('-Xcheck:jni\n')

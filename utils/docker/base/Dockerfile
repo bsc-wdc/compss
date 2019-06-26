@@ -71,6 +71,11 @@ RUN apt-get update && \
 # Numba dependencies
     pip2 install llvmlite numba && \
     pip3 install llvmlite numba && \
+# Jupyter dependencies
+    pip2 install jupyter ipykernel && \
+    python2 -m ipykernel install && \
+    pip3 install jupyter ipykernel && \
+    python3 -m ipykernel install && \
 # Configure user environment
 # =============================================================================
 # System configuration

@@ -532,7 +532,6 @@ public class Executor implements Runnable {
             String originalFileName = inSandboxFile.getName();
             if (!inSandboxPath.equals(renamedFilePath)) {
                 File renamedFile = new File(renamedFilePath);
-
                 if (renamedFile.exists()) {
                     // IN, INOUT
                     if (inSandboxFile.exists()) {

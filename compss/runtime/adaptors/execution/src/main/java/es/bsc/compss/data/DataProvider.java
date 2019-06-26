@@ -25,5 +25,7 @@ public interface DataProvider {
     public boolean isPersistentEnabled();
 
     public void askForTransfer(InvocationParam param, int index, DataManager.FetchDataListener tt);
+    
+    public boolean isTransferingData(InvocationParam param);
 
 }

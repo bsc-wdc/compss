@@ -302,7 +302,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         DataRequest dr = new WorkerDataRequest(listener, param.getType(), ((NIOParam) param).getData(), (String) param.getValue());
         addTransferRequest(dr);
     }
-
+    
+    @Override
+    public boolean isTransferingData(InvocationParam param) {
+        List<DataRequest> requests = getDataRequests(((NIOParam) param).getData().getDataMgmtId());
+        return (requests!=null) && (!requests.isEmpty());
+        
+    }
+    
     @Override
     protected void handleDataToSendNotAvailable(Connection c, NIOData d) {
         // Now only manage at C (python could do the same when cache available)
@@ -338,8 +345,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.info("Received data " + dataId + " with associated object " + object);
             dataManager.storeValue(dataId, object);
         } else {
-            WORKER_LOGGER.info("Received data " + dataId);
-            dataManager.storeFile(dataId, (String) object);
+            String nameId = (new File(dataId)).getName();
+            WORKER_LOGGER.info("Received data " + nameId + " with path "+ dataId);
+            dataManager.storeFile(nameId, dataId);
         }
         for (DataRequest dr : achievedRequests) {
             WorkerDataRequest wdr = (WorkerDataRequest) dr;

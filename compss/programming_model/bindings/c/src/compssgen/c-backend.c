@@ -2036,7 +2036,8 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
         add_object_or_array_arg_worker_treatment(outFile, &th, ARGS_OFFSET, current_types, false);
     }
     fprintf(outFile, "\t\t\t \n");
-
+    
+    //Managing return type
     if (func->return_type == int_dt) {
         printf("\t\t WARNING: Return type int_dt is not implemented, but permited.\n");
     }
@@ -2056,7 +2057,6 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
 
     fprintf(outFile, "#ifndef OMPSS2_ENABLED\n"); //If OMPSS2_ENABLED not defined
 
-    //Managing return type
     //Add function call
 
     printf("\t\t Adding function call unmarshalling...\n");
@@ -2078,15 +2078,21 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
     } else if (( func->classname != NULL ) && (func->access_static == 0) && (func->return_type != void_dt)) {
         if (func->return_type == object_dt) {
             printed_chars = asprintf(&func_to_execute, "\t\t\t *%s = %s->%s(", ret.name, th.name, func->methodname);
-        } else if (func->return_type == int_dt) {
-            printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s(", th.name, func->methodname);
-        } else {
+        } 
+        else {
             printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s->%s(", ret.name, th.name, func->methodname);
         }
+        /*else if (func->return_type == int_dt) {
+            printed_chars = asprintf(&func_to_execute, "\t\t\t %s->%s(", th.name, func->methodname);
+        }*/
     }
-    else if ( func->return_type != void_dt && !func->return_type == int_dt) {
+    else if (func->return_type == int_dt) {
+        printed_chars = asprintf(&func_to_execute, "\t\t\t %s(", func->name);
+    }
+    else if (func->return_type != void_dt) {
         printed_chars = asprintf(&func_to_execute, "\t\t\t %s = %s(", ret.name, func->name);
-    } else {
+    } 
+    else {
         printed_chars = asprintf(&func_to_execute, "\t\t\t %s(", func->name);
     }
 

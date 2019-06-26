@@ -13,7 +13,7 @@ from pycompss.api.task import task
 
 @task(returns=int)
 def increment(v):
-    import bad
+    import bad  # Do not remove
     return v + 1
 
 

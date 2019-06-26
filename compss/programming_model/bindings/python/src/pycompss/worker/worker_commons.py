@@ -203,9 +203,13 @@ def task_execution(logger, process_name, module, method_name, types, values,
         if persistent_storage:
             from pycompss.util.persistent_storage import storage_task_context
             with storage_task_context(logger, values, config_file_path=storage_conf):
-                task_output = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+                task_output = getattr(module, method_name)(*values,
+                                                           compss_types=types,
+                                                           **compss_kwargs)
         else:
-            task_output = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+            task_output = getattr(module, method_name)(*values,
+                                                       compss_types=types,
+                                                       **compss_kwargs)
     except AttributeError:
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -213,8 +217,8 @@ def task_execution(logger, process_name, module, method_name, types, values,
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" % process_name)
         logger.exception(''.join(line for line in lines))
-        logger.exception(
-            "Check that all parameters have been defined with an absolute import path (even if in the same file)")
+        logger.exception("Check that all parameters have been defined with " +
+                         "an absolute import path (even if in the same file)")
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
         return 1, new_types, new_values, None
@@ -229,8 +233,9 @@ def task_execution(logger, process_name, module, method_name, types, values,
         # new_values are empty and target_direction is None
         return 1, new_types, new_values, None
 
-    if isinstance(task_output[0], tuple):  # Weak but effective way to check it without doing inspect.
-        # Another decorator has added another return thing.
+    if isinstance(task_output[0], tuple):
+        # Weak but effective way to check it without doing inspect that
+        # another decorator has added another return thing.
         # TODO: Should we consider here to create a list with all elements and serialize it to a file with
         # the real task output plus the decorator results? == task_output[1:]
         # TODO: Currently, the extra result is ignored.
@@ -238,7 +243,8 @@ def task_execution(logger, process_name, module, method_name, types, values,
         new_values = task_output[0][1]
         target_direction = task_output[0][2]
     else:
-        # The task_output is composed by the new_types and new_values returned by the task decorator.
+        # The task_output is composed by the new_types and new_values returned
+        # by the task decorator.
         new_types = task_output[0]
         new_values = task_output[1]
         target_direction = task_output[2]
@@ -362,7 +368,15 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
 
     if not import_error:
         # Module method declared as task
-        exit_code, new_types, new_values, target_direction = task_execution(logger, process_name, module, method_name, types, values, compss_kwargs, persistent_storage, storage_conf)
+        exit_code, new_types, new_values, target_direction = task_execution(logger,
+                                                                            process_name,
+                                                                            module,
+                                                                            method_name,
+                                                                            types,
+                                                                            values,
+                                                                            compss_kwargs,
+                                                                            persistent_storage,
+                                                                            storage_conf)
         if exit_code != 0:
             return exit_code, new_types, new_values
     else:
@@ -413,7 +427,15 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             values.insert(0, obj)
             types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
-            exit_code, new_types, new_values, target_direction = task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs, persistent_storage, storage_conf)
+            exit_code, new_types, new_values, target_direction = task_execution(logger,
+                                                                                process_name,
+                                                                                klass,
+                                                                                method_name,
+                                                                                types,
+                                                                                values,
+                                                                                compss_kwargs,
+                                                                                persistent_storage,
+                                                                                storage_conf)
             if exit_code != 0:
                 return exit_code, new_types, new_values
 
@@ -422,7 +444,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             # within the task decorator, the task_execution returns the value
             # of target_direction in order to know here if self has to be
             # serialized. This solution avoids to use inspect.
-            if target_direction.direction == parameter.DIRECTION.INOUT or target_direction.direction == parameter.DIRECTION.COMMUTATIVE:
+            if target_direction.direction == parameter.DIRECTION.INOUT or \
+                    target_direction.direction == parameter.DIRECTION.COMMUTATIVE:
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.
@@ -443,7 +466,15 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             # Class method - class is not included in values (e.g. values = [7])
             types.append(None)  # class must be first type
 
-            exit_code, new_types, new_values, target_direction = task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs, persistent_storage, storage_conf)
+            exit_code, new_types, new_values, target_direction = task_execution(logger,
+                                                                                process_name,
+                                                                                klass,
+                                                                                method_name,
+                                                                                types,
+                                                                                values,
+                                                                                compss_kwargs,
+                                                                                persistent_storage,
+                                                                                storage_conf)
             if exit_code != 0:
                 return exit_code, new_types, new_values
 

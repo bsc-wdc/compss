@@ -39,7 +39,7 @@
   MNuser=$1
   MNtmpDir=$2
   MNtargetDir=$3
-  MNloginNode=mn1.bsc.es
+  MNloginNode=mn2.bsc.es
   MNauxScript=${SCRIPT_DIR}/buildMN_aux
   PRELOAD_ENV=""
 

@@ -4,6 +4,8 @@
   output_file=$1
   error_file=$2
   target_log_folder=$3
+  python_interpreter=$4
+  error_type=$5
 
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
@@ -49,11 +51,33 @@
   job_file="${target_log_folder}/jobs/job1_NEW.err"
   if grep -q "Traceback" "${job_file}"; then
     echo "Traceback found - OK" | tee -a "${output_file}"
-    if grep -q "Exception: GENERAL EXCEPTION RAISED - HAPPENED IN A TASK" "${job_file}"; then
-      echo "Exception found - OK" | tee -a "${output_file}"
+    if [ "$error_type" == 'exception' ]; then
+      if grep -q "Exception: GENERAL EXCEPTION RAISED - HAPPENED IN A TASK" "${job_file}"; then
+        echo "Exception found - OK" | tee -a "${output_file}"
+      else
+        echo "Exception not found - ERROR" | tee -a "${output_file}"
+        exit 1
+      fi
     else
-      echo "Exception not found - ERROR" | tee -a "${output_file}"
-      exit 1
+      if [ "$python_interpreter" == 'python2' ]; then
+        if grep -q "ImportError: No module named bad" "${job_file}"; then
+          echo "Exception found - OK" | tee -a "${output_file}"
+        else
+          echo "Exception not found - ERROR" | tee -a "${output_file}"
+          exit 1
+        fi
+      else
+        if grep -q "ModuleNotFoundError: No module named 'bad'" "${job_file}"; then
+          # Python >= 3.6
+          echo "Exception found - OK" | tee -a "${output_file}"
+        elif grep -q "ImportError: No module named 'bad'" "${job_file}"; then
+          # Python < 3.6
+          echo "Exception found - OK" | tee -a "${output_file}"
+        else
+          echo "Exception not found - ERROR" | tee -a "${output_file}"
+          exit 1
+        fi
+      fi
     fi
   else
     echo "Traceback not found - ERROR" | tee -a "${output_file}"
@@ -63,11 +87,33 @@
   job_file="${target_log_folder}/jobs/job1_RESUBMITTED.err"
   if grep -q "Traceback" "${job_file}"; then
     echo "Traceback found - OK" | tee -a "${output_file}"
-    if grep -q "Exception: GENERAL EXCEPTION RAISED - HAPPENED IN A TASK" "${job_file}"; then
-      echo "Exception found - OK" | tee -a "${output_file}"
+    if [ "$error_type" == 'exception' ]; then
+      if grep -q "Exception: GENERAL EXCEPTION RAISED - HAPPENED IN A TASK" "${job_file}"; then
+        echo "Exception found - OK" | tee -a "${output_file}"
+      else
+        echo "Exception not found - ERROR" | tee -a "${output_file}"
+        exit 1
+      fi
     else
-      echo "Exception not found - ERROR" | tee -a "${output_file}"
-      exit 1
+      if [ "$python_interpreter" == 'python2' ]; then
+        if grep -q "ImportError: No module named bad" "${job_file}"; then
+          echo "Exception found - OK" | tee -a "${output_file}"
+        else
+          echo "Exception not found - ERROR" | tee -a "${output_file}"
+          exit 1
+        fi
+      else
+        if grep -q "ModuleNotFoundError: No module named 'bad'" "${job_file}"; then
+          # Python >= 3.6
+          echo "Exception found - OK" | tee -a "${output_file}"
+        elif grep -q "ImportError: No module named 'bad'" "${job_file}"; then
+          # Python < 3.6
+          echo "Exception found - OK" | tee -a "${output_file}"
+        else
+          echo "Exception not found - ERROR" | tee -a "${output_file}"
+          exit 1
+        fi
+      fi
     fi
   else
     echo "Traceback not found - ERROR" | tee -a "${output_file}"

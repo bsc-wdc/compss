@@ -164,7 +164,8 @@ def get_input_params(num_params, logger, args, process_name):
     return ret
 
 
-def task_execution(logger, process_name, module, method_name, types, values, compss_kwargs):
+def task_execution(logger, process_name, module, method_name, types, values,
+                   compss_kwargs, persistent_storage, storage_conf):
     """
     Task execution function.
 
@@ -175,7 +176,9 @@ def task_execution(logger, process_name, module, method_name, types, values, com
     :param types: List of the parameter's types
     :param values: List of the parameter's values
     :param compss_kwargs: PyCOMPSs keywords
-    :return: new types, new_values, and isModifier
+    :param persistent_storage: If persistent storage is enabled
+    :param storage_conf: Persistent storage configuration file
+    :return: exit_code, new types, new_values, and target_direction
     """
 
     if __debug__:
@@ -184,17 +187,55 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         logger.debug("method_name: %s " % str(method_name))
         logger.debug("Types      : %s " % str(types))
         logger.debug("Values     : %s " % str(values))
+        logger.debug("P. storage : %s " % str(persistent_storage))
+        logger.debug("Storage cfg: %s " % str(storage_conf))
 
-    # WARNING: the following call will not work if a user decorator overrides the return of the task decorator.
-    # new_types, new_values = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
-    # If the @task is decorated with a user decorator, may include more return values, and consequently,
-    # the new_types and new_values will be within a tuple at position 0.
-    # Force users that use decorators on top of @task to return the task results first.
-    # This is tested with the timeit decorator in test 19.
-    task_output = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+    new_types = []
+    new_values = []
 
-    if isinstance(task_output[0], tuple):  # Weak but effective way to check it without doing inspect.
-        # Another decorator has added another return thing.
+    try:
+        # WARNING: the following call will not work if a user decorator overrides the return of the task decorator.
+        # new_types, new_values = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+        # If the @task is decorated with a user decorator, may include more return values, and consequently,
+        # the new_types and new_values will be within a tuple at position 0.
+        # Force users that use decorators on top of @task to return the task results first.
+        # This is tested with the timeit decorator in test 19.
+        if persistent_storage:
+            from pycompss.util.persistent_storage import storage_task_context
+            with storage_task_context(logger, values, config_file_path=storage_conf):
+                task_output = getattr(module, method_name)(*values,
+                                                           compss_types=types,
+                                                           **compss_kwargs)
+        else:
+            task_output = getattr(module, method_name)(*values,
+                                                       compss_types=types,
+                                                       **compss_kwargs)
+    except AttributeError:
+        # Appears with functions that have not been well defined.
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        import traceback
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" % process_name)
+        logger.exception(''.join(line for line in lines))
+        logger.exception("Check that all parameters have been defined with " +
+                         "an absolute import path (even if in the same file)")
+        # If exception is raised during the task execution, new_types and
+        # new_values are empty and target_direction is None
+        return 1, new_types, new_values, None
+    except Exception:
+        # Catch any other user/decorators exception.
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        import traceback
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        logger.exception("WORKER EXCEPTION IN %s" % process_name)
+        logger.exception(''.join(line for line in lines))
+        # If exception is raised during the task execution, new_types and
+        # new_values are empty and target_direction is None
+        return 1, new_types, new_values, None
+
+    if isinstance(task_output[0], tuple):
+        # Weak but effective way to check it without doing inspect that
+        # another decorator has added another return thing.
         # TODO: Should we consider here to create a list with all elements and serialize it to a file with
         # the real task output plus the decorator results? == task_output[1:]
         # TODO: Currently, the extra result is ignored.
@@ -202,7 +243,8 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         new_values = task_output[0][1]
         target_direction = task_output[0][2]
     else:
-        # The task_output is composed by the new_types and new_values returned by the task decorator.
+        # The task_output is composed by the new_types and new_values returned
+        # by the task decorator.
         new_types = task_output[0]
         new_values = task_output[1]
         target_direction = task_output[2]
@@ -214,7 +256,7 @@ def task_execution(logger, process_name, module, method_name, types, values, com
         logger.debug("Return target_direction: %s " % str(target_direction))
         logger.debug("Finished task execution")
 
-    return new_types, new_values, target_direction
+    return 0, new_types, new_values, target_direction
 
 
 def execute_task(process_name, storage_conf, params, tracing, logger):
@@ -235,7 +277,6 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
     persistent_storage = False
     if storage_conf != 'null':
         persistent_storage = True
-        from pycompss.util.persistent_storage import storage_task_context
 
     # Retrieve the parameters from the params argument
     path = params[0]
@@ -320,46 +361,26 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             module = __import__(path, globals(), locals(), [path], -1)
             if __debug__:
                 logger.debug("Module successfully loaded (Python version < 2.7")
-
-        def task_execution_1():
-            from pycompss.worker.worker_commons import task_execution
-            return task_execution(logger, process_name, module, method_name, types, values, compss_kwargs)
-
-        if persistent_storage:
-            with storage_task_context(logger, values, config_file_path=storage_conf):
-                new_types, new_values, target_direction = task_execution_1()
-        else:
-            new_types, new_values, target_direction = task_execution_1()
-
-    # ==========================================================================
-    except AttributeError:
-        # Appears with functions that have not been well defined.
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        import traceback
-        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" % process_name)
-        logger.exception(''.join(line for line in lines))
-        logger.exception(
-            "Check that all parameters have been defined with an absolute import path (even if in the same file)")
-        # If exception is raised during the task execution, new_types and
-        # new_values are empty
-        return 1, new_types, new_values
-    # ==========================================================================
     except ImportError:
-        import_error = True
-    # ==========================================================================
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        import traceback
-        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        logger.exception("WORKER EXCEPTION IN %s" % process_name)
-        logger.exception(''.join(line for line in lines))
-        # If exception is raised during the task execution, new_types and new_values are empty
-        return 1, new_types, new_values
-
-    if import_error:
         if __debug__:
             logger.debug("Could not import the module. Reason: Method in class.")
+        import_error = True
+
+    if not import_error:
+        # Module method declared as task
+        exit_code, new_types, new_values, target_direction = task_execution(logger,
+                                                                            process_name,
+                                                                            module,
+                                                                            method_name,
+                                                                            types,
+                                                                            values,
+                                                                            compss_kwargs,
+                                                                            persistent_storage,
+                                                                            storage_conf)
+        if exit_code != 0:
+            return exit_code, new_types, new_values
+    else:
+        # Method declared as task in class
 
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
@@ -404,34 +425,27 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                         logger.debug("Processing callee, a hidden object of %s in file %s" % (
                             file_name, type(self_elem.content)))
             values.insert(0, obj)
-            types.insert(0,
-                         parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
+            types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
-            def task_execution_2():
-                from pycompss.worker.worker_commons import task_execution
-                return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
-
-            try:
-                if persistent_storage:
-                    with storage_task_context(logger, values, config_file_path=storage_conf):
-                        new_types, new_values, target_direction = task_execution_2()
-                else:
-                    new_types, new_values, target_direction = task_execution_2()
-            except Exception:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                import traceback
-                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                logger.exception("WORKER EXCEPTION IN %s" % process_name)
-                logger.exception(''.join(line for line in lines))
-                # If exception is raised during the task execution, new_types and new_values are empty
-                return 1, new_types, new_values
+            exit_code, new_types, new_values, target_direction = task_execution(logger,
+                                                                                process_name,
+                                                                                klass,
+                                                                                method_name,
+                                                                                types,
+                                                                                values,
+                                                                                compss_kwargs,
+                                                                                persistent_storage,
+                                                                                storage_conf)
+            if exit_code != 0:
+                return exit_code, new_types, new_values
 
             # Depending on the target_direction option, it is necessary to
             # serialize again self or not. Since this option is only visible
             # within the task decorator, the task_execution returns the value
             # of target_direction in order to know here if self has to be
             # serialized. This solution avoids to use inspect.
-            if target_direction.direction == parameter.DIRECTION.INOUT or target_direction.direction == parameter.DIRECTION.COMMUTATIVE:
+            if target_direction.direction == parameter.DIRECTION.INOUT or \
+                    target_direction.direction == parameter.DIRECTION.COMMUTATIVE:
                 from pycompss.util.persistent_storage import is_psco
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.
@@ -452,27 +466,20 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
             # Class method - class is not included in values (e.g. values = [7])
             types.append(None)  # class must be first type
 
-            def task_execution_3():
-                from pycompss.worker.worker_commons import task_execution
-                return task_execution(logger, process_name, klass, method_name, types, values, compss_kwargs)
-
-            try:
-                if persistent_storage:
-                    with storage_task_context(logger, values, config_file_path=storage_conf):
-                        new_types, new_values, target_direction = task_execution_3()
-                else:
-                    new_types, new_values, target_direction = task_execution_3()
-            except Exception:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                import traceback
-                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                logger.exception("WORKER EXCEPTION IN %s" % process_name)
-                logger.exception(''.join(line for line in lines))
-                # If exception is raised during the task execution, new_types and new_values are empty
-                return 1, new_types, new_values
+            exit_code, new_types, new_values, target_direction = task_execution(logger,
+                                                                                process_name,
+                                                                                klass,
+                                                                                method_name,
+                                                                                types,
+                                                                                values,
+                                                                                compss_kwargs,
+                                                                                persistent_storage,
+                                                                                storage_conf)
+            if exit_code != 0:
+                return exit_code, new_types, new_values
 
     # EVERYTHING OK
     if __debug__:
         logger.debug("End task execution. Status: Ok")
 
-    return 0, new_types, new_values  # Exit code, updated params
+    return exit_code, new_types, new_values  # Exit code, updated params

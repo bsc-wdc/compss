@@ -180,8 +180,8 @@ public class Comm {
      * @return An adaptor configuration.
      * @throws ConstructConfigurationException When adaptor class cannot be instantiated.
      */
-    public static Configuration constructConfiguration(String adaptorName, Object projectProperties,
-            Object resourcesProperties) throws ConstructConfigurationException {
+    public static Configuration constructConfiguration(String adaptorName, Map<String, Object> projectProperties,
+            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         // Check if adaptor has already been used
         CommAdaptor adaptor = ADAPTORS.get(adaptorName);

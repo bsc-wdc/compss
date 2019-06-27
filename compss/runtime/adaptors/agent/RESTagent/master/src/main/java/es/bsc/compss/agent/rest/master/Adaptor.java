@@ -20,6 +20,7 @@ import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.operation.DataOperation;
+import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
@@ -27,6 +28,7 @@ import es.bsc.compss.types.uri.MultiURI;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
 public class Adaptor implements CommAdaptor {
@@ -37,12 +39,12 @@ public class Adaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+    public Configuration constructConfiguration(Map<String, Object> project_properties, Map<String, Object> resources_properties)
             throws ConstructConfigurationException {
 
         AgentConfiguration ac = new AgentConfiguration(this.getClass().getName());
 
-        ResourcesExternalAdaptorProperties eap = (ResourcesExternalAdaptorProperties) resources_properties;
+        ResourcesExternalAdaptorProperties eap = (ResourcesExternalAdaptorProperties) resources_properties.get("Properties");
         for (ResourcesPropertyAdaptorType prop : eap.getProperty()) {
             ac.addProperty(prop.getName(), prop.getValue());
         }

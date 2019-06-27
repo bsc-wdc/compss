@@ -515,10 +515,10 @@ public class Validator {
                         // Second occurency, throw exception
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
                                 "Appears more than once");
-                    } else if (brokerAdaptorTagFound || propertiesTagFound) {
+                    } else if (brokerAdaptorTagFound) {
                         // Cannot define multiple adaptor properties
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
-                                "An adaptor property (GAT or External) was already defined");
+                                "An adaptor property (GAT) was already defined");
                     } else {
                         portsTagFound = true;
                         validateNIOAdaptorProperties(((ResourcesNIOAdaptorProperties) obj.getValue()));
@@ -528,10 +528,10 @@ public class Validator {
                         // Second occurency, throw exception
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
                                 "Appears more than once");
-                    } else if (portsTagFound || propertiesTagFound) {
+                    } else if (portsTagFound ) {
                         // Cannot define multiple adaptor properties
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
-                                "An adaptor property (NIO or External) was already defined");
+                                "An adaptor property (NIO) was already defined");
                     } else {
                         brokerAdaptorTagFound = true;
                         validateGATAdaptorProperties(((String) obj.getValue()));
@@ -541,10 +541,6 @@ public class Validator {
                         // Second occurency, throw exception
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
                                 "Appears more than once");
-                    } else if (portsTagFound || brokerAdaptorTagFound) {
-                        // Cannot define multiple adaptor properties
-                        throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
-                                "An adaptor property (NIO or GAT) was already defined");
                     } else {
                         propertiesTagFound = true;
                         validateExternalAdaptorProperties(((ResourcesExternalAdaptorProperties) obj.getValue()));

@@ -52,11 +52,16 @@ import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.project.ProjectFile;
+import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.PropertyAdaptorType;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.resources.configuration.Configuration;
+import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
+import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 
@@ -182,16 +187,27 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
+    public Configuration constructConfiguration(Map<String,Object> projectProperties, Map<String,Object> resourcesProperties)
             throws ConstructConfigurationException {
 
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
         es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject 
-            = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties;
+            = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties.get("Ports");
         es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources 
-            = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties;
-
+            = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties.get("Ports");
+        
+        ResourcesExternalAdaptorProperties reap = (ResourcesExternalAdaptorProperties) resourcesProperties.get("Properties");
+        for (ResourcesPropertyAdaptorType prop : reap.getProperty()) {
+            config.addProperty(prop.getName(), prop.getValue());
+        }
+        
+        ExternalAdaptorProperties eap = (ExternalAdaptorProperties) projectProperties.get(ProjectFile.PROPERTIES);
+        for (PropertyAdaptorType prop : eap.getProperty()) {
+            config.addProperty(prop.getName(), prop.getValue());
+        }
+        
+        
         // Get ports
         int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
         int minResources = -1;

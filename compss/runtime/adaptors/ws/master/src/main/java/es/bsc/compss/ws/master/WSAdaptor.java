@@ -27,6 +27,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.ws.master.configuration.WSConfiguration;
 
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,13 +53,13 @@ public class WSAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
+    public Configuration constructConfiguration(Map<String, Object> projectProperties, Map<String,Object> resourcesProperties)
             throws ConstructConfigurationException {
 
         es.bsc.compss.types.project.jaxb.ServiceType sProject = 
-            (es.bsc.compss.types.project.jaxb.ServiceType) projectProperties;
+            (es.bsc.compss.types.project.jaxb.ServiceType) projectProperties.get("Service");
         es.bsc.compss.types.resources.jaxb.ServiceType sResources = 
-            (es.bsc.compss.types.resources.jaxb.ServiceType) resourcesProperties;
+            (es.bsc.compss.types.resources.jaxb.ServiceType) resourcesProperties.get("Service");
 
         String wsdl = null;
         if (sProject != null) {

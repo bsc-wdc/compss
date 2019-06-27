@@ -392,8 +392,8 @@ public class ResourceLoader {
                 }
             }
         }
-        Object adaptorPropertiesProject = project.getAdaptorProperties(cnProject, loadedAdaptor);
-        Object adaptorPropertiesResources = resources.getAdaptorProperties(cnResources, loadedAdaptor);
+        Map<String,Object> adaptorPropertiesProject = project.getAdaptorProperties(cnProject, loadedAdaptor);
+        Map<String,Object> adaptorPropertiesResources = resources.getAdaptorProperties(cnResources, loadedAdaptor);
 
         MethodConfiguration config = null;
         try {
@@ -440,7 +440,12 @@ public class ResourceLoader {
 
     private static boolean loadService(ServiceType sProject,
             es.bsc.compss.types.resources.jaxb.ServiceType sResources) {
-
+        
+        Map<String, Object> projectProperties = new HashMap<String, Object>();
+        projectProperties.put("Service", sProject);
+        
+        Map<String, Object> resourcesProperties = new HashMap<String, Object>();
+        projectProperties.put("Service", sResources);
         // Get service adaptor name from properties
         String serviceAdaptorName = COMPSsConstants.SERVICE_ADAPTOR;
 
@@ -456,7 +461,7 @@ public class ResourceLoader {
 
         ServiceConfiguration config = null;
         try {
-            config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, sProject, sResources);
+            config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, projectProperties, resourcesProperties);
         } catch (ConstructConfigurationException cce) {
             ErrorManager.warn("Service configuration constructor failed", cce);
             return false;
@@ -706,8 +711,8 @@ public class ResourceLoader {
                 cid.addQueue(queue);
             }
         }
-        Object adaptorPropertiesProject = project.getAdaptorProperties(imProject, loadedAdaptor);
-        Object adaptorPropertiesResources = resources.getAdaptorProperties(imResources, loadedAdaptor);
+        Map<String, Object> adaptorPropertiesProject =  project.getAdaptorProperties(imProject, loadedAdaptor);
+        Map<String, Object> adaptorPropertiesResources = resources.getAdaptorProperties(imResources, loadedAdaptor);
 
         MethodConfiguration config = null;
         try {

@@ -23,6 +23,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 
 import java.util.LinkedList;
+import java.util.Map;
 
 
 /**
@@ -45,7 +46,7 @@ public class DummyAdaptor implements CommAdaptor {
     }
 
     @Override
-    public MethodConfiguration constructConfiguration(Object projectProperties, Object resourcesProperties)
+    public MethodConfiguration constructConfiguration(Map<String, Object> projectProperties, Map<String,Object> resourcesProperties)
             throws ConstructConfigurationException {
 
         MethodConfiguration config = new MethodConfiguration(ID);

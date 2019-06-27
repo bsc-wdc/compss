@@ -25,6 +25,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
 import java.util.LinkedList;
+import java.util.Map;
 
 
 public class FakeMethodAdaptor implements CommAdaptor {
@@ -35,7 +36,7 @@ public class FakeMethodAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
+    public Configuration constructConfiguration(Map<String,Object> projectProperties, Map<String,Object> resourcesProperties)
             throws ConstructConfigurationException {
 
         return new MethodConfiguration(this.getClass().getName());

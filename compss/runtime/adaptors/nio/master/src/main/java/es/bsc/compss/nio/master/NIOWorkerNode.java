@@ -530,7 +530,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                         c.setTargetLoc(DataLocation.createLocation(tgtRes,
                                 new SimpleURI(u.getScheme(), u.getHost().getName(), u.getPath())));
                     } catch (Exception e) {
-                        c.end(OpEndState.OP_FAILED, e);
+                        c.end(OperationEndState.OP_FAILED, e);
                         return;
                     }
                 } else {

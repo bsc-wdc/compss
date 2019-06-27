@@ -197,9 +197,9 @@
 
   # Config
   echo "--- Copy configuration"
-  find "${TMP_DIR}"/compss/runtime/config -name src -print0 | xargs -r rm -rf
-  find "${TMP_DIR}"/compss/runtime/config -name target -print0 | xargs -r rm -rf
-  find "${TMP_DIR}"/compss/runtime/config -name pom.xml -print0 | xargs -r rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name src -print0 | xargs -r -0 rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name target -print0 | xargs -r -0 rm -rf
+  find "${TMP_DIR}"/compss/runtime/config -name pom.xml -print0 | xargs -r -0 rm -rf
   cp -r "${TMP_DIR}"/compss/runtime/config/* "${targetDir}"/Runtime/configuration/
   sed -i -e 's#/opt/COMPSs/#'"${targetDir}"'#g'  "${targetDir}"/Runtime/configuration/xml/projects/default_project.xml
 
@@ -219,15 +219,17 @@
   path_target=${targetDir}/Runtime/adaptors
   for adaptor in ${path_source}/*; do
     adaptor_name=$(basename "${adaptor}")
-    if [ "${adaptor_name}" != "agent" ] && [ "${adaptor_name}" != "target" ] && [ "${adaptor_name}" != "checkstyle-cachefile" ]; then
-      install_adaptor "${adaptor}" "${path_target}"
-    else
-      for agent in ${adaptor}/*; do
-          agent_name=$(basename "$agent")
-          if [ "${agent_name}" != "target" ]; then
-             install_adaptor "${agent}" "${path_target}"
-          fi
-      done
+    if [ "${adaptor_name}" != "target" ] && [ "${adaptor_name}" != "checkstyle-cachefile" ]; then
+      if [ "${adaptor_name}" != "agent" ]; then
+        install_adaptor "${adaptor}" "${path_target}"
+      else
+        for agent in ${adaptor}/*; do
+            agent_name=$(basename "$agent")
+            if [ "${agent_name}" != "target" ]; then
+               install_adaptor "${agent}" "${path_target}"
+            fi
+        done
+      fi
     fi
   done
 

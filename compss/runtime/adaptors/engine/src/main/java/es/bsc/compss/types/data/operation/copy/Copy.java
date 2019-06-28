@@ -84,6 +84,10 @@ public abstract class Copy extends DataOperation {
     public DataLocation getPreferredSource() {
         return this.srcLoc;
     }
+    
+    public void setTargetLoc(DataLocation loc ) {
+        tgtLoc = loc;
+    }
 
     public void setProposedSource(Object source) {
         reason.setDataSource(source);

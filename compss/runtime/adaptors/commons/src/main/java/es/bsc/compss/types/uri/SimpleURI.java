@@ -28,6 +28,16 @@ public class SimpleURI {
     private final String hostname;
     private final String path;
 
+    /** Simple URI Constructor.
+     * @param scheme URI scheme
+     * @param hostname URI hostname
+     * @param path URI path
+     */
+    public SimpleURI(String scheme, String hostname, String path) {
+        this.schema = scheme;
+        this.hostname = hostname;
+        this.path = path;
+    }
 
     /**
      * Simple URI constructor.
@@ -55,7 +65,7 @@ public class SimpleURI {
             this.hostname = "";
         }
 
-        // Get hostname
+        // Get Path
         this.path = fullPath.substring(parsedIndex);
     }
 

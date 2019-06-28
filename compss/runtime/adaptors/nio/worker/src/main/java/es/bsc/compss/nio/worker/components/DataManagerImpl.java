@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
@@ -258,6 +260,7 @@ public class DataManagerImpl implements DataManager {
         }
 
         if (newRegister) {
+            WORKER_LOGGER.debug("New data register created for " + originalRename);
             synchronized (originalRegister) {
                 for (InvocationParamURI loc : param.getSources()) {
                     switch (loc.getProtocol()) {
@@ -534,11 +537,11 @@ public class DataManagerImpl implements DataManager {
         WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
         final String originalName = param.getSourceDataId();
         final String expectedFileLocation = param.getValue().toString();
-        WORKER_LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");
-        File f = new File(expectedFileLocation);
-        if (f.exists()) {
-            WORKER_LOGGER.info("- Parameter " + index + "(" + expectedFileLocation + ") already exists.");
-            fetchedLocalParameter(param, index, tt);
+        WORKER_LOGGER.debug("   - Checking if file " + (String) param.getValue() + " is being transferred.");
+        if (provider.isTransferingData(param)) {
+            WORKER_LOGGER.debug("- Parameter " + index + "(" + expectedFileLocation + ") is being trasferred.");
+            //add to data resquest
+            provider.askForTransfer(param, index, tt);
             return;
         }
         WORKER_LOGGER.debug("   - Checking if " + expectedFileLocation + " exists in worker");
@@ -547,38 +550,42 @@ public class DataManagerImpl implements DataManager {
             if (originalRegister.isLocal()) {
                 WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") found at host.");
 
-                File target = new File(expectedFileLocation);
+                Path tgtPath = Paths.get(expectedFileLocation);
                 List<String> files = originalRegister.getFileLocations();
                 for (String path : files) {
-                    File source = new File(path);
-                    try {
-                        if (WORKER_LOGGER_DEBUG) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
-                                    + (param.isPreserveSourceData() ? "preserves sources. COPYING"
-                                       : "erases sources. MOVING"));
-                            WORKER_LOGGER.debug("         Source: " + source);
-                            WORKER_LOGGER.debug("         Target: " + target);
-                        }
-
-                        if (param.isPreserveSourceData()) {
-                            Files.copy(source.toPath(), target.toPath());
-                        } else {
-                            try {
-                                Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                            } catch (AtomicMoveNotSupportedException amnse) {
-                                WORKER_LOGGER.warn("WARN: AtomicMoveNotSupportedException."
-                                        + " File cannot be atomically moved. Trying to move without atomic");
-                                Files.move(source.toPath(), target.toPath());
+                    if (!expectedFileLocation.equals(path)) {
+                        Path srcPath = Paths.get(path);
+                        try {
+                            if (WORKER_LOGGER_DEBUG) {
+                                WORKER_LOGGER.debug("   - Parameter " + index + "(" + expectedFileLocation + ") "
+                                        + (param.isPreserveSourceData() ? "preserves sources. COPYING"
+                                                : "erases sources. MOVING"));
+                                WORKER_LOGGER.debug("         Source: " + srcPath);// source);
+                                WORKER_LOGGER.debug("         Target: " + tgtPath);// target);
                             }
-                            originalRegister.removeFileLocation(path);
+
+                            if (param.isPreserveSourceData()) {
+                                Files.copy(srcPath, tgtPath);
+                            } else {
+                                try {
+                                    Files.move(srcPath, tgtPath, StandardCopyOption.ATOMIC_MOVE);
+                                } catch (AtomicMoveNotSupportedException amnse) {
+                                    WORKER_LOGGER.warn("WARN: AtomicMoveNotSupportedException."
+                                            + " File cannot be atomically moved. Trying to move without atomic");
+                                    Files.move(srcPath, tgtPath);
+                                }
+                                originalRegister.removeFileLocation(path);
+                            }
+                            DataRegister dr = new DataRegister();
+                            dr.addFileLocation(path);
+                            registry.put(originalName, dr);
+                            fetchedLocalParameter(param, index, tt);
+                            return;
+                        } catch (IOException ioe) {
+                            WORKER_LOGGER.error("IOException", ioe);
                         }
-                        DataRegister dr = new DataRegister();
-                        dr.addFileLocation(path);
-                        this.registry.put(originalName, dr);
+                    } else {
                         fetchedLocalParameter(param, index, tt);
-                        return;
-                    } catch (IOException ioe) {
-                        WORKER_LOGGER.error("IOException", ioe);
                     }
                 }
             } else {

@@ -40,14 +40,12 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class Tracer {
 
-    // Error messages
-    private static final String ERROR_MASTER_PACKAGE_FILEPATH
-            = " Cannot locate master tracing package on working directory";
-
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
-    protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
+    private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
+    private static final String ERROR_MASTER_PACKAGE_FILEPATH = "Cannot locate master tracing package "
+            + "on working directory";
 
     // Tracing script and file paths
     protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
@@ -61,8 +59,8 @@ public abstract class Tracer {
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).equals("null");
     private static final String EXTRAE_FILE = IS_CUSTOM_EXTRAE_FILE
-                                              ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
-                                              : "null";
+            ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
+            : "null";
 
     // Extrae environment flags
     public static final String LD_PRELOAD = "LD_PRELOAD";
@@ -99,6 +97,7 @@ public abstract class Tracer {
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
+
 
     /**
      * Initializes tracer creating the trace folder. If extrae's tracing is used (level > 0) then the current node
@@ -247,7 +246,7 @@ public abstract class Tracer {
      *
      * @param name of the host
      * @param slots number of threads the host is expected to have (used in GAT, in NIO is 0, because they will be
-     *     computed automatically
+     *            computed automatically
      * @return the next ID to be used during the initialization of the tracing in the given host.
      */
     public static int registerHost(String name, int slots) {
@@ -749,6 +748,7 @@ public abstract class Tracer {
         private boolean[] slots;
         private int numFreeSlots;
         private int nextSlot;
+
 
         private TraceHost(int nslots) {
             this.slots = new boolean[nslots];

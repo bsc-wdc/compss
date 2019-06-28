@@ -18,7 +18,6 @@ package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,44 +38,42 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 public class TraceMerger {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.TRACING);
-    protected static final boolean debug = logger.isDebugEnabled();
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Info used for matching sync events
-    private static final Integer SYNC_TYPE = 8000666;
-    private String syncRegex = "(^\\d+:\\d+:\\d+):(\\d+):(\\d+):(\\d+).*:" + SYNC_TYPE + ":(\\d+)";
-    private Pattern syncPattern = Pattern.compile(syncRegex);
+    private static final Integer SYNC_TYPE = 8_000_666;
+    private static final String SYNC_REGEX = "(^\\d+:\\d+:\\d+):(\\d+):(\\d+):(\\d+).*:" + SYNC_TYPE + ":(\\d+)";
+    private static final Pattern SYNC_PATTERN = Pattern.compile(SYNC_REGEX);
     // Selectors for replace Pattern
     private static final Integer R_ID_INDEX = 1;
     private static final Integer TIMESTAMP_INDEX = 4;
     private static final Integer WORKER_ID_INDEX = 2;
-    
+
     // could be wrong this regex (designed for matching tasks not workers)
-    private String workerThreadInfo = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
-    private Pattern workerThreadInfoPattern = Pattern.compile(workerThreadInfo);
+    private static final String WORKER_THREAD_INFO_REGEX = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
+    private static final Pattern WORKER_THREAD_INFO_PATTERN = Pattern.compile(WORKER_THREAD_INFO_REGEX);
     private static final Integer STATE_TYPE = 1;
     private static final Integer WORKER_THREAD_ID = 2;
     private static final Integer WORKER_TIMESTAMP = 6;
     private static final Integer WORKER_LINE_INFO = 7;
 
-    private static final String masterTraceSuffix = "_compss_trace_";
-    private static final String traceExtension = ".prv";
-    private static final String workerTraceSuffix = "_python_trace" + traceExtension;
-    private static final String traceSubDir = "trace";
-    private static final String workerSubDir = "python";
+    private static final String MASTER_TRACE_SUFFIX = "_compss_trace_";
+    private static final String TRACE_EXTENSION = ".prv";
+    private static final String WORKER_TRACE_SUFFIX = "_python_trace" + TRACE_EXTENSION;
+    private static final String TRACE_SUBDIR = "trace";
+    private static final String WORKER_SUBDIR = "python";
+
     private static String workingDir;
 
-    private FileWriter fw;
-    private BufferedWriter bw;
-    private PrintWriter masterWriter;
-
-    private File masterTrace;
-    private File[] workersTraces;
-
-    private String masterTracePath;
-    private String[] workersTracePath;
+    private final File masterTrace;
+    private final File[] workersTraces;
+    private final String masterTracePath;
+    private final String[] workersTracePath;
+    private final PrintWriter masterWriter;
 
 
     private class LineInfo {
@@ -89,80 +87,74 @@ public class TraceMerger {
             this.timestamp = timestamp;
         }
 
+        public String getResourceId() {
+            return this.resourceId;
+        }
+
         public Long getTimestamp() {
-            return timestamp;
+            return this.timestamp;
         }
     }
 
 
-    /** Trace Merger constructor.
+    /**
+     * Trace Merger constructor.
+     * 
      * @param workingDir Working directory
      * @param appName Application name
      * @throws IOException Error managing files
      */
     public TraceMerger(String workingDir, String appName) throws IOException {
-        initMasterTraceInfo(workingDir, appName);
-        initWorkersTracesInfo(workingDir);
+        // Init master trace information
+        final String traceNamePrefix = appName + MASTER_TRACE_SUFFIX;
+        final File masterF = new File(workingDir + File.separator + TRACE_SUBDIR);
+        final File[] matchingMasterFiles = masterF.listFiles(
+            (File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_EXTENSION));
 
-        fw = new FileWriter(masterTracePath, true);
-        bw = new BufferedWriter(fw);
-        masterWriter = new PrintWriter(bw);
-
-        logger.debug("Trace's merger initialization successful");
-
-    }
-
-    private void initMasterTraceInfo(String workingDir, String appName) throws FileNotFoundException {
-        final String traceNamePrefix = appName + masterTraceSuffix;
-
-        File f = new File(workingDir + File.separator + traceSubDir);
-        File[] matchingFiles = f.listFiles(
-            (File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
-
-        if (matchingFiles == null) {
-            throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + traceExtension + " not found.");
-        }
-        if (!(matchingFiles.length < 1)) {
-            masterTrace = matchingFiles[0];
-            masterTracePath = masterTrace.getAbsolutePath();
-            if (matchingFiles.length > 1) {
-                logger.warn("Found more than one master trace, using " + masterTrace + " to merge.");
-            }
+        if (matchingMasterFiles == null || matchingMasterFiles.length < 1) {
+            throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + TRACE_EXTENSION + " not found.");
         } else {
-            throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + traceExtension + " not found.");
+            this.masterTrace = matchingMasterFiles[0];
+            this.masterTracePath = this.masterTrace.getAbsolutePath();
+            if (matchingMasterFiles.length > 1) {
+                LOGGER.warn("Found more than one master trace, using " + this.masterTrace + " to merge.");
+            }
         }
 
-    }
-
-    private void initWorkersTracesInfo(String workingDir) throws FileNotFoundException {
+        // Init workers traces information
         TraceMerger.workingDir = workingDir;
-        File f = new File(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
-        File[] matchingFiles = f.listFiles((File dir, String name) -> name.endsWith(workerTraceSuffix));
+        final File workerF = new File(workingDir + File.separator + TRACE_SUBDIR + File.separator + WORKER_SUBDIR);
+        File[] matchingWorkerFiles = workerF.listFiles((File dir, String name) -> name.endsWith(WORKER_TRACE_SUFFIX));
 
-        if (matchingFiles == null) {
+        if (matchingWorkerFiles == null) {
             throw new FileNotFoundException("No workers traces to merge found.");
         } else {
-            workersTraces = matchingFiles;
+            this.workersTraces = matchingWorkerFiles;
         }
 
-        workersTracePath = new String[workersTraces.length];
-        for (int i = 0; i < workersTracePath.length; ++i) {
-            workersTracePath[i] = workersTraces[i].getAbsolutePath();
+        this.workersTracePath = new String[this.workersTraces.length];
+        for (int i = 0; i < this.workersTracePath.length; ++i) {
+            this.workersTracePath[i] = this.workersTraces[i].getAbsolutePath();
         }
+
+        // Initialize the writer for the final master trace
+        this.masterWriter = new PrintWriter(new FileWriter(this.masterTracePath, true));
+
+        LOGGER.debug("Trace's merger initialization successful");
     }
 
     /**
      * Merge traces.
+     * 
      * @throws IOException Error managing traces
      */
     public void merge() throws IOException {
-        logger.debug("Parsing master sync events");
-        HashMap<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(masterTracePath, -1);
+        LOGGER.debug("Parsing master sync events");
+        Map<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(this.masterTracePath, -1);
 
-        logger.debug(
-                "Proceeding to merge task traces into master which contains " + masterSyncEvents.size() + " lines.");
-        for (File workerFile : workersTraces) {
-            logger.debug("Merging worker " + workerFile);
+        LOGGER.debug("Merging task traces into master which contains " + masterSyncEvents.size() + " lines.");
+        for (File workerFile : this.workersTraces) {
+            LOGGER.debug("Merging worker " + workerFile);
             String workerFileName = workerFile.getName();
             String wID = "";
 
@@ -174,22 +166,21 @@ public class TraceMerger {
             workerID++; // first worker is resource number 2
 
             List<String> cleanLines = getWorkerEvents(workerFile);
-            HashMap<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
+            Map<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
-
         }
-        masterWriter.close();
+        this.masterWriter.close();
 
-        logger.debug("Merging finished.");
+        LOGGER.debug("Merging finished.");
 
-        if (!debug) {
-            logger.debug(
-                    "Removing folder " + workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
+        if (!DEBUG) {
+            String workerFolder = workingDir + File.separator + TRACE_SUBDIR + File.separator + WORKER_SUBDIR;
+            LOGGER.debug("Removing folder " + workerFolder);
             try {
-                removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
-            } catch (Exception e) {
-                logger.warn("Could not remove python temporal tracing folder.\n" + e.toString());
+                removeFolder(workerFolder);
+            } catch (IOException ioe) {
+                LOGGER.warn("Could not remove python temporal tracing folder" + ioe.toString());
             }
         }
     }
@@ -210,22 +201,19 @@ public class TraceMerger {
         }
     }
 
-    private void add(HashMap<Integer, List<LineInfo>> map, Integer key, LineInfo newValue) {
+    private void add(Map<Integer, List<LineInfo>> map, Integer key, LineInfo newValue) {
         List<LineInfo> currentValue = map.computeIfAbsent(key, k -> new ArrayList<>());
-
         currentValue.add(newValue);
     }
 
-    private HashMap<Integer, List<LineInfo>> getSyncEvents(String tracePath, Integer workerID) throws IOException {
-        FileInputStream inputStream = null;
-        Scanner sc = null;
-        HashMap<Integer, List<LineInfo>> idToSyncInfo = new HashMap<>();
-        try {
-            inputStream = new FileInputStream(tracePath);
-            sc = new Scanner(inputStream, "UTF-8");
+    private Map<Integer, List<LineInfo>> getSyncEvents(String tracePath, Integer workerID) throws IOException {
+        Map<Integer, List<LineInfo>> idToSyncInfo = new HashMap<>();
+        try (FileInputStream inputStream = new FileInputStream(tracePath);
+                Scanner sc = new Scanner(inputStream, "UTF-8")) {
+
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
-                Matcher m = syncPattern.matcher(line);
+                Matcher m = SYNC_PATTERN.matcher(line);
                 if (m.find()) {
                     Integer wID = (workerID == -1) ? Integer.parseInt(m.group(WORKER_ID_INDEX)) : workerID;
                     String resourceID = m.group(R_ID_INDEX);
@@ -238,14 +226,8 @@ public class TraceMerger {
             if (sc.ioException() != null) {
                 throw sc.ioException();
             }
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
-            if (sc != null) {
-                sc.close();
-            }
-        }
+        } // Exceptions are raised automatically, we add the try clause to automatically close the streams
+
         return idToSyncInfo;
     }
 
@@ -257,23 +239,22 @@ public class TraceMerger {
         return lines.subList(startIndex, endIndex);
     }
 
-    private void writeWorkerEvents(HashMap<Integer, List<LineInfo>> masterSyncEvents,
-            HashMap<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) {
+    private void writeWorkerEvents(Map<Integer, List<LineInfo>> masterSyncEvents,
+            Map<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) {
 
-        logger.debug("Writing " + eventsLine.size() + " lines from worker " + workerID);
+        LOGGER.debug("Writing " + eventsLine.size() + " lines from worker " + workerID);
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
 
         for (String line : eventsLine) {
             String newEvent = updateEvent(workerHeader, line, workerID);
-            masterWriter.println(newEvent);
+            this.masterWriter.println(newEvent);
         }
     }
 
     private String updateEvent(LineInfo workerHeader, String line, Integer workerID) {
-        Matcher taskMatcher = workerThreadInfoPattern.matcher(line);
+        Matcher taskMatcher = WORKER_THREAD_INFO_PATTERN.matcher(line);
         String newLine = "";
         if (taskMatcher.find()) {
-
             Integer threadID = Integer.parseInt(taskMatcher.group(WORKER_THREAD_ID));
             Integer stateID = Integer.parseInt(taskMatcher.group(STATE_TYPE));
             String eventHeader = stateID + ":" + threadID + ":1:" + workerID + ":" + threadID;
@@ -281,11 +262,11 @@ public class TraceMerger {
             String lineInfo = taskMatcher.group(WORKER_LINE_INFO);
             newLine = eventHeader + ":" + timestamp + ":" + lineInfo;
         }
+
         return newLine;
     }
 
     private LineInfo getWorkerInfo(List<LineInfo> masterSyncEvents, List<LineInfo> workerSyncEvents) {
-
         LineInfo javaStart = masterSyncEvents.get(0);
         LineInfo javaEnd = masterSyncEvents.get(1);
 
@@ -297,8 +278,7 @@ public class TraceMerger {
 
         Long overhead = (javaTime - workerTime) / 2;
 
-        return new LineInfo(javaStart.resourceId, javaStart.getTimestamp() + overhead);
-
+        return new LineInfo(javaStart.getResourceId(), javaStart.getTimestamp() + overhead);
     }
 
 }

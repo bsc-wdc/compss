@@ -149,7 +149,7 @@ def serialize_to_handler(obj, handler):
             try:
                 # If it is a numpy object then use its saving mechanism
                 if serializer is numpy and NUMPY_AVAILABLE:
-                    serializer.save(handler, obj)
+                    serializer.save(handler, obj, allow_pickle=False)
                 else:
                     serializer.dump(obj, 
                                     handler, 
@@ -259,7 +259,11 @@ def deserialize_from_handler(handler):
         raise SerializerException(error_message)
 
     try:
-        ret = serializer.load(handler)
+        if serializer is numpy and NUMPY_AVAILABLE:
+            ret = serializer.load(handler, allow_pickle=False)
+        else:
+            ret = serializer.load(handler)
+
         # Special case: deserialized obj wraps a generator
         if isinstance(ret, tuple) and \
                 ret and \

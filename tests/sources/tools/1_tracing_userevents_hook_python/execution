@@ -27,8 +27,17 @@
   echo
   echo "*** RUNNING PYTHON APPLICATION TRACING USER EVENTS WITH HOOK"
 
+  base_app_name=${app_name}
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
+
+    if [[ "$python_interpreter" == *"_mpi"* ]]; then
+      # Select the mpi version of the app which does the import pyextrae.mpi
+      file_name="${base_app_name%.*}"
+      extension="${base_app_name##*.}"
+      app_name="${file_name}_mpi.${extension}"
+    fi
+
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
     error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
     specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
@@ -36,10 +45,14 @@
     mkdir -p "${exec_target_log_folder}"
     expectedTime=180s
 
-    if [[ $python_interpreter == *"mpi"* ]]; then
-      # Tracing not supported with MPI worker
-      echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
-      continue
+    python_mpi_worker=""
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter="python3"
+        python_mpi_worker="--python_mpi_worker=true"
     fi
 
     # shellcheck disable=SC2086
@@ -52,6 +65,7 @@
       --debug \
       --tracing \
       ${runcompss_opts} \
+      ${python_mpi_worker} \
       \
       --lang=python \
       --python_interpreter="${python_interpreter}" \

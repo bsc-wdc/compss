@@ -65,8 +65,11 @@ static char *c_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
-    "error",		        // null_dt
-    "enum"                  //enum_dt
+    "collection",           //collection_t
+    "stream",               //stream_t
+    "external_stream_t",    //binding streams
+    "enum",                 //enum_dt
+    "error"  		        // null_dt
 };
 
 static char *c_out_types[] = {
@@ -96,8 +99,11 @@ static char *c_out_types[] = {
     "long", 		        //array_long_dt,
     "float",		        //array_float_dt,
     "double", 		        //array_double_dt,
+    "collection",           //collection_t
+    "stream",               //stream_t
+    "external_stream_t",    //binding streams
+    "enum",                 //enum_dt
     "error",		        // null_dt
-    "enum"                  //enum_dt
 };
 
 void asprintf_error(char* pointer, char* error) {

@@ -184,6 +184,9 @@ def compss_persistent_executor(config):
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
+    if TRACING:
+        import pyextrae.mpi as pyextrae
+
     persistent_storage = (config.storage_conf != 'null')
 
     logger, storage_loggers = load_loggers(config.debug, persistent_storage)
@@ -210,7 +213,7 @@ if __name__ == '__main__':
 
     # Get args
     global TRACING
-    TRACING = (sys.argv[2] == 'true')
+    TRACING = (int(sys.argv[2]) > 0)
     WORKER_CONF = PiperWorkerConfiguration()
     WORKER_CONF.update_params(sys.argv)
 

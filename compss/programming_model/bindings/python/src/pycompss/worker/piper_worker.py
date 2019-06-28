@@ -301,10 +301,8 @@ if __name__ == '__main__':
     import sys
 
     # Get args
-    print(str(sys.argv))
     global TRACING
     TRACING = (int(sys.argv[2]) > 0)
-    print("Tracing:" + str(TRACING))
     WORKER_CONF = PiperWorkerConfiguration()
     WORKER_CONF.update_params(sys.argv)
 

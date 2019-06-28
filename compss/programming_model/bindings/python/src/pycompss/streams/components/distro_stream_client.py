@@ -121,6 +121,8 @@ class DistroStreamClient(Thread):
 
     """
 
+    BUFFER_SIZE = 4096
+
     def __init__(self, master_ip=None, master_port=None):
         """
         Creates a new Client associated to the given master properties.
@@ -187,13 +189,20 @@ class DistroStreamClient(Thread):
             s.sendall(req_msg)
 
             # Receive answer
-            answer = s.recv(1024)
+            chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
+            answer = chunk
+            while chunk is not None and chunk and not chunk.endswith("\n".encode()):
+                if __debug__:
+                    logger.debug("Received chunk answer from server with size = " + str(len(chunk)))
+                chunk = s.recv(DistroStreamClient.BUFFER_SIZE)
+                if chunk is not None and chunk:
+                    answer = answer + chunk
             answer = answer.decode(encoding='UTF-8').strip()
             if __debug__:
                 logger.debug("Received answer from server: " + str(answer))
             req.set_response(answer)
         except Exception as e:
-            print(e)
+            logger.error("ERROR: Cannot process request" + str(e))
             # Some error occurred, mark request as failed and keep going
             req.set_error(1, str(e))
 

@@ -82,7 +82,6 @@
   cp "${SOURCES_DIR}"/changelog "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/compss "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/dependencies "${TMP_DIR}"
-  cp -r "${SOURCES_DIR}"/doc "${TMP_DIR}"
   cp -r "${SOURCES_DIR}"/files "${TMP_DIR}"
   mkdir -p "${TMP_DIR}"/utils
   cp -r "${SOURCES_DIR}"/utils/storage "${TMP_DIR}"/utils

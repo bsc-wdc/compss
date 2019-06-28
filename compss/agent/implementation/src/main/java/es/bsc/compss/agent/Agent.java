@@ -266,8 +266,10 @@ public class Agent {
         String workerName = r.getName();
         String adaptor = r.getAdaptor();
         MethodResourceDescription description = r.getDescription();
-        Map<String,Object> projectConf = (Map<String, Object>) r.getProjectConf();
-        Map<String,Object> resourcesConf = (Map<String, Object>) r.getResourceConf();
+        Map<String,Object> projectConf = new HashMap<String, Object>();
+        projectConf.put("Properties", r.getProjectConf());
+        Map<String,Object> resourcesConf = new HashMap<String, Object>();
+        resourcesConf.put("Properties", r.getResourceConf());
 
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {

@@ -388,7 +388,7 @@ public class ITAppEditor extends ExprEditor {
         if (DEBUG) {
             LOGGER.debug("Substituting COMPSs group creation. " );
         }
-        modifiedExpr = "$_ = new  "+ COMPSS_LOADER_GROUP + this.itApiVar + ", $$);";
+        modifiedExpr = "$_ = new  "+ COMPSS_LOADER_GROUP + this.itApiVar + ", " + this.itAppIdVar + ", $$);";
         return modifiedExpr;
     }
 

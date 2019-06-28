@@ -44,6 +44,7 @@ import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -204,6 +205,12 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     protected void doFailIgnored() {
         // Failed log message
         ErrorManager.warn("Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has failed.");
+    }
+    
+    @Override
+    protected void doException(COMPSsException e) {
+        ErrorManager.warn(
+                "Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has raised a COMPSs Exception.");
     }
 
     /*
@@ -388,7 +395,11 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 }

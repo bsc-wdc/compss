@@ -17,7 +17,6 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.log.Loggers;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
@@ -306,6 +305,7 @@ public abstract class DataInfo {
             }
             this.currentVersionId = lastVersion;
             this.currentVersion = this.versions.get(this.currentVersionId);
+            System.out.println("MARTA: Current version : " + this.currentVersion);
         }
     }
 }

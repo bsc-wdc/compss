@@ -122,9 +122,9 @@ public interface LoaderAPI {
      * Creates a new task group
      *
      * @param groupName Group name.
-     *
+     * @param implicitBarrier Flag stating if the group has to perform a barrier.
      */
-    public void openTaskGroup(String groupName);
+    public void openTaskGroup(String groupName, boolean implicitBarrier);
     
     /**
      * Closes an existing task group

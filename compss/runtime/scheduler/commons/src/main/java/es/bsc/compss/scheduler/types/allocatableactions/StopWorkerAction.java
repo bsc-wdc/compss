@@ -38,6 +38,7 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.types.resources.updates.PerformedReduction;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -169,6 +170,10 @@ public class StopWorkerAction extends AllocatableAction {
 
     }
 
+    @Override
+    protected void doException(COMPSsException e) {
+        
+    }
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT
@@ -264,7 +269,11 @@ public class StopWorkerAction extends AllocatableAction {
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 }

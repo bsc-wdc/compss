@@ -26,7 +26,6 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.loader.LoaderAPI;
-import es.bsc.compss.loader.total.COMPSsGroupLoader;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
@@ -51,7 +50,6 @@ import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
-import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
@@ -69,6 +67,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
 import java.io.IOException;
@@ -890,9 +889,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not
+     * @throws COMPSsException Exception thrown by user
      */
     @Override
-    public void barrierGroup(Long appId, String groupName) {
+    public void barrierGroup(Long appId, String groupName) throws COMPSsException {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS.getId(), TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
@@ -944,13 +944,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public void openTaskGroup(String groupName) {
-       ap.setCurrentTaskGroup(groupName);
+    public void openTaskGroup(String groupName, boolean implicitBarrier) {
+        ap.setCurrentTaskGroup(groupName, implicitBarrier);
     }
     
     @Override
     public void closeTaskGroup(String groupName) {
-       ap.closeCurrentTaskGroup();
+        ap.closeCurrentTaskGroup();
     }
 
     /*
@@ -979,7 +979,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sourceLocation == null) {
             ErrorManager.fatal(ERROR_FILE_NAME);
         }
-
+        
+        LOGGER.debug("Getting file " + fileName);
+        LOGGER.debug("MARTA: SourceLocation " + sourceLocation);
         String renamedPath = openFile(fileName, Direction.IN);
         String intermediateTmpPath = renamedPath + ".tmp";
         rename(renamedPath, intermediateTmpPath);
@@ -1116,6 +1118,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
         }
 
+        LOGGER.debug("MARTA: The created location is " + loc);
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         String finalPath;
         switch (loc.getType()) {

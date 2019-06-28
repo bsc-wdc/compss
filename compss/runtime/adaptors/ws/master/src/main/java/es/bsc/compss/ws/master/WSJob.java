@@ -37,6 +37,7 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.util.RequestDispatcher;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -215,7 +216,11 @@ public class WSJob extends Job<ServiceInstance> {
                     }
                     job.listener.jobCompleted(job);
                 } catch (Exception e) {
-                    job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED);
+                    if (e instanceof COMPSsException) {
+                        job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, (COMPSsException)e);
+                    } else {
+                        job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
+                    }
                     LOGGER.error(SUBMIT_ERROR, e);
                     return;
                 }

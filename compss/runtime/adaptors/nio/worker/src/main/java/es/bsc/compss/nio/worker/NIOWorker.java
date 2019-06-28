@@ -63,6 +63,7 @@ import es.bsc.compss.types.execution.exceptions.UnloadableValueException;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
@@ -441,7 +442,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param invocation Associated Invocation.
      * @param successful Whether the task has ended successfully or not.
      */
-    public void sendTaskDone(Invocation invocation, boolean successful) {
+    public void sendTaskDone(Invocation invocation, boolean successful, Exception e) {
         NIOTask nt = (NIOTask) invocation;
         int jobId = nt.getJobId();
         int taskId = nt.getTaskId();
@@ -452,8 +453,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
             WORKER_LOGGER.debug(tr);
+            WORKER_LOGGER.debug("MARTA: Exception in worker " + e);
         }
-        CommandNIOTaskDone cmd = new CommandNIOTaskDone(tr, successful);
+        CommandNIOTaskDone cmd = null;
+        if (e instanceof COMPSsException) {
+            cmd = new CommandNIOTaskDone(tr, successful, (COMPSsException)e);
+        } else {
+            cmd = new CommandNIOTaskDone(tr, successful, null);
+        }
+
         c.sendCommand(cmd);
 
         if (this.transferLogs || !successful) {
@@ -514,8 +522,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         Execution e = new Execution(task, new ExecutionListener() {
 
             @Override
-            public void notifyEnd(Invocation invocation, boolean success) {
-                sendTaskDone(invocation, success);
+            public void notifyEnd(Invocation invocation, boolean success, COMPSsException exception) {
+                System.out.println("MARTA: Notify end of NIOWORKER with exception " + exception);
+                sendTaskDone(invocation, success, exception);
             }
         });
         this.executionManager.enqueue(e);
@@ -616,7 +625,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     }
 
     @Override
-    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
+    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful, Exception e) {
         // Should not receive this call
     }
 

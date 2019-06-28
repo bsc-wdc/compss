@@ -54,9 +54,6 @@ public class Task extends AbstractTask {
 
     // On failure behavior
     private final OnFailure onFailure;
-
-    // Time out set
-    private int timeOut;
     
     // Commutative groups of the task
     private TreeMap<Integer, CommutativeGroupTask>  commutativeGroup;
@@ -230,8 +227,8 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Returns whether the task is scheduling forced or not
-     * Registers a new task group for the dataId @daId
+     * Returns whether the task is scheduling forced or not.
+     * Registers a new task group for the dataId @daId.
      * 
      * @param taskGroup Group of tasks.
      */
@@ -325,7 +322,7 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Returns whether the task can be executed depending on if the groups are executing other tasks.
+     * Returns if the task can be executed depending on if the groups are executing other tasks.
      *
      * @return {@literal true} if the task can be executed, {@literal false} otherwise.
      */
@@ -363,9 +360,8 @@ public class Task extends AbstractTask {
         return !this.taskGroups.isEmpty();
     }
     
->>>>>>> Java runtime addition of task time out and task groups
     /**
-     * Returns whether any of the parameters of the task has a commutative direction.
+     * Returns if any of the parameters of the task has a commutative direction.
      *
      * @return {@literal true} if the task has commutative parameters, {@literal false} otherwise.
      */

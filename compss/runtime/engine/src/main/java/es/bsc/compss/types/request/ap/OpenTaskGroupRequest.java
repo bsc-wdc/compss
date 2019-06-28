@@ -25,15 +25,16 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 public class OpenTaskGroupRequest extends APRequest {
 
     private String groupName;
+    private boolean barrier;
 
-
-    public OpenTaskGroupRequest(String groupName) {
+    public OpenTaskGroupRequest(String groupName, boolean implicitBarrier) {
+        this.barrier = implicitBarrier;
         this.groupName = groupName;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.setCurrentTaskGroup(this.groupName);
+        ta.setCurrentTaskGroup(this.groupName, barrier);
     }
 
     @Override

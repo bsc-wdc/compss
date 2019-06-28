@@ -17,10 +17,11 @@
 package es.bsc.compss.executor.types;
 
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.worker.COMPSsException;
 
 
 public interface ExecutionListener {
 
-    public void notifyEnd(Invocation invocation, boolean success);
+    public void notifyEnd(Invocation invocation, boolean success, COMPSsException e);
 
 }

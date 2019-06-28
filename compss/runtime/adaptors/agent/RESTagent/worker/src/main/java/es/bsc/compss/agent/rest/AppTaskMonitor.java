@@ -114,6 +114,10 @@ public class AppTaskMonitor extends AppMonitor {
     @Override
     public void onCancellation() {
     }
+    
+    @Override
+    public void onException() {
+    }
 
     @Override
     public void onCompletion() {

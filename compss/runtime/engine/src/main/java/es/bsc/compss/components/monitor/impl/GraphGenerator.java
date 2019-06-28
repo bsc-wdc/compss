@@ -397,31 +397,28 @@ public class GraphGenerator {
             msg2.append("rank=same;\n");
             msg2.append("label=\"CGT").append(identifier).append("\";\n");
             full_graph.write(msg2.toString());
+
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
     }
 
     /**
-
      * Adds a task group to the graph
      * 
-     * @param dataId
+     * @param identifier Group identifier
      */
     public void addTaskGroupToGraph(String identifier) {
         try {
             full_graph.newLine();
             full_graph.write("subgraph clusterTasks" + identifier + " {\n");
-            full_graph.write(
-                    "shape=rect;\n" + 
-                    "node[height=0.75];\n" + 
-                    "color=\"#A9A9A9\"; \n" + 
-                    "label=\"" + identifier + "\";\n");
+            full_graph.write("shape=rect;\n" + "node[height=0.75];\n" + "color=\"#A9A9A9\"; \n" + "label=\""
+                    + identifier + "\";\n");
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
     }
-    
+
     /**
      * Ends a commutative group subgraph.
      * 

@@ -392,11 +392,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
+    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful, Exception e) {
         int jobId = tr.getJobId();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Received Task done message for Task " + jobId);
+            LOGGER.debug("MARTA: The received exception in receivedNIOTaskDone is " + e);
         }
 
         // Update running jobs
@@ -424,7 +425,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             // Update NIO Job
             // Mark task as finished and release waiters
             JobHistory prevJobHistory = nj.getHistory();
-            nj.taskFinished(successful);
+            nj.taskFinished(successful, e);
             // JobHistory newJobHistory = nj.getHistory();
 
             // Retrieve files if required

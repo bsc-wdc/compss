@@ -20,6 +20,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.concurrent.Semaphore;
 
@@ -29,11 +30,20 @@ public class BarrierGroupRequest extends APRequest {
     private String groupName;
     private Semaphore sem;
     private Long appId;
-
+    private COMPSsException exception;
+    
+    /**
+     * Creates a new group barrier request.
+     * 
+     * @param appId Application Id.
+     * @param groupName Name of the group.
+     * @param sem Waiting semaphore.
+     */
     public BarrierGroupRequest(Long appId, String groupName, Semaphore sem) {
         this.appId = appId;
-        this.groupName=groupName;
+        this.groupName = groupName;
         this.sem = sem;
+        this.exception = null;
     }
 
     public Long getAppId() {
@@ -52,8 +62,12 @@ public class BarrierGroupRequest extends APRequest {
         this.sem = sem;
     }
     
+    public void setException(COMPSsException exception) {
+        this.exception = exception;
+    }
+    
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td){
         ta.barrierGroup(this);
     }
 
@@ -61,5 +75,4 @@ public class BarrierGroupRequest extends APRequest {
     public APRequestType getRequestType() {
         return APRequestType.WAIT_FOR_ALL_TASKS;
     }
-
 }

@@ -28,6 +28,8 @@ import es.bsc.compss.types.implementations.Implementation;
 
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.worker.COMPSsException;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,6 +77,11 @@ public class OptimizationAction extends AllocatableAction {
     @Override
     protected void doFailIgnored() {
 
+    }
+    
+    @Override
+    protected void doException(COMPSsException e) {
+        
     }
 
     @Override
@@ -163,8 +170,11 @@ public class OptimizationAction extends AllocatableAction {
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // TODO Auto-generated method stub
-        
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 
 }

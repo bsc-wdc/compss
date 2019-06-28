@@ -32,6 +32,7 @@ import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -60,6 +61,7 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -201,6 +203,16 @@ public class ExecutionAction extends AllocatableAction {
         return task.canBeExecuted();
     }
 
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        if (aa instanceof ExecutionAction) {
+            if (((ExecutionAction) aa).getTask().getStatus() == TaskState.CANCELED) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private void doInputTransfers() {
         JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);
@@ -386,6 +398,29 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     /**
+     * Code executed when an exception has occurred on the job.
+     *
+     * @param job Job of exception.
+     */
+    public final void exceptionJob(Job<?> job, COMPSsException e) {
+        this.profile.end();
+
+        int jobId = job.getJobId();
+        JOB_LOGGER.error("Received an exception notification for job " + jobId);
+        
+        if (e instanceof COMPSsException && this.task.hasTaskGroups()) {
+            for (TaskGroup t : this.task.getTaskGroupList()) {
+                t.setException((COMPSsException)e);
+            }
+        }
+        
+        // Update info about the generated/updated data
+        doOutputTransfers(job);
+        
+        notifyException(e);  
+    }
+    
+    /**
      * Code executed when the job execution has failed.
      *
      * @param job Failed job.
@@ -409,7 +444,7 @@ public class ExecutionAction extends AllocatableAction {
             JobDispatcher.dispatch(job);
         } else {
             if (this.task.getOnFailure() == OnFailure.IGNORE) {
-                // Delete versions that can not be sent
+                // Update info about the generated/updated data
                 doOutputTransfers(job);
             }
             notifyError();
@@ -487,6 +522,7 @@ public class ExecutionAction extends AllocatableAction {
                     break;
             }
 
+            LOGGER.debug("MARTA: storeOutputParameter. DP = " + p + " job " + job + " dId " + dId);
             // Retrieve parameter information
             String name = dId.getRenaming();
             String targetProtocol;
@@ -558,6 +594,7 @@ public class ExecutionAction extends AllocatableAction {
                 switch (p.getDirection()) {
                     case IN:
                     case CONCURRENT:
+                    case COMMUTATIVE: 
                     case INOUT:
                     case COMMUTATIVE:
                         // Return value is OUT, skip the current parameter
@@ -675,6 +712,30 @@ public class ExecutionAction extends AllocatableAction {
         this.producer.notifyTaskEnd(this.task);
     }
 
+    @Override
+    protected void doException(COMPSsException e) {
+        LinkedList<TaskGroup> taskGroups = this.task.getTaskGroupList();
+        for (TaskGroup group : taskGroups) {
+            group.setException((COMPSsException)e);
+        }
+        
+        // Failed log message
+        String taskName = this.task.getTaskDescription().getName();
+        StringBuilder sb = new StringBuilder();
+        sb.append("COMPSs Exception raised : Task ").append(taskName)
+                .append(" has raised an exception. Successors keep running.\n");
+        sb.append("\n");
+        ErrorManager.warn(sb.toString());
+        
+        TaskMonitor monitor = this.task.getTaskMonitor();
+        monitor.onException();
+        
+        // Decrease the execution counter and set the task as finished and notify the producer
+        this.task.decreaseExecutionCount();
+        this.task.setStatus(TaskState.FINISHED);
+        this.producer.notifyTaskEnd(task);
+    }
+    
     @Override
     protected void doCanceled() {
         // Cancelled log message
@@ -932,5 +993,4 @@ public class ExecutionAction extends AllocatableAction {
             }
         }
     }
-
 }

@@ -266,7 +266,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + workingPath.toString(), e);
         }
-
+        LOGGER.debug("MARTA: GetData ResourceImpl. Location target: " + target);
         getData(ld, target, tgtData, reason, listener);
     }
 

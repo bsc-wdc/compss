@@ -20,6 +20,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.worker.COMPSsException;
 
 
 public interface COMPSsRuntime {
@@ -182,8 +183,9 @@ public interface COMPSsRuntime {
     *
     * @param appId The application id.
     * @param groupName Name of the group to wait.
+    * @throws COMPSsException 
     */
-   public void barrierGroup(Long appId, String groupName); 
+   public void barrierGroup(Long appId, String groupName) throws COMPSsException; 
 
     /**
      * Unregisters an object to eventually free its memory.
@@ -199,7 +201,7 @@ public interface COMPSsRuntime {
      * @param groupName Group name.
      *
      */
-    public void openTaskGroup(String groupName);
+    public void openTaskGroup(String groupName, boolean implicitBarrier);
     
     /**
      * Closes an existing task group

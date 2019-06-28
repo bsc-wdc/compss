@@ -24,4 +24,24 @@ public interface TestTaskGroupsItf {
         @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName
     );
     
+    @Method(declaringClass = "testTaskGroups.TestTaskGroupsImpl")
+    void writeOne(
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName
+    );
+    
+    @Method(declaringClass = "testTaskGroups.TestTaskGroupsImpl")
+    void writeFour(
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName
+    );
+    
+    @Method(declaringClass = "testTaskGroups.TestTaskGroupsImpl")
+    void writeThree(
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName
+    );
+    
+    @Method(declaringClass = "testTaskGroups.TestTaskGroupsImpl", onFailure=OnFailure.IGNORE)
+    void writeOnFailure(
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName
+    );
+     
 }

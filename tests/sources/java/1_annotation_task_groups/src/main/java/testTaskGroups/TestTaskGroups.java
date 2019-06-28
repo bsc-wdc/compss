@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import es.bsc.compss.api.COMPSs;
 import es.bsc.compss.api.COMPSsGroup;
+import es.bsc.compss.worker.COMPSsException;
 
 public class TestTaskGroups {
     
@@ -16,58 +17,94 @@ public class TestTaskGroups {
     public static final int MAX_AVAILABLE = 1;
 
     public static final String FILE_NAME = "/tmp/sharedDisk/taskGroups.txt";
-
+    public static final String FILE_NAME2 = "/tmp/sharedDisk/taskGroups2.txt";
+    
     public static void main(String[] args) throws Exception {
         newFile(FILE_NAME, true);
+        newFile(FILE_NAME2, true);
         
         System.out.println("[LOG] Test task groups");
         testTaskGroups();
-        System.out.println("[LOG] Test task time out");
-        testTaskTimeOut();
+        
+        System.out.println("[LOG] Test task group exeptions");
+        testGroupExceptions();
         
         COMPSs.getFile(FILE_NAME);
         
+        System.out.println("[LOG] Test task time out");
+        testTaskTimeOut();
+//        
+
+        
+//        System.out.println("[LOG] Test on failure ignore");
+//        testIgnoreFailure();
+        
+
+        
         //Check file contents
         // Shell commands to execute to check contents of file
-        ArrayList<String> commands = new ArrayList<String>();
-        commands.add("/bin/cat");
-        commands.add(FILE_NAME);
-
-        // ProcessBuilder start
-        ProcessBuilder pb = new ProcessBuilder(commands);
-        pb.redirectErrorStream(true);
-        Process process = null;
-        try {
-            process = pb.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        ArrayList<String> commands = new ArrayList<String>();
+//        commands.add("/bin/cat");
+//        commands.add(FILE_NAME);
+//
+//        // ProcessBuilder start
+//        ProcessBuilder pb = new ProcessBuilder(commands);
+//        pb.redirectErrorStream(true);
+//        Process process = null;
+//        try {
+//            process = pb.start();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         // Read file content
-        readContents(process);
+//        readContents(process);
 
+    }
+    
+    private static void testIgnoreFailure() throws Exception {
+        System.out.println("Executing write One ");
+        TestTaskGroupsImpl.writeOnFailure(FILE_NAME);
+        TestTaskGroupsImpl.writeFour(FILE_NAME);
+    }
+
+    private static void testGroupExceptions() throws InterruptedException {
+        try (COMPSsGroup a = new COMPSsGroup("FailedGroup", true)){
+            System.out.println("Executing write One ");
+            for (int j=0; j<N; j++) {
+                TestTaskGroupsImpl.writeOne(FILE_NAME);
+           }
+        }catch (COMPSsException e) {
+            TestTaskGroupsImpl.writeThree(FILE_NAME);
+            System.out.println("Exception caught!!");
+
+        }catch (Exception e1) {
+            e1.printStackTrace();
+        } finally {
+            TestTaskGroupsImpl.writeFour(FILE_NAME);
+        }
     }
 
     private static void testTaskGroups() throws Exception{
         // Check of nested groups
-        try (COMPSsGroup group1 = new COMPSsGroup("BigGroup") ) {
+        try (COMPSsGroup group1 = new COMPSsGroup("BigGroup", true) ) {
             // Create several nested groups containing writing tasks
             for (int i=0; i<M; i++) {
-                try (COMPSsGroup n = new COMPSsGroup("group"+i)){
+                try (COMPSsGroup n = new COMPSsGroup("group"+i, true)){
                     for (int j=0; j<N; j++) {
                          TestTaskGroupsImpl.writeTwo(FILE_NAME);
                     }
                 }
             }
         } 
-
-        // Perform a barrier for every created group
-        for (int i=0; i<N; i++) {
-            COMPSs.barrierGroup("group"+i);
-        }
+//
+//        // Perform a barrier for every created group
+//        for (int i=0; i<N; i++) {
+//            COMPSs.barrierGroup("group"+i);
+//        }
         
         // Creation of individual group of M tasks
-        try (COMPSsGroup group = new COMPSsGroup("Group1")) {
+        try (COMPSsGroup group = new COMPSsGroup("Group1", true)) {
             for (int i=0; i < M; i++) {
                 TestTaskGroupsImpl.writeTwo(FILE_NAME);
             }

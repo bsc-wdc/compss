@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.Thread;
 
+import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
 
 public class TestTaskGroupsImpl {
@@ -15,6 +16,40 @@ public class TestTaskGroupsImpl {
     public static void writeTwo(String fileName) {
         writeFile(fileName, String.valueOf(2));
         System.out.println("2 written");
+    }
+
+    public static void writeOnFailure (String fileName) throws Exception {
+        writeFile(fileName, String.valueOf(1));
+        System.out.println("1 written - On failure");
+        throw (new Exception("Exception thrown from write on failure"));
+    }
+    
+    public static void writeOne(String fileName) throws COMPSsException {
+        System.out.println("Filename: " + fileName);
+        writeFile(fileName, String.valueOf(1));
+        System.out.println("1 written");
+        String contents = readFile(fileName);
+        System.out.println(contents);
+//        try {
+//            Thread.sleep(30000);
+//        } catch (InterruptedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+        
+        throw (new COMPSsException("Exception from write one"));
+    }
+    
+    public static void writeThree(String fileName) {
+        writeFile(fileName, String.valueOf(3));
+        System.out.println("3 written");
+    }
+
+    public static void writeFour(String fileName) {
+        writeFile(fileName, String.valueOf(4));
+        System.out.println("4 written");
+        String contents = readFile(fileName);
+        System.out.println(contents);
     }
     
     public static void timeOutTaskFast(String filename) throws Exception {
@@ -64,7 +99,6 @@ public class TestTaskGroupsImpl {
     
     public static String readFile (String fileName) {
         File f = new File(fileName);
-        int res = 0;
         BufferedReader br = null;
         String contents = "";
         try {
@@ -76,8 +110,14 @@ public class TestTaskGroupsImpl {
                 
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
-        System.out.println(res);
         return contents;
     }
 }

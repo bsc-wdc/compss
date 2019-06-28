@@ -53,7 +53,8 @@ public class TestCommutative {
                 TestCommutativeImpl.reduce_and_check_task(FILE_NAME9, a[i]);
                 System.out.println("Round " + i);
             }
-            TestCommutativeImpl.readFile(FILE_NAME9); 
+//            COMPSs.getFile(FILE_NAME9);
+//            TestCommutativeImpl.readFile(FILE_NAME9); 
     }
 
     private static void testDirectionCommutative() throws Exception {

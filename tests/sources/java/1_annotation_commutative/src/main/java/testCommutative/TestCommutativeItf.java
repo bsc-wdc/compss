@@ -43,7 +43,7 @@ public interface TestCommutativeItf {
     
     @Method(declaringClass = "testCommutative.TestCommutativeImpl")
     void reduce_and_check_task(
-            @Parameter(type = Type.FILE, direction = Direction.COMMUTATIVE) String fileName, 
+            @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName, 
             @Parameter(type = Type.OBJECT, direction = Direction.IN) Integer param
     );
     

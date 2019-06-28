@@ -39,10 +39,15 @@
     mkdir -p "${exec_target_log_folder1}"
     expectedTime=180s
 
-    if [[ $python_interpreter == *"mpi"* ]]; then
-      # Tracing not supported with MPI worker
-      echo "WARN: UNSUPPORTED FOR ${python_interpreter}" | tee -a "${output_log}"
-      continue
+    python_mpi_worker=""
+    python_interpreter_real=${python_interpreter}
+    if [ "$python_interpreter" == 'python2_mpi' ]; then
+        python_interpreter_real="python2"
+        python_mpi_worker="--python_mpi_worker=true"
+    fi
+    if [ "$python_interpreter" == 'python3_mpi' ]; then
+        python_interpreter_real="python3"
+        python_mpi_worker="--python_mpi_worker=true"
     fi
 
     # shellcheck disable=SC2086
@@ -55,9 +60,10 @@
       --debug \
       --tracing \
       ${runcompss_opts} \
+      ${python_mpi_worker} \
       \
       --lang=python \
-      --python_interpreter="${python_interpreter}" \
+      --python_interpreter="${python_interpreter_real}" \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir1}" \
       \
@@ -98,9 +104,10 @@
       --debug \
       --tracing \
       ${runcompss_opts} \
+      ${python_mpi_worker} \
       \
       --lang=python \
-      --python_interpreter="${python_interpreter}" \
+      --python_interpreter="${python_interpreter_real}" \
       --pythonpath="${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir2}" \
       \

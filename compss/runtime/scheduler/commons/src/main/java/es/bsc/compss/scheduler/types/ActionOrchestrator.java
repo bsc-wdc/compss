@@ -18,7 +18,6 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.worker.COMPSsException;
 
-
 public interface ActionOrchestrator {
 
     /**

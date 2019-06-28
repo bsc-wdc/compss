@@ -452,14 +452,15 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
             WORKER_LOGGER.debug(tr);
+            WORKER_LOGGER.debug("MARTA: Exception in worker " + e);
         }
+       
         CommandNIOTaskDone cmd = null;
         if (e instanceof COMPSsException) {
             cmd = new CommandNIOTaskDone(tr, successful, (COMPSsException)e);
         } else {
             cmd = new CommandNIOTaskDone(tr, successful, null);
         }
-
         c.sendCommand(cmd);
 
         if (this.transferLogs || !successful) {

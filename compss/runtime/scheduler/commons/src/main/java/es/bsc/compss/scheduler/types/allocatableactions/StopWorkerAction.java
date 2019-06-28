@@ -172,9 +172,8 @@ public class StopWorkerAction extends AllocatableAction {
 
     @Override
     protected void doException(COMPSsException e) {
-
+        
     }
-
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT

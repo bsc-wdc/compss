@@ -161,7 +161,7 @@ public abstract class AllocatableAction {
         LOGGER.warn("Notify COMPSs exception of " + this + " to orchestrator " + this.orchestrator);
         this.orchestrator.actionException(this, e);
     }
-
+    
     /*
      * ***************************************************************************************************************
      * DATA DEPENDENCIES OPERATIONS
@@ -792,16 +792,16 @@ public abstract class AllocatableAction {
         // Action notification
         doError();
     }
-
+    
     /**
-     * Operations to perform when AA has raised a COMPSs exception.
+     * Operations to perform when AA has raised a COMPSs exception. 
      *
-     * @param e COMPSs Exception raised
+     *@param e COMPSs Exception raised
      */
     public final List<AllocatableAction> exception(COMPSsException e) {
         // Mark as finished
         this.state = State.FAILED;
-
+        
         if (this.getAssignedResource() != null) {
             // Release resources and run tasks blocked on the resource
             releaseResources();
@@ -810,16 +810,16 @@ public abstract class AllocatableAction {
         }
 
         cancelAction();
-
+        
         List<AllocatableAction> successors = new LinkedList<>();
         successors.addAll(this.dataSuccessors);
-
+        
         // Action notification
         doException(e);
-
+        
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
-
+        
         // Forward cancellation to successors
         for (AllocatableAction succ : successors) {
             cancel.addAll(succ.canceled());
@@ -827,7 +827,7 @@ public abstract class AllocatableAction {
 
         this.dataPredecessors.clear();
         this.dataSuccessors.clear();
-
+       
         return cancel;
     }
 
@@ -898,7 +898,7 @@ public abstract class AllocatableAction {
 
         List<AllocatableAction> successors = new LinkedList<>();
         successors.addAll(this.dataSuccessors);
-
+        
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
 

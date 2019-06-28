@@ -171,7 +171,7 @@ public class Executor implements Runnable {
             if (WORKER_DEBUG) {
                 LOGGER.debug("Dequeuing job " + invocation.getJobId());
             }
-
+            
             Exception e = executeTask(invocation);
 
             boolean success = true;

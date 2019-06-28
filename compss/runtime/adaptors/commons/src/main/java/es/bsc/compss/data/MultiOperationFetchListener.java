@@ -66,6 +66,7 @@ public abstract class MultiOperationFetchListener implements FetchDataListener {
         if (!enabled) {
             this.enabled = true;
             if (error) {
+                System.out.println("MARTA: Enable MultiOperationFetchListener with exception " + failCause);
                 doFailure(failedDataId, failCause);
             } else {
                 if (this.missingOperations == 0) {

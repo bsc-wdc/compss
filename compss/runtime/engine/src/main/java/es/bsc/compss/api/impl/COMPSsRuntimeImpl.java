@@ -26,7 +26,6 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
 import es.bsc.compss.loader.LoaderAPI;
-import es.bsc.compss.loader.total.COMPSsGroupLoader;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
@@ -51,7 +50,6 @@ import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
-import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
@@ -890,7 +888,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not
+<<<<<<< HEAD
      * 
+=======
+>>>>>>> Added COMPSsException and checkstyle fixes
      * @throws COMPSsException Exception thrown by user
      */
     @Override
@@ -1118,6 +1119,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
         }
 
+        LOGGER.debug("MARTA: The created location is " + loc);
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         String finalPath;
         switch (loc.getType()) {

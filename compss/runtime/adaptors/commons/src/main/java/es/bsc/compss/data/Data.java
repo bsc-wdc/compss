@@ -71,6 +71,7 @@ public abstract class Data<T extends InvocationParamURI> implements Externalizab
      * @return
      */
     public T getFirstURI() {
+        System.out.println("MARTA: Sources is " + sources);
         if (sources != null && !sources.isEmpty()) {
             return sources.getFirst();
         }

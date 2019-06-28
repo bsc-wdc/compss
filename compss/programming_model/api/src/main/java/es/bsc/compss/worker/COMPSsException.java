@@ -29,6 +29,7 @@ public class COMPSsException extends Exception {
      * 
      * @param errorMessage Nested error message.
      */
+
     public COMPSsException(String errorMessage) {
         super(errorMessage);
     }

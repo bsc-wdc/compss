@@ -738,7 +738,7 @@ public class ExecutionAction extends AllocatableAction {
         this.task.setStatus(TaskState.FINISHED);
         this.producer.notifyTaskEnd(task);
     }
-
+    
     @Override
     protected void doCanceled() {
         // Cancelled log message

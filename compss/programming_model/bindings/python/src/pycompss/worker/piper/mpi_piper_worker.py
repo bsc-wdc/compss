@@ -103,8 +103,8 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Initialize storage
         logger.debug("[PYTHON WORKER] Starting persistent storage")
-        from storage.api import initWorker as initStorageAtWorker
-        initStorageAtWorker(config_file_path=config.storage_conf)
+        from storage.api import initWorker
+        initWorker(config_file_path=config.storage_conf)
 
     for i in range(0, config.tasks_x_node):
         child_in_pipe = config.pipes[i].input_pipe
@@ -154,8 +154,8 @@ def compss_persistent_worker(config):
     if persistent_storage:
         # Finish storage
         logger.debug("[PYTHON WORKER] Stopping persistent storage")
-        from storage.api import finishWorker as finishStorageAtWorker
-        finishStorageAtWorker()
+        from storage.api import finishWorker
+        finishWorker()
 
     if __debug__:
         logger.debug("[PYTHON WORKER] Finished")
@@ -214,11 +214,7 @@ def compss_persistent_executor(config):
 ############################
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    import sys
-
     # Configure the global tracing variable from the argument
-    global TRACING
     TRACING = (int(sys.argv[2]) > 0)
     # Configure the piper worker with the arguments
     WORKER_CONF = PiperWorkerConfiguration()

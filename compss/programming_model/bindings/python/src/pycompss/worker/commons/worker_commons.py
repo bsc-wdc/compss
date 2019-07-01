@@ -218,16 +218,20 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
     new_values = []
 
     try:
-        # WARNING: the following call will not work if a user decorator overrides the return of the task decorator.
-        # new_types, new_values = getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
-        # If the @task is decorated with a user decorator, may include more return values, and consequently,
-        # the new_types and new_values will be within a tuple at position 0.
-        # Force users that use decorators on top of @task to return the task results first.
-        # This is tested with the timeit decorator in test 19.
+        # WARNING: the following call will not work if a user decorator
+        # overrides the return of the task decorator.
+        # new_types, new_values = getattr(module, method_name)
+        #                        (*values, compss_types=types, **compss_kwargs)
+        # If the @task is decorated with a user decorator, may include more
+        # return values, and consequently, the new_types and new_values will
+        # be within a tuple at position 0.
+        # Force users that use decorators on top of @task to return the task
+        # results first. This is tested with the timeit decorator in test 19.
         signal.signal(signal.SIGALRM, task_timed_out)
         signal.alarm(time_out)
         if persistent_storage:
-            with storage_task_context(logger, values, config_file_path=storage_conf):
+            with storage_task_context(logger, values,
+                                      config_file_path=storage_conf):
                 task_output = getattr(module, method_name)(*values,
                                                            compss_types=types,
                                                            **compss_kwargs)
@@ -249,7 +253,8 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" % process_name)
+        logger.exception("WORKER EXCEPTION IN %s - Attribute Error Exception" %
+                         process_name)
         logger.exception(''.join(line for line in lines))
         logger.exception("Check that all parameters have been defined with " +
                          "an absolute import path (even if in the same file)")
@@ -270,8 +275,9 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
     if isinstance(task_output[0], tuple):
         # Weak but effective way to check it without doing inspect that
         # another decorator has added another return thing.
-        # TODO: Should we consider here to create a list with all elements and serialize it to a file with
-        # the real task output plus the decorator results? == task_output[1:]
+        # TODO: Should we consider here to create a list with all elements and
+        # serialize it to a file with the real task output plus the decorator
+        # results? == task_output[1:]
         # TODO: Currently, the extra result is ignored.
         new_types = task_output[0][0]
         new_values = task_output[0][1]
@@ -317,7 +323,6 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
     :param logger: Logger to use
     :return: exit code, new types and new values
     """
-
     if __debug__:
         logger.debug("Begin task execution in %s" % process_name)
 
@@ -410,7 +415,6 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
             module = __import__(path, globals(), locals(), [path], -1)
             if __debug__:
                 logger.debug("Module successfully loaded (Python version < 2.7")
-
     except ImportError:
         if __debug__:
             logger.debug("Could not import the module. Reason: Method in class.")
@@ -418,16 +422,18 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
 
     if not import_error:
         # Module method declared as task
-        exit_code, new_types, new_values, target_direction, timed_out, exception_message = task_execution(logger,
-                                                                                                          process_name,
-                                                                                                          module,
-                                                                                                          method_name,
-                                                                                                          time_out,
-                                                                                                          types,
-                                                                                                          values,
-                                                                                                          compss_kwargs,
-                                                                                                          persistent_storage,
-                                                                                                          storage_conf)
+        result = task_execution(logger,
+                                process_name,
+                                module,
+                                method_name,
+                                time_out,
+                                types,
+                                values,
+                                compss_kwargs,
+                                persistent_storage,
+                                storage_conf)
+        exit_code, new_types, new_values, target_direction, timed_out, exception_message = result
+
         if exit_code != 0:
             return exit_code, new_types, new_values, timed_out, exception_message
 
@@ -478,18 +484,24 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
                         logger.debug("Processing callee, a hidden object of %s in file %s" %
                                      (file_name, type(self_elem.content)))
             values.insert(0, obj)
-            types.insert(0, parameter.TYPE.OBJECT if not self_type == parameter.TYPE.EXTERNAL_PSCO else parameter.TYPE.EXTERNAL_PSCO)
 
-            exit_code, new_types, new_values, target_direction, timed_out, exception_message = task_execution(logger,
-                                                                                                              process_name,
-                                                                                                              klass,
-                                                                                                              method_name,
-                                                                                                              time_out,
-                                                                                                              types,
-                                                                                                              values,
-                                                                                                              compss_kwargs,
-                                                                                                              persistent_storage,
-                                                                                                              storage_conf)
+            if not self_type == parameter.TYPE.EXTERNAL_PSCO:
+                types.insert(0, parameter.TYPE.OBJECT)
+            else:
+                types.insert(0, parameter.TYPE.EXTERNAL_PSCO)
+
+            result = task_execution(logger,
+                                    process_name,
+                                    klass,
+                                    method_name,
+                                    time_out,
+                                    types,
+                                    values,
+                                    compss_kwargs,
+                                    persistent_storage,
+                                    storage_conf)
+            exit_code, new_types, new_values, target_direction, timed_out, exception_message = result
+
             if exit_code != 0:
                 return exit_code, new_types, new_values, timed_out, exception_message
 
@@ -519,25 +531,26 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
             # Class method - class is not included in values (e.g. values = [7])
             types.append(None)  # class must be first type
 
-            exit_code, new_types, new_values, target_direction, timed_out, exception_message = task_execution(logger,
-                                                                                                              process_name,
-                                                                                                              klass,
-                                                                                                              method_name,
-                                                                                                              time_out,
-                                                                                                              types,
-                                                                                                              values,
-                                                                                                              compss_kwargs,
-                                                                                                              persistent_storage,
-                                                                                                              storage_conf)
+            result = task_execution(logger,
+                                    process_name,
+                                    klass,
+                                    method_name,
+                                    time_out,
+                                    types,
+                                    values,
+                                    compss_kwargs,
+                                    persistent_storage,
+                                    storage_conf)
+            exit_code, new_types, new_values, target_direction, timed_out, exception_message = result
+
             if exit_code != 0:
                 return exit_code, new_types, new_values, timed_out, exception_message
 
+    # Check if task time out
     if timed_out:
-        # TASK TIME OUT
         if __debug__:
             logger.debug("The task timed out")
         return 1, new_types, new_values, ""
-
 
     # EVERYTHING OK
     if __debug__:

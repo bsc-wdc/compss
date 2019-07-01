@@ -158,7 +158,6 @@ def compss_persistent_worker(config):
 
     :return: None
     """
-
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
 
@@ -314,10 +313,7 @@ def compss_persistent_worker(config):
 ############################
 
 if __name__ == '__main__':
-    import sys
-
     # Configure the global tracing variable from the argument
-    global TRACING
     TRACING = (int(sys.argv[2]) > 0)
     # Configure the piper worker with the arguments
     WORKER_CONF = PiperWorkerConfiguration()

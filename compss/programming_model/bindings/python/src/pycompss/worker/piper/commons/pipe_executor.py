@@ -664,8 +664,9 @@ def process_task(current_line, process_name, pipe, queue, tracing,
             # The order of the elements is: parameters + self + returns
             #
             # This is sent through the pipe with the END_TASK message.
-            # If the task had an object or file as parameter and the worker returns the id,
-            # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
+            # If the task had an object or file as parameter and the worker
+            # returns the id, the runtime can change the type (and locations)
+            # to a EXTERNAL_OBJ_T.
             pipe.write(message)
 
         except Exception as e:
@@ -770,7 +771,7 @@ def _build_return_params_message(types, values):
     :param values: List of the parameter's values
     :return: Message as string
     """
-    assert len(types) == len(values), 'Inconsistent state: return type-value length mismatch for return message.'
+    assert len(types) == len(values), "Inconsistent state: return type-value length mismatch for return message."
 
     pairs = list(zip(types, values))
     num_params = len(pairs)

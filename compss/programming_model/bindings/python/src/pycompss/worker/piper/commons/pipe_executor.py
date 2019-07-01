@@ -632,9 +632,10 @@ def process_task(current_line, process_name, pipe, queue, tracing,
                 # endTask jobId exitValue message
                 params = _build_return_params_message(new_types,
                                                       new_values)
-                message = END_TASK_TAG + " " + str(job_id) \
-                          + " " + str(exit_value) \
-                          + " " + str(params) + "\n"
+                message = END_TASK_TAG + " " + \
+                          str(job_id) + " " + \
+                          str(exit_value) + " " + \
+                          str(params) + "\n"
             else:
                 # An exception has been raised in task
                 message = END_TASK_TAG + " " + \

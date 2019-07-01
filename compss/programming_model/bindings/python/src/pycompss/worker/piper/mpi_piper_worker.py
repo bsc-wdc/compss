@@ -25,6 +25,7 @@ PyCOMPSs Persistent Worker
 
 import sys
 import signal
+from pycompss.worker.commons.worker_constants import *
 from pycompss.worker.piper.commons.pipe_constants import *
 from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
 from pycompss.worker.piper.commons.pipe_executor import executor

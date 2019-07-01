@@ -29,6 +29,7 @@ import logging
 import os
 import sys
 
+from pycompss.worker.commons.worker_constants import *
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logs import init_logging_worker
 from pycompss.worker.commons.worker_commons import execute_task
@@ -39,21 +40,6 @@ if IS_PYTHON3:
 else:
     # Exception moved to built-in
     str_escape = 'string_escape'
-
-SYNC_EVENTS = 8000666
-
-# Should be equal to Tracer.java definitions
-TASK_EVENTS = 60000100
-
-# Rank 110-119 reserved to events launched from task.py
-PROCESS_CREATION = 100
-WORKER_INITIALIZATION = 102
-PARAMETER_PROCESSING = 103
-LOGGING = 104
-MODULES_IMPORT = 105
-WORKER_END = 106
-PROCESS_DESTRUCTION = 107
-
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
@@ -131,7 +117,7 @@ def main():
         import pyextrae.multiprocessing as pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, task_id)
         # pyextrae.eventandcounters(TASK_EVENTS, 0)
-        pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
+        pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING_EVENT)
 
     if streaming:
         # Start streaming

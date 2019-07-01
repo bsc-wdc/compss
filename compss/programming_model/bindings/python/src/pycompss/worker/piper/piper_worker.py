@@ -30,6 +30,7 @@ import logging
 from multiprocessing import Process
 from multiprocessing import Queue
 from pycompss.util.logs import init_logging_worker
+from pycompss.worker.commons.worker_constants import *
 from pycompss.worker.piper.commons.pipe_constants import *
 from pycompss.worker.piper.commons.pipe_executor import Pipe
 from pycompss.worker.piper.commons.pipe_executor import ExecutorConf

@@ -152,7 +152,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
         ), 0
 
 
-def get_input_params(num_params, logger, args, process_name):
+def get_input_params(num_params, logger, args):
     """
     Get and prepare the input parameters from string to lists.
 
@@ -160,7 +160,6 @@ def get_input_params(num_params, logger, args, process_name):
     :param logger: Logger
     :param args: Arguments (complete list of parameters with type, stream,
                             prefix and value)
-    :param process_name: Process name
     :return: A list of TaskParameter objects
     """
     pos = 0
@@ -379,7 +378,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
     # Get all parameter values
     if __debug__:
         logger.debug("Processing parameters:")
-    values = get_input_params(num_params, logger, args, process_name)
+    values = get_input_params(num_params, logger, args)
     types = [x.type for x in values]
 
     if __debug__:

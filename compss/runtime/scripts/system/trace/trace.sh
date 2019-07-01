@@ -1,5 +1,5 @@
 #!/bin/bash
-  
+
   #-------------------------------------
   # Define script variables and exports
   #-------------------------------------
@@ -18,7 +18,7 @@
   #-------------------------------------
   action=$1
   workingDir=$2
-  
+
   shift 2
   mkdir -p "$workingDir"
   cd "$workingDir" || exit 1
@@ -80,6 +80,11 @@
     if [ "$node" != "master" ] && [ -d "./python" ] ; then
         if [ -f ./python/pycompss.log ]; then
             rm -f ./python/pycompss.log
+        fi
+        if ls ./python/core.* 1> /dev/null 2>&1; then
+            # Remove the current corefiles generated to avoid big package
+            # Notified this issue.
+            rm -f ./python/core*
         fi
         mv ./python ./python_${node}
         files+=" ./python_${node}"
@@ -171,6 +176,5 @@
         exit 0
   else
         echo 1>&2 "Tracing action $action failed"
-        exit 1 
+        exit 1
   fi
-

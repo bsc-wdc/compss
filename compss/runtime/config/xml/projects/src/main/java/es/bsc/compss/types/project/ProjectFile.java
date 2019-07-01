@@ -1211,7 +1211,6 @@ public class ProjectFile {
                 if (adaptorElement.getName().equals(new QName(PORTS))
                         || adaptorElement.getName().equals(new QName(BROKER_ADAPTOR))
                         || adaptorElement.getName().equals(new QName(PROPERTIES))) {
-
                     properties.put(adaptorElement.getName().getLocalPart(),(Object) adaptorElement.getValue());
                 }
             }

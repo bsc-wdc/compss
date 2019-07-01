@@ -120,8 +120,8 @@ public class GATAdaptor implements CommAdaptor {
             throws ConstructConfigurationException {
 
         String brokerAdaptorName = System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR);
-        String projectBrokerAdaptor = (String) projectProperties.get("BrokerAdaptor");
-        String resourcesBrokerAdaptor = (String) resourcesProperties.get("BrokerAdaptor");
+        String projectBrokerAdaptor = (projectProperties != null) ? (String) projectProperties.get("BrokerAdaptor") : null;
+        String resourcesBrokerAdaptor = (resourcesProperties != null) ? (String) resourcesProperties.get("BrokerAdaptor") : null;
         if (projectBrokerAdaptor != null) {
             if (resourcesBrokerAdaptor != null) {
                 // Both

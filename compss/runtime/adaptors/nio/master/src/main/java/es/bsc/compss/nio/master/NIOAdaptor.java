@@ -192,21 +192,30 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
-        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject 
-            = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties.get("Ports");
-        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources 
-            = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties.get("Ports");
-        
-        ResourcesExternalAdaptorProperties reap = (ResourcesExternalAdaptorProperties) resourcesProperties.get("Properties");
-        for (ResourcesPropertyAdaptorType prop : reap.getProperty()) {
-            config.addProperty(prop.getName(), prop.getValue());
+        es.bsc.compss.types.project.jaxb.NIOAdaptorProperties propsProject = null;
+        es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources = null;
+
+        if (resourcesProperties != null) {
+            propsResources = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties
+                    .get("Ports");
+
+            ResourcesExternalAdaptorProperties reap = (ResourcesExternalAdaptorProperties) resourcesProperties
+                    .get("Properties");
+            if (reap != null) {
+                for (ResourcesPropertyAdaptorType prop : reap.getProperty()) {
+                    config.addProperty(prop.getName(), prop.getValue());
+                }
+            }
         }
-        
-        ExternalAdaptorProperties eap = (ExternalAdaptorProperties) projectProperties.get(ProjectFile.PROPERTIES);
-        for (PropertyAdaptorType prop : eap.getProperty()) {
-            config.addProperty(prop.getName(), prop.getValue());
+        if (projectProperties != null) {
+            propsProject = (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) projectProperties.get("Ports");
+            ExternalAdaptorProperties eap = (ExternalAdaptorProperties) projectProperties.get(ProjectFile.PROPERTIES);
+            if (eap != null) {
+                for (PropertyAdaptorType prop : eap.getProperty()) {
+                    config.addProperty(prop.getName(), prop.getValue());
+                }
+            }
         }
-        
         
         // Get ports
         int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;

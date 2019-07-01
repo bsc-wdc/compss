@@ -291,7 +291,8 @@ public class ProjectFileTest {
         assertNotNull(project);
         
         
-        Map<String, Object> props = project.getAdaptorProperties(project.getComputeNode("CN_full"),"es.bsc.compss.nio.master.NIOAdaptor");
+        Map<String, Object> props = project.getAdaptorProperties(project.getComputeNode("CN_full"),
+                "es.bsc.compss.nio.master.NIOAdaptor");
         assertNotNull(props);
         assertEquals(NIOAdaptorProperties.class, props.get("Ports").getClass());
         assertEquals(ExternalAdaptorProperties.class, props.get("Properties").getClass());

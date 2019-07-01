@@ -187,8 +187,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Map<String,Object> projectProperties, Map<String,Object> resourcesProperties)
-            throws ConstructConfigurationException {
+    public Configuration constructConfiguration(Map<String, Object> projectProperties,
+            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 

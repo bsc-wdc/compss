@@ -116,12 +116,15 @@ public class GATAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Map<String, Object> projectProperties, Map<String, Object> resourcesProperties)
-            throws ConstructConfigurationException {
+    public Configuration constructConfiguration(Map<String, Object> projectProperties,
+            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         String brokerAdaptorName = System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR);
-        String projectBrokerAdaptor = (projectProperties != null) ? (String) projectProperties.get("BrokerAdaptor") : null;
-        String resourcesBrokerAdaptor = (resourcesProperties != null) ? (String) resourcesProperties.get("BrokerAdaptor") : null;
+        String projectBrokerAdaptor = (projectProperties != null) ? (String) projectProperties.get("BrokerAdaptor")
+                : null;
+        String resourcesBrokerAdaptor = (resourcesProperties != null)
+                ? (String) resourcesProperties.get("BrokerAdaptor")
+                : null;
         if (projectBrokerAdaptor != null) {
             if (resourcesBrokerAdaptor != null) {
                 // Both

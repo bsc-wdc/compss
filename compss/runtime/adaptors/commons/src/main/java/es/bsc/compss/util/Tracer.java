@@ -415,8 +415,14 @@ public abstract class Tracer {
 
                 generateMasterPackage("package");
                 transferMasterPackage();
-                generateTrace();
+                generateTrace("gentrace");
                 cleanMasterPackage();
+            }else if (scorepEnabled()) {
+                // No master ScoreP trace - only Python Workers
+                // generateMasterPackage("package-scorep");
+                // transferMasterPackage();
+                generateTrace("scorep-gentrace");
+                // cleanMasterPackage();
             }
         }
     }
@@ -664,19 +670,18 @@ public abstract class Tracer {
 
     /**
      * Generate the final extrae tracefile with all transferred packages.
+     *
+     * @param mode of the trace generation (see trace.sh)
      */
-    private static void generateTrace() {
+    private static void generateTrace(String mode) {
         if (DEBUG) {
-            LOGGER.debug("Tracing: Generating trace");
+            LOGGER.debug("Tracing: Generating trace with mode " + mode);
         }
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
         String appName = System.getProperty(COMPSsConstants.APP_NAME);
-        String mode = "gentrace";
-        if (Tracer.scorepEnabled()) {
-            mode = "scorep-gentrace";
-        }
+
         ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR),
-                appName, String.valueOf(hostToSlots.size() + 1));
+                appName, String.valueOf(hostToSlots.size() + 1), System.getProperty(COMPSsConstants.PYTHON_VERSION));
         Process p;
         pb.environment().remove(LD_PRELOAD);
         try {
@@ -702,7 +707,7 @@ public abstract class Tracer {
         }
 
         String lang = System.getProperty(COMPSsConstants.LANG);
-        if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
+        if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
                 new TraceMerger(System.getProperty(COMPSsConstants.APP_LOG_DIR), appName).merge();
             } catch (IOException e) {

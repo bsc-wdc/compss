@@ -119,6 +119,8 @@
   elif [ "$action" == "gentrace" ]; then
     appName=$1
     numberOfResources=$2
+    python_version=$3  # not used with extrae
+
     # Check machine max open files
     openFilesLimit=$(ulimit -Sn)
     if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
@@ -162,10 +164,30 @@
   elif [ "$action" == "scorep-gentrace" ]; then
     appName=$1
     numberOfResources=$2
+    python_version=$3
 
-    # TODO: Unpack the tar.gz of each worker
+    # We require otf2-merger module loaded
+    source ${SCRIPT_DIR}/trace/scorep.sh $python_version
 
-    # TODO: Merge the traces. Example: otf2-merger --traceFile /path/to/trace/A.otf2 --traceFile /path/to/trace/B.otf2 --traceFile /path/to/trace/C.otf2 --outputPath /path/to/output/dir
+    # Unpack the tar.gz of each worker
+    traceFiles=$(find trace/*_compss_trace.tar.gz)
+    #echo "trace::scorep_gentrace"
+    tmpDir=$(mktemp -d)
+    for file in ${traceFiles[*]}; do
+        tar -C "$tmpDir" -xzf "$file"
+        #echo "trace:: $tmpDir -xvzf $file"
+    done
+    trace_files=$(find "$tmpDir" -name "*.otf2*")
+    # Merge the traces.
+    for trace in $trace_files; do
+        params+=" --traceFile $trace"
+    done
+    # Example: otf2-merger --traceFile /path/to/trace/A.otf2 --traceFile /path/to/trace/B.otf2 --traceFile /path/to/trace/C.otf2 --outputPath /path/to/output/dir
+    otf2-merger $params --outputPath ./trace/${appName}_scorep_trace
+    endCode=$?
+
+    # Clean the temporary directory
+    rm -rf "$tmpDir" # "$file"  # keep the original tar.gz
 
   fi
 

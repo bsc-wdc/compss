@@ -23,6 +23,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -43,7 +44,7 @@ public interface CommAdaptor {
      * @return Adaptor configuration.
      * @throws ConstructConfigurationException When cannot load the adaptor jar files.
      */
-    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
+    public Configuration constructConfiguration(Map<String, Object> projectProperties, Map<String, Object> resourcesProperties)
             throws ConstructConfigurationException;
 
     /**

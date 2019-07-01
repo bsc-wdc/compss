@@ -43,6 +43,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import storage.StorageException;
 import storage.StorageItf;
@@ -265,8 +266,10 @@ public class Agent {
         String workerName = r.getName();
         String adaptor = r.getAdaptor();
         MethodResourceDescription description = r.getDescription();
-        Object projectConf = r.getProjectConf();
-        Object resourcesConf = r.getResourceConf();
+        Map<String,Object> projectConf = new HashMap<String, Object>();
+        projectConf.put("Properties", r.getProjectConf());
+        Map<String,Object> resourcesConf = new HashMap<String, Object>();
+        resourcesConf.put("Properties", r.getResourceConf());
 
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {

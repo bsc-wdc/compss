@@ -484,7 +484,14 @@ public class WorkerStarter {
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalComputingUnits());
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalGPUs());
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalFPGAs());
-        cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
+        //get cpu_affinity from properties
+        
+        String cpuAffinity = nw.getConfiguration().getProperty("cpu_affinity");
+        if (cpuAffinity != null) {
+            cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
+        }else {
+            cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
+        }
         cmd[nextPosition++] = String.valueOf(GPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(FPGA_AFFINITY);
         cmd[nextPosition++] = String.valueOf(this.nw.getLimitOfTasks());

@@ -56,6 +56,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -1588,7 +1589,7 @@ public class ResourcesFile {
      * @param adaptorName Adaptor name
      * @return
      */
-    public Object getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
+    public Map<String,Object> getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
         List<Object> objList = cn.getProcessorOrAdaptorsOrMemory();
         if (objList != null) {
             // Loop for adaptors tag
@@ -1619,7 +1620,7 @@ public class ResourcesFile {
      * @param adaptorName Adaptor name
      * @return
      */
-    public Object getAdaptorProperties(ImageType image, String adaptorName) {
+    public Map<String,Object> getAdaptorProperties(ImageType image, String adaptorName) {
         List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
         if (objList != null) {
             // Loop for adaptors tag
@@ -1649,7 +1650,8 @@ public class ResourcesFile {
      * @param adaptor Adaptor description
      * @return
      */
-    public Object getAdaptorProperties(AdaptorType adaptor) {
+    public Map<String,Object> getAdaptorProperties(AdaptorType adaptor) {
+        HashMap<String, Object> properties = new HashMap<String, Object>();
         List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
         if (innerElements != null) {
             // Loop for submission system
@@ -1658,12 +1660,12 @@ public class ResourcesFile {
                         || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
                         || adaptorElement.getName().equals(new QName("Properties"))) {
 
-                    return (Object) adaptorElement.getValue();
+                    properties.put(adaptorElement.getName().getLocalPart(),(Object) adaptorElement.getValue());
                 }
             }
         }
 
-        return null;
+        return properties;
     }
 
     /**

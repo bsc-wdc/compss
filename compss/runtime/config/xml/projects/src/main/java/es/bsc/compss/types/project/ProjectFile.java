@@ -74,6 +74,10 @@ import org.xml.sax.SAXException;
 
 public class ProjectFile {
 
+    public static final String PORTS = "Ports";
+    public static final String BROKER_ADAPTOR = "BrokerAdaptor";
+    public static final String PROPERTIES = "Properties";
+    
     // JAXB context
     private JAXBContext context;
 
@@ -1168,7 +1172,7 @@ public class ProjectFile {
      * @param adaptorName Name of the COMPSs adaptor
      * @return Declared properties. Null if not found
      */
-    public Object getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
+    public Map<String,Object> getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
         List<JAXBElement<?>> elementList = cn.getInstallDirOrWorkingDirOrUser();
         if (elementList != null) {
             // Loop for adaptors tag
@@ -1198,21 +1202,21 @@ public class ProjectFile {
      * @param adaptor Adaptor description object.
      * @return Properties object. Null if not defined
      */
-    public Object getAdaptorProperties(AdaptorType adaptor) {
+    public Map<String,Object> getAdaptorProperties(AdaptorType adaptor) {
+        HashMap<String, Object> properties = new HashMap<String, Object>();
         List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
         if (innerElements != null) {
             // Loop for submission system
             for (JAXBElement<?> adaptorElement : innerElements) {
-                if (adaptorElement.getName().equals(new QName("Ports"))
-                        || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
-                        || adaptorElement.getName().equals(new QName("Properties"))) {
-
-                    return (Object) adaptorElement.getValue();
+                if (adaptorElement.getName().equals(new QName(PORTS))
+                        || adaptorElement.getName().equals(new QName(BROKER_ADAPTOR))
+                        || adaptorElement.getName().equals(new QName(PROPERTIES))) {
+                    properties.put(adaptorElement.getName().getLocalPart(),(Object) adaptorElement.getValue());
                 }
             }
         }
 
-        return null;
+        return properties;
     }
     
     /**
@@ -1222,7 +1226,7 @@ public class ProjectFile {
      * @param adaptorName Adaptor name
      * @return AdaptorProperty object. Null if not defined.
      */
-    public Object getAdaptorProperties(ImageType image, String adaptorName) {
+    public Map<String, Object> getAdaptorProperties(ImageType image, String adaptorName) {
         List<JAXBElement<?>> objList = image.getInstallDirOrWorkingDirOrUser();
         if (objList != null) {
             // Loop for adaptors tag

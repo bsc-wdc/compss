@@ -21,10 +21,13 @@ import static org.junit.Assert.assertNotNull;
 
 import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.project.exceptions.ProjectFileValidationException;
+import es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties;
+import es.bsc.compss.types.project.jaxb.NIOAdaptorProperties;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
@@ -66,6 +69,7 @@ public class ProjectFileTest {
     private static final String ERROR_SERVICES_XML = "Services XML doesn't exist";
     private static final String ERROR_ROCCI_XML = "Rocci XML doesn't exist";
     private static final String ERROR_JCLOUDS_XML = "JClouds XML doesn't exist";
+    
 
     // Test Logger
     private static final Logger logger = LogManager.getLogger("Console");
@@ -285,7 +289,13 @@ public class ProjectFileTest {
 
         // Checkers
         assertNotNull(project);
-
+        
+        
+        Map<String, Object> props = project.getAdaptorProperties(project.getComputeNode("CN_full"),
+                "es.bsc.compss.nio.master.NIOAdaptor");
+        assertNotNull(props);
+        assertEquals(NIOAdaptorProperties.class, props.get("Ports").getClass());
+        assertEquals(ExternalAdaptorProperties.class, props.get("Properties").getClass());
         File xml = new File(XML_TMP_PATH);
         project.toFile(xml);
         boolean compareFile = FileUtils.contentEquals(fullProject, xml);

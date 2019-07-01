@@ -110,13 +110,13 @@
 			<!-- Mandatory -->
                         <xsd:element name="SubmissionSystem" type="SubmissionSystemType" minOccurs="1" maxOccurs="1" />
 			<!-- One of them mandatory -->
-			<xsd:choice minOccurs="1" maxOccurs="1">
+			<xsd:choice minOccurs="0" maxOccurs="1">
 				<xsd:element name="Ports" type="ResourcesNIOAdaptorProperties" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="BrokerAdaptor" type="xsd:string" minOccurs="0" maxOccurs="1" />
-				<xsd:element name="Properties" type="ResourcesExternalAdaptorProperties" minOccurs="0" maxOccurs="1" />
 			</xsd:choice>
 			<!-- NOT mandatory -->
 			<xsd:element name="User" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="Properties" type="ResourcesExternalAdaptorProperties" minOccurs="0" maxOccurs="1" />
                 </xsd:choice>
 		<xsd:attribute name="Name" type="xsd:string" use="required" />
         </xsd:complexType>

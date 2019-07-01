@@ -31,6 +31,16 @@
                     <MaxPort>43002</MaxPort>
                 </Ports>
                 <User>user</User>
+                <Properties>
+                    <Property>
+                        <Name>P1</Name>
+                        <Value>V1</Value>
+                    </Property>
+                    <Property>
+                        <Name>P2</Name>
+                        <Value>V2</Value>
+                    </Property>
+                </Properties>
             </Adaptor>
             <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
                 <SubmissionSystem>

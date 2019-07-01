@@ -33,6 +33,7 @@ import es.bsc.compss.util.ThreadPool;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -115,12 +116,15 @@ public class GATAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object projectProperties, Object resourcesProperties)
-            throws ConstructConfigurationException {
+    public Configuration constructConfiguration(Map<String, Object> projectProperties,
+            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         String brokerAdaptorName = System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR);
-        String projectBrokerAdaptor = (String) projectProperties;
-        String resourcesBrokerAdaptor = (String) resourcesProperties;
+        String projectBrokerAdaptor = (projectProperties != null) ? (String) projectProperties.get("BrokerAdaptor")
+                : null;
+        String resourcesBrokerAdaptor = (resourcesProperties != null)
+                ? (String) resourcesProperties.get("BrokerAdaptor")
+                : null;
         if (projectBrokerAdaptor != null) {
             if (resourcesBrokerAdaptor != null) {
                 // Both

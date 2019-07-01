@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -519,12 +520,13 @@ public class ResourcesFileTest {
         assertEquals(storageSize, resources.getStorageSize(cn), 0);
 
         assertEquals(osType, resources.getOperatingSystemType(cn));
-        assertEquals(ResourcesNIOAdaptorProperties.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
+        
+        assertEquals(ResourcesNIOAdaptorProperties.class, resources.getAdaptorProperties(cn, adaptorName).get("Ports").getClass());
         assertEquals(minPort,
-                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMinPort());
+                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports")).getMinPort());
         assertEquals(maxPort,
-                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName)).getMaxPort());
-        assertEquals(executor, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName))
+                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports")).getMaxPort());
+        assertEquals(executor, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
                 .getRemoteExecutionCommand());
     }
 
@@ -572,8 +574,8 @@ public class ResourcesFileTest {
         assertEquals(memSize, resources.getMemorySize(cn), 0);
         assertEquals(storageSize, resources.getStorageSize(cn), 0);
         assertEquals(osType, resources.getOperatingSystemType(cn));
-        assertEquals(String.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
-        assertEquals(gatprop, resources.getAdaptorProperties(cn, adaptorName));
+        assertEquals(HashMap.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
+        assertEquals(gatprop, resources.getAdaptorProperties(cn, adaptorName).get("BrokerAdaptor"));
         assertEquals(queue, resources.getAdaptorQueues(cn, adaptorName).get(0));
     }
 

@@ -445,7 +445,7 @@ public class ResourceLoader {
         projectProperties.put("Service", sProject);
         
         Map<String, Object> resourcesProperties = new HashMap<String, Object>();
-        projectProperties.put("Service", sResources);
+        resourcesProperties.put("Service", sResources);
         // Get service adaptor name from properties
         String serviceAdaptorName = COMPSsConstants.SERVICE_ADAPTOR;
 

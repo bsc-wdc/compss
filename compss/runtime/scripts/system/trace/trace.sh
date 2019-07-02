@@ -84,6 +84,7 @@
         if ls ./python/core.* 1> /dev/null 2>&1; then
             # Remove the current corefiles generated to avoid big package
             # Notified this issue.
+            # TODO: remove this if block when the issue is fixed.
             rm -f ./python/core*
         fi
         mv ./python ./python_${node}

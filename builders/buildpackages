@@ -1,6 +1,6 @@
 #!/bin/bash -e
  
-  COMPSs_version=2.5.rc1906
+  COMPSs_version=2.5.rc1907
  
   echo " "
   echo "# Building COMPSs packages..."

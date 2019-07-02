@@ -54,12 +54,13 @@ usage() {
 
   #---------------------------------------------------------------------
   # COMMIT MODIFICATIONS IF NEEDED
+  tag="v${newVersion}"
   if [ "$commitChanges" == "true" ]; then
     echo "- Committing modifications to master"
     if git commit -am "Update to version ${newVersion}"; then
         git push http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git master
-        git tag "v${newVersion}" -f
-        git push -f http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git ${newVersion}
+        git tag "${tag}" -f
+        git push -f http://${credentials}@compss.bsc.es/gitlab/${repoGroup}/${repoName}.git ${tag}
     fi
   fi
 
@@ -67,7 +68,7 @@ usage() {
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS
   echo " "
-  echo "FINISHED! Repo ${repoGroup}/${repoName} version updated from ${previousVersion} to ${newVersion}"
+  echo "FINISHED! Repo ${repoGroup}/${repoName} version updated from ${previousVersion} to ${tag}"
   echo " "
 
 

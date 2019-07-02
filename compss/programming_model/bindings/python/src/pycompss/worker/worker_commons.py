@@ -218,6 +218,8 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         logger.exception("WORKER EXCEPTION IN %s - Time Out Exception" % process_name)
         logger.exception("Task has taken too much time to process")
         return task_returns(types, values, None, True, logger)
+    #except COMPSsException:
+    # return 2, new_...es fa un return o es passa exception com altre parametre
     except AttributeError:
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -240,7 +242,6 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
         return 1, new_types, new_values, None, False
-
     signal.alarm(0)
     if isinstance(task_output[0], tuple):
         # Weak but effective way to check it without doing inspect that

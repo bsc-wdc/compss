@@ -1229,7 +1229,7 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
 }
 
-void GS_BarrierGroup(long _appId, char *group_name) {
+void GS_BarrierGroup(long _appId, char *group_name, char *exception_message) {
     jstring jstr = NULL;
     get_lock();
     JNIEnv* local_env = m_env;
@@ -1237,14 +1237,65 @@ void GS_BarrierGroup(long _appId, char *group_name) {
     release_lock();
     local_env->CallVoidMethod(jobjIT, midBarrierGroup, appId, local_env->NewStringUTF(group_name));
 
-    if (local_env->ExceptionOccurred()) {
+    jthrowable exception = local_env->ExceptionOccurred()
+    if (exception) {
         local_env->ExceptionDescribe();
-        exit(1);
+        getReceivedException(local_env, exception, exception_message, strlen(exception_message))
+    }else{
+        exception_message = "None"
     }
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
     debug_printf("[BINDING-COMMONS]  -  @GS_BarrierGroup  -  COMPSs group name: %s\n", group_name);
+}
+
+static void getReceivedException(JNIEnv* env, jthrowable exception, char* buf, size_t bufLen)
+{
+    int success = 0;
+    /* get the name of the exception's class */
+    jclass exceptionClazz = (*env)->GetObjectClass(env, exception);
+    jclass classClazz = (*env)->GetObjectClass(env, exceptionClazz); // java.lang.Class, can't fail
+    jmethodID classGetNameMethod = (*env)->GetMethodID(
+            env, classClazz, "getName", "()Ljava/lang/String;");
+    jstring classNameStr = (*env)->CallObjectMethod(env, exceptionClazz, classGetNameMethod);
+        // if classClazz != COMPSsException
+    // exit(1)
+    // else
+    if (classNameStr != NULL) {
+        /* get printable string */
+        const char* classNameChars = (*env)->GetStringUTFChars(env, classNameStr, NULL);
+        if (classNameChars != NULL) {
+            /* if the exception has a message string, get that */
+            jmethodID throwableGetMessageMethod = (*env)->GetMethodID(
+                    env, exceptionClazz, "getMessage", "()Ljava/lang/String;");
+            jstring messageStr = (*env)->CallObjectMethod(
+                    env, exception, throwableGetMessageMethod);
+            if (messageStr != NULL) {
+                const char* messageChars = (*env)->GetStringUTFChars(env, messageStr, NULL);
+                if (messageChars != NULL) {
+                    snprintf(buf, bufLen, "%s: %s", classNameChars, messageChars);
+                    (*env)->ReleaseStringUTFChars(env, messageStr, messageChars);
+                } else {
+                    (*env)->ExceptionClear(env); // clear OOM
+                    snprintf(buf, bufLen, "%s: <error getting message>", classNameChars);
+                }
+                (*env)->DeleteLocalRef(env, messageStr);
+            } else {
+                strncpy(buf, classNameChars, bufLen);
+                buf[bufLen - 1] = '\0';
+            }
+            (*env)->ReleaseStringUTFChars(env, classNameStr, classNameChars);
+            success = 1;
+        }
+        (*env)->DeleteLocalRef(env, classNameStr);
+    }
+    (*env)->DeleteLocalRef(env, classClazz);
+    (*env)->DeleteLocalRef(env, exceptionClazz);
+    if (! success) {
+        (*env)->ExceptionClear(env);
+        snprintf(buf, bufLen, "%s", "<error getting class name>");
+    }
 }
 
 void GS_OpenTaskGroup(char *group_name, int implicitBarrier){

@@ -337,6 +337,8 @@ def executor(queue, process_name, pipe, conf):
                     out.close()
                     err.close()
 
+#MARTA: Posar el cas que sigui excepcio --> quan es endtask en pipedpair Cas que es vlgues passar string shauria de canviar spais per altre caracter / mirar entre cometes /
+                    #es posa un altre comando amb nomes jobid i la resta que sigui el contingut i a java posar un camp que sigui exception. agafar com a base el endtask ferho igual crear exception com javainvoker linia 154.
                     if exit_value == 0:
                         # Task has finished without exceptions
                         # endTask jobId exitValue message

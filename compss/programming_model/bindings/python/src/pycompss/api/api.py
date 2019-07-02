@@ -155,7 +155,7 @@ if context.in_pycompss():
 
         :param group_name: Name of the group to wait
         """
-
+#message=...
         barrier_group(group_name)
 
     def compss_wait_on(*args, **kwargs):

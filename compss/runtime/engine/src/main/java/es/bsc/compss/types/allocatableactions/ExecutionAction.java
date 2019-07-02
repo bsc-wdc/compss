@@ -522,7 +522,6 @@ public class ExecutionAction extends AllocatableAction {
                     break;
             }
 
-            LOGGER.debug("MARTA: storeOutputParameter. DP = " + p + " job " + job + " dId " + dId);
             // Retrieve parameter information
             String name = dId.getRenaming();
             String targetProtocol;
@@ -596,7 +595,6 @@ public class ExecutionAction extends AllocatableAction {
                     case CONCURRENT:
                     case COMMUTATIVE: 
                     case INOUT:
-                    case COMMUTATIVE:
                         // Return value is OUT, skip the current parameter
                         continue;
                     case OUT:

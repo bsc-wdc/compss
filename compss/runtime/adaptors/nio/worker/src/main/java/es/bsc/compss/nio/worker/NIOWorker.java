@@ -453,7 +453,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (WORKER_LOGGER_DEBUG) {
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
             WORKER_LOGGER.debug(tr);
-            WORKER_LOGGER.debug("MARTA: Exception in worker " + e);
         }
         CommandNIOTaskDone cmd = null;
         if (e instanceof COMPSsException) {
@@ -523,7 +522,6 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException exception) {
-                System.out.println("MARTA: Notify end of NIOWORKER with exception " + exception);
                 sendTaskDone(invocation, success, exception);
             }
         });

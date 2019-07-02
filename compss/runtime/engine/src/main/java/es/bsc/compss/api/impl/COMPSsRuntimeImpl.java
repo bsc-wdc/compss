@@ -981,7 +981,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
         
         LOGGER.debug("Getting file " + fileName);
-        LOGGER.debug("MARTA: SourceLocation " + sourceLocation);
         String renamedPath = openFile(fileName, Direction.IN);
         String intermediateTmpPath = renamedPath + ".tmp";
         rename(renamedPath, intermediateTmpPath);
@@ -1118,7 +1117,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
         }
 
-        LOGGER.debug("MARTA: The created location is " + loc);
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         String finalPath;
         switch (loc.getType()) {

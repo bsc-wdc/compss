@@ -136,7 +136,6 @@ public class NIOJob extends Job<NIOWorkerNode> {
         if (successful) {
             listener.jobCompleted(this);
         } else {
-            LOGGER.debug("MARTA: In NIOJob. Exception : " + e);
             if (e instanceof COMPSsException) {
                 listener.jobFailed(this, JobEndStatus.EXCEPTION, (COMPSsException)e);
             } else {

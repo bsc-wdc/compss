@@ -622,8 +622,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Wait for response
         sem.acquireUninterruptibly();
 
-        LOGGER.debug("MARTA: The task group " + taskAnalyser.getTaskGroup(groupName) + " has exception ? "
-                + taskAnalyser.getTaskGroup(groupName).hasException());
         if (taskAnalyser.getTaskGroup(groupName).hasException()) {
             throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
         }

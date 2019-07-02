@@ -80,7 +80,7 @@ public class FileInfo extends DataInfo {
                                 // Add a semaphore to notify if all readers to finish
                                 if (!firstVersion.addSemaphore(semWait)) {
                                     LOGGER.debug("[FileInfo] Readers for first version of " + this.getDataId()
-                                            + "finished. Nothing to do. Releasing semaphore.");
+                                            + " finished. Nothing to do. Releasing semaphore.");
                                     semWait.release();
                                 }
                                 ;
@@ -90,12 +90,12 @@ public class FileInfo extends DataInfo {
                     }
                 }
                 LOGGER.debug("[FileInfo] No location in " + this.getDataId()
-                        + "equal to original. Nothing to do. Releasing semaphore.");
+                        + " equal to original. Nothing to do. Releasing semaphore.");
                 semWait.release();
             }
         } else {
             LOGGER.debug("[FileInfo] First version of data " + this.getDataId()
-                    + "is null. Nothing to do. Releasing semaphore.");
+                    + " is null. Nothing to do. Releasing semaphore.");
             semWait.release();
         }
         return nPermits;
@@ -110,7 +110,8 @@ public class FileInfo extends DataInfo {
             if (ld != null) {
                 for (DataLocation loc : ld.getLocations()) {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
-                    if (uri != null && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())){
+                    if (uri != null
+                            && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())) {
                         String newPath = Comm.getAppHost().getTempDirPath() + File.separator
                                 + firstVersion.getDataInstanceId().getRenaming();
                         LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);

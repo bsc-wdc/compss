@@ -54,8 +54,6 @@ import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
-import es.bsc.compss.worker.COMPSsException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -446,8 +444,6 @@ public class TaskAnalyser {
         }
         taskCount++;
         this.appIdToTaskCount.put(appId, taskCount);
-        LOGGER.debug("MARTA: TaskCount is " + this.appIdToTaskCount + " of the appId " + appId + " is "
-                + this.appIdToTaskCount.get(appId));
         Integer totalTaskCount = this.appIdToTotalTaskCount.get(appId);
         if (totalTaskCount == null) {
             totalTaskCount = 0;
@@ -628,8 +624,6 @@ public class TaskAnalyser {
 
         // Release data dependent tasks
         aTask.releaseDataDependents();
-        
-        LOGGER.debug("MARTA: Task TOTALLY ended");
     }
 
     /**
@@ -963,7 +957,6 @@ public class TaskAnalyser {
             this.gm.commitGraph();
         }
 
-        LOGGER.debug("MARTA: No more tasks with count " + count + ". AppId : " + appId);
         if (count == null || count == 0) {
             this.appIdToTaskCount.remove(appId);
             request.getSemaphore().release();

@@ -45,10 +45,10 @@ public class TaskDescription implements Externalizable {
     private int numNodes;
     private boolean mustReplicate;
     private boolean mustDistribute;
-    private final List<Parameter> parameters;
-    private final boolean hasTarget;
-    private final int numReturns;
-    private final int timeOut;
+    private List<Parameter> parameters;
+    private boolean hasTarget;
+    private int numReturns;
+    private int timeOut;
 
     /**
      * No-parameter constructor only used for deserialization.

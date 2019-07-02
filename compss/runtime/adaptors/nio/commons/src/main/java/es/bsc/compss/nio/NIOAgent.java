@@ -189,9 +189,6 @@ public abstract class NIOAgent {
             if (NIOTracer.extraeEnabled()) {
                 NIOTracer.emitDataTransferEvent(source.getDataMgmtId());
             }
-            LOGGER.debug("MARTA: Dr is " + dr);
-            LOGGER.debug("MARTA: Source is " + source);
-            LOGGER.debug("MARTA: Uri is " + uri);
             NIONode nn = uri.getHost();
             if (nn.getIp() == null) {
                 nn = this.masterNode;

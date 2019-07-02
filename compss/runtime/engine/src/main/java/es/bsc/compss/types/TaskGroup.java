@@ -119,7 +119,6 @@ public class TaskGroup implements AutoCloseable {
      * @return
      */
     public COMPSsException getException() {
-        LOGGER.debug("MARTA: Exception returned");
         return exception;
     }
 
@@ -128,7 +127,6 @@ public class TaskGroup implements AutoCloseable {
      * 
      */
     public void setException(COMPSsException e) {
-        LOGGER.debug("MARTA: Exception set");
         this.exception = e;
         
     }

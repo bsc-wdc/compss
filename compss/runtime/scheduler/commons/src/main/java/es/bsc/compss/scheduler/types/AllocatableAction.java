@@ -220,7 +220,6 @@ public abstract class AllocatableAction {
      * @return {@code true} if there are data predecessors, {@code false} otherwise.
      */
     public final boolean hasDataPredecessors() {
-        //MARTA: Added the check of canceled
         boolean canceled = false;
         for (AllocatableAction aa : this.dataPredecessors) {
             canceled = checkIfCanceled(aa);

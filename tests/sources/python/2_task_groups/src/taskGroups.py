@@ -43,7 +43,7 @@ def wait_fast(file_path):
     with open(file_path, 'r') as fis:
         contents = int(fis.readline())
 
-@task(file_path=FILE_IN, time_out=2)
+@task(file_path=FILE_IN, time_out=2, on_failure='IGNORE')
 def wait_slow(file_path):
     # Time out is less than sleeping time
     time.sleep(TASK_SLEEP_TIME_SLOW)
@@ -81,13 +81,6 @@ def test_task_groups(file_name):
 
 
 def test_time_out(file_name):
-    # Clean previous ocurrences of the file
-    if os.path.exists(file_name):
-        os.remove(file_name)
-    # Create file
-    if not os.path.exists(STORAGE_PATH):
-        os.mkdir(STORAGE_PATH)
-    open(file_name, 'w').close()
     wait_fast(file_name)
     wait_slow(file_name)
 

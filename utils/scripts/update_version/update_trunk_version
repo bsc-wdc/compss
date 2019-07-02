@@ -80,16 +80,6 @@ usage() {
   echo "    $scREADME"
   sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$scREADME"
 
-  #---------------------------------------------------------------------
-  # Modify COMPSs version in all RPM Spec files
-  echo "- Modifying spec files..."
-  cd "${base_trunk_dir}/builders/specs/rpm/"
-  specFiles=$(find . -name *.spec)
-  for spec in $specFiles; do
-    echo "    $spec"
-    sed -i 's/\%define version\t\t'"${previousVersion}"'/\%define version\t\t'"${newVersion}"'/g' "$spec"
-  done
-  cd "${base_trunk_dir}"
 
   #---------------------------------------------------------------------
   # COMMIT MODIFICATIONS IF NEEDED

@@ -454,7 +454,7 @@ barrier(PyObject *self, PyObject *args) {
 static PyObject *
 barrier_group(PyObject *self, PyObject *args) {
     debug("####C#### BARRIER OF GROUP\n");
-     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 1));
     debug("####C#### COMPSs barrier for group: %s \n", (group_name));
     GS_BarrierGroup(app_id, group_name);
@@ -469,7 +469,8 @@ open_task_group(PyObject *self, PyObject *args) {
     debug("####C#### TASK GROUP CREATION\n");
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     debug("####C#### COMPSs task group: %s created\n", (group_name));
-    GS_OpenTaskGroup(group_name);
+    bool implicit_barrier = PyObject_IsTrue(PyTuple_GetItem(args, 1));
+    GS_OpenTaskGroup(group_name, implicit_barrier);
     Py_RETURN_NONE;
 }
 

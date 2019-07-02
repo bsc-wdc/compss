@@ -218,7 +218,6 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         logger.exception("WORKER EXCEPTION IN %s - Time Out Exception" % process_name)
         logger.exception("Task has taken too much time to process")
         return task_returns(types, values, None, True, logger)
-    signal.alarm(0)
     except AttributeError:
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -242,6 +241,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         # new_values are empty and target_direction is None
         return 1, new_types, new_values, None
 
+    signal.alarm(0)
     if isinstance(task_output[0], tuple):
         # Weak but effective way to check it without doing inspect that
         # another decorator has added another return thing.
@@ -390,10 +390,11 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
 
     if not import_error:
         # Module method declared as task
-        exit_code, new_types, new_values, target_direction = task_execution(logger,
+        exit_code, new_types, new_values, target_direction, timed_out = task_execution(logger,
                                                                             process_name,
                                                                             module,
                                                                             method_name,
+                                                                            time_out,
                                                                             types,
                                                                             values,
                                                                             compss_kwargs,
@@ -494,7 +495,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
                                                                                 process_name,
                                                                                 klass,
                                                                                 method_name,
-                                                                                timed_out,
+                                                                                time_out,
                                                                                 types,
                                                                                 values,
                                                                                 compss_kwargs,

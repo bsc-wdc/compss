@@ -394,16 +394,17 @@ def barrier_group(group_name):
     # Call the Runtime group barrier
     compss.barrier_group(0,group_name)
 
-def open_task_group(group_name):
+def open_task_group(group_name, implicit_barrier):
     """
     Calls the external python library (that calls the bindings-common)
     in order to request an opening of a group.
 
     :param group_name:
+    :param implicit_barrier:
     :return: None
     """
 
-    compss.open_task_group(group_name)
+    compss.open_task_group(group_name, implicit_barrier)
 
 def close_task_group(group_name):
     """

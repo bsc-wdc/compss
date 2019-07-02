@@ -219,16 +219,19 @@ if context.in_pycompss():
 
 
     class TaskGroup(object):
-        def __init__(self, group_name):
+        def __init__(self, group_name, implicit_barrier):
             self.group_name = group_name
+            self.implicit_barrier = implicit_barrier
 
         def __enter__(self):
             # Group creation
-            open_task_group(self.group_name)
+            open_task_group(self.group_name, self.implicit_barrier)
 
         def __exit__(self, type, value, traceback):
             # Group closing
             close_task_group(self.group_name)
+            if (self.implicit_barrier):
+                compss_barrier_group(self.group_name)
 
 
 else:
@@ -286,8 +289,8 @@ else:
         return __dummy_compss_wait_on__(*args)
 
 
-    def compss_open_task_group(group_name):
-        return __dummy_compss_open_task_group__(group_name)
+    def compss_open_task_group(group_name, implicit_barrier):
+        return __dummy_compss_open_task_group__(group_name, implicit_barrier)
 
 
     def compss_close_task_group(group_name):

@@ -218,7 +218,7 @@ void init_master_jni_types() {
         exit(1);
     }
 
-    // openTaskGroup method
+    // barrierGroup method
     midBarrierGroup = m_env->GetMethodID(clsITimpl, "barrierGroup", "(Ljava/lang/Long;Ljava/lang/String;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
@@ -226,13 +226,13 @@ void init_master_jni_types() {
     }
 
     // openTaskGroup method
-    midOpenTaskGroup = m_env->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;)V");
+    midOpenTaskGroup = m_env->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;Z)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
     }
 
-    // openTaskGroup method
+    // closeTaskGroup method
     midCloseTaskGroup = m_env->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
@@ -1246,13 +1246,15 @@ void GS_BarrierGroup(long _appId, char *group_name) {
     debug_printf("[BINDING-COMMONS]  -  @GS_BarrierGroup  -  COMPSs group name: %s\n", group_name);
 }
 
-void GS_OpenTaskGroup(char *group_name){
+void GS_OpenTaskGroup(char *group_name, int implicitBarrier){
     jstring jstr = NULL;
     get_lock();
     JNIEnv* local_env = m_env;
     int isAttached = check_and_attach(m_jvm, local_env);
+    bool _implicitBarrier = false;
+    if (implicitBarrier != 0) _implicitBarrier = true;
     release_lock();
-    local_env->CallVoidMethod(jobjIT, midOpenTaskGroup, local_env->NewStringUTF(group_name));
+    local_env->CallVoidMethod(jobjIT, midOpenTaskGroup, local_env->NewStringUTF(group_name), _implicitBarrier   );
 
     if (local_env->ExceptionOccurred()) {
         local_env->ExceptionDescribe();
@@ -1262,6 +1264,7 @@ void GS_OpenTaskGroup(char *group_name){
         m_jvm->DetachCurrentThread();
     }
     debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  COMPSs group name: %s\n", group_name);
+    debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  implicit barrier: %s\n", _implicitBarrier ? "true":"false");
 }
 
 void GS_CloseTaskGroup(char *group_name){

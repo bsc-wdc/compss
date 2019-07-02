@@ -35,7 +35,7 @@
 
     tracing=${1}
     shift 1
-    
+
     # Get binding
     binding=$1
     shift 1
@@ -71,7 +71,7 @@
   # Clean and Create control pipes
   echo "[BINDINGS PIPER] Control CMD Pipe: $controlCMDpipe"
   create_pipe "$controlCMDpipe"
-  
+
   echo "[BINDINGS PIPER] Control RESULT Pipe: $controlRESULTpipe"
   create_pipe "$controlRESULTpipe"
 
@@ -111,13 +111,36 @@
 
     echo $(sed s/{{PATH}}/"${escapedConfigPath}"/g <<< $(cat "${baseConfigFile}")) > "${workerConfigFile}"
 
-    export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
     export EXTRAE_CONFIG_FILE=${workerConfigFile}
     if [ "$mpiWorker" == "true" ]; then
-      # exporting preload needed to enable tracing with extrae and the mpi worker
-      # Requires extrae to be compiled with mpi (otherwise libmpitrace.so will not exist).
-      export LD_PRELOAD="${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/libmpitrace.so"
+      # Exporting libmpitrace.so in the LD_PRELOAD is needed to enable tracing with extrae and the MPI worker
+      dependencies_path="${SCRIPT_DIR}/../../../../../../Dependencies"
+      libmpitrace="lib/libmpitrace.so"
+      if [ -f "${dependencies_path}/extrae/${libmpitrace}" ]; then
+        # Try if the normal installation contains libmpitrace.so
+        export EXTRAE_HOME=${dependencies_path}/extrae
+        export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
+        export LD_PRELOAD="${EXTRAE_HOME}/${libmpitrace}"
+      elif [ -f "${dependencies_path}/extrae-openmpi/${libmpitrace}" ]; then
+        # SC with openmpi extrae installation
+        export EXTRAE_HOME=${dependencies_path}/extrae-openmpi
+        export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
+        export LD_PRELOAD="${EXTRAE_HOME}/${libmpitrace}"
+      elif [ -f "${dependencies_path}/extrae-impi/${libmpitrace}" ]; then
+        # SC with impi extrae installation
+        export EXTRAE_HOME=${dependencies_path}/extrae-impi
+        export PYTHONPATH=${EXTRAE_HOME}/libexec/:${EXTRAE_HOME}/lib/:${PYTHONPATH}
+        export LD_PRELOAD="${EXTRAE_HOME}/${libmpitrace}"
+      else
+        # Tracing with extrae with mpi worker requires extrae to be compiled with mpi
+        echo "ERROR: Extrae is not compiled with mpi support."
+        echo "QUIT" >> "${controlRESULTpipe}"
+        exit 1
+      fi
+    else
+      export PYTHONPATH=${SCRIPT_DIR}/../../../../../../Dependencies/extrae/libexec/:${SCRIPT_DIR}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
     fi
+
   elif [ "$tracing" -lt "-1" ]; then
     # exporting variables required by any other tracing option (map/ddt/scorep)
     if [ "$binding" == "PYTHON" ]; then
@@ -229,7 +252,7 @@
   done <"${controlCMDpipe}" 3>"${controlCMDpipe}"
 
   echo "QUIT" >> "${controlRESULTpipe}"
-  
+
   # Exit message
   echo "[BINDINGS PIPER] Finished"
   exit 0

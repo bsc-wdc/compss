@@ -46,13 +46,13 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=18
-  resultN=16
+  FILES=23
+  resultN=22
 
   # Checks if the file has been written as many times as expected
   result=$(cat /tmp/sharedDisk/taskGroups.txt)
-  if [ ${#result} -ne $resultN ]; then
-    echo "ERROR: The number of writing tasks is not correct. ${result} "
+  if [ ${#result} -ne $FILES ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${#result} "
     exit 1
   fi
 

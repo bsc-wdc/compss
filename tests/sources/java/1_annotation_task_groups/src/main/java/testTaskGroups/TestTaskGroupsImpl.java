@@ -56,6 +56,7 @@ public class TestTaskGroupsImpl {
         String contents = "";
         try {
             Thread.sleep(1000);
+            writeFile(filename, String.valueOf(5));
             contents = readFile(filename);
         } catch (InterruptedException e1) {
             e1.printStackTrace();
@@ -70,6 +71,7 @@ public class TestTaskGroupsImpl {
     public static void timeOutTaskSlow(String filename) throws Exception {
         try {
             Thread.sleep(5000);
+            writeFile(filename, String.valueOf(6));
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }

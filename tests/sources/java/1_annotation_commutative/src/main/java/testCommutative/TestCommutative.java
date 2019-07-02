@@ -54,7 +54,7 @@ public class TestCommutative {
                 System.out.println("Round " + i);
             }
 //            COMPSs.getFile(FILE_NAME9);
-//            TestCommutativeImpl.readFile(FILE_NAME9); 
+            TestCommutativeImpl.readFile(FILE_NAME9); 
     }
 
     private static void testDirectionCommutative() throws Exception {

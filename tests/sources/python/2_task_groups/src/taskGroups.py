@@ -60,19 +60,22 @@ def test_task_groups(file_name):
         os.mkdir(STORAGE_PATH)
     open(file_name, 'w').close()
 
-    with TaskGroup('bigGroup'):
+    print("[LOG] New blank file created")
+
+    with TaskGroup('bigGroup', True):
+        print("Inside task group")
         # Inside a big group, more groups are created
         for i in range(NUM_GROUPS):
-            with(TaskGroup('group'+str(i))):
+            with(TaskGroup('group'+str(i), True)):
                 for j in range(NUM_TASKS):
                      write_one(file_name)
 
-    # Barrier for groups
-    for i in range(NUM_GROUPS):
-        compss_barrier_group('group'+str(i))
+    # # Barrier for groups
+    # for i in range(NUM_GROUPS):
+    #     compss_barrier_group('group'+str(i))
 
     # Creation of group
-    with TaskGroup('individualGroup'):
+    with TaskGroup('individualGroup', True):
         for i in range(NUM_TASKS):
             write_two(file_name)
 
@@ -92,7 +95,7 @@ def test_time_out(file_name):
 def main():
     file_name1 = STORAGE_PATH + "taskGROUPS.txt"
 
-    print ("[LOG] Test GET FILE")
+    print ("[LOG] Test TASK GROUPS")
     test_task_groups(file_name1)
 
     print("[LOG] Test TIME OUT")

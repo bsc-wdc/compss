@@ -11,12 +11,12 @@ public interface TestTaskGroupsItf {
     
     @Method(declaringClass = "testTaskGroups.TestTaskGroupsImpl", timeOut="3000", onFailure=OnFailure.IGNORE)
     void timeOutTaskSlow(
-            @Parameter(type = Type.FILE, direction = Direction.IN) String fileName
+            @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName
     );
     
     @Method(declaringClass = "testTaskGroups.TestTaskGroupsImpl", timeOut="3000")
     void timeOutTaskFast(
-        @Parameter(type = Type.FILE, direction = Direction.IN) String fileName
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileName
     );
     
     @Method(declaringClass = "testTaskGroups.TestTaskGroupsImpl")

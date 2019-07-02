@@ -1,10 +1,7 @@
 package testTaskGroups;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 
 import es.bsc.compss.api.COMPSs;
 import es.bsc.compss.api.COMPSsGroup;
@@ -17,11 +14,9 @@ public class TestTaskGroups {
     public static final int MAX_AVAILABLE = 1;
 
     public static final String FILE_NAME = "/tmp/sharedDisk/taskGroups.txt";
-    public static final String FILE_NAME2 = "/tmp/sharedDisk/taskGroups2.txt";
     
     public static void main(String[] args) throws Exception {
         newFile(FILE_NAME, true);
-        newFile(FILE_NAME2, true);
         
         System.out.println("[LOG] Test task groups");
         testTaskGroups();
@@ -31,40 +26,17 @@ public class TestTaskGroups {
         
         COMPSs.getFile(FILE_NAME);
         
+        System.out.println("[LOG] Test on failure ignore");
+        testIgnoreFailure();
+        
         System.out.println("[LOG] Test task time out");
         testTaskTimeOut();
-//        
-
-        
-//        System.out.println("[LOG] Test on failure ignore");
-//        testIgnoreFailure();
-        
-
-        
-        //Check file contents
-        // Shell commands to execute to check contents of file
-//        ArrayList<String> commands = new ArrayList<String>();
-//        commands.add("/bin/cat");
-//        commands.add(FILE_NAME);
-//
-//        // ProcessBuilder start
-//        ProcessBuilder pb = new ProcessBuilder(commands);
-//        pb.redirectErrorStream(true);
-//        Process process = null;
-//        try {
-//            process = pb.start();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-        // Read file content
-//        readContents(process);
-
     }
     
     private static void testIgnoreFailure() throws Exception {
         System.out.println("Executing write One ");
         TestTaskGroupsImpl.writeOnFailure(FILE_NAME);
+        
         TestTaskGroupsImpl.writeFour(FILE_NAME);
     }
 
@@ -133,28 +105,4 @@ public class TestTaskGroups {
         }
 
     }
-    
-    private static void readContents(Process process) throws Exception {
-        // Read output of file
-        StringBuilder out = new StringBuilder();
-        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line = null, previous = null;
-        int count = 0;
-        try {
-            while ((line = br.readLine()) != null)
-                if (!line.equals(previous)) {
-                    previous = line;
-                    out.append(line).append('\n');
-                    count = count + 1;
-                }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Exception if number of writers has not been correct
-        if (out.toString() == "2222222222222222") {
-            throw new Exception("Incorrect number of writers " + out);
-        }
-    }
-
-
 }

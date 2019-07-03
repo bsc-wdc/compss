@@ -1,0 +1,110 @@
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package es.bsc.compss.agent.comm.messages.types;
+
+import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.RemoteDataInformation;
+import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
+
+/**
+ * Class containing the parameter to invoke a main app/task on a Comm Agent.
+ *
+ */
+public class CommParam extends NIOParam implements ApplicationParameter, Externalizable {
+
+    private Direction direction = Direction.IN;
+
+    private RemoteDataInformation remoteData = null;
+
+    /**
+     * Constructs an empty CommParam.
+     */
+    public CommParam() {
+        super();
+    }
+
+    /**
+     * Constructs an initializes a CommParam.
+     *
+     * @param type      type of the parameter value
+     * @param direction direction of the parameter
+     * @param stream    stream to redirect to the parameter
+     * @param prefix    prefix to add to the parameter
+     * @param name      name of the parameter
+     */
+    public CommParam(DataType type, Direction direction, StdIOStream stream, String prefix, String name) {
+        super("", type, stream, prefix, name, false, false, null, null, "");
+        this.direction = direction;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
+
+    @Override
+    public Direction getDirection() {
+        return direction;
+    }
+
+    @Override
+    public String getParamName() {
+        return super.getName();
+    }
+
+    public void setRemoteData(RemoteDataInformation remoteData) {
+        this.remoteData = remoteData;
+    }
+
+    @Override
+    public RemoteDataInformation getRemoteData() {
+        return remoteData;
+    }
+
+    @Override
+    public Object getValueContent() throws Exception {
+        return super.getValue();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput oo) throws IOException {
+        super.writeExternal(oo);
+        oo.writeInt(direction.ordinal());
+        oo.writeObject(remoteData);
+    }
+
+    @Override
+    public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
+        super.readExternal(oi);
+        direction = Direction.values()[oi.readInt()];
+        remoteData = (RemoteDataInformation) oi.readObject();
+    }
+
+    @Override
+    public String toString() {
+        return direction + " " + super.getType()
+                + (super.getValue() != null ? "=" + super.getValue() + " " : " ") + remoteData;
+    }
+
+}

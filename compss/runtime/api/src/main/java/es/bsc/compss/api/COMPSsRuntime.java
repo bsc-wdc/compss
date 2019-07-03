@@ -17,6 +17,7 @@
 package es.bsc.compss.api;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 
@@ -183,6 +184,15 @@ public interface COMPSsRuntime {
      * *****************************************************************************************************************
      * DATA ACCESS METHODS
      ******************************************************************************************************************/
+    /**
+     * Registers a new Data value
+     *
+     * @param type Data type
+     * @param stub Local object representing the data
+     * @param dataId already existing data with the content
+     */
+    public void registerData(DataType type, Object stub, String dataId);
+
     /**
      * Returns the renaming of the file version opened.
      *

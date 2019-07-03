@@ -21,21 +21,18 @@ import es.bsc.comm.nio.NIONode;
 
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTask;
-
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
 
 
-public class CommandNewTask extends Command implements Externalizable {
+public class CommandNewTask implements Command {
 
     // List of the data to erase
     private List<String> obsolete;
     // Job description
     private NIOTask task;
-
 
     /**
      * Creates a new CommandNewTask for externalization.
@@ -46,33 +43,31 @@ public class CommandNewTask extends Command implements Externalizable {
 
     /**
      * Creates a new CommandNewTask instance.
-     * 
-     * @param agent Associated NIOAgent.
-     * @param t New task.
+     *
+     * @param t        New task.
      * @param obsolete List of obsolete files.
      */
-    public CommandNewTask(NIOAgent agent, NIOTask t, List<String> obsolete) {
-        super(agent);
+    public CommandNewTask(NIOTask t, List<String> obsolete) {
         this.task = t;
         this.obsolete = obsolete;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.NEW_TASK;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.receivedNewTask((NIONode) c.getNode(), this.task, this.obsolete);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.receivedNewTask((NIONode) c.getNode(), this.task, this.obsolete);
         c.finishConnection();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        this.obsolete = (List<String>) in.readObject();
-        this.task = (NIOTask) in.readObject();
+        try {
+            this.obsolete = (List<String>) in.readObject();
+            this.task = (NIOTask) in.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override

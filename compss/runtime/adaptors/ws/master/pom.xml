@@ -219,7 +219,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- Remove final *.jar from project basedir -->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>

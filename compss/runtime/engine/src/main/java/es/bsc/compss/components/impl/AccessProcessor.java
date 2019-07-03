@@ -25,6 +25,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -55,6 +56,7 @@ import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.NewVersionSameValueRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
+import es.bsc.compss.types.request.ap.RegisterRemoteObjectDataRequest;
 import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
 import es.bsc.compss.types.request.ap.ShutdownRequest;
 import es.bsc.compss.types.request.ap.TaskAnalysisRequest;
@@ -108,7 +110,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
 
-
     /**
      * Creates a new Access Processor instance.
      *
@@ -147,7 +148,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Returns the internal DataInfoProvider instance.
-     * 
+     *
      * @return The internal DataInfoProvider instance.
      */
     public DataInfoProvider getDataInfoProvider() {
@@ -258,7 +259,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Marks an access to a file as finished.
-     * 
+     *
      * @param sourceLocation File location.
      * @param fap File Access parameters.
      * @param destDir Destination file location.
@@ -900,6 +901,19 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (!this.requestQueue.offer(new DeregisterObject(o))) {
 
             ErrorManager.error(ERROR_QUEUE_OFFER + "deregister object");
+        }
+    }
+
+    /**
+     * Registers a data value as available on remote locations.
+     *
+     * @param code code identifying the object
+     * @param dataId name of the data associated to the object
+     */
+    public void registerRemoteObject(int code, String dataId) {
+        RegisterRemoteObjectDataRequest request = new RegisterRemoteObjectDataRequest(code, dataId);
+        if (!this.requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
         }
     }
 

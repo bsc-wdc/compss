@@ -20,13 +20,12 @@ import es.bsc.comm.Connection;
 
 import es.bsc.compss.nio.NIOAgent;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandResourcesIncreased extends Command implements Externalizable {
+public class CommandResourcesIncreased implements Command {
 
     /**
      * Creates a new CommandResourcesIncreased for externalization.
@@ -35,23 +34,9 @@ public class CommandResourcesIncreased extends Command implements Externalizable
         super();
     }
 
-    /**
-     * Creates a new CommandResourcesIncreased instance.
-     * 
-     * @param agent Associated NIOAgent.
-     */
-    public CommandResourcesIncreased(NIOAgent agent) {
-        super(agent);
-    }
-
     @Override
-    public CommandType getType() {
-        return CommandType.RESOURCES_INCREASED;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.performedResourceUpdate(c);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.performedResourceUpdate(c);
     }
 
     @Override

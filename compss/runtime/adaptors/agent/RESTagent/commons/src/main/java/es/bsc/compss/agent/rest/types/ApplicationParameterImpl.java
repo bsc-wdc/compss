@@ -17,6 +17,7 @@
 package es.bsc.compss.agent.rest.types;
 
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -31,7 +32,9 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     private ApplicationParameterValue value;
     private Direction direction;
     private DataType type;
-    private StdIOStream stream;
+    private StdIOStream stdIOStream;
+    private String prefix;
+    private String paramName;
 
     public ApplicationParameterImpl() {
 
@@ -40,7 +43,7 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream) {
         this.value = ApplicationParameterValue.createParameterValue(val);
         this.direction = dir;
-        this.stream = stream;
+        this.stdIOStream = stream;
         this.type = type;
     }
 
@@ -71,12 +74,31 @@ public class ApplicationParameterImpl implements ApplicationParameter {
         this.type = type;
     }
 
-    public StdIOStream getStream() {
-        return stream;
+    @Override
+    public StdIOStream getStdIOStream() {
+        return stdIOStream;
     }
 
-    public void setStream(StdIOStream stream) {
-        this.stream = stream;
+    public void setStdIOStream(StdIOStream stream) {
+        this.stdIOStream = stream;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    @Override
+    public String getPrefix() {
+        return this.prefix;
+    }
+
+    public void setParamName(String paramName) {
+        this.paramName = paramName;
+    }
+
+    @Override
+    public String getParamName() {
+        return this.paramName;
     }
 
     @XmlElements({
@@ -93,5 +115,11 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     @Override
     public Object getValueContent() throws Exception {
         return value.getContent();
+    }
+
+    @Override
+    public RemoteDataInformation getRemoteData() {
+        //Cannot be obtained from a remote location
+        return null;
     }
 }

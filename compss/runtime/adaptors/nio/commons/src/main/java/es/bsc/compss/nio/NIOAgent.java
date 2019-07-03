@@ -102,8 +102,8 @@ public abstract class NIOAgent {
     /**
      * Creates a NIOAgent instance.
      *
-     * @param snd Maximum simultaneous sends.
-     * @param rcv Maximum simultaneous receives.
+     * @param snd  Maximum simultaneous sends.
+     * @param rcv  Maximum simultaneous receives.
      * @param port Communication port.
      */
     public NIOAgent(int snd, int rcv, int port) {
@@ -143,9 +143,9 @@ public abstract class NIOAgent {
     /**
      * Adds a new association between the given connection {@code c} and the given partner {@code partner}.
      *
-     * @param c Connection.
+     * @param c       Connection.
      * @param partner Partner.
-     * @param tag Association tag.
+     * @param tag     Association tag.
      */
     public void addConnectionAndPartner(Connection c, int partner, int tag) {
         this.connection2partner.put(c, partner);
@@ -202,7 +202,7 @@ public abstract class NIOAgent {
                             + dr.getTarget() + " stored in " + nn + " with name " + dr.getSource().getDataMgmtId());
                 }
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
-                CommandDataDemand cdd = new CommandDataDemand(this, remoteData, this.tracingId);
+                CommandDataDemand cdd = new CommandDataDemand(remoteData, this.tracingId);
                 this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
@@ -303,8 +303,8 @@ public abstract class NIOAgent {
     /**
      * Reply the data.
      *
-     * @param c Connection.
-     * @param d Data.
+     * @param c          Connection.
+     * @param d          Data.
      * @param receiverID Receiver Id.
      */
     public void sendData(Connection c, NIOData d, int receiverID) {
@@ -531,19 +531,23 @@ public abstract class NIOAgent {
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
                 receivedValue(t.getDestination(), targetName, t.getObject(), requests);
-            } else if (t.isObject()) {
-                receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
-
-            } else if (t.isByteBuffer()) {
-                String boPath = requests.get(0).getSource().getFirstURI().getPath();
-                BindingObject bo = getTargetBindingObject(targetName, boPath);
-                NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
-                receivedValue(t.getDestination(), targetName, bo.toString(), requests);
             } else {
-                // Object already store in the cache
-                BindingObject bo = getTargetBindingObject(targetName,
-                        requests.get(0).getSource().getFirstURI().getPath());
-                receivedValue(t.getDestination(), targetName, bo.toString(), requests);
+                if (t.isObject()) {
+                    receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
+
+                } else {
+                    if (t.isByteBuffer()) {
+                        String boPath = requests.get(0).getSource().getFirstURI().getPath();
+                        BindingObject bo = getTargetBindingObject(targetName, boPath);
+                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
+                        receivedValue(t.getDestination(), targetName, bo.toString(), requests);
+                    } else {
+                        // Object already store in the cache
+                        BindingObject bo = getTargetBindingObject(targetName,
+                                requests.get(0).getSource().getFirstURI().getPath());
+                        receivedValue(t.getDestination(), targetName, bo.toString(), requests);
+                    }
+                }
             }
         } else {
             String workingDir = getWorkingDir();
@@ -616,15 +620,17 @@ public abstract class NIOAgent {
                             Files.copy((new File(t.getFileName())).toPath(), (new File(targetName)).toPath());
                             receivedValue(t.getDestination(), targetName, t.getObject(), byTarget.remove(targetName));
                         }
-                    } else if (t.isObject()) {
-                        Object o = Serializer.deserialize(t.getArray());
-                        receivedValue(t.getDestination(), getName(targetName), o, reqs);
                     } else {
-                        BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
-                        NIOBindingDataManager.copyCachedData(dataId, bo.getName());
-                        receivedValue(t.getDestination(), bo.getName(), bo.toString(), byTarget.remove(targetName));
+                        if (t.isObject()) {
+                            Object o = Serializer.deserialize(t.getArray());
+                            receivedValue(t.getDestination(), getName(targetName), o, reqs);
+                        } else {
+                            BindingObject bo = getTargetBindingObject(targetName, requests.get(0).getTarget());
+                            NIOBindingDataManager.copyCachedData(dataId, bo.getName());
+                            receivedValue(t.getDestination(), bo.getName(), bo.toString(), byTarget.remove(targetName));
+                        }
                     }
-                    
+
                 } catch (IOException | ClassNotFoundException e) {
                     LOGGER.warn("Can not replicate received Data", e);
                 }
@@ -663,7 +669,7 @@ public abstract class NIOAgent {
     /**
      * Receives the Shutdown request.
      *
-     * @param requester Requester connection of the shutdown.
+     * @param requester   Requester connection of the shutdown.
      * @param filesToSend List of files to send.
      */
     public void receivedShutdown(Connection requester, List<NIOData> filesToSend) {
@@ -796,7 +802,7 @@ public abstract class NIOAgent {
         c.finishConnection();
     }
 
-    // Must be implemented on both sides (Master will do anything)
+    // Must be implemented on both sides (Master will do nothing)
     public abstract void setMaster(NIONode master);
 
     protected abstract String getPossiblyRenamedFileName(File originalFile, NIOData d);

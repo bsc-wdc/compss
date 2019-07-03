@@ -17,21 +17,19 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
-
 import es.bsc.compss.nio.NIOAgent;
+
 import es.bsc.compss.nio.NIOParam;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandDataFetch extends Command implements Externalizable {
+public class CommandDataFetch implements Command {
 
     private NIOParam param;
     private int transferId;
-
 
     /**
      * Creates a new CommandDataFetch for externalization.
@@ -42,24 +40,17 @@ public class CommandDataFetch extends Command implements Externalizable {
 
     /**
      * Creates a new CommandDataFetch instance.
-     * 
-     * @param agent Associated NIOAgent.
-     * @param p Parameter to fetch.
+     *
+     * @param p          Parameter to fetch.
      * @param transferId Transfer Id.
      */
-    public CommandDataFetch(NIOAgent agent, NIOParam p, int transferId) {
-        super(agent);
+    public CommandDataFetch(NIOParam p, int transferId) {
         this.param = p;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.NEW_TASK;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.receivedNewDataFetchOrder(this.param, this.transferId);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.receivedNewDataFetchOrder(this.param, this.transferId);
         c.finishConnection();
     }
 

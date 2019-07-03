@@ -39,7 +39,6 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
     // Renaming for this file version
     private String renaming;
 
-
     /**
      * Creates a new DataInstanceId for serialization.
      */
@@ -49,7 +48,7 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
 
     /**
      * Creates a new DataInstanceId for data {@code dataId} and version {@code versionId}.
-     * 
+     *
      * @param dataId Data Id.
      * @param versionId Version Id.
      */
@@ -60,8 +59,21 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
     }
 
     /**
+     * Creates a new DataInstanceId for data {@code dataId} and version {@code versionId} and not the default renaming.
+     *
+     * @param dataId Data Id.
+     * @param versionId Version Id.
+     * @param renaming alternative renaming
+     */
+    public DataInstanceId(int dataId, int versionId, String renaming) {
+        this.dataId = dataId;
+        this.versionId = versionId;
+        this.renaming = renaming;
+    }
+
+    /**
      * Returns the associated dataId.
-     * 
+     *
      * @return The associated dataId.
      */
     public int getDataId() {
@@ -70,7 +82,7 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
 
     /**
      * Returns the associated versionId.
-     * 
+     *
      * @return The associated versionId.
      */
     public int getVersionId() {
@@ -79,7 +91,7 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
 
     /**
      * Returns the associated renaming.
-     * 
+     *
      * @return The associated renaming.
      */
     public String getRenaming() {
@@ -88,7 +100,7 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
 
     /**
      * Returns the previous version renaming to the given {@code renaming}.
-     * 
+     *
      * @param renaming Current version renaming.
      * @return The previous version renaming of {@code renaming}.
      */

@@ -18,12 +18,15 @@ package es.bsc.compss.agent;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.types.ApplicationParameter;
+import es.bsc.compss.agent.types.RemoteDataInformation;
+import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
+import es.bsc.compss.log.Loggers;
 
 import es.bsc.compss.types.CoreElementDefinition;
 
@@ -31,27 +34,38 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.types.resources.Worker;
+import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import storage.StorageException;
 import storage.StorageItf;
 
 
 public class Agent {
 
-    // private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
+
+    private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
+
     private static final COMPSsRuntimeImpl RUNTIME;
 
     private static final Random APP_ID_GENERATOR = new Random();
@@ -59,7 +73,7 @@ public class Agent {
 
     static {
         String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);
-        System.out.println("DataClay configuration: " + dcConfigPath);
+        LOGGER.debug("DataClay configuration: " + dcConfigPath);
         if (dcConfigPath != null) {
             try {
                 StorageItf.init(dcConfigPath);
@@ -122,8 +136,8 @@ public class Agent {
      * @return Identifier of the application associated to the main task
      * @throws AgentException error parsing the CEI
      */
-    public static long runMain(Lang lang, String ceiClass, String className, String methodName, Object[] params,
-            AppMonitor monitor) throws AgentException {
+    public static long runMain(Lang lang, String ceiClass, String className, String methodName,
+            ApplicationParameter[] params, AppMonitor monitor) throws AgentException {
 
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
@@ -140,14 +154,14 @@ public class Agent {
         }
 
         Object[] paramsValues = new Object[]{
-                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
-                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
-                ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
-                appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
-                className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
-                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
-                params, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "params", // Method arguments
-                new Object(), DataType.OBJECT_T, Direction.OUT, StdIOStream.UNSPECIFIED, "", "return" // Return value
+            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
+            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
+            ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
+            appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
+            className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
+            methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
+            params, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "params", // Method arguments
+            new Object(), DataType.OBJECT_T, Direction.OUT, StdIOStream.UNSPECIFIED, "", "return" // Return value
         };
 
         RUNTIME.executeTask(mainAppId, // Task application ID
@@ -164,35 +178,45 @@ public class Agent {
     /**
      * Requests the execution of a method as a task.
      *
-     * @param lang       programming language of the method
-     * @param className  name of the class containing the method to execute
-     * @param methodName name of the method to execute
-     * @param sarParams  paramter description of the task
-     * @param target     paramter description of the task callee
-     * @param hasResult  true if the task returns any value
-     * @param monitor    monitor to notify changes on the method execution
+     * @param lang         programming language of the method
+     * @param className    name of the class containing the method to execute
+     * @param methodName   name of the method to execute
+     * @param arguments    paramter description of the task's arguments
+     * @param target       paramter description of the task's callee
+     * @param results      paramter description of the task's results
+     * @param requirements requirements to run the task
+     * @param monitor      monitor to notify changes on the method execution
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
-    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] sarParams,
-            ApplicationParameter target, boolean hasResult, AppMonitor monitor) throws AgentException {
+    public static long runTask(Lang lang, String className, String methodName,
+            ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
+            MethodResourceDescription requirements, AppMonitor monitor)
+            throws AgentException {
+        LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
+        LOGGER.debug("Parameters: ");
+        for (ApplicationParameter param : arguments) {
+            LOGGER.debug("\t* " + param);
+        }
+        LOGGER.debug("The task requires " + requirements);
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
+
         monitor.setAppId(appId);
         try {
             // PREPARING PARAMETERS
             StringBuilder typesSB = new StringBuilder();
 
-            int paramsCount = sarParams.length;
+            int paramsCount = arguments.length;
             if (target != null) {
                 paramsCount++;
             }
-            if (hasResult) {
-                paramsCount++;
-            }
+            paramsCount += results.length;
 
             Object[] params = new Object[6 * paramsCount];
             int position = 0;
-            for (ApplicationParameter param : sarParams) {
+            LOGGER.debug("Handles parameters:");
+            for (ApplicationParameter param : arguments) {
+                LOGGER.debug("\t Parameter:" + param.getParamName());
                 if (typesSB.length() > 0) {
                     typesSB.append(",");
                 }
@@ -201,32 +225,53 @@ public class Agent {
                 } else {
                     typesSB.append("OBJECT_T");
                 }
-                params[position] = param.getValueContent();
+                RemoteDataInformation remote = param.getRemoteData();
+                if (param.getRemoteData() == null) {
+                    LOGGER.debug("\t\tUsing value passed in as parameter");
+                    params[position] = param.getValueContent();
+                } else {
+                    Object stub = new Object();
+                    LOGGER.debug("\t\tRegistering manually " + stub + "as" + param.getRemoteData());
+                    params[position] = stub;
+                    Agent.addRemoteData(remote);
+                    RUNTIME.registerData(param.getType(), stub, remote.getRenaming());
+                }
                 params[position + 1] = param.getType();
                 params[position + 2] = param.getDirection();
-                params[position + 3] = StdIOStream.UNSPECIFIED;
-                params[position + 4] = ""; // Prefix
-                params[position + 5] = ""; // Parameter Name
+                params[position + 3] = param.getStdIOStream();
+                params[position + 4] = param.getPrefix();
+                params[position + 5] = param.getParamName();
                 position += 6;
             }
 
             if (target != null) {
-                params[position] = target.getValueContent();
+                LOGGER.debug("\t Target:" + target.getParamName());
+                RemoteDataInformation remote = target.getRemoteData();
+                if (target.getRemoteData() == null) {
+                    LOGGER.debug("\t\tUsing value passed in as parameter");
+                    params[position] = target.getValueContent();
+                } else {
+                    Object stub = new Object();
+                    LOGGER.debug("\t\tRegistering manually " + stub + "as" + target.getRemoteData());
+                    params[position] = stub;
+                    Agent.addRemoteData(remote);
+                    RUNTIME.registerData(target.getType(), stub, remote.getRenaming());
+                }
                 params[position + 1] = target.getType();
                 params[position + 2] = target.getDirection();
-                params[position + 3] = StdIOStream.UNSPECIFIED;
-                params[position + 4] = "";
-                params[position + 5] = ""; // Parameter Name
+                params[position + 3] = target.getStdIOStream();
+                params[position + 4] = target.getPrefix();
+                params[position + 5] = target.getParamName();
                 position += 6;
             }
 
-            if (hasResult) {
-                params[position] = null;
-                params[position + 1] = DataType.OBJECT_T;
-                params[position + 2] = Direction.OUT;
-                params[position + 3] = StdIOStream.UNSPECIFIED;
-                params[position + 4] = "";
-                params[position + 5] = "";
+            for (ApplicationParameter param : results) {
+                params[position] = new Object();
+                params[position + 1] = param.getType();
+                params[position + 2] = param.getDirection();
+                params[position + 3] = param.getStdIOStream();
+                params[position + 4] = param.getPrefix();
+                params[position + 5] = param.getParamName();
                 position += 6;
             }
 
@@ -237,7 +282,7 @@ public class Agent {
             CoreElementDefinition ced = new CoreElementDefinition();
             ced.setCeSignature(ceSignature);
             ImplementationDefinition implDef = ImplementationDefinition.defineImplementation("METHOD", implSignature,
-                    new MethodResourceDescription(""), className, methodName);
+                    requirements, className, methodName);
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
 
@@ -256,6 +301,39 @@ public class Agent {
         return appId;
     }
 
+    private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
+        System.out.println("ADDING REMOTE DATA " + remote);
+        int addedSources = 0;
+        LogicalData ld = Comm.registerData(remote.getRenaming());
+        for (RemoteDataLocation loc : remote.getSources()) {
+            try {
+                String path = loc.getPath();
+                SimpleURI uri = new SimpleURI(path);
+                Resource r = loc.getResource();
+                String workerName = r.getName();
+                Worker<? extends WorkerResourceDescription> host = ResourceManager.getWorker(workerName);
+                if (host == null) {
+                    MethodResourceDescription mrd = r.getDescription();
+                    String adaptor = r.getAdaptor();
+                    Map<String, Object> projectConf = new HashMap<>();
+                    projectConf.put("Properties", r.getProjectConf());
+                    Map<String, Object> resourcesConf = new HashMap<>();
+                    resourcesConf.put("Properties", r.getResourceConf());
+                    host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
+                }
+                DataLocation dl = DataLocation.createLocation(host, uri);
+                ld.addLocation(dl);
+                addedSources++;
+            } catch (AgentException | IOException e) {
+                // Do nothing. Ignore location
+                e.printStackTrace();
+            }
+        }
+        if (addedSources == 0) {
+            throw new AgentException("Could not add any source for data " + remote.getRenaming());
+        }
+    }
+
     /**
      * Adds new resources into the resource pool.
      *
@@ -264,43 +342,55 @@ public class Agent {
      */
     public static void addResources(Resource<?, ?> r) throws AgentException {
         String workerName = r.getName();
-        String adaptor = r.getAdaptor();
         MethodResourceDescription description = r.getDescription();
-        Map<String,Object> projectConf = new HashMap<String, Object>();
-        projectConf.put("Properties", r.getProjectConf());
-        Map<String,Object> resourcesConf = new HashMap<String, Object>();
-        resourcesConf.put("Properties", r.getResourceConf());
 
         DynamicMethodWorker worker = ResourceManager.getDynamicResource(workerName);
         if (worker != null) {
             ResourceManager.increasedDynamicWorker(worker, description);
         } else {
-            MethodConfiguration mc;
-            try {
-                mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
-            } catch (ConstructConfigurationException e) {
-                throw new AgentException(e.getMessage(), e);
-            }
-            int limitOfTasks = mc.getLimitOfTasks();
-            int computingUnits = description.getTotalCPUComputingUnits();
-            if (limitOfTasks < 0 && computingUnits < 0) {
-                mc.setLimitOfTasks(0);
-                mc.setTotalComputingUnits(0);
-            } else {
-                mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
-                mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
-            }
-            mc.setLimitOfGPUTasks(description.getTotalGPUComputingUnits());
-            mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
-            mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
-            mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
-            mc.setLimitOfOTHERsTasks(description.getTotalOTHERComputingUnits());
-            mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
-
-            mc.setHost(workerName);
-            DynamicMethodWorker mw = new DynamicMethodWorker(workerName, description, mc, new HashMap<>());
-            ResourceManager.addDynamicWorker(mw, description);
+            String adaptor = r.getAdaptor();
+            Map<String, Object> projectConf = new HashMap<>();
+            projectConf.put("Properties", r.getProjectConf());
+            Map<String, Object> resourcesConf = new HashMap<>();
+            resourcesConf.put("Properties", r.getResourceConf());
+            registerWorker(workerName, description, adaptor, projectConf, resourcesConf);
         }
+    }
+
+    private static DynamicMethodWorker registerWorker(String workerName, MethodResourceDescription description,
+            String adaptor, Map<String, Object> projectConf, Map<String, Object> resourcesConf) throws AgentException {
+        System.out.println("REGISTERING NEW WORKER with adaptor " + adaptor);
+        if (description == null) {
+            description = new MethodResourceDescription();
+        }
+
+        MethodConfiguration mc;
+        try {
+            mc = (MethodConfiguration) Comm.constructConfiguration(adaptor, projectConf, resourcesConf);
+        } catch (ConstructConfigurationException e) {
+            throw new AgentException(e.getMessage(), e);
+        }
+        int limitOfTasks = mc.getLimitOfTasks();
+        int computingUnits = description.getTotalCPUComputingUnits();
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            mc.setLimitOfTasks(0);
+            mc.setTotalComputingUnits(0);
+        } else {
+            mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
+            mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
+        }
+        mc.setLimitOfGPUTasks(description.getTotalGPUComputingUnits());
+        mc.setTotalGPUComputingUnits(description.getTotalGPUComputingUnits());
+        mc.setLimitOfFPGATasks(description.getTotalFPGAComputingUnits());
+        mc.setTotalFPGAComputingUnits(description.getTotalFPGAComputingUnits());
+        mc.setLimitOfOTHERsTasks(description.getTotalOTHERComputingUnits());
+        mc.setTotalOTHERComputingUnits(description.getTotalOTHERComputingUnits());
+
+        mc.setHost(workerName);
+        DynamicMethodWorker worker;
+        worker = new DynamicMethodWorker(workerName, description, mc, new HashMap<>());
+        ResourceManager.addDynamicWorker(worker, description);
+        return worker;
     }
 
     /**
@@ -365,7 +455,7 @@ public class Agent {
         INTERFACES.add(itf);
     }
 
-    private static AgentInterfaceConfig getConfig(String className, String arguments)
+    private static AgentInterfaceConfig getInterfaceConfig(String className, String arguments)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
 
         Class<?> agentClass = Class.forName(className);
@@ -374,15 +464,15 @@ public class Agent {
     }
 
     /**
-     * Entry point.
+     * Main method to start a COMPSs agent.
+     * (Currently it only allows a REST agent)
      *
-     * @param args Command line arguments.
-     * @throws Exception Any internal exception.
+     * @throws Exception Could not create the configuration for the REST agent due to internal errors
      */
     public static final void main(String[] args) throws Exception {
-        // TODO: Read Agents Setup
+        //TODO: Read Agents Setup
         LinkedList<AgentInterfaceConfig> agents = new LinkedList<>();
-        agents.add(getConfig("es.bsc.compss.agent.rest.RESTAgent", args[0]));
+        agents.add(getInterfaceConfig("es.bsc.compss.agent.rest.RESTAgent", args[0]));
 
         for (AgentInterfaceConfig agent : agents) {
             try {

@@ -24,10 +24,9 @@ public class ObjectInfo extends DataInfo {
     // Hash code of the object
     private int code;
 
-
     /**
      * Creates a new ObjectInfo instance with the given hashcode.
-     * 
+     *
      * @param code Object hashcode.
      */
     public ObjectInfo(int code) {
@@ -36,8 +35,19 @@ public class ObjectInfo extends DataInfo {
     }
 
     /**
+     * Creates a new ObjectInfo instance with the given hashcode for an already existing data value.
+     *
+     * @param code Object hashcode.
+     * @param data Already existing data value
+     */
+    public ObjectInfo(int code, String data) {
+        super(data);
+        this.code = code;
+    }
+
+    /**
      * Returns the object hashcode.
-     * 
+     *
      * @return The object hashcode.
      */
     public int getCode() {

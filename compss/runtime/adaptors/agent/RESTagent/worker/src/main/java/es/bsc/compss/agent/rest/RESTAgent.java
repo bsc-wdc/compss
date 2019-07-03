@@ -29,9 +29,12 @@ import es.bsc.compss.agent.rest.types.messages.LostNodeNotification;
 import es.bsc.compss.agent.rest.types.messages.ReduceNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.RemoveNodeRequest;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
@@ -55,7 +58,6 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
     private int port;
     private Server server = null;
-
 
     @Override
     public RESTAgentConf configure(String arguments) throws AgentException {
@@ -197,6 +199,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
         String className = request.getClassName();
         String methodName = request.getMethodName();
+        ApplicationParameter[] params = request.getParams();
+        /*
         Object[] params;
         try {
             params = request.getParamsValuesContent();
@@ -204,6 +208,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Could not recover an input parameter value. " + cnfe.getLocalizedMessage()).build();
         }
+         */
         AppMainMonitor monitor = new AppMainMonitor();
         long appId;
         try {
@@ -217,12 +222,19 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     private static Response runTask(StartApplicationRequest request) {
         String className = request.getClassName();
         String methodName = request.getMethodName();
-        ApplicationParameterImpl[] sarParams = request.getParams();
+        ApplicationParameterImpl[] arguments = request.getParams();
         ApplicationParameterImpl target = request.getTarget();
+        ApplicationParameterImpl[] results;
         boolean hasResult = request.isHasResult();
+        if (hasResult) {
+            results = new ApplicationParameterImpl[1];
+            results[1] = new ApplicationParameterImpl(null, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED);
+        } else {
+            results = new ApplicationParameterImpl[0];
+        }
         long appId;
         Orchestrator orchestrator = request.getOrchestrator();
-        int numParams = sarParams.length;
+        int numParams = arguments.length;
         if (target != null) {
             numParams++;
         }
@@ -232,7 +244,9 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         AppTaskMonitor monitor = new AppTaskMonitor(numParams, orchestrator);
 
         try {
-            appId = Agent.runTask(Lang.JAVA, className, methodName, sarParams, target, hasResult, monitor);
+            appId = Agent.runTask(Lang.JAVA, className, methodName,
+                    arguments, target, results,
+                    MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }

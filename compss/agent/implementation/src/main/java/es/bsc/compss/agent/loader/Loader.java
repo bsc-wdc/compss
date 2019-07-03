@@ -18,6 +18,7 @@ package es.bsc.compss.agent.loader;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.agent.AgentException;
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
@@ -54,12 +55,12 @@ public class Loader {
      * @throws AgentException could not instrument the code or the execution raised an exception
      */
     public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className,
-            String methodName, Object... params) throws AgentException {
+            String methodName, ApplicationParameter... params) throws AgentException {
         try {
             // Add the jars that the custom class loader needs
             String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
             ClassLoader myLoader = new URLClassLoader(
-                    new URL[] { new URL("file:" + compssHome + LoaderConstants.ENGINE_JAR_WITH_REL_PATH) });
+                    new URL[]{new URL("file:" + compssHome + LoaderConstants.ENGINE_JAR_WITH_REL_PATH)});
 
             Thread.currentThread().setContextClassLoader(myLoader);
 
@@ -81,17 +82,18 @@ public class Loader {
             appClass.defrost();
 
             Method setter = app.getDeclaredMethod("setCOMPSsVariables",
-                    new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                            Class.forName(LoaderConstants.CLASS_LOADERAPI),
-                            Class.forName(LoaderConstants.CLASS_APP_ID) });
+                    new Class<?>[]{Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
+                        Class.forName(LoaderConstants.CLASS_LOADERAPI),
+                        Class.forName(LoaderConstants.CLASS_APP_ID)});
 
-            Object[] values = new Object[] { runtime, api, appId };
+            Object[] values = new Object[]{runtime, api, appId};
             setter.invoke(null, values);
 
+            Object[] paramValues = new Object[params.length];
             Class<?>[] types = new Class<?>[params.length];
-
             for (int i = 0; i < params.length; i++) {
-                types[i] = params[i].getClass();
+                paramValues[i] = params[i].getValueContent();
+                types[i] = paramValues[i].getClass();
             }
 
             Method main = findMethod(app, methodName, params.length, types, params);
@@ -168,16 +170,24 @@ public class Loader {
 
         String methodBody;
         CtMethod m;
-        methodBody = "public static void printCOMPSsVariables() { " + "System.out.println(\"Api Var: \" + " + itApiVar
-                + ");" + "System.out.println(\"SR Var: \" + " + itSRVar + ");" + "System.out.println(\"OR Var: \" + "
-                + itORVar + ");" + "System.out.println(\"App Id: \" + " + itAppIdVar + ");" + "}";
+        methodBody = "public static void printCOMPSsVariables() { "
+                + "System.out.println(\"Api Var: \" + " + itApiVar + ");"
+                + "System.out.println(\"SR Var: \" + " + itSRVar + ");"
+                + "System.out.println(\"OR Var: \" + " + itORVar + ");"
+                + "System.out.println(\"App Id: \" + " + itAppIdVar + ");"
+                + "}";
         m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);
 
-        methodBody = "public static void setCOMPSsVariables( " + LoaderConstants.CLASS_COMPSSRUNTIME_API + " runtime"
-                + ", " + LoaderConstants.CLASS_LOADERAPI + " loader" + ", " + LoaderConstants.CLASS_APP_ID + " appId"
-                + ") { \n" + itApiVar + "= runtime; \n" + itSRVar + "= loader.getStreamRegistry(); \n" + itORVar
-                + "= loader.getObjectRegistry(); \n" + itAppIdVar + "= appId; \n" + "}";
+        methodBody = "public static void setCOMPSsVariables( "
+                + LoaderConstants.CLASS_COMPSSRUNTIME_API + " runtime" + ", "
+                + LoaderConstants.CLASS_LOADERAPI + " loader" + ", "
+                + LoaderConstants.CLASS_APP_ID + " appId" + ") { \n"
+                + itApiVar + "= runtime; \n"
+                + itSRVar + "= loader.getStreamRegistry(); \n"
+                + itORVar + "= loader.getObjectRegistry(); \n"
+                + itAppIdVar + "= appId; \n"
+                + "}";
         m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);
     }
@@ -263,14 +273,15 @@ public class Loader {
     }
 
     /**
+     * Debug method to print the variables added by the instrumentation process.
      * Invokes by reflection the printCOMPSsVariables method of a given class.
-     * 
-     * @param app Application class.
-     * @throws Exception Any internal exception.
+     *
+     * @param app instrumented app
+     * @throws Exception Error while calling the method to print the variables
      */
     public static void printVariables(Class<?> app) throws Exception {
-        Method setter = app.getDeclaredMethod("printCOMPSsVariables", new Class<?>[] {});
-        Object[] values = new Object[] {};
+        Method setter = app.getDeclaredMethod("printCOMPSsVariables", new Class<?>[]{});
+        Object[] values = new Object[]{};
         setter.invoke(null, values);
     }
 }

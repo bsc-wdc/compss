@@ -49,9 +49,8 @@ public abstract class DataInfo {
 
     protected Boolean canceled;
 
-
     /**
-     * Creates a new DataInfo instance.
+     * Creates a new DataInfo instance with and registers a new LogicalData.
      */
     public DataInfo() {
         this.dataId = nextDataId++;
@@ -67,8 +66,25 @@ public abstract class DataInfo {
     }
 
     /**
+     * Creates a new DataInfo instance for an already existing LogicalData.
+     *
+     * @param data data being accessed
+     */
+    public DataInfo(String data) {
+        this.dataId = nextDataId++;
+        this.versions = new TreeMap<>();
+        this.currentVersionId = FIRST_VERSION_ID;
+        this.currentVersion = new DataVersion(dataId, 1, data);
+        this.versions.put(currentVersionId, currentVersion);
+        this.deletionBlocks = 0;
+        this.pendingDeletions = new LinkedList<>();
+        this.canceledVersions = new LinkedList<>();
+        this.canceled = false;
+    }
+
+    /**
      * Returns the data Id.
-     * 
+     *
      * @return The data Id.
      */
     public final int getDataId() {
@@ -77,7 +93,7 @@ public abstract class DataInfo {
 
     /**
      * Returns the current version Id.
-     * 
+     *
      * @return The current version Id.
      */
     public final int getCurrentVersionId() {
@@ -86,7 +102,7 @@ public abstract class DataInfo {
 
     /**
      * Returns the current data version.
-     * 
+     *
      * @return The current data version.
      */
     public final DataVersion getCurrentDataVersion() {
@@ -95,7 +111,7 @@ public abstract class DataInfo {
 
     /**
      * Returns the previous data version.
-     * 
+     *
      * @return The previous data version.
      */
     public final DataVersion getPreviousDataVersion() {
@@ -112,7 +128,7 @@ public abstract class DataInfo {
 
     /**
      * Returns whether the data is expected to be read or not.
-     * 
+     *
      * @return {@code true} if there are pending reads to the data, {@code false} otherwise.
      */
     public final boolean isToBeRead() {
@@ -121,7 +137,7 @@ public abstract class DataInfo {
 
     /**
      * Returns whether the data has been cancelled or not.
-     * 
+     *
      * @return {@code true} if the data has been cancelled, {@code false} otherwise.
      */
     public final boolean hasBeenCanceled() {
@@ -130,7 +146,7 @@ public abstract class DataInfo {
 
     /**
      * Returns whether the specified version {@code versionId} has been read or not.
-     * 
+     *
      * @param versionId Version Id.
      * @return {@code true} if the version Id has no pending reads, {@code false} otherwise.
      */
@@ -160,7 +176,7 @@ public abstract class DataInfo {
 
     /**
      * Returns whether the data has already been written or not.
-     * 
+     *
      * @param versionId Version Id.
      * @return {@code true} if the data has been written, {@code false} otherwise.
      */
@@ -184,7 +200,7 @@ public abstract class DataInfo {
 
     /**
      * Decreases the number of deletion blocks and returns whether all the pending deletions are completed or not.
-     * 
+     *
      * @return {@code true} if all the pending deletions have been removed, {@code false} otherwise.
      */
     public final boolean unblockDeletions() {
@@ -205,7 +221,7 @@ public abstract class DataInfo {
 
     /**
      * Delete DataInfo (can be overwritten by implementations).
-     * 
+     *
      * @return {@code true} if all the versions have been removed, {@code false} otherwise.
      */
     public boolean delete() {
@@ -237,7 +253,7 @@ public abstract class DataInfo {
 
     /**
      * Waits for the data to be ready to be deleted.
-     * 
+     *
      * @param semWait Semaphore.
      * @return
      */
@@ -245,7 +261,7 @@ public abstract class DataInfo {
 
     /**
      * Returns whether the current version is marked to deleted or not.
-     * 
+     *
      * @return {@code true} if the current version must be deleted, {@code false} otherwise.
      */
     public final boolean isCurrentVersionToDelete() {
@@ -254,7 +270,7 @@ public abstract class DataInfo {
 
     /**
      * Returns the first data version.
-     * 
+     *
      * @return The first data version.
      */
     public final DataVersion getFirstVersion() {
@@ -263,7 +279,7 @@ public abstract class DataInfo {
 
     /**
      * Tries to remove the given version {@code versionId}.
-     * 
+     *
      * @param versionId Version Id.
      */
     public final void tryRemoveVersion(Integer versionId) {
@@ -278,7 +294,7 @@ public abstract class DataInfo {
 
     /**
      * Cancels the given version {@code versionId}.
-     * 
+     *
      * @param versionId Version Id.
      */
     public final void canceledVersion(Integer versionId) {

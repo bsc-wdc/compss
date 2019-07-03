@@ -18,20 +18,17 @@ package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-
 import es.bsc.compss.nio.NIOAgent;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandCheckWorker extends Command implements Externalizable {
+public class CommandCheckWorker implements Command {
 
     private String uuid;
     private String nodeName;
-
 
     /**
      * Creates a new CommandCheckWorker for externalization.
@@ -42,29 +39,22 @@ public class CommandCheckWorker extends Command implements Externalizable {
 
     /**
      * Creates a new CommandCheckWorker instance.
-     * 
-     * @param agent Associated NIOAgent.
-     * @param uuid Associated application UUID.
+     *
+     * @param uuid     Associated application UUID.
      * @param nodeName Worker node name.
      */
-    public CommandCheckWorker(NIOAgent agent, String uuid, String nodeName) {
-        super(agent);
+    public CommandCheckWorker(String uuid, String nodeName) {
         this.uuid = uuid;
         this.nodeName = nodeName;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.CHECK_WORKER;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        if (this.agent.isMyUuid(this.uuid, this.nodeName)) {
-            if (this.agent.getMaster() == null) {
-                this.agent.setMaster((NIONode) c.getNode());
+    public void handle(NIOAgent agent, Connection c) {
+        if (agent.isMyUuid(this.uuid, this.nodeName)) {
+            if (agent.getMaster() == null) {
+                agent.setMaster((NIONode) c.getNode());
             }
-            CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(this.agent, this.uuid, this.nodeName);
+            CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(this.uuid, this.nodeName);
             c.sendCommand(cmd);
         }
 

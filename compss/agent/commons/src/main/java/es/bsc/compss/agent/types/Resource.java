@@ -17,6 +17,10 @@
 package es.bsc.compss.agent.types;
 
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 
 /**
@@ -25,7 +29,9 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
  * @param <P> Description of the resource corresponding to the project configuration file
  * @param <R> Description of the resource corresponding to the resources configuration file
  */
-public class Resource<P, R> {
+public class Resource<P, R> implements Externalizable {
+
+    private static final long serialVersionUID = 1L;
 
     private String name;
     private MethodResourceDescription description;
@@ -33,17 +39,16 @@ public class Resource<P, R> {
     private P projectConf;
     private R resourceConf;
 
-
     public Resource() {
     }
 
     /**
      * Constructs a new resource description.
      *
-     * @param name Name of the node
-     * @param description Description of the resources available
-     * @param adaptor Name of the adaptor to use to interact with the node
-     * @param projectConf Project configuration file content related to the node
+     * @param name         Name of the node
+     * @param description  Description of the resources available
+     * @param adaptor      Name of the adaptor to use to interact with the node
+     * @param projectConf  Project configuration file content related to the node
      * @param resourceConf Resources configuration file content related to the node
      */
     public Resource(String name, MethodResourceDescription description, String adaptor, P projectConf, R resourceConf) {
@@ -93,4 +98,32 @@ public class Resource<P, R> {
     public void setResourceConf(R resourceConf) {
         this.resourceConf = resourceConf;
     }
+
+    @Override
+    public void writeExternal(ObjectOutput oo) throws IOException {
+        try {
+            oo.writeUTF(name);
+            oo.writeUTF(adaptor);
+            oo.writeObject(description);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
+        try {
+            this.name = oi.readUTF();
+            this.adaptor = oi.readUTF();
+            this.description = (MethodResourceDescription) oi.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "NAME = " + name + ", ADAPTOR = " + adaptor;
+    }
+
 }

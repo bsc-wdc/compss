@@ -21,17 +21,15 @@ import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandDataDemand extends Command implements Externalizable {
+public class CommandDataDemand implements Command {
 
     private NIOData d;
     private int id;
-
 
     /**
      * Creates a new CommandDataDemand for externalization.
@@ -42,33 +40,26 @@ public class CommandDataDemand extends Command implements Externalizable {
 
     /**
      * Creates a new CommandDataDemand instance.
-     * 
-     * @param agent Associated NIOAgent.
-     * @param d Data to request.
+     *
+     * @param d          Data to request.
      * @param receiverID Receiver Id.
      */
-    public CommandDataDemand(NIOAgent agent, NIOData d, int receiverID) {
-        super(agent);
+    public CommandDataDemand(NIOData d, int receiverID) {
         this.d = d;
         this.id = receiverID;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.DATA_DEMAND;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        boolean slot = this.agent.tryAcquireSendSlot(c);
+    public void handle(NIOAgent agent, Connection c) {
+        boolean slot = agent.tryAcquireSendSlot(c);
         if (!slot) {
             // There are no slots available
             // TODO: ENABLE DATA NEGATE COMMANDS
-            this.agent.sendData(c, this.d, this.id);
+            agent.sendData(c, this.d, this.id);
             // agent.sendDataNegate(c, d, true);
         } else {
             // There is a slot and the data exists
-            this.agent.sendData(c, this.d, this.id);
+            agent.sendData(c, this.d, this.id);
         }
     }
 

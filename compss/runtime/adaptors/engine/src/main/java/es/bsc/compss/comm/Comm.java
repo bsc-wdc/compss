@@ -172,6 +172,34 @@ public class Comm {
     }
 
     /**
+     * Registers a new adaptor to Comm.
+     *
+     * @param adaptorName Adaptor name
+     * @param adaptor     Class handling the adaptor methods.
+     */
+    public static void registerAdaptor(String adaptorName, CommAdaptor adaptor) {
+        ADAPTORS.put(adaptorName, adaptor);
+    }
+
+    /**
+     * Returns the active adaptor with name {@code adaptorName}.
+     *
+     * @return the active adaptor associated to that name.
+     */
+    public static CommAdaptor getAdaptor(String adaptorName) {
+        return ADAPTORS.get(adaptorName);
+    }
+
+    /**
+     * Returns the active adaptors.
+     *
+     * @return A map containing the active adaptors.
+     */
+    public static Map<String, CommAdaptor> getAdaptors() {
+        return ADAPTORS;
+    }
+
+    /**
      * Initializes the internal adaptor and constructs a comm configuration.
      *
      * @param adaptorName Adaptor name.
@@ -538,15 +566,6 @@ public class Comm {
         }
         ld.removeValue();
 
-    }
-
-    /**
-     * Returns the active adaptors.
-     *
-     * @return A map containing the active adaptors.
-     */
-    public static Map<String, CommAdaptor> getAdaptors() {
-        return ADAPTORS;
     }
 
     /**

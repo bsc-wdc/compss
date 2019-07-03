@@ -21,18 +21,16 @@ import es.bsc.comm.Connection;
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOData;
 
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 
 
-public class CommandShutdown extends Command implements Externalizable {
+public class CommandShutdown implements Command {
 
     // List of files to send to the master before shutting down
     private LinkedList<NIOData> filesToSend;
-
 
     /**
      * Creates a new CommandShutdown for externalization.
@@ -42,23 +40,16 @@ public class CommandShutdown extends Command implements Externalizable {
 
     /**
      * Creates a new CommandShutdown instance.
-     * 
-     * @param agent Associated NIOAgent.
+     *
      * @param filesToSend List of files to send.
      */
-    public CommandShutdown(NIOAgent agent, LinkedList<NIOData> filesToSend) {
-        super(agent);
+    public CommandShutdown(LinkedList<NIOData> filesToSend) {
         this.filesToSend = filesToSend;
     }
 
     @Override
-    public CommandType getType() {
-        return CommandType.STOP_WORKER;
-    }
-
-    @Override
-    public void handle(Connection c) {
-        this.agent.receivedShutdown(c, this.filesToSend);
+    public void handle(NIOAgent agent, Connection c) {
+        agent.receivedShutdown(c, this.filesToSend);
     }
 
     @SuppressWarnings("unchecked")

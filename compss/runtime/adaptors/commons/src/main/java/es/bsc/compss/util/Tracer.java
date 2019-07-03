@@ -421,7 +421,7 @@ public abstract class Tracer {
                 // No master ScoreP trace - only Python Workers
                 // generateMasterPackage("package-scorep");
                 // transferMasterPackage();
-                generateTrace("scorep-gentrace");
+                generateTrace("gentrace-scorep");
                 // cleanMasterPackage();
             }
         }
@@ -681,7 +681,7 @@ public abstract class Tracer {
         String appName = System.getProperty(COMPSsConstants.APP_NAME);
 
         ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR),
-                appName, String.valueOf(hostToSlots.size() + 1), System.getProperty(COMPSsConstants.PYTHON_VERSION));
+                    appName, String.valueOf(hostToSlots.size() + 1));
         Process p;
         pb.environment().remove(LD_PRELOAD);
         try {

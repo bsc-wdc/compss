@@ -120,7 +120,6 @@
   elif [ "$action" == "gentrace" ]; then
     appName=$1
     numberOfResources=$2
-    python_version=$3  # not used with extrae
 
     # Check machine max open files
     openFilesLimit=$(ulimit -Sn)
@@ -162,13 +161,12 @@
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym
 
-  elif [ "$action" == "scorep-gentrace" ]; then
+  elif [ "$action" == "gentrace-scorep" ]; then
     appName=$1
     numberOfResources=$2
-    python_version=$3
 
     # We require otf2-merger module loaded
-    source ${SCRIPT_DIR}/trace/scorep.sh $python_version
+    source ${SCRIPT_DIR}/trace/scorep-merger.sh
 
     # Unpack the tar.gz of each worker
     traceFiles=$(find trace/*_compss_trace.tar.gz)

@@ -229,10 +229,11 @@ void generate_worker_executor() {
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodType: \" << argv[5] << endl;\n");
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] ClassName: \" << argv[6] << endl;\n");
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodName: \" << argv[7] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[8] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] TimeOut: \" << argv[8] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[9] << endl;\n");
     fprintf(workerFile, "\t }\n"); //Close if debug
 
-    fprintf(workerFile, "\t int numSlaves=atoi(argv[8]);\n");
+    fprintf(workerFile, "\t int numSlaves=atoi(argv[9]);\n");
 
     fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
     fprintf(workerFile, "\t\t for (int i = 0; i < numSlaves; ++i) {\n"); //Open for
@@ -429,8 +430,8 @@ static void generate_enum(FILE *outFile, function *first_function) {
 
     // Add constants (according to COMPSs Runtime)
     fprintf(outFile, "static const int N_OPS=%d;\n", n);
-    fprintf(outFile, "static const int NUM_BASE_ARGS = 9;\n");
-    fprintf(outFile, "static const int MIN_NUM_INTERNAL_ARGS = 14;\n");
+    fprintf(outFile, "static const int NUM_BASE_ARGS = 10;\n");
+    fprintf(outFile, "static const int MIN_NUM_INTERNAL_ARGS = 15;\n");
     fprintf(outFile, "static const int METHOD_NAME_POS = 7;\n");
     fprintf(outFile,"\n");
 }
@@ -1135,7 +1136,6 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     char *class_name = strdup("NULL");
     char *hasTarget = strdup("false");
     char *on_failure = strdup("RETRY");
-    char time_out = 0;
 
     int arg_count = func->argument_count;
     int num_returns = 0;
@@ -1154,7 +1154,7 @@ static void generate_execute_task_call(FILE *outFile, function *func) {
     }
 
     fprintf(outFile, "\t char *method_name = strdup(\"%s\");\n", func->name);
-    fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", \"%s\", %d, method_name, 0, %s, %d, %d, (void**)arrayObjs);\n", class_name, on_failure, time_out, hasTarget, num_returns, arg_count);
+    fprintf(outFile, "\t GS_ExecuteTask(0L, \"%s\", \"%s\", 0, method_name, 0, %s, %d, %d, (void**)arrayObjs);\n", class_name, on_failure, hasTarget, num_returns, arg_count);
     fprintf(outFile, "\t debug_printf(\"[   BINDING]  -  @%%s  -  Task submited in the runtime\\n\", method_name);\n");
     fprintf(outFile, "\n");
 

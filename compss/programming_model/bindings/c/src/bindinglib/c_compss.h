@@ -67,6 +67,9 @@ FILE* compss_fopen(char * filename, char * mode);
 void compss_wait_on_file(char *filename);
 void compss_barrier();
 void compss_barrier_new(int no_more_tasks);
+void compss_barrier_group(char *groupname);
+void compss_open_task_group(char *groupname, int implicitBarrier);
+void compss_close_task_group(char *groupname);
 
 template <class T> void compss_wait_on(T* &obj);
 template <class T> T compss_wait_on(T &obj);

@@ -32,6 +32,7 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 import es.bsc.compss.worker.COMPSsWorker;
 
 import java.io.BufferedWriter;
@@ -256,8 +257,9 @@ public abstract class Invoker {
      * Perform the task execution (job).
      * 
      * @throws JobExecutionException Error execution the task
+     * @throws COMPSsException 
      */
-    public void processTask() throws JobExecutionException {
+    public void processTask() throws JobExecutionException, COMPSsException {
         /* Invoke the requested method ****************************** */
         invoke();
         try {
@@ -318,7 +320,7 @@ public abstract class Invoker {
         }
     }
 
-    private void invoke() throws JobExecutionException {
+    private void invoke() throws JobExecutionException, COMPSsException {
         emitStartTask();
         try {
             setEnvironmentVariables();
@@ -363,7 +365,7 @@ public abstract class Invoker {
         }
     }
 
-    protected abstract void invokeMethod() throws JobExecutionException;
+    protected abstract void invokeMethod() throws JobExecutionException, COMPSsException;
 
     /**
      * Writes the given list of workers to a hostfile inside the given task sandbox.

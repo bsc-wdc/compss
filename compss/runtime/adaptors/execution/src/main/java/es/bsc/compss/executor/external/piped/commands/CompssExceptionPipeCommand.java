@@ -23,16 +23,15 @@ import es.bsc.compss.invokers.types.ExternalTaskStatus;
 public class CompssExceptionPipeCommand extends CompssExceptionExternalCommand implements PipeCommand {
 
     public final Integer jobId;
-    public final ExternalTaskStatus taskStatus;
-
+    public final String message;
 
     public CompssExceptionPipeCommand(String[] line) {
         this.jobId = Integer.parseInt(line[1]);
-        this.taskStatus = new ExternalTaskStatus(line);
+        this.message = line[2];
     }
 
-    public ExternalTaskStatus getTaskStatus() {
-        return this.taskStatus;
+    public String getMessage() {
+        return this.message;
     }
 
     @Override

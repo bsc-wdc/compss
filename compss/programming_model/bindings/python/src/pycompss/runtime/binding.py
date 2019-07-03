@@ -392,7 +392,7 @@ def barrier_group(group_name):
     """
 
     # Call the Runtime group barrier
-    compss.barrier_group(0,group_name)
+    return compss.barrier_group(0,group_name)
 
 def open_task_group(group_name, implicit_barrier):
     """

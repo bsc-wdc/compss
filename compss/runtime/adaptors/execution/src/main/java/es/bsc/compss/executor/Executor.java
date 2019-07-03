@@ -205,7 +205,7 @@ public class Executor implements Runnable {
     }
 
     private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
-            throws JobExecutionException {
+            throws Exception {
         /* Register outputs **************************************** */
         String streamsPath = context.getStandardStreamsPath(invocation);
         context.registerOutputs(streamsPath);

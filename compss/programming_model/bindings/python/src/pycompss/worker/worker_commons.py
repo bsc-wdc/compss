@@ -516,7 +516,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
         # TASK TIME OUT
         if __debug__:
             logger.debug("The task timed out")
-        return 2, new_types, new_values, ""
+        return 1, new_types, new_values, ""
 
 
         # EVERYTHING OK

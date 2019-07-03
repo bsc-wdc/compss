@@ -59,13 +59,6 @@
     exit 1
   fi
 
-  # Check if the tasks have failed
-  output1=$(cat "${runtime_log}" | grep "Task failure:" | wc -l)
-  if [ "${output1}" -ne "${failed}" ]; then
-  	echo "ERROR: A task has not failed."
-  	exit 1
-  fi
-
   rm /tmp/sharedDisk/onFailure1.txt
  
   #---------------------------------------------------------------------------------- 

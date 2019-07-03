@@ -229,7 +229,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
                          "an absolute import path (even if in the same file)")
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
-        return 1, new_types, new_values, None
+        return 1, new_types, new_values, None, False
     except Exception:
         # Catch any other user/decorators exception.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -239,7 +239,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         logger.exception(''.join(line for line in lines))
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
-        return 1, new_types, new_values, None
+        return 1, new_types, new_values, None, False
 
     signal.alarm(0)
     if isinstance(task_output[0], tuple):

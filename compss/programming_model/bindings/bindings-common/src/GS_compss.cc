@@ -1255,10 +1255,11 @@ static void getReceivedException(JNIEnv* env, jthrowable exception, char* buf, s
     int success = 0;
     /* get the name of the exception's class */
     jclass exceptionClazz = (*env)->GetObjectClass(env, exception);
-    jclass classClazz = (*env)->GetObjectClass(env, exceptionClazz); // java.lang.Class, can't fail
+    jclass classClazz = (*env)->GetObjectClass(env, exceptionClazz);
     jmethodID classGetNameMethod = (*env)->GetMethodID(
             env, classClazz, "getName", "()Ljava/lang/String;");
     jstring classNameStr = (*env)->CallObjectMethod(env, exceptionClazz, classGetNameMethod);
+    debug_printf("MARTA: The classname is %s\n", env->GetStringUTFChars(classNameStr ,0));
         // if classClazz != COMPSsException
     // exit(1)
     // else

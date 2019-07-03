@@ -41,6 +41,7 @@ public interface ExternalCommand {
         // REQUIRED BY THE EXECUTOR
         EXECUTE_TASK, // Execute a task
         END_TASK, // Task finished
+        COMPSS_EXCEPTION, // Task raised a COMPSsException
 
         REMOVE, // Remove data
         SERIALIZE, // Serialize data

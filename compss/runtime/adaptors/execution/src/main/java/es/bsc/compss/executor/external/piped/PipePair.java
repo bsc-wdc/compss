@@ -23,6 +23,7 @@ import es.bsc.compss.executor.external.commands.ExternalCommand;
 import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AliveReplyPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ErrorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecutorPIDReplyPipeCommand;
@@ -268,6 +269,15 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
                 readCommand = new EndTaskPipeCommand(command);
                 LOGGER.debug("Received endTask message: " + readCommand.getAsString());
+                break;
+            case COMPSS_EXCEPTION:
+                if (command.length < 2) {
+                    LOGGER.warn("WARN: Skipping endTask line because is malformed");
+                    break; 
+                }
+                // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
+                readCommand = new CompssExceptionPipeCommand(command);
+                LOGGER.debug("Received compssException message: " + readCommand.getAsString());
                 break;
             case ERROR:
                 String[] expected = Arrays.copyOfRange(command, 1, command.length);

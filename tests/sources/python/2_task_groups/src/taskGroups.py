@@ -35,6 +35,14 @@ def write_two(file_path):
         new_value = str(2)
         fos.write(new_value)
 
+@task(file_path=FILE_INOUT)
+def write_three(file_path):
+    # Write value
+    with open(file_path, 'a') as fos:
+        new_value = str(3)
+        fos.write(new_value)
+
+
 @task(file_path=FILE_IN, time_out=2)
 def wait_fast(file_path):
     # Task sleeps less than time out
@@ -60,10 +68,7 @@ def test_task_groups(file_name):
         os.mkdir(STORAGE_PATH)
     open(file_name, 'w').close()
 
-    print("[LOG] New blank file created")
-
     with TaskGroup('bigGroup', True):
-        print("Inside task group")
         # Inside a big group, more groups are created
         for i in range(NUM_GROUPS):
             with(TaskGroup('group'+str(i), True)):
@@ -85,6 +90,14 @@ def test_time_out(file_name):
     wait_slow(file_name)
 
 
+def test_exceptions(file_name):
+
+    # Creation of group
+    with TaskGroup('exceptionGroup', True):
+        for i in range(NUM_TASKS):
+            write_three(file_name)
+
+
 def main():
     file_name1 = STORAGE_PATH + "taskGROUPS.txt"
 
@@ -93,6 +106,9 @@ def main():
 
     print("[LOG] Test TIME OUT")
     test_time_out(file_name1)
+
+    print("[LOG] Test EXCEPTIONS")
+    test_exceptions(file_name1)
 
 if __name__ == '__main__':
     main()

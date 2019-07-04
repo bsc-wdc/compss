@@ -34,7 +34,7 @@ def default_hash(x):
 
 
 class DDS(object):
-    """
+    """ Distributed Data Set object.
 
     """
 
@@ -50,7 +50,7 @@ class DDS(object):
         self.paafo = False
 
     def load(self, iterator, num_of_parts=10, paafo=False):
-        """
+        """ Load and distribute the iterator on partitions.
         """
         self.paafo = paafo
         if num_of_parts == -1:
@@ -659,8 +659,9 @@ class DDS(object):
 
 
 class ChildDDS(DDS):
-    """
-
+    """ Similar as DDS objects, with the only difference that ChildDDS objects
+    inherit the partitions from their parents, and have functions to be mapped
+    to the their partitions.
     """
     def __init__(self, parent, func):
         """

@@ -60,7 +60,14 @@ def _map_collection(f, *partition):
 
 @task(col=COLLECTION_INOUT)
 def distribute_partition(partition, partition_func, col, func=None):
-    """
+    """ Distribute (key, value) structured elements of the partition on
+    'buckets'.
+    :param partition:
+    :param partition_func: a function to find element's corresponding bucket
+    :param col: empty 'buckets'.
+    :param func: function from DDS object to be applied to the parition before
+                 the distribution.
+    :return: fill the empty 'buckets' with the elements of the partition.
     """
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
@@ -74,7 +81,14 @@ def distribute_partition(partition, partition_func, col, func=None):
 
 @task(col=COLLECTION_INOUT)
 def distribute_collection(partition_func, col, func=None, *args):
-    """
+    """ Distribute (key, value) structured elements of the partition on
+    'buckets'.
+    :param args: partition as a list of Future Objects
+    :param partition_func: a function to find element's corresponding bucket
+    :param col: empty 'buckets'.
+    :param func: function from DDS object to be applied to the parition before
+                 the distribution.
+    :return: fill the empty 'buckets' with the elements of the partition.
     """
     partition = list(args)
     if func:
@@ -96,11 +110,7 @@ def reduce_dicts(first, *args):
 
 @task(returns=list, iterator=IN)
 def task_dict_to_list(iterator, total_parts, partition_num):
-    """
-    Convert a dictionary to a list to be used as partitions later.
-    :param iterator:
-    :param total_parts:
-    :param partition_num:
+    """ Disctionary to (key, value) pairs.
     :return:
     """
     ret = list()

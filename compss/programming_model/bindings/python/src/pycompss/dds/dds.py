@@ -21,7 +21,7 @@ from collections import deque, defaultdict
 
 from pycompss.api.api import compss_wait_on as cwo, compss_barrier
 
-from pycompss.dds.new_tasks import *
+from pycompss.dds.tasks import *
 from pycompss.dds.partition_generators import *
 from pycompss.dds import heapq3
 

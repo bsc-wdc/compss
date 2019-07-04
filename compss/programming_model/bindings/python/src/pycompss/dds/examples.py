@@ -18,7 +18,7 @@
 import sys
 import time
 
-from pycompss.dds.new_dds import DDS
+from pycompss.dds import DDS
 
 
 def inside(_):

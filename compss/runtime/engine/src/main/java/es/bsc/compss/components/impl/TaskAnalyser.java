@@ -118,8 +118,6 @@ public class TaskAnalyser {
     private TreeMap<String, TaskGroup> taskGroups;
     // Stack of current task groups
     private Stack<TaskGroup> currentTaskGroups;
-    // List of canceled tasks
-    private TreeMap<Integer, AbstractTask> lastTasksNoCanceled;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -145,7 +143,6 @@ public class TaskAnalyser {
         this.pendingToDrawCommutative = new TreeMap<>();
         this.currentTaskGroups = new Stack<>();
         this.taskGroups = new TreeMap<>();
-        this.lastTasksNoCanceled = new TreeMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
 
@@ -508,10 +505,6 @@ public class TaskAnalyser {
                 this.dip.dataAccessHasBeenCanceled(dAccId);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);
-                if (p instanceof DependencyParameter) {
-                    int dataId = ((DependencyParameter) p).getDataAccessId().getDataId();
-                    this.lastTasksNoCanceled.put(dataId, t);
-                }
             }
         }
     }

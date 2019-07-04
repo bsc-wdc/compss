@@ -404,7 +404,7 @@ public class GraphGenerator {
     }
 
     /**
-     * Adds a task group to the graph
+     * Adds a task group to the graph.
      * 
      * @param identifier Group identifier
      */

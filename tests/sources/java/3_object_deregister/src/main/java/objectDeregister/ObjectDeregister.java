@@ -13,7 +13,7 @@ public class ObjectDeregister {
          */
 
         int k;
-        final int ITERATIONS = 10;
+        final int ITERATIONS = 1;
 
         for (int i = 0; i < ITERATIONS; ++i) {
             Dummy d = new Dummy(i);
@@ -29,9 +29,9 @@ public class ObjectDeregister {
         ObjectDeregisterImpl.task4();
         COMPSs.barrier();
         System.gc();
-        Thread.sleep(10000);
+        Thread.sleep(1000000);
 
-        k = ClassInstanceTest.countInstances(Dummy.class);
+        k = ClassInstanceTest.countInstances(Dummy.class);  
         if (k > 0) {
             System.out.println("[ERROR] At the end in the MASTER " + String.valueOf(k)
                     + " instances of the Dummy object were found");

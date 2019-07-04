@@ -17,22 +17,14 @@
 package es.bsc.compss.types.data;
 
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.log.Loggers;
 
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 // Information about a datum and its versions
 public abstract class DataInfo {
 
-    // Component logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
-    private static final boolean DEBUG = LOGGER.isDebugEnabled();
-    
     private static final int FIRST_FILE_ID = 1;
     private static final int FIRST_VERSION_ID = 1;
 

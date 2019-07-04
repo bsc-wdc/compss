@@ -167,6 +167,9 @@ public class DataVersion {
      * @return {@code true} if the data version can be deleted and is marked for deletion, {@code false} otherwise.
      */
     private boolean checkDeletion() {
+        System.out.println("MARTA: Marking to delete with readers " + this.readers + " and writers " + this.writters 
+                + " isToDelete? " + this.toDelete + " for version " + this.dataInstanceId);
+        
         if (this.toDelete // deletion requested
                 && this.writters == 0 // version has been generated
                 && this.readers == 0 // version has been read

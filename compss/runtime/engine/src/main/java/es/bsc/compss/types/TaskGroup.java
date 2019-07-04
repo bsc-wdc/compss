@@ -16,13 +16,10 @@
  */
 package es.bsc.compss.types;
 
-import es.bsc.compss.log.Loggers;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class TaskGroup implements AutoCloseable {
     
@@ -36,9 +33,6 @@ public class TaskGroup implements AutoCloseable {
     private COMPSsException exception;
     
     private boolean implicitBarrier;
-    
-    // LOGGER
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
     
     /**
      * Creates a task group.

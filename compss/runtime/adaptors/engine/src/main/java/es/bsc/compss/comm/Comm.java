@@ -554,8 +554,11 @@ public class Comm {
         ld.isObsolete();
         for (DataLocation dl : ld.getLocations()) {
             MultiURI uri = dl.getURIInHost(appHost);
+
+            System.out.println("MARTA: data location " + ld + " with uri " + uri);
             if (uri != null) {
                 File f = new File(uri.getPath());
+                System.out.println("MARTA: File " + f + " exists? " + f.exists());
                 if (f.exists()) {
                     LOGGER.info("Deleting file " + f.getAbsolutePath());
                     if (!f.delete()) {

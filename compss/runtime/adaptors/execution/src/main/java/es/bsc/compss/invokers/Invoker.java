@@ -33,7 +33,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsWorker;
-import es.bsc.compss.worker.TimeOutTask;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -43,7 +42,6 @@ import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-import java.util.Timer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

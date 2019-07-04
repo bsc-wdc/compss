@@ -471,38 +471,6 @@ public class TaskScheduler {
      */
     public final void exceptionOnAction(AllocatableAction action, COMPSsException e) {
         
-//        List<AllocatableAction> dataFreeActions = new LinkedList<>();
-//        List<AllocatableAction> resourceFree = new LinkedList<>();
-//        
-//        LOGGER.warn("[TaskScheduler] COMPSsException on action " + action);
-//        dataFreeActions  = action.exception(e);
-//        
-//        // Get the data free actions and mark them as ready
-//        for (AllocatableAction dataFreeAction : dataFreeActions) {
-//            addToReady(dataFreeAction);
-//        }
-//    
-//        ResourceScheduler<WorkerResourceDescription> resource;
-//        resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
-//        
-//        // We free the current task and get the free actions from the resource
-//        try {
-//            resourceFree.addAll(resource.unscheduleAction(action));
-//        } catch (ActionNotFoundException anfe) {
-//            // Once the action starts running should cannot be moved from the resource
-//        }
-//        
-//        workerLoadUpdate(resource);
-//        
-//        List<AllocatableAction> blockedCandidates = new LinkedList<>();
-//        
-//        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
-//        for (AllocatableAction aa : blockedCandidates) {
-//            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-//                removeFromReady(aa);
-//            }
-//            addToBlocked(aa);
-//        } 
         LOGGER.info("[TaskScheduler] Exception on action " + action);
         // Mark action as finished
         removeFromReady(action);

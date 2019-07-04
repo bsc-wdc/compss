@@ -274,6 +274,8 @@ public class LogicalData {
         // persistent)
         this.locations.remove(loc);
 
+
+        System.out.println("MARTA: Removing value of object " + val + " location " + loc);
         return val;
     }
 

@@ -23,46 +23,6 @@ from pycompss.dds.partition_generators import IPartitionGenerator
 marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 
 
-@task(iterator=IN, returns=list)
-def get_next_partition(iterable, start, end):
-    """
-    Divide and retrieve the next partition.
-    :return:
-    """
-
-    # If it's a dict
-    if isinstance(iterable, dict):
-        sorted_keys = sorted(iterable.keys())
-        for key in sorted_keys[start:end]:
-            yield key, iterable[key]
-    elif isinstance(iterable, list):
-        for item in iter(iterable[start:end]):
-            yield item
-    else:
-        index = 0
-        for item in iter(iterable):
-            index += 1
-            if index > end:
-                break
-            elif index > start:
-                yield item
-
-
-@task(files=list, returns=list)
-def task_read_files(file_paths):
-    """
-
-    :param file_paths:
-    :return:
-    """
-    ret = list()
-    for file_path in file_paths:
-        content = open(file_path).read()
-        ret.append((file_path, content))
-
-    return ret
-
-
 def map_partition(f, partition, col=False):
     return _map_collection(f, *partition) if col \
         else _map_partition(f, partition)
@@ -158,32 +118,6 @@ def task_dict_to_list(iterator, total_parts, partition_num):
             ret.append((i, iterator[i]))
 
     return ret
-
-
-@task(returns=1, first=INOUT)
-def merge_dicts(first, second, merger_function):
-    """
-    """
-    for key in second:
-        val = second[key]
-        first[key] = merger_function(first[key], val) if key in first else val
-
-
-@task(returns=1)
-def reduce_partition(f, partition):
-    """
-    TODO: Should it be a Tree Reducer as well?
-    """
-    iterator = iter(partition)
-    try:
-        res = next(iterator)
-    except StopIteration:
-        return
-
-    for el in partition:
-        res = f(res, el)
-
-    return res
 
 
 @task(returns=1)

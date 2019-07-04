@@ -14,177 +14,89 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-import sys
 
-from pycompss.api.api import compss_wait_on
-from pycompss.api.parameter import INOUT, IN
+from pycompss.api.api import compss_wait_on as cwo
+from pycompss.api.parameter import INOUT, IN, COLLECTION_INOUT
 from pycompss.api.task import task
+from pycompss.dds.partition_generators import IPartitionGenerator
 
 marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 
 
-def default_hash(x):
-    """
-    :param x:
-    :return: hash value
-    """
-    return hash(x)
-
-
-"""
-Helper functions to convert regular python functions to PyCOMPSs tasks. All 
-functions return future objects (of a list or a single value).
-"""
+def map_partition(f, partition, col=False):
+    return _map_collection(f, *partition) if col \
+        else _map_partition(f, partition)
 
 
 @task(returns=1)
-def task_map_partition(f, partition, *args, **kwargs):
+def _map_partition(f, partition):
     """
     Apply a function to a partition in a new task. The function should take an
-    iterable as a parameter and return a list.
+    iterable as the parameter and return a list.
     :param f: A function that takes an iterable as a parameter
-    :param map_func: in case 'f' is a reverse_mapper function, the real map
-                    function should be sent as 'map_func'. This is important
-                    because nested functions cannot be serialized.
-    :param partition:
+    :param partition: partition generator
     :return: future object of the list containing results
     """
-    res = f(partition, *args, **kwargs)
+    if isinstance(partition, IPartitionGenerator):
+        partition = partition.retrieve_data()
+
+    res = f(partition)
     del partition
     return res
 
 
-@task(returns=0)
-def apply_to_all(f, iterator):
-    """
-    Apply a void function to each element of an iteratos in a new task
-    :param f: a void function
-    :param iterator:
-    """
-    for x in iterator:
-        f(x)
-
-
-@task(returns=list)
-def task_filter(f, iterator):
-    """
-
-    :param f:
-    :param iterator:
-    :return:
-    """
-    ret = list()
-    for i in iterator:
-        if f(i):
-            ret.append(i)
-    return ret
-
-
 @task(returns=1)
-def task_reduce_partition(f, partition):
+def _map_collection(f, *partition):
     """
+    Apply a function to a partition in a new task. The function should take an
+    iterable as the parameter and return a list.
+    :param f: A function that takes an iterable as a parameter
+    :param partition: partition generator
+    :return: future object of the list containing results
+    """
+    res = f(list(partition))
+    return res
 
-    :param f:
+
+@task(col=COLLECTION_INOUT)
+def distribute_partition(partition, partition_func, col, func=None):
+    """ Distribute (key, value) structured elements of the partition on
+    'buckets'.
     :param partition:
-    :return:
+    :param partition_func: a function to find element's corresponding bucket
+    :param col: empty 'buckets'.
+    :param func: function from DDS object to be applied to the parition before
+                 the distribution.
+    :return: fill the empty 'buckets' with the elements of the partition.
     """
-    iterator = iter(partition)
-    try:
-        res = next(iterator)
-    except StopIteration:
-        return
+    if isinstance(partition, IPartitionGenerator):
+        partition = partition.retrieve_data()
 
-    for el in iterator:
-        res = f(res, el)
-
-    return res
-
-
-@task(returns=1)
-def task_reduce(f, *args, **kwargs):
-    """
-    """
-    iterator = iter(args)
-    try:
-        res = next(iterator)
-    except StopIteration:
-        return
-
-    for el in iterator:
-        res = f(res, el)
-
-    if kwargs.get('as_list', False):
-        res = [res]
-
-    return res
-
-
-@task(returns=list)
-def filter_partition(partition, group_by_func, nop, bucket_number):
-    """
-    """
-    filtered_list = list()
+    if func:
+        partition = func(partition)
+    nop = len(col)
     for k, v in partition:
-        if (group_by_func(k) % nop) == bucket_number:
-            filtered_list.append((k, v))
-
-    return filtered_list
+        col[partition_func(k) % nop].append((k, v))
 
 
-@task(returns=list)
-def task_collect_samples(partition, key_func):
+@task(col=COLLECTION_INOUT)
+def distribute_collection(partition_func, col, func=None, *args):
+    """ Distribute (key, value) structured elements of the partition on
+    'buckets'.
+    :param args: partition as a list of Future Objects
+    :param partition_func: a function to find element's corresponding bucket
+    :param col: empty 'buckets'.
+    :param func: function from DDS object to be applied to the parition before
+                 the distribution.
+    :return: fill the empty 'buckets' with the elements of the partition.
     """
+    partition = list(args)
+    if func:
+        partition = func(partition)
 
-    :param partition:
-    :return:
-    """
-    ret = list()
-    for index in range(len(partition)):
-        if not index % 20:
-            ret.append(key_func(partition[index][0]))
-
-    return ret
-
-
-@task(returns=list)
-def merge_bucket(*bucket):
-    ret = list()
-    for item in bucket:
-        ret.extend(item)
-    return ret
-
-
-@task(returns=dict)
-def task_combine(iterator, creator_func, combiner_func):
-    """
-    Combine elements of an iterator (partition) by key in a dictionary.
-    :param iterator:
-    :param creator_func: a function to apply to the value, in its key's first
-                        occurrence.
-    :param combiner_func: a function to combine second and later occurrences
-    :return:
-    """
-    r = dict()
-    for k, v in iterator:
-        r[k] = combiner_func(r[k], v) if k in r else creator_func(v)
-    return r
-
-
-@task(returns=1)
-def task_merge(a, b, merger_function):
-    """
-    Merge two combined values and update the value in the first incoming dict.
-    :param a:
-    :param b:
-    :param merger_function:
-    :return:
-    """
-
-    for k, v in b.items():
-        temp = merger_function(a[k], v) if k in a else v
-        a[k] = temp
-
-    return a
+    nop = len(col)
+    for k, v in partition:
+        col[partition_func(k) % nop].append((k, v))
 
 
 @task(first=INOUT)
@@ -198,11 +110,7 @@ def reduce_dicts(first, *args):
 
 @task(returns=list, iterator=IN)
 def task_dict_to_list(iterator, total_parts, partition_num):
-    """
-    Convert a dictionary to a list to be used as partitions later.
-    :param iterator:
-    :param total_parts:
-    :param partition_num:
+    """ Disctionary to (key, value) pairs.
     :return:
     """
     ret = list()
@@ -222,156 +130,32 @@ def task_dict_to_list(iterator, total_parts, partition_num):
     return ret
 
 
-@task(returns=list)
-def another_task_dict_to_list(iterator):
+@task(returns=1)
+def reduce_multiple(f, *args):
     """
-    Convert a dictionary to a list to be used as partitions later.
-    :param iterator:
-    :return:
+    """
+    partitions = iter(args)
+    try:
+        res = next(partitions)[0]
+    except StopIteration:
+        return
+
+    for part in partitions:
+        if part:
+            res = f(res, part[0])
+
+    return [res]
+
+
+@task(returns=list)
+def task_collect_samples(partition, num_of_samples, key_func):
+    """
     """
     ret = list()
-    for i in iterator.keys():
-        ret.append((i, iterator[i]))
+    total = len(partition)
+    step = max(total // num_of_samples, 1)
+    for _i in range(0, total, step):
+        ret.append(key_func(partition[_i][0]))
 
     return ret
 
-
-@task(returns=list, iterator=INOUT)
-def task_next_bucket(iterator, partition_num):
-    """
-    Get the next partition of incoming data depending on its size and number of
-    total partitions to be created left. After adding elements to new partitions,
-    they are deleted from the source in order to ease data transfer.
-    :param iterator:
-    :param partition_num:
-    :return:
-    """
-    ret = list()
-    chunk_size = max(1, len(iterator) // partition_num)
-    for index, key in enumerate(iterator.keys()):
-        ret.extend(iterator[key])
-        del iterator[key]
-        if index == chunk_size-1:
-            break
-
-    return ret
-
-
-@task(files=list, returns=list)
-def task_read_files(file_paths):
-    """
-
-    :param file_paths:
-    :return:
-    """
-    ret = list()
-    for file_path in file_paths:
-        content = open(file_path).read()
-        ret.append((file_path, content))
-
-    return ret
-
-
-@task(returns=list)
-def task_load(data):
-    """
-
-    :param data:
-    :return:
-    """
-    ret = list()
-    if isinstance(data, list):
-        ret.extend(data)
-    else:
-        ret.append(data)
-    return ret
-
-
-@task(returns=list)
-def task_load_and_map(data, func, *args, **kwargs):
-    """
-
-    :param func:
-    :param data:
-    :return:
-    """
-    return [func(data, *args, **kwargs)]
-
-
-@task(iterator=IN, returns=list)
-def get_next_partition(iterable, start, end):
-    """
-    Divide and retrieve the next partition.
-    :return:
-    """
-    ret = list()
-    # TODO: Review Python 2 controls
-    # Strings are immutable, just add them to a list
-    # if isinstance(iterable, basestring):
-    #     yield iterable[start:end]
-    # If it's a dict
-    if isinstance(iterable, dict):
-        sorted_keys = sorted(iterable.keys())
-        for key in sorted_keys[start:end]:
-            yield key
-    # elif hasattr(iterator, "__len__") and hasattr(iterator, "__getslice__"):
-    #     # Todo: Test it!
-    #     # Python 2
-    #     print("____________________________PYTHON 2")
-    #     ret = iterator[:chunk_size]
-    #     iterator = iterator[chunk_size:]
-    #     return ret
-    elif isinstance(iterable, list):
-        for item in iter(iterable[start:end]):
-            yield item
-    else:
-        index = 0
-        for item in iter(iterable):
-            index += 1
-            if index > end:
-                break
-            elif index > start:
-                yield item
-
-
-@task(returns=list)
-def load_partition_from_file(file_path, start, chunk_size):
-    """
-
-    :param file_path:
-    :param start:
-    :param chunk_size:
-    :return:
-    """
-    fp = open(file_path)
-    fp.seek(start)
-    temp = fp.read(chunk_size)
-    fp.close()
-    return [temp]
-
-
-# Data Set generator from:
-# http://compss.bsc.es/gitlab/bar/apps/blob/master/python/pycompss_lib/pycompss_lib/algorithms/terasort/base/src/terasort.py
-@task(returns=list)
-def gen_fragment(num_entries, seed):
-    """
-    Generate a fragment with random numbers.
-    A fragment is a list of tuples, where the first element of each tuple
-    is the key, and the second the value.
-    Each key is generated randomly between min and max global values.
-    Each value is generated randomly between -1 and 1
-
-    fragment structure = [(k1, v1), (k2, v2), ..., (kn, vn)]
-
-    :param num_entries: Number of k,v pairs within a fragment
-    :param seed: The seed for the random generator
-    :return: Fragment
-    """
-    import random
-    range_min = 0
-    range_max = sys.maxsize
-    random.seed(seed)
-    fragment = []
-    for n in range(num_entries):
-        fragment.append((random.randrange(range_min, range_max), random.random()))
-    return fragment

@@ -19,7 +19,6 @@ import sys
 import time
 
 from pycompss.dds.new_dds import DDS
-from pycompss.dds.tasks import gen_fragment
 
 
 def to_list(a): return [a]
@@ -189,32 +188,7 @@ def example_5():
     print("______________END OF THE EXAMPLE________________\n")
 
 
-def terasort(num_fragments, num_entries, seed):
-    """
-    ----------------------
-    Terasort main program
-    ----------------------
-    This application generates a set of fragments that contain randomly
-    generated key, value tuples and sorts them all considering the key of
-    each tuple.
-
-    :param num_fragments: Number of fragments to generate
-    :param num_entries: Number of entries (k,v tuples) within each fragment
-    :param seed: Initial seed for the random number generator.
-    """
-
-    dataset = [gen_fragment(num_entries, seed + i) for i in range(num_fragments)]
-    dds = DDS().load(dataset, -1).partition_by().sort_by_key().collect()
-    temp = 0
-    for i, k in dds:
-        if i < temp:
-            print("FAILED")
-            break
-        temp = i
-    print(dds[-1:])
-
-
-def run_terasort():
+def terasort():
     """
     """
 
@@ -277,8 +251,7 @@ def main_program():
     # word_count()
     # reduce_example()
     # load_n_map_example()
-    # run_terasort()
-    # terasort(5, 5, 3)
+    terasort()
     # test_new_dds()
     inverted_indexing()
 

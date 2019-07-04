@@ -19,11 +19,10 @@ import itertools
 import os
 from collections import deque, defaultdict
 
-from pycompss.api.api import compss_wait_on as cwo, compss_barrier
-
-from pycompss.dds.tasks import *
-from pycompss.dds.partition_generators import *
+from pycompss.api.api import compss_barrier
 from pycompss.dds import heapq3
+from pycompss.dds.partition_generators import *
+from pycompss.dds.tasks import *
 
 
 def default_hash(x):
@@ -47,7 +46,7 @@ class DDS(object):
         self.func = None
 
         # Partition As A Future Object
-        # If partitions are not Future Objects but list of Future Objects
+        # True if partitions are not Future Objects but list of Future Objects
         self.paafo = False
 
     def load(self, iterator, num_of_parts=10, paafo=False):
@@ -686,34 +685,11 @@ class ChildDDS(DDS):
             self.func = wrap_parent_func
 
 
-def tree_reduce_dicts(initial, reduce_function, collect, total_parts=-1):
-    """
-    """
-    future_objects = deque(initial)
-
-    while future_objects:
-        first = future_objects.popleft()
-        if future_objects:
-            second = future_objects.popleft()
-            merge_dicts(first, second, reduce_function)
-            future_objects.append(first)
-        else:
-            # If it's the last item in the queue, retrieve it:
-            if collect:
-                # As a dict if necessary
-                ret = cwo(first)
-                return ret
-            # As a list of future objects
-            # TODO: Implement 'dict' --> 'lists on nodes'
-            ret = list()
-            for i in range(total_parts):
-                ret.append(task_dict_to_list(first, total_parts, i))
-            return ret
-
-
 def _run_tests():
     import doctest
     doctest.testmod()
+    os.remove("test.file")
+    os.remove("test.txt")
 
 
 if __name__ == "__main__":

@@ -16,19 +16,16 @@
  */
 package es.bsc.compss.scheduler.fullGraphScheduler;
 
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.es.bsc.compss.scheduler.types.Profile;
-import es.bsc.es.bsc.compss.scheduler.types.SchedulingInformation;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.SchedulingInformation;
 
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends SchedulingInformation<P, T, I> {
+public class FullGraphSchedulingInformation extends SchedulingInformation {
 
     // Lock to avoid multiple threads to modify the content at the same time
     private final ReentrantLock l = new ReentrantLock();
@@ -41,76 +38,78 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
     private int openGaps = 0;
 
     // Allocatable actions that the action depends on due to resource availability
-    private final LinkedList<AllocatableAction<P, T, I>> resourcePredecessors;
+    private final LinkedList<AllocatableAction> resourcePredecessors;
 
     // Allocatable actions depending on the allocatable action due to resource availability
-    private LinkedList<AllocatableAction<P, T, I>> resourceSuccessors;
+    private LinkedList<AllocatableAction> resourceSuccessors;
 
     // Action Scheduling is being optimized locally
     private boolean onOptimization = false;
     private boolean toReschedule = false;
-    private final LinkedList<AllocatableAction<P, T, I>> optimizingSuccessors;
+    private final LinkedList<AllocatableAction> optimizingSuccessors;
 
 
-    public FullGraphSchedulingInformation() {
-        resourcePredecessors = new LinkedList<>();
-        resourceSuccessors = new LinkedList<>();
+    public FullGraphSchedulingInformation(ResourceScheduler<?> enforcedTargetResource) {
+        super(enforcedTargetResource);
 
-        lastUpdate = System.currentTimeMillis();
-        expectedStart = 0;
-        expectedEnd = 0;
+        this.resourcePredecessors = new LinkedList<>();
+        this.resourceSuccessors = new LinkedList<>();
 
-        optimizingSuccessors = new LinkedList<>();
+        this.lastUpdate = System.currentTimeMillis();
+        this.expectedStart = 0;
+        this.expectedEnd = 0;
+
+        this.optimizingSuccessors = new LinkedList<>();
     }
 
-    public void addPredecessor(AllocatableAction<P, T, I> predecessor) {
-        resourcePredecessors.add(predecessor);
+    public void addPredecessor(AllocatableAction predecessor) {
+        this.resourcePredecessors.add(predecessor);
     }
 
     public boolean hasPredecessors() {
-        return !resourcePredecessors.isEmpty();
+        return !this.resourcePredecessors.isEmpty();
     }
 
     @Override
     public final boolean isExecutable() {
         boolean b;
         lock();
-        b = resourcePredecessors.isEmpty();
+        b = this.resourcePredecessors.isEmpty();
         unlock();
         return b;
     }
 
-    public LinkedList<AllocatableAction<P, T, I>> getPredecessors() {
-        return resourcePredecessors;
+    public LinkedList<AllocatableAction> getPredecessors() {
+        return this.resourcePredecessors;
     }
 
-    public void removePredecessor(AllocatableAction<P, T, I> successor) {
-        resourcePredecessors.remove(successor);
+    public void removePredecessor(AllocatableAction successor) {
+        this.resourcePredecessors.remove(successor);
     }
 
     public void clearPredecessors() {
-        resourcePredecessors.clear();
+        this.resourcePredecessors.clear();
     }
 
-    public void addSuccessor(AllocatableAction<P, T, I> successor) {
-        resourceSuccessors.add(successor);
+    public void addSuccessor(AllocatableAction successor) {
+        this.resourceSuccessors.add(successor);
     }
 
-    public LinkedList<AllocatableAction<P, T, I>> getSuccessors() {
-        return resourceSuccessors;
+    public LinkedList<AllocatableAction> getSuccessors() {
+        return this.resourceSuccessors;
     }
 
-    public void removeSuccessor(AllocatableAction<P, T, I> successor) {
-        resourceSuccessors.remove(successor);
+    public void removeSuccessor(AllocatableAction successor) {
+        this.resourceSuccessors.remove(successor);
     }
 
     public void clearSuccessors() {
-        resourceSuccessors.clear();
+        this.resourceSuccessors.clear();
     }
 
-    public LinkedList<AllocatableAction<P, T, I>> replaceSuccessors(LinkedList<AllocatableAction<P, T, I>> newSuccessors) {
-        LinkedList<AllocatableAction<P, T, I>> oldSuccessors = resourceSuccessors;
-        resourceSuccessors = newSuccessors;
+    public LinkedList<AllocatableAction> replaceSuccessors(LinkedList<AllocatableAction> newSuccessors) {
+        LinkedList<AllocatableAction> oldSuccessors = this.resourceSuccessors;
+        this.resourceSuccessors = newSuccessors;
         return oldSuccessors;
     }
 
@@ -119,7 +118,7 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
     }
 
     public long getExpectedStart() {
-        return expectedStart;
+        return this.expectedStart;
     }
 
     public void setExpectedEnd(long expectedEnd) {
@@ -127,7 +126,7 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
     }
 
     public long getExpectedEnd() {
-        return expectedEnd;
+        return this.expectedEnd;
     }
 
     public void setLastUpdate(long lastUpdate) {
@@ -135,20 +134,20 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
     }
 
     public long getLastUpdate() {
-        return lastUpdate;
+        return this.lastUpdate;
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(
-                "\tlastUpdate: " + lastUpdate + "\n" + "\texpectedStart: " + expectedStart + "\n" + "\texpectedEnd:" + expectedEnd + "\n");
+        StringBuilder sb = new StringBuilder("\tlastUpdate: " + this.lastUpdate + "\n" + "\texpectedStart: "
+                + this.expectedStart + "\n" + "\texpectedEnd:" + this.expectedEnd + "\n");
         sb.append("\t").append("schedPredecessors: ");
-        for (AllocatableAction<P, T, I> aa : getPredecessors()) {
+        for (AllocatableAction aa : getPredecessors()) {
             sb.append(" ").append(aa);
         }
         sb.append("\n");
         sb.append("\t").append("schedSuccessors: ");
-        for (AllocatableAction<P, T, I> aa : getSuccessors()) {
+        for (AllocatableAction aa : getSuccessors()) {
             sb.append(" ").append(aa);
         }
         sb.append("\n");
@@ -158,46 +157,46 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
 
     public boolean tryToLock() {
         try {
-            return l.tryLock(1, TimeUnit.MILLISECONDS);
+            return this.l.tryLock(1, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ie) {
             return false;
         }
     }
 
     public void lock() {
-        l.lock();
+        this.l.lock();
     }
 
     public void unlock() {
-        l.unlock();
+        this.l.unlock();
     }
 
     public void unlockCompletely() {
-        while (l.getHoldCount() > 1) {
-            l.unlock();
+        while (this.l.getHoldCount() > 1) {
+            this.l.unlock();
         }
     }
 
     public void scheduled() {
-        scheduled = true;
+        this.scheduled = true;
     }
 
     public void unscheduled() {
-        scheduled = false;
-        resourcePredecessors.clear();
-        resourceSuccessors.clear();
+        this.scheduled = false;
+        this.resourcePredecessors.clear();
+        this.resourceSuccessors.clear();
     }
 
     boolean isScheduled() {
-        return scheduled;
+        return this.scheduled;
     }
 
     public void setOnOptimization(boolean b) {
-        onOptimization = b;
+        this.onOptimization = b;
     }
 
     public boolean isOnOptimization() {
-        return onOptimization;
+        return this.onOptimization;
     }
 
     public void setToReschedule(boolean b) {
@@ -208,40 +207,40 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
         return this.toReschedule;
     }
 
-    public void optimizingSuccessor(AllocatableAction<P, T, I> action) {
-        optimizingSuccessors.add(action);
+    public void optimizingSuccessor(AllocatableAction action) {
+        this.optimizingSuccessors.add(action);
     }
 
-    public LinkedList<AllocatableAction<P, T, I>> getOptimizingSuccessors() {
-        return optimizingSuccessors;
+    public LinkedList<AllocatableAction> getOptimizingSuccessors() {
+        return this.optimizingSuccessors;
     }
 
     public void clearOptimizingSuccessors() {
-        optimizingSuccessors.clear();
+        this.optimizingSuccessors.clear();
     }
 
     public void addGap() {
-        openGaps++;
+        this.openGaps++;
     }
 
     public void removeGap() {
-        openGaps--;
+        this.openGaps--;
     }
 
     public void clearGaps() {
-        openGaps = 0;
+        this.openGaps = 0;
     }
 
     public boolean hasGaps() {
-        return openGaps > 0;
+        return this.openGaps > 0;
     }
 
     public int getLockCount() {
-        return l.getHoldCount();
+        return this.l.getHoldCount();
     }
 
     public int getGapCount() {
-        return openGaps;
+        return this.openGaps;
     }
 
 }

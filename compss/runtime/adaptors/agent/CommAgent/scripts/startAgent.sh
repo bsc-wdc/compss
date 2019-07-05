@@ -312,8 +312,8 @@ java \
 -Dcompss.project.schema="${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd" \
 -Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
--Dcompss.scheduler=es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler \
+-Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler \
 -Dcompss.comm=es.bsc.compss.agent.rest.master.Adaptor \
-${DATACLAY_CONFIG_OPT}\
+${DATACLAY_CONFIG_OPT} \
 es.bsc.compss.agent.comm.CommAgent ${AGENT_PORT}
 

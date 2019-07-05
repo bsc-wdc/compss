@@ -17,35 +17,35 @@
 package es.bsc.compss.scheduler.fullGraphScheduler;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.es.bsc.compss.scheduler.exceptions.BlockedActionException;
-import es.bsc.es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
-import es.bsc.es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.es.bsc.compss.scheduler.types.FullGraphScore;
-import es.bsc.es.bsc.compss.scheduler.types.OptimizationWorker;
-import es.bsc.es.bsc.compss.scheduler.types.Profile;
-import es.bsc.es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.scheduler.exceptions.BlockedActionException;
+import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
+import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.FullGraphScore;
+import es.bsc.compss.scheduler.types.OptimizationWorker;
+import es.bsc.compss.scheduler.types.Profile;
+import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
 
-public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> extends Thread {
+public class ScheduleOptimizer extends Thread {
 
     private static final long OPTIMIZATION_THRESHOLD = 5_000;
 
-    private FullGraphScheduler<P, T, I> scheduler;
+    private FullGraphScheduler scheduler;
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
 
-    private FullGraphScore<P, T, I> dummyScore = new FullGraphScore<>(0, 0, 0, 0, 0);
+    private FullGraphScore dummyScore = new FullGraphScore(0, 0, 0, 0, 0);
 
 
     /**
@@ -53,7 +53,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
      * 
      * @param scheduler
      */
-    public ScheduleOptimizer(FullGraphScheduler<P, T, I> scheduler) {
+    public ScheduleOptimizer(FullGraphScheduler scheduler) {
         this.setName("ScheduleOptimizer");
         this.scheduler = scheduler;
     }
@@ -68,7 +68,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
         }
         while (!stop) {
             long optimizationTS = System.currentTimeMillis();
-            Collection<ResourceScheduler<P, T, I>> workers = scheduler.getWorkers();
+            Collection<ResourceScheduler<?>> workers = this.scheduler.getWorkers();
             globalOptimization(optimizationTS, workers);
             waitForNextIteration(lastUpdate);
             lastUpdate = optimizationTS;
@@ -103,18 +103,17 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
      --------------- Local  optimization ---------------
      ---------------------------------------------------
      --------------------------------------------------*/
-    @SuppressWarnings("unchecked")
-    public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<P, T, I>> workers) {
+    public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<?>> workers) {
         int workersCount = workers.size();
         if (workersCount == 0) {
             return;
         }
-        OptimizationWorker<P, T, I>[] optimizedWorkers = new OptimizationWorker[workersCount];
-        LinkedList<OptimizationWorker<P, T, I>> receivers = new LinkedList<>();
+        OptimizationWorker<?>[] optimizedWorkers = new OptimizationWorker[workersCount];
+        LinkedList<OptimizationWorker<?>> receivers = new LinkedList<>();
 
         int index = 0;
-        for (ResourceScheduler<P, T, I> rs : workers) {
-            optimizedWorkers[index] = new OptimizationWorker<>((FullGraphResourceScheduler<P, T, I>) rs);
+        for (ResourceScheduler<?> rs : workers) {
+            optimizedWorkers[index] = new OptimizationWorker<>((FullGraphResourceScheduler<?>) rs);
             index = index + 1;
         }
 
@@ -128,16 +127,16 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
                 optimizedWorkers[i].localOptimization(optimizationTS);
             }
 
-            OptimizationWorker<P, T, I> donor = determineDonorAndReceivers(optimizedWorkers, receivers);
+            OptimizationWorker<?> donor = determineDonorAndReceivers(optimizedWorkers, receivers);
 
             while (!hasDonated) {
-                AllocatableAction<P, T, I> candidate = donor.pollDonorAction();
+                AllocatableAction candidate = donor.pollDonorAction();
                 if (candidate == null) {
                     break;
                 }
-                Iterator<OptimizationWorker<P, T, I>> recIt = receivers.iterator();
+                Iterator<OptimizationWorker<?>> recIt = receivers.iterator();
                 while (recIt.hasNext()) {
-                    OptimizationWorker<P, T, I> receiver = recIt.next();
+                    OptimizationWorker<?> receiver = recIt.next();
                     if (move(candidate, donor, receiver)) {
                         hasDonated = true;
                     }
@@ -147,15 +146,15 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
         }
     }
 
-    public OptimizationWorker<P, T, I> determineDonorAndReceivers(OptimizationWorker<P, T, I>[] workers,
-            LinkedList<OptimizationWorker<P, T, I>> receivers) {
+    public OptimizationWorker<?> determineDonorAndReceivers(OptimizationWorker<?>[] workers,
+            LinkedList<OptimizationWorker<?>> receivers) {
 
         receivers.clear();
-        PriorityQueue<OptimizationWorker<P, T, I>> receiversPQ = new PriorityQueue<>(1, getReceptionComparator());
+        PriorityQueue<OptimizationWorker<?>> receiversPQ = new PriorityQueue<>(1, getReceptionComparator());
         long topIndicator = Long.MIN_VALUE;
-        OptimizationWorker<P, T, I> top = null;
+        OptimizationWorker<?> top = null;
 
-        for (OptimizationWorker<P, T, I> ow : workers) {
+        for (OptimizationWorker<?> ow : workers) {
             long indicator = ow.getDonationIndicator();
             if (topIndicator > indicator) {
                 receiversPQ.add(ow);
@@ -167,7 +166,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
                 top = ow;
             }
         }
-        OptimizationWorker<P, T, I> ow;
+        OptimizationWorker<?> ow;
         while ((ow = receiversPQ.poll()) != null) {
             receivers.add(ow);
         }
@@ -179,11 +178,11 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
      ----------- Comparators  optimization -------------
      ---------------------------------------------------
      --------------------------------------------------*/
-    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> Comparator<AllocatableAction<P, T, I>> getSelectionComparator() {
-        return new Comparator<AllocatableAction<P, T, I>>() {
+    public static Comparator<AllocatableAction> getSelectionComparator() {
+        return new Comparator<AllocatableAction>() {
 
             @Override
-            public int compare(AllocatableAction<P, T, I> action1, AllocatableAction<P, T, I> action2) {
+            public int compare(AllocatableAction action1, AllocatableAction action2) {
                 int priority = Integer.compare(action1.getPriority(), action2.getPriority());
                 if (priority == 0) {
                     return Long.compare(action1.getId(), action2.getId());
@@ -194,13 +193,15 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
         };
     }
 
-    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> Comparator<AllocatableAction<P, T, I>> getDonationComparator() {
-        return new Comparator<AllocatableAction<P, T, I>>() {
+    public static Comparator<AllocatableAction> getDonationComparator() {
+        return new Comparator<AllocatableAction>() {
 
             @Override
-            public int compare(AllocatableAction<P, T, I> action1, AllocatableAction<P, T, I> action2) {
-                FullGraphSchedulingInformation<P, T, I> action1DSI = (FullGraphSchedulingInformation<P, T, I>) action1.getSchedulingInfo();
-                FullGraphSchedulingInformation<P, T, I> action2DSI = (FullGraphSchedulingInformation<P, T, I>) action2.getSchedulingInfo();
+            public int compare(AllocatableAction action1, AllocatableAction action2) {
+                FullGraphSchedulingInformation action1DSI = (FullGraphSchedulingInformation) action1
+                        .getSchedulingInfo();
+                FullGraphSchedulingInformation action2DSI = (FullGraphSchedulingInformation) action2
+                        .getSchedulingInfo();
                 int priority = Long.compare(action2DSI.getExpectedEnd(), action1DSI.getExpectedEnd());
                 if (priority == 0) {
                     return Long.compare(action1.getId(), action2.getId());
@@ -211,22 +212,22 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
         };
     }
 
-    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> Comparator<OptimizationWorker<P, T, I>> getReceptionComparator() {
-        return new Comparator<OptimizationWorker<P, T, I>>() {
+    public static Comparator<OptimizationWorker<?>> getReceptionComparator() {
+        return new Comparator<OptimizationWorker<?>>() {
 
             @Override
-            public int compare(OptimizationWorker<P, T, I> worker1, OptimizationWorker<P, T, I> worker2) {
+            public int compare(OptimizationWorker<?> worker1, OptimizationWorker<?> worker2) {
                 return Long.compare(worker1.getDonationIndicator(), worker2.getDonationIndicator());
             }
         };
     }
 
-    private boolean move(AllocatableAction<P, T, I> action, OptimizationWorker<P, T, I> donor, OptimizationWorker<P, T, I> receiver) {
-        LinkedList<AllocatableAction<P, T, I>> dataPreds = action.getDataPredecessors();
+    private boolean move(AllocatableAction action, OptimizationWorker<?> donor, OptimizationWorker<?> receiver) {
+        List<AllocatableAction> dataPreds = action.getDataPredecessors();
         long dataAvailable = 0;
         try {
-            for (AllocatableAction<P, T, I> dataPred : dataPreds) {
-                FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) dataPred.getSchedulingInfo();
+            for (AllocatableAction dataPred : dataPreds) {
+                FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) dataPred.getSchedulingInfo();
                 dataAvailable = Math.max(dataAvailable, dsi.getExpectedEnd());
             }
         } catch (ConcurrentModificationException cme) {
@@ -234,11 +235,11 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
             dataPreds = action.getDataPredecessors();
         }
 
-        I bestImpl = null;
+        Implementation bestImpl = null;
         long bestTime = Long.MAX_VALUE;
 
-        LinkedList<I> impls = action.getCompatibleImplementations(receiver.getResource());
-        for (I impl : impls) {
+        List<Implementation> impls = action.getCompatibleImplementations(receiver.getResource());
+        for (Implementation impl : impls) {
             Profile p = receiver.getResource().getProfile(impl);
             long avgTime = p.getAverageExecutionTime();
             if (avgTime < bestTime) {
@@ -247,7 +248,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
             }
         }
 
-        FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo();
+        FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) action.getSchedulingInfo();
         long currentEnd = dsi.getExpectedEnd();
 
         if (bestImpl != null && currentEnd > receiver.getResource().getLastGapExpectedStart() + bestTime) {
@@ -258,18 +259,18 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
         return false;
     }
 
-    public void schedule(AllocatableAction<P, T, I> action, I impl, OptimizationWorker<P, T, I> ow) {
+    public void schedule(AllocatableAction action, Implementation impl, OptimizationWorker<?> ow) {
         try {
             action.schedule(ow.getResource(), impl);
             action.tryToLaunch();
         } catch (InvalidSchedulingException ise) {
             try {
                 long actionScore = FullGraphScore.getActionScore(action);
-                long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new FullGraphScore<P, T, I>(actionScore, dataTime, 0, 0, 0);
+                long dataTime = this.dummyScore.getDataPredecessorTime(action.getDataPredecessors());
+                Score aScore = new FullGraphScore(actionScore, dataTime, 0, 0, 0);
                 boolean keepTrying = true;
                 for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-                    AllocatableAction<P, T, I> pre = action.getConstrainingPredecessors().get(i);
+                    AllocatableAction pre = action.getConstrainingPredecessors().get(i);
                     action.schedule(pre.getAssignedResource(), aScore);
                     try {
                         action.tryToLaunch();
@@ -287,8 +288,8 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
         }
     }
 
-    public void unschedule(AllocatableAction<P, T, I> action) {
-        FullGraphResourceScheduler<P, T, I> resource = (FullGraphResourceScheduler<P, T, I>) action.getAssignedResource();
+    public void unschedule(AllocatableAction action) {
+        FullGraphResourceScheduler<?> resource = (FullGraphResourceScheduler<?>) action.getAssignedResource();
         resource.unscheduleAction(action);
     }
 

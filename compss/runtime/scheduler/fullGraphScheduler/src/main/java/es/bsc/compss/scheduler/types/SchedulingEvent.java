@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.es.bsc.compss.scheduler.types.Profile;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -27,45 +27,44 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 
 
-public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        implements Comparable<SchedulingEvent<P, T, I>> {
+public abstract class SchedulingEvent<T extends WorkerResourceDescription> implements Comparable<SchedulingEvent<T>> {
 
     protected long expectedTimeStamp;
-    protected AllocatableAction<P, T, I> action;
+    protected AllocatableAction action;
 
 
-    public SchedulingEvent(long timeStamp, AllocatableAction<P, T, I> action) {
+    public SchedulingEvent(long timeStamp, AllocatableAction action) {
         this.expectedTimeStamp = timeStamp;
         this.action = action;
     }
 
     @Override
-    public int compareTo(SchedulingEvent<P, T, I> e) {
-        int time = Long.compare(expectedTimeStamp, e.expectedTimeStamp);
+    public int compareTo(SchedulingEvent<T> e) {
+        int time = Long.compare(this.expectedTimeStamp, e.expectedTimeStamp);
         if (time == 0) {
             return (getPriority() - e.getPriority());
         }
         return time;
     }
 
-    public AllocatableAction<P, T, I> getAction() {
-        return action;
+    public AllocatableAction getAction() {
+        return this.action;
     }
 
     protected abstract int getPriority();
 
-    public abstract LinkedList<SchedulingEvent<P, T, I>> process(LocalOptimizationState<P, T, I> state,
-            FullGraphResourceScheduler<P, T, I> worker, PriorityQueue<AllocatableAction<P, T, I>> readyActions,
-            PriorityActionSet<P, T, I> selectableActions, PriorityQueue<AllocatableAction<P, T, I>> rescheduledActions);
+    public abstract List<SchedulingEvent<T>> process(LocalOptimizationState state, FullGraphResourceScheduler<T> worker,
+            PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions,
+            PriorityQueue<AllocatableAction> rescheduledActions);
 
 
-    public static class Start<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-            extends SchedulingEvent<P, T, I> {
+    public static class Start<T extends WorkerResourceDescription> extends SchedulingEvent<T> {
 
-        public Start(long timeStamp, AllocatableAction<P, T, I> action) {
+        public Start(long timeStamp, AllocatableAction action) {
             super(timeStamp, action);
         }
 
@@ -76,88 +75,90 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
 
         @Override
         public String toString() {
-            return action + " start @ " + expectedTimeStamp;
+            return this.action + " start @ " + this.expectedTimeStamp;
         }
 
         @Override
-        public LinkedList<SchedulingEvent<P, T, I>> process(LocalOptimizationState<P, T, I> state,
-                FullGraphResourceScheduler<P, T, I> worker, PriorityQueue<AllocatableAction<P, T, I>> readyActions,
-                PriorityActionSet<P, T, I> selectableActions, PriorityQueue<AllocatableAction<P, T, I>> rescheduledActions) {
+        public List<SchedulingEvent<T>> process(LocalOptimizationState state, FullGraphResourceScheduler<T> worker,
+                PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions,
+                PriorityQueue<AllocatableAction> rescheduledActions) {
 
-            LinkedList<SchedulingEvent<P, T, I>> enabledEvents = new LinkedList<>();
-            FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo();
+            List<SchedulingEvent<T>> enabledEvents = new LinkedList<>();
+            FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) this.action.getSchedulingInfo();
 
             // Set the expected Start time and endTime of the action
-            dsi.setExpectedStart(expectedTimeStamp);
-            long expectedEndTime = getExpectedEnd(action, worker, expectedTimeStamp);
+            dsi.setExpectedStart(this.expectedTimeStamp);
+            long expectedEndTime = getExpectedEnd(this.action, worker, this.expectedTimeStamp);
             dsi.setExpectedEnd(expectedEndTime);
             // Add corresponding end event
-            SchedulingEvent<P, T, I> endEvent = new End<>(expectedEndTime, action);
+            SchedulingEvent<T> endEvent = new End<>(expectedEndTime, this.action);
             enabledEvents.add(endEvent);
 
             // Remove resources from the state and fill the gaps before its execution
             dsi.clearPredecessors();
             dsi.clearSuccessors();
-            LinkedList<Gap<P, T, I>> tmpGaps = state.reserveResources(action.getAssignedImplementation().getRequirements(),
-                    expectedTimeStamp);
+            List<Gap> tmpGaps = state.reserveResources(this.action.getAssignedImplementation().getRequirements(),
+                    this.expectedTimeStamp);
 
-            for (Gap<P, T, I> tmpGap : tmpGaps) {
-                AllocatableAction<P, T, I> gapAction = (AllocatableAction<P, T, I>) tmpGap.getOrigin();
+            for (Gap tmpGap : tmpGaps) {
+                AllocatableAction gapAction = (AllocatableAction) tmpGap.getOrigin();
                 if (tmpGap.getInitialTime() == tmpGap.getEndTime()) {
                     if (gapAction != null) {
-                        FullGraphSchedulingInformation<P, T, I> gapActionDSI = (FullGraphSchedulingInformation<P, T, I>) gapAction
+                        FullGraphSchedulingInformation gapActionDSI = (FullGraphSchedulingInformation) gapAction
                                 .getSchedulingInfo();
-                        gapActionDSI.addSuccessor(action);
+                        gapActionDSI.addSuccessor(this.action);
                         dsi.addPredecessor(gapAction);
                         state.removeTmpGap(tmpGap);
                     }
                 } else {
-                    PriorityQueue<Gap<P, T, I>> outGaps = fillGap(worker, tmpGap, readyActions, selectableActions, rescheduledActions,
-                            state);
-                    for (Gap<P, T, I> outGap : outGaps) {
-                        AllocatableAction<P, T, I> pred = (AllocatableAction<P, T, I>) outGap.getOrigin();
+                    PriorityQueue<Gap> outGaps = fillGap(worker, tmpGap, readyActions, selectableActions,
+                            rescheduledActions, state);
+                    for (Gap outGap : outGaps) {
+                        AllocatableAction pred = (AllocatableAction) outGap.getOrigin();
                         if (pred != null) {
-                            FullGraphSchedulingInformation<P, T, I> predDSI = (FullGraphSchedulingInformation<P, T, I>) pred
+                            FullGraphSchedulingInformation predDSI = (FullGraphSchedulingInformation) pred
                                     .getSchedulingInfo();
-                            predDSI.addSuccessor(action);
+                            predDSI.addSuccessor(this.action);
                             dsi.addPredecessor(pred);
                         }
                         state.removeTmpGap(outGap);
                     }
                 }
             }
-            rescheduledActions.offer(action);
+            rescheduledActions.offer(this.action);
             return enabledEvents;
         }
 
-        private PriorityQueue<Gap<P, T, I>> fillGap(FullGraphResourceScheduler<P, T, I> worker, Gap<P, T, I> gap,
-                PriorityQueue<AllocatableAction<P, T, I>> readyActions, PriorityActionSet<P, T, I> selectableActions,
-                PriorityQueue<AllocatableAction<P, T, I>> rescheduledActions, LocalOptimizationState<P, T, I> state) {
+        private PriorityQueue<Gap> fillGap(FullGraphResourceScheduler<T> worker, Gap gap,
+                PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions,
+                PriorityQueue<AllocatableAction> rescheduledActions, LocalOptimizationState state) {
 
             // Find selected action predecessors
-            PriorityQueue<Gap<P, T, I>> availableGaps = new PriorityQueue<>(1, new Comparator<Gap<P, T, I>>() {
+            PriorityQueue<Gap> availableGaps = new PriorityQueue<>(1, new Comparator<Gap>() {
 
                 @Override
-                public int compare(Gap<P, T, I> g1, Gap<P, T, I> g2) {
+                public int compare(Gap g1, Gap g2) {
                     return Long.compare(g1.getInitialTime(), g2.getInitialTime());
                 }
 
             });
 
-            AllocatableAction<P, T, I> gapAction = pollActionForGap(gap, worker, selectableActions);
+            AllocatableAction gapAction = pollActionForGap(gap, worker, selectableActions);
 
             if (gapAction != null) {
                 // Compute method start
-                FullGraphSchedulingInformation<P, T, I> gapActionDSI = (FullGraphSchedulingInformation<P, T, I>) gapAction
+                FullGraphSchedulingInformation gapActionDSI = (FullGraphSchedulingInformation) gapAction
                         .getSchedulingInfo();
                 gapActionDSI.setToReschedule(false);
                 long gapActionStart = Math.max(gapActionDSI.getExpectedStart(), gap.getInitialTime());
 
                 // Fill previous gap space
                 if (gap.getInitialTime() != gapActionStart) {
-                    Gap<P, T, I> previousGap = new Gap<>(gap.getInitialTime(), gapActionStart, gap.getOrigin(), gap.getResources(), 0);
+                    Gap previousGap = new Gap(gap.getInitialTime(), gapActionStart, gap.getOrigin(), gap.getResources(),
+                            0);
                     state.replaceTmpGap(gap, previousGap);
-                    availableGaps = fillGap(worker, previousGap, readyActions, selectableActions, rescheduledActions, state);
+                    availableGaps = fillGap(worker, previousGap, readyActions, selectableActions, rescheduledActions,
+                            state);
                 } else {
                     availableGaps.add(gap);
                 }
@@ -171,10 +172,10 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
 
                 ResourceDescription desc = gapAction.getAssignedImplementation().getRequirements().copy();
                 while (!desc.isDynamicUseless()) {
-                    Gap<P, T, I> peekGap = availableGaps.peek();
-                    AllocatableAction<P, T, I> peekAction = (AllocatableAction<P, T, I>) peekGap.getOrigin();
+                    Gap peekGap = availableGaps.peek();
+                    AllocatableAction peekAction = (AllocatableAction) peekGap.getOrigin();
                     if (peekAction != null) {
-                        FullGraphSchedulingInformation<P, T, I> predActionDSI = (FullGraphSchedulingInformation<P, T, I>) peekAction
+                        FullGraphSchedulingInformation predActionDSI = (FullGraphSchedulingInformation) peekAction
                                 .getSchedulingInfo();
                         gapActionDSI.addPredecessor(peekAction);
                         predActionDSI.addSuccessor(gapAction);
@@ -186,18 +187,19 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                     }
                 }
 
-                LinkedList<Gap<P, T, I>> extendedGaps = new LinkedList<Gap<P, T, I>>();
+                List<Gap> extendedGaps = new LinkedList<>();
                 // Fill Concurrent
-                for (Gap<P, T, I> g : availableGaps) {
-                    Gap<P, T, I> extendedGap = new Gap<>(g.getInitialTime(), gap.getEndTime(), g.getOrigin(), g.getResources(),
+                for (Gap g : availableGaps) {
+                    Gap extendedGap = new Gap(g.getInitialTime(), gap.getEndTime(), g.getOrigin(), g.getResources(),
                             g.getCapacity());
                     state.replaceTmpGap(extendedGap, gap);
                     extendedGaps.add(extendedGap);
                 }
 
                 availableGaps.clear();
-                for (Gap<P, T, I> eg : extendedGaps) {
-                    availableGaps.addAll(fillGap(worker, eg, readyActions, selectableActions, rescheduledActions, state));
+                for (Gap eg : extendedGaps) {
+                    availableGaps
+                            .addAll(fillGap(worker, eg, readyActions, selectableActions, rescheduledActions, state));
                 }
 
                 gapActionDSI.clearSuccessors();
@@ -208,18 +210,21 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                 releaseSuccessors(gapActionDSI, worker, readyActions, selectableActions, expectedEnd);
 
                 // Fill Post action gap space
-                Gap<P, T, I> actionGap = new Gap<>(expectedEnd, gap.getEndTime(), gapAction,
+                Gap actionGap = new Gap(expectedEnd, gap.getEndTime(), gapAction,
                         gapAction.getAssignedImplementation().getRequirements(), 0);
                 state.addTmpGap(actionGap);
-                availableGaps.addAll(fillGap(worker, actionGap, readyActions, selectableActions, rescheduledActions, state));
+                availableGaps
+                        .addAll(fillGap(worker, actionGap, readyActions, selectableActions, rescheduledActions, state));
             } else {
                 availableGaps.add(gap);
             }
             return availableGaps;
         }
 
-        private long getExpectedEnd(AllocatableAction<P, T, I> action, FullGraphResourceScheduler<P, T, I> worker, long expectedStart) {
-            I impl = action.getAssignedImplementation();
+        private long getExpectedEnd(AllocatableAction action, FullGraphResourceScheduler<T> worker,
+                long expectedStart) {
+
+            Implementation impl = action.getAssignedImplementation();
             Profile p = worker.getProfile(impl);
             long endTime = expectedStart;
             if (p != null) {
@@ -231,22 +236,22 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
             return endTime;
         }
 
-        private AllocatableAction<P, T, I> pollActionForGap(Gap<P, T, I> gap, FullGraphResourceScheduler<P, T, I> worker,
-                PriorityActionSet<P, T, I> selectableActions) {
+        private AllocatableAction pollActionForGap(Gap gap, FullGraphResourceScheduler<T> worker,
+                PriorityActionSet selectableActions) {
 
-            AllocatableAction<P, T, I> gapAction = null;
-            PriorityQueue<AllocatableAction<P, T, I>> peeks = selectableActions.peekAll();
+            AllocatableAction gapAction = null;
+            PriorityQueue<AllocatableAction> peeks = selectableActions.peekAll();
             // Get Main action to fill the gap
             while (!peeks.isEmpty() && gapAction == null) {
-                AllocatableAction<P, T, I> candidate = peeks.poll();
+                AllocatableAction candidate = peeks.poll();
                 // Check times
-                FullGraphSchedulingInformation<P, T, I> candidateDSI = (FullGraphSchedulingInformation<P, T, I>) candidate
+                FullGraphSchedulingInformation candidateDSI = (FullGraphSchedulingInformation) candidate
                         .getSchedulingInfo();
                 long start = candidateDSI.getExpectedStart();
                 if (start > gap.getEndTime()) {
                     continue;
                 }
-                I impl = candidate.getAssignedImplementation();
+                Implementation impl = candidate.getAssignedImplementation();
                 Profile p = worker.getProfile(impl);
                 long expectedLength = p.getAverageExecutionTime();
                 if ((gap.getEndTime() - gap.getInitialTime()) < expectedLength) {
@@ -267,10 +272,9 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
         }
     }
 
-    public static class End<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-            extends SchedulingEvent<P, T, I> {
+    public static class End<T extends WorkerResourceDescription> extends SchedulingEvent<T> {
 
-        public End(long timeStamp, AllocatableAction<P, T, I> action) {
+        public End(long timeStamp, AllocatableAction action) {
             super(timeStamp, action);
         }
 
@@ -280,20 +284,20 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
         }
 
         @Override
-        public LinkedList<SchedulingEvent<P, T, I>> process(LocalOptimizationState<P, T, I> state,
-                FullGraphResourceScheduler<P, T, I> worker, PriorityQueue<AllocatableAction<P, T, I>> readyActions,
-                PriorityActionSet<P, T, I> selectableActions, PriorityQueue<AllocatableAction<P, T, I>> rescheduledActions) {
+        public List<SchedulingEvent<T>> process(LocalOptimizationState state, FullGraphResourceScheduler<T> worker,
+                PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions,
+                PriorityQueue<AllocatableAction> rescheduledActions) {
 
-            LinkedList<SchedulingEvent<P, T, I>> enabledEvents = new LinkedList<>();
-            FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo();
+            List<SchedulingEvent<T>> enabledEvents = new LinkedList<>();
+            FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) this.action.getSchedulingInfo();
             dsi.setOnOptimization(false);
 
             // Move from readyActions to Ready
             while (readyActions.size() > 0) {
-                AllocatableAction<P, T, I> top = readyActions.peek();
-                FullGraphSchedulingInformation<P, T, I> topDSI = (FullGraphSchedulingInformation<P, T, I>) top.getSchedulingInfo();
+                AllocatableAction top = readyActions.peek();
+                FullGraphSchedulingInformation topDSI = (FullGraphSchedulingInformation) top.getSchedulingInfo();
                 long start = topDSI.getExpectedStart();
-                if (start > expectedTimeStamp) {
+                if (start > this.expectedTimeStamp) {
                     break;
                 }
                 readyActions.poll();
@@ -301,22 +305,22 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
             }
 
             // Detect released Actions
-            releaseSuccessors(dsi, worker, readyActions, selectableActions, expectedTimeStamp);
+            releaseSuccessors(dsi, worker, readyActions, selectableActions, this.expectedTimeStamp);
 
             // Get Top Action
-            AllocatableAction<P, T, I> currentTop = selectableActions.peek();
+            AllocatableAction currentTop = selectableActions.peek();
 
             if (state.getAction() != currentTop) {
                 state.replaceAction(currentTop);
             }
-            state.releaseResources(expectedTimeStamp, action);
+            state.releaseResources(this.expectedTimeStamp, this.action);
 
             while (state.canActionRun()) {
                 selectableActions.removeFirst(currentTop.getCoreId());
-                FullGraphSchedulingInformation<P, T, I> topDSI = (FullGraphSchedulingInformation<P, T, I>) currentTop.getSchedulingInfo();
+                FullGraphSchedulingInformation topDSI = (FullGraphSchedulingInformation) currentTop.getSchedulingInfo();
                 topDSI.lock();
                 topDSI.setToReschedule(false);
-                SchedulingEvent<P, T, I> se = new Start<>(state.getActionStartTime(), currentTop);
+                SchedulingEvent<T> se = new Start<>(state.getActionStartTime(), currentTop);
                 enabledEvents.addAll(se.process(state, worker, readyActions, selectableActions, rescheduledActions));
 
                 currentTop = selectableActions.peek();
@@ -326,25 +330,26 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
         }
 
         public String toString() {
-            return action + " end @ " + expectedTimeStamp;
+            return this.action + " end @ " + this.expectedTimeStamp;
         }
     }
 
 
-    public void releaseSuccessors(FullGraphSchedulingInformation<P, T, I> dsi, FullGraphResourceScheduler<P, T, I> worker,
-            PriorityQueue<AllocatableAction<P, T, I>> readyActions, PriorityActionSet<P, T, I> selectableActions, long timeLimit) {
+    public void releaseSuccessors(FullGraphSchedulingInformation dsi, FullGraphResourceScheduler<T> worker,
+            PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions, long timeLimit) {
 
-        LinkedList<AllocatableAction<P, T, I>> successors = dsi.getOptimizingSuccessors();
-        for (AllocatableAction<P, T, I> successor : successors) {
-            FullGraphSchedulingInformation<P, T, I> successorDSI = (FullGraphSchedulingInformation<P, T, I>) successor.getSchedulingInfo();
+        List<AllocatableAction> successors = dsi.getOptimizingSuccessors();
+        for (AllocatableAction successor : successors) {
+            FullGraphSchedulingInformation successorDSI = (FullGraphSchedulingInformation) successor
+                    .getSchedulingInfo();
             int missingParams = 0;
             long startTime = 0;
             boolean retry = true;
             while (retry) {
                 try {
-                    LinkedList<AllocatableAction<P, T, I>> predecessors = successor.getDataPredecessors();
-                    for (AllocatableAction<P, T, I> predecessor : predecessors) {
-                        FullGraphSchedulingInformation<P, T, I> predDSI = ((FullGraphSchedulingInformation<P, T, I>) predecessor
+                    List<AllocatableAction> predecessors = successor.getDataPredecessors();
+                    for (AllocatableAction predecessor : predecessors) {
+                        FullGraphSchedulingInformation predDSI = ((FullGraphSchedulingInformation) predecessor
                                 .getSchedulingInfo());
                         if (predecessor.getAssignedResource() != worker) {
                             startTime = Math.max(startTime, predDSI.getExpectedEnd());

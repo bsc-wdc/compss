@@ -89,7 +89,7 @@ def start(log_level='off',
           conn='es.bsc.compss.connectors.DefaultSSHConnector',
           master_name='',
           master_port='',
-          scheduler='es.bsc.compss.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
+          scheduler='es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler',
           jvm_workers='-Xms1024m,-Xmx1024m,-Xmn400m',
           cpu_affinity='automatic',
           gpu_affinity='automatic',
@@ -131,7 +131,7 @@ def start(log_level='off',
     :param conn: Connector (default: DefaultSSHConnector)
     :param master_name: Master Name (default: '')
     :param master_port: Master port (default: '')
-    :param scheduler: Scheduler (default: LoadBalancingScheduler)
+    :param scheduler: Scheduler (default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)
     :param jvm_workers: Java VM parameters (default: '-Xms1024m,-Xmx1024m,-Xmn400m')
     :param cpu_affinity: CPU Core affinity (default: 'automatic')
     :param gpu_affinity: GPU Core affinity (default: 'automatic')

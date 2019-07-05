@@ -465,12 +465,13 @@ public class TaskScheduler {
     }
 
     /**
-     * Registers a COMPSs exception to the group of the task
+     * Registers a COMPSs exception to the group of the task.
      * 
      * @param action Action raising the error.
      */
+    @SuppressWarnings("unchecked")
     public final void exceptionOnAction(AllocatableAction action, COMPSsException e) {
-        
+
         LOGGER.info("[TaskScheduler] Exception on action " + action);
         // Mark action as finished
         removeFromReady(action);
@@ -506,6 +507,7 @@ public class TaskScheduler {
             addToBlocked(aa);
         }
     }
+
     /**
      * Registers an error on the action given as a parameter. The action itself processes the error and triggers with
      * any possible solution to re-execute it. This code is executed only on re-schedule (no resubmit).

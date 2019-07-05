@@ -16,45 +16,47 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 
-public class LocalOptimizationState<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> {
+public class LocalOptimizationState {
 
     private final long updateId;
 
-    private final LinkedList<Gap<P, T, I>> gaps = new LinkedList<>();
+    private final LinkedList<Gap> gaps;
 
-    private AllocatableAction<P, T, I> action = null;
+    private AllocatableAction action;
     private ResourceDescription missingResources;
     private long topStartTime;
 
 
     public LocalOptimizationState(long updateId, ResourceDescription rd) {
+        this.action = null;
+
         this.updateId = updateId;
-        Gap<P, T, I> g = new Gap<>(0, Long.MAX_VALUE, null, rd.copy(), 0);
-        gaps.add(g);
+
+        this.gaps = new LinkedList<>();
+        Gap g = new Gap(0, Long.MAX_VALUE, null, rd.copy(), 0);
+        this.gaps.add(g);
     }
 
     public long getId() {
-        return updateId;
+        return this.updateId;
     }
 
-    public LinkedList<Gap<P, T, I>> reserveResources(ResourceDescription resources, long startTime) {
-
-        LinkedList<Gap<P, T, I>> previousGaps = new LinkedList<>();
+    public List<Gap> reserveResources(ResourceDescription resources, long startTime) {
+        List<Gap> previousGaps = new LinkedList<>();
         // Remove requirements from resource description
         ResourceDescription requirements = resources.copy();
-        Iterator<Gap<P, T, I>> gapIt = gaps.iterator();
+        Iterator<Gap> gapIt = this.gaps.iterator();
         while (gapIt.hasNext() && !requirements.isDynamicUseless()) {
-            Gap<P,T,I> g = gapIt.next();
+            Gap g = gapIt.next();
             if (checkGapForReserve(g, requirements, startTime, previousGaps)) {
                 gapIt.remove();
             }
@@ -63,17 +65,17 @@ public class LocalOptimizationState<P extends Profile, T extends WorkerResourceD
         return previousGaps;
     }
 
-    private boolean checkGapForReserve(Gap<P, T, I> g, ResourceDescription requirements, long reserveStart,
-            LinkedList<Gap<P, T, I>> previousGaps) {
+    private boolean checkGapForReserve(Gap g, ResourceDescription requirements, long reserveStart,
+            List<Gap> previousGaps) {
         boolean remove = false;
-        AllocatableAction<P, T, I> gapAction = g.getOrigin();
+        AllocatableAction gapAction = g.getOrigin();
         ResourceDescription rd = g.getResources();
         ResourceDescription reduction = ResourceDescription.reduceCommonDynamics(rd, requirements);
-        Gap<P, T, I> tmpGap = new Gap<>(g.getInitialTime(), reserveStart, g.getOrigin(), reduction, 0);
+        Gap tmpGap = new Gap(g.getInitialTime(), reserveStart, g.getOrigin(), reduction, 0);
         previousGaps.add(tmpGap);
 
         if (gapAction != null) {
-            FullGraphSchedulingInformation<P, T, I> gapDSI = (FullGraphSchedulingInformation<P, T, I>) gapAction.getSchedulingInfo();
+            FullGraphSchedulingInformation gapDSI = (FullGraphSchedulingInformation) gapAction.getSchedulingInfo();
             // Remove resources from the first gap
             gapDSI.addGap();
         }
@@ -83,7 +85,7 @@ public class LocalOptimizationState<P extends Profile, T extends WorkerResourceD
             // Remove the gap
             remove = true;
             if (gapAction != null) {
-                FullGraphSchedulingInformation<P, T, I> gapDSI = (FullGraphSchedulingInformation<P, T, I>) gapAction.getSchedulingInfo();
+                FullGraphSchedulingInformation gapDSI = (FullGraphSchedulingInformation) gapAction.getSchedulingInfo();
                 gapDSI.removeGap();
             }
         }
@@ -91,51 +93,52 @@ public class LocalOptimizationState<P extends Profile, T extends WorkerResourceD
         return remove;
     }
 
-    public void releaseResources(long expectedStart, AllocatableAction<P, T, I> action) {
-        Gap<P, T, I> gap = new Gap<>(expectedStart, Long.MAX_VALUE, action, action.getAssignedImplementation().getRequirements(), 0);
-        FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo();
+    public void releaseResources(long expectedStart, AllocatableAction action) {
+        Gap gap = new Gap(expectedStart, Long.MAX_VALUE, action, action.getAssignedImplementation().getRequirements(),
+                0);
+        FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) action.getSchedulingInfo();
         dsi.addGap();
-        gaps.add(gap);
-        if (missingResources != null) {
+        this.gaps.add(gap);
+        if (this.missingResources != null) {
             ResourceDescription empty = gap.getResources().copy();
-            topStartTime = gap.getInitialTime();
-            ResourceDescription.reduceCommonDynamics(empty, missingResources);
+            this.topStartTime = gap.getInitialTime();
+            ResourceDescription.reduceCommonDynamics(empty, this.missingResources);
         }
     }
 
-    public void replaceAction(AllocatableAction<P, T, I> action) {
+    public void replaceAction(AllocatableAction action) {
         this.action = action;
         if (this.action != null) {
             missingResources = this.action.getAssignedImplementation().getRequirements().copy();
             // Check if the new peek can run in the already freed resources.
-            for (Gap<P, T, I> gap : gaps) {
+            for (Gap gap : this.gaps) {
                 ResourceDescription empty = gap.getResources().copy();
-                topStartTime = gap.getInitialTime();
-                ResourceDescription.reduceCommonDynamics(empty, missingResources);
-                if (missingResources.isDynamicUseless()) {
+                this.topStartTime = gap.getInitialTime();
+                ResourceDescription.reduceCommonDynamics(empty, this.missingResources);
+                if (this.missingResources.isDynamicUseless()) {
                     break;
                 }
             }
         } else {
-            missingResources = null;
-            topStartTime = 0l;
+            this.missingResources = null;
+            this.topStartTime = 0L;
         }
     }
 
-    public void addTmpGap(Gap<P, T, I> g) {
-        AllocatableAction<P, T, I> gapAction = g.getOrigin();
-        FullGraphSchedulingInformation<P, T, I> gapDSI = (FullGraphSchedulingInformation<P, T, I>) gapAction.getSchedulingInfo();
+    public void addTmpGap(Gap g) {
+        AllocatableAction gapAction = g.getOrigin();
+        FullGraphSchedulingInformation gapDSI = (FullGraphSchedulingInformation) gapAction.getSchedulingInfo();
         gapDSI.addGap();
     }
 
-    public void replaceTmpGap(Gap<P, T, I> gap, Gap<P, T, I> previousGap) {
+    public void replaceTmpGap(Gap gap, Gap previousGap) {
 
     }
 
-    public void removeTmpGap(Gap<P, T, I> g) {
-        AllocatableAction<P, T, I> gapAction = g.getOrigin();
+    public void removeTmpGap(Gap g) {
+        AllocatableAction gapAction = g.getOrigin();
         if (gapAction != null) {
-            FullGraphSchedulingInformation<P, T, I> gapDSI = (FullGraphSchedulingInformation<P, T, I>) gapAction.getSchedulingInfo();
+            FullGraphSchedulingInformation gapDSI = (FullGraphSchedulingInformation) gapAction.getSchedulingInfo();
             gapDSI.removeGap();
             if (!gapDSI.hasGaps()) {
                 gapDSI.unlock();
@@ -143,48 +146,49 @@ public class LocalOptimizationState<P extends Profile, T extends WorkerResourceD
         }
     }
 
-    public AllocatableAction<P, T, I> getAction() {
-        return action;
+    public AllocatableAction getAction() {
+        return this.action;
     }
 
     public long getActionStartTime() {
-        return Math.max(topStartTime, ((FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo()).getExpectedStart());
+        return Math.max(this.topStartTime,
+                ((FullGraphSchedulingInformation) this.action.getSchedulingInfo()).getExpectedStart());
     }
 
     public boolean canActionRun() {
-        if (missingResources != null) {
-            return missingResources.isDynamicUseless();
+        if (this.missingResources != null) {
+            return this.missingResources.isDynamicUseless();
         } else {
             return false;
         }
     }
 
     public boolean areGaps() {
-        return !gaps.isEmpty();
+        return !this.gaps.isEmpty();
     }
 
-    public Gap<P, T, I> peekFirstGap() {
-        return gaps.peekFirst();
+    public Gap peekFirstGap() {
+        return this.gaps.peekFirst();
     }
 
     public void pollGap() {
-        gaps.removeFirst();
+        this.gaps.removeFirst();
     }
 
-    public LinkedList<Gap<P, T, I>> getGaps() {
-        return gaps;
+    public LinkedList<Gap> getGaps() {
+        return this.gaps;
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Optimization State at " + updateId + "\n");
+        StringBuilder sb = new StringBuilder("Optimization State at " + this.updateId + "\n");
         sb.append("\tGaps:\n");
-        for (Gap<P, T, I> gap : gaps) {
+        for (Gap gap : this.gaps) {
             sb.append("\t\t").append(gap).append("\n");
         }
-        sb.append("\tTopAction:").append(action).append("\n");
-        sb.append("\tMissing To Run:").append(missingResources).append("\n");
-        sb.append("\tExpected Start:").append(topStartTime).append("\n");
+        sb.append("\tTopAction:").append(this.action).append("\n");
+        sb.append("\tMissing To Run:").append(this.missingResources).append("\n");
+        sb.append("\tExpected Start:").append(this.topStartTime).append("\n");
         return sb.toString();
     }
 

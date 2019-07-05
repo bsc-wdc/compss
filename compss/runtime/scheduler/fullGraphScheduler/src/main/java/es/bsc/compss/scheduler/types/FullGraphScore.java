@@ -16,17 +16,14 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.es.bsc.compss.scheduler.types.Profile;
-import es.bsc.es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.Score;
 
-import java.util.LinkedList;
+import java.util.List;
 
 
-public class FullGraphScore<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> extends Score {
+public class FullGraphScore extends Score {
 
     /*
      * ActionScore -> task Priority expectedDataAvailable -> expected time when data dependencies will be ready (take
@@ -36,22 +33,21 @@ public class FullGraphScore<P extends Profile, T extends WorkerResourceDescripti
     private double expectedStart;
 
 
-    public FullGraphScore(double actionScore, double dataAvailability, double waiting, double res, double impl) {
+    public FullGraphScore(long actionScore, double dataAvailability, long waiting, long res, long impl) {
         super(actionScore, res, waiting, impl);
-        expectedDataAvailable = dataAvailability;
-        expectedStart = Math.max(resourceScore, expectedDataAvailable);
+        this.expectedDataAvailable = dataAvailability;
+        this.expectedStart = Math.max(this.resourceScore, this.expectedDataAvailable);
     }
 
-    public FullGraphScore(FullGraphScore<P, T, I> actionScore, double transferTime, double waiting, double resourceTime, double impl) {
+    public FullGraphScore(FullGraphScore actionScore, double transferTime, long waiting, long resourceTime, long impl) {
         super(actionScore.getActionScore(), resourceTime, waiting, impl);
-        expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
-        expectedStart = Math.max(resourceScore, expectedDataAvailable);
+        this.expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
+        this.expectedStart = Math.max(this.resourceScore, this.expectedDataAvailable);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean isBetter(Score other) {
-        FullGraphScore<P, T, I> otherDS = (FullGraphScore<P, T, I>) other;
+        FullGraphScore otherDS = (FullGraphScore) other;
         if (this.actionScore != other.actionScore) {
             return this.actionScore > other.actionScore;
         }
@@ -60,15 +56,14 @@ public class FullGraphScore<P extends Profile, T extends WorkerResourceDescripti
         return ownEnd < otherEnd;
     }
 
-    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> long getActionScore(
-            AllocatableAction<P, T, I> action) {
+    public static long getActionScore(AllocatableAction action) {
         return action.getPriority();
     }
 
-    public long getDataPredecessorTime(LinkedList<AllocatableAction<P, T, I>> predecessors) {
+    public long getDataPredecessorTime(List<AllocatableAction> predecessors) {
         long dataTime = 0;
-        for (AllocatableAction<P, T, I> pred : predecessors) {
-            dataTime = Math.max(dataTime, ((FullGraphSchedulingInformation<P, T, I>) pred.getSchedulingInfo()).getExpectedEnd());
+        for (AllocatableAction pred : predecessors) {
+            dataTime = Math.max(dataTime, ((FullGraphSchedulingInformation) pred.getSchedulingInfo()).getExpectedEnd());
         }
         return dataTime;
     }
@@ -83,8 +78,9 @@ public class FullGraphScore<P extends Profile, T extends WorkerResourceDescripti
 
     @Override
     public String toString() {
-        return "[FGScore = [action: " + this.actionScore + ", availableData: " + this.expectedDataAvailable + ", resource: "
-                + this.resourceScore + ", expectedStart: " + this.expectedStart + ", implementation:" + this.implementationScore + "]";
+        return "[FGScore = [action: " + this.actionScore + ", availableData: " + this.expectedDataAvailable
+                + ", resource: " + this.resourceScore + ", expectedStart: " + this.expectedStart + ", implementation:"
+                + this.implementationScore + "]";
     }
 
 }

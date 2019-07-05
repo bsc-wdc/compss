@@ -161,7 +161,7 @@ public abstract class AllocatableAction {
         LOGGER.warn("Notify COMPSs exception of " + this + " to orchestrator " + this.orchestrator);
         this.orchestrator.actionException(this, e);
     }
-    
+
     /*
      * ***************************************************************************************************************
      * DATA DEPENDENCIES OPERATIONS
@@ -231,13 +231,13 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Returns if the task was cancelled.
+     * Returns whether the task was cancelled or not.
      * 
-     * @param aa
-     * @return
+     * @param aa Allocatable action.
+     * @return {@literal true} if the action was cancelled, {@literal false} otherwise.
      */
     public abstract boolean checkIfCanceled(AllocatableAction aa);
-    
+
     /**
      * Returns whether there are stream producers or not.
      * 
@@ -521,7 +521,7 @@ public abstract class AllocatableAction {
                 && !hasDataPredecessors() // has no data dependencies with other methods
                 && schedulingInfo.isExecutable() // scheduler does not block the execution
                 && readyForExecution // there are no tasks being executed in a commutative group
-            ) {
+        ) {
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
             // task is not to stop; or the assigned resour ce is not the required
             if ((this.selectedResource.isRemoved() && !isToStopResource())
@@ -632,7 +632,7 @@ public abstract class AllocatableAction {
      * @return {@literal true} if there are enough resources to run the action, {@literal false} otherwise.
      */
     @SuppressWarnings("unchecked")
-    private boolean areEnoughResources() {
+    protected boolean areEnoughResources() {
         Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.selectedResource.getResource();
         return w.canRunNow(this.selectedImpl.getRequirements());
     }
@@ -646,7 +646,7 @@ public abstract class AllocatableAction {
     public abstract boolean isToReleaseResources();
 
     @SuppressWarnings("unchecked")
-    private void reserveResources() {
+    protected void reserveResources() {
         if (isToReserveResources()) {
             Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.selectedResource
                     .getResource();
@@ -664,7 +664,7 @@ public abstract class AllocatableAction {
     }
 
     @SuppressWarnings("unchecked")
-    private void releaseResources() {
+    protected void releaseResources() {
         if (isToReleaseResources()) {
             Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.selectedResource
                     .getResource();
@@ -792,16 +792,16 @@ public abstract class AllocatableAction {
         // Action notification
         doError();
     }
-    
+
     /**
-     * Operations to perform when AA has raised a COMPSs exception. 
+     * Operations to perform when AA has raised a COMPSs exception.
      *
-     *@param e COMPSs Exception raised
+     * @param e COMPSs Exception raised
      */
     public final List<AllocatableAction> exception(COMPSsException e) {
         // Mark as finished
         this.state = State.FAILED;
-        
+
         if (this.getAssignedResource() != null) {
             // Release resources and run tasks blocked on the resource
             releaseResources();
@@ -810,16 +810,16 @@ public abstract class AllocatableAction {
         }
 
         cancelAction();
-        
+
         List<AllocatableAction> successors = new LinkedList<>();
         successors.addAll(this.dataSuccessors);
-        
+
         // Action notification
         doException(e);
-        
+
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
-        
+
         // Forward cancellation to successors
         for (AllocatableAction succ : successors) {
             cancel.addAll(succ.canceled());
@@ -827,7 +827,7 @@ public abstract class AllocatableAction {
 
         this.dataPredecessors.clear();
         this.dataSuccessors.clear();
-       
+
         return cancel;
     }
 
@@ -898,7 +898,7 @@ public abstract class AllocatableAction {
 
         List<AllocatableAction> successors = new LinkedList<>();
         successors.addAll(this.dataSuccessors);
-        
+
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
 
@@ -959,10 +959,9 @@ public abstract class AllocatableAction {
 
     /**
      * Triggers a COMPSs exception on a job.
-     *
      */
     protected abstract void doException(COMPSsException e);
-    
+
     /**
      * Triggers the unsuccessful action completion notification.
      */

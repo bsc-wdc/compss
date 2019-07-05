@@ -90,6 +90,7 @@ public class ExecutionAction extends AllocatableAction {
     private int transferErrors = 0;
     protected int executionErrors = 0;
 
+
     /**
      * Creates a new execution action.
      *
@@ -660,7 +661,7 @@ public class ExecutionAction extends AllocatableAction {
             } else {
                 ErrorManager.warn(
                         "Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
-                        + " has failed; rescheduling task execution. (changing worker)");
+                                + " has failed; rescheduling task execution. (changing worker)");
                 LOGGER.warn("Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
                         + " has failed; rescheduling task execution. (changing worker)");
             }
@@ -948,7 +949,7 @@ public class ExecutionAction extends AllocatableAction {
 
         if (!targetWorker.getResource().canRun(impl) // Resource is not compatible with the implementation
                 || this.getExecutingResources().contains(targetWorker)// already ran on the resource
-                ) {
+        ) {
             LOGGER.debug("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();
         }

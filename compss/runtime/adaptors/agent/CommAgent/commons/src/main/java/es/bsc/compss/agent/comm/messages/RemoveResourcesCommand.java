@@ -33,25 +33,26 @@ public class RemoveResourcesCommand implements Command {
 
     private static final long serialVersionUID = 1L;
 
-    private Resource res;
+    private Resource<?, ?> res;
+
 
     public RemoveResourcesCommand() {
     }
 
-    public RemoveResourcesCommand(Resource res) {
+    public RemoveResourcesCommand(Resource<?, ?> res) {
         this.res = res;
     }
 
     @Override
     public void handle(NIOAgent agent, Connection cnctn) {
-        ((CommAgent) agent).addResources(res);
+        ((CommAgent) agent).addResources(this.res);
         cnctn.finishConnection();
     }
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
         try {
-            oo.writeObject(res);
+            oo.writeObject(this.res);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -60,7 +61,7 @@ public class RemoveResourcesCommand implements Command {
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
         try {
-            res = (Resource) oi.readObject();
+            this.res = (Resource<?, ?>) oi.readObject();
         } catch (Exception e) {
             e.printStackTrace();
         }

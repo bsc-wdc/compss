@@ -117,20 +117,19 @@ public interface LoaderAPI {
      * @param hashcode Object hashcode.
      */
     public void removeObject(Object o, int hashcode);
-    
+
     /**
-     * Creates a new task group
+     * Creates a new task group.
      *
      * @param groupName Group name.
      * @param implicitBarrier Flag stating if the group has to perform a barrier.
      */
     public void openTaskGroup(String groupName, boolean implicitBarrier);
-    
+
     /**
-     * Closes an existing task group
+     * Closes an existing task group.
      *
      * @param groupName Group name.
-     *
      */
     public void closeTaskGroup(String groupName);
 

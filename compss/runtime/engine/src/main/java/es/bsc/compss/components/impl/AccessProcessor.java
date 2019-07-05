@@ -25,7 +25,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -113,6 +112,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
+
 
     /**
      * Creates a new Access Processor instance.

@@ -72,6 +72,8 @@ public class Agent {
     private static final List<AgentInterface<?>> INTERFACES;
 
     static {
+        LOGGER.info("Initializing agent with name: " + AGENT_NAME);
+
         String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);
         LOGGER.debug("DataClay configuration: " + dcConfigPath);
         if (dcConfigPath != null) {
@@ -105,9 +107,9 @@ public class Agent {
         for (Processor p : mrd.getProcessors()) {
             p.setName("LocalProcessor");
         }
-        ImplementationDefinition implDef = ImplementationDefinition.defineImplementation("METHOD",
-                loadSignature + "es.bsc.compss.agent.loader.Loader",
-                new MethodResourceDescription(""), "es.bsc.compss.agent.loader.Loader", "load");
+        ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation("METHOD",
+                loadSignature + "es.bsc.compss.agent.loader.Loader", new MethodResourceDescription(""),
+                "es.bsc.compss.agent.loader.Loader", "load");
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
 
@@ -124,17 +126,18 @@ public class Agent {
         INTERFACES = new LinkedList<>();
     }
 
+
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
      *
-     * @param lang       programming language of the method
-     * @param ceiClass   Core Element interface to detect nested tasks in the code
-     * @param className  name of the class containing the method to execute
-     * @param methodName name of the method to execute
-     * @param arguments
-     * @param target
-     * @param results
-     * @param monitor    monitor to notify changes on the method execution
+     * @param lang Programming language of the method.
+     * @param ceiClass Core Element interface to detect nested tasks in the code.
+     * @param className Name of the class containing the method to execute.
+     * @param methodName Name of the method to execute.
+     * @param arguments Task arguments.
+     * @param target Target object of the task.
+     * @param results Results of the task.
+     * @param monitor Monitor to notify changes on the method execution.
      * @return Identifier of the application associated to the main task
      * @throws AgentException error parsing the CEI
      */
@@ -166,21 +169,22 @@ public class Agent {
             int totalParamsCount = taskParamsCount + loadParamsCount;
             Object[] params = new Object[6 * totalParamsCount];
 
-            Object[] loadParams = new Object[]{
-                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
-                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
-                ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
-                appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
-                className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
-                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
-                /* 
-                * When passing a single parameter with array type to the loaded method, the Object... parameter of the
-                * load method assumes that each element of the array is a different parameter ( any array matches 
-                * Object...). To avoid it, we add a phantom basic-type parameter that avoids any data transfer and 
-                * ensures that the array is detected as the second parameter -- Object... is resolved as [ Integer, 
-                * array].
-                 */
-                3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
+            Object[] loadParams = new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
+                    "runtime", // Runtime API
+                    RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
+                    ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
+                    appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
+                    className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
+                    methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method
+                                                                                                            // name
+                    /*
+                     * When passing a single parameter with array type to the loaded method, the Object... parameter of
+                     * the load method assumes that each element of the array is a different parameter ( any array
+                     * matches Object...). To avoid it, we add a phantom basic-type parameter that avoids any data
+                     * transfer and ensures that the array is detected as the second parameter -- Object... is resolved
+                     * as [ Integer, array].
+                     */
+                    3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
             };
 
             System.arraycopy(loadParams, 0, params, 0, loadParams.length);
@@ -219,28 +223,27 @@ public class Agent {
         } catch (Exception e) {
             throw new AgentException(e);
         }
-        return mainAppId;
 
+        return mainAppId;
     }
 
     /**
      * Requests the execution of a method as a task.
      *
-     * @param lang         programming language of the method
-     * @param className    name of the class containing the method to execute
-     * @param methodName   name of the method to execute
-     * @param arguments    paramter description of the task's arguments
-     * @param target       paramter description of the task's callee
-     * @param results      paramter description of the task's results
+     * @param lang programming language of the method
+     * @param className name of the class containing the method to execute
+     * @param methodName name of the method to execute
+     * @param arguments paramter description of the task's arguments
+     * @param target paramter description of the task's callee
+     * @param results paramter description of the task's results
      * @param requirements requirements to run the task
-     * @param monitor      monitor to notify changes on the method execution
+     * @param monitor monitor to notify changes on the method execution
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
-    public static long runTask(Lang lang, String className, String methodName,
-            ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
-            MethodResourceDescription requirements, AppMonitor monitor)
-            throws AgentException {
+    public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] arguments,
+            ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
+            AppMonitor monitor) throws AgentException {
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {
@@ -299,7 +302,7 @@ public class Agent {
             String implSignature = methodName + "(" + paramsTypes + ")" + className;
             CoreElementDefinition ced = new CoreElementDefinition();
             ced.setCeSignature(ceSignature);
-            ImplementationDefinition implDef = ImplementationDefinition.defineImplementation("METHOD", implSignature,
+            ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation("METHOD", implSignature,
                     requirements, className, methodName);
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
@@ -350,7 +353,7 @@ public class Agent {
             try {
                 String path = loc.getPath();
                 SimpleURI uri = new SimpleURI(path);
-                Resource r = loc.getResource();
+                Resource<?, ?> r = loc.getResource();
                 String workerName = r.getName();
                 Worker<? extends WorkerResourceDescription> host = ResourceManager.getWorker(workerName);
                 if (host == null) {
@@ -438,7 +441,7 @@ public class Agent {
      * Requests the agent to stop using some resources from a node.
      *
      * @param workerName name of the worker to whom the resources belong.
-     * @param reduction  description of the resources to stop using.
+     * @param reduction description of the resources to stop using.
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
@@ -485,7 +488,7 @@ public class Agent {
      * @throws ClassNotFoundException Could not find the specify agent interface class
      * @throws InstantiationException Could not instantiate the agent interface
      * @throws IllegalAccessException Could not call the empty constructor because is private
-     * @throws AgentException         Error during the interface boot process
+     * @throws AgentException Error during the interface boot process
      */
     public static final void startInterface(AgentInterfaceConfig conf)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
@@ -505,13 +508,12 @@ public class Agent {
     }
 
     /**
-     * Main method to start a COMPSs agent.
-     * (Currently it only allows a REST agent)
+     * Main method to start a COMPSs agent. (Currently it only allows a REST agent)
      *
      * @throws Exception Could not create the configuration for the REST agent due to internal errors
      */
     public static final void main(String[] args) throws Exception {
-        //TODO: Read Agents Setup
+        // TODO: Read Agents Setup
         LinkedList<AgentInterfaceConfig> agents = new LinkedList<>();
         agents.add(getInterfaceConfig("es.bsc.compss.agent.rest.RESTAgent", args[0]));
 

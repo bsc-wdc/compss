@@ -26,12 +26,12 @@ import java.util.LinkedList;
 
 /**
  * Container for all the required information for an Agent to use a remote data value.
- *
  */
 public class RemoteDataInformation implements Externalizable {
 
     private String renaming;
     private Collection<RemoteDataLocation> sources = new LinkedList<>();
+
 
     public RemoteDataInformation() {
     }
@@ -41,21 +41,21 @@ public class RemoteDataInformation implements Externalizable {
     }
 
     public String getRenaming() {
-        return renaming;
+        return this.renaming;
     }
 
     public void addSource(RemoteDataLocation location) {
-        sources.add(location);
+        this.sources.add(location);
     }
 
     public Collection<RemoteDataLocation> getSources() {
-        return sources;
+        return this.sources;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("RemoteData " + renaming + " @ {");
-        for (RemoteDataLocation source : sources) {
+        for (RemoteDataLocation source : this.sources) {
             sb.append("[" + source.toString() + "] ");
         }
         sb.append(" }");
@@ -64,14 +64,15 @@ public class RemoteDataInformation implements Externalizable {
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeUTF(renaming);
-        oo.writeObject(sources);
+        oo.writeUTF(this.renaming);
+        oo.writeObject(this.sources);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        renaming = oi.readUTF();
-        sources = (Collection<RemoteDataLocation>) oi.readObject();
+        this.renaming = oi.readUTF();
+        this.sources = (Collection<RemoteDataLocation>) oi.readObject();
     }
 
 }

@@ -17,6 +17,18 @@
 package es.bsc.compss.worker;
 
 public class COMPSsException extends Exception {
+
+    /**
+     * Exception Version UID are 2L in all Runtime.
+     */
+    private static final long serialVersionUID = 2L;
+
+
+    /**
+     * Creates a new COMPSsException.
+     * 
+     * @param errorMessage Nested error message.
+     */
     public COMPSsException(String errorMessage) {
         super(errorMessage);
     }

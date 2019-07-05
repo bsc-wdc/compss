@@ -28,6 +28,7 @@ public class RegisterRemoteObjectDataRequest extends APRequest {
     private final int code;
     private final String data;
 
+
     public RegisterRemoteObjectDataRequest(int code, String data) {
         this.code = code;
         this.data = data;
@@ -39,7 +40,8 @@ public class RegisterRemoteObjectDataRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) throws ShutdownException {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
+            throws ShutdownException {
         dip.registerRemoteObjectSources(code, data);
     }
 

@@ -40,6 +40,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     private CommAgent ownAgent;
 
+
     public CommAgentAdaptor() {
         super();
     }
@@ -50,9 +51,8 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     }
 
     @Override
-    public Configuration constructConfiguration(
-            Map<String, Object> projectProperties, Map<String, Object> resourcesProperties)
-            throws ConstructConfigurationException {
+    public Configuration constructConfiguration(Map<String, Object> projectProperties,
+            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
         System.out.println("Constructing configuration");
 
         ResourcesExternalAdaptorProperties reaProp;
@@ -94,27 +94,27 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     @Override
     public void print(Object o) {
-        ownAgent.print(o);
+        this.ownAgent.print(o);
     }
 
     @Override
-    public void addResources(Resource res) {
-        ownAgent.addResources(res);
+    public void addResources(Resource<?, ?> res) {
+        this.ownAgent.addResources(res);
     }
 
     @Override
-    public void removeResources(Resource node) {
-        ownAgent.removeResources(node);
+    public void removeResources(Resource<?, ?> node) {
+        this.ownAgent.removeResources(node);
     }
 
     @Override
     public void removeNode(String node) {
-        ownAgent.removeNode(node);
+        this.ownAgent.removeNode(node);
     }
 
     @Override
     public void lostNode(String node) {
-        ownAgent.lostNode(node);
+        this.ownAgent.lostNode(node);
     }
 
 }

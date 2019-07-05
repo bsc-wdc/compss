@@ -115,7 +115,6 @@ public class NIOJob extends Job<NIOWorkerNode> {
                 this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history,
                 this.transferId, this.getTimeOut());
 
-
         return nt;
     }
 
@@ -137,7 +136,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
             listener.jobCompleted(this);
         } else {
             if (e instanceof COMPSsException) {
-                listener.jobFailed(this, JobEndStatus.EXCEPTION, (COMPSsException)e);
+                listener.jobFailed(this, JobEndStatus.EXCEPTION, (COMPSsException) e);
             } else {
                 listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
             }
@@ -153,11 +152,11 @@ public class NIOJob extends Job<NIOWorkerNode> {
     public String toString() {
         AbstractMethodImplementation method = (AbstractMethodImplementation) this.impl;
 
-//        String className = method.getDeclaringClass();
+        // String className = method.getDeclaringClass();
         String definition = method.getMethodDefinition();
         String methodName = taskParams.getName();
 
-//        return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
+        // return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
         return "NIOJob JobId" + this.jobId + " for method " + methodName + " with definition " + definition;
     }
 

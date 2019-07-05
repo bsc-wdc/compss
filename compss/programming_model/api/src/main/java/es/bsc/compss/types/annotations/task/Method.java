@@ -93,11 +93,11 @@ public @interface Method {
      * @return if the method has priority or not.
      */
     OnFailure onFailure() default OnFailure.RETRY;
-    
+
     /**
-     * Returns the time out set for execution
+     * Returns the time out set for execution.
      * 
-     * @return the time set for the time out
+     * @return The time set for the time out.
      */
     String timeOut() default "0";
 

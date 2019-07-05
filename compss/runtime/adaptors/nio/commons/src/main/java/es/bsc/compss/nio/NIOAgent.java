@@ -99,11 +99,12 @@ public abstract class NIOAgent {
     protected int tracingId = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected HashMap<Connection, Integer> connection2partner;
 
+
     /**
      * Creates a NIOAgent instance.
      *
-     * @param snd  Maximum simultaneous sends.
-     * @param rcv  Maximum simultaneous receives.
+     * @param snd Maximum simultaneous sends.
+     * @param rcv Maximum simultaneous receives.
      * @param port Communication port.
      */
     public NIOAgent(int snd, int rcv, int port) {
@@ -143,9 +144,9 @@ public abstract class NIOAgent {
     /**
      * Adds a new association between the given connection {@code c} and the given partner {@code partner}.
      *
-     * @param c       Connection.
+     * @param c Connection.
      * @param partner Partner.
-     * @param tag     Association tag.
+     * @param tag Association tag.
      */
     public void addConnectionAndPartner(Connection c, int partner, int tag) {
         this.connection2partner.put(c, partner);
@@ -303,8 +304,8 @@ public abstract class NIOAgent {
     /**
      * Reply the data.
      *
-     * @param c          Connection.
-     * @param d          Data.
+     * @param c Connection.
+     * @param d Data.
      * @param receiverID Receiver Id.
      */
     public void sendData(Connection c, NIOData d, int receiverID) {
@@ -539,7 +540,8 @@ public abstract class NIOAgent {
                     if (t.isByteBuffer()) {
                         String boPath = requests.get(0).getSource().getFirstURI().getPath();
                         BindingObject bo = getTargetBindingObject(targetName, boPath);
-                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(), bo.getElements());
+                        NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(),
+                                bo.getElements());
                         receivedValue(t.getDestination(), targetName, bo.toString(), requests);
                     } else {
                         // Object already store in the cache
@@ -669,7 +671,7 @@ public abstract class NIOAgent {
     /**
      * Receives the Shutdown request.
      *
-     * @param requester   Requester connection of the shutdown.
+     * @param requester Requester connection of the shutdown.
      * @param filesToSend List of files to send.
      */
     public void receivedShutdown(Connection requester, List<NIOData> filesToSend) {

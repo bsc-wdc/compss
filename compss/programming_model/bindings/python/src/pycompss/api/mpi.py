@@ -33,9 +33,9 @@ from pycompss.util.arguments import check_arguments
 if __debug__:
     logger = logging.getLogger(__name__)
 
-MANDATORY_ARGUMENTS = {'binary',
-                       'runner'}
-SUPPORTED_ARGUMENTS = {'computing_nodes',
+MANDATORY_ARGUMENTS = {'runner'}
+SUPPORTED_ARGUMENTS = {'binary',
+                       'computing_nodes',
                        'working_dir',
                        'binary',
                        'runner'}
@@ -64,6 +64,7 @@ class Mpi(object):
         self.kwargs = kwargs
         self.registered = False
         self.scope = context.in_pycompss()
+        self.task_type = "mpi"
         if self.scope:
             if __debug__:
                 logger.debug("Init @mpi decorator...")
@@ -165,14 +166,25 @@ class Mpi(object):
                 if not self.registered:
                     self.registered = True
                     # Update the core element information with the mpi information
-                    core_element.set_impl_type("MPI")
-                    binary = self.kwargs['binary']
+                    if "binary" in self.kwargs:
+                        binary = self.kwargs['binary']
+                        core_element.set_impl_type("MPI")
+                    else:
+                       binary = "[unassigned]"
+                       core_element.set_impl_type("PYTHON_MPI")
+                       self.task_type = "PYTHON_MPI"
+                       
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     runner = self.kwargs['runner']
-                    impl_signature = 'MPI.' + binary
+                    
+                    if binary == "[unassigned]":                       
+                       impl_signature = "MPI."
+                    else:
+                       impl_signature = 'MPI.' + binary
+                    
                     core_element.set_impl_signature(impl_signature)
                     impl_args = [binary, working_dir, runner]
                     core_element.set_impl_type_args(impl_args)
@@ -201,7 +213,10 @@ class Mpi(object):
 
             # Call the method
             import pycompss.api.task as t
-            t.prepend_strings = False
+            if self.task_type == "PYTHON_MPI":
+               t.prepend_strings = True
+            else:
+               t.prepend_strings = False
             ret = func(*args, **kwargs)
             t.prepend_strings = True
 

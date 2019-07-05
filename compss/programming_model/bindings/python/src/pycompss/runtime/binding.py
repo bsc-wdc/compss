@@ -459,6 +459,15 @@ def register_ce(core_element):
         impl_type_args = new String[] { 'mpiBinary', 'mpiWorkingDir', 'mpiRunner' };
         rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
 
+        // PYTHON MPI
+        System.out.println('Registering PYTHON MPI implementation');
+        core_elementSignature = 'methodClass1.methodName1';
+        impl_signature = 'MPI.methodClass1.methodName';
+        impl_constraints = 'ComputingUnits:2';
+        impl_type = 'PYTHON_MPI';
+        impl_type_args = new String[] { 'methodClass', 'methodName', 'mpiWorkingDir', 'mpiRunner' };
+        rt.registerCoreElement(coreElementSignature, impl_signature, impl_constraints, impl_type, impl_type_args);
+
         // BINARY
         System.out.println('Registering BINARY implementation');
         core_elementSignature = 'methodClass2.methodName2';

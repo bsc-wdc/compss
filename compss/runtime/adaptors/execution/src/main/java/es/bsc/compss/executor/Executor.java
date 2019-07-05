@@ -33,6 +33,7 @@ import es.bsc.compss.invokers.binary.COMPSsInvoker;
 import es.bsc.compss.invokers.binary.DecafInvoker;
 import es.bsc.compss.invokers.binary.MPIInvoker;
 import es.bsc.compss.invokers.binary.OmpSsInvoker;
+import es.bsc.compss.invokers.external.PythonMPIInvoker;
 import es.bsc.compss.invokers.external.persistent.CPersistentInvoker;
 import es.bsc.compss.invokers.external.piped.CInvoker;
 import es.bsc.compss.invokers.external.piped.PythonInvoker;
@@ -50,6 +51,7 @@ import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
+import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
@@ -223,6 +225,9 @@ public class Executor implements Runnable {
                 case BINARY:
                     invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
+                case PYTHON_MPI:
+                	invoker = new PythonMPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                	break;
                 case MPI:
                     invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
@@ -366,6 +371,10 @@ public class Executor implements Runnable {
                 MPIImplementation mpiImpl = (MPIImplementation) invocation.getMethodImplementation();
                 specificWD = mpiImpl.getWorkingDir();
                 break;
+            case PYTHON_MPI:
+                PythonMPIImplementation nativeMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
+                specificWD = nativeMPIImpl.getWorkingDir();
+                break;                
             case COMPSs:
                 COMPSsImplementation compssImpl = (COMPSsImplementation) invocation.getMethodImplementation();
                 specificWD = compssImpl.getWorkingDir();

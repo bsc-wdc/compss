@@ -279,7 +279,7 @@ def task_timed_out(signum, frame):
     raise TimeOutError
 
 
-def execute_task(process_name, storage_conf, params, tracing, logger):
+def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi=False):
     """
     ExecuteTask main method.
 
@@ -327,7 +327,8 @@ def execute_task(process_name, storage_conf, params, tracing, logger):
         'compss_tracing': tracing,
         'compss_process_name': process_name,
         'compss_storage_conf': storage_conf,
-        'compss_return_length': return_length
+        'compss_return_length': return_length,
+        'python_MPI': python_mpi
     }
 
     if __debug__:

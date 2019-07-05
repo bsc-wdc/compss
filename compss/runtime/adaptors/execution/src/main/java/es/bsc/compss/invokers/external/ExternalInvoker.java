@@ -28,6 +28,7 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
@@ -92,7 +93,8 @@ public abstract class ExternalInvoker extends Invoker {
             throws JobExecutionException {
         // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
         if (invocation.getMethodImplementation().getMethodType() != MethodType.METHOD
-                && invocation.getMethodImplementation().getMethodType() != MethodType.MULTI_NODE) {
+                && invocation.getMethodImplementation().getMethodType() != MethodType.MULTI_NODE
+                && invocation.getMethodImplementation().getMethodType() != MethodType.PYTHON_MPI) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
 
@@ -113,6 +115,11 @@ public abstract class ExternalInvoker extends Invoker {
                 methodClass = methodImpl.getDeclaringClass();
                 methodName = methodImpl.getAlternativeMethodName();
                 break;
+            case PYTHON_MPI:
+            	PythonMPIImplementation pythonMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
+            	methodClass = pythonMPIImpl.getDeclaringClass();
+            	methodName = pythonMPIImpl.getAlternativeMethodName();
+            	break;
             case MULTI_NODE:
                 MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) invocation.getMethodImplementation();
                 methodClass = multiNodeImpl.getDeclaringClass();

@@ -14,6 +14,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -110,6 +111,11 @@ public class Action extends AllocatableAction {
     }
 
     @Override
+    protected void doException(COMPSsException e) {
+        
+    }
+    
+    @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {
         return new Score(0, 0, 0, 0);
@@ -177,5 +183,10 @@ public class Action extends AllocatableAction {
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
         
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 }

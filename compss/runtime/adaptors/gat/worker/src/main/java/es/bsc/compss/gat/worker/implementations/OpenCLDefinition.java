@@ -65,4 +65,9 @@ public class OpenCLDefinition extends ImplementationDefinition {
         return this.impl.getMethodDefinition();
     }
 
+    @Override
+    public int getTimeOut() {
+        return 0;
+    }
+
 }

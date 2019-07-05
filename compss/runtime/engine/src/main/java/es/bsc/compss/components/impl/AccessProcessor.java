@@ -44,7 +44,9 @@ import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
+import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
+import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
@@ -55,6 +57,7 @@ import es.bsc.compss.types.request.ap.GetLastRenamingRequest;
 import es.bsc.compss.types.request.ap.GetResultFilesRequest;
 import es.bsc.compss.types.request.ap.IsObjectHereRequest;
 import es.bsc.compss.types.request.ap.NewVersionSameValueRequest;
+import es.bsc.compss.types.request.ap.OpenTaskGroupRequest;
 import es.bsc.compss.types.request.ap.RegisterDataAccessRequest;
 import es.bsc.compss.types.request.ap.RegisterRemoteObjectDataRequest;
 import es.bsc.compss.types.request.ap.SetObjectVersionValueRequest;
@@ -74,6 +77,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -203,14 +207,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param hasTarget Whether the task has a target object or not.
      * @param parameters Task parameters.
      * @param onFailure OnFailure mechanisms.
+     * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
-            OnFailure onFailure) {
+            OnFailure onFailure, int timeOut) {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, parameters, monitor, onFailure);
+                hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -233,13 +238,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param numReturns Number of returns of the task.
      * @param parameters Task parameters.
      * @param onFailure OnFailure mechanisms.
+     * @param timeOut Time for a task timeOut.
      * @return Task Id.
      */
     public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
-            boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure) {
+            boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
+            int timeOut) {
 
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
-                parameters, monitor, onFailure);
+                parameters, monitor, onFailure, timeOut);
 
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
@@ -601,6 +608,28 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
+     * Barrier for group.
+     *
+     * @param groupName Name of the task group
+     * @throws COMPSsException Exception thrown by user
+     */
+    public void barrierGroup(Long appId, String groupName) throws COMPSsException {
+        Semaphore sem = new Semaphore(0);
+        if (!requestQueue.offer(new BarrierGroupRequest(appId, groupName, sem))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
+        }
+
+        // Wait for response
+        sem.acquireUninterruptibly();
+
+        if (taskAnalyser.getTaskGroup(groupName).hasException()) {
+            throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
+        }
+        
+        LOGGER.info("Group barrier: End of tasks of group " + groupName);
+    }
+
+    /**
      * Synchronism for an specific data.
      *
      * @param dataId Data Id.
@@ -681,6 +710,28 @@ public class AccessProcessor implements Runnable, TaskProducer {
         SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new object version value");
+        }
+    }
+
+    /**
+     * Sets the task group to assign to all the following tasks.
+     * 
+     * @param groupName Name of the task group
+     */
+    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier) {
+        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "new task group");
+        }
+    }
+
+    /**
+     * Closes the current task group.
+     */
+    public void closeCurrentTaskGroup() {
+        CloseTaskGroupRequest request = new CloseTaskGroupRequest();
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "closure of task group");
         }
     }
 

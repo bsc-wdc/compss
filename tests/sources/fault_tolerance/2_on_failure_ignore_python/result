@@ -60,11 +60,11 @@
     exit 1
   fi
 
-  # Check if the tasks have failed
-  output1=$(cat "${runtime_log}" | grep "Task failure:" | wc -l)
-  if [ "${output1}" -ne "${FILES}" ]; then
-  	echo "ERROR: A task has not failed."
-  	exit 1
+# Checks if the file has been written as many times as expected
+  result=$(cat /tmp/sharedDisk/file1.txt)
+  if [ ${result} -ne 5 ]; then
+    echo "ERROR: The number of writing tasks is not correct. ${result} "
+    exit 1
   fi
 
   rm /tmp/sharedDisk/file1.txt

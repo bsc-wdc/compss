@@ -14,6 +14,7 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -93,6 +94,11 @@ public class Action extends AllocatableAction {
     protected void doFailIgnored() {
 
     }
+    
+    @Override
+    protected void doException(COMPSsException e) {
+        
+    }
 
     @Override
     protected void doError() throws FailedActionException {
@@ -171,13 +177,16 @@ public class Action extends AllocatableAction {
 
     @Override
     public boolean taskIsReadyForExecution() {
-        // TODO Auto-generated method stub
         return true;
     }
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 }

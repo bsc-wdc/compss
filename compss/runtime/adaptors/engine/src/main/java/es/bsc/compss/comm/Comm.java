@@ -554,6 +554,7 @@ public class Comm {
         ld.isObsolete();
         for (DataLocation dl : ld.getLocations()) {
             MultiURI uri = dl.getURIInHost(appHost);
+
             if (uri != null) {
                 File f = new File(uri.getPath());
                 if (f.exists()) {

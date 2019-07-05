@@ -17,6 +17,7 @@
 package es.bsc.compss.loader.total;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.log.Loggers;
@@ -84,6 +85,7 @@ public class ITAppEditor extends ExprEditor {
     private static final String DELETE_FILE = ".deleteFile(";
     private static final String EXECUTE_TASK = ".executeTask(";
     private static final String PROCEED = "$_ = $proceed(";
+    private static final String COMPSS_LOADER_GROUP ="es.bsc.compss.loader.total.COMPSsGroupLoader(";
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
     private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
@@ -197,7 +199,11 @@ public class ITAppEditor extends ExprEditor {
 
             // Update new expression
             ne.replace(modifiedExpr.toString());
-        }
+            
+        } else if (fullName.equals(COMPSsGroup.class.getCanonicalName())) {
+            ne.replace(substitutesCOMPSsGroup());
+        };
+        
     }
 
     /**
@@ -266,7 +272,7 @@ public class ITAppEditor extends ExprEditor {
             }
 
             mc.replace(modifiedAPICall);
-        } else if (!LoaderUtils.contains(instrCandidates, calledMethod)) {
+        } else if ((!mc.getClassName().equals(LoaderConstants.CLASS_COMPSS_GROUP)) && (!LoaderUtils.contains(instrCandidates, calledMethod))) {
             // The method is a black box
             if (DEBUG) {
                 LOGGER.debug("Replacing regular method call " + mc.getMethodName());
@@ -376,7 +382,17 @@ public class ITAppEditor extends ExprEditor {
         }
         return modifiedExpr;
     }
+    
+    private String substitutesCOMPSsGroup() {
+        String modifiedExpr = "";
+        if (DEBUG) {
+            LOGGER.debug("Substituting COMPSs group creation. " );
+        }
+        modifiedExpr = "$_ = new  "+ COMPSS_LOADER_GROUP + this.itApiVar + ", " + this.itAppIdVar + ", $$);";
+        return modifiedExpr;
+    }
 
+    
     /**
      * Replaces calls to local methods by executeTask.
      */
@@ -407,6 +423,7 @@ public class ITAppEditor extends ExprEditor {
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
         OnFailure onFailure = OnFailure.RETRY;
+        int timeOut = 0;
         int numNodes = Constants.SINGLE_NODE;
 
         // Scheduler hints values
@@ -430,6 +447,7 @@ public class ITAppEditor extends ExprEditor {
                         .getAnnotation(es.bsc.compss.types.annotations.task.Method.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.priority()));
                 onFailure = methodAnnot.onFailure();
+                timeOut = Integer.valueOf(methodAnnot.timeOut());
             } else if (declaredMethod.isAnnotationPresent(Binary.class)) {
                 Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
@@ -498,7 +516,10 @@ public class ITAppEditor extends ExprEditor {
         executeTask.append(numParams).append(',');
 
         // Add the onFailure behavior
-        executeTask.append(OnFailure.class.getCanonicalName() + "." + onFailure);
+        executeTask.append(OnFailure.class.getCanonicalName() + "." + onFailure).append(',');
+        
+        // Add the timeOut time
+        executeTask.append(timeOut);
 
         if (numParams == 0) {
             executeTask.append(",null);");

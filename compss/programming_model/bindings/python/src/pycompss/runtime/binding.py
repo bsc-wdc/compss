@@ -381,6 +381,42 @@ def barrier(no_more_tasks=False):
     # Call the Runtime barrier (appId 0, not needed for the signature)
     compss.barrier(0, no_more_tasks)
 
+def barrier_group(group_name):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request a barrier of a group.
+    Wait for all tasks of the group.
+
+    :param group_name:
+    :return: None
+    """
+
+    # Call the Runtime group barrier
+    compss.barrier_group(0,group_name)
+
+def open_task_group(group_name, implicit_barrier):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request an opening of a group.
+
+    :param group_name:
+    :param implicit_barrier:
+    :return: None
+    """
+
+    compss.open_task_group(group_name, implicit_barrier)
+
+def close_task_group(group_name):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request a group closure.
+
+    :param group_name:
+    :return: None
+    """
+
+    compss.close_task_group(group_name)
+
 
 def get_log_path():
     """
@@ -571,7 +607,7 @@ def synchronize(obj, mode):
 
 
 def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, task_kwargs, num_nodes, replicated,
-                 distributed, on_failure):
+                 distributed, on_failure, time_out):
     """
     Function that submits a task to the runtime.
 
@@ -586,6 +622,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
     :param replicated: Boolean indicating if the task must be replicated or not
     :param distributed: Boolean indicating if the task must be distributed or not
     :param on_failure: Action on failure
+    :param time_out: Time for a task time out
     :return: The future object related to the task return
     """
 
@@ -638,6 +675,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
             logger.debug("\t- Path: " + path)
             logger.debug("\t- Function name: " + f.__name__)
             logger.debug("\t- On failure behavior: " + on_failure)
+            logger.debug("\t- Task time out: " + str(time_out))
             logger.debug("\t- Signature: " + signature)
             logger.debug("\t- Priority: " + str(has_priority))
             logger.debug("\t- Has target: " + str(has_target))
@@ -673,6 +711,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns, tas
     compss.process_task(app_id,
                         signature,
                         on_failure,
+                        time_out,
                         has_priority,
                         num_nodes,
                         replicated,

@@ -76,4 +76,9 @@ public class MPIDefinition extends ImplementationDefinition {
         return this.impl.getMethodDefinition();
     }
 
+    @Override
+    public int getTimeOut() {
+        return 0;
+    }
+
 }

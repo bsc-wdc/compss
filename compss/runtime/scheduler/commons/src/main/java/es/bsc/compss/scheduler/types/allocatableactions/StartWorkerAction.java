@@ -33,6 +33,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -161,6 +162,10 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     }
 
+    @Override
+    protected void doException(COMPSsException e) {
+        
+    }
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT
@@ -252,7 +257,11 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 }

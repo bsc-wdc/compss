@@ -24,5 +24,6 @@ public enum JobEndStatus {
     TO_RESCHEDULE, // Task must be rescheduled
     TRANSFERS_FAILED, // Task transfers failed
     SUBMISSION_FAILED, // Task submission failed
-    EXECUTION_FAILED; // Task execution failed
+    EXECUTION_FAILED, // Task execution failed
+    EXCEPTION; // An exception took place on task
 }

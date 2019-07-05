@@ -45,6 +45,7 @@ import es.bsc.compss.util.Classpath;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -225,6 +226,14 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         addRequest(request);
     }
 
+    // Notification thread
+    @Override
+    public void actionException(AllocatableAction action, COMPSsException e) {
+        ActionUpdate request = new ActionUpdate(action, ActionUpdate.Update.EXCEPTION);
+        request.setCOMPSsException(e);
+        addRequest(request);
+    }
+    
     /**
      * Adds a new tasks summary request.
      *

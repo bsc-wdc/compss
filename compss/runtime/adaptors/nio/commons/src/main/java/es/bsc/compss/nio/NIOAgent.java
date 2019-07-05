@@ -836,7 +836,7 @@ public abstract class NIOAgent {
 
     public abstract void copiedData(int transfergroupID);
 
-    public abstract void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful);
+    public abstract void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful, Exception e);
 
     public abstract void shutdown(Connection closingConnection);
 

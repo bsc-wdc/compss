@@ -17,6 +17,7 @@
 package es.bsc.compss.types.job;
 
 import es.bsc.compss.types.job.JobEndStatus;
+import es.bsc.compss.worker.COMPSsException;
 
 /**
  * Abstract Representation of a listener for the job execution.
@@ -36,6 +37,6 @@ public interface JobListener {
      * @param job Job to notify completion.
      * @param endStatus Failure status.
      */
-    public void jobFailed(Job<?> job, JobEndStatus endStatus);
+    public void jobFailed(Job<?> job, JobEndStatus endStatus, COMPSsException e);
 
 }

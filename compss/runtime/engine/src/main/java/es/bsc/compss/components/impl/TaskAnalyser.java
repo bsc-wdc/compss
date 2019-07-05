@@ -25,6 +25,7 @@ import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CommutativeIdentifier;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
@@ -47,20 +48,22 @@ import es.bsc.compss.types.parameter.FileParameter;
 import es.bsc.compss.types.parameter.ObjectParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.StreamParameter;
+import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
 import es.bsc.compss.util.ErrorManager;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
@@ -111,6 +114,10 @@ public class TaskAnalyser {
     // Tasks that are accessed commutatively and are pending to be drawn in graph. Map: commutative group identifier ->
     // list of tasks from group
     private TreeMap<String, LinkedList<Task>> pendingToDrawCommutative;
+    // Task groups. Map: group name -> commutative group tasks
+    private TreeMap<String, TaskGroup> taskGroups;
+    // Stack of current task groups
+    private Stack<TaskGroup> currentTaskGroups;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -134,7 +141,8 @@ public class TaskAnalyser {
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
-
+        this.currentTaskGroups = new Stack<>();
+        this.taskGroups = new TreeMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
 
@@ -445,6 +453,17 @@ public class TaskAnalyser {
         if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
             constrainingParam = params.getParameters().size() - 1 - params.getNumReturns();
         }
+
+        // Set task group
+        if (!this.currentTaskGroups.empty()) {
+            Iterator<TaskGroup> currentGroups = this.currentTaskGroups.iterator();
+            while (currentGroups.hasNext()) {
+                TaskGroup nextGroup = currentGroups.next();
+                currentTask.setTaskGroup(nextGroup);
+                nextGroup.addTask(currentTask);
+            }
+        }
+
         List<Parameter> parameters = params.getParameters();
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam,
@@ -470,8 +489,19 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
             }
+
+            boolean canceledByException = false;
+            if (t.hasTaskGroups()) {
+                for (TaskGroup tg : t.getTaskGroupList()) {
+                    if (tg.hasException() && t.getStatus() == TaskState.CANCELED) {
+                        canceledByException = true;
+                    }
+                }
+            }
+
             if (t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
-                    && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED)) {
+                    && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED)
+                    || canceledByException) {
                 this.dip.dataAccessHasBeenCanceled(dAccId);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);
@@ -482,14 +512,15 @@ public class TaskAnalyser {
     /**
      * Registers the end of execution of task @{code task}.
      *
-     * @param task Ended task.
+     * @param aTask Ended task.
      */
-    public void endTask(AbstractTask task) {
-        if (task instanceof Task) {
+    public void endTask(AbstractTask aTask) {
+        if (aTask instanceof Task) {
+            Task task = (Task) aTask;
             int taskId = task.getId();
-            boolean isFree = ((Task) task).isFree();
+            boolean isFree = task.isFree();
             TaskState taskState = task.getStatus();
-            OnFailure onFailure = ((Task) task).getOnFailure();
+            OnFailure onFailure = task.getOnFailure();
             LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
 
             // Check status
@@ -498,7 +529,7 @@ public class TaskAnalyser {
                 return;
             }
 
-            TaskMonitor registeredMonitor = ((Task) task).getTaskMonitor();
+            TaskMonitor registeredMonitor = task.getTaskMonitor();
             switch (taskState) {
                 case FAILED:
                     registeredMonitor.onFailure();
@@ -558,8 +589,9 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Marking accessed parameters for task " + taskId);
             }
-            for (Parameter param : ((Task) task).getTaskDescription().getParameters()) {
-                updateParameterAccess((Task) task, param);
+            
+            for (Parameter param : task.getTaskDescription().getParameters()) {
+                updateParameterAccess(task, param);
             }
 
             // Check if the finished task was the last writer of a file, but only if task generation has finished
@@ -568,19 +600,39 @@ public class TaskAnalyser {
                 LOGGER.debug("Checking result file transfers for task " + taskId);
             }
             if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
-                checkResultFileTransfer((Task) task);
+                checkResultFileTransfer(task);
             }
 
             // Release data dependent tasks
             if (DEBUG) {
                 LOGGER.debug("Releasing data dependant tasks for task " + taskId);
             }
+
+            // Release task groups of the task
+            releaseTaskGroups(task);
+
             // Releases commutative groups dependent and releases all the waiting tasks
             releaseCommutativeGroups(task);
         }
 
         // Release data dependent tasks
-        task.releaseDataDependents();
+        aTask.releaseDataDependents();
+    }
+
+    /**
+     * Releases the commutative groups dependencies.
+     *
+     * @param task Task to release groups.
+     */
+    private void releaseTaskGroups(Task task) {
+        for (TaskGroup group : task.getTaskGroupList()) {
+            group.removeTask(task);
+            LOGGER.debug("Group " + group.getName() + " released a task");
+            if (!group.hasPendingTasks() && !group.hasImplicitBarrier()) {
+                this.taskGroups.remove(group.getName());
+                LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
+            }
+        }
     }
 
     /**
@@ -588,11 +640,11 @@ public class TaskAnalyser {
      *
      * @param task Commutative group to release.
      */
-    private void releaseCommutativeGroups(AbstractTask task) {
-        if (!((Task) task).getCommutativeGroupList().isEmpty()) {
-            for (CommutativeGroupTask group : ((Task) task).getCommutativeGroupList()) {
+    private void releaseCommutativeGroups(Task task) {
+        if (!task.getCommutativeGroupList().isEmpty()) {
+            for (CommutativeGroupTask group : task.getCommutativeGroupList()) {
                 group.setStatus(TaskState.FINISHED);
-                group.removePredecessor((Task) task);
+                group.removePredecessor(task);
                 if (group.getPredecessors().isEmpty()) {
                     group.releaseDataDependents();
                     // Check if task is being waited
@@ -719,7 +771,9 @@ public class TaskAnalyser {
                         treatDataAccess(lastWriter, am, dataId);
                     }
                     // Release task if possible. Otherwise add to waiting
-                    if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
+                    if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED
+                            || lastWriter.getStatus() == TaskState.CANCELED
+                            || lastWriter.getStatus() == TaskState.FAILED) {
                         sem.release();
                     } else {
                         List<Semaphore> list = this.waitedTasks.get(lastWriter);
@@ -848,6 +902,41 @@ public class TaskAnalyser {
     }
 
     /**
+     * Barrier for group.
+     *
+     * @param request Barrier group request
+     */
+    public void barrierGroup(BarrierGroupRequest request) {
+        String groupName = request.getGroupName();
+        Long appId = request.getAppId();
+        TaskGroup tg = this.taskGroups.get(groupName);
+        Integer count = this.appIdToTaskCount.get(appId);
+        // Addition of missing commutative groups to graph
+        if (IS_DRAW_GRAPH) {
+            addMissingCommutativeTasksToGraph();
+            addNewBarrier();
+            // We can draw the graph on a barrier while we wait for tasks
+            this.gm.commitGraph();
+        }
+
+        if (count == null || count == 0) {
+            if (!tg.hasPendingTasks()) {
+                if (tg.hasException()) {
+                    request.setException(tg.getException());
+                }
+                request.getSemaphore().release();
+            } else {
+                // Release the semaphore only if all application tasks have finished
+                request.getSemaphore().release();
+            }
+        } else {
+            this.appIdBarrierFlags.add(appId);
+            this.appIdToSemaphore.put(appId, request.getSemaphore());
+        }
+
+    }
+
+    /**
      * End of execution barrier.
      *
      * @param request End of execution request.
@@ -877,6 +966,33 @@ public class TaskAnalyser {
      */
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {
         return this.appIdToWrittenFiles.remove(appId);
+    }
+
+    /**
+     * Sets the current task group to assign to tasks.
+     * 
+     * @param groupName Name of the group to set
+     * @param barrier Flag stating if the group has to perform a barrier.
+     */
+    public void setCurrentTaskGroup(String groupName, boolean barrier) {
+        TaskGroup tg = new TaskGroup(groupName, barrier);
+        this.taskGroups.put(groupName, tg);
+        this.currentTaskGroups.push(tg);
+        if (IS_DRAW_GRAPH) {
+            this.gm.addTaskGroupToGraph(tg.getName());
+            tg.setGraphDrawn();
+            LOGGER.debug("Group " + groupName + " added to graph");
+        }
+    }
+
+    /**
+     * Closes the last task group.
+     */
+    public void closeCurrentTaskGroup() {
+        this.currentTaskGroups.pop();
+        if (IS_DRAW_GRAPH) {
+            this.gm.closeGroupInGraph();
+        }
     }
 
     /**
@@ -1007,6 +1123,10 @@ public class TaskAnalyser {
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
         }
+    }
+
+    public TaskGroup getTaskGroup(String name) {
+        return this.taskGroups.get(name);
     }
 
     private void addStreamDependency(Task currentTask, DependencyParameter dp, WritersInfo wi) {

@@ -52,6 +52,9 @@ import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.worker.TimeOutTask;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -63,6 +66,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
+import java.util.Timer;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -164,18 +170,27 @@ public class Executor implements Runnable {
             if (WORKER_DEBUG) {
                 LOGGER.debug("Dequeuing job " + invocation.getJobId());
             }
+            
+            Exception e = executeTask(invocation);
 
-            boolean success = executeTask(invocation);
-
+            boolean success = true;
+            if (e != null) {
+                success = false;
+            }
+            
             if (WORKER_DEBUG) {
                 LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
             }
-
-            execution.notifyEnd(success);
+            
+            if (e instanceof COMPSsException) {
+                execution.notifyEnd((COMPSsException)e, success);
+            } else {
+                execution.notifyEnd(null, success);
+            }
         }
     }
 
-    private boolean executeTask(Invocation invocation) {
+    private Exception executeTask(Invocation invocation) {
         if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
                 && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
                 && invocation.getLang() != Lang.C) {
@@ -183,7 +198,7 @@ public class Executor implements Runnable {
             LOGGER.error("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
             // Print to the job.err file
             System.err.println("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
-            return false;
+            return null;
         }
         return execute(invocation);
     }
@@ -243,7 +258,7 @@ public class Executor implements Runnable {
         }
     }
 
-    private boolean execute(Invocation invocation) {
+    private Exception execute(Invocation invocation) {
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
         }
@@ -274,8 +289,13 @@ public class Executor implements Runnable {
                 // Execute task
                 LOGGER.debug("Executing Task of Job " + invocation.getJobId());
                 long startExec = System.currentTimeMillis();
+                Timer timer = new Timer("Timer"+invocation.getTaskId());
+                Long time = (long) invocation.getTimeOut();
+                TimeOutTask timerTask = new TimeOutTask(invocation.getTaskId());
+                timer.schedule(timerTask, time);
                 executeTask(assignedResources, invocation, twd.getWorkingDir());
                 execDuration = System.currentTimeMillis() - startExec;
+                timerTask.cancel();
 
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
@@ -303,14 +323,17 @@ public class Executor implements Runnable {
                         + origFileDuration + " checkResults: " + checkResultsDuration);
 
             }
-            return true;
-
+            return null;
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             // Writing in the task .err/.out
             context.getThreadOutStream().println("Exception executing task " + e.getMessage());
             e.printStackTrace(context.getThreadErrStream());
-            return false;
+            Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof COMPSsException) {
+                return (COMPSsException)rootCause;
+            }
+            return e;
         } finally {
             // Always clean the task sandbox working dir
             cleanTaskSandbox(twd);
@@ -620,13 +643,12 @@ public class Executor implements Runnable {
                 File f = new File(filepath);
                 // If using C binding we ignore potential errors
                 if (f.exists()) {
-                    f.delete();
-                }
-                out.println("[EXECUTOR] executeTask - Creating a new blank file");
-                try {
-                    f.createNewFile();
-                } catch (IOException e) {
-                    System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
+                    out.println("[EXECUTOR] executeTask - Creating a new blank file");
+                    try {
+                        f.createNewFile();
+                    } catch (IOException e) {
+                        System.err.println("[EXECUTOR] checkJobFiles - Error in creating a new blank file");
+                    }
                 }
             }
         }

@@ -77,7 +77,7 @@ public class TaskFetchOperationsListener extends MultiOperationFetchListener {
         this.nw.checkStreamFileExistence(taskFileOutName, "out", errorMessage);
         String taskFileErrName = baseJobPath + ".err";
         this.nw.checkStreamFileExistence(taskFileErrName, "err", errorMessage);
-        this.nw.sendTaskDone(task, false);
+        this.nw.sendTaskDone(task, false, cause);
     }
 
 }

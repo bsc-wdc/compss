@@ -84,4 +84,9 @@ public class PrintMonitor extends AppMonitor {
     public void onFailure() {
         System.out.println("Failed!");
     }
+
+    @Override
+    public void onException() {
+        System.out.println("COMPSsException raised");
+    }
 }

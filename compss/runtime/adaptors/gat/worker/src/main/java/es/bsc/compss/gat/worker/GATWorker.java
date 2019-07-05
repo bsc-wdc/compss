@@ -42,6 +42,7 @@ import es.bsc.compss.types.execution.exceptions.UnwritableValueException;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
+import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.exceptions.DistroStreamClientInitException;
 import es.bsc.distrostreamlib.requests.StopRequest;
@@ -410,7 +411,7 @@ public class GATWorker implements InvocationContext {
         Execution e = new Execution(task, new ExecutionListener() {
 
             @Override
-            public void notifyEnd(Invocation invocation, boolean success) {
+            public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
                 status.setSuccess(success);
                 sem.release();
             }

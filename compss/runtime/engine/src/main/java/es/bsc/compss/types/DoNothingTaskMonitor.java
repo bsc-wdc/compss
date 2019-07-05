@@ -70,4 +70,7 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     public void onFailure() {
     }
 
+    @Override
+    public void onException() {
+    }
 }

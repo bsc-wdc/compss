@@ -31,7 +31,7 @@ public class ObjectDeregister {
         System.gc();
         Thread.sleep(10000);
 
-        k = ClassInstanceTest.countInstances(Dummy.class);
+        k = ClassInstanceTest.countInstances(Dummy.class);  
         if (k > 0) {
             System.out.println("[ERROR] At the end in the MASTER " + String.valueOf(k)
                     + " instances of the Dummy object were found");

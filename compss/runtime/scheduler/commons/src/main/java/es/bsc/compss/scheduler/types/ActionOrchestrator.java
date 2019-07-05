@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.scheduler.types;
 
+import es.bsc.compss.worker.COMPSsException;
+
 public interface ActionOrchestrator {
 
     /**
@@ -38,5 +40,13 @@ public interface ActionOrchestrator {
      * @param action Failed action.
      */
     public void actionError(AllocatableAction action);
+    
+    /**
+     * Notify that a given action has raised a COMPSs exception.
+     * 
+     * @param action Action which raised the exception.
+     * @param e 
+     */
+    public void actionException(AllocatableAction action, COMPSsException e);
 
 }

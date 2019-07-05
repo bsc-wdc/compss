@@ -63,6 +63,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
+import es.bsc.compss.worker.COMPSsException;
 import es.bsc.distrostreamlib.server.types.StreamBackend;
 
 import java.io.File;
@@ -1128,11 +1129,15 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         Execution exec = new Execution(job, new ExecutionListener() {
 
             @Override
-            public void notifyEnd(Invocation invocation, boolean success) {
+            public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
                 if (success) {
                     job.getListener().jobCompleted(job);
                 } else {
-                    job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED);
+                    if (e != null) {
+                        job.getListener().jobFailed(job, JobEndStatus.EXCEPTION, e);
+                    } else {
+                        job.getListener().jobFailed(job, JobEndStatus.EXECUTION_FAILED, e);
+                    }
                 }
             }
         });

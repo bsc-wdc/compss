@@ -28,6 +28,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -153,6 +154,14 @@ public abstract class AllocatableAction {
         this.orchestrator.actionError(this);
     }
 
+    /**
+     * Notify action raised a COMPSs exception to the orchestrator.
+     */
+    protected void notifyException(COMPSsException e) {
+        LOGGER.warn("Notify COMPSs exception of " + this + " to orchestrator " + this.orchestrator);
+        this.orchestrator.actionException(this, e);
+    }
+    
     /*
      * ***************************************************************************************************************
      * DATA DEPENDENCIES OPERATIONS
@@ -211,9 +220,24 @@ public abstract class AllocatableAction {
      * @return {@code true} if there are data predecessors, {@code false} otherwise.
      */
     public final boolean hasDataPredecessors() {
+        boolean canceled = false;
+        for (AllocatableAction aa : this.dataPredecessors) {
+            canceled = checkIfCanceled(aa);
+            if (canceled == true) {
+                this.dataPredecessors.remove(aa);
+            }
+        }
         return !this.dataPredecessors.isEmpty();
     }
 
+    /**
+     * Returns if the task was cancelled.
+     * 
+     * @param aa
+     * @return
+     */
+    public abstract boolean checkIfCanceled(AllocatableAction aa);
+    
     /**
      * Returns whether there are stream producers or not.
      * 
@@ -768,6 +792,44 @@ public abstract class AllocatableAction {
         // Action notification
         doError();
     }
+    
+    /**
+     * Operations to perform when AA has raised a COMPSs exception. 
+     *
+     *@param e COMPSs Exception raised
+     */
+    public final List<AllocatableAction> exception(COMPSsException e) {
+        // Mark as finished
+        this.state = State.FAILED;
+        
+        if (this.getAssignedResource() != null) {
+            // Release resources and run tasks blocked on the resource
+            releaseResources();
+            selectedResource.unhostAction(this);
+            selectedResource.tryToLaunchBlockedActions();
+        }
+
+        cancelAction();
+        
+        List<AllocatableAction> successors = new LinkedList<>();
+        successors.addAll(this.dataSuccessors);
+        
+        // Action notification
+        doException(e);
+        
+        // Triggering cancelation on Data Successors
+        List<AllocatableAction> cancel = new LinkedList<>();
+        
+        // Forward cancellation to successors
+        for (AllocatableAction succ : successors) {
+            cancel.addAll(succ.canceled());
+        }
+
+        this.dataPredecessors.clear();
+        this.dataSuccessors.clear();
+       
+        return cancel;
+    }
 
     /**
      * Operations to perform when AA has totally failed. Calls specific operation doFailed.
@@ -836,7 +898,7 @@ public abstract class AllocatableAction {
 
         List<AllocatableAction> successors = new LinkedList<>();
         successors.addAll(this.dataSuccessors);
-
+        
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
 
@@ -895,6 +957,12 @@ public abstract class AllocatableAction {
      */
     protected abstract void doError() throws FailedActionException;
 
+    /**
+     * Triggers a COMPSs exception on a job.
+     *
+     */
+    protected abstract void doException(COMPSsException e);
+    
     /**
      * Triggers the unsuccessful action completion notification.
      */

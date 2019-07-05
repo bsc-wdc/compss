@@ -189,7 +189,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
         if (response.getStatusInfo().getStatusCode() != 200) {
             System.out.println(response.readEntity(String.class));
-            this.getListener().jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
+            this.getListener().jobFailed(this, JobEndStatus.SUBMISSION_FAILED, null);
         } else {
             System.out.println("SUBMISSION[" + this.getJobId() + "] Job submitted.");
             String jobId = response.readEntity(String.class);
@@ -202,7 +202,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     if (endStatus == JobEndStatus.OK) {
                         getListener().jobCompleted(RemoteRESTAgentJob.this);
                     } else {
-                        getListener().jobFailed(RemoteRESTAgentJob.this, endStatus);
+                        getListener().jobFailed(RemoteRESTAgentJob.this, endStatus, null);
                     }
                 }
             });

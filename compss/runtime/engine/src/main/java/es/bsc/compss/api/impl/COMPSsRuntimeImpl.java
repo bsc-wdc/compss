@@ -67,6 +67,7 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
 import java.io.IOException;
@@ -675,44 +676,41 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     // C
     @Override
-    public int executeTask(Long appId, String methodClass, String onFailure, String methodName, boolean isPrioritary,
-            boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters
-    ) {
+    public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName, 
+            boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
         return executeTask(appId, null, null, false, methodClass, methodName, null, OnFailure.valueOf(onFailure),
-                isPrioritary, Constants.SINGLE_NODE, isReplicated, isDistributed, hasTarget, numReturns, parameterCount,
-                parameters);
+                timeOut, isPrioritary, Constants.SINGLE_NODE, isReplicated, isDistributed, hasTarget, numReturns, 
+                parameterCount, parameters);
     }
 
     // Python
     @Override
-    public int executeTask(Long appId, String signature, String onFailure, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
-            Object... parameters
-    ) {
+    public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary, 
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, 
+            int parameterCount, Object... parameters) {
 
-        return executeTask(appId, null, null, true, null, null, signature, OnFailure.valueOf(onFailure), isPrioritary,
-                numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
+        return executeTask(appId, null, null, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut,
+                isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, numReturns, parameterCount, parameters);
     }
 
     // Java - Loader
     @Override
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-            int parameterCount, OnFailure onFailure, Object... parameters
-    ) {
-        return executeTask(appId, monitor, lang, false, methodClass, methodName, null, onFailure, isPrioritary,
-                numNodes, isReplicated, isDistributed, hasTarget, null, parameterCount, parameters);
+            int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
+
+        return executeTask(appId, monitor, lang, false, methodClass, methodName, null, onFailure, timeOut,
+                isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, null, parameterCount, parameters);
     }
 
     // Services
     @Override
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
             String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, OnFailure onFailure, Object... parameters
-    ) {
+            boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
 
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(TraceEvent.TASK.getId(), TraceEvent.TASK.getType());
@@ -740,7 +738,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         // Register the task
         int task = ap.newTask(appId, monitor, namespace, service, port, operation, isPrioritary, hasTarget, numReturns,
-                pars, onFailure);
+                pars, onFailure, timeOut);
 
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -754,9 +752,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      *
      * @param appId Application Id.
      * @param monitor Task monitor.
-     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the
-     * methodName
-     * and methodClass parameters
+     * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
+     *            and methodClass parameters.
      * @param methodClass Method class.
      * @param methodName Method name.
      * @param signature Method signature.
@@ -772,7 +769,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * @return The task id.
      */
     private int executeTask(Long appId, TaskMonitor monitor, Lang lang, boolean hasSignature, String methodClass,
-            String methodName, String signature, OnFailure onFailure, boolean isPrioritary, int numNodes,
+            String methodName, String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
             Object... parameters) {
 
@@ -814,7 +811,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
         // Register the task
         int task = ap.newTask(appId, monitor, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, pars, onFailure);
+                hasTarget, numReturns, pars, onFailure, timeOut);
 
         // End tracing event
         if (Tracer.extraeEnabled()) {
@@ -888,6 +885,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
     }
 
+    
+    /**
+     * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
+     * whether to expect new tasks after the barrier or not
+     * @throws COMPSsException Exception thrown by user
+     */
+    @Override
+    public void barrierGroup(Long appId, String groupName) throws COMPSsException {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.WAIT_FOR_ALL_TASKS.getId(), TraceEvent.WAIT_FOR_ALL_TASKS.getType());
+        }
+        // Regular barrier
+        ap.barrierGroup(appId, groupName);
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.WAIT_FOR_ALL_TASKS.getType());
+        }
+    }
+
     @Override
     public boolean deleteFile(String fileName) {
         // Check parameters
@@ -927,6 +943,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         Tracer.emitEvent(id, type);
     }
 
+    @Override
+    public void openTaskGroup(String groupName, boolean implicitBarrier) {
+        ap.setCurrentTaskGroup(groupName, implicitBarrier);
+    }
+    
+    @Override
+    public void closeTaskGroup(String groupName) {
+        ap.closeCurrentTaskGroup();
+    }
+
     /*
      * *********************************************************************************************************
      * *********************************** LoaderAPI INTERFACE IMPLEMENTATION **********************************
@@ -953,7 +979,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sourceLocation == null) {
             ErrorManager.fatal(ERROR_FILE_NAME);
         }
-
+        
+        LOGGER.debug("Getting file " + fileName);
         String renamedPath = openFile(fileName, Direction.IN);
         String intermediateTmpPath = renamedPath + ".tmp";
         rename(renamedPath, intermediateTmpPath);
@@ -963,6 +990,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sReg != null) {
             sReg.deleteTaskFile(fileName);
         }
+        
         rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -1484,5 +1512,4 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         // eventually allowing the garbage collector to free it (better use of memory)
         ap.deregisterObject(o);
     }
-
 }

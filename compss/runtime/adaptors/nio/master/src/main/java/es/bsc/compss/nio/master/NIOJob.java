@@ -30,6 +30,7 @@ import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -112,7 +113,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
         NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, this.taskParams.hasTargetObject(),
                 this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
                 this.slaveWorkersNodeNames, this.taskId, this.taskParams.getType(), this.jobId, this.history,
-                this.transferId);
+                this.transferId, this.getTimeOut());
+
 
         return nt;
     }
@@ -130,11 +132,15 @@ public class NIOJob extends Job<NIOWorkerNode> {
      * 
      * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
      */
-    public void taskFinished(boolean successful) {
+    public void taskFinished(boolean successful, Exception e) {
         if (successful) {
             listener.jobCompleted(this);
         } else {
-            listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
+            if (e instanceof COMPSsException) {
+                listener.jobFailed(this, JobEndStatus.EXCEPTION, (COMPSsException)e);
+            } else {
+                listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
+            }
         }
     }
 
@@ -145,12 +151,14 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
     @Override
     public String toString() {
-        MethodImplementation method = (MethodImplementation) this.impl;
+        AbstractMethodImplementation method = (AbstractMethodImplementation) this.impl;
 
-        String className = method.getDeclaringClass();
+//        String className = method.getDeclaringClass();
+        String definition = method.getMethodDefinition();
         String methodName = taskParams.getName();
 
-        return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
+//        return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
+        return "NIOJob JobId" + this.jobId + " for method " + methodName + " with definition " + definition;
     }
 
 }

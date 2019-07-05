@@ -258,12 +258,13 @@ def executor(queue, process_name, pipe, conf):
                 # current_line[8] = <string>  = operation type (e.g. METHOD)
                 # current_line[9] = <string>  = module
                 # current_line[10]= <string>  = method
-                # current_line[11]= <integer> = Number of slaves (worker nodes) == #nodes
+                # current_line[11]= <string>  = time out
+                # current_line[12]= <integer> = Number of slaves (worker nodes) == #nodes
                 # <<list of slave nodes>>
-                # current_line[11 + #nodes] = <integer> = computing units
-                # current_line[12 + #nodes] = <boolean> = has target
-                # current_line[13 + #nodes] = <string>  = has return (always 'null')
-                # current_line[14 + #nodes] = <integer> = Number of parameters
+                # current_line[12 + #nodes] = <integer> = computing units
+                # current_line[13 + #nodes] = <boolean> = has target
+                # current_line[14 + #nodes] = <string>  = has return (always 'null')
+                # current_line[15 + #nodes] = <integer> = Number of parameters
                 # <<list of parameters>>
                 #       !---> type, stream, prefix , value
 
@@ -306,9 +307,9 @@ def executor(queue, process_name, pipe, conf):
                                   % thread_affinity.getaffinity())
 
                     # Setup process environment
-                    cn = int(current_line[11])
-                    cn_names = ','.join(current_line[12:12 + cn])
-                    cu = current_line[12 + cn]
+                    cn = int(current_line[12])
+                    cn_names = ','.join(current_line[13:13 + cn])
+                    cu = current_line[13 + cn]
                     os.environ["COMPSS_NUM_NODES"] = str(cn)
                     os.environ["COMPSS_HOSTNAMES"] = cn_names
                     os.environ["COMPSS_NUM_THREADS"] = cu

@@ -36,6 +36,7 @@ import es.bsc.compss.types.resources.updates.PendingReduction;
 import es.bsc.compss.types.resources.updates.ResourceUpdate;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -155,6 +156,11 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
+    protected void doException(COMPSsException e) {
+        
+    }
+
+    @Override
     public Integer getCoreId() {
         return null;
     }
@@ -242,8 +248,12 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 
 }

@@ -20,6 +20,7 @@ import es.bsc.comm.Connection;
 
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTaskResult;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -30,12 +31,14 @@ public class CommandNIOTaskDone implements Command {
 
     private boolean successful;
     private NIOTaskResult tr;
+    private COMPSsException compssException;
 
     /**
      * Creates a new CommandNIOTaskDone for externalization.
      */
     public CommandNIOTaskDone() {
         super();
+        compssException = null;
     }
 
     /**
@@ -44,14 +47,23 @@ public class CommandNIOTaskDone implements Command {
      * @param tr         Task result.
      * @param successful Whether the task has successfully finished or not.
      */
-    public CommandNIOTaskDone(NIOTaskResult tr, boolean successful) {
+    public CommandNIOTaskDone(NIOTaskResult tr, boolean successful, COMPSsException e) {
         this.tr = tr;
         this.successful = successful;
+        this.compssException = e;
     }
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
-        agent.receivedNIOTaskDone(c, this.tr, this.successful);
+        agent.receivedNIOTaskDone(c, this.tr, this.successful, this.compssException);
+    }
+    
+    public COMPSsException getCompssException() {
+        return this.compssException;
+    }
+    
+    public void setCompssException(COMPSsException e) {
+        this.compssException = e;
     }
 
     public boolean isSuccessful() {
@@ -62,12 +74,14 @@ public class CommandNIOTaskDone implements Command {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.successful = in.readBoolean();
         this.tr = (NIOTaskResult) in.readObject();
+        this.compssException = (COMPSsException) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeBoolean(this.successful);
         out.writeObject(this.tr);
+        out.writeObject(this.compssException);
     }
 
     @Override

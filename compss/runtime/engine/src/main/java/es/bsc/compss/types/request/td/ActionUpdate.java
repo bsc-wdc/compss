@@ -19,6 +19,7 @@ package es.bsc.compss.types.request.td;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.worker.COMPSsException;
 
 
 /**
@@ -32,7 +33,8 @@ public class ActionUpdate extends TDRequest {
     public static enum Update {
     RUNNING, // The action has begin to run
     ERROR, // There has been an error during the execution
-    COMPLETED // The action execution has succeeded.
+    COMPLETED, // The action execution has succeeded.
+    EXCEPTION  // The task has produced an exception
     }
 
 
@@ -44,6 +46,10 @@ public class ActionUpdate extends TDRequest {
      * Update to be notified.
      */
     private final Update update;
+    /**
+     * COMPSs Exception.
+     */
+    private COMPSsException exception;
 
 
     /**
@@ -55,8 +61,13 @@ public class ActionUpdate extends TDRequest {
     public ActionUpdate(AllocatableAction action, Update update) {
         this.action = action;
         this.update = update;
+        this.exception = null;
     }
 
+    public void setCOMPSsException(COMPSsException e) {
+        this.exception = e;
+    }
+    
     @Override
     public TDRequestType getType() {
         return TDRequestType.ACTION_UPDATE;
@@ -73,6 +84,9 @@ public class ActionUpdate extends TDRequest {
                 break;
             case ERROR:
                 ts.errorOnAction(this.action);
+                break;
+            case EXCEPTION:
+                ts.exceptionOnAction(this.action, this.exception);
                 break;
         }
     }

@@ -561,7 +561,7 @@ public class LoaderUtils {
         try {
             retValue = method.invoke(o, values);
         } catch (IllegalArgumentException iae) {
-            ErrorManager.error("Wrong argument passed to method " + methodName, iae);
+            ErrorManager.error("Wrong argument passed to method " + methodName + " with class " + o.toString(), iae);
         } catch (IllegalAccessException iae) {
             ErrorManager.error("Cannot access method " + methodName, iae);
         } catch (InvocationTargetException e) {

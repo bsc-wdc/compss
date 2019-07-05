@@ -69,7 +69,12 @@ public class AppMainMonitor extends AppMonitor {
     public void onFailedExecution() {
         profile.finished();
     }
-
+    
+    @Override
+    public void onException() {
+        profile.finished();
+    }
+    
     @Override
     public void onSuccesfulExecution() {
         profile.finished();

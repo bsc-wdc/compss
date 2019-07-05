@@ -121,6 +121,21 @@ void compss_barrier_new(int no_more_tasks) {
     GS_BarrierNew(l_app_id, no_more_tasks);
 }
 
+void compss_barrier_group(char *groupname) {
+    long int l_app_id = 0;
+    GS_BarrierGroup(l_app_id, groupname);
+}
+
+void compss_open_task_group(char *groupname, int implicitBarrier) {
+    GS_OpenTaskGroup(groupname, implicitBarrier);
+}
+
+void compss_close_task_group(char *groupname) {
+    GS_CloseTaskGroup(groupname);
+}
+
+
+
 int compss_register(void *ref, datatype type, direction dir, char *classname, char * &filename, int object_type, int elements) {
     Entry entry;
     int result = 0;

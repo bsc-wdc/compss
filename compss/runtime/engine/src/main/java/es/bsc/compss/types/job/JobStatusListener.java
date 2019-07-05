@@ -17,6 +17,7 @@
 package es.bsc.compss.types.job;
 
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
+import es.bsc.compss.worker.COMPSsException;
 
 
 public class JobStatusListener implements JobListener {
@@ -35,9 +36,14 @@ public class JobStatusListener implements JobListener {
     }
 
     @Override
-    public void jobFailed(Job<?> job, JobEndStatus endStatus) {
-        // Mark execution as failed
-        this.execution.failedJob(job, endStatus);
+    public void jobFailed(Job<?> job, JobEndStatus endStatus, COMPSsException e) {
+        if (endStatus == JobEndStatus.EXCEPTION) {
+            // Mark execution as exception occurred
+            this.execution.exceptionJob(job, e);
+        } else {
+            // Mark execution as failed
+            this.execution.failedJob(job, endStatus);
+        }
     }
 
 }

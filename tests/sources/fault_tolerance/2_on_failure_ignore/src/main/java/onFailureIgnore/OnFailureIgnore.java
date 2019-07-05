@@ -1,10 +1,14 @@
 package onFailureIgnore;
 
 import es.bsc.compss.api.COMPSs;
+
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 
 public class OnFailureIgnore {
@@ -21,12 +25,15 @@ public class OnFailureIgnore {
             onIgnoreFailure();
         } catch (numberException e) {
             catchException(e);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
 
     }
 
     // Ignore the task failure and continue with other tasks execution
-    private static void onIgnoreFailure() throws numberException {
+    private static void onIgnoreFailure() throws Exception {
 
         // Create and write first number to file
         initFiles();
@@ -38,10 +45,64 @@ public class OnFailureIgnore {
             OnFailureIgnoreImpl.processParamIgnoreFailure(FILE_NAME);
         }
 
+        
         // Wait for all tasks to finish
         COMPSs.barrier();
+        
+     // Get the renamed file
+        COMPSs.getFile(FILE_NAME);
+
+        // Shell commands to execute to check contents of file
+        ArrayList<String> commands = new ArrayList<String>();
+        commands.add("/bin/cat");
+        commands.add(FILE_NAME);
+
+        // ProcessBuilder start
+        ProcessBuilder pb = new ProcessBuilder(commands);
+        pb.redirectErrorStream(true);
+        Process process = null;
+        try {
+            process = pb.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Read file content
+        readContents(process);
+
+        // Check result
+        try {
+            if (process.waitFor() == 0) {
+                System.exit(0);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.exit(1);
     }
 
+    private static void readContents(Process process) throws Exception {
+        // Read output of file
+        StringBuilder out = new StringBuilder();
+        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null, previous = null;
+        int count = 0;
+        try {
+            while ((line = br.readLine()) != null)
+                if (!line.equals(previous)) {
+                    previous = line;
+                    out.append(line).append('\n');
+                    count = count + 1;
+                }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        // Exception if number of writers has not been correct
+        if (count != 1) {
+            throw new Exception("Incorrect number of writers " + count);
+        }
+    }
     private static void initFiles() {
         // Initialize the test file
         try {

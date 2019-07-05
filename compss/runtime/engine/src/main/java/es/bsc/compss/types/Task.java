@@ -54,57 +54,64 @@ public class Task extends AbstractTask {
 
     // On failure behavior
     private final OnFailure onFailure;
-
-    private TreeMap<Integer, CommutativeGroupTask> commutativeGroup;
-
-
+    
+    // Commutative groups of the task
+    private TreeMap<Integer, CommutativeGroupTask>  commutativeGroup;
+    
+    // List of task groups
+    private LinkedList<TaskGroup> taskGroups;
+    
     /**
      * Creates a new METHOD task with the given parameters.
      *
-     * @param appId         Application Id.
-     * @param lang          Application language.
-     * @param signature     Task signature.
-     * @param isPrioritary  Whether the task has priority or not.
-     * @param numNodes      Number of nodes used by the task.
-     * @param isReplicated  Whether the task must be replicated or not.
+     * @param appId Application Id.
+     * @param lang Application language.
+     * @param signature Task signature.
+     * @param isPrioritary Whether the task has priority or not.
+     * @param numNodes Number of nodes used by the task.
+     * @param isReplicated Whether the task must be replicated or not.
      * @param isDistributed Whether the task must be distributed round-robin or not.
-     * @param numReturns    Number of returns of the task.
-     * @param hasTarget     Whether the task has a target object or not.
-     * @param parameters    Task parameter values.
-     * @param monitor       Task monitor.
-     * @param onFailure     On failure mechanisms.
+     * @param numReturns Number of returns of the task.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param parameters Task parameter values.
+     * @param monitor Task monitor.
+     * @param onFailure On failure mechanisms.
+     * @param timeOut Time for a task time out.
      */
     public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
-            OnFailure onFailure) {
+            OnFailure onFailure, int timeOut) {
 
         super(appId);
         int coreId = CoreManager.getCoreId(signature);
         this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, coreId,
                 isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, parameters);
+                hasTarget, numReturns, timeOut, parameters);
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
         this.commutativeGroup = new TreeMap<>();
+        this.taskGroups = new LinkedList<>();
     }
 
     /**
      * Creates a new SERVICE task with the given parameters.
      *
-     * @param appId        Application Id.
-     * @param namespace    Service namespace.
-     * @param service      Service name.
-     * @param port         Service port.
-     * @param operation    Service operation.
+     * @param appId Application Id.
+     * @param namespace Service namespace.
+     * @param service Service name.
+     * @param port Service port.
+     * @param operation Service operation.
      * @param isPrioritary Whether the task has priority or not.
-     * @param hasTarget    Whether the task has a target object or not.
-     * @param numReturns   Number of returns of the task.
-     * @param parameters   Task parameter values.
-     * @param monitor      Task monitor.
-     * @param onFailure    On failure mechanisms.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param numReturns Number of returns of the task.
+     * @param parameters Task parameter values.
+     * @param monitor Task monitor.
+     * @param onFailure On failure mechanisms.
+     * @param timeOut Time for a task time out.
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
-            boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure) {
+            boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
+            int timeOut) {
         
         super(appId);
         String signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget,
@@ -117,10 +124,11 @@ public class Task extends AbstractTask {
 
         this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, coreId,
                 isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, parameters);
+                hasTarget, numReturns, timeOut, parameters);
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
         this.commutativeGroup = new TreeMap<>();
+        this.taskGroups = new LinkedList<>();
     }
 
     /**
@@ -219,6 +227,26 @@ public class Task extends AbstractTask {
     }
 
     /**
+     * Returns whether the task is scheduling forced or not.
+     * Registers a new task group for the dataId @daId.
+     * 
+     * @param taskGroup Group of tasks.
+     */
+
+    public void setTaskGroup(TaskGroup taskGroup) {
+        this.taskGroups.add(taskGroup);
+    }
+    
+    /**
+     * Returns a list of the task groups for the task.
+     *
+     * @return The list of tas groups.
+     */
+    public LinkedList<TaskGroup> getTaskGroupList() {
+        return this.taskGroups;
+    }
+
+    /**
      * Returns the DOT description of the task (only for monitoring).
      *
      * @return A string representing the description of the task in DOT format.
@@ -294,7 +322,7 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Returns whether the task can be executed depending on if the groups are executing other tasks.
+     * Returns if the task can be executed depending on if the groups are executing other tasks.
      *
      * @return {@literal true} if the task can be executed, {@literal false} otherwise.
      */
@@ -324,7 +352,16 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Returns whether any of the parameters of the task has a commutative direction.
+     * Returns if the task is member of any task group.
+     * 
+     * @return A boolean stating if the task is member of any task group.
+     */
+    public boolean hasTaskGroups() {
+        return !this.taskGroups.isEmpty();
+    }
+    
+    /**
+     * Returns if any of the parameters of the task has a commutative direction.
      *
      * @return {@literal true} if the task has commutative parameters, {@literal false} otherwise.
      */

@@ -17,6 +17,7 @@
 package es.bsc.compss.executor.types;
 
 import es.bsc.compss.types.execution.Invocation;
+import es.bsc.compss.worker.COMPSsException;
 
 
 public class Execution {
@@ -38,9 +39,9 @@ public class Execution {
      * Execution end notification.
      * @param success Flags to indicate if execution was successful
      */
-    public void notifyEnd(boolean success) {
+    public void notifyEnd(COMPSsException e, boolean success) {
         if (listener != null) {
-            listener.notifyEnd(invocation, success);
+            listener.notifyEnd(invocation, success, e);
         }
     }
 

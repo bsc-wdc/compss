@@ -27,6 +27,7 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -126,6 +127,11 @@ public class FakeAllocatableAction extends AllocatableAction {
     protected void doFailIgnored() {
         // Nothing to do
     }
+    
+    @Override
+    protected void doException(COMPSsException e) {
+        
+    }
 
     @Override
     public String toString() {
@@ -216,6 +222,11 @@ public class FakeAllocatableAction extends AllocatableAction {
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
         // Nothing to do
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
     }
 
 }

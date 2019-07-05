@@ -19,6 +19,7 @@ package es.bsc.compss.types.fake;
 import es.bsc.compss.components.impl.TaskScheduler;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.worker.COMPSsException;
 
 
 public class FakeActionOrchestrator implements ActionOrchestrator {
@@ -49,4 +50,9 @@ public class FakeActionOrchestrator implements ActionOrchestrator {
         this.ts.errorOnAction(action);
     }
 
+    // Notification thread
+    @Override
+    public void actionException(AllocatableAction action, COMPSsException e) {
+        this.ts.exceptionOnAction(action, e);
+    }
 }

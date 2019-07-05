@@ -52,6 +52,11 @@
      \
      "${app_name}" 1 > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
 
+  # For checking JVM: 
+     #--jvm_master_opts="-Dcom.sun.management.jmxremote,\
+     #-Dcom.sun.management.jmxremote.port=9011,-Dcom.sun.management.jmxremote.local.only=false,\
+     #-Dcom.sun.management.jmxremote.authenticate=false,-Dcom.sun.management.jmxremote.ssl=false"\
+     
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files

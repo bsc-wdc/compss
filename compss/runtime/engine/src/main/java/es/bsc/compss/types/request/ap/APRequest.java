@@ -22,6 +22,7 @@ import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
+import es.bsc.compss.worker.COMPSsException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,8 +51,9 @@ public abstract class APRequest {
      * @param dip DataInfoProvider of the processing AccessProcessor.
      * @param td Task Dispatcher attached to the processing AccessProcessor.
      * @throws ShutdownException If the component has been shutdown unexpectedly.
+     * @throws COMPSsException Exception thrown by user
      */
     public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
-            throws ShutdownException;
+            throws ShutdownException, COMPSsException;
 
 }

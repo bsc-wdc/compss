@@ -51,6 +51,7 @@ import es.bsc.compss.util.ResourceOptimizer;
 import es.bsc.compss.util.SchedulingOptimizer;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -463,6 +464,48 @@ public class TaskScheduler {
         }
     }
 
+    /**
+     * Registers a COMPSs exception to the group of the task
+     * 
+     * @param action Action raising the error.
+     */
+    public final void exceptionOnAction(AllocatableAction action, COMPSsException e) {
+        
+        LOGGER.info("[TaskScheduler] Exception on action " + action);
+        // Mark action as finished
+        removeFromReady(action);
+
+        ResourceScheduler<WorkerResourceDescription> resource;
+        resource = (ResourceScheduler<WorkerResourceDescription>) action.getAssignedResource();
+        List<AllocatableAction> resourceFree;
+        try {
+            resourceFree = resource.unscheduleAction(action);
+        } catch (ActionNotFoundException ex) {
+            // Once the action starts running should cannot be moved from the resource
+            resourceFree = new LinkedList<>();
+        }
+
+        // Get the data free actions and mark them as ready
+        List<AllocatableAction> dataFreeActions = action.exception(e);
+        for (AllocatableAction dataFreeAction : dataFreeActions) {
+            addToReady(dataFreeAction);
+        }
+
+        // We update the worker load
+        workerLoadUpdate(resource);
+
+        // Schedule data free actions
+        List<AllocatableAction> blockedCandidates = new LinkedList<>();
+        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
+        // and those that remain unassigned must be added to the unassigned list
+        handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
+        for (AllocatableAction aa : blockedCandidates) {
+            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
+                removeFromReady(aa);
+            }
+            addToBlocked(aa);
+        }
+    }
     /**
      * Registers an error on the action given as a parameter. The action itself processes the error and triggers with
      * any possible solution to re-execute it. This code is executed only on re-schedule (no resubmit).

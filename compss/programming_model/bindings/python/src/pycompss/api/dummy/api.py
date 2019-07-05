@@ -99,6 +99,16 @@ def compss_barrier(no_more_tasks=False):
     pass
 
 
+def compss_barrier_group(group_name):
+    """
+    Dummy barrier for groups.
+
+    :param group_name: Name of the group.
+    :return: None
+    """
+    pass
+
+
 def compss_wait_on(*args):
     """
     Dummy compss_wait_on
@@ -110,3 +120,23 @@ def compss_wait_on(*args):
     ret = list(map(lambda o: o, args))
     ret = ret[0] if len(ret) == 1 else ret
     return ret
+
+def compss_open_task_group(group_name):
+    """
+    Dummy open task group.
+
+    :param group_name: Name of the group to open
+    :return: None
+    """
+    pass
+
+
+def compss_close_task_group(group_name):
+    """
+        Dummy close task group.
+
+        :param group_name: Name of the group to close
+        :return: None
+        """
+    pass
+

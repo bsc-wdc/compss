@@ -18,8 +18,10 @@ package es.bsc.compss.loader;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.COMPSs;
+import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.total.ArrayAccessWatcher;
+import es.bsc.compss.loader.total.COMPSsGroupLoader;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.types.annotations.Orchestration;
@@ -55,6 +57,8 @@ public class LoaderConstants {
     public static final String CLASS_LOADERAPI = LoaderAPI.class.getCanonicalName();
     public static final String CLASS_ANNOTATIONS_ORCHESTRATION = Orchestration.class.getCanonicalName();
     public static final String CLASS_COMPSS_CONSTANTS = COMPSsConstants.class.getCanonicalName();
+    public static final String CLASS_COMPSS_GROUP_LOADER = COMPSsGroupLoader.class.getCanonicalName();
+    public static final String CLASS_COMPSS_GROUP = COMPSsGroup.class.getCanonicalName();
 
     // Strings for Loader variables
     public static final String STR_COMPSS_PREFIX = "compss";

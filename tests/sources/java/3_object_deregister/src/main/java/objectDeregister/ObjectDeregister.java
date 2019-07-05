@@ -13,7 +13,7 @@ public class ObjectDeregister {
          */
 
         int k;
-        final int ITERATIONS = 1;
+        final int ITERATIONS = 10;
 
         for (int i = 0; i < ITERATIONS; ++i) {
             Dummy d = new Dummy(i);
@@ -29,7 +29,7 @@ public class ObjectDeregister {
         ObjectDeregisterImpl.task4();
         COMPSs.barrier();
         System.gc();
-        Thread.sleep(1000000);
+        Thread.sleep(10000);
 
         k = ClassInstanceTest.countInstances(Dummy.class);  
         if (k > 0) {

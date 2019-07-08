@@ -1,5 +1,6 @@
 include backend.py
 
+include README.txt
 include LICENSE.txt
 include VERSION.txt
 include pycompssenv

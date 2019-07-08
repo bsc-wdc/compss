@@ -237,8 +237,6 @@
     -XX:+PerfDisableSharedMem \
     -XX:-UsePerfData \
     -XX:+UseG1GC \
-    -XX:+UseThreadPriorities \
-    -XX:ThreadPriorityPolicy=42 \
     -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
     -Dcompss.streaming=${streaming} \
     -Dcompss.python.interpreter=${pythonInterpreter} \

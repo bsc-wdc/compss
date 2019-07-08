@@ -213,7 +213,7 @@ public class ExecutionAction extends AllocatableAction {
         }
         return false;
     }
-    
+
     private void doInputTransfers() {
         JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);
@@ -221,7 +221,6 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     private void transferInputData(JobTransfersListener listener) {
-        System.out.println("Obtaining data values for task:");
         TaskDescription taskDescription = task.getTaskDescription();
         for (Parameter p : taskDescription.getParameters()) {
             if (DEBUG) {
@@ -247,7 +246,6 @@ public class ExecutionAction extends AllocatableAction {
 
     // Private method that performs data transfers
     private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
-        System.out.println("\t Param " + param);
         switch (param.getType()) {
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) param;
@@ -408,19 +406,19 @@ public class ExecutionAction extends AllocatableAction {
 
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received an exception notification for job " + jobId);
-        
+
         if (e instanceof COMPSsException && this.task.hasTaskGroups()) {
             for (TaskGroup t : this.task.getTaskGroupList()) {
-                t.setException((COMPSsException)e);
+                t.setException((COMPSsException) e);
             }
         }
-        
+
         // Update info about the generated/updated data
         doOutputTransfers(job);
-        
-        notifyException(e);  
+
+        notifyException(e);
     }
-    
+
     /**
      * Code executed when the job execution has failed.
      *
@@ -594,7 +592,7 @@ public class ExecutionAction extends AllocatableAction {
                 switch (p.getDirection()) {
                     case IN:
                     case CONCURRENT:
-                    case COMMUTATIVE: 
+                    case COMMUTATIVE:
                     case INOUT:
                         // Return value is OUT, skip the current parameter
                         continue;
@@ -715,9 +713,9 @@ public class ExecutionAction extends AllocatableAction {
     protected void doException(COMPSsException e) {
         LinkedList<TaskGroup> taskGroups = this.task.getTaskGroupList();
         for (TaskGroup group : taskGroups) {
-            group.setException((COMPSsException)e);
+            group.setException((COMPSsException) e);
         }
-        
+
         // Failed log message
         String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
@@ -725,16 +723,16 @@ public class ExecutionAction extends AllocatableAction {
                 .append(" has raised an exception. Successors keep running.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
-        
+
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onException();
-        
+
         // Decrease the execution counter and set the task as finished and notify the producer
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
         this.producer.notifyTaskEnd(task);
     }
-    
+
     @Override
     protected void doCanceled() {
         // Cancelled log message

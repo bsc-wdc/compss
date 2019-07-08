@@ -103,7 +103,7 @@ static char *c_out_types[] = {
     "stream",               //stream_t
     "external_stream_t",    //binding streams
     "enum",                 //enum_dt
-    "error",		        // null_dt
+    "error"  		        // null_dt
 };
 
 void asprintf_error(char* pointer, char* error) {
@@ -400,84 +400,6 @@ void generate_executor_prototype(FILE *outFile) {
     fprintf(outFile, "\n");
 }
 
-void generate_worker_executor() {
-    generate_executor_prototype(workerFile);
-    // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName,
-    //                                                      numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
-    fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug
-    fprintf(workerFile, "\t\t cout << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ----------------- C WORKER -----------------\" << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Total number of parameters: \" << argc << endl;\n");
-    fprintf(workerFile, "\t }\n"); //Close if debug
-
-    fprintf(workerFile, "\t if (argc < MIN_NUM_INTERNAL_ARGS) {\n"); //Open args check if
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ERROR: Incorrect number of COMPSs internal parameters\"<< endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Aborting...\" << endl;\n");
-    fprintf(workerFile, "\t\t return -1; \n");
-    fprintf(workerFile, "\t }\n"); //Close args check if
-    fprintf(workerFile, "\n");
-
-    // Log args
-    fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Executable: \" << argv[0] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Tracing: \" <<  argv[1] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Task Id: \" << argv[2] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Worker Debug: \" << argv[3] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] StorageConf: \" << argv[4] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodType: \" << argv[5] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ClassName: \" << argv[6] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodName: \" << argv[7] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] TimeOut: \" << argv[8] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[9] << endl;\n");
-    fprintf(workerFile, "\t }\n"); //Close if debug
-
-    fprintf(workerFile, "\t int numSlaves=atoi(argv[9]);\n");
-
-    fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
-    fprintf(workerFile, "\t\t for (int i = 0; i < numSlaves; ++i) {\n"); //Open for
-    fprintf(workerFile, "\t\t\t cout <<\"[C-BINDING] Slave \" << i << \" has name \" << argv[NUM_BASE_ARGS + i] << endl;\n");
-    fprintf(workerFile, "\t\t }\n"); //Close for
-    fprintf(workerFile, "\t }\n"); //Close if debug
-
-    fprintf(workerFile, "\t int NUM_INTERNAL_ARGS=NUM_BASE_ARGS + numSlaves;\n");
-
-    //fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumComputingUnits: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] HasTarget: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumReturns: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] ReturnType: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Num App Params: \" << argv[NUM_INTERNAL_ARGS++] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Application Arguments:\" << endl;\n");
-    fprintf(workerFile, "\t\t for(int i = NUM_INTERNAL_ARGS; i < argc; i++) { \n"); //Open for
-    fprintf(workerFile, "\t\t\t cout << \"\t\" << argv[i] << endl;\n");
-    fprintf(workerFile, "\t\t }\n"); //Close for clause
-    fprintf(workerFile, "\t\t cout << flush;\n");
-    fprintf(workerFile, "\n");
-    //fprintf(workerFile, "\t }\n"); //Close if debug clause
-
-    // Get OpName and OpCode
-    fprintf(workerFile, "\t enum operationCode opCod;\n");
-    fprintf(workerFile, "\t char *opName = strdup(argv[METHOD_NAME_POS]);\n");
-    fprintf(workerFile, "\t for(int i=0; i < N_OPS; i++) {\n");
-    fprintf(workerFile, "\t\t if(strcmp(operationName[i], opName) == 0) {\n");
-    fprintf(workerFile, "\t\t\t opCod=(enum operationCode)i;\n");
-    fprintf(workerFile, "\t\t\t break;\n");
-    fprintf(workerFile, "\t\t }\n");
-    fprintf(workerFile, "\t }\n");
-
-    fprintf(workerFile, "\t if(is_debug()){\n"); // Open if debug clause
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] OpName: \" << opName << \"OpCode: \" << (int)opCod << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] --------------------------------------------\"<< endl << endl << flush;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] Data in cache before executing:\" << endl;\n");
-    fprintf(workerFile, "\t\t cache->printValues();\n");
-    fprintf(workerFile, "\t }\n");//Close if debug clause
-
-    // OpCode switch
-    fprintf(workerFile, "\t int arg_offset = NUM_INTERNAL_ARGS;\n");
-    fprintf(workerFile, "\t switch(opCod)\n");
-    fprintf(workerFile, "\t {\n"); //Open switch clause
-}
-
 /*
  * Starting of the headers file
  */
@@ -651,7 +573,6 @@ static char* construct_type_and_name(argument* arg) {
             case short_dt:
             case long_dt:
             case longlong_dt:
-            case enum_dt:
             case int_dt:
             case float_dt:
             case double_dt:
@@ -1320,20 +1241,19 @@ static void add_object_or_array_arg_master_treatment(FILE *outFile, argument *ar
 static void treat_master_argument(FILE *outFile, argument *arg, int i, Types current_types) {
     enum datatype t = arg->type; //Used only in the enum_dt, wstring_dt case...
     switch (t) {
+    case enum_dt:
+        t = int_dt;
     case char_dt:
     case wchar_dt:
     case boolean_dt:
     case short_dt:
     case long_dt:
     case longlong_dt:
-    case enum_dt:
-        t = int_dt;
     case int_dt:
     case float_dt:
     case double_dt:
     case string_dt:
     case wstring_dt:
-        //Entrar con GDB aqui!!!
         if ( arg->dir == in_dir) {
             fprintf(outFile, "\t // Add treatment for argument %s;\n", arg->name);
             add_parameter_to_taskbuffer(outFile, arg->name, t, arg->dir, 3, "\"null\"", i, "\t");
@@ -2317,10 +2237,11 @@ void generate_worker_executor(Types current_types) {
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodType: \" << argv[5] << endl;\n");
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] ClassName: \" << argv[6] << endl;\n");
     fprintf(workerFile, "\t\t cout << \"[C-BINDING] MethodName: \" << argv[7] << endl;\n");
-    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[8] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] TimeOut: \" << argv[8] << endl;\n");
+    fprintf(workerFile, "\t\t cout << \"[C-BINDING] NumSlaves: \" << argv[9] << endl;\n");
     fprintf(workerFile, "\t }\n"); //Close if debug
 
-    fprintf(workerFile, "\t int numSlaves=atoi(argv[8]);\n");
+    fprintf(workerFile, "\t int numSlaves=atoi(argv[9]);\n");
 
     fprintf(workerFile, "\t if(is_debug()){\n"); //Open if debug clause
     fprintf(workerFile, "\t\t for (int i = 0; i < numSlaves; ++i) {\n"); //Open for

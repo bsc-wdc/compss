@@ -24,12 +24,12 @@ import es.bsc.compss.agent.Agent;
 import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.AgentInterface;
 import es.bsc.compss.agent.comm.messages.types.CommParam;
+import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
-import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
@@ -121,7 +121,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
     }
 
     @Override
-    public void receivedNewTask(NIONode master, NIOTask request) {
+    public void receivedNewTask(NIONode master, CommTask request) {
         Lang lang = request.getLang();
         MethodImplementation impl = (MethodImplementation) request.getMethodImplementation();
         String className = impl.getDeclaringClass();
@@ -144,17 +144,17 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             paramId++;
         }
 
-        /*String cei = request.getCeiName();*/
-        String cei = null;
+        String cei = request.getCei();
         MethodResourceDescription requirements = request.getRequirements();
         if (cei != null) {
-            startMain(lang, className, methodName, arguments, cei, requirements);
+            startMain(lang, className, methodName, arguments, target, results, cei, requirements);
         } else {
             startTask(lang, className, methodName, arguments, target, results, requirements);
         }
     }
 
-    private void startMain(Lang lang, String className, String methodName, ApplicationParameter[] params,
+    private void startMain(Lang lang, String className, String methodName,
+            ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
             String ceiName, MethodResourceDescription requirements) {
         System.out.println("Es vol executar el main " + lang + " " + className + "." + methodName
                 + " parallelitzat amb " + ceiName);
@@ -164,7 +164,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         }
         System.out.println("La tasca reservarà " + requirements);
         try {
-            Agent.runMain(lang, ceiName, className, methodName, params, new PrintMonitor());
+            Agent.runMain(lang, ceiName, className, methodName, params, target, results, new PrintMonitor());
         } catch (AgentException ex) {
             ex.printStackTrace();
         }

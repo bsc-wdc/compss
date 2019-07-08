@@ -26,8 +26,10 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.List;
 
 import storage.StubItf;
@@ -45,10 +47,10 @@ public class JavaInvoker extends Invoker {
     /**
      * Java Invoker constructor.
      *
-     * @param context Task execution context
-     * @param invocation Task execution description
+     * @param context               Task execution context
+     * @param invocation            Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources Assigned resources
+     * @param assignedResources     Assigned resources
      * @throws JobExecutionException Error creating the Java invoker
      */
     public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
@@ -97,54 +99,39 @@ public class JavaInvoker extends Invoker {
                 method = methodClass.getMethod(methodName, types);
             } catch (NoSuchMethodException | SecurityException e) {
                 for (Method m : methodClass.getDeclaredMethods()) {
-                    if (m.getName().equals(methodName) && params.size() == m.getParameterCount()) {
-                        int paramId = 0;
+                    if (m.getName().equals(methodName)) {
+                        java.lang.reflect.Parameter[] reflectionParams = m.getParameters();
+                        boolean arbitraryParamCount;
+                        if (reflectionParams.length > 0) {
+                            // If the method has an arbitrary number of parameters, the last parameter is an array.
+                            arbitraryParamCount = reflectionParams[reflectionParams.length - 1].isVarArgs();
+                        } else {
+                            arbitraryParamCount = false;
+                        }
+                        if (arbitraryParamCount) {
+                            // If it has an arbitrary number of parameters, the call may have more parameters or 1 less
+                            if (params.size() < m.getParameterCount() - 1) {
+                                continue;
+                            }
+                        } else {
+                            if (params.size() != m.getParameterCount()) {
+                                continue;
+                            }
+                        }
+
                         boolean isMatch = true;
-                        for (java.lang.reflect.Parameter p : m.getParameters()) {
-                            Object paramValue = params.get(paramId).getValue();
-                            if (p.getType().isPrimitive()) {
-                                if (p.getType() != paramValue.getClass()) {
-                                    switch (p.getType().getCanonicalName()) {
-                                        case "byte":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Byte");
-                                            break;
-                                        case "char":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Char");
-                                            break;
-                                        case "short":
-                                            isMatch = paramValue.getClass().getCanonicalName()
-                                                    .equals("java.lang.Short");
-                                            break;
-                                        case "int":
-                                            isMatch = paramValue.getClass().getCanonicalName()
-                                                    .equals("java.lang.Integer");
-                                            break;
-                                        case "long":
-                                            isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Long");
-                                            break;
-                                        case "float":
-                                            isMatch = paramValue.getClass().getCanonicalName()
-                                                    .equals("java.lang.Float");
-                                            break;
-                                        case "double":
-                                            isMatch = paramValue.getClass().getCanonicalName()
-                                                    .equals("java.lang.Double");
-                                            break;
-                                        case "boolean":
-                                            isMatch = paramValue.getClass().getCanonicalName()
-                                                    .equals("java.lang.Boolean");
-                                            break;
-                                    }
+                        for (int paramId = 0; paramId < reflectionParams.length && isMatch; paramId++) {
+                            java.lang.reflect.Parameter reflectionParam = reflectionParams[paramId];
+                            if (arbitraryParamCount && paramId == reflectionParams.length - 1) {
+                                Class<?> componentType = reflectionParam.getType().getComponentType();
+                                for (; paramId < params.size() && isMatch; paramId++) {
+                                    Object paramValue = params.get(paramId).getValue();
+                                    isMatch = areTypesMatching(componentType, paramValue);
                                 }
                             } else {
-                                try {
-                                    p.getType().cast(paramValue);
-                                } catch (ClassCastException cce) {
-                                    isMatch = false;
-                                    break;
-                                }
+                                Object paramValue = params.get(paramId).getValue();
+                                isMatch = areTypesMatching(reflectionParam.getType(), paramValue);
                             }
-                            paramId++;
                         }
                         if (isMatch) {
                             method = m;
@@ -161,6 +148,47 @@ public class JavaInvoker extends Invoker {
         }
     }
 
+    private boolean areTypesMatching(Class<?> reflectionParam, Object paramValue) {
+        boolean isMatch = true;
+        if (reflectionParam.isPrimitive()) {
+            if (reflectionParam != paramValue.getClass()) {
+                switch (reflectionParam.getCanonicalName()) {
+                    case "byte":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Byte");
+                        break;
+                    case "char":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Char");
+                        break;
+                    case "short":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Short");
+                        break;
+                    case "int":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Integer");
+                        break;
+                    case "long":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Long");
+                        break;
+                    case "float":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Float");
+                        break;
+                    case "double":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Double");
+                        break;
+                    case "boolean":
+                        isMatch = paramValue.getClass().getCanonicalName().equals("java.lang.Boolean");
+                        break;
+                }
+            }
+        } else {
+            try {
+                reflectionParam.cast(paramValue);
+            } catch (ClassCastException cce) {
+                isMatch = false;
+            }
+        }
+        return isMatch;
+    }
+
     @Override
     public void invokeMethod() throws JobExecutionException {
         Object retValue = runMethod();
@@ -175,7 +203,7 @@ public class JavaInvoker extends Invoker {
             np.setValue(retValue);
             if (retValue != null) {
                 np.setValueClass(retValue.getClass());
-            }else{
+            } else {
                 np.setValueClass(null);
             }
             checkSCOPersistence(np);
@@ -184,10 +212,27 @@ public class JavaInvoker extends Invoker {
 
     protected Object runMethod() throws JobExecutionException {
         List<? extends InvocationParam> params = this.invocation.getParams();
-        Object[] values = new Object[params.size()];
+        int paramCount = this.method.getParameterCount();
+        Object[] values = new Object[paramCount];
+
+        Object[] paramDest = values;
         int paramIdx = 0;
         for (InvocationParam param : params) {
-            values[paramIdx++] = param.getValue();
+            if (paramIdx != paramCount - 1) {
+                paramDest[paramIdx++] = param.getValue();
+            } else {
+                Parameter reflectionParam = this.method.getParameters()[paramIdx];
+                Class<?> paramClass = this.method.getParameters()[paramIdx].getType();
+                // If the method has an arbitrary number of parameters, the last parameter is an array.
+                if (reflectionParam.isVarArgs()) {
+                    paramDest[paramIdx] = Array.newInstance(paramClass.getComponentType(), params.size() - paramCount + 1);
+                    paramDest = (Object[]) paramDest[paramIdx];
+                    paramIdx = 0;
+                    paramDest[paramIdx++] = param.getValue();
+                } else {
+                    paramDest[paramIdx++] = param.getValue();
+                }
+            }
         }
 
         InvocationParam targetParam = this.invocation.getTarget();

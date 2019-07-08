@@ -17,6 +17,7 @@
 package es.bsc.compss.agent.comm;
 
 import es.bsc.comm.nio.NIONode;
+import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.nio.NIOTask;
@@ -83,11 +84,11 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     @Override
     public void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteFiles) {
         // TODO: prune obsolete data
-        receivedNewTask(master, t);
+        receivedNewTask(master, (CommTask) t);
     }
 
     @Override
-    public void receivedNewTask(NIONode master, NIOTask request) {
+    public void receivedNewTask(NIONode master, CommTask request) {
         ownAgent.receivedNewTask(master, request);
     }
 

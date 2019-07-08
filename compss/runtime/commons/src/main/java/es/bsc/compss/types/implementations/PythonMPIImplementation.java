@@ -43,17 +43,18 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     }
 
     /**
-     * Creates a new MPIImplementation instance from the given parameters.
+     * Creates a new Python MPI Implementation.
      * 
-     * @param binary MPI binary path.
+     * @param methodClass Method class.
+     * @param altMethodName Alternative method name.
      * @param workingDir Binary working directory.
      * @param mpiRunner Path to the MPI command.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param annot Method annotations.
+     * @param requirements Method annotations.
      */
-    public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner, Integer coreId,
-            Integer implementationId, MethodResourceDescription requirements) {
+    public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
+            Integer coreId, Integer implementationId, MethodResourceDescription requirements) {
 
         super(coreId, implementationId, requirements);
 
@@ -89,7 +90,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     public void setAlternativeMethodName(String alternativeMethod) {
         this.alternativeMethod = alternativeMethod;
     }
-    
+
     /**
      * Returns the binary working directory.
      * 
@@ -126,15 +127,15 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
 
     @Override
     public String toString() {
-        return super.toString() + " Python MPI Method declared in class " + this.declaringClass + "." + this.alternativeMethod + " with MPIrunner " 
-                 + this.mpiRunner + ": " + this.requirements.toString(); 
+        return super.toString() + " Python MPI Method declared in class " + this.declaringClass + "."
+                + this.alternativeMethod + " with MPIrunner " + this.mpiRunner + ": " + this.requirements.toString();
     }
-    
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
         this.declaringClass = (String) in.readObject();
-        this.alternativeMethod = (String) in.readObject();        
+        this.alternativeMethod = (String) in.readObject();
         this.mpiRunner = (String) in.readObject();
         this.workingDir = (String) in.readObject();
     }

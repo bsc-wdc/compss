@@ -116,10 +116,10 @@ public abstract class ExternalInvoker extends Invoker {
                 methodName = methodImpl.getAlternativeMethodName();
                 break;
             case PYTHON_MPI:
-            	PythonMPIImplementation pythonMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
-            	methodClass = pythonMPIImpl.getDeclaringClass();
-            	methodName = pythonMPIImpl.getAlternativeMethodName();
-            	break;
+                PythonMPIImplementation pythonMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
+                methodClass = pythonMPIImpl.getDeclaringClass();
+                methodName = pythonMPIImpl.getAlternativeMethodName();
+                break;
             case MULTI_NODE:
                 MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) invocation.getMethodImplementation();
                 methodClass = multiNodeImpl.getDeclaringClass();

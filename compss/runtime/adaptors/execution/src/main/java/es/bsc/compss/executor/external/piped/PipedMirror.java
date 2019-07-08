@@ -62,9 +62,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     protected static final String TOKEN_NEW_LINE = "\n";
     protected static final String TOKEN_SEP = " ";
 
-    protected static final String PIPER_SCRIPT_RELATIVE_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
-            + "system" + File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers"
-            + File.separator;
+    protected static final String PIPER_SCRIPT_RELATIVE_PATH = File.separator + "Runtime" + File.separator + "scripts"
+            + File.separator + "system" + File.separator + "adaptors" + File.separator + "nio" + File.separator
+            + "pipers" + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
 
@@ -85,6 +85,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     /**
      * Piped Mirror constructor.
+     * 
      * @param context Invocation context
      * @param size Processes size
      */
@@ -162,13 +163,14 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 try {
                     pipeBuilderPipe.waitForCommand(new PongPipeCommand());
                 } catch (ClosedPipeException ie) {
-                    ErrorManager.fatal("Exception creating process builder. Message: " + ie.getMessage(), ie );
+                    ErrorManager.fatal("Exception creating process builder. Message: " + ie.getMessage(), ie);
                 }
             } else {
-                ErrorManager.fatal(ERROR_PB_START+": Error sending first Ping command. ");
+                ErrorManager.fatal(ERROR_PB_START + ": Error sending first Ping command. ");
             }
         } catch (IOException e) {
-            ErrorManager.error(ERROR_PB_START+": Exception during process builder creation. Message: " + e.getMessage(), e);
+            ErrorManager.error(
+                    ERROR_PB_START + ": Exception during process builder creation. Message: " + e.getMessage(), e);
         }
     }
 
@@ -249,7 +251,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
      * Returns the specific environment variables of each binding.
      *
      * @param context Invocation Context
-     * @return Environment variables key, value map 
+     * @return Environment variables key, value map
      */
     public abstract Map<String, String> getEnvironment(InvocationContext context);
 

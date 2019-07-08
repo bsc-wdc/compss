@@ -441,6 +441,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 lArgs.add(openclImpl.getKernel());
                 lArgs.add(sandboxDir);
                 break;
+            case PYTHON_MPI:
+                // TODO: Support Python MPI in GAT
+                throw new UnsupportedOperationException("Python MPI is not supported in GAT");
         }
 
         // Job arguments

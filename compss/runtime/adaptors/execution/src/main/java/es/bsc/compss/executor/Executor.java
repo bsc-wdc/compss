@@ -226,8 +226,8 @@ public class Executor implements Runnable {
                     invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case PYTHON_MPI:
-                	invoker = new PythonMPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                	break;
+                    invoker = new PythonMPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
                 case MPI:
                     invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
@@ -374,7 +374,7 @@ public class Executor implements Runnable {
             case PYTHON_MPI:
                 PythonMPIImplementation nativeMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
                 specificWD = nativeMPIImpl.getWorkingDir();
-                break;                
+                break;
             case COMPSs:
                 COMPSsImplementation compssImpl = (COMPSsImplementation) invocation.getMethodImplementation();
                 specificWD = compssImpl.getWorkingDir();

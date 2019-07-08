@@ -78,7 +78,7 @@
   fi
 
   # Check if the tasks have failed
-  output1=$(cat "${runtime_log}" | grep "Task failure:" | wc -l)
+  output1=$(grep -c "Task failure:" "${runtime_log}")
   if [ "${output1}" -ne "${FAILED}" ]; then
   	echo "ERROR: A task has not failed."
   	exit 1

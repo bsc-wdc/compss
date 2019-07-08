@@ -77,7 +77,7 @@ EOF
       \
       --debug \
       ${runcompss_opts} \
-      -g\
+      -g \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
       --pythonpath="${base_app_dir}"/src \

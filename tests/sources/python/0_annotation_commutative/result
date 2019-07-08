@@ -55,47 +55,45 @@
 
   #----------------------------------------------------------------------------------
   FILES=32
-  writers=8
 
-
-  #Checks file 6 content
+  # Checks file 6 content
   result=$(cat /tmp/sharedDisk/fileCommutativeTest6.txt)
-  if [ ${result} -ne 9 ]; then
+  if [ "${result}" -ne 9 ]; then
     echo "ERROR: Final result is not correct. ${result} (Expected 9) "
     exit 1
   fi
 
-  #Checks first file to write
+  # Checks first file to write
   result=$(cat /tmp/sharedDisk/fileCommutativeTest1.txt)
-  if [ ${result} -ne 31 ]; then
+  if [ "${result}" -ne 31 ]; then
     echo "ERROR: Final result is not correct. ${result} (Expected 31) "
     exit 1
   fi
 
-  #Checks file 2 content
+  # Checks file 2 content
   result=$(cat /tmp/sharedDisk/fileCommutativeTest2.txt)
-  if [ ${result} -ne 2 ]; then
+  if [ "${result}" -ne 2 ]; then
     echo "ERROR: Final result is not correct. ${result} (Expected 2) "
     exit 1
   fi
 
-  #Checks file 3 content
+  # Checks file 3 content
   result=$(cat /tmp/sharedDisk/fileCommutativeTest3.txt)
-  if [ ${result} -ne 2 ]; then
+  if [ "${result}" -ne 2 ]; then
     echo "ERROR: Final result is not correct. ${result} (Expected 2) "
     exit 1
   fi
 
-  #Checks file 4 content
+  # Checks file 4 content
   result=$(cat /tmp/sharedDisk/fileCommutativeTest4.txt)
-  if [ ${result} -ne 1 ]; then
+  if [ "${result}" -ne 1 ]; then
     echo "ERROR: Final result is not correct. ${result} (Expected 1) "
     exit 1
   fi
 
-  #Checks file 5 content
+  # Checks file 5 content
   result=$(cat /tmp/sharedDisk/fileCommutativeTest5.txt)
-  if [ ${result} -ne 1 ]; then
+  if [ "${result}" -ne 1 ]; then
     echo "ERROR: Final result is not correct. ${result} (Expected 1) "
     exit 1
   fi
@@ -108,7 +106,7 @@
   #  exit 1
   #fi
 
-  #Checks that all tasks have been completed
+  # Checks that all tasks have been completed
   if [ ! -f "${target_log_folder}/jobs/job${FILES}_NEW.out" ]; then
     echo "ERROR: All tasks have not completed succesfully."
     exit 1

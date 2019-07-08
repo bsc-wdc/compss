@@ -63,7 +63,7 @@ EOF
      \
      --debug \
      ${runcompss_opts} \
-     -g\
+     -g \
      --storage_conf=${storageConf} \
      --classpath="${base_app_dir}/${jar_name}":${storageImplPath} \
      \

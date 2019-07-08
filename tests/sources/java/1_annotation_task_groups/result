@@ -47,7 +47,6 @@
   #----------------------------------------------------------------------------------
   # Compute result status
   FILES=23
-  resultN=22
 
   # Checks if the file has been written as many times as expected
   result=$(cat /tmp/sharedDisk/taskGroups.txt)

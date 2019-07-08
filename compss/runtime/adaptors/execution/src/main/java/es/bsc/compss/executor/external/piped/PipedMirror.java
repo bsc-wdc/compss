@@ -62,7 +62,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     protected static final String TOKEN_NEW_LINE = "\n";
     protected static final String TOKEN_SEP = " ";
 
-    protected static final String PIPER_SCRIPT_RELATIVE_PATH = "Runtime" + File.separator + "scripts" + File.separator
+    protected static final String PIPER_SCRIPT_RELATIVE_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
             + "system" + File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers"
             + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
@@ -162,13 +162,13 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 try {
                     pipeBuilderPipe.waitForCommand(new PongPipeCommand());
                 } catch (ClosedPipeException ie) {
-                    ErrorManager.fatal(ERROR_PB_START);
+                    ErrorManager.fatal("Exception creating process builder. Message: " + ie.getMessage(), ie );
                 }
             } else {
-                ErrorManager.fatal(ERROR_PB_START);
+                ErrorManager.fatal(ERROR_PB_START+": Error sending first Ping command. ");
             }
         } catch (IOException e) {
-            ErrorManager.error(ERROR_PB_START, e);
+            ErrorManager.error(ERROR_PB_START+": Exception during process builder creation. Message: " + e.getMessage(), e);
         }
     }
 

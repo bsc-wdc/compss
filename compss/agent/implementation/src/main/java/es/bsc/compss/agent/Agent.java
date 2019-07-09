@@ -98,15 +98,15 @@ public class Agent {
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
         RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
         RUNTIME.startIT();
-
+        String loadSignature = "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,INT_T,OBJECT_T)";
         CoreElementDefinition ced = new CoreElementDefinition();
-        ced.setCeSignature("load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)");
+        ced.setCeSignature(loadSignature);
         MethodResourceDescription mrd = new MethodResourceDescription("");
         for (Processor p : mrd.getProcessors()) {
             p.setName("LocalProcessor");
         }
         ImplementationDefinition implDef = ImplementationDefinition.defineImplementation("METHOD",
-                "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,OBJECT_T)es.bsc.compss.agent.loader.Loader",
+                loadSignature + "es.bsc.compss.agent.loader.Loader",
                 new MethodResourceDescription(""), "es.bsc.compss.agent.loader.Loader", "load");
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
@@ -131,13 +131,16 @@ public class Agent {
      * @param ceiClass   Core Element interface to detect nested tasks in the code
      * @param className  name of the class containing the method to execute
      * @param methodName name of the method to execute
-     * @param params     parameter values to pass in to the method
+     * @param arguments
+     * @param target
+     * @param results
      * @param monitor    monitor to notify changes on the method execution
      * @return Identifier of the application associated to the main task
      * @throws AgentException error parsing the CEI
      */
     public static long runMain(Lang lang, String ceiClass, String className, String methodName,
-            ApplicationParameter[] params, AppMonitor monitor) throws AgentException {
+            ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
+            AppMonitor monitor) throws AgentException {
 
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
@@ -153,26 +156,71 @@ public class Agent {
             throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
         }
 
-        Object[] paramsValues = new Object[]{
-            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
-            RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
-            ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
-            appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
-            className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
-            methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
-            params, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "params", // Method arguments
-            new Object(), DataType.OBJECT_T, Direction.OUT, StdIOStream.UNSPECIFIED, "", "return" // Return value
-        };
+        try {
+            int taskParamsCount = arguments.length;
+            if (target != null) {
+                taskParamsCount++;
+            }
+            taskParamsCount += results.length;
+            int loadParamsCount = 7;
+            int totalParamsCount = taskParamsCount + loadParamsCount;
+            Object[] params = new Object[6 * totalParamsCount];
 
-        RUNTIME.executeTask(mainAppId, // Task application ID
-                monitor, // Corresponding task monitor
-                lang, "es.bsc.compss.agent.loader.Loader", "load", // Method to run
-                false, 1, false, false, // Scheduler hints
-                false, 8, // Parameters information
-                OnFailure.RETRY, // On failure behavior
-                0, paramsValues // Argument values
-        );
+            Object[] loadParams = new Object[]{
+                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
+                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
+                ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
+                appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
+                className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
+                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
+                /* 
+                * When passing a single parameter with array type to the loaded method, the Object... parameter of the
+                * load method assumes that each element of the array is a different parameter ( any array matches 
+                * Object...). To avoid it, we add a phantom basic-type parameter that avoids any data transfer and 
+                * ensures that the array is detected as the second parameter -- Object... is resolved as [ Integer, 
+                * array].
+                 */
+                3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
+            };
+
+            System.arraycopy(loadParams, 0, params, 0, loadParams.length);
+            int position = loadParams.length;
+            for (ApplicationParameter param : arguments) {
+                LOGGER.debug("\t Parameter:" + param.getParamName());
+                addParameterToTaskArguments(param, position, params);
+                position += 6;
+            }
+
+            if (target != null) {
+                LOGGER.debug("\t Target:" + target.getParamName());
+                addParameterToTaskArguments(target, position, params);
+                position += 6;
+            }
+
+            for (ApplicationParameter param : results) {
+                params[position] = new Object();
+                params[position + 1] = param.getType();
+                params[position + 2] = param.getDirection();
+                params[position + 3] = param.getStdIOStream();
+                params[position + 4] = param.getPrefix();
+                params[position + 5] = param.getParamName();
+                position += 6;
+            }
+
+            RUNTIME.executeTask(mainAppId, // Task application ID
+                    monitor, // Corresponding task monitor
+                    lang, "es.bsc.compss.agent.loader.Loader", "load", // Method to run
+                    false, 1, false, false, // Scheduler hints
+                    false, totalParamsCount, // Parameters information
+                    OnFailure.RETRY, // On failure behavior
+                    0, // Time out of the task
+                    params // Argument values
+            );
+        } catch (Exception e) {
+            throw new AgentException(e);
+        }
         return mainAppId;
+
     }
 
     /**
@@ -225,43 +273,13 @@ public class Agent {
                 } else {
                     typesSB.append("OBJECT_T");
                 }
-                RemoteDataInformation remote = param.getRemoteData();
-                if (param.getRemoteData() == null) {
-                    LOGGER.debug("\t\tUsing value passed in as parameter");
-                    params[position] = param.getValueContent();
-                } else {
-                    Object stub = new Object();
-                    LOGGER.debug("\t\tRegistering manually " + stub + "as" + param.getRemoteData());
-                    params[position] = stub;
-                    Agent.addRemoteData(remote);
-                    RUNTIME.registerData(param.getType(), stub, remote.getRenaming());
-                }
-                params[position + 1] = param.getType();
-                params[position + 2] = param.getDirection();
-                params[position + 3] = param.getStdIOStream();
-                params[position + 4] = param.getPrefix();
-                params[position + 5] = param.getParamName();
+                addParameterToTaskArguments(param, position, params);
                 position += 6;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
-                RemoteDataInformation remote = target.getRemoteData();
-                if (target.getRemoteData() == null) {
-                    LOGGER.debug("\t\tUsing value passed in as parameter");
-                    params[position] = target.getValueContent();
-                } else {
-                    Object stub = new Object();
-                    LOGGER.debug("\t\tRegistering manually " + stub + "as" + target.getRemoteData());
-                    params[position] = stub;
-                    Agent.addRemoteData(remote);
-                    RUNTIME.registerData(target.getType(), stub, remote.getRenaming());
-                }
-                params[position + 1] = target.getType();
-                params[position + 2] = target.getDirection();
-                params[position + 3] = target.getStdIOStream();
-                params[position + 4] = target.getPrefix();
-                params[position + 5] = target.getParamName();
+                addParameterToTaskArguments(target, position, params);
                 position += 6;
             }
 
@@ -300,6 +318,28 @@ public class Agent {
             throw new AgentException(e);
         }
         return appId;
+    }
+
+    private static void addParameterToTaskArguments(ApplicationParameter param, int position, Object[] arguments)
+            throws AgentException, Exception {
+
+        RemoteDataInformation remote = param.getRemoteData();
+        if (param.getRemoteData() == null) {
+            LOGGER.debug("\t\tUsing value passed in as parameter");
+            arguments[position] = param.getValueContent();
+        } else {
+            Object stub = new Object();
+            LOGGER.debug("\t\tRegistering manually " + stub + "as" + param.getRemoteData());
+            arguments[position] = stub;
+            Agent.addRemoteData(remote);
+            RUNTIME.registerData(param.getType(), stub, remote.getRenaming());
+        }
+        System.out.println("Loading argument " + arguments[position]);
+        arguments[position + 1] = param.getType();
+        arguments[position + 2] = param.getDirection();
+        arguments[position + 3] = param.getStdIOStream();
+        arguments[position + 4] = param.getPrefix();
+        arguments[position + 5] = param.getParamName();
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {

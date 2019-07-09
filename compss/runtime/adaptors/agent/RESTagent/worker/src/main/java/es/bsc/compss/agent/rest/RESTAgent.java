@@ -39,6 +39,7 @@ import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;
+import java.util.LinkedList;
 
 import java.util.List;
 
@@ -212,7 +213,9 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         AppMainMonitor monitor = new AppMainMonitor();
         long appId;
         try {
-            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, monitor);
+            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName,
+                    params, null, new ApplicationParameter[0],
+                    monitor);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }

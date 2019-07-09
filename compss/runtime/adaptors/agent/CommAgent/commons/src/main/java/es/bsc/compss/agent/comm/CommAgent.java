@@ -18,8 +18,8 @@
 package es.bsc.compss.agent.comm;
 
 import es.bsc.comm.nio.NIONode;
+import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.Resource;
-import es.bsc.compss.nio.NIOTask;
 
 
 /**
@@ -37,6 +37,6 @@ public interface CommAgent {
 
     public void lostNode(String node);
 
-    public void receivedNewTask(NIONode master, NIOTask request);
+    public void receivedNewTask(NIONode master, CommTask request);
 
 }

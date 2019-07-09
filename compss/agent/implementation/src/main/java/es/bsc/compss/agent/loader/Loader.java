@@ -18,7 +18,6 @@ package es.bsc.compss.agent.loader;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.agent.AgentException;
-import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.api.COMPSsRuntime;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
@@ -44,23 +43,23 @@ public class Loader {
     /**
      * Instruments a method using a CEI and runs it passing in the parameters given.
      *
-     * @param runtime COMPSs runtime that will handle the execution of the nested tasks
-     * @param api COMPSs runtime that will handle the execution of the nested tasks
-     * @param ceiClass CEI to detect tasks
-     * @param appId application Id that will be used by the nested tasks
-     * @param className name of the class containing the method to run
+     * @param runtime    COMPSs runtime that will handle the execution of the nested tasks
+     * @param api        COMPSs runtime that will handle the execution of the nested tasks
+     * @param ceiClass   CEI to detect tasks
+     * @param appId      application Id that will be used by the nested tasks
+     * @param className  name of the class containing the method to run
      * @param methodName name of the method to run
-     * @param params values of the parameters to pass in to the method
+     * @param params     values of the parameters to pass in to the method
      * @return returns the return value of the executed method
      * @throws AgentException could not instrument the code or the execution raised an exception
      */
     public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className,
-            String methodName, ApplicationParameter... params) throws AgentException {
+            String methodName, Object... params) throws AgentException {
         try {
             // Add the jars that the custom class loader needs
             String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
-            ClassLoader myLoader = new URLClassLoader(
-                    new URL[]{new URL("file:" + compssHome + LoaderConstants.ENGINE_JAR_WITH_REL_PATH)});
+            String enginePath = "file:" + compssHome + LoaderConstants.ENGINE_JAR_WITH_REL_PATH;
+            ClassLoader myLoader = new URLClassLoader(new URL[]{new URL(enginePath)});
 
             Thread.currentThread().setContextClassLoader(myLoader);
 
@@ -89,15 +88,15 @@ public class Loader {
             Object[] values = new Object[]{runtime, api, appId};
             setter.invoke(null, values);
 
-            Object[] paramValues = new Object[params.length];
-            Class<?>[] types = new Class<?>[params.length];
-            for (int i = 0; i < params.length; i++) {
-                paramValues[i] = params[i].getValueContent();
+            Object[] paramValues = new Object[params.length-1];
+            Class<?>[] types = new Class<?>[params.length-1];
+            for (int i = 0; i < params.length-1; i++) {
+                paramValues[i] = params[i+1];
                 types[i] = paramValues[i].getClass();
             }
 
             Method main = findMethod(app, methodName, params.length, types, params);
-            Object returnValue = main.invoke(null, params);
+            Object returnValue = main.invoke(null, paramValues);
             runtime.noMoreTasks(appId);
             return returnValue;
 

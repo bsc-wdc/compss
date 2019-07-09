@@ -1953,6 +1953,7 @@ static void generate_worker_case(FILE *outFile, Types current_types, function *f
         th.type=object_dt;
         th.dir=inout_dir;
         th.classname=func->classname;
+        th.elements = "0";
 
         printf("\t\t Adding target object unmarshalling...\n");
         fflush(NULL);

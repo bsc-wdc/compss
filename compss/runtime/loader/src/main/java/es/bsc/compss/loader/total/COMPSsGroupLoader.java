@@ -19,16 +19,27 @@ package es.bsc.compss.loader.total;
 import es.bsc.compss.api.COMPSsGroup;
 import es.bsc.compss.api.COMPSsRuntime;
 
+
 public class COMPSsGroupLoader extends COMPSsGroup {
-    
+
     private final COMPSsRuntime api;
     private long appId;
-    
+
+
+    /**
+     * Creates a new COMPSs group for the loader.
+     * 
+     * @param api COMPSs Runtime API.
+     * @param appId Application Id.
+     * @param groupName Group name.
+     * @param implicitBarrier Whether to activate the implicit barrier or not.
+     */
     public COMPSsGroupLoader(COMPSsRuntime api, Long appId, String groupName, boolean implicitBarrier) {
         super(groupName, implicitBarrier);
+
         this.api = api;
         this.api.openTaskGroup(this.groupName, implicitBarrier);
-        this.appId = appId;        
+        this.appId = appId;
     }
 
     @Override
@@ -39,5 +50,4 @@ public class COMPSsGroupLoader extends COMPSsGroup {
         }
     }
 
-   
 }

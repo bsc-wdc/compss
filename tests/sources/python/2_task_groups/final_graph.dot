@@ -6,6 +6,7 @@ digraph {
     ranksep=0.20;
     node[height=0.75];
 
+Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor="#FFFFFF"];
 subgraph clusterTasksbigGroup {
 shape=rect;
 node[height=0.75];
@@ -19,6 +20,7 @@ color="#A9A9A9";
 label="group0";
 
 1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+Synchro0 -> 1 [label="d1v1"];
 2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 1 -> 2 [label="d1v2"];
 3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
@@ -26,6 +28,7 @@ label="group0";
 }
 
 Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro0 -> Synchro1 [color=grey];
 3 -> Synchro1 [color=grey];
 subgraph clusterTasksgroup1 {
 shape=rect;

@@ -81,11 +81,11 @@ public class Loader {
             appClass.defrost();
 
             Method setter = app.getDeclaredMethod("setCOMPSsVariables",
-                    new Class<?>[]{Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                        Class.forName(LoaderConstants.CLASS_LOADERAPI),
-                        Class.forName(LoaderConstants.CLASS_APP_ID)});
+                    new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
+                            Class.forName(LoaderConstants.CLASS_LOADERAPI),
+                            Class.forName(LoaderConstants.CLASS_APP_ID) });
 
-            Object[] values = new Object[]{runtime, api, appId};
+            Object[] values = new Object[] { runtime, api, appId };
             setter.invoke(null, values);
 
             Object[] paramValues = new Object[params.length-1];
@@ -169,24 +169,16 @@ public class Loader {
 
         String methodBody;
         CtMethod m;
-        methodBody = "public static void printCOMPSsVariables() { "
-                + "System.out.println(\"Api Var: \" + " + itApiVar + ");"
-                + "System.out.println(\"SR Var: \" + " + itSRVar + ");"
-                + "System.out.println(\"OR Var: \" + " + itORVar + ");"
-                + "System.out.println(\"App Id: \" + " + itAppIdVar + ");"
-                + "}";
+        methodBody = "public static void printCOMPSsVariables() { " + "System.out.println(\"Api Var: \" + " + itApiVar
+                + ");" + "System.out.println(\"SR Var: \" + " + itSRVar + ");" + "System.out.println(\"OR Var: \" + "
+                + itORVar + ");" + "System.out.println(\"App Id: \" + " + itAppIdVar + ");" + "}";
         m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);
 
-        methodBody = "public static void setCOMPSsVariables( "
-                + LoaderConstants.CLASS_COMPSSRUNTIME_API + " runtime" + ", "
-                + LoaderConstants.CLASS_LOADERAPI + " loader" + ", "
-                + LoaderConstants.CLASS_APP_ID + " appId" + ") { \n"
-                + itApiVar + "= runtime; \n"
-                + itSRVar + "= loader.getStreamRegistry(); \n"
-                + itORVar + "= loader.getObjectRegistry(); \n"
-                + itAppIdVar + "= appId; \n"
-                + "}";
+        methodBody = "public static void setCOMPSsVariables( " + LoaderConstants.CLASS_COMPSSRUNTIME_API + " runtime"
+                + ", " + LoaderConstants.CLASS_LOADERAPI + " loader" + ", " + LoaderConstants.CLASS_APP_ID + " appId"
+                + ") { \n" + itApiVar + "= runtime; \n" + itSRVar + "= loader.getStreamRegistry(); \n" + itORVar
+                + "= loader.getObjectRegistry(); \n" + itAppIdVar + "= appId; \n" + "}";
         m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);
     }
@@ -272,15 +264,15 @@ public class Loader {
     }
 
     /**
-     * Debug method to print the variables added by the instrumentation process.
-     * Invokes by reflection the printCOMPSsVariables method of a given class.
+     * Debug method to print the variables added by the instrumentation process. Invokes by reflection the
+     * printCOMPSsVariables method of a given class.
      *
      * @param app instrumented app
      * @throws Exception Error while calling the method to print the variables
      */
     public static void printVariables(Class<?> app) throws Exception {
-        Method setter = app.getDeclaredMethod("printCOMPSsVariables", new Class<?>[]{});
-        Object[] values = new Object[]{};
+        Method setter = app.getDeclaredMethod("printCOMPSsVariables", new Class<?>[] {});
+        Object[] values = new Object[] {};
         setter.invoke(null, values);
     }
 }

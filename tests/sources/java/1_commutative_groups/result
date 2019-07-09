@@ -47,57 +47,55 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-
-  jobs=38
-  writtenN=2
+  num_jobs=38
   resultN=6
 
   # Checks if file 1 has been written as expected
   result=$(cat /tmp/sharedDisk/CGfile1.txt)
-  if [[ $result != 2 ]]; then
-    echo "ERROR: The number written in file "file1.txt" is not correct. "${result}" (Expected 1) "
+  if [[ "${result}" != 2 ]]; then
+    echo "ERROR: The number written in file file1.txt is not correct. ${result} (Expected 1)"
     exit 1
   fi
 
   # Checks if file 2 has been written as expected
   result=$(cat /tmp/sharedDisk/CGfile2.txt)
-  if [ $result -ne 2 ]; then
-    echo "ERROR: The number written in file "file2.txt" is not correct. ${result} (Expected 2) "
+  if [ "${result}" -ne 2 ]; then
+    echo "ERROR: The number written in file file2.txt is not correct. ${result} (Expected 2)"
     exit 1
   fi
   
   # Checks if file 3 has been written as expected
   result=$(cat /tmp/sharedDisk/CGfile3.txt)
-  if [ $result -ne 1 ]; then
-    echo "ERROR: The number written in file "file3.txt" is not correct. ${result} (Expected 3) "
+  if [ "${result}" -ne 1 ]; then
+    echo "ERROR: The number written in file file3.txt is not correct. ${result} (Expected 3)"
     exit 1
   fi
   
   # Checks if file 4 has been written as expected
   result=$(cat /tmp/sharedDisk/CGfile4.txt)
-  if [ $result -ne 1 ]; then
-    echo "ERROR: The number written in file "file4.txt" is not correct. ${result} (Expected 4) "
+  if [ "${result}" -ne 1 ]; then
+    echo "ERROR: The number written in file file4.txt is not correct. ${result} (Expected 4)"
     exit 1
   fi
   
   # Checks if file 5 has been written as expected
   result=$(cat /tmp/sharedDisk/CGfile5.txt)
-  if [ $result -ne 9 ]; then
-    echo "ERROR: The number of writing commutative tasks is not correct in "file5.txt". $result (Expected  9)"
+  if [ "${result}" -ne 9 ]; then
+    echo "ERROR: The number of writing commutative tasks is not correct in file5.txt. ${result} (Expected  9)"
     exit 1
   fi
   
   # Checks if file 6 has been writen as as expected
   result=$(cat /tmp/sharedDisk/CGfile6.txt)
-  if [ $result -ne 31 ]; then
-    echo "ERROR: The number of writing commutative tasks is not correct in "file6.txt". $result (Expected 31)"
+  if [ "${result}" -ne 31 ]; then
+    echo "ERROR: The number of writing commutative tasks is not correct in file6.txt. ${result} (Expected 31)"
     exit 1
   fi
 
   # Checks if file 7 has been writen as many times as expected
   result=$(cat /tmp/sharedDisk/CGfile7.txt)
   if [ ${#result} -ne ${resultN} ]; then
-    echo "ERROR: The number of writing tasks in "file7.txt" is not correct. ${#result} (Expected 6)"
+    echo "ERROR: The number of writing tasks in file7.txt is not correct. ${#result} (Expected 6)"
     exit 1
   fi
   
@@ -110,22 +108,21 @@
   
    # Checks if file 9 has been written as expected
   result=$(cat /tmp/sharedDisk/CGfile9.txt)
-  if [ $result -ne 15 ]; then
-    echo "ERROR: The number of writing commutative tasks is not correct in "file9.txt". $result (Expected  11)"
+  if [ "${result}" -ne 15 ]; then
+    echo "ERROR: The number of writing commutative tasks is not correct in file9.txt. ${result} (Expected  11)"
     exit 1
   fi
   
   # Checks if all the tasks have been executed through the creation of a job for each
-  if [ ! -f "${target_log_folder}"/jobs/job"$jobs"_NEW.out ]; then
+  if [ ! -f "${target_log_folder}"/jobs/job"$num_jobs"_NEW.out ]; then
     echo "ERROR: All tasks have not completed succesfully."
     exit 1
   fi
 
-  if [ -f "${target_log_folder}/jobs/job$((jobs+1))_NEW.out" ]; then
+  if [ -f "${target_log_folder}/jobs/job$((num_jobs+1))_NEW.out" ]; then
     echo "ERROR: More tasks than expected have been executed."
     exit 1
   fi
-
 
 
   #---------------------------------------------------------------------------------- 

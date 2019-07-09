@@ -322,7 +322,7 @@ def create_init_config_file(compss_home,
     :param conn: <String> Connector (normally: es.bsc.compss.connectors.DefaultSSHConnector)
     :param master_name: <String> Master node name
     :param master_port: <String> Master node port
-    :param scheduler: <String> Scheduler (normally: es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler)
+    :param scheduler: <String> Scheduler (normally: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)
     :param cp: <String>  Application path
     :param classpath: <String> CLASSPATH environment variable contents
     :param ld_library_path: <String> LD_LIBRARY_PATH environment variable contents

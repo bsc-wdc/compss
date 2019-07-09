@@ -32,6 +32,7 @@
 
 	<!-- SUB-MODULES -->
     <modules>
+        <module>0_basic_graph</module>
         <module>0_graph</module>
         <module>0_monitor</module>
         <module>0_tracing_basic_java</module>

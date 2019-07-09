@@ -20,19 +20,22 @@ import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
-public class PythonMPIDefinition extends ImplementationDefinition<MethodResourceDescription>{
+
+public class PythonMPIDefinition extends ImplementationDefinition<MethodResourceDescription> {
+
     private final String declaringClass;
     private final String methodName;
     private final String workingDir;
     private final String mpiRunner;
 
 
-    protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir, 
-    		String mpiRunner, MethodResourceDescription implConstraints) {
+    protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
+            String mpiRunner, MethodResourceDescription implConstraints) {
+
         super(implSignature, implConstraints);
-        
+
         this.workingDir = workingDir;
-        this.mpiRunner = mpiRunner;            
+        this.mpiRunner = mpiRunner;
         this.declaringClass = declaringClass;
         this.methodName = methodName;
     }
@@ -40,7 +43,7 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, coreId, implId,
-        		this.getConstraints());
+                this.getConstraints());
     }
 
     @Override

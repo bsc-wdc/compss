@@ -196,23 +196,16 @@ public class GraphGenerator {
         try {
             // Move dependence graph content to final location
             full_graph.close();
-            FileChannel sourceChannel = null;
-            FileChannel destChannel = null;
+
             try (FileInputStream sourceFIS = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
-                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE)) {
-                sourceChannel = sourceFIS.getChannel();
-                destChannel = destFOS.getChannel();
+                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE);
+                    FileChannel sourceChannel = sourceFIS.getChannel();
+                    FileChannel destChannel = destFOS.getChannel()) {
+
                 destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-            } catch (IOException ioe) {
-                throw ioe;
-            } finally {
-                if (sourceChannel != null) {
-                    sourceChannel.close();
-                }
-                if (destChannel != null) {
-                    destChannel.close();
-                }
             }
+
+            // Open tmp full graph again
             full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_TMP_FILE, true));
 
             // Close graph section
@@ -223,24 +216,17 @@ public class GraphGenerator {
             openLegend(finalGraph);
 
             legend.close();
-            sourceChannel = null;
-            destChannel = null;
+
             try (FileInputStream sourceFIS = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
-                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true)) {
-                sourceChannel = sourceFIS.getChannel();
-                destChannel = destFOS.getChannel();
+                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true);
+                    FileChannel sourceChannel = sourceFIS.getChannel();
+                    FileChannel destChannel = destFOS.getChannel();) {
+
                 destChannel.position(destChannel.size());
                 sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
-            } catch (IOException ioe) {
-                throw ioe;
-            } finally {
-                if (sourceChannel != null) {
-                    sourceChannel.close();
-                }
-                if (destChannel != null) {
-                    destChannel.close();
-                }
             }
+
+            // Open tmp legend again
             legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE, true));
 
             closeLegend(finalGraph);
@@ -261,8 +247,14 @@ public class GraphGenerator {
     public void addSynchroToGraph(int synchId) {
         try {
             full_graph.newLine();
-            full_graph.write("Synchro" + synchId
-                    + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+
+            if (synchId == 0) {
+                full_graph.write("Synchro" + synchId
+                        + "[label=\"main\", shape=octagon, style=filled fillcolor=\"#8B0000\" fontcolor=\"#FFFFFF\"];");
+            } else {
+                full_graph.write("Synchro" + synchId
+                        + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+            }
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
@@ -421,7 +413,6 @@ public class GraphGenerator {
 
     /**
      * Ends a commutative group subgraph.
-     * 
      */
     public void closeGroupInGraph() {
         try {

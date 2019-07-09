@@ -1,13 +1,18 @@
 digraph {
   rankdir=TB;
   labeljust="l";
+  compound= true;
   subgraph dependence_graph {
     ranksep=0.20;
     node[height=0.75];
 
+Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor="#FFFFFF"];
 1[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro0 -> 1;
 2[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro0 -> 2;
 3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro0 -> 3;
 4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 1 -> 4 [label="d1v2"];
 5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];

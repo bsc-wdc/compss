@@ -164,8 +164,9 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void doException(COMPSsException e) {
-        
+
     }
+
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT
@@ -257,7 +258,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        
+
     }
 
     @Override

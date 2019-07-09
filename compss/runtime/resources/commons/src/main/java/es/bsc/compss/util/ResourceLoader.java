@@ -91,6 +91,7 @@ public class ResourceLoader {
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
 
+
     /**
      * Loads the information present in the given XML files according to the given XSD schemas.
      *
@@ -269,17 +270,18 @@ public class ResourceLoader {
                                             List<AttachedDiskType> disksList = disks.getAttachedDisk();
                                             if (disksList != null) {
                                                 for (AttachedDiskType disk : disksList) {
-                                                    es.bsc.compss.types.resources.jaxb.SharedDiskType diskResources
-                                                            = ResourceLoader.resources.getSharedDisk(disk.getName());
+                                                    es.bsc.compss.types.resources.jaxb.SharedDiskType diskResources = 
+                                                            ResourceLoader.resources.getSharedDisk(disk.getName());
                                                     if (diskResources != null) {
-                                                        // TODO: Check the disk information against the resources file (size and type)
+                                                        // TODO: Check the disk information against the resources file
+                                                        // (size and type)
                                                         String diskName = disk.getName();
                                                         String diskMountPoint = disk.getMountPoint();
                                                         sharedDisks.put(diskName, diskMountPoint);
                                                     } else {
                                                         ErrorManager.warn("SharedDisk " + disk.getName()
-                                                                + " defined in the master node is not defined in the resources.xml."
-                                                                + " Skipping");
+                                                                + " defined in the master node is not defined"
+                                                                + " in the resources.xml. Skipping");
                                                     }
                                                 }
                                             }
@@ -392,8 +394,8 @@ public class ResourceLoader {
                 }
             }
         }
-        Map<String,Object> adaptorPropertiesProject = project.getAdaptorProperties(cnProject, loadedAdaptor);
-        Map<String,Object> adaptorPropertiesResources = resources.getAdaptorProperties(cnResources, loadedAdaptor);
+        Map<String, Object> adaptorPropertiesProject = project.getAdaptorProperties(cnProject, loadedAdaptor);
+        Map<String, Object> adaptorPropertiesResources = resources.getAdaptorProperties(cnResources, loadedAdaptor);
 
         MethodConfiguration config = null;
         try {
@@ -440,10 +442,10 @@ public class ResourceLoader {
 
     private static boolean loadService(ServiceType sProject,
             es.bsc.compss.types.resources.jaxb.ServiceType sResources) {
-        
+
         Map<String, Object> projectProperties = new HashMap<String, Object>();
         projectProperties.put("Service", sProject);
-        
+
         Map<String, Object> resourcesProperties = new HashMap<String, Object>();
         resourcesProperties.put("Service", sResources);
         // Get service adaptor name from properties
@@ -461,7 +463,8 @@ public class ResourceLoader {
 
         ServiceConfiguration config = null;
         try {
-            config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, projectProperties, resourcesProperties);
+            config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, projectProperties,
+                    resourcesProperties);
         } catch (ConstructConfigurationException cce) {
             ErrorManager.warn("Service configuration constructor failed", cce);
             return false;
@@ -624,7 +627,8 @@ public class ResourceLoader {
                                     instanceTypes.add(cmrd);
                                 }
                             } else {
-                                ErrorManager.warn("Instance " + instanceName + " not defined in resources.xml. Skipping");
+                                ErrorManager
+                                        .warn("Instance " + instanceName + " not defined in resources.xml. Skipping");
                             }
 
                         }
@@ -711,7 +715,7 @@ public class ResourceLoader {
                 cid.addQueue(queue);
             }
         }
-        Map<String, Object> adaptorPropertiesProject =  project.getAdaptorProperties(imProject, loadedAdaptor);
+        Map<String, Object> adaptorPropertiesProject = project.getAdaptorProperties(imProject, loadedAdaptor);
         Map<String, Object> adaptorPropertiesResources = resources.getAdaptorProperties(imResources, loadedAdaptor);
 
         MethodConfiguration config = null;

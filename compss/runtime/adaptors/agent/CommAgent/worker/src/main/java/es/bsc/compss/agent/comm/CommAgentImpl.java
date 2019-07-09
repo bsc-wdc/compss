@@ -42,16 +42,18 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
-    private CommAgentAdaptor adaptor = null;
+
+    // Adaptor
+    private CommAgentAdaptor adaptor;
+
 
     public CommAgentImpl() {
-
+        LOGGER.info("Init CommAgentImpl");
+        this.adaptor = null;
     }
 
     /*
-     * ---------------------------------------------
      * ----------- Agent Interface Methods ---------
-     * ---------------------------------------------
      */
     @Override
     public CommAgentConfig configure(final String arguments) throws AgentException {
@@ -73,19 +75,19 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
     @Override
     public void stop() {
-
+        // Nothing to do
     }
 
-    /* ---------------------------------------------
+    /*
      * ------------- Comm Agent Methods ------------
-     * -------------------------------------------*/
+     */
     @Override
     public void print(Object o) {
         System.out.println(o);
     }
 
     @Override
-    public void addResources(Resource res) {
+    public void addResources(Resource<?, ?> res) {
         try {
             Agent.addResources(res);
         } catch (AgentException ex) {
@@ -94,7 +96,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
     }
 
     @Override
-    public void removeResources(Resource resource) {
+    public void removeResources(Resource<?, ?> resource) {
         try {
             Agent.removeResources(resource.getName(), resource.getDescription());
         } catch (AgentException ae) {
@@ -170,14 +172,11 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         }
     }
 
-    private void startTask(Lang lang, String className, String methodName,
-            ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
-            MethodResourceDescription requirements) {
+    private void startTask(Lang lang, String className, String methodName, ApplicationParameter[] params,
+            ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements) {
 
         try {
-            Agent.runTask(lang, className, methodName,
-                    params, target, results,
-                    requirements, new PrintMonitor());
+            Agent.runTask(lang, className, methodName, params, target, results, requirements, new PrintMonitor());
         } catch (AgentException ex) {
             ex.printStackTrace();
         }
@@ -187,7 +186,6 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
      * Main method that starts a COMPSs agent with a single interface through Comm.
      *
      * @param args arg[0] = port where the Comm Library sets the server
-     *
      * @throws Exception Error starting the COMPSs agent
      */
     public static void main(String[] args) throws Exception {

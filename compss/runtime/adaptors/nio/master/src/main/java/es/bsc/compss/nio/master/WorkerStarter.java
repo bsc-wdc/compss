@@ -51,43 +51,43 @@ public class WorkerStarter {
     private static final String LIB_SEPARATOR = ":";
     private static final String CLASSPATH_FROM_ENVIRONMENT = (System.getProperty(COMPSsConstants.WORKER_CP) != null
             && !System.getProperty(COMPSsConstants.WORKER_CP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_CP)
-                                                             : "";
+                    : "";
 
     private static final String PYTHONPATH_FROM_ENVIRONMENT = (System.getProperty(COMPSsConstants.WORKER_PP) != null
             && !System.getProperty(COMPSsConstants.WORKER_PP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_PP)
-                                                              : "";
+                    : "";
 
     private static final String LIBPATH_FROM_ENVIRONMENT = (System.getenv(COMPSsConstants.LD_LIBRARY_PATH) != null
             && !System.getenv(COMPSsConstants.LD_LIBRARY_PATH).isEmpty())
-                                                           ? System.getenv(COMPSsConstants.LD_LIBRARY_PATH)
-                                                           : "";
+                    ? System.getenv(COMPSsConstants.LD_LIBRARY_PATH)
+                    : "";
 
     private static final boolean IS_CPU_AFFINITY_DEFINED = System
             .getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty();
     private static final String CPU_AFFINITY = IS_CPU_AFFINITY_DEFINED
-                                               ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
-                                               : ThreadBinder.BINDER_DISABLED;
+            ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final boolean IS_GPU_AFFINITY_DEFINED = System
             .getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY).isEmpty();
     private static final String GPU_AFFINITY = IS_GPU_AFFINITY_DEFINED
-                                               ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
-                                               : ThreadBinder.BINDER_DISABLED;
+            ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final boolean IS_FPGA_AFFINITY_DEFINED = System
             .getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
     private static final String FPGA_AFFINITY = IS_FPGA_AFFINITY_DEFINED
-                                                ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
-                                                : ThreadBinder.BINDER_DISABLED;
+            ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
+            : ThreadBinder.BINDER_DISABLED;
 
     private static final String WORKER_APPDIR_FROM_ENVIRONMENT = System
             .getProperty(COMPSsConstants.WORKER_APPDIR) != null
             && !System.getProperty(COMPSsConstants.WORKER_APPDIR).isEmpty()
-                                                                 ? System.getProperty(COMPSsConstants.WORKER_APPDIR)
-                                                                 : "";
+                    ? System.getProperty(COMPSsConstants.WORKER_APPDIR)
+                    : "";
 
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
@@ -114,6 +114,7 @@ public class WorkerStarter {
     private boolean workerIsReady = false;
     private boolean toStop = false;
     private final NIOWorkerNode nw;
+
 
     /**
      * Instantiates a new WorkerStarter for a given Worker.
@@ -255,7 +256,7 @@ public class WorkerStarter {
                 }
                 LOGGER.warn(" Worker process failed to start in resource " + name + ". Retrying...");
             }
-            
+
             // Sleep between retries
             try {
                 Thread.sleep(4 * WAIT_TIME_UNIT);
@@ -277,10 +278,10 @@ public class WorkerStarter {
                 // Queue System managed worker starter
                 LOGGER.error(
                         "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
-                        + name + ". Retries not available in this option.");
+                                + name + ". Retries not available in this option.");
                 throw new InitNodeException(
                         "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
-                        + name + ". Retries not available in this option.");
+                                + name + ". Retries not available in this option.");
             } else {
                 if (po.getExitValue() != 0) {
                     // Normal starting process
@@ -489,12 +490,12 @@ public class WorkerStarter {
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalComputingUnits());
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalGPUs());
         cmd[nextPosition++] = String.valueOf(this.nw.getTotalFPGAs());
-        //get cpu_affinity from properties
-        
+        // get cpu_affinity from properties
+
         String cpuAffinity = nw.getConfiguration().getProperty("cpu_affinity");
         if (cpuAffinity != null) {
             cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
-        }else {
+        } else {
             cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
         }
         cmd[nextPosition++] = String.valueOf(GPU_AFFINITY);
@@ -625,7 +626,7 @@ public class WorkerStarter {
      * Ender function called from the JVM Ender Hook.
      *
      * @param node Worker node.
-     * @param pid  Process PID.
+     * @param pid Process PID.
      */
     public void ender(NIOWorkerNode node, int pid) {
         if (pid > 0) {

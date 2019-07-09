@@ -172,20 +172,20 @@ public class Executor implements Runnable {
             if (WORKER_DEBUG) {
                 LOGGER.debug("Dequeuing job " + invocation.getJobId());
             }
-            
+
             Exception e = executeTask(invocation);
 
             boolean success = true;
             if (e != null) {
                 success = false;
             }
-            
+
             if (WORKER_DEBUG) {
                 LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
             }
-            
+
             if (e instanceof COMPSsException) {
-                execution.notifyEnd((COMPSsException)e, success);
+                execution.notifyEnd((COMPSsException) e, success);
             } else {
                 execution.notifyEnd(null, success);
             }
@@ -226,8 +226,8 @@ public class Executor implements Runnable {
                     invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case PYTHON_MPI:
-                	invoker = new PythonMPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
-                	break;
+                    invoker = new PythonMPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    break;
                 case MPI:
                     invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
@@ -294,7 +294,7 @@ public class Executor implements Runnable {
                 // Execute task
                 LOGGER.debug("Executing Task of Job " + invocation.getJobId());
                 long startExec = System.currentTimeMillis();
-                Timer timer = new Timer("Timer"+invocation.getTaskId());
+                Timer timer = new Timer("Timer" + invocation.getTaskId());
                 Long time = (long) invocation.getTimeOut();
                 TimeOutTask timerTask = new TimeOutTask(invocation.getTaskId());
                 timer.schedule(timerTask, time);
@@ -336,7 +336,7 @@ public class Executor implements Runnable {
             e.printStackTrace(context.getThreadErrStream());
             Throwable rootCause = ExceptionUtils.getRootCause(e);
             if (rootCause instanceof COMPSsException) {
-                return (COMPSsException)rootCause;
+                return (COMPSsException) rootCause;
             }
             return e;
         } finally {
@@ -374,7 +374,7 @@ public class Executor implements Runnable {
             case PYTHON_MPI:
                 PythonMPIImplementation nativeMPIImpl = (PythonMPIImplementation) invocation.getMethodImplementation();
                 specificWD = nativeMPIImpl.getWorkingDir();
-                break;                
+                break;
             case COMPSs:
                 COMPSsImplementation compssImpl = (COMPSsImplementation) invocation.getMethodImplementation();
                 specificWD = compssImpl.getWorkingDir();

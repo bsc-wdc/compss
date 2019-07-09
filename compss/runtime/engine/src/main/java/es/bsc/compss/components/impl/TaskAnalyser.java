@@ -63,6 +63,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -131,18 +132,21 @@ public class TaskAnalyser {
     public TaskAnalyser() {
         this.currentTaskCount = new HashMap<>();
         this.writers = new TreeMap<>();
+
         this.appIdToTaskCount = new HashMap<>();
         this.appIdToTotalTaskCount = new HashMap<>();
         this.appIdToSemaphore = new HashMap<>();
         this.appIdBarrierFlags = new HashSet<>();
         this.appIdToWrittenFiles = new HashMap<>();
         this.appIdToSCOWrittenIds = new HashMap<>();
+
         this.waitedTasks = new Hashtable<>();
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
         this.currentTaskGroups = new Stack<>();
         this.taskGroups = new TreeMap<>();
+
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
 
@@ -165,10 +169,15 @@ public class TaskAnalyser {
      */
     public void setGM(GraphGenerator gm) {
         this.gm = gm;
+
+        // Add initial synchronization point
+        if (IS_DRAW_GRAPH) {
+            this.gm.addSynchroToGraph(0);
+        }
     }
 
-    private DataAccessId registerParameterAccessAndAddDependencies(Task currentTask, boolean isConstraining,
-            Parameter p) {
+    private boolean registerParameterAccessAndAddDependencies(Task currentTask, Parameter p, boolean isConstraining,
+            boolean hasForcedEdgeFromMain) {
 
         // Conversion: direction -> access mode
         AccessMode am = AccessMode.R;
@@ -194,10 +203,7 @@ public class TaskAnalyser {
         DataAccessId firstRegistered = null;
 
         // Inform the Data Manager about the new accesses
-        DataAccessId daId = null;
-
-        int coreId = 0;
-
+        DataAccessId daId;
         switch (p.getType()) {
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
@@ -241,40 +247,66 @@ public class TaskAnalyser {
             case COLLECTION_T:
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter content : cp.getParameters()) {
-                    registerParameterAccessAndAddDependencies(currentTask, isConstraining, content);
+                    hasForcedEdgeFromMain = registerParameterAccessAndAddDependencies(currentTask, content,
+                            isConstraining, hasForcedEdgeFromMain);
                 }
                 daId = dip.registerCollectionAccess(am, cp);
                 break;
             default:
                 // This is a basic type, there are no accesses to register
-                return null;
+                daId = null;
         }
-        if (am == AccessMode.CV) {
-            coreId = currentTask.getTaskDescription().getCoreId();
-            CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
-            CommutativeGroupTask com = null;
-            for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
-                if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
-                    com = cgt;
+
+        if (daId != null) {
+            // Add parameter dependencies
+            DependencyParameter dp = (DependencyParameter) p;
+            if (am == AccessMode.CV) {
+                // Register commutative access
+                Integer coreId = currentTask.getTaskDescription().getCoreId();
+                CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
+                CommutativeGroupTask com = null;
+                for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
+                    if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
+                        com = cgt;
+                    }
+                }
+                if (com == null) {
+                    firstRegistered = daId;
+                    LOGGER.debug(
+                            "The FIRST registered daId in the commutative group " + comId.toString() + " is " + daId);
+                } else {
+                    com.addVersionToList(daId);
+                    daId = com.getRegisteredVersion();
+                    LOGGER.debug("Registering daId " + daId + " in commutative group " + comId.toString());
+                }
+
+                dp.setDataAccessId(daId);
+                addCommutativeDependencies(currentTask, dp, firstRegistered, coreId);
+            } else {
+                // Register regular access
+                dp.setDataAccessId(daId);
+                hasForcedEdgeFromMain = addDependencies(am, currentTask, isConstraining, dp, firstRegistered,
+                        hasForcedEdgeFromMain);
+            }
+        } else {
+            // Basic types do not produce access dependencies
+            // Register edge to graph if needed
+            if (IS_DRAW_GRAPH) {
+                // Add edge from last sync point to task
+                if (!hasForcedEdgeFromMain) {
+                    hasForcedEdgeFromMain = true;
+                    addEdgeFromMainToTask(currentTask);
                 }
             }
-            if (com == null) {
-                firstRegistered = daId;
-                LOGGER.debug("The FIRST registered daId in the commutative group " + comId.toString() + " is " + daId);
-            } else {
-                com.addVersionToList(daId);
-                daId = com.getRegisteredVersion();
-                LOGGER.debug("Registering daId " + daId + " in commutative group " + comId.toString());
-            }
         }
-        DependencyParameter dp = (DependencyParameter) p;
-        dp.setDataAccessId(daId);
-        addDependencies(am, currentTask, isConstraining, dp, firstRegistered, coreId);
-        return daId;
+
+        // Return data Id
+        return hasForcedEdgeFromMain;
     }
 
-    private void addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp,
-            DataAccessId firstRegistered, int coreId) {
+    private boolean addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp,
+            DataAccessId firstRegistered, boolean hasForcedEdgeFromMain) {
+
         // Add dependencies to the graph and register output values for future dependencies
         DataAccessId daId = dp.getDataAccessId();
         switch (am) {
@@ -350,9 +382,19 @@ public class TaskAnalyser {
                 registerOutputValues(currentTask, dp);
                 break;
             case W:
+                // Register edge to graph if needed
+                if (IS_DRAW_GRAPH) {
+                    // Add edge from last sync point to task
+                    if (!hasForcedEdgeFromMain) {
+                        hasForcedEdgeFromMain = true;
+                        addEdgeFromMainToTask(currentTask);
+                    }
+                }
+                // Check concurrent
                 if (dataWasAccessedConcurrent(daId.getDataId())) {
                     removeFromConcurrentAccess(dp.getDataAccessId().getDataId());
                 }
+                // Register output values
                 registerOutputValues(currentTask, dp);
                 break;
             case C:
@@ -365,50 +407,59 @@ public class TaskAnalyser {
                 tasks.add(currentTask);
                 break;
             case CV:
-                CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
-                CommutativeGroupTask com = null;
-                LinkedList<Task> pendingToDraw = null;
-                for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
-                    if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
-                        com = cgt;
-                        if (IS_DRAW_GRAPH) {
-                            pendingToDraw = this.pendingToDrawCommutative.get(comId.toString());
-                        }
-                    }
-                }
-                if (IS_DRAW_GRAPH) {
-
-                    if (pendingToDraw == null) {
-                        pendingToDraw = new LinkedList<Task>();
-                    }
-                    pendingToDraw.add(currentTask);
-                    this.pendingToDrawCommutative.put(comId.toString(), pendingToDraw);
-                }
-                if (com == null) {
-                    LOGGER.info("Creating a new commutative group " + comId);
-                    com = new CommutativeGroupTask(currentTask.getAppId(), comId);
-
-                    if (IS_DRAW_GRAPH) {
-                        LOGGER.debug("Checking if previous group in graph");
-                        checkIfPreviousGroupInGraph(daId.getDataId(), currentTask);
-                    }
-                    WritersInfo wi = this.writers.get(daId.getDataId());
-                    if (wi != null) {
-                        AbstractTask predecessor = wi.getDataWriter();
-                        com.setParentDataDependency(predecessor);
-                        LOGGER.debug("Setting parent data dependency");
-                    }
-                    this.commutativeGroup.put(comId.toString(), com);
-                    com.setRegisteredVersion(firstRegistered);
-                    registerOutputValues(com, dp);
-
-                }
-
-                com.setFinalVersion(((RWAccessId) daId).getWVersionId());
-                checkDependencyForCommutative(currentTask, dp, com);
-                registerOutputValues(com, dp);
+                // Commutative accesses are processed in addCommutativeDependencies
                 break;
         }
+
+        return hasForcedEdgeFromMain;
+    }
+
+    private void addCommutativeDependencies(Task currentTask, DependencyParameter dp, DataAccessId firstRegistered,
+            int coreId) {
+
+        // Add dependencies to the graph and register output values for future dependencies
+        DataAccessId daId = dp.getDataAccessId();
+        CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
+        CommutativeGroupTask com = null;
+        LinkedList<Task> pendingToDraw = null;
+        for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
+            if (cgt.getCommutativeIdentifier().compareTo(comId) == 1) {
+                com = cgt;
+                if (IS_DRAW_GRAPH) {
+                    pendingToDraw = this.pendingToDrawCommutative.get(comId.toString());
+                }
+            }
+        }
+        if (IS_DRAW_GRAPH) {
+            if (pendingToDraw == null) {
+                pendingToDraw = new LinkedList<>();
+            }
+            pendingToDraw.add(currentTask);
+            this.pendingToDrawCommutative.put(comId.toString(), pendingToDraw);
+        }
+        if (com == null) {
+            LOGGER.info("Creating a new commutative group " + comId);
+            com = new CommutativeGroupTask(currentTask.getAppId(), comId);
+
+            if (IS_DRAW_GRAPH) {
+                LOGGER.debug("Checking if previous group in graph");
+                checkIfPreviousGroupInGraph(daId.getDataId(), currentTask);
+            }
+            WritersInfo wi = this.writers.get(daId.getDataId());
+            if (wi != null) {
+                AbstractTask predecessor = wi.getDataWriter();
+                com.setParentDataDependency(predecessor);
+                LOGGER.debug("Setting parent data dependency");
+            }
+            this.commutativeGroup.put(comId.toString(), com);
+            com.setRegisteredVersion(firstRegistered);
+            registerOutputValues(com, dp);
+
+        }
+
+        com.setFinalVersion(((RWAccessId) daId).getWVersionId());
+        checkDependencyForCommutative(currentTask, dp, com);
+        registerOutputValues(com, dp);
     }
 
     /**
@@ -465,9 +516,11 @@ public class TaskAnalyser {
         }
 
         List<Parameter> parameters = params.getParameters();
+        boolean hasForcedEdgeFromMain = false;
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
-            registerParameterAccessAndAddDependencies(currentTask, paramIdx == constrainingParam,
-                    parameters.get(paramIdx));
+            boolean isConstraining = paramIdx == constrainingParam;
+            hasForcedEdgeFromMain = registerParameterAccessAndAddDependencies(currentTask, parameters.get(paramIdx),
+                    isConstraining, hasForcedEdgeFromMain);
         }
     }
 
@@ -589,7 +642,7 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Marking accessed parameters for task " + taskId);
             }
-            
+
             for (Parameter param : task.getTaskDescription().getParameters()) {
                 updateParameterAccess(task, param);
             }
@@ -823,7 +876,7 @@ public class TaskAnalyser {
         if (IS_DRAW_GRAPH) {
             TreeSet<Integer> toPass = new TreeSet<>();
             toPass.add(dataId);
-            DataInstanceId dii = dip.getLastVersions(toPass).get(0);
+            DataInstanceId dii = this.dip.getLastVersions(toPass).get(0);
             int dataVersion = dii.getVersionId();
             addEdgeFromTaskToMain(lastWriter, EdgeType.DATA_DEPENDENCY, dataId, dataVersion);
         }
@@ -1122,6 +1175,10 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("There is no last writer for datum " + dataId);
             }
+            if (IS_DRAW_GRAPH) {
+                // Add edge from last sync point to task
+                drawEdges(currentTask, dp, null);
+            }
         }
     }
 
@@ -1388,15 +1445,24 @@ public class TaskAnalyser {
      * @param task New task.
      */
     private void addNewTask(Task task) {
-        // Add task to graph
-        if (!task.hasCommutativeParams()) {
-            // In case task has commutative params, it will be added to graph with the group
-            addTaskToGraph(task);
-        }
         // Set the syncId of the task
         task.setSynchronizationId(this.synchronizationId);
         // Update current sync status
         this.taskDetectedAfterSync = true;
+
+        // Add task to graph
+        if (task.hasCommutativeParams()) {
+            // In case task has commutative params, it will be added to graph with the group
+        } else {
+            // Add node to graph
+            addTaskToGraph(task);
+            // Add edge to previous sync if the task has no parameters
+            if (task.getTaskDescription().getParameters().isEmpty()) {
+                addEdgeFromMainToTask(task);
+            } else {
+                // Otherwise the task edges are added when processing the task parameters
+            }
+        }
     }
 
     /**
@@ -1502,6 +1568,20 @@ public class TaskAnalyser {
     }
 
     /**
+     * We will execute a task with no predecessors. Add edge from sync to task.
+     *
+     * @param dest Destination task.
+     * @param dataId Data causing the dependency.
+     * @param dataVersion Data version.
+     */
+    private void addEdgeFromMainToTask(Task dest) {
+        String src = "Synchro" + dest.getSynchronizationId();
+        String dst = String.valueOf(dest.getId());
+        String dep = "";
+        this.gm.addEdgeToGraph(src, dst, EdgeType.DATA_DEPENDENCY, dep);
+    }
+
+    /**
      * We have accessed to data produced by a task from the main code STEPS: Adds a new synchronization point if any
      * task has been created Adds a dependency from task to synchronization.
      *
@@ -1516,27 +1596,27 @@ public class TaskAnalyser {
 
             int oldSyncId = this.synchronizationId;
             this.synchronizationId++;
+
             this.gm.addSynchroToGraph(this.synchronizationId);
-            if (this.synchronizationId > 1) {
-                String oldSync = "Synchro" + oldSyncId;
-                String currentSync = "Synchro" + this.synchronizationId;
-                this.gm.addEdgeToGraph(oldSync, currentSync, edgeType, "");
-            }
+
+            String oldSync = "Synchro" + oldSyncId;
+            String currentSync = "Synchro" + this.synchronizationId;
+            this.gm.addEdgeToGraph(oldSync, currentSync, edgeType, "");
         }
 
         // Add edge from task to sync
         String dest = "Synchro" + this.synchronizationId;
-        String src;
         if (task instanceof CommutativeGroupTask && !((CommutativeGroupTask) task).getCommutativeTasks().isEmpty()) {
-            src = String.valueOf(((CommutativeGroupTask) task).getCommutativeTasks().get(0).getId());
+            // Add edge from commutative group to synch
+            CommutativeGroupTask commGroupTask = (CommutativeGroupTask) task;
+            String src = String.valueOf(commGroupTask.getCommutativeTasks().get(0).getId());
+            String groupId = commGroupTask.getCommutativeIdentifier().toString();
             this.gm.addEdgeToGraphFromCommutative(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion),
-                    ((CommutativeGroupTask) task).getCommutativeIdentifier().toString());
-
+                    groupId);
         } else {
             // Add edge from task to sync
-            src = String.valueOf(task.getId());
+            String src = String.valueOf(task.getId());
             this.gm.addEdgeToGraph(src, dest, edgeType, String.valueOf(dataId) + "v" + String.valueOf(dataVersion));
-
         }
     }
 
@@ -1571,18 +1651,17 @@ public class TaskAnalyser {
         int oldSync = this.synchronizationId;
         String oldSyncStr = "Synchro" + oldSync;
 
+        // Add barrier node and edge from last sync
         this.synchronizationId++;
-        this.taskDetectedAfterSync = false;
-        this.gm.addBarrierToGraph(this.synchronizationId);
-
-        // Add edge from last sync
         String newSyncStr = "Synchro" + this.synchronizationId;
-        if (this.synchronizationId > 1) {
-            this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, EdgeType.USER_DEPENDENCY, "");
-        }
+        this.gm.addBarrierToGraph(this.synchronizationId);
+        this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, EdgeType.USER_DEPENDENCY, "");
+
+        // Reset task detection
+        this.taskDetectedAfterSync = false;
 
         // Add edges from writers to barrier
-        HashSet<AbstractTask> uniqueWriters = new HashSet<>();
+        Set<AbstractTask> uniqueWriters = new HashSet<>();
         for (WritersInfo wi : this.writers.values()) {
             if (wi != null) {
                 // Add data writers

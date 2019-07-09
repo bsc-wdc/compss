@@ -468,7 +468,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(), methodSignature,
                         implConstraints, declaringClass, methodName);
@@ -498,7 +498,7 @@ public class ITFParser {
             String serviceSignature = calleeMethodSignature.toString();
 
             // Register service implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(TaskType.SERVICE.toString(), serviceSignature,
                         null, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(),
@@ -531,7 +531,7 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
                         implConstraints, binary, workingDir);
@@ -574,7 +574,7 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature,
                         implConstraints, binary, workingDir, mpiRunner);
@@ -620,7 +620,7 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.DECAF.toString(), decafSignature,
                         implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner);
@@ -663,7 +663,7 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
                         implConstraints, runcompss, flags, appName, workerInMaster, workingDir);
@@ -703,7 +703,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.MULTI_NODE.toString(),
                         methodSignature, implConstraints, declaringClass, methodName);
@@ -736,7 +736,7 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
                         implConstraints, binary, workingDir);
@@ -768,7 +768,7 @@ public class ITFParser {
             }
 
             // Register service implementation
-            ImplementationDefinition implDef = null;
+            ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.OPENCL.toString(), openclSignature,
                         implConstraints, kernel, workingDir);

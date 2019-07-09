@@ -16,65 +16,62 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.es.bsc.compss.scheduler.types.Profile;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 
-public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> {
+public class PriorityActionSet {
 
-    private PriorityQueue<AllocatableAction<P, T, I>> noCoreActions;
-    private PriorityQueue<AllocatableAction<P, T, I>>[] coreActions;
-    private PriorityQueue<AllocatableAction<P, T, I>> priority;
-    public final Comparator<AllocatableAction<P, T, I>> comparator;
+    private PriorityQueue<AllocatableAction> noCoreActions;
+    private PriorityQueue<AllocatableAction>[] coreActions;
+    private PriorityQueue<AllocatableAction> priority;
+    public final Comparator<AllocatableAction> comparator;
 
 
     @SuppressWarnings("unchecked")
-    public PriorityActionSet(Comparator<AllocatableAction<P, T, I>> comparator) {
+    public PriorityActionSet(Comparator<AllocatableAction> comparator) {
         this.comparator = comparator;
-        noCoreActions = new PriorityQueue<>(1, comparator);
-        priority = new PriorityQueue<>(1, comparator);
-        coreActions = new PriorityQueue[0];
+        this.noCoreActions = new PriorityQueue<>(1, comparator);
+        this.priority = new PriorityQueue<>(1, comparator);
+        this.coreActions = new PriorityQueue[0];
     }
 
     @SuppressWarnings("unchecked")
-    public PriorityActionSet(PriorityActionSet<P, T, I> clone) {
-        comparator = clone.comparator;
-        noCoreActions = new PriorityQueue<>(clone.noCoreActions);
-        coreActions = new PriorityQueue[clone.coreActions.length];
-        for (int idx = 0; idx < coreActions.length; idx++) {
-            coreActions[idx] = new PriorityQueue<>(clone.coreActions[idx]);
+    public PriorityActionSet(PriorityActionSet clone) {
+        this.comparator = clone.comparator;
+        this.noCoreActions = new PriorityQueue<>(clone.noCoreActions);
+        this.coreActions = new PriorityQueue[clone.coreActions.length];
+        for (int idx = 0; idx < this.coreActions.length; idx++) {
+            this.coreActions[idx] = new PriorityQueue<>(clone.coreActions[idx]);
         }
-        priority = new PriorityQueue<>(clone.priority);
+        this.priority = new PriorityQueue<>(clone.priority);
     }
 
     @SuppressWarnings("unchecked")
-    public void offer(AllocatableAction<P, T, I> action) {
-        if (((FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo()).isToReschedule()) {
+    public void offer(AllocatableAction action) {
+        if (((FullGraphSchedulingInformation) action.getSchedulingInfo()).isToReschedule()) {
             Integer coreId = action.getCoreId();
-            AllocatableAction<P, T, I> currentPeek = null;
+            AllocatableAction currentPeek = null;
             if (coreId == null) {
-                currentPeek = noCoreActions.peek();
-                noCoreActions.offer(action);
+                currentPeek = this.noCoreActions.peek();
+                this.noCoreActions.offer(action);
             } else {
-                if (coreId < coreActions.length) {
-                    currentPeek = coreActions[coreId].peek();
+                if (coreId < this.coreActions.length) {
+                    currentPeek = this.coreActions[coreId].peek();
                 } else {
                     // Resize coreActions array
                     int originalSize = this.coreActions.length;
-                    PriorityQueue<AllocatableAction<P, T, I>>[] coreActions = new PriorityQueue[coreId + 1];
+                    PriorityQueue<AllocatableAction>[] coreActions = new PriorityQueue[coreId + 1];
                     System.arraycopy(this.coreActions, 0, coreActions, 0, originalSize);
                     for (int coreIdx = originalSize; coreIdx < coreId + 1; coreIdx++) {
-                        coreActions[coreIdx] = new PriorityQueue<>(1, comparator);
+                        coreActions[coreIdx] = new PriorityQueue<>(1, this.comparator);
                     }
                     this.coreActions = coreActions;
                 }
-                coreActions[coreId].offer(action);
+                this.coreActions[coreId].offer(action);
             }
             if (currentPeek != action) {
                 rebuildPriorityQueue();
@@ -82,22 +79,22 @@ public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescri
         }
     }
 
-    public AllocatableAction<P, T, I> poll() {
-        AllocatableAction<P, T, I> currentPeek;
-        while ((currentPeek = priority.poll()) != null) {
+    public AllocatableAction poll() {
+        AllocatableAction currentPeek;
+        while ((currentPeek = this.priority.poll()) != null) {
             Integer coreId = currentPeek.getCoreId();
-            AllocatableAction<P, T, I> nextPeek;
+            AllocatableAction nextPeek;
             if (coreId == null) {
-                noCoreActions.poll();
-                nextPeek = noCoreActions.peek();
+                this.noCoreActions.poll();
+                nextPeek = this.noCoreActions.peek();
             } else {
-                coreActions[coreId].poll();
-                nextPeek = coreActions[coreId].peek();
+                this.coreActions[coreId].poll();
+                nextPeek = this.coreActions[coreId].peek();
             }
             if (nextPeek != null) {
-                priority.offer(nextPeek);
+                this.priority.offer(nextPeek);
             }
-            FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) currentPeek.getSchedulingInfo();
+            FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) currentPeek.getSchedulingInfo();
             if (dsi.isToReschedule()) {
                 break;
             }
@@ -107,37 +104,40 @@ public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescri
 
     public void removeFirst(Integer coreId) {
         if (coreId == null) {
-            noCoreActions.poll();
+            this.noCoreActions.poll();
         } else {
-            coreActions[coreId].poll();
+            this.coreActions[coreId].poll();
         }
         rebuildPriorityQueue();
     }
 
-    public AllocatableAction<P, T, I> peek() {
-        AllocatableAction<P, T, I> currentPeek = priority.peek();
-        while (currentPeek != null && !((FullGraphSchedulingInformation<P, T, I>) currentPeek.getSchedulingInfo()).isToReschedule()) {
+    public AllocatableAction peek() {
+        AllocatableAction currentPeek = this.priority.peek();
+        while (currentPeek != null
+                && !((FullGraphSchedulingInformation) currentPeek.getSchedulingInfo()).isToReschedule()) {
             removeFirst(currentPeek.getCoreId());
-            currentPeek = priority.peek();
+            currentPeek = this.priority.peek();
         }
         return currentPeek;
     }
 
-    public PriorityQueue<AllocatableAction<P, T, I>> peekAll() {
-        PriorityQueue<AllocatableAction<P, T, I>> peeks = new PriorityQueue<>(coreActions.length + 1, comparator);
+    public PriorityQueue<AllocatableAction> peekAll() {
+        PriorityQueue<AllocatableAction> peeks = new PriorityQueue<>(this.coreActions.length + 1, this.comparator);
 
-        AllocatableAction<P, T, I> currentCore = noCoreActions.peek();
-        if (currentCore != null && !((FullGraphSchedulingInformation<P, T, I>) currentCore.getSchedulingInfo()).isToReschedule()) {
-            noCoreActions.poll();
-            currentCore = noCoreActions.peek();
+        AllocatableAction currentCore = this.noCoreActions.peek();
+        if (currentCore != null
+                && !((FullGraphSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
+            this.noCoreActions.poll();
+            currentCore = this.noCoreActions.peek();
         }
         if (currentCore != null) {
             peeks.offer(currentCore);
         }
 
-        for (PriorityQueue<AllocatableAction<P, T, I>> core : coreActions) {
+        for (PriorityQueue<AllocatableAction> core : this.coreActions) {
             currentCore = core.peek();
-            if (currentCore != null && !((FullGraphSchedulingInformation<P, T, I>) currentCore.getSchedulingInfo()).isToReschedule()) {
+            if (currentCore != null
+                    && !((FullGraphSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
                 core.poll();
                 currentCore = core.peek();
             }
@@ -149,23 +149,23 @@ public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescri
     }
 
     private void rebuildPriorityQueue() {
-        priority.clear();
-        AllocatableAction<P, T, I> action = noCoreActions.peek();
+        this.priority.clear();
+        AllocatableAction action = this.noCoreActions.peek();
         if (action != null) {
-            priority.offer(action);
+            this.priority.offer(action);
         }
-        for (PriorityQueue<AllocatableAction<P, T, I>> coreAction : coreActions) {
+        for (PriorityQueue<AllocatableAction> coreAction : this.coreActions) {
             action = coreAction.peek();
             if (action != null) {
-                priority.offer(action);
+                this.priority.offer(action);
             }
         }
     }
 
     public int size() {
         int size = 0;
-        size += noCoreActions.size();
-        for (PriorityQueue<AllocatableAction<P, T, I>> pq : coreActions) {
+        size += this.noCoreActions.size();
+        for (PriorityQueue<AllocatableAction> pq : this.coreActions) {
             size += pq.size();
         }
         return size;
@@ -175,20 +175,20 @@ public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescri
         return size() == 0;
     }
 
-    public void remove(AllocatableAction<P, T, I> action) {
+    public void remove(AllocatableAction action) {
         if (action.getCoreId() == null) {
-            noCoreActions.remove(action);
+            this.noCoreActions.remove(action);
         } else {
-            coreActions[action.getCoreId()].remove(action);
+            this.coreActions[action.getCoreId()].remove(action);
         }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("noCore -> ").append(noCoreActions).append("\n");
-        for (int i = 0; i < coreActions.length; i++) {
-            sb.append("Core ").append(i).append(" -> ").append(coreActions[i]).append("\n");
+        sb.append("noCore -> ").append(this.noCoreActions).append("\n");
+        for (int i = 0; i < this.coreActions.length; i++) {
+            sb.append("Core ").append(i).append(" -> ").append(this.coreActions[i]).append("\n");
         }
         return sb.toString();
     }

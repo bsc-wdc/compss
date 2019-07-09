@@ -17,59 +17,60 @@
 package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.es.bsc.compss.scheduler.exceptions.BlockedActionException;
-import es.bsc.es.bsc.compss.scheduler.exceptions.FailedActionException;
-import es.bsc.es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.es.bsc.compss.scheduler.types.Profile;
-import es.bsc.es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.scheduler.exceptions.BlockedActionException;
+import es.bsc.compss.scheduler.exceptions.FailedActionException;
+import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.types.AllocatableAction;
+import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+import es.bsc.compss.worker.COMPSsException;
 
-import java.util.LinkedList;
+import java.util.List;
 
 
-public class OptimizationAction<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends AllocatableAction<P, T, I> {
+public class OptimizationAction extends AllocatableAction {
 
-    public OptimizationAction(ActionOrchestrator<P, T, I> orchestrator) {
-        super(new FullGraphSchedulingInformation<P, T, I>(), orchestrator);
+    public OptimizationAction(ActionOrchestrator orchestrator) {
+        super(new FullGraphSchedulingInformation(null), orchestrator);
     }
 
     @Override
-    public boolean areEnoughResources() {
+    protected boolean areEnoughResources() {
         return true;
     }
 
     @Override
     protected void reserveResources() {
+        // Nothing to do
     }
 
     @Override
     protected void releaseResources() {
-
+        // Nothing to do
     }
 
     @Override
     protected void doAction() {
-
+        // Nothing to do
     }
 
     @Override
     protected void doCompleted() {
-
+        // Nothing to do
     }
 
     @Override
     protected void doError() throws FailedActionException {
-
+        // Nothing to do
     }
 
     @Override
     protected void doFailed() {
-
+        // Nothing to do
     }
 
     @Override
@@ -78,22 +79,24 @@ public class OptimizationAction<P extends Profile, T extends WorkerResourceDescr
     }
 
     @Override
-    public LinkedList<ResourceScheduler<P, T, I>> getCompatibleWorkers() {
+    public List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
         return null;
     }
 
     @Override
-    public Implementation<T>[] getImplementations() {
+    public Implementation[] getImplementations() {
         return null;
     }
 
     @Override
-    public boolean isCompatible(Worker<T, I> r) {
+    public <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r) {
         return true;
     }
 
     @Override
-    public LinkedList<I> getCompatibleImplementations(ResourceScheduler<P, T, I> r) {
+    public <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
+            ResourceScheduler<T> r) {
+
         return null;
     }
 
@@ -103,24 +106,84 @@ public class OptimizationAction<P extends Profile, T extends WorkerResourceDescr
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<P, T, I> targetWorker, Score actionScore) {
+    public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
+            Score actionScore) {
+
         return null;
     }
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-
+        // Nothing to do
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
 
+        // Nothing to do
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException {
+    public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException {
 
+        // Nothing to do
+    }
+
+    @Override
+    public boolean taskIsReadyForExecution() {
+        return true;
+    }
+
+    @Override
+    public boolean isToStopResource() {
+        return false;
+    }
+
+    @Override
+    public boolean isToReserveResources() {
+        return true;
+    }
+
+    @Override
+    public boolean isToReleaseResources() {
+        return false;
+    }
+
+    @Override
+    protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
+        // Nothing to do
+    }
+
+    @Override
+    protected void doAbort() {
+        // Nothing to do
+    }
+
+    @Override
+    protected void doCanceled() {
+        // Nothing to do
+    }
+
+    @Override
+    protected void doFailIgnored() {
+        // Nothing to do
+    }
+
+    @Override
+    public OnFailure getOnFailure() {
+        return null;
+    }
+
+    @Override
+    public boolean checkIfCanceled(AllocatableAction aa) {
+        return false;
+    }
+
+    @Override
+    protected void doException(COMPSsException e) {
+        // Nothing to do
     }
 
 }

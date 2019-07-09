@@ -16,29 +16,27 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 
-public class Gap<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> {
+public class Gap {
 
     private final long initialTime;
     private long endTime;
-    private final AllocatableAction<P, T, I> origin;
+    private final AllocatableAction origin;
     private final ResourceDescription resources;
     private final int capacity;
 
 
-    public Gap(long start, AllocatableAction<P, T, I> origin, ResourceDescription resources, int capacity) {
+    public Gap(long start, AllocatableAction origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.origin = origin;
         this.resources = resources.copy();
         this.capacity = capacity;
     }
 
-    public Gap(long start, long endTime, AllocatableAction<P, T, I> origin, ResourceDescription resources, int capacity) {
+    public Gap(long start, long endTime, AllocatableAction origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.endTime = endTime;
         this.origin = origin;
@@ -47,19 +45,19 @@ public class Gap<P extends Profile, T extends WorkerResourceDescription, I exten
     }
 
     public long getInitialTime() {
-        return initialTime;
+        return this.initialTime;
     }
 
     public long getEndTime() {
-        return endTime;
+        return this.endTime;
     }
 
-    public AllocatableAction<P, T, I> getOrigin() {
-        return origin;
+    public AllocatableAction getOrigin() {
+        return this.origin;
     }
 
     public ResourceDescription getResources() {
-        return resources;
+        return this.resources;
     }
 
     public void setEndTime(long endTime) {
@@ -67,12 +65,13 @@ public class Gap<P extends Profile, T extends WorkerResourceDescription, I exten
     }
 
     public int getCapacity() {
-        return capacity;
+        return this.capacity;
     }
 
     @Override
     public String toString() {
-        return "<" + initialTime + "->" + endTime + ", " + origin + ", " + resources + ", amb " + capacity + " slots >";
+        return "<" + this.initialTime + "->" + this.endTime + ", " + this.origin + ", " + this.resources + ", with "
+                + this.capacity + " slots >";
     }
 
 }

@@ -54,6 +54,7 @@ public class NIOTask implements Externalizable, Invocation {
     private int numReturns;
     private int timeOut;
 
+
     /**
      * New NIO Task.
      */
@@ -64,29 +65,21 @@ public class NIOTask implements Externalizable, Invocation {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang                  Task language.
-     * @param workerDebug           Worker debug level.
-     * @param impl                  Implementation to execute.
-     * @param hasTarget             Whether the task has a target object or not.
-     * @param params                List of task parameters.
-     * @param numReturns            Number of returns.
-     * @param numParams             Number of parameters.
-     * @param reqs                  Requirements.
+     * @param lang Task language.
+     * @param workerDebug Worker debug level.
+     * @param impl Implementation to execute.
+     * @param hasTarget Whether the task has a target object or not.
+     * @param params List of task parameters.
+     * @param numReturns Number of returns.
+     * @param numParams Number of parameters.
+     * @param reqs Requirements.
      * @param slaveWorkersNodeNames Slave node names.
-<<<<<<< HEAD
-     * @param taskId                Task Id.
-     * @param taskType              Task type.
-     * @param jobId                 Job Id.
-     * @param hist                  Job history.
-     * @param transferGroupId       Transfer group Id.
-=======
      * @param taskId Task Id.
      * @param taskType Task type.
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
-     * @param timeOut
->>>>>>> Java runtime addition of task time out and task groups
+     * @param timeOut Task timeout.
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns,
             LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
@@ -129,22 +122,21 @@ public class NIOTask implements Externalizable, Invocation {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang                  Task language.
-     * @param workerDebug           Worker debug level.
-     * @param impl                  Implementation to execute.
-     * @param arguments             List of task's method arguments.
-     * @param target                Task's method callee
-     * @param results               List of task's method results.
+     * @param lang Task language.
+     * @param workerDebug Worker debug level.
+     * @param impl Implementation to execute.
+     * @param arguments List of task's method arguments.
+     * @param target Task's method callee
+     * @param results List of task's method results.
      * @param slaveWorkersNodeNames Slave node names.
-     * @param taskId                Task Id.
-     * @param jobId                 Job Id.
-     * @param hist                  Job history.
-     * @param transferGroupId       Transfer group Id.
+     * @param taskId Task Id.
+     * @param jobId Job Id.
+     * @param hist Job history.
+     * @param transferGroupId Transfer group Id.
      */
-    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl,
-            LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
-            List<String> slaveWorkersNodeNames,
-            int taskId, int jobId, JobHistory hist, int transferGroupId) {
+    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, LinkedList<NIOParam> arguments,
+            NIOParam target, LinkedList<NIOParam> results, List<String> slaveWorkersNodeNames, int taskId, int jobId,
+            JobHistory hist, int transferGroupId) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -297,7 +289,7 @@ public class NIOTask implements Externalizable, Invocation {
     public List<String> getSlaveNodesNames() {
         return this.slaveWorkersNodeNames;
     }
-    
+
     @Override
     public int getTimeOut() {
         return this.timeOut;

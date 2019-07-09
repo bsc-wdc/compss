@@ -30,6 +30,7 @@ public class RemoteDataLocation implements Externalizable {
     private Resource<?, ?> resource;
     private String path;
 
+
     public RemoteDataLocation() {
         this.resource = null;
     }
@@ -44,8 +45,8 @@ public class RemoteDataLocation implements Externalizable {
      *
      * @return Resource owning the data.
      */
-    public Resource getResource() {
-        return resource;
+    public Resource<?, ?> getResource() {
+        return this.resource;
     }
 
     /**
@@ -54,22 +55,22 @@ public class RemoteDataLocation implements Externalizable {
      * @return data path within the resource.
      */
     public String getPath() {
-        return path;
+        return this.path;
     }
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeObject(resource);
-        oo.writeUTF(path);
+        oo.writeObject(this.resource);
+        oo.writeUTF(this.path);
     }
 
     @Override
     public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        resource = (Resource<?, ?>) oi.readObject();
-        path = oi.readUTF();
+        this.resource = (Resource<?, ?>) oi.readObject();
+        this.path = oi.readUTF();
     }
 
     public String toString() {
-        return "RESOURCE = [" + resource + "], PATH =" + path;
+        return "RESOURCE = [" + this.resource + "], PATH =" + this.path;
     }
 }

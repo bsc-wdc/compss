@@ -44,9 +44,8 @@
      \
      --debug \
      ${runcompss_opts} \
-     -g\
-     --storage_conf=${storageConf} \
-     --classpath="${base_app_dir}/${jar_name}":${storageImplPath} \
+     -g \
+     --classpath="${base_app_dir}/${jar_name}" \
      \
      "${app_name}" > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   

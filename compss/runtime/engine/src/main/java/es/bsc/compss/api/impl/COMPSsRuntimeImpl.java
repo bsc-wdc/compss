@@ -111,7 +111,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
     protected static final Lang DEFAULT_LANG = ((DEFAULT_LANG_STR == null) ? Lang.JAVA
-                                                : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
+            : Lang.valueOf(DEFAULT_LANG_STR.toUpperCase()));
 
     // Registries
     private static ObjectRegistry oReg;
@@ -158,6 +158,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
          */
         Comm.init(new MasterResourceImpl());
     }
+
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -585,8 +586,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);
-        ImplementationDefinition implDef = ImplementationDefinition.defineImplementation(implType, implSignature, mrd,
-                implTypeArgs);
+        ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation(implType, implSignature,
+                mrd, implTypeArgs);
         ced.addImplementation(implDef);
 
         td.registerNewCoreElement(ced);
@@ -601,7 +602,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         LOGGER.info("Registering CoreElement " + ced.getCeSignature());
         if (LOGGER.isDebugEnabled()) {
             int implId = 0;
-            for (ImplementationDefinition implDef : ced.getImplementations()) {
+            for (ImplementationDefinition<?> implDef : ced.getImplementations()) {
                 LOGGER.debug("\t - Implementation " + implId + ":");
                 LOGGER.debug(implDef.toString());
             }
@@ -616,36 +617,32 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             case FILE_T:
                 try {
                     String fileName = (String) stub;
-                    String originalName = new File(fileName).getName();
-                } catch (Exception e) {
-                    LOGGER.error(ERROR_FILE_NAME, e);
-                    ErrorManager.fatal(ERROR_FILE_NAME, e);
+                    new File(fileName).getName();
+                } catch (NullPointerException npe) {
+                    LOGGER.error(ERROR_FILE_NAME, npe);
+                    ErrorManager.fatal(ERROR_FILE_NAME, npe);
                 }
                 break;
             case OBJECT_T:
-            case PSCO_T: {
-                int code = oReg.newObjectParameter(stub);
-                ap.registerRemoteObject(code, data);
+            case PSCO_T:
+                int pscoCode = oReg.newObjectParameter(stub);
+                ap.registerRemoteObject(pscoCode, data);
                 break;
-            }
-            case STREAM_T: {
-                int code = oReg.newObjectParameter(stub);
+            case STREAM_T:
+                // int streamCode = oReg.newObjectParameter(stub);
                 break;
-            }
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = (String) stub;
-                    File f = new File(fileName);
-                    String originalName = f.getName();
-                } catch (Exception e) {
-                    LOGGER.error(ERROR_FILE_NAME, e);
-                    ErrorManager.fatal(ERROR_FILE_NAME, e);
+                    new File(fileName).getName();
+                } catch (NullPointerException npe) {
+                    LOGGER.error(ERROR_FILE_NAME, npe);
+                    ErrorManager.fatal(ERROR_FILE_NAME, npe);
                 }
                 break;
-            case EXTERNAL_PSCO_T: {
-                String id = (String) stub;
+            case EXTERNAL_PSCO_T:
+                // String id = (String) stub;
                 break;
-            }
             case BINDING_OBJECT_T:
                 String value = (String) stub;
                 if (value.contains(":")) {
@@ -654,8 +651,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                         String extObjectId = fields[0];
                         int extObjectType = Integer.parseInt(fields[1]);
                         int extObjectElements = Integer.parseInt(fields[2]);
-                        BindingObject bo = new BindingObject(extObjectId, extObjectType, extObjectElements);
-                        int externalCode = externalObjectHashcode(extObjectId);
+                        // BindingObject bo = new BindingObject(extObjectId, extObjectType, extObjectElements);
+                        new BindingObject(extObjectId, extObjectType, extObjectElements);
+                        // int externalCode = externalObjectHashcode(extObjectId);
+                        externalObjectHashcode(extObjectId);
                     } else {
                         LOGGER.error(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
                         ErrorManager.fatal(ERROR_BINDING_OBJECT_PARAMS + " received value is " + value);
@@ -676,20 +675,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     // C
     @Override
-    public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName, 
+    public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
             boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
         return executeTask(appId, null, null, false, methodClass, methodName, null, OnFailure.valueOf(onFailure),
-                timeOut, isPrioritary, Constants.SINGLE_NODE, isReplicated, isDistributed, hasTarget, numReturns, 
+                timeOut, isPrioritary, Constants.SINGLE_NODE, isReplicated, isDistributed, hasTarget, numReturns,
                 parameterCount, parameters);
     }
 
     // Python
     @Override
-    public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary, 
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, 
+    public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary,
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
             int parameterCount, Object... parameters) {
 
         return executeTask(appId, null, null, true, null, null, signature, OnFailure.valueOf(onFailure), timeOut,
@@ -702,8 +701,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
             int parameterCount, OnFailure onFailure, int timeOut, Object... parameters) {
 
-        return executeTask(appId, monitor, lang, false, methodClass, methodName, null, onFailure, timeOut,
-                isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, null, parameterCount, parameters);
+        return executeTask(appId, monitor, lang, false, methodClass, methodName, null, onFailure, timeOut, isPrioritary,
+                numNodes, isReplicated, isDistributed, hasTarget, null, parameterCount, parameters);
     }
 
     // Services
@@ -835,7 +834,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
                     && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T
-                    || type == DataType.BINDING_OBJECT_T));
+                            || type == DataType.BINDING_OBJECT_T));
         }
 
         return hasReturn;
@@ -885,10 +884,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
     }
 
-    
     /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not
+     * 
      * @throws COMPSsException Exception thrown by user
      */
     @Override
@@ -947,7 +946,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     public void openTaskGroup(String groupName, boolean implicitBarrier) {
         ap.setCurrentTaskGroup(groupName, implicitBarrier);
     }
-    
+
     @Override
     public void closeTaskGroup(String groupName) {
         ap.closeCurrentTaskGroup();
@@ -979,7 +978,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sourceLocation == null) {
             ErrorManager.fatal(ERROR_FILE_NAME);
         }
-        
+
         LOGGER.debug("Getting file " + fileName);
         String renamedPath = openFile(fileName, Direction.IN);
         String intermediateTmpPath = renamedPath + ".tmp";
@@ -990,7 +989,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sReg != null) {
             sReg.deleteTaskFile(fileName);
         }
-        
+
         rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -1262,17 +1261,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 }
                 break;
             case OBJECT_T:
-            case PSCO_T: {
+            case PSCO_T:
                 int code = oReg.newObjectParameter(content);
                 pars.add(new ObjectParameter(direction, stream, prefix, name, content, code));
                 break;
-            }
-            case STREAM_T: {
-                int code = oReg.newObjectParameter(content);
-                pars.add(new StreamParameter(direction, stream, prefix, name, content,
-                        oReg.newObjectParameter(content)));
+            case STREAM_T:
+                int streamCode = oReg.newObjectParameter(content);
+                pars.add(new StreamParameter(direction, stream, prefix, name, content, streamCode));
                 break;
-            }
             case EXTERNAL_STREAM_T:
                 try {
                     String fileName = (String) content;

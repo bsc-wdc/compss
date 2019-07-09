@@ -16,45 +16,43 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
-import es.bsc.es.bsc.compss.scheduler.fullGraphScheduler.ScheduleOptimizer;
-import es.bsc.es.bsc.compss.scheduler.types.AllocatableAction;
-import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullGraphScheduler.ScheduleOptimizer;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.PriorityQueue;
 
 
-public class OptimizationWorker<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> {
+public class OptimizationWorker<T extends WorkerResourceDescription> {
 
-    private FullGraphResourceScheduler<P,T,I> resource;
-    private PriorityQueue<AllocatableAction<P,T,I>> donorActions;
+    private FullGraphResourceScheduler<T> resource;
+    private PriorityQueue<AllocatableAction> donorActions;
 
 
-    public OptimizationWorker(FullGraphResourceScheduler<P,T,I> resource) {
+    public OptimizationWorker(FullGraphResourceScheduler<T> resource) {
         this.resource = resource;
     }
 
     public void localOptimization(long optimizationTS) {
-        donorActions = resource.localOptimization(optimizationTS, 
-                ScheduleOptimizer.getSelectionComparator(),
+        this.donorActions = this.resource.localOptimization(optimizationTS, ScheduleOptimizer.getSelectionComparator(),
                 ScheduleOptimizer.getDonationComparator());
     }
 
-    public AllocatableAction<P,T,I> pollDonorAction() {
-        return donorActions.poll();
+    public AllocatableAction pollDonorAction() {
+        return this.donorActions.poll();
     }
 
     public long getDonationIndicator() {
-        return resource.getLastGapExpectedStart();
+        return this.resource.getLastGapExpectedStart();
     }
 
     public String getName() {
-        return resource.getName();
+        return this.resource.getName();
     }
 
-    public FullGraphResourceScheduler<P,T,I> getResource() {
-        return resource;
+    public FullGraphResourceScheduler<T> getResource() {
+        return this.resource;
     }
 
 }

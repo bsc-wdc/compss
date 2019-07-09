@@ -92,6 +92,7 @@ public class DataInfoProvider {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
+
     /**
      * New Data Info Provider instance.
      */
@@ -105,6 +106,12 @@ public class DataInfoProvider {
         LOGGER.info("Initialization finished");
     }
 
+    /**
+     * Registers the remote object resources.
+     * 
+     * @param code Object Id.
+     * @param data Data info.
+     */
     public void registerRemoteObjectSources(int code, String data) {
         DataInfo oInfo;
         Integer aoId = this.codeToId.get(code);
@@ -118,7 +125,7 @@ public class DataInfoProvider {
             this.codeToId.put(code, aoId);
             this.idToData.put(aoId, oInfo);
         }
-        //if data already exists no need to do anything else
+        // if data already exists no need to do anything else
 
     }
 
@@ -477,7 +484,7 @@ public class DataInfoProvider {
                     LOGGER.debug(sb.toString());
                 }
                 break;
-                
+
             case CV:
             case RW:
                 di.willBeRead();

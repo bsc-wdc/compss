@@ -58,6 +58,7 @@ public class CoreManager {
     // Structure counters
     private static int coreCount = 0;
 
+
     /**
      * Private constructor to avoid instantiation.
      */
@@ -98,7 +99,7 @@ public class CoreManager {
         List<Implementation> coreImplementations = IMPLEMENTATIONS.get(coreId);
         List<String> coreSignatures = SIGNATURES.get(coreId);
 
-        for (ImplementationDefinition implDef : ced.getImplementations()) {
+        for (ImplementationDefinition<?> implDef : ced.getImplementations()) {
 
             String implSignature = implDef.getSignature();
             if (implSignature != null && !implSignature.isEmpty()) {

@@ -85,7 +85,7 @@ public class ITAppEditor extends ExprEditor {
     private static final String DELETE_FILE = ".deleteFile(";
     private static final String EXECUTE_TASK = ".executeTask(";
     private static final String PROCEED = "$_ = $proceed(";
-    private static final String COMPSS_LOADER_GROUP ="es.bsc.compss.loader.total.COMPSsGroupLoader(";
+    private static final String COMPSS_LOADER_GROUP = "es.bsc.compss.loader.total.COMPSsGroupLoader(";
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
     private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
@@ -199,11 +199,12 @@ public class ITAppEditor extends ExprEditor {
 
             // Update new expression
             ne.replace(modifiedExpr.toString());
-            
+
         } else if (fullName.equals(COMPSsGroup.class.getCanonicalName())) {
             ne.replace(substitutesCOMPSsGroup());
-        };
-        
+        }
+        ;
+
     }
 
     /**
@@ -272,7 +273,8 @@ public class ITAppEditor extends ExprEditor {
             }
 
             mc.replace(modifiedAPICall);
-        } else if ((!mc.getClassName().equals(LoaderConstants.CLASS_COMPSS_GROUP)) && (!LoaderUtils.contains(instrCandidates, calledMethod))) {
+        } else if ((!mc.getClassName().equals(LoaderConstants.CLASS_COMPSS_GROUP))
+                && (!LoaderUtils.contains(instrCandidates, calledMethod))) {
             // The method is a black box
             if (DEBUG) {
                 LOGGER.debug("Replacing regular method call " + mc.getMethodName());
@@ -382,17 +384,16 @@ public class ITAppEditor extends ExprEditor {
         }
         return modifiedExpr;
     }
-    
+
     private String substitutesCOMPSsGroup() {
         String modifiedExpr = "";
         if (DEBUG) {
-            LOGGER.debug("Substituting COMPSs group creation. " );
+            LOGGER.debug("Substituting COMPSs group creation. ");
         }
-        modifiedExpr = "$_ = new  "+ COMPSS_LOADER_GROUP + this.itApiVar + ", " + this.itAppIdVar + ", $$);";
+        modifiedExpr = "$_ = new  " + COMPSS_LOADER_GROUP + this.itApiVar + ", " + this.itAppIdVar + ", $$);";
         return modifiedExpr;
     }
 
-    
     /**
      * Replaces calls to local methods by executeTask.
      */
@@ -517,7 +518,7 @@ public class ITAppEditor extends ExprEditor {
 
         // Add the onFailure behavior
         executeTask.append(OnFailure.class.getCanonicalName() + "." + onFailure).append(',');
-        
+
         // Add the timeOut time
         executeTask.append(timeOut);
 

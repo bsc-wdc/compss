@@ -44,13 +44,14 @@ public class JavaInvoker extends Invoker {
     private final String methodName;
     protected final Method method;
 
+
     /**
      * Java Invoker constructor.
      *
-     * @param context               Task execution context
-     * @param invocation            Task execution description
+     * @param context Task execution context
+     * @param invocation Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources     Assigned resources
+     * @param assignedResources Assigned resources
      * @throws JobExecutionException Error creating the Java invoker
      */
     public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
@@ -225,7 +226,8 @@ public class JavaInvoker extends Invoker {
                 Class<?> paramClass = this.method.getParameters()[paramIdx].getType();
                 // If the method has an arbitrary number of parameters, the last parameter is an array.
                 if (reflectionParam.isVarArgs()) {
-                    paramDest[paramIdx] = Array.newInstance(paramClass.getComponentType(), params.size() - paramCount + 1);
+                    paramDest[paramIdx] = Array.newInstance(paramClass.getComponentType(),
+                            params.size() - paramCount + 1);
                     paramDest = (Object[]) paramDest[paramIdx];
                     paramIdx = 0;
                     paramDest[paramIdx++] = param.getValue();

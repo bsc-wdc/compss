@@ -36,8 +36,8 @@ public class FakeMethodAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Map<String,Object> projectProperties, Map<String,Object> resourcesProperties)
-            throws ConstructConfigurationException {
+    public Configuration constructConfiguration(Map<String, Object> projectProperties,
+            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         return new MethodConfiguration(this.getClass().getName());
     }

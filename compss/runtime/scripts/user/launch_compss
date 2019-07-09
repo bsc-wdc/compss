@@ -254,7 +254,7 @@ infer_language() {
 load_tracing_env() {
   local module_tmp
   module_tmp=$(mktemp -p /tmp)
-  module list 2> "${module_tmp}"
+  module list &> "${module_tmp}"
 
   # Look for openmpi / impi / none
   impi=$(grep -i "impi" "${module_tmp}" | cat)

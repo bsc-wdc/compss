@@ -1,5 +1,5 @@
 #!/bin/bash
-  
+
   #-------------------------------------
   # Define script variables and exports
   #-------------------------------------
@@ -18,7 +18,7 @@
   #-------------------------------------
   action=$1
   workingDir=$2
-  
+
   shift 2
   mkdir -p "$workingDir"
   cd "$workingDir" || exit 1
@@ -81,6 +81,12 @@
         if [ -f ./python/pycompss.log ]; then
             rm -f ./python/pycompss.log
         fi
+        if ls ./python/core.* 1> /dev/null 2>&1; then
+            # Remove the current corefiles generated to avoid big package
+            # Notified this issue.
+            # TODO: remove this if block when the issue is fixed.
+            rm -f ./python/core*
+        fi
         mv ./python ./python_${node}
         files+=" ./python_${node}"
     fi
@@ -114,6 +120,7 @@
   elif [ "$action" == "gentrace" ]; then
     appName=$1
     numberOfResources=$2
+
     # Check machine max open files
     openFilesLimit=$(ulimit -Sn)
     if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
@@ -153,6 +160,34 @@
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym
+
+  elif [ "$action" == "gentrace-scorep" ]; then
+    appName=$1
+    numberOfResources=$2
+
+    # We require otf2-merger module loaded
+    source ${SCRIPT_DIR}/trace/scorep-merger.sh
+
+    # Unpack the tar.gz of each worker
+    traceFiles=$(find trace/*_compss_trace.tar.gz)
+    #echo "trace::scorep_gentrace"
+    tmpDir=$(mktemp -d)
+    for file in ${traceFiles[*]}; do
+        tar -C "$tmpDir" -xzf "$file"
+        #echo "trace:: $tmpDir -xvzf $file"
+    done
+    trace_files=$(find "$tmpDir" -name "*.otf2*")
+    # Merge the traces.
+    for trace in $trace_files; do
+        params+=" --traceFile $trace"
+    done
+    # Example: otf2-merger --traceFile /path/to/trace/A.otf2 --traceFile /path/to/trace/B.otf2 --traceFile /path/to/trace/C.otf2 --outputPath /path/to/output/dir
+    otf2-merger $params --outputPath ./trace/${appName}_scorep_trace
+    endCode=$?
+
+    # Clean the temporary directory
+    rm -rf "$tmpDir" # "$file"  # keep the original tar.gz
+
   fi
 
   #-------------------------------------
@@ -162,6 +197,5 @@
         exit 0
   else
         echo 1>&2 "Tracing action $action failed"
-        exit 1 
+        exit 1
   fi
-

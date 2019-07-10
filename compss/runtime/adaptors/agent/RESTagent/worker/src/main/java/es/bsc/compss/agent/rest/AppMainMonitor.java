@@ -51,10 +51,10 @@ public class AppMainMonitor extends AppMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, DataType type, String name, Object location) {
+    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
 
     }
-    
+
     @Override
     public void onAbortedExecution() {
         profile.finished();
@@ -69,12 +69,12 @@ public class AppMainMonitor extends AppMonitor {
     public void onFailedExecution() {
         profile.finished();
     }
-    
+
     @Override
     public void onException() {
         profile.finished();
     }
-    
+
     @Override
     public void onSuccesfulExecution() {
         profile.finished();

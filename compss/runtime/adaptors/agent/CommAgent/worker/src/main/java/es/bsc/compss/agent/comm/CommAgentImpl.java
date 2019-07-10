@@ -23,7 +23,9 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.Agent;
 import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.AgentInterface;
+import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.comm.messages.types.CommParam;
+import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
@@ -148,16 +150,25 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
 
         String cei = request.getCei();
         MethodResourceDescription requirements = request.getRequirements();
-        if (cei != null) {
-            startMain(lang, className, methodName, arguments, target, results, cei, requirements);
+        CommResource orchestrator = request.getOrchestrator();
+        System.out.println("S'ha de notificat la peticio a " + orchestrator);
+        AppMonitor monitor;
+        if (orchestrator == null) {
+            monitor = new PrintMonitor();
         } else {
-            startTask(lang, className, methodName, arguments, target, results, requirements);
+            monitor = new TaskMonitor(orchestrator, request);
+        }
+
+        if (cei != null) {
+            startMain(lang, className, methodName, arguments, target, results, cei, requirements, monitor);
+        } else {
+            startTask(lang, className, methodName, arguments, target, results, requirements, monitor);
         }
     }
 
     private void startMain(Lang lang, String className, String methodName,
             ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
-            String ceiName, MethodResourceDescription requirements) {
+            String ceiName, MethodResourceDescription requirements, AppMonitor monitor) {
         System.out.println("Es vol executar el main " + lang + " " + className + "." + methodName
                 + " parallelitzat amb " + ceiName);
         System.out.println("Parameters: ");
@@ -166,17 +177,20 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         }
         System.out.println("La tasca reservarà " + requirements);
         try {
-            Agent.runMain(lang, ceiName, className, methodName, params, target, results, new PrintMonitor());
+            Agent.runMain(lang, ceiName, className, methodName, params, target, results, monitor);
         } catch (AgentException ex) {
             ex.printStackTrace();
         }
     }
 
-    private void startTask(Lang lang, String className, String methodName, ApplicationParameter[] params,
-            ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements) {
+    private void startTask(Lang lang, String className, String methodName,
+            ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
+            MethodResourceDescription requirements, AppMonitor monitor) {
 
         try {
-            Agent.runTask(lang, className, methodName, params, target, results, requirements, new PrintMonitor());
+            Agent.runTask(lang, className, methodName,
+                    params, target, results,
+                    requirements, monitor);
         } catch (AgentException ex) {
             ex.printStackTrace();
         }

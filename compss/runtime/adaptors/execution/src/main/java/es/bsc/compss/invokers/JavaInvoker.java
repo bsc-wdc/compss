@@ -226,8 +226,8 @@ public class JavaInvoker extends Invoker {
                 Class<?> paramClass = this.method.getParameters()[paramIdx].getType();
                 // If the method has an arbitrary number of parameters, the last parameter is an array.
                 if (reflectionParam.isVarArgs()) {
-                    paramDest[paramIdx] = Array.newInstance(paramClass.getComponentType(),
-                            params.size() - paramCount + 1);
+                    int varArgsCount = params.size() - paramCount + 1;
+                    paramDest[paramIdx] = Array.newInstance(paramClass.getComponentType(),varArgsCount);
                     paramDest = (Object[]) paramDest[paramIdx];
                     paramIdx = 0;
                     paramDest[paramIdx++] = param.getValue();

@@ -202,8 +202,8 @@ public class Comm {
     /**
      * Initializes the internal adaptor and constructs a comm configuration.
      *
-     * @param adaptorName Adaptor name.
-     * @param projectProperties Properties from the project.xml file.
+     * @param adaptorName         Adaptor name.
+     * @param projectProperties   Properties from the project.xml file.
      * @param resourcesProperties Properties from the resources.xml file.
      * @return An adaptor configuration.
      * @throws ConstructConfigurationException When adaptor class cannot be instantiated.
@@ -346,7 +346,7 @@ public class Comm {
     /**
      * Registers a new location {@code location} for the data with id {@code dataId}.
      *
-     * @param dataId Data Id. Must exist previously.
+     * @param dataId   Data Id. Must exist previously.
      * @param location New location.
      * @return The updated LogicalData for the given dataId with the new location.
      */
@@ -364,7 +364,7 @@ public class Comm {
      * Registers a new value {@code value} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must exist previously.
-     * @param value New data value.
+     * @param value  New data value.
      * @return The updated LogicalData for the given dataId with the new value.
      */
     public static synchronized LogicalData registerValue(String dataId, Object value) {
@@ -397,7 +397,7 @@ public class Comm {
     /**
      * Registers a new collection with the given dataId {@code dataId}.
      *
-     * @param dataId Identifier of the collection.
+     * @param dataId     Identifier of the collection.
      * @param parameters Parameters of the collection.
      * @return LogicalData representing the collection with its parameters.
      */
@@ -409,7 +409,7 @@ public class Comm {
      * Registers a new External PSCO id {@code id} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must exist previously.
-     * @param id PSCO Id.
+     * @param id     PSCO Id.
      * @return The LogicalData representing the given data Id with the associated PSCO Id.
      */
     public static synchronized LogicalData registerExternalPSCO(String dataId, String id) {
@@ -423,7 +423,7 @@ public class Comm {
      * Registers a new Binding Object {@code bo} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must exist previously.
-     * @param bo Binding Object.
+     * @param bo     Binding Object.
      * @return The LogicalData representing the given data Id with the associated Binding Object.
      */
     public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
@@ -446,7 +446,7 @@ public class Comm {
      * Registers a new PSCO id {@code id} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must previously exist.
-     * @param id PSCO Id.
+     * @param id     PSCO Id.
      * @return The LogicalData after registering the PSCO Id into the given data Id.
      */
     public static synchronized LogicalData registerPSCO(String dataId, String id) {
@@ -463,6 +463,40 @@ public class Comm {
         logicalData.addLocation(location);
 
         return logicalData;
+    }
+
+    /**
+     * Points both data values, {@code dataId} and {@code dataId2}, to the same LogicalData and all their sources are
+     * merged.
+     *
+     * @param dataId  first data identifier
+     * @param dataId2 second data identifier
+     * @return the LogicalData pointed by both data values
+     */
+    public static synchronized LogicalData linkData(String dataId, String dataId2) {
+        LogicalData ld = DATA.get(dataId);
+        LogicalData ld2 = DATA.get(dataId2);
+        if (ld != null) {
+            if (ld2 != null) {
+                // Both already value exist. Merge them!
+                for (DataLocation dloc : ld2.getLocations()) {
+                    ld.addLocation(dloc);
+                }
+                DATA.put(dataId2, ld);
+            } else {
+                DATA.put(dataId2, ld);
+            }
+        } else {
+            if (ld2 != null) {
+                DATA.put(dataId, ld2);
+                ld = ld2;
+            } else {
+                // None of the values exists. Create an empty LogicalData for both
+                ld = registerData(dataId);
+                DATA.put(dataId2, ld);
+            }
+        }
+        return ld;
     }
 
     /**

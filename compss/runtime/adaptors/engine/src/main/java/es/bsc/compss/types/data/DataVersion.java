@@ -170,7 +170,7 @@ public class DataVersion {
         if (this.toDelete // deletion requested
                 && this.writters == 0 // version has been generated
                 && this.readers == 0 // version has been read
-                ) {
+        ) {
 
             return true;
         }

@@ -46,8 +46,10 @@ public class PrintMonitor extends AppMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, DataType type, String name, Object location) {
-        System.out.println("Generated " + type + "with value " + paramId);
+    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
+        System.out.println("Generated " + paramType + "-value with dataId " + dataId + " at location " + dataLocation
+                + " for parameter on position " + paramId + "and  name " + paramName
+        );
     }
 
     @Override

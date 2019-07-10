@@ -223,7 +223,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 }
             }
         }
-        
+
         // Get ports
         int minProject = (propsProject != null) ? propsProject.getMinPort() : -1;
         int minResources = -1;
@@ -392,7 +392,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful, Exception e) {
+    public final void receivedNIOTaskDone(Connection c, NIOTaskResult tr, boolean successful, Exception e) {
         int jobId = tr.getJobId();
 
         if (LOGGER.isDebugEnabled()) {
@@ -425,24 +425,37 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             // Mark task as finished and release waiters
             JobHistory prevJobHistory = nj.getHistory();
             nj.taskFinished(successful, e);
-            // JobHistory newJobHistory = nj.getHistory();
 
             // Retrieve files if required
-            if (WORKER_DEBUG || !successful) {
-                String jobOut = JOBS_DIR + "job" + jobId + "_" + prevJobHistory + ".out";
-                String jobErr = JOBS_DIR + "job" + jobId + "_" + prevJobHistory + ".err";
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Requesting JobOut " + jobOut + " for Task " + taskId);
-                    LOGGER.debug("Requesting JobErr " + jobErr + " for Task " + taskId);
-                }
-                c.receiveDataFile(jobOut);
-                c.receiveDataFile(jobErr);
-            }
+            retrieveAdditionalJobFiles(c, successful, jobId, taskId, prevJobHistory);
 
         }
 
         // Close connection
         c.finishConnection();
+    }
+
+    /**
+     * Retrieves from connection {@code connection} the files containing additional job information.
+     *
+     * @param connection connection to request/receive information
+     * @param success    {@literal true}, if job ended successfully
+     * @param jobId      Id of the executed job
+     * @param taskId     Id of the executed task
+     * @param history    job history tag
+     */
+    protected void retrieveAdditionalJobFiles(Connection connection, boolean success, int jobId, int taskId,
+            JobHistory history) {
+        if (WORKER_DEBUG || !success) {
+            String jobOut = JOBS_DIR + "job" + jobId + "_" + history + ".out";
+            String jobErr = JOBS_DIR + "job" + jobId + "_" + history + ".err";
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Requesting JobOut " + jobOut + " for Task " + taskId);
+                LOGGER.debug("Requesting JobErr " + jobErr + " for Task " + taskId);
+            }
+            connection.receiveDataFile(jobOut);
+            connection.receiveDataFile(jobErr);
+        }
     }
 
     private void updateParameter(DataType newType, String pscoId, DependencyParameter dp) {

@@ -348,7 +348,12 @@ public class Agent {
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {
         System.out.println("ADDING REMOTE DATA " + remote);
         int addedSources = 0;
-        LogicalData ld = Comm.registerData(remote.getRenaming());
+        LogicalData ld = Comm.getData(remote.getRenaming());
+        System.out.println(ld);
+        if (ld == null) {
+            ld = Comm.registerData(remote.getRenaming());
+        }
+
         for (RemoteDataLocation loc : remote.getSources()) {
             try {
                 String path = loc.getPath();
@@ -373,6 +378,7 @@ public class Agent {
                 e.printStackTrace();
             }
         }
+        System.out.println(ld);
         if (addedSources == 0) {
             throw new AgentException("Could not add any source for data " + remote.getRenaming());
         }

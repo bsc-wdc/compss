@@ -85,7 +85,7 @@ public abstract class Copy extends DataOperation {
         return this.srcLoc;
     }
     
-    public void setTargetLoc(DataLocation loc ) {
+    public void setTargetLoc(DataLocation loc) {
         tgtLoc = loc;
     }
 

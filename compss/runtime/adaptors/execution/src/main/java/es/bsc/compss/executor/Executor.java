@@ -96,12 +96,11 @@ public class Executor implements Runnable {
     protected PipePair cPipes;
     protected PipePair pyPipes;
 
-
     /**
      * Instantiates a new Executor.
      *
-     * @param context Invocation context
-     * @param platform Executor context (Execution Platform
+     * @param context    Invocation context
+     * @param platform   Executor context (Execution Platform
      * @param executorId Executor Identifier
      */
     public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
@@ -477,7 +476,7 @@ public class Executor implements Runnable {
      * Create symbolic links from files with the original name in task sandbox to the renamed file.
      *
      * @param invocation task description
-     * @param sandbox created sandbox
+     * @param sandbox    created sandbox
      * @throws IOException returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
@@ -534,7 +533,7 @@ public class Executor implements Runnable {
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file.
      *
      * @param invocation task description
-     * @throws IOException Exception with file operations
+     * @throws IOException           Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
@@ -756,7 +755,6 @@ public class Executor implements Runnable {
 
         private final File workingDir;
         private final boolean isSpecific;
-
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

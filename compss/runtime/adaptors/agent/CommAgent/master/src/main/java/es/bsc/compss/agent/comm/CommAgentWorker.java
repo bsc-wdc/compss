@@ -17,13 +17,10 @@
 
 package es.bsc.compss.agent.comm;
 
-import es.bsc.comm.Node;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
-import es.bsc.compss.agent.types.RemoteDataLocation;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.exceptions.UnstartedNodeException;
-import es.bsc.compss.nio.NIOUri;
 import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -46,31 +43,31 @@ import java.util.List;
  */
 class CommAgentWorker extends NIOWorkerNode {
 
-    private final CommResource localResource;
-    private final Node node;
+    private final CommResource remoteResource;
 
     public CommAgentWorker(String name, int port, CommAgentAdaptor adaptor) {
         super(null, adaptor);
-        localResource = new CommResource(name, port);
+        remoteResource = new CommResource(name, port);
         node = new NIONode(name, port);
+        started = true;
     }
 
     @Override
     public String getUser() {
         // Comm agents need no user to interact
-        return null;
+        return "";
     }
 
     @Override
     public String getClasspath() {
         // Comm agents are already configured no need to specify classpath
-        return null;
+        return "";
     }
 
     @Override
     public String getPythonpath() {
         // Comm agents are already configured no need to specify python path
-        return null;
+        return "";
     }
 
     @Override
@@ -90,7 +87,7 @@ class CommAgentWorker extends NIOWorkerNode {
 
     @Override
     public String getName() {
-        return localResource.getName();
+        return remoteResource.getName();
     }
 
     @Override
@@ -100,16 +97,14 @@ class CommAgentWorker extends NIOWorkerNode {
 
     @Override
     public void setInternalURI(MultiURI u) throws UnstartedNodeException {
-        RemoteDataLocation rdl = new RemoteDataLocation(localResource, u.getPath());
-        System.out.println("Setting internal URI " + rdl + " to " + u);
-        NIOUri nu = new NIOUri((NIONode) this.node, rdl.getPath(), ProtocolType.ANY_URI);
+        CommAgentURI nu = new CommAgentURI(remoteResource, this.node, u.getPath(), ProtocolType.ANY_URI);
         u.setInternalURI(CommAgentAdaptor.ID, nu);
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res,
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new CommAgentJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
 
     @Override
@@ -120,7 +115,10 @@ class CommAgentWorker extends NIOWorkerNode {
 
     @Override
     public SimpleURI getCompletePath(DataType type, String name) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // With agents the path shouldn't matter
+        // Checking on LD it should find out where to find the data on the device
+        SimpleURI uri = new SimpleURI(name);
+        return uri;
     }
 
     @Override

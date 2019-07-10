@@ -82,10 +82,10 @@ public class NIOWorkerNode extends COMPSsWorker {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private NIONode node;
+    protected NIONode node;
     private final NIOConfiguration config;
     private final NIOAdaptor commManager;
-    private boolean started = false;
+    protected boolean started = false;
     private WorkerStarter workerStarter;
 
 

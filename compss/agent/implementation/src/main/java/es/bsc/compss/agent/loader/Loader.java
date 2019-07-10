@@ -88,10 +88,10 @@ public class Loader {
             Object[] values = new Object[] { runtime, api, appId };
             setter.invoke(null, values);
 
-            Object[] paramValues = new Object[params.length-1];
-            Class<?>[] types = new Class<?>[params.length-1];
-            for (int i = 0; i < params.length-1; i++) {
-                paramValues[i] = params[i+1];
+            Object[] paramValues = new Object[params.length - 1];
+            Class<?>[] types = new Class<?>[params.length - 1];
+            for (int i = 0; i < params.length - 1; i++) {
+                paramValues[i] = params[i + 1];
                 types[i] = paramValues[i].getClass();
             }
 

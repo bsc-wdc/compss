@@ -24,6 +24,16 @@ import es.bsc.compss.types.data.location.DataLocation;
 
 public class DeferredCopy extends Copy {
 
+    /**
+     * Constructs a new DeferredCopy.
+     *
+     * @param srcData  source logical data
+     * @param prefSrc  preferred source data location
+     * @param prefTgt  preferred target data location
+     * @param tgtData  target logical data
+     * @param reason   Transfer reason
+     * @param listener listener to notify events
+     */
     public DeferredCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
             Transferable reason, EventListener listener) {
 

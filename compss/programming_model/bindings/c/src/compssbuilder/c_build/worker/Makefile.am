@@ -15,37 +15,34 @@
 #  limitations under the License.
 #
 
+BUILT_SOURCES = PACKAGE.h \
+                PACKAGE-executor.cc
+
 noinst_LIBRARIES = libfunctions.a
-libfunctions_a_SOURCES = PACKAGE-functions.cc
 
-#libfunctions_a_LIBADD     = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_systemi
+ACLOCAL_AMFLAGS=-I m4
 
+libfunctions_a_SOURCES = PACKAGE.h \
+                         PACKAGE-functions.cc
 libfunctions_a_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
-
 libfunctions_a_CFLAGS =
 
 bin_PROGRAMS = nio_worker_c worker_c
 
-ACLOCAL_AMFLAGS=-I m4
-
 worker_c_CPPFLAGS =  -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
-
-worker_c_SOURCES = worker_c.cc \
-        PACKAGE-executor.cc
-     
+worker_c_SOURCES = worker_c.cc          \
+                   PACKAGE-executor.cc
 #worker_c_LDFLAGS   = --Wf,"--board=zedboard,--clock=100,--task_manager,--name=worker_bitstream" #We need to customize the step and the board to use, as a workaround this should work.
-worker_c_LDFLAGS    =
-
-worker_c_LDADD = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread libfunctions.a 
+worker_c_LDADD = -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread libfunctions.a
+worker_c_LDFLAGS =
+worker_c_DEPENDENCIES = libfunctions.a
 
 nio_worker_c_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux/ -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -Wall
-
-nio_worker_c_SOURCES = nio_worker_c.cc \
-        PACKAGE-executor.cc
-        
-nio_worker_c_LDFLAGS = 
-
+nio_worker_c_SOURCES = nio_worker_c.cc      \
+                       PACKAGE-executor.cc
+nio_worker_c_LDFLAGS =
 nio_worker_c_LDADD =  -L../../lib -ldl -L$(LIBJAVAFOLDER) -ljvm -L$(CS_HOME)/../bindings-common/lib/$(TARGET_HOST) -lbindings_common -L$(CS_HOME)/lib/$(TARGET_HOST) -lcbindings -L$(BOOST_LIB) -lboost_iostreams -lboost_serialization -lboost_system -lpthread libfunctions.a
+nio_worker_c_DEPENDENCIES = libfunctions.a
 
 if OMPSS2
 libfunctions_a_CPPFLAGS  += --ompss-2 -DOMPSS2_ENABLED
@@ -82,9 +79,7 @@ libfunctions_a_CPPFLAGS  += --cuda -DCUDA_ENABLED
 libfunctions_a_CFLAGS    += --cuda -DCUDA_ENABLED
 endif
 
+COMPSSGEN_FLAGS =
 
-COMPSSGEN_FLAGS = 
-
-PACKAGE-executor.cc PACKAGE-stubs.cc PACKAGE.h: PACKAGE.idl
+PACKAGE.h PACKAGE-executor.cc : PACKAGE.idl
 	$(COMPSSGEN) $(COMPSSGEN_FLAGS) PACKAGE.idl
-	

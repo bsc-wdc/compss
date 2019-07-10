@@ -66,7 +66,7 @@ def executor(process_name, command):
         # Default
         init_logging_worker(worker_path + '/../../log/logging_off.json')
 
-    logger = logging.getLogger('pycompss.worker.piper_worker')
+    logger = logging.getLogger('pycompss.worker.piper.piper_worker')
     logger_handlers = copy.copy(logger.handlers)
     logger_handler = logger.handlers[0]   
     logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
@@ -149,7 +149,7 @@ def executor(process_name, command):
                   logger.debug("\t - Hostnames: %s" % str(cn_names))
 
                # Execute task
-               from pycompss.worker.worker_commons import execute_task
+               from pycompss.worker.commons.worker_commons import execute_task
                storage_conf = "null"
                tracing = False
                python_mpi = True

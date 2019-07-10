@@ -271,6 +271,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         return task_returns(1, new_types, new_values, None, False, "", logger)
     finally:
         signal.alarm(0)
+
     if isinstance(task_output[0], tuple):
         # Weak but effective way to check it without doing inspect that
         # another decorator has added another return thing.
@@ -287,13 +288,28 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         new_types = task_output[0]
         new_values = task_output[1]
         target_direction = task_output[2]
-    return task_returns(0, new_types, new_values, target_direction, False, "", logger)
+
+    return task_returns(0, new_types, new_values, target_direction,
+                        False, "", logger)
 
 
-def task_returns (exit_code, new_types, new_values, target_direction, timed_out, return_message, logger):
+def task_returns (exit_code, new_types, new_values, target_direction,
+                  timed_out, return_message, logger):
+    """
+    Unified task return function
+    :param exit_code: Exit value (0 ok, 1 error)
+    :param new_types: New types to be returned
+    :param new_values: New values to be returned
+    :param target_direction: Target direction
+    :param timed_out: If the task has reached time ot
+    :param return_message: Return exception messsage
+    :param logger: Logger where to place the messages
+    :return: exit code, new types, new values, target direction and time out
+    """
     if __debug__:
         # The types may change
         # (e.g. if the user does a makePersistent within the task)
+        logger.debug("Exit code : %s " % str(exit_code))
         logger.debug("Return Types : %s " % str(new_types))
         logger.debug("Return Values: %s " % str(new_values))
         logger.debug("Return target_direction: %s " % str(target_direction))

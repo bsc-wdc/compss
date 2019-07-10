@@ -18,7 +18,6 @@
 # -*- coding: utf-8 -*-
 
 
-
 def build_return_params_message(types, values):
     """
     Build the return message with the parameters output.

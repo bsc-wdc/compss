@@ -37,6 +37,7 @@ from pycompss.worker.piper.commons.pipe_constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.piper.commons.pipe_constants import PING_TAG
 from pycompss.worker.piper.commons.pipe_constants import PONG_TAG
 from pycompss.worker.piper.commons.pipe_constants import QUIT_TAG
+from pycompss.worker.commons.executor_commons import build_return_params_message
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
 
@@ -630,8 +631,8 @@ def process_task(current_line, process_name, pipe, queue, tracing,
             if exit_value == 0:
                 # Task has finished without exceptions
                 # endTask jobId exitValue message
-                params = _build_return_params_message(new_types,
-                                                      new_values)
+                params = build_return_params_message(new_types,
+                                                     new_values)
                 message = END_TASK_TAG + " " + \
                           str(job_id) + " " + \
                           str(exit_value) + " " + \
@@ -762,22 +763,3 @@ def bind_gpus(gpus, process_name, logger):
     if __debug__:
         logger.debug("[PYTHON EXECUTOR] [%s] Assigning GPU %s" %
                      (str(process_name), str(gpus)))
-
-
-def _build_return_params_message(types, values):
-    """
-    Build the return message with the parameters output.
-
-    :param types: List of the parameter's types
-    :param values: List of the parameter's values
-    :return: Message as string
-    """
-    assert len(types) == len(values), "Inconsistent state: return type-value length mismatch for return message."
-
-    pairs = list(zip(types, values))
-    num_params = len(pairs)
-    params = ''
-    for pair in pairs:
-        params = params + str(pair[0]) + ' ' + str(pair[1]) + ' '
-    message = str(num_params) + ' ' + params
-    return message

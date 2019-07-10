@@ -37,7 +37,6 @@ from pycompss.worker.piper.commons.pipe_constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.piper.commons.pipe_constants import PING_TAG
 from pycompss.worker.piper.commons.pipe_constants import PONG_TAG
 from pycompss.worker.piper.commons.pipe_constants import QUIT_TAG
-from pycompss.worker.commons.executor_commons import build_return_params_message
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
 

@@ -1642,6 +1642,7 @@ launch() {
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
         fi
 
+        AUXILIAR_LAUNCH_PARAMS=${LAUNCH_PARAMS}
         if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
             if [ -n "${worker_in_master_cpus}" ] && [ "${worker_in_master_cpus}" != "0" ]; then
                 AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${worker_in_master_cpus} "

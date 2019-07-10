@@ -48,7 +48,10 @@
   if [ "$debug" == "true" ]; then
       export COMPSS_BINDINGS_DEBUG=1
       export NX_ARGS="--summary"
+      export NANOS6=debug
+
       echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
+      echo "Calling NIOWorker"
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 

@@ -1,0 +1,68 @@
+interface type_tests {
+
+    //Test with long, int, short and char
+    //----------------------------------------------------------------------
+
+    void split_long(in long a, out int[2] pair);
+
+    void split_int(in int N, in int M, in int[N] a, out short[M] pair);
+
+    void split_short(in int N, in int M, in short[N] a, out char[M] pair);
+
+    //----------------------------------------------------------------------
+
+    //Test with long and long*
+    //----------------------------------------------------------------------
+
+    long[3] make_long_array(in long a, in long b, in long c);
+
+    void sum_long_array(inout long[3] array);
+    
+    //----------------------------------------------------------------------
+
+    //Test with int and int*
+    //----------------------------------------------------------------------
+
+    int[3] make_int_array(in int a, in int b, in int c);
+    
+    void sum_int_array(inout int[3] array);
+
+    //----------------------------------------------------------------------
+
+    //Test with short and short*
+    //----------------------------------------------------------------------
+
+    short[3] make_short_array(in short a, in short b, in short c);
+
+    void sum_short_array(inout short[3] array);
+
+    //----------------------------------------------------------------------
+
+    //Test with float and float*
+    //----------------------------------------------------------------------
+    
+    float[3] make_float_array(in float a, in float b, in float c);
+
+    void sum_float_array(inout float[3] array);
+
+    //----------------------------------------------------------------------
+    
+    //Test with double and double*
+    //----------------------------------------------------------------------
+
+    double[3] make_double_array(in double a, in double b, in double c);
+    
+    void sum_double_array(inout double[3] array);
+
+    //----------------------------------------------------------------------
+    
+    //Test with char and char*
+    //----------------------------------------------------------------------
+
+    void make_string(in char a, in char b, in char c, out char[4] str);
+
+    void split_string(in char[4] str);
+    
+    //----------------------------------------------------------------------
+
+};

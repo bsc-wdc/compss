@@ -29,8 +29,6 @@ typedef struct {
     int num;
 } Types;
 
-
-
 void initTypes(Types *currTypes);
 
 int containsType (Type type, Types currTypes);

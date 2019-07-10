@@ -656,6 +656,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     case any_dt:
     case null_dt:
     default:
+        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  The type of the parameter %s is not registered\n", *(char **)parName);
         break;
     }
 

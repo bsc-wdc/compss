@@ -603,9 +603,13 @@ public abstract class NIOAgent {
             }
             // Then, replicate value with target data_id/filename (INOUT case) and notify reception with target
             // data_id/filename
-            for (Entry<String, List<DataRequest>> entry : byTarget.entrySet()) {
+            //for (Entry<String, List<DataRequest>> entry : byTarget.entrySet()) {
+
+            for (Entry<String, List<DataRequest>> entry : byTarget.entrySet().toArray(new Entry[byTarget.size()])) {
+
                 String targetName = entry.getKey();
                 List<DataRequest> reqs = entry.getValue();
+
                 try {
                     if (DEBUG) {
                         LOGGER.debug(DBG_PREFIX + "Data " + dataId + " will be saved as name " + targetName);
@@ -636,8 +640,8 @@ public abstract class NIOAgent {
                 } catch (IOException | ClassNotFoundException e) {
                     LOGGER.warn("Can not replicate received Data", e);
                 }
-
-            }
+              }
+            //}
         }
         requestTransfers();
 

@@ -16,19 +16,19 @@
  */
 
 /* Bison interface for Yacc-like parsers in C
-   
-      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
-   
+
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -41,13 +41,13 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_CORBA_GRAM_H_INCLUDED
-# define YY_YY_CORBA_GRAM_H_INCLUDED
-/* Enabling traces.  */
+#ifndef YY_YY_Y_TAB_H_INCLUDED
+# define YY_YY_Y_TAB_H_INCLUDED
+/* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
 #endif
@@ -55,46 +55,48 @@
 extern int yydebug;
 #endif
 
-/* Tokens.  */
+/* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     TOK_INTERFACE = 258,
-     TOK_LEFT_CUR_BRAKET = 259,
-     TOK_RIGHT_CUR_BRAKET = 260,
-     TOK_LEFT_PARENTHESIS = 261,
-     TOK_LEFT_BRAKET = 262,
-     TOK_RIGHT_BRAKET = 263,
-     TOK_RIGHT_PARENTHESIS = 264,
-     TOK_COMMA = 265,
-     TOK_SEMICOLON = 266,
-     TOK_IN = 267,
-     TOK_OUT = 268,
-     TOK_INOUT = 269,
-     TOK_FILE = 270,
-     TOK_STATIC = 271,
-     TOK_UNSIGNED = 272,
-     TOK_VOID = 273,
-     TOK_SHORT = 274,
-     TOK_LONG = 275,
-     TOK_LONGLONG = 276,
-     TOK_INT = 277,
-     TOK_FLOAT = 278,
-     TOK_DOUBLE = 279,
-     TOK_CHAR = 280,
-     TOK_WCHAR = 281,
-     TOK_BOOLEAN = 282,
-     TOK_STRING = 283,
-     TOK_WSTRING = 284,
-     TOK_ANY = 285,
-     TOK_ERROR = 286,
-     TOK_EQUAL = 287,
-     TOK_DBLQUOTE = 288,
-     TOK_IDENTIFIER = 289,
-     NUMBER = 290
-   };
+  enum yytokentype
+  {
+    TOK_INTERFACE = 258,
+    TOK_LEFT_CUR_BRAKET = 259,
+    TOK_RIGHT_CUR_BRAKET = 260,
+    TOK_LEFT_PARENTHESIS = 261,
+    TOK_LEFT_BRAKET = 262,
+    TOK_RIGHT_BRAKET = 263,
+    TOK_RIGHT_PARENTHESIS = 264,
+    TOK_COMMA = 265,
+    TOK_SEMICOLON = 266,
+    TOK_IN = 267,
+    TOK_OUT = 268,
+    TOK_INOUT = 269,
+    TOK_FILE = 270,
+    TOK_STATIC = 271,
+    TOK_UNSIGNED = 272,
+    TOK_VOID = 273,
+    TOK_SHORT = 274,
+    TOK_LONG = 275,
+    TOK_LONGLONG = 276,
+    TOK_INT = 277,
+    TOK_FLOAT = 278,
+    TOK_DOUBLE = 279,
+    TOK_CHAR = 280,
+    TOK_WCHAR = 281,
+    TOK_BOOLEAN = 282,
+    TOK_STRING = 283,
+    TOK_WSTRING = 284,
+    TOK_ANY = 285,
+    TOK_ERROR = 286,
+    TOK_EQUAL = 287,
+    TOK_DBLQUOTE = 288,
+    TOK_ENUM = 289,
+    TOK_INCLUDE = 290,
+    TOK_IDENTIFIER = 291,
+    TOK_HEADER = 292,
+    NUMBER = 293
+  };
 #endif
 /* Tokens.  */
 #define TOK_INTERFACE 258
@@ -128,16 +130,18 @@ extern int yydebug;
 #define TOK_ERROR 286
 #define TOK_EQUAL 287
 #define TOK_DBLQUOTE 288
-#define TOK_IDENTIFIER 289
-#define NUMBER 290
+#define TOK_ENUM 289
+#define TOK_INCLUDE 290
+#define TOK_IDENTIFIER 291
+#define TOK_HEADER 292
+#define NUMBER 293
 
-
-
+/* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE
+
+union YYSTYPE
 {
-/* Line 2058 of yacc.c  */
-#line 16 "corba-gram.y"
+#line 17 "corba-gram.y" /* yacc.c:1909  */
 
     char		*elements;
 	char		*name;
@@ -145,29 +149,17 @@ typedef union YYSTYPE
 	enum datatype	dtype;
 	enum direction	dir;
 
+#line 138 "y.tab.h" /* yacc.c:1909  */
+};
 
-/* Line 2058 of yacc.c  */
-#line 136 "corba-gram.h"
-} YYSTYPE;
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
-# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+
 extern YYSTYPE yylval;
 
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
 int yyparse (void);
-#else
-int yyparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
 
-#endif /* !YY_YY_CORBA_GRAM_H_INCLUDED  */
+#endif /* !YY_YY_Y_TAB_H_INCLUDED  */

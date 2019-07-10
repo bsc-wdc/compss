@@ -36,18 +36,34 @@ AC_PROG_INSTALL
 
 AC_PATH_PROG(COMPSSGEN, compss_generator, none)
 if test x"$COMPSSGEN" = x"none" ; then
-        AC_MSG_ERROR([required comssgen program missing])
+        AC_MSG_ERROR([Required compss_generator program missing.])
 fi
 
 dnl Initialize maintainer mode
 AM_MAINTAINER_MODE
 AC_ARG_WITH([cs-prefix],
-	[  --with-cs-prefix=[prefix]  set the prefix under which the COMPSs Superscalar c library is installed],
+	AS_HELP_STRING([  --with-cs-prefix=[prefix]], [Set the prefix under which the COMPSs Superscalar c library is installed.]),
 	[
 		LIBS=-L$withval/lib $LIBS
 		CPPFLAGS="-I$withval/include $CPPFLAGS"
 	]
 )
+
+dnl Linking with Nanos++ libraries if necessary
+AC_ARG_WITH([ompss],
+    AS_HELP_STRING([ --with-ompss], [Enables the use of OmpSs and specificates its directory.]),
+            [
+            ]
+)
+
+dnl Linking with Nanos6 libraries if necessary
+AC_ARG_WITH([ompss-2],
+    AS_HELP_STRING([ --with-ompss-2], [Enables the use of OmpSs-2 and specificates its directory.]),
+            [
+            #Nothing is needed!
+            ]
+)
+
 dnl Checks for libraries.
 #AC_CHECK_LIB(GS-master, GS_On,, [ AC_MSG_ERROR([Required Master COMP Supercalar c library cannot be found]) ])
 #AC_CHECK_LIB(GS-worker, IniWorker,, [ AC_MSG_ERROR([Required Worker COMP Supercalar library cannot be found]) ])

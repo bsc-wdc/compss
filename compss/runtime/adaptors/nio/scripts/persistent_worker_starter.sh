@@ -39,12 +39,20 @@
   if [ "$debug" == "true" ]; then
       export COMPSS_BINDINGS_DEBUG=1
       export NX_ARGS="--summary"
+      export NANOS6=debug
+
       echo "[persistent_worker.sh] Calling NIOWorker of host ${hostName}"
+      echo "Calling NIOWorker"
       echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
-  # shellcheck disable=SC2086
-  $cmd ${paramsToCOMPSsWorker} 1> "$workingDir/log/worker_${hostName}.out" 2> "$workingDir/log/worker_${hostName}.err"
+  if [ -n "$cusGPU" ] && [ "$cusGPU" -gt 0 ]; then
+    echo "Computing units GPU is greater than zero, Nanos6 scheduler set to hierarchical"
+    export NANOS6_SCHEDULER=hierarchical
+  fi
+
+  $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err
+
   exitValue=$?
 
   post_launch

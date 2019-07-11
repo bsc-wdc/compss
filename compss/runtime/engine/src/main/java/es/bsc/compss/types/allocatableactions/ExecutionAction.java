@@ -95,9 +95,9 @@ public class ExecutionAction extends AllocatableAction {
      * Creates a new execution action.
      *
      * @param schedulingInformation Associated scheduling information.
-     * @param orchestrator Task orchestrator.
-     * @param producer Task producer.
-     * @param task Associated task.
+     * @param orchestrator          Task orchestrator.
+     * @param producer              Task producer.
+     * @param task                  Associated task.
      */
     public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
             TaskProducer producer, Task task) {
@@ -422,7 +422,7 @@ public class ExecutionAction extends AllocatableAction {
     /**
      * Code executed when the job execution has failed.
      *
-     * @param job Failed job.
+     * @param job       Failed job.
      * @param endStatus Exit status.
      */
     public final void failedJob(Job<?> job, JobEndStatus endStatus) {
@@ -487,16 +487,16 @@ public class ExecutionAction extends AllocatableAction {
         List<Parameter> params = job.getTaskParams().getParameters();
         for (int i = 0; i < params.size(); ++i) {
             Parameter p = params.get(i);
-            DataLocation outLoc = storeOutputParameter(job, w, p);
-            if (outLoc != null) {
-                monitor.valueGenerated(i, p.getType(), p.getName(), outLoc);
+            String dataName = getOuputRename(p);
+            if (dataName != null) {
+                DataLocation outLoc = storeOutputParameter(job, w, dataName, (DependencyParameter) p);
+                monitor.valueGenerated(i, p.getName(), p.getType(), dataName, outLoc);
             }
         }
     }
 
-    private final DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
-            Parameter p) {
-
+    private String getOuputRename(Parameter p) {
+        String name = null;
         if (p instanceof DependencyParameter) {
             // Notify the FileTransferManager about the generated/updated OUT/INOUT datums
             DependencyParameter dp = (DependencyParameter) p;
@@ -522,60 +522,66 @@ public class ExecutionAction extends AllocatableAction {
             }
 
             // Retrieve parameter information
-            String name = dId.getRenaming();
-            String targetProtocol;
-            switch (dp.getType()) {
-                case FILE_T:
-                    targetProtocol = ProtocolType.FILE_URI.getSchema();
-                    break;
-                case OBJECT_T:
-                    targetProtocol = ProtocolType.OBJECT_URI.getSchema();
-                    break;
-                case STREAM_T:
-                case EXTERNAL_STREAM_T:
-                    // FTM already knows about this datum
-                    return null;
-                case COLLECTION_T:
-                    targetProtocol = ProtocolType.OBJECT_URI.getSchema();
-                    CollectionParameter cp = (CollectionParameter) p;
-                    for (Parameter elem : cp.getParameters()) {
-                        storeOutputParameter(job, w, elem);
+            name = dId.getRenaming();
+        }
+        return name;
+    }
+
+    private final DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
+            String dataName, DependencyParameter p) {
+        DependencyParameter dp = (DependencyParameter) p;
+        String targetProtocol;
+        switch (dp.getType()) {
+            case FILE_T:
+                targetProtocol = ProtocolType.FILE_URI.getSchema();
+                break;
+            case OBJECT_T:
+                targetProtocol = ProtocolType.OBJECT_URI.getSchema();
+                break;
+            case STREAM_T:
+            case EXTERNAL_STREAM_T:
+                // FTM already knows about this datum
+                return null;
+            case COLLECTION_T:
+                targetProtocol = ProtocolType.OBJECT_URI.getSchema();
+                CollectionParameter cp = (CollectionParameter) p;
+                for (Parameter elem : cp.getParameters()) {
+                    String elemOutRename = getOuputRename(elem);
+                    if (elemOutRename != null) {
+                        storeOutputParameter(job, w, elemOutRename, (DependencyParameter) elem);
                     }
-                    break;
-                case PSCO_T:
-                    targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
-                    break;
-                case EXTERNAL_PSCO_T:
-                    // Its value is the PSCO Id
-                    targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
-                    break;
-                case BINDING_OBJECT_T:
-                    // Its value is the PSCO Id
-                    targetProtocol = ProtocolType.BINDING_URI.getSchema();
-                    break;
-                default:
-                    // Should never reach this point because only DependencyParameter types are treated
-                    // Ask for any_uri just in case
-                    targetProtocol = ProtocolType.ANY_URI.getSchema();
-                    break;
-            }
-
-            // Request transfer
-            DataLocation outLoc = null;
-            try {
-                SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
-                outLoc = DataLocation.createLocation(w, targetURI);
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
-            }
-            Comm.registerLocation(name, outLoc);
-
-            // Return location
-            return outLoc;
+                }
+                break;
+            case PSCO_T:
+                targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
+                break;
+            case EXTERNAL_PSCO_T:
+                // Its value is the PSCO Id
+                targetProtocol = ProtocolType.PERSISTENT_URI.getSchema();
+                break;
+            case BINDING_OBJECT_T:
+                // Its value is the PSCO Id
+                targetProtocol = ProtocolType.BINDING_URI.getSchema();
+                break;
+            default:
+                // Should never reach this point because only DependencyParameter types are treated
+                // Ask for any_uri just in case
+                targetProtocol = ProtocolType.ANY_URI.getSchema();
+                break;
         }
 
-        // If it is not a dependency parameter there is no transfer to request
-        return null;
+        // Request transfer
+        DataLocation outLoc = null;
+        try {
+            SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
+            outLoc = DataLocation.createLocation(w, targetURI);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
+        }
+        Comm.registerLocation(dataName, outLoc);
+
+        // Return location
+        return outLoc;
     }
 
     private final void doServiceOutputTransfers(Job<?> job) {
@@ -611,7 +617,7 @@ public class ExecutionAction extends AllocatableAction {
                 if (!locations.isEmpty()) {
                     for (DataLocation loc : ld.getLocations()) {
                         if (loc != null) {
-                            monitor.valueGenerated(i, p.getType(), p.getName(), loc);
+                            monitor.valueGenerated(i, p.getName(), p.getType(), name, loc);
                         }
                     }
                 }

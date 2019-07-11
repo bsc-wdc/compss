@@ -39,7 +39,6 @@ import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.ErrorManager;
-import java.util.LinkedList;
 
 import java.util.List;
 

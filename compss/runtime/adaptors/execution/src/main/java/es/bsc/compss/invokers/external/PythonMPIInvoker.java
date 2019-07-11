@@ -44,11 +44,11 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
     /**
      * Python MPI Invoker constructor.
-     * 
-     * @param context Task execution context.
-     * @param invocation Task execution description.
+     *
+     * @param context               Task execution context.
+     * @param invocation            Task execution description.
      * @param taskSandboxWorkingDir Task execution sandbox directory.
-     * @param assignedResources Assigned resources.
+     * @param assignedResources     Assigned resources.
      * @throws JobExecutionException Error creating the MPI invoker.
      */
     public PythonMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
@@ -97,7 +97,6 @@ public class PythonMPIInvoker extends ExternalInvoker {
         if (this.invocation.isDebugEnabled()) {
             LOGGER.debug("Exit value of MPI executor of job " + this.invocation.getJobId() + " of task "
                     + this.invocation.getTaskId() + ": " + retObj.toString());
-
         }
 
         if (retObj.toString().compareTo("0") != 0) {

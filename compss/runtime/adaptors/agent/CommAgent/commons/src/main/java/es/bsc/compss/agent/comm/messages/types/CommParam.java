@@ -48,14 +48,17 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
     /**
      * Constructs an initializes a CommParam.
      *
-     * @param type      type of the parameter value
-     * @param direction direction of the parameter
-     * @param stream    stream to redirect to the parameter
-     * @param prefix    prefix to add to the parameter
-     * @param name      name of the parameter
+     * @param dataMgmtId  id associated to the value
+     * @param type        type of the parameter value
+     * @param direction   direction of the parameter
+     * @param stream      stream to redirect to the parameter
+     * @param prefix      prefix to add to the parameter
+     * @param name        name of the parameter
+     * @param originaName original name of the parameter value
      */
-    public CommParam(DataType type, Direction direction, StdIOStream stream, String prefix, String name) {
-        super("", type, stream, prefix, name, false, false, null, null, "");
+    public CommParam(String dataMgmtId, DataType type, Direction direction, StdIOStream stream, String prefix, 
+            String name, String originaName) {
+        super(dataMgmtId, type, stream, prefix, name, false, false, null, null, originaName);
         this.direction = direction;
     }
 
@@ -104,7 +107,7 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
     @Override
     public String toString() {
         return direction + " " + super.getType()
-                + (super.getValue() != null ? "=" + super.getValue() + " " : " ") + remoteData;
+                + (super.getValue() != null ? " = " + super.getValue() + " " : " ") + remoteData;
     }
 
 }

@@ -1,0 +1,202 @@
+/*
+ *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+package es.bsc.compss.agent.comm;
+
+import es.bsc.compss.agent.comm.messages.types.CommParam;
+import es.bsc.compss.agent.comm.messages.types.CommResource;
+import es.bsc.compss.agent.comm.messages.types.CommTask;
+import es.bsc.compss.agent.types.RemoteDataInformation;
+import es.bsc.compss.agent.types.RemoteDataLocation;
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.nio.NIOData;
+import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOUri;
+import es.bsc.compss.nio.master.NIOJob;
+import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.StdIOStream;
+import es.bsc.compss.types.data.DataAccessId;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.accessid.RAccessId;
+import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.data.accessid.WAccessId;
+import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.Implementation;
+import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.parameter.BasicTypeParameter;
+import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.Parameter;
+import es.bsc.compss.types.resources.Resource;
+import java.util.LinkedList;
+import java.util.List;
+
+
+/**
+ * Class containing all the handling to submit a task execution on a CommAgentWorker.
+ */
+class CommAgentJob extends NIOJob {
+
+    public CommAgentJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
+            List<String> slaveWorkersNodeNames, JobListener listener) {
+        super(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
+    }
+
+    @Override
+    public CommTask prepareJob() {
+        System.out.println("Preparing Job");
+        AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
+
+        // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
+        // This is a workaround for Python
+        switch (absMethodImpl.getMethodType()) {
+            case METHOD:
+                MethodImplementation methodImpl = (MethodImplementation) absMethodImpl;
+                String methodName = methodImpl.getAlternativeMethodName();
+                if (methodName == null || methodName.isEmpty()) {
+                    methodImpl.setAlternativeMethodName(this.taskParams.getName());
+                }
+                break;
+            case MULTI_NODE:
+                MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) absMethodImpl;
+                String multiNodeMethodName = multiNodeImpl.getMethodName();
+                if (multiNodeMethodName == null || multiNodeMethodName.isEmpty()) {
+                    multiNodeImpl.setMethodName(this.taskParams.getName());
+                }
+                break;
+            default:
+                // It is a non-native method, nothing to do
+                break;
+        }
+
+        // Compute the task parameters
+        LinkedList<NIOParam> params = addParams();
+        int numParams = params.size() - taskParams.getNumReturns();
+
+        CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, null,
+                this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, numParams,
+                absMethodImpl.getRequirements(), slaveWorkersNodeNames,
+                this.taskId, this.taskParams.getType(), this.jobId, this.history, this.transferId, this.getTimeOut(),
+                CommAgentAdaptor.LOCAL_RESOURCE
+        );
+
+        return nt;
+    }
+
+    private LinkedList<NIOParam> addParams() {
+        LinkedList<NIOParam> params = new LinkedList<>();
+        for (Parameter param : this.taskParams.getParameters()) {
+
+            CommParam commParam;
+            switch (param.getType()) {
+                case FILE_T:
+                case OBJECT_T:
+                case PSCO_T:
+                case STREAM_T:
+                case EXTERNAL_STREAM_T:
+                case EXTERNAL_PSCO_T:
+                case BINDING_OBJECT_T:
+                    commParam = buildCommParamFromDependencyParameter((DependencyParameter) param);
+
+                    break;
+                case COLLECTION_T:
+                    throw new UnsupportedOperationException();
+                //break;
+                default:
+                    commParam = buildCommParamFromBasicParameter((BasicTypeParameter) param);
+                    break;
+            }
+            System.out.println("\t " + commParam);
+            params.add(commParam);
+        }
+        return params;
+    }
+
+    private CommParam buildCommParamFromBasicParameter(BasicTypeParameter param) {
+        DataType type = param.getType();
+        Direction dir = param.getDirection();
+        StdIOStream stdIOStream = param.getStream();
+        String prefix = param.getPrefix();
+        String name = param.getName();
+        CommParam commParam = new CommParam(null, type, dir, stdIOStream, prefix, name, null);
+        commParam.setValue(((BasicTypeParameter) param).getValue());
+        return commParam;
+    }
+
+    private CommParam buildCommParamFromDependencyParameter(DependencyParameter dPar) {
+
+        String renaming = null;
+        String dataMgmtId;
+        DataAccessId dAccId = dPar.getDataAccessId();
+        if (dAccId instanceof RWAccessId) {
+            // Read write mode
+            RWAccessId rwaId = (RWAccessId) dAccId;
+            renaming = rwaId.getReadDataInstance().getRenaming();
+            dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
+        } else {
+            if (dAccId instanceof RAccessId) {
+                // Read only mode
+                RAccessId raId = (RAccessId) dAccId;
+                renaming = raId.getReadDataInstance().getRenaming();
+                dataMgmtId = renaming;
+            } else {
+                WAccessId waId = (WAccessId) dAccId;
+                dataMgmtId = waId.getWrittenDataInstance().getRenaming();
+            }
+        }
+        LogicalData sourceDataLD = null;
+        String pscoId = null;
+        if (renaming != null) {
+            sourceDataLD = Comm.getData(renaming);
+            pscoId = sourceDataLD.getPscoId();
+        }
+
+        if (pscoId != null) {
+            if (dPar.getType().equals(DataType.OBJECT_T)) {
+                // Change Object type if it is a PSCO
+                dPar.setType(DataType.PSCO_T);
+            } else {
+                if (dPar.getType().equals(DataType.FILE_T)) {
+                    // Change external object type for Python PSCO return objects
+                    dPar.setType(DataType.EXTERNAL_PSCO_T);
+                }
+            }
+        }
+
+        DataType type = dPar.getType();
+        Direction dir = dPar.getDirection();
+        StdIOStream stdIOStream = dPar.getStream();
+        String prefix = dPar.getPrefix();
+        String name = dPar.getName();
+        CommParam commParam = new CommParam(dataMgmtId, type, dir, stdIOStream, prefix, name, dPar.getOriginalName());
+        NIOData sourceData = (NIOData) dPar.getDataSource();
+        if (sourceData != null) {
+            RemoteDataInformation remoteData = new RemoteDataInformation(renaming);
+            for (NIOUri uri : sourceData.getSources()) {
+                CommAgentURI caURI = (CommAgentURI) uri;
+                remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
+            }
+
+            commParam.setRemoteData(remoteData);
+        }
+
+        return commParam;
+    }
+}

@@ -82,7 +82,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     private ControlPipePair pipeWorkerPipe;
 
-
     /**
      * Piped Mirror constructor.
      * 
@@ -242,7 +241,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
      * Returns the launch command for every binding.
      *
      * @param context Invocation context
-     * @param pipe Control pipes
+     * @param pipe    Control pipes
      * @return
      */
     public abstract String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe);

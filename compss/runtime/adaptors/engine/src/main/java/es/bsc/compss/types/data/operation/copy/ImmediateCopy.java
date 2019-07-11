@@ -29,12 +29,20 @@ import java.util.LinkedList;
 
 
 public abstract class ImmediateCopy extends Copy {
-
-    public ImmediateCopy(LogicalData ld, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
+    
+    /**
+     * Constructs a new ImmediateCopy.
+     *
+     * @param srcData  source logical data
+     * @param prefSrc  preferred source data location
+     * @param prefTgt  preferred target data location
+     * @param tgtData  target logical data
+     * @param reason   Transfer reason
+     * @param listener listener to notify events
+     */
+    public ImmediateCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
             Transferable reason, EventListener listener) {
-
-        super(ld, prefSrc, prefTgt, tgtData, reason, listener);
-        
+        super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
         if (DEBUG) {
             LOGGER.debug("Created Immediate Copy " + this.getName() + " (id: " + this.getId() + ")");
         }

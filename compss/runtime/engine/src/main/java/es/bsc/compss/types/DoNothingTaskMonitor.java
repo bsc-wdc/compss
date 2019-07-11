@@ -39,7 +39,7 @@ public class DoNothingTaskMonitor implements TaskMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, DataType type, String name, Object location) {
+    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
     }
 
     @Override

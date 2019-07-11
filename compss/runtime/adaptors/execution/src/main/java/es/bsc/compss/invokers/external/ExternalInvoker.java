@@ -49,14 +49,13 @@ public abstract class ExternalInvoker extends Invoker {
 
     protected final ExecuteTaskExternalCommand command;
 
-
     /**
      * External Invoker constructor.
-     * 
-     * @param context Task execution context
-     * @param invocation Task execution description
+     *
+     * @param context               Task execution context
+     * @param invocation            Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources Assigned resources
+     * @param assignedResources     Assigned resources
      * @throws JobExecutionException Error creating the External invoker
      */
     public ExternalInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,

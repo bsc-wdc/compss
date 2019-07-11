@@ -38,12 +38,11 @@ import java.util.List;
 
 public class NIOJob extends Job<NIOWorkerNode> {
 
-    private final List<String> slaveWorkersNodeNames;
-
+    protected final List<String> slaveWorkersNodeNames;
 
     /**
      * Creates a new NIOJob instance.
-     * 
+     *
      * @param taskId Associated task id.
      * @param taskParams Task parameters.
      * @param impl Task implementation.
@@ -77,7 +76,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
     /**
      * Creates a new Task with the associated job parameters.
-     * 
+     *
      * @return The new task for the current job.
      */
     public NIOTask prepareJob() {
@@ -128,8 +127,9 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
     /**
      * Marks the task as finished with the given {@code successful} error code.
-     * 
+     *
      * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
+     * @param e          Exception rised during the task execution, {@literal null} if no exception was rised.
      */
     public void taskFinished(boolean successful, Exception e) {
         if (successful) {
@@ -152,11 +152,9 @@ public class NIOJob extends Job<NIOWorkerNode> {
     public String toString() {
         AbstractMethodImplementation method = (AbstractMethodImplementation) this.impl;
 
-        // String className = method.getDeclaringClass();
         String definition = method.getMethodDefinition();
         String methodName = taskParams.getName();
 
-        // return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
         return "NIOJob JobId" + this.jobId + " for method " + methodName + " with definition " + definition;
     }
 

@@ -133,10 +133,12 @@ public class NIOTask implements Externalizable, Invocation {
      * @param jobId Job Id.
      * @param hist Job history.
      * @param transferGroupId Transfer group Id.
+     * @param timeOut Task deadline
      */
-    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, LinkedList<NIOParam> arguments,
-            NIOParam target, LinkedList<NIOParam> results, List<String> slaveWorkersNodeNames, int taskId, int jobId,
-            JobHistory hist, int transferGroupId) {
+    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl,
+            LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
+            List<String> slaveWorkersNodeNames,
+            int taskId, int jobId, JobHistory hist, int transferGroupId, int timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;

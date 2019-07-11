@@ -46,7 +46,6 @@ public class AppTaskMonitor extends AppMonitor {
     private final String[] paramLocations;
     private boolean successful;
 
-
     public AppTaskMonitor(int numParams, Orchestrator orchestrator) {
         super();
         this.orchestrator = orchestrator;
@@ -72,10 +71,10 @@ public class AppTaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void valueGenerated(int paramId, DataType type, String name, Object value) {
-        this.paramTypes[paramId] = type;
-        if (type == DataType.OBJECT_T) {
-            LogicalData ld = Comm.getData(name);
+    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
+        this.paramTypes[paramId] = paramType;
+        if (paramType == DataType.OBJECT_T) {
+            LogicalData ld = Comm.getData(dataId);
             StubItf psco = (StubItf) ld.getValue();
             psco.makePersistent(ld.getName());
             this.paramTypes[paramId] = DataType.PSCO_T;
@@ -86,10 +85,10 @@ public class AppTaskMonitor extends AppMonitor {
                 outLoc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
                 this.paramLocations[paramId] = outLoc.toString();
             } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + name, e);
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dataId, e);
             }
         } else {
-            this.paramLocations[paramId] = value.toString();
+            this.paramLocations[paramId] = dataLocation.toString();
         }
     }
 
@@ -114,7 +113,7 @@ public class AppTaskMonitor extends AppMonitor {
     @Override
     public void onCancellation() {
     }
-    
+
     @Override
     public void onException() {
     }

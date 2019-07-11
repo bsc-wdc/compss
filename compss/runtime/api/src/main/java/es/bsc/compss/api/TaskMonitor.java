@@ -42,15 +42,17 @@ public interface TaskMonitor {
     public void onSubmission();
 
     /**
-     * Actions to be performed by monitor when a new value for parameter {@code paramId}, type {@code type} and name
-     * {@code name} has been generated at location {@code location}.
+     * Actions to be performed by the monitor when a new {@code type}-value, identyfied by the Id {@code dataId}, has
+     * been generated at location {@code location} according to the parameter on position {@code paramId} of the task
+     * with name {@code paramName}
      *
-     * @param paramId  Parameter id.
-     * @param type     Parameter type.
-     * @param name     Parameter name.
-     * @param location Parameter location.
+     * @param paramId      Parameter id.
+     * @param paramName    Name of the parameter.
+     * @param paramType    Parameter type.
+     * @param dataId       Data Management Id.
+     * @param dataLocation Value location.
      */
-    public void valueGenerated(int paramId, DataType type, String name, Object location);
+    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation);
 
     /**
      * Actions to be performed by monitor on task execution abortion.
@@ -66,7 +68,7 @@ public interface TaskMonitor {
      * Actions to be performed by monitor on task execution failure.
      */
     public void onFailedExecution();
-    
+
     /**
      * Actions to be performed by monitor on task execution COMPSs exception.
      */

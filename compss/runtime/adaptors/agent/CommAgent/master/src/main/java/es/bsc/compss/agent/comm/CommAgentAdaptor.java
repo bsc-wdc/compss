@@ -16,13 +16,18 @@
  */
 package es.bsc.compss.agent.comm;
 
+import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.agent.AgentConstants;
+import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.master.NIOAdaptor;
 import es.bsc.compss.types.COMPSsWorker;
+import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
@@ -37,6 +42,17 @@ import java.util.Map;
 public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     private static final String PROPERTY_PORT = "PORT";
+    public static final CommResource LOCAL_RESOURCE;
+
+    static {
+        String localAgentName = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
+        String portStr = System.getProperty(COMPSsConstants.MASTER_PORT);
+        int port = Integer.parseInt(portStr);
+        if (localAgentName != null && localAgentName.isEmpty()) {
+            localAgentName = null;
+        }
+        LOCAL_RESOURCE = new CommResource(localAgentName, port);
+    }
 
     private CommAgent ownAgent;
 
@@ -117,4 +133,8 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
         this.ownAgent.lostNode(node);
     }
 
+    protected void retrieveAdditionalJobFiles(Connection connection, boolean success, int jobId, int taskId,
+            JobHistory history) {
+        // Agents to retrieve information of how the job finished.
+    }
 }

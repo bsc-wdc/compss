@@ -264,6 +264,8 @@ public abstract class Invoker {
         invoke();
         try {
             storeFinalValues();
+        } catch (COMPSsException ee) {
+            throw new COMPSsException(ee.getMessage());
         } catch (Exception e) {
             throw new JobExecutionException("Error storing a task result", e);
         }
@@ -327,6 +329,8 @@ public abstract class Invoker {
             invokeMethod();
         } catch (JobExecutionException jee) {
             throw jee;
+        } catch(COMPSsException e) {
+            throw e;
         } finally {
             emitEndTask();
         }

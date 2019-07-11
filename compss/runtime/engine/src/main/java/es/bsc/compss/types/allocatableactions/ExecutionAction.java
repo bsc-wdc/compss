@@ -726,7 +726,7 @@ public class ExecutionAction extends AllocatableAction {
         String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("COMPSs Exception raised : Task ").append(taskName)
-                .append(" has raised an exception. Successors keep running.\n");
+                .append(" has raised an exception. Successors will be cancelled.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
 

@@ -13,6 +13,7 @@ import time
 from pycompss.api.api import compss_barrier_group, TaskGroup
 from pycompss.api.parameter import FILE_INOUT, FILE_IN
 from pycompss.api.task import task
+from pycompss.api.exceptions import COMPSsException
 
 NUM_TASKS = 3
 NUM_GROUPS = 3
@@ -41,6 +42,7 @@ def write_three(file_path):
     with open(file_path, 'a') as fos:
         new_value = str(3)
         fos.write(new_value)
+    raise COMPSsException("Exception generated")
 
 
 @task(file_path=FILE_IN, time_out=2)
@@ -59,7 +61,7 @@ def wait_slow(file_path):
     with open(file_path, 'r') as fis:
         contents = int(fis.readline())
 
-def test_task_groups(file_name):
+def create_file(file_name):
     # Clean previous ocurrences of the file
     if os.path.exists(file_name):
         os.remove(file_name)
@@ -68,16 +70,19 @@ def test_task_groups(file_name):
         os.mkdir(STORAGE_PATH)
     open(file_name, 'w').close()
 
+
+def test_task_groups(file_name):
+
     with TaskGroup('bigGroup', True):
         # Inside a big group, more groups are created
         for i in range(NUM_GROUPS):
-            with(TaskGroup('group'+str(i), True)):
+            with(TaskGroup('group'+str(i), False)):
                 for j in range(NUM_TASKS):
                      write_one(file_name)
 
-    # # Barrier for groups
-    # for i in range(NUM_GROUPS):
-    #     compss_barrier_group('group'+str(i))
+    # Barrier for groups
+    for i in range(NUM_GROUPS):
+         compss_barrier_group('group'+str(i))
 
     # Creation of group
     with TaskGroup('individualGroup', True):
@@ -100,6 +105,7 @@ def test_exceptions(file_name):
 
 def main():
     file_name1 = STORAGE_PATH + "taskGROUPS.txt"
+    create_file(file_name1)
 
     print ("[LOG] Test TASK GROUPS")
     test_task_groups(file_name1)
@@ -109,6 +115,8 @@ def main():
 
     print("[LOG] Test EXCEPTIONS")
     test_exceptions(file_name1)
+
+
 
 if __name__ == '__main__':
     main()

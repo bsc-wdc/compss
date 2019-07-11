@@ -20,6 +20,7 @@ import signal
 
 from pycompss.util.serializer import SerializerException
 from pycompss.runtime.commons import IS_PYTHON3
+from pycompss.api.exceptions import COMPSsException
 import pycompss.api.parameter as parameter
 
 
@@ -215,15 +216,15 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
                                                        compss_types=types,
                                                        **compss_kwargs)
     except TimeOutError:
-        logger.exception("WORKER EXCEPTION IN %s - Time Out Exception" % process_name)
+        logger.exception("TIMEOUT ERROR IN %s - Time Out Exception" % process_name)
         logger.exception("Task has taken too much time to process")
-        return task_returns(types, values, None, True, logger)
-    except COMPSsException as e:
+        return task_returns(3, types, values, None, True, "", logger)
+    except COMPSsException as compss_exception:
         logger.exception("COMPSS EXCEPTION IN %s" % process_name)
-        if hasattr(e, 'message'):
-            exception_message = e.message
-        return 2, new_types, new_values, None, exception_message
-    #MARTA: return 2, new_...es fa un return o es passa exception com altre parametre
+        return_message = "No message"
+        if hasattr(compss_exception, 'message'):
+            return_message = compss_exception.message
+        return task_returns(2, new_types, new_values, None, False, return_message, logger)
     except AttributeError:
         # Appears with functions that have not been well defined.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -235,7 +236,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
                          "an absolute import path (even if in the same file)")
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
-        return 1, new_types, new_values, None, ""
+        return task_returns(1, new_types, new_values, None, False, "", logger)
     except Exception:
         # Catch any other user/decorators exception.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -245,7 +246,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         logger.exception(''.join(line for line in lines))
         # If exception is raised during the task execution, new_types and
         # new_values are empty and target_direction is None
-        return 1, new_types, new_values, None, ""
+        return task_returns(1, new_types, new_values, None, False, "", logger)
     finally:
         signal.alarm(0)
     if isinstance(task_output[0], tuple):
@@ -263,18 +264,19 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         new_types = task_output[0]
         new_values = task_output[1]
         target_direction = task_output[2]
-    return task_returns(new_types, new_values, target_direction, False, logger)
+    return task_returns(0, new_types, new_values, target_direction, False, "", logger)
 
 
-def task_returns (new_types, new_values, target_direction, timed_out, logger):
+def task_returns (exit_code, new_types, new_values, target_direction, timed_out, return_message, logger):
     if __debug__:
         # The types may change (e.g. if the user does a makePersistent within the task)
         logger.debug("Return Types : %s " % str(new_types))
         logger.debug("Return Values: %s " % str(new_values))
         logger.debug("Return target_direction: %s " % str(target_direction))
         logger.debug("Return timed_out: %s " % str(timed_out))
+        logger.debug("Return exception_message: %s " % str(return_message))
         logger.debug("Finished task execution")
-    return 0, new_types, new_values, target_direction, timed_out, ""
+    return exit_code, new_types, new_values, target_direction, timed_out, return_message
 
 
 class TimeOutError(Exception):
@@ -408,7 +410,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
                                                                                             persistent_storage,
                                                                                             storage_conf)
         if exit_code != 0:
-            return exit_code, new_types, new_values, ""
+            return exit_code, new_types, new_values, timed_out, exception_message
 
     else:
         # Method declared as task in class
@@ -469,7 +471,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
                                                                                                 persistent_storage,
                                                                                                 storage_conf)
             if exit_code != 0:
-                return exit_code, new_types, new_values, exception_message
+                return exit_code, new_types, new_values, timed_out, exception_message
 
 
             # Depending on the target_direction option, it is necessary to
@@ -510,7 +512,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
                                                                                                 persistent_storage,
                                                                                                 storage_conf)
             if exit_code != 0:
-                return exit_code, new_types, new_values, exception_message
+                return exit_code, new_types, new_values, timed_out, exception_message
 
     if timed_out:
         # TASK TIME OUT
@@ -523,4 +525,4 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
     if __debug__:
         logger.debug("End task execution. Status: Ok")
 
-    return exit_code, new_types, new_values, exception_message  # Exit code, updated params
+    return exit_code, new_types, new_values, timed_out, exception_message  # Exit code, updated params

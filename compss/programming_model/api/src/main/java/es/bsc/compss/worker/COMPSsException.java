@@ -23,14 +23,23 @@ public class COMPSsException extends Exception {
      */
     private static final long serialVersionUID = 2L;
 
+    String errorMessage;
 
     /**
      * Creates a new COMPSsException.
      * 
      * @param errorMessage Nested error message.
      */
-
     public COMPSsException(String errorMessage) {
         super(errorMessage);
+        this.errorMessage = errorMessage;
+    }
+    
+    public String getMessage() {
+        return this.errorMessage;
+    }
+    
+    public String getName() {
+        return "COMPSsException";
     }
 }

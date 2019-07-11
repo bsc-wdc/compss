@@ -60,6 +60,7 @@ if context.in_pycompss():
     from pycompss.runtime.binding import Future
     from pycompss.runtime.binding import EmptyReturn
     from pycompss.runtime.commons import IS_PYTHON3
+    from pycompss.api.exceptions import COMPSsException
 
     from contextlib import contextmanager
 
@@ -156,7 +157,9 @@ if context.in_pycompss():
         :param group_name: Name of the group to wait
         """
 
-        exceptionRaised = barrier_group(group_name)
+        exceptionMessage = barrier_group(group_name)
+        if (exceptionMessage != None):
+            raise COMPSsException(exceptionMessage)
 
     def compss_wait_on(*args, **kwargs):
         """

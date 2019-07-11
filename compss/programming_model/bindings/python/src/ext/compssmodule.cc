@@ -28,6 +28,7 @@
 
 // Uncomment this line to get debug prints
 // #define DEBUG
+// #define DEBUG
 
 // Basically, debug(args) is a macro that, depending on whether debug is
 // defined or not, will translate to printf(args) + flush or to none
@@ -421,7 +422,7 @@ get_file(PyObject *self, PyObject *args) {
     char *file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     GS_Get_File(app_id, file_name);
-    debug("####C#### COMPSs file name %s\n", compss_name);
+    debug("####C#### COMPSs file name %s\n", file_name);
     debug("####C#### COMPSs getFile for AppId: %ld \n", (app_id));
     Py_RETURN_NONE;
 }
@@ -451,16 +452,20 @@ barrier(PyObject *self, PyObject *args) {
   Notify the runtime that our current application wants to "execute" a barrier for a group.
   Program will be blocked in GS_BarrierGroup until all running tasks part of the group have ended.
 */
-static PyObject *
+static PyObject*
 barrier_group(PyObject *self, PyObject *args) {
     debug("####C#### BARRIER OF GROUP\n");
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 1));
-    char *exception_message = (char*) malloc((1)*sizeof(char));
-    //Crear un char* pel missatge
+    char *exception_message = NULL;
     debug("####C#### COMPSs barrier for group: %s \n", (group_name));
-    GS_BarrierGroup(app_id, group_name, exception_message); #Falta passar char* i o es return com el barrier group o es passa com object?? --> parlar javi
-    Py_RETURN_NONE;
+    GS_BarrierGroup(app_id, group_name, &exception_message);
+    if (exception_message != NULL){
+        PyObject* message_object = Py_BuildValue("s", exception_message);
+        return message_object;
+    } else {
+        Py_RETURN_NONE;
+    }
 }
 
 /*

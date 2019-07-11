@@ -32,6 +32,7 @@ import thread_affinity
 
 from pycompss.worker.pipe_constants import EXECUTE_TASK_TAG
 from pycompss.worker.pipe_constants import END_TASK_TAG
+from pycompss.worker.pipe_constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.pipe_constants import PING_TAG
 from pycompss.worker.pipe_constants import PONG_TAG
 from pycompss.worker.pipe_constants import QUIT_TAG
@@ -337,8 +338,6 @@ def executor(queue, process_name, pipe, conf):
                     out.close()
                     err.close()
 
-#MARTA: Posar el cas que sigui excepcio --> quan es endtask en pipedpair Cas que es vlgues passar string shauria de canviar spais per altre caracter / mirar entre cometes /
-                    #es posa un altre comando amb nomes jobid i la resta que sigui el contingut i a java posar un camp que sigui exception. agafar com a base el endtask ferho igual crear exception com javainvoker linia 154.
                     if exit_value == 0:
                         # Task has finished without exceptions
                         # endTask jobId exitValue message
@@ -353,7 +352,8 @@ def executor(queue, process_name, pipe, conf):
                     elif exit_value == 2:
                         # Task has finished with a COMPSs Exception
                         # compssExceptionTask jobId exitValue message
-                        exception_message.replace(" ", "_")
+
+                        exception_message = exception_message.replace(" ", "_")
                         message = COMPSS_EXCEPTION_TAG + " " + str(job_id)\
                                    + " " + str(exception_message) + "\n"
                         if __debug__:

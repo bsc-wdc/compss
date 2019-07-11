@@ -982,8 +982,8 @@ public class TaskAnalyser {
             this.gm.commitGraph();
         }
 
-        if (count == null || count == 0) {
-            if (!tg.hasPendingTasks()) {
+        if ((count == null || count == 0)) {
+            if (tg != null && !tg.hasPendingTasks()) {
                 if (tg.hasException()) {
                     request.setException(tg.getException());
                 }

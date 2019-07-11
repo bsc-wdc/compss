@@ -16,8 +16,7 @@
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 "${output_file}")
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
-        exit 1
+        exit 0
      fi
   else
      echo "[ERROR] Output file not found" | tee -a "${output_file}"
@@ -81,6 +80,20 @@
   output1=$(grep -c "Task failure:" "${runtime_log}")
   if [ "${output1}" -ne "${FAILED}" ]; then
   	echo "ERROR: A task has not failed."
+  	exit 1
+  fi
+
+  # Check if all successors have been canceled
+  output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
+  if [ ${output1} -ne 2 ]; then
+  	echo "ERROR: All tasks have not been canceled."
+  	exit 1
+  fi
+
+  # Check if all successors have been canceled
+  output1=$(cat "${runtime_log}" | grep "Exception in thread "APPLICATION" es.bsc.compss.worker.COMPSsException" | wc -l)
+  if [ ${output1} -ne 1 ]; then
+  	echo "ERROR: The COMPSsException has not been raised."
   	exit 1
   fi
 

@@ -214,7 +214,6 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             }
             LOGGER.debug(Thread.currentThread().getName() + " READS -" + line + "-(" + line.length() + ")");
             readCommand = readCommand(line, line.split(" "));
-
         } catch (IOException ioe) {
             throw new ExternalExecutorException(ioe);
         }
@@ -275,9 +274,9 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                     LOGGER.warn("WARN: Skipping endTask line because is malformed");
                     break; 
                 }
-                // Line of the form: "endTask" ID STATUS D paramType1 paramValue1 ... paramTypeD paramValueD
+                // Line of the form: "compssException" ID exceptionMessage 
                 readCommand = new CompssExceptionPipeCommand(command);
-                LOGGER.debug("Received compssException message: " + readCommand.getAsString());
+                LOGGER.debug("Received compssException message: " + ((CompssExceptionPipeCommand)readCommand).getMessage());
                 break;
             case ERROR:
                 String[] expected = Arrays.copyOfRange(command, 1, command.length);

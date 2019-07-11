@@ -97,10 +97,13 @@ def test_time_out(file_name):
 
 def test_exceptions(file_name):
 
-    # Creation of group
-    with TaskGroup('exceptionGroup', True):
-        for i in range(NUM_TASKS):
-            write_three(file_name)
+    try:
+        # Creation of group
+        with TaskGroup('exceptionGroup', True):
+            for i in range(NUM_TASKS):
+                write_three(file_name)
+    except COMPSsException:
+        print("COMPSsException caught")
 
 
 def main():

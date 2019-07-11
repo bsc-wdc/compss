@@ -21,7 +21,7 @@ public class TestTaskGroups {
         System.out.println("[LOG] Test task groups");
         testTaskGroups();
         
-        System.out.println("[LOG] Test task group exeptions");
+        System.out.println("[LOG] Test task group exceptions");
         testGroupExceptions();
         
         COMPSs.getFile(FILE_NAME);

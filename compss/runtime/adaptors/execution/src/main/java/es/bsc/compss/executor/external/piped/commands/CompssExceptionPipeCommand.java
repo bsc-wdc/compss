@@ -17,16 +17,12 @@
 package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.CompssExceptionExternalCommand;
-import es.bsc.compss.log.Loggers;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class CompssExceptionPipeCommand extends CompssExceptionExternalCommand implements PipeCommand {
 
     public final Integer jobId;
     public final String message;
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
+    
     public CompssExceptionPipeCommand(String[] line) {
         this.jobId = Integer.parseInt(line[1]);
         this.message = line[2].replaceAll("_"," ");

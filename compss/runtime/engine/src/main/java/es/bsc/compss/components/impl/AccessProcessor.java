@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
@@ -621,13 +622,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Wait for response
         sem.acquireUninterruptibly();
 
-        LOGGER.debug("MARTA: The task group " + taskAnalyser.getTaskGroup(groupName) + " has exception ? "
-                + taskAnalyser.getTaskGroup(groupName).hasException());
-        if (taskAnalyser.getTaskGroup(groupName).hasException()) {
-            throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
-        }
+        String lang = System.getProperty(COMPSsConstants.LANG);
         
-        if (taskAnalyser.getTaskGroup(groupName).hasException()) {
+        if (taskAnalyser.getTaskGroup(groupName).hasException()
+                && !lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
             throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
         }
         

@@ -237,6 +237,7 @@ if context.in_pycompss():
                 compss_barrier_group(self.group_name)
 
 
+
 else:
     # ################################################################# #
     #                    Dummmy API redirections                        #

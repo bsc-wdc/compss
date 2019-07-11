@@ -15,9 +15,7 @@
   if [ -f "${output_file}" ]; then
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 "${output_file}")
-     if [ "${result_expected}" != "${test_result}" ]; then
-        exit 0
-     fi
+
   else
      echo "[ERROR] Output file not found" | tee -a "${output_file}"
      exit 1
@@ -54,8 +52,8 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=14
-  resultN=12
+  FILES=15
+  resultN=13
   FAILED=1
 
   # Checks if the file has been written as many times as expected
@@ -87,13 +85,6 @@
   output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
   if [ ${output1} -ne 2 ]; then
   	echo "ERROR: All tasks have not been canceled."
-  	exit 1
-  fi
-
-  # Check if all successors have been canceled
-  output1=$(cat "${runtime_log}" | grep "Exception in thread "APPLICATION" es.bsc.compss.worker.COMPSsException" | wc -l)
-  if [ ${output1} -ne 1 ]; then
-  	echo "ERROR: The COMPSsException has not been raised."
   	exit 1
   fi
 

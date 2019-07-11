@@ -184,7 +184,10 @@ public class Executor implements Runnable {
             }
 
             Throwable rootCause = ExceptionUtils.getRootCause(e);
-            if (e instanceof COMPSsException || rootCause instanceof COMPSsException) {
+            if (rootCause instanceof COMPSsException) {
+                e = (COMPSsException)rootCause;
+            }
+            if (e instanceof COMPSsException ) {
                 execution.notifyEnd((COMPSsException)e, success);
 
             } else {

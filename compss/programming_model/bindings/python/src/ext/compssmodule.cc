@@ -462,6 +462,7 @@ barrier_group(PyObject *self, PyObject *args) {
     GS_BarrierGroup(app_id, group_name, &exception_message);
     if (exception_message != NULL){
         PyObject* message_object = Py_BuildValue("s", exception_message);
+        debug("####C#### COMPSs exception raised : %s \n", (exception_message));
         return message_object;
     } else {
         Py_RETURN_NONE;

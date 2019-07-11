@@ -59,6 +59,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     private static final String MEM_TYPE = "memorytype";
     private static final String STORAGE_SIZE = "storagesize";
     private static final String STORAGE_TYPE = "storagetype";
+    private static final String STORAGE_BW = "storagebw";
     private static final String OS_TYPE = "operatingsystemtype";
     private static final String OS_DISTRIBUTION = "operatingsystemdistribution";
     private static final String OS_VERSION = "operatingsystemversion";
@@ -84,6 +85,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     // Storage
     protected float storageSize = UNASSIGNED_FLOAT;
     protected String storageType = UNASSIGNED_STR;
+    protected int storageBW = UNASSIGNED_INT;
     // Operating System
     protected String operatingSystemType = UNASSIGNED_STR;
     protected String operatingSystemDistribution = UNASSIGNED_STR;
@@ -272,6 +274,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         storageType = EnvironmentLoader.loadFromEnvironment(storageType);
         if (storageType != null && !storageType.equals(UNASSIGNED_STR)) {
             this.storageType = storageType;
+        }
+        String storageBWSTR = constraints.storageBW();
+        storageBWSTR = EnvironmentLoader.loadFromEnvironment(storageBWSTR);
+        int storageBW = (storageBWSTR != null && !storageBWSTR.isEmpty() && !storageBWSTR.equals(UNASSIGNED_STR))
+            ? Integer.valueOf(storageBWSTR)
+            : UNASSIGNED_INT;
+        if (storageBW != UNASSIGNED_INT) {
+            this.storageBW = storageBW;
         }
 
         String operatingSystemType = constraints.operatingSystemType();
@@ -571,6 +581,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 case STORAGE_TYPE:
                     this.storageType = val;
                     break;
+                case STORAGE_BW:
+                    this.storageBW = Integer.valueOf(val);
+                    break;
                 case OS_TYPE:
                     this.operatingSystemType = val;
                     break;
@@ -607,6 +620,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 case COMPUTING_UNITS:
                     proc.setComputingUnits(ONE_INT);
                     break;
+                default:
+                    break;
             }
         }
     }
@@ -630,6 +645,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         this.storageSize = clone.storageSize;
         this.storageType = clone.storageType;
+        this.storageBW = clone.storageBW;
 
         this.operatingSystemType = clone.operatingSystemType;
         this.operatingSystemDistribution = clone.operatingSystemDistribution;
@@ -937,6 +953,26 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public void setStorageType(String storageType) {
         if (storageType != null && !storageType.isEmpty()) {
             this.storageType = storageType;
+        }
+    }
+
+    /**
+     * Returns the storage bandwidth.
+     *
+     * @return The storage bandwidth.
+     */
+    public int getStorageBW() {
+        return storageBW;
+    }
+
+    /**
+     * Sets a new storage bandwidth.
+     *
+     * @param storageBW New storage bandwidth.
+     */
+    public void setStorageBW(int storageBW) {
+        if (storageBW > 0) {
+            this.storageBW = storageBW;
         }
     }
 
@@ -1262,6 +1298,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         if (this.storageType.equals(UNASSIGNED_STR)) {
             this.setStorageType(mr2.getStorageType());
         }
+        if (this.storageBW == UNASSIGNED_INT) {
+            this.setStorageBW(mr2.getStorageBW());
+        }
 
         // Operating System
         if (this.operatingSystemType.equals(UNASSIGNED_STR)) {
@@ -1366,6 +1405,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public boolean containsDynamic(MethodResourceDescription rc2) {
         boolean contained = checkProcessors(rc2);
         contained = contained && checkMemory(rc2);
+        contained = contained && checkStorage(rc2);
         return contained;
     }
 
@@ -1415,7 +1455,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkStorage(MethodResourceDescription rc2) {
         return checkInclusion(this.storageSize, rc2.storageSize)
-            && checkCompatibility(this.storageType, rc2.storageType);
+            && checkCompatibility(this.storageType, rc2.storageType) && checkInclusion(this.storageBW, rc2.storageBW);
     }
 
     private boolean checkCompatibility(ProcessorType type1, ProcessorType type2) {
@@ -1427,8 +1467,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     private boolean checkInclusion(int value1, int value2) {
-        // If the value1 (implicit) is unassigned (in terms of CUs) it cannot run anything
-        return value1 >= value2 || value2 == UNASSIGNED_INT;
+        return value1 >= value2 || value1 == UNASSIGNED_INT || value2 == UNASSIGNED_INT;
     }
 
     private boolean checkInclusion(float value1, float value2) {
@@ -1498,6 +1537,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         // Storage
         rd.storageSize = this.storageSize * amount;
+        rd.storageBW = this.storageBW * amount;
 
         return rd;
     }
@@ -1517,11 +1557,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         // Memory
         this.memorySize = mrd2.memorySize;
-        this.storageType = mrd2.storageType;
+        this.memoryType = mrd2.memoryType;
 
         // Storage
         this.storageSize = mrd2.storageSize;
         this.storageType = mrd2.storageType;
+        this.storageBW = mrd2.storageBW;
 
         // OperatingSystem
         this.operatingSystemType = mrd2.operatingSystemType;
@@ -1557,7 +1598,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public void increase(ResourceDescription rd2) {
         MethodResourceDescription mrd2 = (MethodResourceDescription) rd2;
 
-        // Increase Processors and Memory
+        // Increase Processors and Memory and Storage Bandwidth
         increaseDynamic(rd2);
 
         // Storage
@@ -1622,7 +1663,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public void reduce(ResourceDescription rd2) {
         MethodResourceDescription mrd2 = (MethodResourceDescription) rd2;
 
-        // Increase Processors and Memory
+        // Increase Processors and Memory and Storage Bandwidth
         reduceDynamic(rd2);
 
         // Storage
@@ -1722,6 +1763,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         if ((this.memorySize != UNASSIGNED_FLOAT) && (mrd2.memorySize != UNASSIGNED_FLOAT)) {
             this.memorySize += mrd2.memorySize;
         }
+
+        // Storage Bandwidth
+        if ((this.storageBW != UNASSIGNED_INT) && (mrd2.storageBW != UNASSIGNED_INT)) {
+            this.storageBW += mrd2.storageBW;
+        }
     }
 
     @Override
@@ -1766,6 +1812,21 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             } else {
                 this.memorySize -= mrd2.memorySize;
                 reduced.setMemorySize(mrd2.memorySize);
+            }
+        } else {
+            // The reduce is invalid
+            return null;
+        }
+
+        // Storage
+        if (checkStorage(mrd2)) {
+            // Copy the real decreased capabilities
+            reduced.setStorageType(this.storageType);
+            if ((mrd2.storageBW == UNASSIGNED_INT) || (this.storageBW == UNASSIGNED_INT)) {
+                reduced.setStorageBW(UNASSIGNED_INT);
+            } else {
+                this.storageBW -= mrd2.storageBW;
+                reduced.setStorageBW(mrd2.storageBW);
             }
         } else {
             // The reduce is invalid
@@ -1842,6 +1903,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             common.setMemorySize(Math.min(this.memorySize, otherMRD.getMemorySize()));
         }
 
+        // Storage
+        // Only checks compatibility, not inclusion
+        if (checkCompatibility(this.storageType, otherMRD.storageType)) {
+            // Copy the assignable storage type (no the requested)
+            common.setStorageType(this.getStorageType());
+            common.setStorageSize(Math.min(this.storageSize, otherMRD.getStorageSize()));
+            common.setStorageBW(Math.min(this.storageBW, otherMRD.getStorageBW()));
+        }
+
         return common;
     }
 
@@ -1865,6 +1935,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.memoryType = (String) in.readObject();
         this.storageSize = in.readFloat();
         this.storageType = (String) in.readObject();
+        this.storageBW = in.readInt();
         this.operatingSystemType = (String) in.readObject();
         this.operatingSystemDistribution = (String) in.readObject();
         this.operatingSystemVersion = (String) in.readObject();
@@ -1892,6 +1963,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         out.writeObject(this.memoryType);
         out.writeFloat(this.storageSize);
         out.writeObject(this.storageType);
+        out.writeInt(this.storageBW);
         out.writeObject(this.operatingSystemType);
         out.writeObject(this.operatingSystemDistribution);
         out.writeObject(this.operatingSystemVersion);
@@ -1916,12 +1988,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     @Override
     public boolean isDynamicUseless() {
-        return (this.getMemorySize() <= 0.0 && this.totalCPUComputingUnits < 1 && this.totalGPUComputingUnits < 1);
+        return (this.getMemorySize() <= 0.0 && this.totalCPUComputingUnits < 1 && this.totalGPUComputingUnits < 1
+            && this.getStorageBW() <= 0);
     }
 
     @Override
     public boolean isDynamicConsuming() {
-        return (this.getMemorySize() > 0.0 || this.totalCPUComputingUnits > 0 || this.totalGPUComputingUnits > 0);
+        return (this.getMemorySize() > 0.0 || this.totalCPUComputingUnits > 0 || this.totalGPUComputingUnits > 0
+            || this.getStorageBW() > 0);
     }
 
     @Override
@@ -1983,6 +2057,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         sb.append(" [STORAGE");
         sb.append(" SIZE=").append(this.storageSize);
         sb.append(" TYPE=").append(this.storageType);
+        sb.append(" BANDWIDTH=").append(this.storageBW);
         sb.append("]");
 
         sb.append(" [OPERATING_SYSTEM");
@@ -2030,6 +2105,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         sb.append(" Memory: ");
         if (this.memorySize != UNASSIGNED_FLOAT) {
             sb.append(this.memorySize);
+        } else {
+            sb.append("Unassigned");
+        }
+
+        // Storage Bandwidth
+        sb.append(" Storage Bandwidth: ");
+        if (this.storageBW != UNASSIGNED_INT) {
+            sb.append(this.storageBW);
         } else {
             sb.append("Unassigned");
         }

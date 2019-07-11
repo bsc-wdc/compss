@@ -248,6 +248,7 @@ public class ResourceLoader {
                             StorageType strNode = (StorageType) obj;
                             mrd.setStorageSize(project.getStorageSize(strNode));
                             mrd.setStorageType(project.getStorageType(strNode));
+                            mrd.setStorageBW(project.getStorageBW(strNode));
                         } else {
                             if (obj instanceof OSType) {
                                 OSType osNode = (OSType) obj;
@@ -346,6 +347,7 @@ public class ResourceLoader {
         mrd.setMemorySize(resources.getMemorySize(cnResources));
         mrd.setMemoryType(resources.getMemoryType(cnResources));
         mrd.setStorageSize(resources.getStorageSize(cnResources));
+        mrd.setStorageBW(resources.getStorageBW(cnResources));
         mrd.setStorageType(resources.getStorageType(cnResources));
         mrd.setOperatingSystemType(resources.getOperatingSystemType(cnResources));
         mrd.setOperatingSystemDistribution(resources.getOperatingSystemDistribution(cnResources));
@@ -787,6 +789,7 @@ public class ResourceLoader {
 
         mrd.setStorageSize(resources.getStorageSize(instance));
         mrd.setStorageType(resources.getStorageType(instance));
+        mrd.setStorageBW(resources.getStorageBW(instance));
 
         es.bsc.compss.types.resources.jaxb.PriceType p = resources.getPrice(instance);
         if (p != null) {
@@ -800,8 +803,6 @@ public class ResourceLoader {
     private static void loadDataNode(DataNodeType dnProject,
         es.bsc.compss.types.resources.jaxb.DataNodeType dnResources) {
 
-        // Add the name
-        String name = dnProject.getName();
         String host = resources.getHost(dnResources);
         String path = resources.getPath(dnResources);
 
@@ -809,6 +810,10 @@ public class ResourceLoader {
         DataResourceDescription dd = new DataResourceDescription(host, path);
         dd.setStorageSize(resources.getStorageSize(dnResources));
         dd.setStorageType(resources.getStorageType(dnResources));
+        dd.setStorageBW(resources.getStorageBW(dnResources));
+
+        // Add the name
+        String name = dnProject.getName();
 
         // Add the adaptors properties (queue types and adaptor properties)
         // TODO Support adaptor properties on DataNodes

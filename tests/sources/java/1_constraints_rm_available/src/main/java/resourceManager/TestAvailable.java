@@ -26,6 +26,7 @@ public class TestAvailable {
 
     private static final String NAME_CORE_ELEMENT_1 = "coreElement1";
     private static final String NAME_CORE_ELEMENT_2 = "coreElement2";
+    private static final String NAME_CORE_ELEMENT_3 = "coreElement3";
     private static final String NAME_WORKER = "COMPSsWorker01";
 
     // CoreManagerData
@@ -76,8 +77,10 @@ public class TestAvailable {
         // Search for the specific CoreElement ids
         boolean found_ce1 = false;
         boolean found_ce2 = false;
+        boolean found_ce3 = false;
         int ceId1 = 0;
         int ceId2 = 0;
+        int ceId3 = 0;
         coreToName = new String[coreCount];
         for (int i = 0; i < coreCount; i++) {
             int cutValue = idToSignatures[i].getFirst().indexOf("(");
@@ -90,6 +93,10 @@ public class TestAvailable {
                 ceId2 = i;
                 found_ce2 = true;
             }
+            if (coreToName[i].equals(NAME_CORE_ELEMENT_3)) {
+                ceId3 = i;
+                found_ce3 = true;
+            }
         }
 
         // Check results
@@ -101,7 +108,10 @@ public class TestAvailable {
             System.out.println("[ERROR] " + NAME_CORE_ELEMENT_2 + " not found.");
             System.exit(-1);
         }
-
+        if (!found_ce3) {
+            System.out.println("[ERROR] " + NAME_CORE_ELEMENT_3 + " not found.");
+            System.exit(-1);
+        }
         /*
          * ********************************************************************************************************
          * Reserve and free for computingUnits test
@@ -111,14 +121,14 @@ public class TestAvailable {
 
         CoreElement ce1 = CoreManager.getCore(ceId1);
         List<Implementation> ce1Impls = ce1.getImplementations();
-        System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
-        System.out.println("Implementation 1: " + ce1Impls.get(0));
+        // System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
+        // System.out.println("Implementation 1: " + ce1Impls.get(0));
 
         WorkerResourceDescription consumed1 = worker.runTask(ce1Impls.get(0).getRequirements());
         WorkerResourceDescription consumed2 = worker.runTask(ce1Impls.get(0).getRequirements());
 
-        System.out.println("CONSUMED: " + consumed1);
-        System.out.println("CONSUMED: " + consumed2);
+        // System.out.println("CONSUMED: " + consumed1);
+        // System.out.println("CONSUMED: " + consumed2);
         // System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
 
         ActionOrchestrator orchestrator = COMPSsRuntimeImpl.getOrchestrator();
@@ -173,7 +183,41 @@ public class TestAvailable {
         // System.out.println("FREE");
         // System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
         // System.out.println();
+        /*
+         * ********************************************************************************************************
+         * Reserve and free for bandwidth test
+         * ********************************************************************************************************
+         */
+        CoreElement ce3 = CoreManager.getCore(ceId3);
+        List<Implementation> ce3Impls = ce3.getImplementations();
+        a = new Action(orchestrator, ce3);
+        // System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
+        // System.out.println("Implementation 1: " + ce2Impls.get(0));
+
+        consumed1 = worker.runTask(ce3Impls.get(0).getRequirements());
+        consumed2 = worker.runTask(ce3Impls.get(0).getRequirements());
+
+        //System.out.println("CONSUMED: " + consumed1);
+        //System.out.println("CONSUMED: " + consumed2);
+        // System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
+        if (a.findAvailableWorkers().containsKey(worker)) {
+            System.out.println("[ERROR] Available resources for STORAGEBW reserve is not working");
+            System.exit(-1);
+        }
+
+        worker.endTask(consumed1);
+        if (!a.findAvailableWorkers().containsKey(worker)) {
+            System.out.println("[ERROR] Available resources for STORAGEBW free is not working");
+            System.exit(-1);
+        }
+        worker.endTask(consumed2);
+
+        // System.out.println("FREE");
+        // System.out.println("FREE");
+        // System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
+        // System.out.println();
         System.out.println("[LOG] * Available Resources test passed");
+
     }
 
 }

@@ -121,6 +121,13 @@ public @interface Constraints {
     String storageType() default Constants.UNASSIGNED;
 
     /**
+     * Returns the storage bandwidth required for the resource to run the CE.
+     *
+     * @return the required storage bandwidth to run the CE.
+     */
+    String storageBW() default Constants.UNASSIGNED;
+
+    /**
      * Returns the Operating System type required for the resource to run the CE.
      *
      * @return the required Operating System type to run the CE.

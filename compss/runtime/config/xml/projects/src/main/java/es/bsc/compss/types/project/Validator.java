@@ -644,10 +644,11 @@ public class Validator {
 
     private void validateStorage(StorageType s) throws InvalidElementException {
         // Validate inner elements
-        List<Serializable> innerElements = s.getSizeOrType();
+        List<Serializable> innerElements = s.getSizeOrTypeOrBandwidth();
         if (innerElements != null) {
             boolean sizeTagFound = false;
             boolean typeTagFound = false;
+            boolean bandwidthTagFound = false;
             for (Object obj : innerElements) {
                 if (obj instanceof Float) {
                     if (sizeTagFound) {
@@ -664,6 +665,17 @@ public class Validator {
                         throw new InvalidElementException("Storage", "Attribute Type", "Appears more than once");
                     } else {
                         typeTagFound = true;
+                    }
+                } else if (obj instanceof Integer) {
+                    if (bandwidthTagFound) {
+                        throw new InvalidElementException("Storage", "Attribute Bandwidth", "Appears more than once");
+                    } else {
+                        bandwidthTagFound = true;
+                        Integer val = (Integer) obj;
+                        if (val <= 0) {
+                            throw new InvalidElementException("Storage", "Attribute Bandwidth",
+                                "Must be greater than 0");
+                        }
                     }
                 } else {
                     throw new InvalidElementException("Storage", "Attribute " + obj.getClass(), "Incorrect attribute");

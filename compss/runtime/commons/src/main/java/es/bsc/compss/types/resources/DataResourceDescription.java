@@ -40,6 +40,7 @@ public class DataResourceDescription extends ResourceDescription {
     // Optional information: Storage
     protected float storageSize = UNASSIGNED_FLOAT;
     protected String storageType = UNASSIGNED_STR;
+    protected int storageBW = UNASSIGNED_INT;
 
 
     /**
@@ -139,6 +140,24 @@ public class DataResourceDescription extends ResourceDescription {
         if (storageType != null) {
             this.storageType = storageType;
         }
+    }
+
+    /**
+     * Sets a new storage bandwidth.
+     *
+     * @param storageBW New storage bandwidth.
+     */
+    public void setStorageBW(int storageBW) {
+        if (storageBW != -1) {
+            this.storageBW = storageBW;
+        }
+    }
+
+    /**
+     * Returns storage bandwidth.
+     */
+    public int getStorageBW() {
+        return this.storageBW;
     }
 
     @Override

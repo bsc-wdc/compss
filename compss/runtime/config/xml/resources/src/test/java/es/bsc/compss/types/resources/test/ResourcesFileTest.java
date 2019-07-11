@@ -505,7 +505,7 @@ public class ResourcesFileTest {
         ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
         resources.addComputeNode(nodeName, procName, cu, arch, speed, type, internalMemorySize,
             ResourcesFile.createProcessorProperty(key, value), adaptorName, maxPort, minPort, executor, user, memSize,
-            null, storageSize, null, osType, null, null);
+            null, storageSize, null, -1, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
         assertEquals(procName, procExtracted.getName());
@@ -565,7 +565,7 @@ public class ResourcesFileTest {
         ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
         resources.addComputeNode(nodeName, procName, cu, arch, speed, null, -1f,
             ResourcesFile.createProcessorProperty(key, value), adaptorName, batch, queues, interactive, gatprop, user,
-            memSize, null, storageSize, null, osType, null, null);
+            memSize, null, storageSize, null, -1, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
         assertEquals(procName, procExtracted.getName());

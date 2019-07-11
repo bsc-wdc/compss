@@ -230,6 +230,12 @@ public class TestCompatible {
                 return "storageType";
             }
 
+            if ((iDescription.getStorageBW() != MethodResourceDescription.UNASSIGNED_INT)
+                && (wDescription.getStorageBW() != MethodResourceDescription.UNASSIGNED_INT)
+                && (wDescription.getStorageBW() < iDescription.getStorageBW())) {
+                return "storageBW";
+            }
+
             /*
              * *********************************************************************************************************
              * OPERATING SYSTEM

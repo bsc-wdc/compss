@@ -16,7 +16,9 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.exceptions.ExternalPropertyException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.data.CollectionInfo;
@@ -50,9 +52,13 @@ import es.bsc.compss.types.request.ap.TransferObjectRequest;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
+import es.bsc.distrostreamlib.DistroStream;
+import es.bsc.distrostreamlib.client.DistroStreamClient;
+import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -267,6 +273,18 @@ public class DataInfoProvider {
             oInfo = this.idToData.get(aoId);
         }
 
+        // Inform the StreamClient
+        if (mode != AccessMode.R) {
+            DistroStream<?> ds = (DistroStream<?>) value;
+            String streamId = ds.getId();
+            if (DEBUG) {
+                LOGGER.debug("Registering writer for stream " + streamId);
+            }
+            AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
+            // Registering the writer asynchronously (no check completion nor error)
+            DistroStreamClient.request(req);
+        }
+
         // Version management
         return willAccess(mode, oInfo);
     }
@@ -305,6 +323,26 @@ public class DataInfoProvider {
                 LOGGER.debug("Another access to external stream " + locationKey);
             }
             externalStreamInfo = this.idToData.get(externalStreamId);
+        }
+
+        // Inform the StreamClient
+        if (mode != AccessMode.R) {
+            String filePath = location.getPath();
+            try {
+                String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
+                if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {
+                    pythonInterpreter = COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+                }
+                String streamId = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, filePath, "id");
+                if (DEBUG) {
+                    LOGGER.debug("Registering writer for stream " + streamId);
+                }
+                AddStreamWriterRequest req = new AddStreamWriterRequest(streamId);
+                // Registering the writer asynchronously (no check completion nor error)
+                DistroStreamClient.request(req);
+            } catch (ExternalPropertyException e) {
+                LOGGER.error("ERROR: Cannot retrieve external property. Not adding stream writer", e);
+            }
         }
 
         // Version management

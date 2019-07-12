@@ -46,7 +46,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=4
+  FILES=5
   failed=1
 
   # Checks if all the tasks have been executed through the creation of a job for each

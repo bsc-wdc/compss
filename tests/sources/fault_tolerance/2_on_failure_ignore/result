@@ -45,7 +45,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=5
+  FILES=6
 
   # Checks if all the tasks have been executed through the creation of a job for each
   if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then

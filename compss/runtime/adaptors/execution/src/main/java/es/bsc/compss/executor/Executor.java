@@ -592,6 +592,8 @@ public class Executor implements Runnable {
                         String msg = "ERROR: Output file " + inSandboxFile.toPath() + " does not exist";
                         // Unexpected case (except for C binding when not serializing outputs)
                         if (lang != Lang.C) {
+                            LOGGER.debug("Generating empty renamed file for on_failure management");
+                            renamedFile.createNewFile();
                             LOGGER.error(msg);
                             System.err.println(msg);
                             throw new JobExecutionException(msg);

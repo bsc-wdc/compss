@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class OnFailureIgnore {
 
     private static final String FILE_NAME = "/tmp/sharedDisk/onFailure1.txt";
+    private static final String FILEOUT_NAME = "/tmp/sharedDisk/onFailureOut.txt";
     private static final int M = 5; // number of tasks to be executed
 
 
@@ -22,6 +23,7 @@ public class OnFailureIgnore {
         // Failure ignored behavior
         System.out.println("Init on failure : IGNORE FAILURE");
         try {
+            onIgnoreFailureFileOutNotGenerated();
             onIgnoreFailure();
         } catch (numberException e) {
             catchException(e);
@@ -30,6 +32,12 @@ public class OnFailureIgnore {
             e.printStackTrace();
         }
 
+    }
+
+    private static void onIgnoreFailureFileOutNotGenerated() throws numberException {
+        deleteFile(FILEOUT_NAME);
+        OnFailureIgnoreImpl.processOutParamIgnoreFailure(FILEOUT_NAME);
+        COMPSs.barrier();
     }
 
     // Ignore the task failure and continue with other tasks execution
@@ -135,6 +143,14 @@ public class OnFailureIgnore {
         boolean createdFile = file.createNewFile();
         if (!createdFile) {
             throw new IOException("[ERROR] Cannot create test file");
+        }
+    }
+    
+    private static void deleteFile(String fileName) {
+        File file = new File(fileName);
+        // Delete previous occurrences of the file
+        if (file.exists()) {
+            file.delete();
         }
     }
 

@@ -16,10 +16,10 @@
  */
 package es.bsc.compss.scheduler.loadbalancing;
 
+import es.bsc.compss.scheduler.loadbalancing.types.LoadBalancingScore;
 import es.bsc.compss.scheduler.ready.ReadyResourceScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.schedulerloadbalancing.types.LoadBalancingScore;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.parameter.Parameter;
@@ -41,8 +41,8 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
     /**
      * New LoadBalancing Resource Scheduler instance.
      *
-     * @param w Associated worker.
-     * @param resJSON Worker JSON description.
+     * @param w        Associated worker.
+     * @param resJSON  Worker JSON description.
      * @param implJSON Implementation JSON description.
      */
     public LoadBalancingResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {

@@ -17,10 +17,10 @@
 package es.bsc.compss.scheduler.loadbalancing;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.scheduler.loadbalancing.types.LoadBalancingScore;
 import es.bsc.compss.scheduler.ready.ReadyScheduler;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
-import es.bsc.compss.schedulerloadbalancing.types.LoadBalancingScore;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 

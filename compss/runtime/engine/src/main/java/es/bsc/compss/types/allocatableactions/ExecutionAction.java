@@ -203,6 +203,7 @@ public class ExecutionAction extends AllocatableAction {
     public boolean taskIsReadyForExecution() {
         return task.canBeExecuted();
     }
+    
 
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
@@ -213,7 +214,7 @@ public class ExecutionAction extends AllocatableAction {
         }
         return false;
     }
-
+    
     private void doInputTransfers() {
         JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);

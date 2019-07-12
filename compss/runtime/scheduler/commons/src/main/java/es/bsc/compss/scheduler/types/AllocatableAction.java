@@ -231,10 +231,10 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Returns whether the task was cancelled or not.
+     * Returns if the task was cancelled.
      * 
-     * @param aa Allocatable action.
-     * @return {@literal true} if the action was cancelled, {@literal false} otherwise.
+     * @param aa
+     * @return
      */
     public abstract boolean checkIfCanceled(AllocatableAction aa);
 

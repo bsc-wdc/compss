@@ -42,7 +42,7 @@ def write_three(file_path):
     with open(file_path, 'a') as fos:
         new_value = str(3)
         fos.write(new_value)
-    raise COMPSsException("Exception generated")
+    raise COMPSsException("Exception has been raised!!")
 
 
 @task(file_path=FILE_IN, time_out=2)
@@ -104,6 +104,8 @@ def test_exceptions(file_name):
                 write_three(file_name)
     except COMPSsException:
         print("COMPSsException caught")
+        write_two(file_name)
+    write_one(file_name)
 
 
 def main():

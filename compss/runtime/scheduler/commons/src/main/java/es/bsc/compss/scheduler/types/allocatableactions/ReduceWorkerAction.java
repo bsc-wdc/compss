@@ -250,10 +250,9 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
         
     }
-
+    
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }
-
 }

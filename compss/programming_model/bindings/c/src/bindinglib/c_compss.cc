@@ -123,7 +123,8 @@ void compss_barrier_new(int no_more_tasks) {
 
 void compss_barrier_group(char *groupname) {
     long int l_app_id = 0;
-    GS_BarrierGroup(l_app_id, groupname);
+    char *exception_message = NULL;
+    GS_BarrierGroup(l_app_id, groupname,&exception_message);
 }
 
 void compss_open_task_group(char *groupname, int implicitBarrier) {

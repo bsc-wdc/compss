@@ -305,7 +305,6 @@ public abstract class DataInfo {
             }
             this.currentVersionId = lastVersion;
             this.currentVersion = this.versions.get(this.currentVersionId);
-            System.out.println("MARTA: Current version : " + this.currentVersion);
         }
     }
 }

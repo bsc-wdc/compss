@@ -68,11 +68,6 @@ public interface TaskMonitor {
      * Actions to be performed by monitor on task execution failure.
      */
     public void onFailedExecution();
-    
-    /**
-     * Actions to be performed by monitor on task execution COMPSs exception.
-     */
-    public void onException();
 
     /**
      * Actions to be performed by monitor on task execution COMPSs exception.

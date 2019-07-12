@@ -26,6 +26,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -621,11 +622,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
         // Wait for response
         sem.acquireUninterruptibly();
-
-        String lang = System.getProperty(COMPSsConstants.LANG);
         
-        if (taskAnalyser.getTaskGroup(groupName).hasException()
-                && !lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
+        TaskGroup tg = taskAnalyser.getTaskGroup(groupName);
+        if (tg != null && tg.hasException()) {
             throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
         }
         

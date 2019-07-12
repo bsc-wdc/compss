@@ -260,7 +260,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
 
     }
-
+    
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

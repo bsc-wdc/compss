@@ -50,8 +50,6 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
-import es.bsc.compss.types.request.ap.BarrierGroupRequest;
-import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
@@ -121,8 +119,6 @@ public class TaskAnalyser {
     private TreeMap<String, TaskGroup> taskGroups;
     // Stack of current task groups
     private Stack<TaskGroup> currentTaskGroups;
-    // List of canceled tasks
-    private TreeMap<Integer, AbstractTask> lastTasksNoCanceled;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -150,7 +146,6 @@ public class TaskAnalyser {
         this.pendingToDrawCommutative = new TreeMap<>();
         this.currentTaskGroups = new Stack<>();
         this.taskGroups = new TreeMap<>();
-        this.lastTasksNoCanceled = new TreeMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
 
@@ -496,8 +491,6 @@ public class TaskAnalyser {
         }
         taskCount++;
         this.appIdToTaskCount.put(appId, taskCount);
-        LOGGER.debug("MARTA: TaskCount is " + this.appIdToTaskCount + " of the appId " + appId + " is "
-                + this.appIdToTaskCount.get(appId));
         Integer totalTaskCount = this.appIdToTotalTaskCount.get(appId);
         if (totalTaskCount == null) {
             totalTaskCount = 0;
@@ -566,7 +559,6 @@ public class TaskAnalyser {
                 this.dip.dataHasBeenAccessed(dAccId);
                 if (p instanceof DependencyParameter) {
                     int dataId = ((DependencyParameter) p).getDataAccessId().getDataId();
-                    this.lastTasksNoCanceled.put(dataId, t);
                 }
             }
         }
@@ -678,8 +670,6 @@ public class TaskAnalyser {
 
         // Release data dependent tasks
         aTask.releaseDataDependents();
-        
-        LOGGER.debug("MARTA: Task TOTALLY ended");
     }
 
     /**
@@ -1012,7 +1002,6 @@ public class TaskAnalyser {
             this.gm.commitGraph();
         }
 
-        LOGGER.debug("MARTA: No more tasks with count " + count + ". AppId : " + appId);
         if (count == null || count == 0) {
             this.appIdToTaskCount.remove(appId);
             request.getSemaphore().release();

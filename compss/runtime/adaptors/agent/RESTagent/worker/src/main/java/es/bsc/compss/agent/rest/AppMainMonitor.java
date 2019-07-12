@@ -74,11 +74,6 @@ public class AppMainMonitor extends AppMonitor {
     public void onException() {
         profile.finished();
     }
-    
-    @Override
-    public void onException() {
-        profile.finished();
-    }
 
     @Override
     public void onSuccesfulExecution() {

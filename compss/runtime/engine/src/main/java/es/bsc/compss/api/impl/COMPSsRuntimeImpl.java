@@ -888,10 +888,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not
-<<<<<<< HEAD
      * 
-=======
->>>>>>> Added COMPSsException and checkstyle fixes
      * @throws COMPSsException Exception thrown by user
      */
     @Override
@@ -1119,7 +1116,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 break;
         }
 
-        LOGGER.debug("MARTA: The created location is " + loc);
         // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         String finalPath;
         switch (loc.getType()) {

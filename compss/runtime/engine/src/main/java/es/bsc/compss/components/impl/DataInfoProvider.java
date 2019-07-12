@@ -598,7 +598,6 @@ public class DataInfoProvider {
                 // read and write data version can be removed
                 // di.canceledVersion(rVersionId);
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                LOGGER.debug("MARTA: Cancelling version " + wVersionId);
                 di.canceledVersion(wVersionId);
                 break;
             default:// case W:

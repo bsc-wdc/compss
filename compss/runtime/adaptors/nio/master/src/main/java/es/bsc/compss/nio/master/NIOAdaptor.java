@@ -397,7 +397,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Received Task done message for Task " + jobId);
-            LOGGER.debug("MARTA: The received exception in receivedNIOTaskDone is " + e);
         }
 
         // Update running jobs

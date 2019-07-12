@@ -52,8 +52,8 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=15
-  resultN=13
+  FILES=17
+  resultN=15
   FAILED=1
 
   # Checks if the file has been written as many times as expected

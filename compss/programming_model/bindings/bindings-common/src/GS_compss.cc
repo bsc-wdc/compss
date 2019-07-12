@@ -735,6 +735,7 @@ static void getReceivedException(JNIEnv* env, jthrowable exception, char** buf)
                 if (messageChars != NULL) {
                     *buf = strdup(messageChars);
                     env->ReleaseStringUTFChars(messageStr, messageChars);
+                    env->ExceptionClear();
                 } else {
                     env->ExceptionClear();
                 }
@@ -1269,10 +1270,9 @@ void GS_BarrierGroup(long _appId, char *group_name, char **exception_message) {
     int isAttached = check_and_attach(m_jvm, local_env);
     release_lock();
     local_env->CallVoidMethod(jobjIT, midBarrierGroup, appId, local_env->NewStringUTF(group_name));
-
     jthrowable exception = local_env->ExceptionOccurred();
     if (exception) {
-        // local_env->ExceptionDescribe();
+        local_env->ExceptionDescribe();
         getReceivedException(local_env, exception, exception_message);
     }
     if (isAttached==1) {

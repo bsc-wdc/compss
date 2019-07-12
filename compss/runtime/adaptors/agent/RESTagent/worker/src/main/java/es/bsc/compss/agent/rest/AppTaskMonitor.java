@@ -119,10 +119,6 @@ public class AppTaskMonitor extends AppMonitor {
     }
 
     @Override
-    public void onException() {
-    }
-
-    @Override
     public void onCompletion() {
         if (this.orchestrator != null) {
             String masterId = this.orchestrator.getHost();

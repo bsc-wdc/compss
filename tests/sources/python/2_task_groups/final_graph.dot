@@ -58,6 +58,7 @@ label="group2";
 }
 
 Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro0 -> Synchro1 [color=grey];
 9 -> Synchro1 [color=grey];
 Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro1 -> Synchro2 [color=grey];
@@ -102,7 +103,11 @@ Synchro5 -> 15 [label="d1v13"];
 
 Synchro6[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro5 -> Synchro6 [color=grey];
-17 -> Synchro6 [color=grey];  }
+17 -> Synchro6 [color=grey];
+18[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro6 -> 18 [label="d1v14"];
+19[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+18 -> 19 [label="d1v15"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.schedulerloadbalancing.types;
+package es.bsc.compss.scheduler.loadbalancing.types;
 
 import es.bsc.compss.scheduler.types.Score;
 

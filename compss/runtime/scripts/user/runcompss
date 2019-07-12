@@ -150,6 +150,8 @@ show_opts() {
     --streaming=<type>                      Enable the streaming mode for the given type.
                                             Supported types: FILES, OBJECTS, PSCOS, ALL, NONE
                                             Default: ${DEFAULT_STREAMING}
+    --streaming_master_name=<str>           Use an specific streaming master node name.
+                                            Default: null
     --streaming_master_port=<int>           Use an specific port for the streaming master.
                                             Default: null
     --scheduler=<className>                 Class that implements the Scheduler for COMPSs
@@ -471,6 +473,9 @@ get_args() {
             ;;
           streaming=*)
             streaming=${OPTARG//streaming=/}
+            ;;
+          streaming_master_name=*)
+            streaming_master_name=${OPTARG//streaming_master_name=/}
             ;;
           streaming_master_port=*)
             streaming_master_port=${OPTARG//streaming_master_port=/}
@@ -822,10 +827,12 @@ check_args() {
     streaming=${DEFAULT_STREAMING}
   fi
   if [ "${streaming}" != "null" ] && [ "${streaming}" != "NONE" ]; then
-    if [ -z "${master_name}" ]; then
-      streaming_master_name="null"
-    else
-      streaming_master_name=${master_name}
+    if [ -z "${streaming_master_name}" ]; then
+      if [ -z "${master_name}" ]; then
+        streaming_master_name="null"
+      else
+        streaming_master_name=${master_name}
+      fi
     fi
     if [ -z "${streaming_master_port}" ]; then
       streaming_master_port=$((BASE_STREAMING_PORT + RANDOM % STREAMING_PORT_RAND_RANGE))

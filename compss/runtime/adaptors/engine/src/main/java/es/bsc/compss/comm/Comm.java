@@ -73,6 +73,7 @@ public class Comm {
 
     // Streaming
     private static final StreamBackend STREAMING_BACKEND;
+    private static final String STREAMING_MASTER_NAME;
     private static final int DEFAULT_STREAMING_PORT = 49_049;
     private static final int STREAMING_PORT;
 
@@ -96,20 +97,24 @@ public class Comm {
                 || streamBackendProperty.toLowerCase().equals("none")) ? "NONE" : streamBackendProperty.toUpperCase();
         STREAMING_BACKEND = StreamBackend.valueOf(streamBackendPropertyFixed);
 
+        String streamMasterNameProperty = System.getProperty(COMPSsConstants.STREAMING_MASTER_NAME);
+        STREAMING_MASTER_NAME = (streamMasterNameProperty == null || streamMasterNameProperty.isEmpty()
+                || streamMasterNameProperty.equals("null")) ? null : streamMasterNameProperty;
         String streamMasterPortProperty = System.getProperty(COMPSsConstants.STREAMING_MASTER_PORT);
         STREAMING_PORT = (streamMasterPortProperty == null || streamMasterPortProperty.isEmpty()
                 || streamMasterPortProperty.equals("null")) ? DEFAULT_STREAMING_PORT
-                         : Integer.parseInt(streamMasterPortProperty);
+                        : Integer.parseInt(streamMasterPortProperty);
 
         String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
         STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))
-                       ? null
-                       : storageCfgProperty;
+                ? null
+                : storageCfgProperty;
 
         ADAPTORS = new ConcurrentHashMap<>();
 
         DATA = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
     }
+
 
     /**
      * Private constructor to avoid instantiation.
@@ -146,20 +151,36 @@ public class Comm {
             LOGGER.warn("No streaming backend passed");
         } else {
             LOGGER.info("Initializing DS Library for type " + STREAMING_BACKEND.name());
+
             // Server
-            LOGGER.debug("Initializing Streaming Server");
-            DistroStreamServer.initAndStart(master.getName(), STREAMING_PORT, STREAMING_BACKEND);
+            String compssMaster = appHost.getName();
+            String dsMaster;
+            if (STREAMING_MASTER_NAME == null || STREAMING_MASTER_NAME == compssMaster) {
+                // Streaming master name not defined or is the same than the COMPSs master
+                // Start server on COMPSs Master
+                dsMaster = compssMaster;
+                LOGGER.debug("Initializing Streaming Server");
+                DistroStreamServer.initAndStart(dsMaster, STREAMING_PORT, STREAMING_BACKEND);
+            } else {
+                // Streaming master is on another machine, do not start master
+                LOGGER.debug("Streaming Server marked as remote");
+                LOGGER.debug("Skiping Streaming Server initialization");
+                dsMaster = STREAMING_MASTER_NAME;
+            }
+
             // Client
             LOGGER.debug("Initializing Streaming Client");
             try {
-                DistroStreamClient.initAndStart(master.getName(), STREAMING_PORT);
+                DistroStreamClient.initAndStart(dsMaster, STREAMING_PORT);
             } catch (DistroStreamClientInitException dscie) {
                 ErrorManager.fatal("Error initializing DS client", dscie);
             }
         }
 
         // Start storage interface
-        if (STORAGE_CONF == null) {
+        if (STORAGE_CONF == null)
+
+        {
             LOGGER.warn("No storage configuration file passed");
         } else {
             LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);
@@ -175,7 +196,7 @@ public class Comm {
      * Registers a new adaptor to Comm.
      *
      * @param adaptorName Adaptor name
-     * @param adaptor     Class handling the adaptor methods.
+     * @param adaptor Class handling the adaptor methods.
      */
     public static void registerAdaptor(String adaptorName, CommAdaptor adaptor) {
         ADAPTORS.put(adaptorName, adaptor);
@@ -202,8 +223,8 @@ public class Comm {
     /**
      * Initializes the internal adaptor and constructs a comm configuration.
      *
-     * @param adaptorName         Adaptor name.
-     * @param projectProperties   Properties from the project.xml file.
+     * @param adaptorName Adaptor name.
+     * @param projectProperties Properties from the project.xml file.
      * @param resourcesProperties Properties from the resources.xml file.
      * @return An adaptor configuration.
      * @throws ConstructConfigurationException When adaptor class cannot be instantiated.
@@ -218,7 +239,7 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException 
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException
                     | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new ConstructConfigurationException(e);
             }
@@ -303,8 +324,14 @@ public class Comm {
                 LOGGER.error("Error Message: " + stopRequest.getErrorMessage());
             }
 
-            LOGGER.debug("Stopping Streaming Server...");
-            DistroStreamServer.setStop();
+            // Stop stream server if this runtime is the owner
+            if (STREAMING_MASTER_NAME == null || STREAMING_MASTER_NAME == appHost.getName()) {
+                LOGGER.debug("Stopping Streaming Server...");
+                DistroStreamServer.setStop();
+            } else {
+                LOGGER.debug("Current COMPSs Runtime does not own the Streaming Server");
+                LOGGER.debug("Skipping stop Streaming Server");
+            }
         }
 
         // Stop Storage interface
@@ -318,7 +345,7 @@ public class Comm {
         }
 
         if (Tracer.extraeEnabled()) {
-            // Emit last EVENT_END event 
+            // Emit last EVENT_END event
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
@@ -346,7 +373,7 @@ public class Comm {
     /**
      * Registers a new location {@code location} for the data with id {@code dataId}.
      *
-     * @param dataId   Data Id. Must exist previously.
+     * @param dataId Data Id. Must exist previously.
      * @param location New location.
      * @return The updated LogicalData for the given dataId with the new location.
      */
@@ -364,7 +391,7 @@ public class Comm {
      * Registers a new value {@code value} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must exist previously.
-     * @param value  New data value.
+     * @param value New data value.
      * @return The updated LogicalData for the given dataId with the new value.
      */
     public static synchronized LogicalData registerValue(String dataId, Object value) {
@@ -397,7 +424,7 @@ public class Comm {
     /**
      * Registers a new collection with the given dataId {@code dataId}.
      *
-     * @param dataId     Identifier of the collection.
+     * @param dataId Identifier of the collection.
      * @param parameters Parameters of the collection.
      * @return LogicalData representing the collection with its parameters.
      */
@@ -409,7 +436,7 @@ public class Comm {
      * Registers a new External PSCO id {@code id} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must exist previously.
-     * @param id     PSCO Id.
+     * @param id PSCO Id.
      * @return The LogicalData representing the given data Id with the associated PSCO Id.
      */
     public static synchronized LogicalData registerExternalPSCO(String dataId, String id) {
@@ -423,7 +450,7 @@ public class Comm {
      * Registers a new Binding Object {@code bo} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must exist previously.
-     * @param bo     Binding Object.
+     * @param bo Binding Object.
      * @return The LogicalData representing the given data Id with the associated Binding Object.
      */
     public static synchronized LogicalData registerBindingObject(String dataId, BindingObject bo) {
@@ -446,7 +473,7 @@ public class Comm {
      * Registers a new PSCO id {@code id} for the data with id {@code dataId}.
      *
      * @param dataId Data Id. Must previously exist.
-     * @param id     PSCO Id.
+     * @param id PSCO Id.
      * @return The LogicalData after registering the PSCO Id into the given data Id.
      */
     public static synchronized LogicalData registerPSCO(String dataId, String id) {
@@ -469,7 +496,7 @@ public class Comm {
      * Points both data values, {@code dataId} and {@code dataId2}, to the same LogicalData and all their sources are
      * merged.
      *
-     * @param dataId  first data identifier
+     * @param dataId first data identifier
      * @param dataId2 second data identifier
      * @return the LogicalData pointed by both data values
      */

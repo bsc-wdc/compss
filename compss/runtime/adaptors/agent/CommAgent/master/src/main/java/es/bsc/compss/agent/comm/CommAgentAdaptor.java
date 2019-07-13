@@ -19,13 +19,13 @@ package es.bsc.compss.agent.comm;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.agent.AgentConstants;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.master.NIOAdaptor;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.resources.configuration.Configuration;
@@ -45,7 +45,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     public static final CommResource LOCAL_RESOURCE;
 
     static {
-        String localAgentName = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
+        String localAgentName = COMPSsNode.getMasterName();
         String portStr = System.getProperty(COMPSsConstants.MASTER_PORT);
         int port = Integer.parseInt(portStr);
         if (localAgentName != null && localAgentName.isEmpty()) {
@@ -55,7 +55,6 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     }
 
     private CommAgent ownAgent;
-
 
     public CommAgentAdaptor() {
         super();

@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.agent;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataInformation;
@@ -27,6 +28,7 @@ import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.COMPSsNode;
 
 import es.bsc.compss.types.CoreElementDefinition;
 
@@ -64,7 +66,7 @@ public class Agent {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
-    private static final String AGENT_NAME = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
+    private static final String AGENT_NAME;
 
     private static final COMPSsRuntimeImpl RUNTIME;
 
@@ -72,6 +74,7 @@ public class Agent {
     private static final List<AgentInterface<?>> INTERFACES;
 
     static {
+        AGENT_NAME = COMPSsNode.getMasterName();
         LOGGER.info("Initializing agent with name: " + AGENT_NAME);
 
         String dcConfigPath = System.getProperty(AgentConstants.DATACLAY_CONFIG_PATH);
@@ -113,31 +116,20 @@ public class Agent {
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
 
-        String hostName = System.getProperty(AgentConstants.COMPSS_AGENT_NAME);
-        if (hostName == null) {
-            try {
-                hostName = InetAddress.getLocalHost().getHostName();
-            } catch (Exception e) {
-                hostName = "localhost";
-            }
-        }
-        System.setProperty(AgentConstants.COMPSS_AGENT_NAME, hostName);
-
         INTERFACES = new LinkedList<>();
     }
-
 
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
      *
-     * @param lang Programming language of the method.
-     * @param ceiClass Core Element interface to detect nested tasks in the code.
-     * @param className Name of the class containing the method to execute.
+     * @param lang       Programming language of the method.
+     * @param ceiClass   Core Element interface to detect nested tasks in the code.
+     * @param className  Name of the class containing the method to execute.
      * @param methodName Name of the method to execute.
-     * @param arguments Task arguments.
-     * @param target Target object of the task.
-     * @param results Results of the task.
-     * @param monitor Monitor to notify changes on the method execution.
+     * @param arguments  Task arguments.
+     * @param target     Target object of the task.
+     * @param results    Results of the task.
+     * @param monitor    Monitor to notify changes on the method execution.
      * @return Identifier of the application associated to the main task
      * @throws AgentException error parsing the CEI
      */
@@ -169,23 +161,23 @@ public class Agent {
             int totalParamsCount = taskParamsCount + loadParamsCount;
             Object[] params = new Object[6 * totalParamsCount];
 
-            Object[] loadParams = new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
-                    "runtime", // Runtime API
-                    RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
-                    ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
-                    appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
-                    className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
-                    methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method
-                                                                                                            // name
-                    /*
+            Object[] loadParams = new Object[]{RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
+                "runtime", // Runtime API
+                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
+                ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
+                appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
+                className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
+                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method
+                // name
+                /*
                      * When passing a single parameter with array type to the loaded method, the Object... parameter of
                      * the load method assumes that each element of the array is a different parameter ( any array
                      * matches Object...). To avoid it, we add a phantom basic-type parameter that avoids any data
                      * transfer and ensures that the array is detected as the second parameter -- Object... is resolved
                      * as [ Integer, array].
-                     */
-                    3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
-            };
+                 */
+                3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
+        };
 
             System.arraycopy(loadParams, 0, params, 0, loadParams.length);
             int position = loadParams.length;
@@ -230,14 +222,14 @@ public class Agent {
     /**
      * Requests the execution of a method as a task.
      *
-     * @param lang programming language of the method
-     * @param className name of the class containing the method to execute
-     * @param methodName name of the method to execute
-     * @param arguments paramter description of the task's arguments
-     * @param target paramter description of the task's callee
-     * @param results paramter description of the task's results
+     * @param lang         programming language of the method
+     * @param className    name of the class containing the method to execute
+     * @param methodName   name of the method to execute
+     * @param arguments    paramter description of the task's arguments
+     * @param target       paramter description of the task's callee
+     * @param results      paramter description of the task's results
      * @param requirements requirements to run the task
-     * @param monitor monitor to notify changes on the method execution
+     * @param monitor      monitor to notify changes on the method execution
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
@@ -447,7 +439,7 @@ public class Agent {
      * Requests the agent to stop using some resources from a node.
      *
      * @param workerName name of the worker to whom the resources belong.
-     * @param reduction description of the resources to stop using.
+     * @param reduction  description of the resources to stop using.
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
@@ -494,7 +486,7 @@ public class Agent {
      * @throws ClassNotFoundException Could not find the specify agent interface class
      * @throws InstantiationException Could not instantiate the agent interface
      * @throws IllegalAccessException Could not call the empty constructor because is private
-     * @throws AgentException Error during the interface boot process
+     * @throws AgentException         Error during the interface boot process
      */
     public static final void startInterface(AgentInterfaceConfig conf)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {

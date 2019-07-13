@@ -22,6 +22,7 @@ import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
@@ -54,9 +55,8 @@ import javax.ws.rs.core.Response;
 
 public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
-    private static final String REST_AGENT_URL = "http://" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_NAME)
+    private static final String REST_AGENT_URL = "http://" + COMPSsNode.getMasterName() 
             + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
-
 
     public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl,
             Resource res, JobListener listener) {
@@ -106,14 +106,16 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 // Write mode
                 WAccessId waId = (WAccessId) faId;
                 renaming = waId.getWrittenDataInstance().getRenaming();
-            } else if (faId instanceof RWAccessId) {
-                // Read write mode
-                RWAccessId rwaId = (RWAccessId) faId;
-                renaming = rwaId.getWrittenDataInstance().getRenaming();
             } else {
-                // Read only mode
-                RAccessId raId = (RAccessId) faId;
-                renaming = raId.getReadDataInstance().getRenaming();
+                if (faId instanceof RWAccessId) {
+                    // Read write mode
+                    RWAccessId rwaId = (RWAccessId) faId;
+                    renaming = rwaId.getWrittenDataInstance().getRenaming();
+                } else {
+                    // Read only mode
+                    RAccessId raId = (RAccessId) faId;
+                    renaming = raId.getReadDataInstance().getRenaming();
+                }
             }
             Object target = Comm.getData(renaming).getValue();
             throw new UnsupportedOperationException("Instance methods not supported yet.");
@@ -139,16 +141,18 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                     // String outRenaming;
                     if (dAccId instanceof WAccessId) {
                         throw new JobExecutionException("Target parameter is a Write access", null);
-                    } else if (dAccId instanceof RWAccessId) {
-                        // Read write mode
-                        RWAccessId rwaId = (RWAccessId) dAccId;
-                        inRenaming = rwaId.getReadDataInstance().getRenaming();
-                        // outRenaming = rwaId.getWrittenDataInstance().getRenaming();
                     } else {
-                        // Read only mode
-                        RAccessId raId = (RAccessId) dAccId;
-                        inRenaming = raId.getReadDataInstance().getRenaming();
-                        // outRenaming = inRenaming;
+                        if (dAccId instanceof RWAccessId) {
+                            // Read write mode
+                            RWAccessId rwaId = (RWAccessId) dAccId;
+                            inRenaming = rwaId.getReadDataInstance().getRenaming();
+                            // outRenaming = rwaId.getWrittenDataInstance().getRenaming();
+                        } else {
+                            // Read only mode
+                            RAccessId raId = (RAccessId) dAccId;
+                            inRenaming = raId.getReadDataInstance().getRenaming();
+                            // outRenaming = inRenaming;
+                        }
                     }
 
                     if (inRenaming != null) {

@@ -2,7 +2,7 @@
 <Project>
     <MasterNode>
         <Processor Name="MainProcessor">
-            <ComputingUnits>4</ComputingUnits>
+            <ComputingUnits>1</ComputingUnits>
         </Processor>
     </MasterNode>
 </Project>

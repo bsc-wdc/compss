@@ -340,11 +340,10 @@ public class IDLParser {
         // Add the implementation to the core element
         int implId = CoreManager.getNumberCoreImplementations(coreId);
         List<Implementation> newImpls = new LinkedList<>();
-        MethodImplementation m = new MethodImplementation(declaringClass, methodName, coreId, implId, currConstraints);
+        MethodImplementation m = new MethodImplementation(declaringClass, methodName, coreId, implId, 
+                implementationSignature, currConstraints);
         newImpls.add(m);
-        List<String> newSigns = new LinkedList<>();
-        newSigns.add(implementationSignature);
-        CoreManager.registerNewImplementations(coreId, newImpls, newSigns);
+        CoreManager.registerNewImplementations(coreId, newImpls);
         LOGGER.debug(
                 "[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + coreId);
     }

@@ -19,8 +19,6 @@ package es.bsc.compss.types;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -33,7 +31,7 @@ public class CoreElement {
 
     // List of signatures of each implementation of each coreElement
     // The first signature is always the signature of the coreElement
-    private final List<String> signatures;
+    private final String signature;
 
     private final List<Implementation> implementations;
 
@@ -45,8 +43,7 @@ public class CoreElement {
      */
     public CoreElement(int coreId, String signature) {
         this.coreId = coreId;
-        this.signatures = new LinkedList<>();
-        this.signatures.add(signature);
+        this.signature = signature;
         this.implementations = new ArrayList<>();
     }
 
@@ -60,15 +57,6 @@ public class CoreElement {
     }
 
     /**
-     * Returns the list of signatures associated to the Core Element.
-     *
-     * @return list of signatures of the core element.
-     */
-    public List<String> getSignatures() {
-        return signatures;
-    }
-
-    /**
      * Registers the implementation {@code impl} for the core element.
      *
      * @param implDef Implementation to relate to the CoreElement
@@ -78,10 +66,8 @@ public class CoreElement {
         boolean alreadyExisting = false;
         String implSignature = implDef.getSignature();
 
-        Iterator<String> it = signatures.iterator();
-        it.next();// Skip method signature with no implementation
-        while (it.hasNext()) {
-            String registeredImplSign = it.next();
+        for (Implementation impl : implementations) {
+            String registeredImplSign = impl.getSignature();
             if (implSignature.compareTo(registeredImplSign) == 0) {
                 alreadyExisting = true;
                 break;
@@ -93,7 +79,6 @@ public class CoreElement {
             int implId = implementations.size();
             Implementation impl = implDef.getImpl(coreId, implId);
             implementations.add(impl);
-            signatures.add(implSignature);
         }
 
         return alreadyExisting;
@@ -131,11 +116,9 @@ public class CoreElement {
      * Registers a set of implementations and their respective signatures.
      *
      * @param impls Implementations to register
-     * @param signs Signatures of such implementations
      */
-    public void registerImplementations(List<Implementation> impls, List<String> signs) {
+    public void registerImplementations(List<Implementation> impls) {
         implementations.addAll(impls);
-        signatures.addAll(signs);
     }
 
     /**
@@ -146,7 +129,7 @@ public class CoreElement {
      */
     public String getImplementationSignature(int implId) {
         // 1-offset for the non-implementation signature
-        return signatures.get(implId + 1);
+        return implementations.get(implId).getSignature();
     }
 
 }

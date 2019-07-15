@@ -82,23 +82,22 @@ public class MOResourceSchedulerTest {
         CoreElement ce = CoreManager.registerNewCoreElement("methodA");
         int coreId = ce.getCoreId();
         LinkedList<Implementation> impls = new LinkedList<>();
-        LinkedList<String> signs = new LinkedList<>();
-        Implementation impl = new MethodImplementation("ClassA", "methodA", coreId, 0, new MethodResourceDescription());
+        Implementation impl = new MethodImplementation("ClassA", "methodA", coreId, 0, "ClassA.methodA",
+                new MethodResourceDescription());
         impls.add(impl);
-        signs.add("ClassA.methodA");
-        impl = new MethodImplementation("ClassB", "methodA", coreId, 1, new MethodResourceDescription());
+        impl = new MethodImplementation("ClassB", "methodA", coreId, 1, "ClassB.methodA",
+                new MethodResourceDescription());
         impls.add(impl);
-        signs.add("ClassB.methodA");
-        CoreManager.registerNewImplementations(coreId, impls, signs);
+
+        CoreManager.registerNewImplementations(coreId, impls);
 
         ce = CoreManager.registerNewCoreElement("methodB");
         coreId = ce.getCoreId();
         impls = new LinkedList<>();
-        signs = new LinkedList<>();
-        impl = new MethodImplementation("ClassA", "methodB", coreId, 0, new MethodResourceDescription());
+        impl = new MethodImplementation("ClassA", "methodB", coreId, 0, "ClassA.methodB",
+                new MethodResourceDescription());
         impls.add(impl);
-        signs.add("ClassA.methodB");
-        CoreManager.registerNewImplementations(coreId, impls, signs);
+        CoreManager.registerNewImplementations(coreId, impls);
     }
 
     @AfterClass

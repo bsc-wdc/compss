@@ -62,12 +62,13 @@ public class DecafImplementation extends AbstractMethodImplementation implements
      * @param mpiRunner Path to MPI binary command.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param annot Method annotations.
+     * @param signature Decaf operation signature.
+     * @param annot Decaf operation requirements.
      */
     public DecafImplementation(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
-            Integer coreId, Integer implementationId, MethodResourceDescription annot) {
+            Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
 
-        super(coreId, implementationId, annot);
+        super(coreId, implementationId, signature, annot);
 
         this.mpiRunner = mpiRunner;
         this.workingDir = workingDir;

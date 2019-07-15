@@ -39,7 +39,7 @@ public class OpenCLDefinition extends ImplementationDefinition<MethodResourceDes
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new OpenCLImplementation(kernel, workingDir, coreId, implId, this.getConstraints());
+        return new OpenCLImplementation(kernel, workingDir, coreId, implId, this.getSignature(), this.getConstraints());
     }
 
     @Override

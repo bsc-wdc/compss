@@ -73,22 +73,22 @@ public class TestJavaInvoker extends TestObject {
     private static final MethodImplementation TEST_NONEXISTENT_METHOD;
 
     static {
-        TEST_EMPTY = new MethodImplementation(EXISTING_CLASS, TEST_EMPTY_METHODNAME, 0, 0,
+        TEST_EMPTY = new MethodImplementation(EXISTING_CLASS, TEST_EMPTY_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
-        TEST_READS = new MethodImplementation(EXISTING_CLASS, TEST_READS_METHODNAME, 0, 0,
+        TEST_READS = new MethodImplementation(EXISTING_CLASS, TEST_READS_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
-        TEST_INOUT = new MethodImplementation(EXISTING_CLASS, TEST_INOUT_METHODNAME, 0, 0,
+        TEST_INOUT = new MethodImplementation(EXISTING_CLASS, TEST_INOUT_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
-        TEST_TARGET_IN = new MethodImplementation(EXISTING_CLASS, TEST_TARGET_IN_METHODNAME, 0, 0,
+        TEST_TARGET_IN = new MethodImplementation(EXISTING_CLASS, TEST_TARGET_IN_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
-        TEST_TARGET_INOUT = new MethodImplementation(EXISTING_CLASS, TEST_TARGET_INOUT_METHODNAME, 0, 0,
+        TEST_TARGET_INOUT = new MethodImplementation(EXISTING_CLASS, TEST_TARGET_INOUT_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
-        TEST_RESULT = new MethodImplementation(EXISTING_CLASS, TEST_RESULT_METHODNAME, 0, 0,
+        TEST_RESULT = new MethodImplementation(EXISTING_CLASS, TEST_RESULT_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
 
-        TEST_NONEXISTENT_CLASS = new MethodImplementation(NON_EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0,
+        TEST_NONEXISTENT_CLASS = new MethodImplementation(NON_EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
-        TEST_NONEXISTENT_METHOD = new MethodImplementation(EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0,
+        TEST_NONEXISTENT_METHOD = new MethodImplementation(EXISTING_CLASS, TEST_NONEXISTENT_METHODNAME, 0, 0, "",
                 new MethodResourceDescription());
     }
 

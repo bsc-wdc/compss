@@ -62,12 +62,14 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
      * @param workingDir The nested COMPSs working directory.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
+     * @param signature Method signature.
      * @param annot Method annotations.
      */
     public COMPSsImplementation(String runcompss, String flags, String appName, String workerInMaster,
-            String workingDir, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
+            String workingDir, Integer coreId, Integer implementationId, String signature,
+            MethodResourceDescription annot) {
 
-        super(coreId, implementationId, annot);
+        super(coreId, implementationId, signature, annot);
 
         if (runcompss != null && !runcompss.isEmpty() && !runcompss.equals(Constants.UNASSIGNED)) {
             this.runcompss = runcompss;

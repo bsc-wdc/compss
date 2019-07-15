@@ -42,7 +42,7 @@ public class OpenCLDefinition extends ImplementationDefinition {
         
         this.kernel = args[execArgsIdx];
 
-        this.impl = new OpenCLImplementation(this.kernel, "", null, null, null);
+        this.impl = new OpenCLImplementation(this.kernel, "", null, null, "", null);
     }
 
     @Override

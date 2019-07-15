@@ -70,10 +70,12 @@ public abstract class AbstractMethodImplementation extends Implementation implem
      * 
      * @param coreId Associated core Id.
      * @param implementationId Associated implementation Id.
-     * @param annot Associated annotations.
+     * @param signature Implementation's operation signature
+     * @param annot Implementation's requirements.
      */
-    public AbstractMethodImplementation(Integer coreId, Integer implementationId, MethodResourceDescription annot) {
-        super(coreId, implementationId, annot);
+    public AbstractMethodImplementation(Integer coreId, Integer implementationId, String signature,
+            MethodResourceDescription annot) {
+        super(coreId, implementationId, signature, annot);
     }
 
     /**

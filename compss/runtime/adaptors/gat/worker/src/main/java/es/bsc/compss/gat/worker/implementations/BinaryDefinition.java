@@ -51,7 +51,7 @@ public class BinaryDefinition extends ImplementationDefinition {
             this.workingDir = wDir;
         }
 
-        this.impl = new BinaryImplementation(this.binary, this.workingDir, null, null, null);
+        this.impl = new BinaryImplementation(this.binary, this.workingDir, null, null, "", null);
     }
 
     @Override

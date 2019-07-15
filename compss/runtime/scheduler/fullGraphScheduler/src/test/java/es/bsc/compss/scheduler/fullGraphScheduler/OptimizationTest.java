@@ -57,7 +57,6 @@ public class OptimizationTest {
     private static FullGraphResourceScheduler<FakeResourceDescription> drs1;
     private static FullGraphResourceScheduler<FakeResourceDescription> drs2;
 
-
     public OptimizationTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
@@ -76,54 +75,40 @@ public class OptimizationTest {
         CoreManager.registerNewCoreElement("fakeSignature60");
         CoreManager.registerNewCoreElement("fakeSignature70");
 
-        FakeImplementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
+        FakeImplementation impl00 = new FakeImplementation(0, 0, "fakeSignature00", new FakeResourceDescription(2));
         List<Implementation> impls0 = new LinkedList<>();
         impls0.add(impl00);
-        List<String> signatures0 = new LinkedList<>();
-        signatures0.add("fakeSignature00");
-        CoreManager.registerNewImplementations(0, impls0, signatures0);
+        CoreManager.registerNewImplementations(0, impls0);
 
-        FakeImplementation impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
+        FakeImplementation impl10 = new FakeImplementation(1, 0, "fakeSignature10", new FakeResourceDescription(3));
         List<Implementation> impls1 = new LinkedList<>();
         impls1.add(impl10);
-        List<String> signatures1 = new LinkedList<>();
-        signatures1.add("fakeSignature10");
-        CoreManager.registerNewImplementations(1, impls1, signatures1);
+        CoreManager.registerNewImplementations(1, impls1);
 
-        FakeImplementation impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
+        FakeImplementation impl20 = new FakeImplementation(2, 0, "fakeSignature20", new FakeResourceDescription(1));
         List<Implementation> impls2 = new LinkedList<>();
         impls2.add(impl20);
-        List<String> signatures2 = new LinkedList<>();
-        signatures2.add("fakeSignature20");
-        CoreManager.registerNewImplementations(2, impls2, signatures2);
+        CoreManager.registerNewImplementations(2, impls2);
 
-        FakeImplementation impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
+        FakeImplementation impl30 = new FakeImplementation(3, 0, "fakeSignature30", new FakeResourceDescription(4));
         List<Implementation> impls3 = new LinkedList<>();
         impls3.add(impl30);
-        List<String> signatures3 = new LinkedList<>();
-        signatures3.add("fakeSignature30");
-        CoreManager.registerNewImplementations(3, impls3, signatures3);
+        CoreManager.registerNewImplementations(3, impls3);
 
-        FakeImplementation impl40 = new FakeImplementation(4, 0, new FakeResourceDescription(2));
+        FakeImplementation impl40 = new FakeImplementation(4, 0, "fakeSignature40", new FakeResourceDescription(2));
         List<Implementation> impls4 = new LinkedList<>();
         impls4.add(impl40);
-        List<String> signatures4 = new LinkedList<>();
-        signatures4.add("fakeSignature40");
-        CoreManager.registerNewImplementations(4, impls4, signatures4);
+        CoreManager.registerNewImplementations(4, impls4);
 
-        FakeImplementation impl50 = new FakeImplementation(5, 0, new FakeResourceDescription(1));
+        FakeImplementation impl50 = new FakeImplementation(5, 0, "fakeSignature50", new FakeResourceDescription(1));
         List<Implementation> impls5 = new LinkedList<>();
         impls5.add(impl50);
-        List<String> signatures5 = new LinkedList<>();
-        signatures5.add("fakeSignature50");
-        CoreManager.registerNewImplementations(5, impls5, signatures5);
+        CoreManager.registerNewImplementations(5, impls5);
 
-        FakeImplementation impl60 = new FakeImplementation(6, 0, new FakeResourceDescription(3));
+        FakeImplementation impl60 = new FakeImplementation(6, 0, "fakeSignature60", new FakeResourceDescription(3));
         List<Implementation> impls6 = new LinkedList<>();
         impls6.add(impl60);
-        List<String> signatures6 = new LinkedList<>();
-        signatures6.add("fakeSignature60");
-        CoreManager.registerNewImplementations(6, impls6, signatures6);
+        CoreManager.registerNewImplementations(6, impls6);
 
         int maxSlots = 4;
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);
@@ -157,7 +142,7 @@ public class OptimizationTest {
     public void testDonorsAndReceivers() {
         ScheduleOptimizer so = new ScheduleOptimizer(ds);
 
-        long[] expectedEndTimes = new long[] { 35000, 20000, 15000, 50000, 40000, 1000 };
+        long[] expectedEndTimes = new long[]{35000, 20000, 15000, 50000, 40000, 1000};
         OptimizationWorker<?>[] optimizedWorkers = new OptimizationWorker[expectedEndTimes.length];
         for (int idx = 0; idx < expectedEndTimes.length; idx++) {
             int maxSlots = 1;
@@ -338,7 +323,7 @@ public class OptimizationTest {
         expectedReady.put(action3, 90l);
         Verifiers.verifyReadyActions(new PriorityQueue<>(readyActions), expectedReady);
 
-        AllocatableAction[] expectedSelectable = new AllocatableAction[] { action5, action6, action4 };
+        AllocatableAction[] expectedSelectable = new AllocatableAction[]{action5, action6, action4};
         Verifiers.verifyPriorityActions(new PriorityActionSet(selectableActions), expectedSelectable);
     }
 
@@ -463,7 +448,7 @@ public class OptimizationTest {
         expectedReady.put(action3, 90l);
         Verifiers.verifyReadyActions(new PriorityQueue<>(readyActions), expectedReady);
 
-        AllocatableAction[] expectedSelectable = new AllocatableAction[] { action5, action6, action4 };
+        AllocatableAction[] expectedSelectable = new AllocatableAction[]{action5, action6, action4};
         Verifiers.verifyPriorityActions(new PriorityActionSet(selectableActions), expectedSelectable);
     }
 
@@ -639,7 +624,6 @@ public class OptimizationTest {
          * 1 --> 3 --> 5 -->6 --> 8 -->9 ----->11 -->12 --> 13 2 --> 4 ┘ └->7 ┘ └->10 ---| └-----┘ | |
          * ------------------------------------------------------- 14┘ 15┘
          */
-
         drs1.clear();
 
         FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(0));
@@ -738,7 +722,7 @@ public class OptimizationTest {
         expectedReady.put(action11, 10_000l);
         expectedReady.put(action13, 12_000l);
         Verifiers.verifyReadyActions(new PriorityQueue<>(readyActions), expectedReady);
-        AllocatableAction[] expectedSelectable = new AllocatableAction[] { action3, action4, action10, action12 };
+        AllocatableAction[] expectedSelectable = new AllocatableAction[]{action3, action4, action10, action12};
         Verifiers.verifyPriorityActions(new PriorityActionSet(selectableActions), expectedSelectable);
 
         PriorityQueue<AllocatableAction> donationActions = new PriorityQueue<>(1,

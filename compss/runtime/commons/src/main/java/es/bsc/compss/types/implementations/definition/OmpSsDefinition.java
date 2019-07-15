@@ -39,7 +39,7 @@ public class OmpSsDefinition extends ImplementationDefinition<MethodResourceDesc
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new OmpSsImplementation(binary, workingDir, coreId, implId, this.getConstraints());
+        return new OmpSsImplementation(binary, workingDir, coreId, implId, this.getSignature(), this.getConstraints());
     }
 
     @Override

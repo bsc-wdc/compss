@@ -103,9 +103,9 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary, int numNodes, 
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
-            Object... parameters);
+    public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary,
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
+            int parameterCount, Object... parameters);
 
     /**
      * New Method Task for Loader.
@@ -178,8 +178,8 @@ public interface COMPSsRuntime {
     public void barrier(Long appId, boolean noMoreTasks);
 
    /**
-    * Freezes the task generation until all the tasks of the group have finished execution. The name of the group to wait is 
-    * given as a parameter.
+    * Freezes the task generation until all the tasks of the group have finished execution. The name of the group to 
+    * wait is given as a parameter.
     *
     * @param appId The application id.
     * @param groupName Name of the group to wait.
@@ -199,6 +199,7 @@ public interface COMPSsRuntime {
      * Creates a new task group
      *
      * @param groupName Group name.
+     * @param implicitBarrier {@literal true}, if the task group requires a barrier
      *
      */
     public void openTaskGroup(String groupName, boolean implicitBarrier);

@@ -54,12 +54,13 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      * @param mpiRunner Path to the MPI command.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param annot Method annotations.
+     * @param signature MPI method signature.
+     * @param annot MPI requirements.
      */
     public MPIImplementation(String binary, String workingDir, String mpiRunner, Integer coreId,
-            Integer implementationId, MethodResourceDescription annot) {
+            Integer implementationId, String signature, MethodResourceDescription annot) {
 
-        super(coreId, implementationId, annot);
+        super(coreId, implementationId, signature, annot);
 
         this.mpiRunner = mpiRunner;
         this.workingDir = workingDir;

@@ -51,12 +51,13 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      * @param mpiRunner Path to the MPI command.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param requirements Method annotations.
+     * @param signature Method signature.
+     * @param requirements Method requirements.
      */
     public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
-            Integer coreId, Integer implementationId, MethodResourceDescription requirements) {
+            Integer coreId, Integer implementationId, String signature, MethodResourceDescription requirements) {
 
-        super(coreId, implementationId, requirements);
+        super(coreId, implementationId, signature, requirements);
 
         this.declaringClass = methodClass;
         this.alternativeMethod = altMethodName;

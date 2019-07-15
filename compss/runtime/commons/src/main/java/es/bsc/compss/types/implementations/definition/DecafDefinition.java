@@ -46,7 +46,7 @@ public class DecafDefinition extends ImplementationDefinition<MethodResourceDesc
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, coreId, implId,
-                this.getConstraints());
+                this.getSignature(), this.getConstraints());
     }
 
     @Override

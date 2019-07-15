@@ -165,6 +165,21 @@ class DDS(object):
 
         return self
 
+    def load_pickle_files(self, dir_path):
+        """
+
+        :param dir_path:
+        :return:
+        """
+
+        files = os.listdir(dir_path)
+        for _f in files:
+            file_name = os.path.join(dir_path, _f)
+            _partition_loader = PickleLoader(file_name)
+            self.partitions.append(_partition_loader)
+
+        return self
+
     def union(self, *args):
         """
         Combine this data set with some other DDS data.

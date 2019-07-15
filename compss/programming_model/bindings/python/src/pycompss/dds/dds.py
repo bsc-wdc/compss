@@ -17,6 +17,7 @@
 import bisect
 import itertools
 import os
+import pickle
 from collections import deque, defaultdict
 
 from pycompss.api.api import compss_barrier
@@ -457,6 +458,19 @@ class DDS(object):
             file_name = os.path.join(path, str(id(partition)))
             with open(file_name, "w") as _:
                 _.write("\n".join([str(item) for item in partition]))
+            return list()
+
+        self.map_partitions(_write).count()
+
+    def save_as_pickle(self, path):
+        """
+
+        :param path:
+        :return:
+        """
+        def _write(partition):
+            file_name = os.path.join(path, str(id(partition)))
+            pickle.dump(partition, open(file_name, "wb"))
             return list()
 
         self.map_partitions(_write).count()

@@ -28,7 +28,7 @@ PyCOMPSs Persistent Worker
 #####################
 EXECUTE_TASK_TAG = "EXECUTE_TASK"               # -- "task" taskId jobOut jobErr task_params
 END_TASK_TAG = "END_TASK"                       # -- "endTask" taskId endStatus
-COMPSS_EXCEPTION_TAG = "COMPSS_EXCEPTION"   # -- "compssException" taskId exception_message
+COMPSS_EXCEPTION_TAG = "COMPSS_EXCEPTION"       # -- "compssException" taskId exception_message
 ERROR_TASK_TAG = "ERROR_TASK"
 ERROR_TAG = "ERROR"                             # -- "error" [MESSAGE EXPECTED]
 PING_TAG = "PING"                               # -- "ping"

@@ -1,4 +1,4 @@
-package testTaskGroups;
+package testTimeOut;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -6,12 +6,39 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.Thread;
 
-public class TestTaskGroupsImpl {
+import es.bsc.compss.worker.COMPSsWorker;
 
-    public static void writeTwo(String fileName) {
-        writeFile(fileName, String.valueOf(2));
-        System.out.println("2 written");
+public class TestTimeOutImpl {
+
+    public static void timeOutTaskFast(String filename) throws Exception {
+        String contents = "";
+        try {
+            Thread.sleep(1000);
+            writeFile(filename, String.valueOf(5));
+            contents = readFile(filename);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        System.out.println("File contents : " + contents);
+        System.out.println("Before cancellation point");
+        // Cancellation point to check time out
+        COMPSsWorker.cancellationPoint();
+        System.out.println("After the cancellation point");
+    }
+    
+    public static void timeOutTaskSlow(String filename) throws Exception {
+        try {
+            Thread.sleep(5000);
+            writeFile(filename, String.valueOf(6));
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        System.out.println("Before cancellation point");
+        // Cancellation point to check time out
+        COMPSsWorker.cancellationPoint();
+        System.out.println("After the cancellation point");
     }
     
     public static void writeFile (String fileName, String i) {

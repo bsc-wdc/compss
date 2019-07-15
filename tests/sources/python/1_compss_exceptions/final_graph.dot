@@ -1,0 +1,91 @@
+digraph {
+  rankdir=TB;
+  labeljust="l";
+  compound= true;
+  subgraph dependence_graph {
+    ranksep=0.20;
+    node[height=0.75];
+
+Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor="#FFFFFF"];
+subgraph clusterTasksexceptionGroup1 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="exceptionGroup1";
+
+1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+Synchro0 -> 1 [label="d1v1"];
+2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+1 -> 2 [label="d1v2"];
+3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+2 -> 3 [label="d1v3"];
+}
+
+Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro0 -> Synchro1 [color=grey];
+3 -> Synchro1 [color=grey];
+4[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro1 -> 4 [label="d1v2"];
+5[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+4 -> 5 [label="d1v3"];
+subgraph clusterTasksexceptionGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="exceptionGroup2";
+
+6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+5 -> 6 [label="d1v4"];
+7[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+6 -> 7 [label="d1v5"];
+8[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+7 -> 8 [label="d1v6"];
+}
+
+Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro1 -> Synchro2 [color=grey];
+8 -> Synchro2 [color=grey];
+9[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro2 -> 9 [label="d1v5"];
+10[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+9 -> 10 [label="d1v6"];
+subgraph clusterTasksexceptionGroup3 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="exceptionGroup3";
+
+11[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+10 -> 11 [label="d1v7"];
+12[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+11 -> 12 [label="d1v8"];
+13[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+12 -> 13 [label="d1v9"];
+}
+
+Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro2 -> Synchro3 [color=grey];
+13 -> Synchro3 [color=grey];  }
+  subgraph legend {
+    rank=sink;
+    node [shape=plaintext, height=0.75];
+    ranksep=0.20;
+    label = "Legend";
+    key [label=<
+      <table border="0" cellpadding="2" cellspacing="0" cellborder="1">
+<tr>
+<td align="right">testCOMPSsExceptions.write_three</td>
+<td bgcolor="#0000ff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">testCOMPSsExceptions.write_two</td>
+<td bgcolor="#ffffff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">testCOMPSsExceptions.write_one</td>
+<td bgcolor="#ff0000">&nbsp;</td>
+</tr>
+      </table>
+    >]
+  }
+}

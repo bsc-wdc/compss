@@ -1,0 +1,57 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Do not check standard out/err status since test must fail
+  # Do not check unit tests status since test must fail
+
+  #----------------------------------------------------------------------------------
+
+  # Check that ErrorManager has raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+       echo "[RESULT_CHECKER] ErrorManager raised and ERROR as expected" | tee -a "${output_file}"
+    else
+      echo "[ERROR] ErrorManager did not raise any error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] ErrorManager did not raise any error" | tee -a "${output_file}"
+    exit 1
+  fi
+
+ #----------------------------------------------------------------------------------
+  # Compute result status
+  FILES=3
+  resultN=2
+  FAILED=1
+
+  # Checks if the failed task has been executed through the creation of a job for each
+  if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
+    echo "ERROR: All tasks have not completed succesfully."
+    exit 1
+  fi
+
+  if [ -f "${target_log_folder}/jobs/job$((FILES+1))_NEW.out" ]; then
+    echo "ERROR: More tasks than expected have been executed."
+    exit 1
+  fi
+
+  # Check if the tasks have failed
+  output1=$(grep -c "Task failure:" "${runtime_log}")
+  if [ "${output1}" -ne "${FAILED}" ]; then
+  	echo "ERROR: The number of failed tasks is not correct."
+  	exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # ALL OK. Report result status
+  exit 0

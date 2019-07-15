@@ -4,7 +4,6 @@
   output_file=$1
   error_file=$2
   target_log_folder=$3
-  final_graph_expected=$4
 
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
@@ -46,7 +45,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=32
+  FILES=2
 
   # Checks if the file has been written as many times as expected
   result=$(cat /tmp/sharedDisk/taskGroups.txt)
@@ -66,13 +65,11 @@
     exit 1
   fi
   
-  #----------------------------------------------------------------------------------
-  # Check dot file
-  final_graph_got=${target_log_folder}/monitor/complete_graph.dot
-  graph_status=$(diff -U 0 "${final_graph_expected}" "${final_graph_got}" | grep -v ^@ | grep -v "#" | tail -n+3)
-  if [ ! -z "${graph_status}" ]; then
-    echo "[ERROR] Obtained graph file is not as expected" | tee -a "${output_file}"
-    exit 1
+  # Check if the tasks have failed
+  output1=$(grep -c "Task failure:" "${runtime_log}")
+  if [ "${output1}" -ne 1 ]; then
+  	echo "ERROR: The number of failed tasks is not correct."
+  	exit 1
   fi
 
   #---------------------------------------------------------------------------------- 

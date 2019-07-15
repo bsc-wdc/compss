@@ -46,7 +46,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=32
+  FILES=6
 
   # Checks if the file has been written as many times as expected
   result=$(cat /tmp/sharedDisk/taskGroups.txt)
@@ -64,6 +64,20 @@
   if [ -f "${target_log_folder}/jobs/job$((FILES+1))_NEW.out" ]; then
     echo "ERROR: More tasks than expected have been executed."
     exit 1
+  fi
+  
+  # Check if all successors have been canceled
+  output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
+  if [ "${output1}" -ne 4 ]; then
+  	echo "ERROR: The number of canceled tasks is not correct."
+  	exit 1
+  fi
+
+  # Check if the tasks have failed
+  output1=$(grep -c "COMPSs Exception raised :" "${runtime_log}")
+  if [ "${output1}" -ne 2 ]; then
+  	echo "ERROR: The number of COMPSsExceptions raised is not correct."
+  	exit 1
   fi
   
   #----------------------------------------------------------------------------------

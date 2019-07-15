@@ -1,4 +1,4 @@
-package testTaskGroups;
+package testCOMPSsExceptions;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,11 +7,30 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class TestTaskGroupsImpl {
+import es.bsc.compss.worker.COMPSsException;
 
-    public static void writeTwo(String fileName) {
-        writeFile(fileName, String.valueOf(2));
-        System.out.println("2 written");
+public class TestCOMPSsExceptionsImpl {
+    
+    public static void writeOne(String fileName) throws COMPSsException {
+        System.out.println("Filename: " + fileName);
+        writeFile(fileName, String.valueOf(1));
+        System.out.println("1 written");
+        String contents = readFile(fileName);
+        System.out.println(contents);
+        //COMPSsException raised
+        throw (new COMPSsException("Exception from write one"));
+    }
+    
+    public static void writeThree(String fileName) {
+        writeFile(fileName, String.valueOf(3));
+        System.out.println("3 written");
+    }
+
+    public static void writeFour(String fileName) {
+        writeFile(fileName, String.valueOf(4));
+        System.out.println("4 written");
+        String contents = readFile(fileName);
+        System.out.println(contents);
     }
     
     public static void writeFile (String fileName, String i) {
@@ -49,7 +68,6 @@ public class TestTaskGroupsImpl {
             try {
                 br.close();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }

@@ -83,13 +83,13 @@
 
   # Check if all successors have been canceled
   output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
-  if [ ${output1} -ne 4 ]; then
+  if [ "${output1}" -ne 4 ]; then
   	echo "ERROR: The number of canceled tasks is not correct."
   	exit 1
   fi
 
   # Check if the tasks have failed
-  output1=$(grep -c "OMPSs Exception raised :" "${runtime_log}")
+  output1=$(grep -c "COMPSs Exception raised :" "${runtime_log}")
   if [ "${output1}" -ne 2 ]; then
   	echo "ERROR: The number of COMPSsExceptions raised is not correct."
   	exit 1

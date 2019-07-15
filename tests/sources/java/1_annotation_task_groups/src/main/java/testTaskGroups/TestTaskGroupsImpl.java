@@ -30,13 +30,7 @@ public class TestTaskGroupsImpl {
         System.out.println("1 written");
         String contents = readFile(fileName);
         System.out.println(contents);
-//        try {
-//            Thread.sleep(30000);
-//        } catch (InterruptedException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-        
+        //COMPSsException raised
         throw (new COMPSsException("Exception from write one"));
     }
     

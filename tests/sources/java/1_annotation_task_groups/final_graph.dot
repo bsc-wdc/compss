@@ -217,17 +217,38 @@ Synchro11 -> Synchro12 [color=grey];
 Synchro12 -> 36 [label="d1v34"];
 37[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 36 -> 37 [label="d1v35"];
-Synchro13[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro12 -> Synchro13;
-37 -> Synchro13 [label="d1v36"];
-38[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-Synchro13 -> 38 [label="d2v1"];
-39[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-38 -> 39 [label="d2v2"];
-40[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-39 -> 40 [label="d2v3"];
-41[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-40 -> 41 [label="d2v4"];  }
+subgraph clusterTasksFailedGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="FailedGroup2";
+
+38[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+37 -> 38 [label="d1v36"];
+39[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+38 -> 39 [label="d1v37"];
+40[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+39 -> 40 [label="d1v38"];
+}
+
+Synchro13[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro12 -> Synchro13 [color=grey];
+40 -> Synchro13 [color=grey];
+41[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
+Synchro13 -> 41 [label="d1v37"];
+42[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+41 -> 42 [label="d1v38"];
+Synchro14[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro13 -> Synchro14;
+42 -> Synchro14 [label="d1v39"];
+43[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+Synchro14 -> 43 [label="d2v1"];
+44[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+43 -> 44 [label="d2v2"];
+45[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+44 -> 45 [label="d2v3"];
+46[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+45 -> 46 [label="d2v4"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

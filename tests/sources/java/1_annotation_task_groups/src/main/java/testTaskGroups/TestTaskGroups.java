@@ -27,6 +27,9 @@ public class TestTaskGroups {
         System.out.println("[LOG] Test task group exceptions");
         testGroupExceptions();
         
+        System.out.println("[LOG] Test task group exceptions");
+        testGroupExceptionsBarrier();
+        
         COMPSs.getFile(FILE_NAME);
         
         System.out.println("[LOG] Test on failure ignore");
@@ -60,6 +63,26 @@ public class TestTaskGroups {
         }
     }
 
+    private static void testGroupExceptionsBarrier() throws InterruptedException {
+        try (COMPSsGroup a = new COMPSsGroup("FailedGroup2", false)){
+            System.out.println("Executing write One ");
+            for (int j=0; j<N; j++) {
+                TestTaskGroupsImpl.writeOne(FILE_NAME);
+           }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } 
+        //The group exception will be thrown from the barrier
+        try {
+            COMPSs.barrierGroup("FailedGroup2");
+        }catch (COMPSsException e) {
+            System.out.println("Exception caught in barrier!!");
+            TestTaskGroupsImpl.writeThree(FILE_NAME);
+        } finally {
+            TestTaskGroupsImpl.writeFour(FILE_NAME);
+        }
+    }
+    
     private static void testTaskGroups() throws Exception{
         // Check of nested groups
         try (COMPSsGroup group1 = new COMPSsGroup("BigGroup") ) {
@@ -72,11 +95,6 @@ public class TestTaskGroups {
                 }
             }
         } 
-//
-//        // Perform a barrier for every created group
-//        for (int i=0; i<N; i++) {
-//            COMPSs.barrierGroup("group"+i);
-//        }
         
         // Creation of individual group of M tasks
         try (COMPSsGroup group = new COMPSsGroup("SmallGroup", true)) {
@@ -118,7 +136,7 @@ public class TestTaskGroups {
         TestTaskGroupsImpl.timeOutTaskSlow(FILE_NAME);
     }
     
-
+    // Creation of a new blank file
     private static void newFile(String fileName, boolean create) throws IOException {
         File file = new File(fileName);
         // Delete previous occurrences of the file

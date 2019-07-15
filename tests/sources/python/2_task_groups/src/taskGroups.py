@@ -114,6 +114,7 @@ def test_exceptions_barrier(file_name):
         for i in range(NUM_TASKS):
             write_three(file_name)
     try:
+        # The barrier is not implicit and the exception is thrown
         compss_barrier_group(group_name)
     except COMPSsException:
         print("COMPSsException caught")

@@ -11,4 +11,8 @@ public interface OnFailureIgnoreItf {
 
     @Method(declaringClass = "onFailureIgnore.OnFailureIgnoreImpl", onFailure = OnFailure.IGNORE)
     void processParamIgnoreFailure(@Parameter(type = Type.FILE, direction = Direction.INOUT) String filename);
+
+    @Method(declaringClass = "onFailureIgnore.OnFailureIgnoreImpl", onFailure = OnFailure.IGNORE)
+    void processOutParamIgnoreFailure(@Parameter(type = Type.FILE, direction = Direction.OUT) String filename1,
+                                      @Parameter(type = Type.FILE, direction = Direction.OUT) String filename2);
 }

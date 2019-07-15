@@ -12,7 +12,7 @@ import os
 import time
 
 from pycompss.api.api import compss_wait_on
-from pycompss.api.parameter import FILE_INOUT, FILE_CONCURRENT
+from pycompss.api.parameter import FILE_OUT, FILE_INOUT, FILE_CONCURRENT
 from pycompss.api.task import task
 from pycompss.api.api import compss_open
 import sys
@@ -51,6 +51,9 @@ def write_file(file_path):
         print("EXCEPTION")
         raise ServiceExit()
 
+@task(file_path=FILE_OUT, on_failure='IGNORE')
+def raise_failure_with_out(file_path):
+    print("Nothing done")
 
 def test_on_failure_retry(file_name):
     # Clean previous ocurrences of the file
@@ -83,9 +86,12 @@ def test_on_failure_retry(file_name):
 
 def main():
     file_name1 = STORAGE_PATH + "file1.txt"
-
+    file_name2 = STORAGE_PATH + "fileOut.txt"
     print("[LOG] Test IGNORE")
     test_on_failure_retry(file_name1)
+    raise_failure_with_out(file_name2)
+
+
 
 
 if __name__ == '__main__':

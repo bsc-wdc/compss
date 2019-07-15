@@ -14,6 +14,8 @@ import java.util.ArrayList;
 public class OnFailureIgnore {
 
     private static final String FILE_NAME = "/tmp/sharedDisk/onFailure1.txt";
+    private static final String FILEOUT_NAME1 = "/tmp/sharedDisk/onFailureOut1.txt";
+    private static final String FILEOUT_NAME2 = "/tmp/sharedDisk/onFailureOut2.txt";
     private static final int M = 5; // number of tasks to be executed
 
 
@@ -22,6 +24,7 @@ public class OnFailureIgnore {
         // Failure ignored behavior
         System.out.println("Init on failure : IGNORE FAILURE");
         try {
+            onIgnoreFailureFileOutNotGenerated();
             onIgnoreFailure();
         } catch (numberException e) {
             catchException(e);
@@ -30,6 +33,13 @@ public class OnFailureIgnore {
             e.printStackTrace();
         }
 
+    }
+
+    private static void onIgnoreFailureFileOutNotGenerated() throws numberException {
+        deleteFile(FILEOUT_NAME1);
+        deleteFile(FILEOUT_NAME2);
+        OnFailureIgnoreImpl.processOutParamIgnoreFailure(FILEOUT_NAME1, FILEOUT_NAME2);
+        COMPSs.barrier();
     }
 
     // Ignore the task failure and continue with other tasks execution
@@ -72,13 +82,13 @@ public class OnFailureIgnore {
 
         // Check result
         try {
-            if (process.waitFor() == 0) {
-                System.exit(0);
+            if (process.waitFor() != 0) {
+                System.out.println("Error: Process cat return value different from 0");
+                System.exit(1);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.exit(1);
     }
 
     private static void readContents(Process process) throws Exception {
@@ -135,6 +145,14 @@ public class OnFailureIgnore {
         boolean createdFile = file.createNewFile();
         if (!createdFile) {
             throw new IOException("[ERROR] Cannot create test file");
+        }
+    }
+    
+    private static void deleteFile(String fileName) {
+        File file = new File(fileName);
+        // Delete previous occurrences of the file
+        if (file.exists()) {
+            file.delete();
         }
     }
 

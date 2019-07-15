@@ -510,14 +510,46 @@ public class Executor implements Runnable {
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
+        String message = null;
+        boolean failure = false;
         for (InvocationParam param : invocation.getParams()) {
-            unbindOriginalFilenameToRename(param, invocation.getLang());
+            try {
+                unbindOriginalFilenameToRename(param, invocation.getLang());
+            } catch(JobExecutionException e ) {
+                if (!failure) {
+                    message = e.getMessage();
+                }else {
+                    message = message.concat("\n"+e.getMessage());
+                }
+                failure = true;
+            }
         }
         if (invocation.getTarget() != null) {
-            unbindOriginalFilenameToRename(invocation.getTarget(), invocation.getLang());
+            try {
+                unbindOriginalFilenameToRename(invocation.getTarget(), invocation.getLang());
+            } catch(JobExecutionException e ) {
+                if (!failure) {
+                    message = e.getMessage();
+                }else {
+                    message = message.concat("\n"+e.getMessage());
+                }
+                failure = true;
+            }   
         }
         for (InvocationParam param : invocation.getResults()) {
-            unbindOriginalFilenameToRename(param, invocation.getLang());
+            try {
+                unbindOriginalFilenameToRename(param, invocation.getLang());
+            } catch(JobExecutionException e ) {
+                if (!failure) {
+                    message = e.getMessage();
+                }else {
+                    message = message.concat("\n"+e.getMessage());
+                }
+                failure = true;
+            }
+        }
+        if (failure) {
+            throw new JobExecutionException(message);
         }
     }
 
@@ -565,6 +597,8 @@ public class Executor implements Runnable {
                         String msg = "ERROR: Output file " + inSandboxFile.toPath() + " does not exist";
                         // Unexpected case (except for C binding when not serializing outputs)
                         if (lang != Lang.C) {
+                            LOGGER.debug("Generating empty renamed file (" + renamedFilePath + ") for on_failure management");
+                            renamedFile.createNewFile();
                             LOGGER.error(msg);
                             System.err.println(msg);
                             throw new JobExecutionException(msg);

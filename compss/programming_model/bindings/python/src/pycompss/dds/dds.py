@@ -447,6 +447,20 @@ class DDS(object):
                 ret.append(list(_pp))
         return ret
 
+    def save_as_text_file(self, path):
+        """
+        :param path:
+        :return:
+        """
+
+        def _write(partition):
+            file_name = os.path.join(path, str(id(partition)))
+            with open(file_name, "w") as _:
+                _.write("\n".join([str(item) for item in partition]))
+            return list()
+
+        self.map_partitions(_write).count()
+
     """
     Functions for (Key, Value) pairs.
     """

@@ -222,7 +222,7 @@ if context.in_pycompss():
 
 
     class TaskGroup(object):
-        def __init__(self, group_name, implicit_barrier):
+        def __init__(self, group_name, implicit_barrier=True):
             self.group_name = group_name
             self.implicit_barrier = implicit_barrier
 

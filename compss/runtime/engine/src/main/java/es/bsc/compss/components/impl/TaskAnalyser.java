@@ -557,9 +557,6 @@ public class TaskAnalyser {
                 this.dip.dataAccessHasBeenCanceled(dAccId);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);
-                if (p instanceof DependencyParameter) {
-                    int dataId = ((DependencyParameter) p).getDataAccessId().getDataId();
-                }
             }
         }
     }

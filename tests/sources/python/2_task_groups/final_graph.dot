@@ -107,7 +107,28 @@ Synchro5 -> Synchro6 [color=grey];
 18[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 Synchro6 -> 18 [label="d1v14"];
 19[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-18 -> 19 [label="d1v15"];  }
+18 -> 19 [label="d1v15"];
+subgraph clusterTasksexceptionGroup {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="exceptionGroup";
+
+20[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+19 -> 20 [label="d1v16"];
+21[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+20 -> 21 [label="d1v17"];
+22[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+21 -> 22 [label="d1v18"];
+}
+
+Synchro7[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro6 -> Synchro7 [color=grey];
+22 -> Synchro7 [color=grey];
+23[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro7 -> 23 [label="d1v17"];
+24[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+23 -> 24 [label="d1v18"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

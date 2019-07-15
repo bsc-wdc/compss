@@ -85,11 +85,11 @@ Synchro3 -> Synchro4 [color=grey];
 
 Synchro5[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro4 -> Synchro5 [color=grey];
-subgraph clusterTasksGroup1 {
+subgraph clusterTasksSmallGroup {
 shape=rect;
 node[height=0.75];
 color="#A9A9A9"; 
-label="Group1";
+label="SmallGroup";
 
 13[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
 Synchro5 -> 13 [label="d1v13"];
@@ -104,38 +104,130 @@ Synchro5 -> 13 [label="d1v13"];
 Synchro6[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro5 -> Synchro6 [color=grey];
 16 -> Synchro6 [color=grey];
+subgraph clusterTasksBigGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="BigGroup2";
+
+subgraph clusterTasksgroup4 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group4";
+
+17[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+Synchro6 -> 17 [label="d1v17"];
+18[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+17 -> 18 [label="d1v18"];
+19[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+18 -> 19 [label="d1v19"];
+}
+
+subgraph clusterTasksgroup5 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group5";
+
+20[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+19 -> 20 [label="d1v20"];
+21[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+20 -> 21 [label="d1v21"];
+22[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+21 -> 22 [label="d1v22"];
+}
+
+subgraph clusterTasksgroup6 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group6";
+
+23[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+22 -> 23 [label="d1v23"];
+24[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+23 -> 24 [label="d1v24"];
+25[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+24 -> 25 [label="d1v25"];
+}
+
+subgraph clusterTasksgroup7 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group7";
+
+26[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+25 -> 26 [label="d1v26"];
+27[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+26 -> 27 [label="d1v27"];
+28[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+27 -> 28 [label="d1v28"];
+}
+
+}
+
+Synchro7[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro6 -> Synchro7 [color=grey];
+28 -> Synchro7 [color=grey];
+Synchro8[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro7 -> Synchro8 [color=grey];
+Synchro9[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro8 -> Synchro9 [color=grey];
+Synchro10[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro9 -> Synchro10 [color=grey];
+subgraph clusterTasksSmallGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="SmallGroup2";
+
+29[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+Synchro10 -> 29 [label="d1v29"];
+30[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+29 -> 30 [label="d1v30"];
+31[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+30 -> 31 [label="d1v31"];
+32[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+31 -> 32 [label="d1v32"];
+}
+
+Synchro11[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro10 -> Synchro11 [color=grey];
+32 -> Synchro11 [color=grey];
 subgraph clusterTasksFailedGroup {
 shape=rect;
 node[height=0.75];
 color="#A9A9A9"; 
 label="FailedGroup";
 
-17[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-Synchro6 -> 17 [label="d1v17"];
-18[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-17 -> 18 [label="d1v18"];
-19[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
-18 -> 19 [label="d1v19"];
+33[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+Synchro11 -> 33 [label="d1v33"];
+34[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+33 -> 34 [label="d1v34"];
+35[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+34 -> 35 [label="d1v35"];
 }
 
-Synchro7[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro6 -> Synchro7 [color=grey];
-19 -> Synchro7 [color=grey];
-20[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
-Synchro7 -> 20 [label="d1v18"];
-21[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-20 -> 21 [label="d1v19"];
-Synchro8[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro7 -> Synchro8;
-21 -> Synchro8 [label="d1v20"];
-22[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-Synchro8 -> 22 [label="d2v1"];
-23[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-22 -> 23 [label="d2v2"];
-24[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-23 -> 24 [label="d2v3"];
-25[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-24 -> 25 [label="d2v4"];  }
+Synchro12[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro11 -> Synchro12 [color=grey];
+35 -> Synchro12 [color=grey];
+36[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
+Synchro12 -> 36 [label="d1v34"];
+37[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+36 -> 37 [label="d1v35"];
+Synchro13[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro12 -> Synchro13;
+37 -> Synchro13 [label="d1v36"];
+38[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
+Synchro13 -> 38 [label="d2v1"];
+39[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+38 -> 39 [label="d2v2"];
+40[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+39 -> 40 [label="d2v3"];
+41[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+40 -> 41 [label="d2v4"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

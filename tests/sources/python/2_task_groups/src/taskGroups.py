@@ -96,10 +96,9 @@ def test_time_out(file_name):
 
 
 def test_exceptions(file_name):
-
     try:
         # Creation of group
-        with TaskGroup('exceptionGroup', True):
+        with TaskGroup('exceptionGroup'):
             for i in range(NUM_TASKS):
                 write_three(file_name)
     except COMPSsException:
@@ -107,6 +106,19 @@ def test_exceptions(file_name):
         write_two(file_name)
     write_one(file_name)
 
+
+def test_exceptions_barrier(file_name):
+    group_name = 'exceptionGroup'
+    # Creation of group
+    with TaskGroup(group_name, False):
+        for i in range(NUM_TASKS):
+            write_three(file_name)
+    try:
+        compss_barrier_group(group_name)
+    except COMPSsException:
+        print("COMPSsException caught")
+        write_two(file_name)
+    write_one(file_name)
 
 def main():
     file_name1 = STORAGE_PATH + "taskGROUPS.txt"
@@ -121,6 +133,8 @@ def main():
     print("[LOG] Test EXCEPTIONS")
     test_exceptions(file_name1)
 
+    print("[LOG] Test EXCEPTIONS and BARRIERS")
+    test_exceptions_barrier(file_name1)
 
 
 if __name__ == '__main__':

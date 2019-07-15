@@ -40,6 +40,21 @@ public class COMPSsGroupLoader extends COMPSsGroup {
         this.api.openTaskGroup(this.groupName, implicitBarrier);
         this.appId = appId;
     }
+    
+    /**
+     * Creates a new COMPSs group for the loader.
+     * 
+     * @param api COMPSs Runtime API.
+     * @param appId Application Id.
+     * @param groupName Group name.
+     */
+    public COMPSsGroupLoader(COMPSsRuntime api, Long appId, String groupName) {
+        super(groupName);
+
+        this.api = api;
+        this.api.openTaskGroup(this.groupName, true);
+        this.appId = appId;
+    }
 
     @Override
     public void close() throws Exception {

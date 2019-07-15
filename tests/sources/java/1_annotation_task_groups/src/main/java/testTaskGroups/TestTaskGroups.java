@@ -21,6 +21,9 @@ public class TestTaskGroups {
         System.out.println("[LOG] Test task groups");
         testTaskGroups();
         
+        System.out.println("[LOG] Test task group exceptions with explicit barrier");
+        testTaskGroupsBarrier();
+        
         System.out.println("[LOG] Test task group exceptions");
         testGroupExceptions();
         
@@ -59,10 +62,10 @@ public class TestTaskGroups {
 
     private static void testTaskGroups() throws Exception{
         // Check of nested groups
-        try (COMPSsGroup group1 = new COMPSsGroup("BigGroup", true) ) {
+        try (COMPSsGroup group1 = new COMPSsGroup("BigGroup") ) {
             // Create several nested groups containing writing tasks
             for (int i=0; i<M; i++) {
-                try (COMPSsGroup n = new COMPSsGroup("group"+i, true)){
+                try (COMPSsGroup n = new COMPSsGroup("group"+i)){
                     for (int j=0; j<N; j++) {
                          TestTaskGroupsImpl.writeTwo(FILE_NAME);
                     }
@@ -76,7 +79,33 @@ public class TestTaskGroups {
 //        }
         
         // Creation of individual group of M tasks
-        try (COMPSsGroup group = new COMPSsGroup("Group1", true)) {
+        try (COMPSsGroup group = new COMPSsGroup("SmallGroup", true)) {
+            for (int i=0; i < M; i++) {
+                TestTaskGroupsImpl.writeTwo(FILE_NAME);
+            }
+        }
+    }
+    
+    private static void testTaskGroupsBarrier() throws Exception{
+        // Check of nested groups
+        try (COMPSsGroup group1 = new COMPSsGroup("BigGroup2", false) ) {
+            // Create several nested groups containing writing tasks
+            for (int i=4; i<M*2; i++) {
+                try (COMPSsGroup n = new COMPSsGroup("group"+i, false)){
+                    for (int j=0; j<N; j++) {
+                         TestTaskGroupsImpl.writeTwo(FILE_NAME);
+                    }
+                }
+            }
+        } 
+
+        // Perform a barrier for every created group
+        for (int i=4; i<M*2; i++) {
+            COMPSs.barrierGroup("group"+i);
+        }
+        
+        // Creation of individual group of M tasks
+        try (COMPSsGroup group = new COMPSsGroup("SmallGroup2", true)) {
             for (int i=0; i < M; i++) {
                 TestTaskGroupsImpl.writeTwo(FILE_NAME);
             }

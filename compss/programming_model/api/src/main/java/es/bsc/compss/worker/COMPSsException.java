@@ -34,12 +34,4 @@ public class COMPSsException extends Exception {
         super(errorMessage);
         this.errorMessage = errorMessage;
     }
-    
-    public String getMessage() {
-        return this.errorMessage;
-    }
-    
-    public String getName() {
-        return "COMPSsException";
-    }
 }

@@ -64,7 +64,7 @@ public class OnFailureIgnoreImpl {
         failOnce(n);
     }
 
-    public static void processOutParamIgnoreFailure(String fileoutName) throws numberException{
+    public static void processOutParamIgnoreFailure(String fileoutName1, String fileOut2) throws numberException{
         
         
     }

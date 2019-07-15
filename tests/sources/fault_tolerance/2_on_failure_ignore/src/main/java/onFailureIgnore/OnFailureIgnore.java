@@ -14,7 +14,8 @@ import java.util.ArrayList;
 public class OnFailureIgnore {
 
     private static final String FILE_NAME = "/tmp/sharedDisk/onFailure1.txt";
-    private static final String FILEOUT_NAME = "/tmp/sharedDisk/onFailureOut.txt";
+    private static final String FILEOUT_NAME1 = "/tmp/sharedDisk/onFailureOut1.txt";
+    private static final String FILEOUT_NAME2 = "/tmp/sharedDisk/onFailureOut2.txt";
     private static final int M = 5; // number of tasks to be executed
 
 
@@ -35,8 +36,9 @@ public class OnFailureIgnore {
     }
 
     private static void onIgnoreFailureFileOutNotGenerated() throws numberException {
-        deleteFile(FILEOUT_NAME);
-        OnFailureIgnoreImpl.processOutParamIgnoreFailure(FILEOUT_NAME);
+        deleteFile(FILEOUT_NAME1);
+        deleteFile(FILEOUT_NAME2);
+        OnFailureIgnoreImpl.processOutParamIgnoreFailure(FILEOUT_NAME1, FILEOUT_NAME2);
         COMPSs.barrier();
     }
 
@@ -80,13 +82,13 @@ public class OnFailureIgnore {
 
         // Check result
         try {
-            if (process.waitFor() == 0) {
-                System.exit(0);
+            if (process.waitFor() != 0) {
+                System.out.println("Error: Process cat return value different from 0");
+                System.exit(1);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.exit(1);
     }
 
     private static void readContents(Process process) throws Exception {

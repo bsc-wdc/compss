@@ -83,8 +83,8 @@ public class Task extends AbstractTask {
             OnFailure onFailure, int timeOut) {
 
         super(appId);
-        int coreId = CoreManager.getCoreId(signature);
-        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, coreId,
+        CoreElement core = CoreManager.getCore(signature);
+        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, core,
                 isPrioritary, numNodes, isReplicated, isDistributed,
                 hasTarget, numReturns, timeOut, parameters);
         this.taskMonitor = monitor;
@@ -116,13 +116,13 @@ public class Task extends AbstractTask {
         super(appId);
         String signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget,
                 numReturns, parameters);
-        int coreId = CoreManager.getCoreId(signature);
+        CoreElement core = CoreManager.getCore(signature);
         
         int numNodes = Constants.SINGLE_NODE;
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
 
-        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, coreId,
+        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core,
                 isPrioritary, numNodes, isReplicated, isDistributed,
                 hasTarget, numReturns, timeOut, parameters);
         this.taskMonitor = monitor;
@@ -218,7 +218,7 @@ public class Task extends AbstractTask {
      * @return A list of all the commutative groups the task is part of.
      */
     public List<CommutativeGroupTask> getCommutativeGroupList() {
-        LinkedList<CommutativeGroupTask> commutativeGroupList = new LinkedList<CommutativeGroupTask>();
+        LinkedList<CommutativeGroupTask> commutativeGroupList = new LinkedList<>();
         for (Map.Entry<Integer, CommutativeGroupTask> entry : commutativeGroup.entrySet()) {
             CommutativeGroupTask comTask = entry.getValue();
             commutativeGroupList.add(comTask);
@@ -252,7 +252,7 @@ public class Task extends AbstractTask {
      * @return A string representing the description of the task in DOT format.
      */
     public String getDotDescription() {
-        int monitorTaskId = taskDescription.getCoreId() + 1; // Coherent with Trace.java
+        int monitorTaskId = taskDescription.getCoreElement().getCoreId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
         String shape;
@@ -307,7 +307,7 @@ public class Task extends AbstractTask {
      * @return The task color.
      */
     public String getColor() {
-        int monitorTaskId = this.taskDescription.getCoreId() + 1; // Coherent with Trace.java
+        int monitorTaskId = this.taskDescription.getCoreElement().getCoreId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
         return color.getFillColor();
     }

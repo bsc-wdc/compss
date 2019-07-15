@@ -21,75 +21,49 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.ErrorManager;
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 import java.util.List;
 
 
-public class TaskDescription implements Externalizable {
+public class TaskDescription {
 
-    /**
-     * Serializable objects Version UID are 1L in all Runtime.
-     */
-    private static final long serialVersionUID = 1L;
+    private final TaskType type;
+    private final Lang lang;
+    private final String signature;
+    private final CoreElement coreElement;
 
-    private TaskType type;
-    private Lang lang;
-    private String signature;
-    private Integer coreId;
-
-    private boolean priority;
-    private int numNodes;
-    private boolean mustReplicate;
-    private boolean mustDistribute;
-    private List<Parameter> parameters;
-    private boolean hasTarget;
-    private int numReturns;
-    private int timeOut;
-
-    /**
-     * No-parameter constructor only used for deserialization.
-     */
-    public TaskDescription() {
-        this.type = null;
-        this.lang = null;
-        this.signature = null;
-        this.coreId = null;
-        this.priority = false;
-        this.numNodes = 0;
-        this.mustReplicate = false;
-        this.mustDistribute = false;
-        this.parameters = null;
-        this.hasTarget = false;
-        this.numReturns = 0;
-    }
+    private final boolean priority;
+    private final int numNodes;
+    private final boolean mustReplicate;
+    private final boolean mustDistribute;
+    private final List<Parameter> parameters;
+    private final boolean hasTarget;
+    private final int numReturns;
+    private final int timeOut;
 
     /**
      * Task description constructor.
      *
-     * @param type Type of task.
-     * @param lang Method language.
-     * @param signature Method signature.
-     * @param coreId Core Id.
-     * @param isPrioritary Whether the method is prioritary or not.
-     * @param numNodes Number of nodes required for the method execution.
-     * @param isReplicated Whether the method is replicated or not.
+     * @param type          Type of task.
+     * @param lang          Method language.
+     * @param signature     Method signature.
+     * @param coreElement   Core Element to execute.
+     * @param isPrioritary  Whether the method is prioritary or not.
+     * @param numNodes      Number of nodes required for the method execution.
+     * @param isReplicated  Whether the method is replicated or not.
      * @param isDistributed Whether the method is distributed or not.
-     * @param hasTarget Whether the method has a target parameter or not.
-     * @param numReturns Number of return values.
-     * @param parameters Number of parameters.
+     * @param hasTarget     Whether the method has a target parameter or not.
+     * @param numReturns    Number of return values.
+     * @param parameters    Number of parameters.
      */
-    public TaskDescription(TaskType type, Lang lang, String signature, int coreId, boolean isPrioritary, int numNodes,
+    public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
             int timeOut, List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;
         this.signature = signature;
-        this.coreId = coreId;
+        this.coreElement = coreElement;
 
         this.priority = isPrioritary;
         this.numNodes = numNodes;
@@ -107,12 +81,12 @@ public class TaskDescription implements Externalizable {
     }
 
     /**
-     * Returns the task id.
+     * Returns the Core Element to execute to run the task.
      *
-     * @return The task Id.
+     * @return Core Element to execute to run the task.
      */
-    public Integer getCoreId() {
-        return this.coreId;
+    public CoreElement getCoreElement() {
+        return this.coreElement;
     }
 
     /**
@@ -220,10 +194,10 @@ public class TaskDescription implements Externalizable {
     public TaskType getType() {
         return this.type;
     }
-    
+
     /**
      * Returns the set time out.
-     * 
+     *
      * @return The time out.
      */
     public int getTimeOut() {
@@ -234,7 +208,7 @@ public class TaskDescription implements Externalizable {
     public String toString() {
         StringBuilder buffer = new StringBuilder();
 
-        buffer.append("[Core id: ").append(this.coreId).append("]");
+        buffer.append("[Core id: ").append(this.coreElement.getCoreId()).append("]");
 
         buffer.append(", [Priority: ").append(this.priority).append("]");
         buffer.append(", [NumNodes: ").append(this.numNodes).append("]");
@@ -256,41 +230,6 @@ public class TaskDescription implements Externalizable {
         buffer.append(")]");
 
         return buffer.toString();
-    }
-
-    @Override
-    public void writeExternal(ObjectOutput oo) throws IOException {
-        oo.writeInt(type.ordinal());
-        oo.writeInt(lang.ordinal());
-        oo.writeUTF(signature);
-        oo.writeObject(coreId);
-
-        oo.writeBoolean(priority);
-        oo.writeInt(numNodes);
-        oo.writeBoolean(mustReplicate);
-        oo.writeBoolean(mustDistribute);
-
-        oo.writeObject(parameters);
-        oo.writeBoolean(hasTarget);
-        oo.writeInt(numReturns);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void readExternal(ObjectInput oi) throws IOException, ClassNotFoundException {
-        this.type = TaskType.values()[oi.readInt()];
-        this.lang = Lang.values()[oi.readInt()];
-        this.signature = oi.readUTF();
-        this.coreId = (Integer) oi.readObject();
-
-        this.priority = oi.readBoolean();
-        this.numNodes = oi.readInt();
-        this.mustReplicate = oi.readBoolean();
-        this.mustDistribute = oi.readBoolean();
-
-        this.parameters = (List<Parameter>) oi.readObject();
-        this.hasTarget = oi.readBoolean();
-        this.numReturns = oi.readInt();
     }
 
 }

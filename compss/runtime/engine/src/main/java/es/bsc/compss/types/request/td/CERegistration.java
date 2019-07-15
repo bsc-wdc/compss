@@ -17,6 +17,7 @@
 package es.bsc.compss.types.request.td;
 
 import es.bsc.compss.components.impl.TaskScheduler;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
@@ -29,7 +30,6 @@ public class CERegistration extends TDRequest {
 
     private final CoreElementDefinition ced;
     private final Semaphore sem;
-
 
     /**
      * Creates a new CoreElement registration request.
@@ -53,7 +53,8 @@ public class CERegistration extends TDRequest {
 
     @Override
     public void process(TaskScheduler ts) {
-        int coreId = CoreManager.registerNewCoreElement(ced);
+        CoreElement ce = CoreManager.registerNewCoreElement(ced);
+        int coreId = ce.getCoreId();
         // Update the Resources structures
         LinkedList<Integer> newCores = new LinkedList<>();
         newCores.add(coreId);

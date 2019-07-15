@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 import es.bsc.compss.scheduler.multiobjective.MOResourceScheduler;
 import es.bsc.compss.scheduler.multiobjective.types.MOProfile;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -69,7 +70,6 @@ public class MOResourceSchedulerTest {
     // Test Logger
     private static final Logger LOGGER = LogManager.getLogger("Console");
 
-
     @BeforeClass
     public static void setUpClass() {
         LOGGER.info("Setup Class");
@@ -79,8 +79,8 @@ public class MOResourceSchedulerTest {
         MethodResourceDescription description = new MethodResourceDescription();
         description.addProcessor(p);
         worker = new FakeWorker(description, 4);
-
-        int coreId = CoreManager.registerNewCoreElement("methodA");
+        CoreElement ce = CoreManager.registerNewCoreElement("methodA");
+        int coreId = ce.getCoreId();
         LinkedList<Implementation> impls = new LinkedList<>();
         LinkedList<String> signs = new LinkedList<>();
         Implementation impl = new MethodImplementation("ClassA", "methodA", coreId, 0, new MethodResourceDescription());
@@ -91,7 +91,8 @@ public class MOResourceSchedulerTest {
         signs.add("ClassB.methodA");
         CoreManager.registerNewImplementations(coreId, impls, signs);
 
-        coreId = CoreManager.registerNewCoreElement("methodB");
+        ce = CoreManager.registerNewCoreElement("methodB");
+        coreId = ce.getCoreId();
         impls = new LinkedList<>();
         signs = new LinkedList<>();
         impl = new MethodImplementation("ClassA", "methodB", coreId, 0, new MethodResourceDescription());
@@ -321,7 +322,6 @@ public class MOResourceSchedulerTest {
         private static final long serialVersionUID = 2L;
 
         private final String feature;
-
 
         public CheckerException(String feature) {
             this.feature = feature;

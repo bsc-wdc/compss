@@ -34,6 +34,7 @@ import es.bsc.compss.scheduler.types.fake.FakeProfile;
 import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
 import es.bsc.compss.scheduler.types.fake.FakeResourceScheduler;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -72,7 +73,6 @@ public class ScoresTest {
     private static long CORE4_0;
     private static long CORE4_1;
 
-
     public ScoresTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
@@ -94,7 +94,6 @@ public class ScoresTest {
 
         // TODO: Comm should be initialized?
         // Comm.init();
-
         ds = new FullGraphScheduler();
 
         FakeImplementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
@@ -223,8 +222,8 @@ public class ScoresTest {
                 Constants.PREFIX_EMPTY, "dp2");
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
-        TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", 0, false,
-                Constants.SINGLE_NODE, false, false, false, 0, 0, Arrays.asList(dpD1V1, dpD2V2));
+        TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""),
+                false, Constants.SINGLE_NODE, false, false, false, 0, 0, Arrays.asList(dpD1V1, dpD2V2));
 
         FullGraphScore actionScore = (FullGraphScore) ds.generateActionScore(action1);
 
@@ -253,8 +252,8 @@ public class ScoresTest {
         drs1.clear();
         // No resources and no dependencies
         FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
-        TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", 0, false,
-                Constants.SINGLE_NODE, false, false, false, 0, 0, new LinkedList<Parameter>());
+        TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""), false,
+                Constants.SINGLE_NODE, false, false, false, 0, 0, new LinkedList<>());
         FullGraphScore score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
 

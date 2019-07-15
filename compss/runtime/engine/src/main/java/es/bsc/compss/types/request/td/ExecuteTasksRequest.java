@@ -61,7 +61,7 @@ public class ExecuteTasksRequest extends TDRequest {
 
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
-        int coreId = this.task.getTaskDescription().getCoreId();
+        int coreId = this.task.getTaskDescription().getCoreElement().getCoreId();
         if (DEBUG) {
             LOGGER.debug("Treating Scheduling request for task " + this.task.getId() + "(core " + coreId + ")");
         }
@@ -94,7 +94,7 @@ public class ExecuteTasksRequest extends TDRequest {
             Collection<ResourceScheduler<? extends WorkerResourceDescription>> resources = ts.getWorkers();
             for (ResourceScheduler<? extends WorkerResourceDescription> rs : resources) {
                 // RS numTasks only considers MasterExecutionActions
-                int numTasks = rs.getNumTasks(this.task.getTaskDescription().getCoreId());
+                int numTasks = rs.getNumTasks(this.task.getTaskDescription().getCoreElement().getCoreId());
                 if (numTasks < minNumTasksOfSameType) {
                     minNumTasksOfSameType = numTasks;
                     selectedResource = rs;

@@ -19,6 +19,7 @@ package es.bsc.compss.util;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.exceptions.LangNotDefinedException;
 import es.bsc.compss.types.exceptions.UndefinedConstraintsSourceException;
@@ -45,14 +46,15 @@ public class CEIParser {
         if (langProperty != null) {
             if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
                 l = Lang.PYTHON;
-            } else if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.C.name())) {
-                l = Lang.C;
+            } else {
+                if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.C.name())) {
+                    l = Lang.C;
+                }
             }
         }
 
         LANG = l;
     }
-
 
     /**
      * Parses the different interfaces.
@@ -95,7 +97,8 @@ public class CEIParser {
         List<Integer> updatedCEs = new LinkedList<>();
         List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(annotItfClass);
         for (CoreElementDefinition ced : ceds) {
-            Integer methodId = CoreManager.registerNewCoreElement(ced);
+            CoreElement ce = CoreManager.registerNewCoreElement(ced);
+            Integer methodId = ce.getCoreId();
             updatedCEs.add(methodId);
         }
         return updatedCEs;

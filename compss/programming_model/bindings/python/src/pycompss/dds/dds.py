@@ -167,8 +167,8 @@ class DDS(object):
 
     def load_pickle_files(self, dir_path):
         """
-
-        :param dir_path:
+        Load serialized partitions from pickle files.
+        :param dir_path: path to serialized partitions.
         :return:
         """
 
@@ -465,6 +465,8 @@ class DDS(object):
 
     def save_as_text_file(self, path):
         """
+        Save string representations of DDS elements as text files (one file per
+        partition).
         :param path:
         :return:
         """
@@ -479,7 +481,8 @@ class DDS(object):
 
     def save_as_pickle(self, path):
         """
-
+        Save partitions of this DDS as pickle files. Each partition is saved as
+        a separate file for the sake of parallelism.
         :param path:
         :return:
         """

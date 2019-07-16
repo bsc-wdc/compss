@@ -48,11 +48,6 @@ def _map_partition(f, partition):
 @task(returns=1)
 def _map_collection(f, *partition):
     """
-    Apply a function to a partition in a new task. The function should take an
-    iterable as the parameter and return a list.
-    :param f: A function that takes an iterable as a parameter
-    :param partition: partition generator
-    :return: future object of the list containing results
     """
     res = f(list(partition))
     return res

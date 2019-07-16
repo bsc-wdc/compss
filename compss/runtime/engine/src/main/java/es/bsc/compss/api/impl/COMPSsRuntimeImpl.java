@@ -676,6 +676,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     // C
     @Override
     public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
+
             boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters) {
 
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
@@ -989,7 +990,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (sReg != null) {
             sReg.deleteTaskFile(fileName);
         }
-
         rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

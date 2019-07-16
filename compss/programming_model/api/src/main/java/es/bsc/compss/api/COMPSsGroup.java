@@ -20,11 +20,15 @@ public class COMPSsGroup implements AutoCloseable {
 
     public String groupName;
     public Boolean barrier;
-
-
+    
     public COMPSsGroup(String groupName, boolean implicitBarrier) {
         this.groupName = groupName;
         this.barrier = implicitBarrier;
+    }
+    
+    public COMPSsGroup(String groupName) {
+        this.groupName = groupName;
+        this.barrier = true;
     }
 
     @Override

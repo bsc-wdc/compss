@@ -35,6 +35,7 @@ import es.bsc.compss.types.execution.exceptions.InvalidMapException;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
 import java.io.IOException;
@@ -204,7 +205,7 @@ public class TestJavaInvoker extends TestObject {
     }
 
     @Test
-    public void emptyTest() throws InvalidMapException, IOException, JobExecutionException {
+    public void emptyTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
         long executorId = Thread.currentThread().getId();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
@@ -241,7 +242,7 @@ public class TestJavaInvoker extends TestObject {
     }
 
     @Test
-    public void readsTest() throws InvalidMapException, IOException, JobExecutionException {
+    public void readsTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_READS);
@@ -295,7 +296,7 @@ public class TestJavaInvoker extends TestObject {
     }
 
     @Test
-    public void inoutsTest() throws InvalidMapException, IOException, JobExecutionException {
+    public void inoutsTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_INOUT);
@@ -353,7 +354,7 @@ public class TestJavaInvoker extends TestObject {
     }
 
     @Test
-    public void nullTargetTest() throws InvalidMapException, IOException, JobExecutionException {
+    public void nullTargetTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
         File sandBoxDir = createTempDirectory();
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
@@ -374,7 +375,7 @@ public class TestJavaInvoker extends TestObject {
     }
 
     @Test
-    public void targetInTest() throws InvalidMapException, IOException, JobExecutionException {
+    public void targetInTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_TARGET_IN);
@@ -420,7 +421,7 @@ public class TestJavaInvoker extends TestObject {
     }
 
     @Test
-    public void targetInoutTest() throws InvalidMapException, IOException, JobExecutionException {
+    public void targetInoutTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_TARGET_INOUT);
@@ -467,7 +468,7 @@ public class TestJavaInvoker extends TestObject {
     }
 
     @Test
-    public void resultTest() throws InvalidMapException, IOException, JobExecutionException {
+    public void resultTest() throws InvalidMapException, IOException, JobExecutionException, COMPSsException {
 
         FakeInvocation.Builder invBr = new FakeInvocation.Builder();
         invBr = invBr.setImpl(TEST_RESULT);

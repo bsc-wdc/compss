@@ -215,7 +215,6 @@ public class Agent {
         } catch (Exception e) {
             throw new AgentException(e);
         }
-
         return mainAppId;
     }
 

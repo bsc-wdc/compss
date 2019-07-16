@@ -60,6 +60,7 @@ if context.in_pycompss():
     from pycompss.runtime.binding import Future
     from pycompss.runtime.binding import EmptyReturn
     from pycompss.runtime.commons import IS_PYTHON3
+    from pycompss.api.exceptions import COMPSsException
 
     from contextlib import contextmanager
 
@@ -156,7 +157,9 @@ if context.in_pycompss():
         :param group_name: Name of the group to wait
         """
 
-        barrier_group(group_name)
+        exceptionMessage = barrier_group(group_name)
+        if (exceptionMessage != None):
+            raise COMPSsException(exceptionMessage)
 
     def compss_wait_on(*args, **kwargs):
         """
@@ -219,7 +222,7 @@ if context.in_pycompss():
 
 
     class TaskGroup(object):
-        def __init__(self, group_name, implicit_barrier):
+        def __init__(self, group_name, implicit_barrier=True):
             self.group_name = group_name
             self.implicit_barrier = implicit_barrier
 
@@ -232,6 +235,7 @@ if context.in_pycompss():
             close_task_group(self.group_name)
             if (self.implicit_barrier):
                 compss_barrier_group(self.group_name)
+
 
 
 else:

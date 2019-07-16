@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.components.impl;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
@@ -25,6 +26,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -618,11 +620,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         if (!requestQueue.offer(new BarrierGroupRequest(appId, groupName, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
-
         // Wait for response
         sem.acquireUninterruptibly();
-
-        if (taskAnalyser.getTaskGroup(groupName).hasException()) {
+        
+        TaskGroup tg = taskAnalyser.getTaskGroup(groupName);
+        if (tg != null && tg.hasException()) {
             throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
         }
         

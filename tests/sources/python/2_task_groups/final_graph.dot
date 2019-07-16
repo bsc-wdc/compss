@@ -27,9 +27,6 @@ Synchro0 -> 1 [label="d1v1"];
 2 -> 3 [label="d1v3"];
 }
 
-Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro0 -> Synchro1 [color=grey];
-3 -> Synchro1 [color=grey];
 subgraph clusterTasksgroup1 {
 shape=rect;
 node[height=0.75];
@@ -37,16 +34,13 @@ color="#A9A9A9";
 label="group1";
 
 4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro1 -> 4 [label="d1v4"];
+3 -> 4 [label="d1v4"];
 5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 4 -> 5 [label="d1v5"];
 6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 5 -> 6 [label="d1v6"];
 }
 
-Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro1 -> Synchro2 [color=grey];
-6 -> Synchro2 [color=grey];
 subgraph clusterTasksgroup2 {
 shape=rect;
 node[height=0.75];
@@ -54,18 +48,22 @@ color="#A9A9A9";
 label="group2";
 
 7[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-Synchro2 -> 7 [label="d1v7"];
+6 -> 7 [label="d1v7"];
 8[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 7 -> 8 [label="d1v8"];
 9[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 8 -> 9 [label="d1v9"];
 }
 
-Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro2 -> Synchro3 [color=grey];
-9 -> Synchro3 [color=grey];
 }
 
+Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro0 -> Synchro1 [color=grey];
+9 -> Synchro1 [color=grey];
+Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro1 -> Synchro2 [color=grey];
+Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro2 -> Synchro3 [color=grey];
 Synchro4[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro3 -> Synchro4 [color=grey];
 subgraph clusterTasksindividualGroup {
@@ -85,10 +83,84 @@ Synchro4 -> 10 [label="d1v10"];
 Synchro5[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro4 -> Synchro5 [color=grey];
 12 -> Synchro5 [color=grey];
-13[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+subgraph clusterTasksbigGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="bigGroup2";
+
+subgraph clusterTasksgroup4 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group4";
+
+13[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro5 -> 13 [label="d1v13"];
-14[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-Synchro5 -> 14 [label="d1v13"];  }
+14[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+13 -> 14 [label="d1v14"];
+15[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+14 -> 15 [label="d1v15"];
+}
+
+Synchro6[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro5 -> Synchro6 [color=grey];
+15 -> Synchro6 [color=grey];
+subgraph clusterTasksgroup5 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group5";
+
+16[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+Synchro6 -> 16 [label="d1v16"];
+17[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+16 -> 17 [label="d1v17"];
+18[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+17 -> 18 [label="d1v18"];
+}
+
+Synchro7[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro6 -> Synchro7 [color=grey];
+18 -> Synchro7 [color=grey];
+subgraph clusterTasksgroup6 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group6";
+
+19[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+Synchro7 -> 19 [label="d1v19"];
+20[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+19 -> 20 [label="d1v20"];
+21[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+20 -> 21 [label="d1v21"];
+}
+
+Synchro8[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro7 -> Synchro8 [color=grey];
+21 -> Synchro8 [color=grey];
+}
+
+Synchro9[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro8 -> Synchro9 [color=grey];
+subgraph clusterTasksindividualGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="individualGroup2";
+
+22[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro9 -> 22 [label="d1v22"];
+23[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+22 -> 23 [label="d1v23"];
+24[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+23 -> 24 [label="d1v24"];
+}
+
+Synchro10[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro9 -> Synchro10 [color=grey];
+24 -> Synchro10 [color=grey];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];
@@ -103,14 +175,6 @@ Synchro5 -> 14 [label="d1v13"];  }
 <tr>
 <td align="right">taskGroups.write_two</td>
 <td bgcolor="#ffffff">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">taskGroups.wait_fast</td>
-<td bgcolor="#ff0000">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">taskGroups.wait_slow</td>
-<td bgcolor="#ff00ae">&nbsp;</td>
 </tr>
       </table>
     >]

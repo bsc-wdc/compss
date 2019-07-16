@@ -204,7 +204,6 @@ public class ITAppEditor extends ExprEditor {
             ne.replace(substitutesCOMPSsGroup());
         }
         ;
-
     }
 
     /**

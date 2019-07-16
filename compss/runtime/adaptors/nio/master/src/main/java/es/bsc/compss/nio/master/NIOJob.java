@@ -151,10 +151,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
     @Override
     public String toString() {
         AbstractMethodImplementation method = (AbstractMethodImplementation) this.impl;
-
         String definition = method.getMethodDefinition();
         String methodName = taskParams.getName();
-
         return "NIOJob JobId" + this.jobId + " for method " + methodName + " with definition " + definition;
     }
 

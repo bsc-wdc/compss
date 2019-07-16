@@ -389,7 +389,6 @@ public class GraphGenerator {
             msg2.append("rank=same;\n");
             msg2.append("label=\"CGT").append(identifier).append("\";\n");
             full_graph.write(msg2.toString());
-
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
@@ -413,6 +412,7 @@ public class GraphGenerator {
 
     /**
      * Ends a commutative group subgraph.
+     * 
      */
     public void closeGroupInGraph() {
         try {

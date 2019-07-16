@@ -203,6 +203,7 @@ public class ExecutionAction extends AllocatableAction {
     public boolean taskIsReadyForExecution() {
         return task.canBeExecuted();
     }
+    
 
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
@@ -213,7 +214,7 @@ public class ExecutionAction extends AllocatableAction {
         }
         return false;
     }
-
+    
     private void doInputTransfers() {
         JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);
@@ -726,7 +727,7 @@ public class ExecutionAction extends AllocatableAction {
         String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("COMPSs Exception raised : Task ").append(taskName)
-                .append(" has raised an exception. Successors keep running.\n");
+                .append(" has raised an exception. Successors will be cancelled.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
 
@@ -738,7 +739,7 @@ public class ExecutionAction extends AllocatableAction {
         this.task.setStatus(TaskState.FINISHED);
         this.producer.notifyTaskEnd(task);
     }
-
+    
     @Override
     protected void doCanceled() {
         // Cancelled log message

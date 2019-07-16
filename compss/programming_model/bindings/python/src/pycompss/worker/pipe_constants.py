@@ -26,19 +26,20 @@ PyCOMPSs Persistent Worker
 #####################
 #  Tag variables
 #####################
-EXECUTE_TASK_TAG = "EXECUTE_TASK"           # -- "task" taskId jobOut jobErr task_params
-END_TASK_TAG = "END_TASK"                   # -- "endTask" taskId endStatus
+EXECUTE_TASK_TAG = "EXECUTE_TASK"               # -- "task" taskId jobOut jobErr task_params
+END_TASK_TAG = "END_TASK"                       # -- "endTask" taskId endStatus
+COMPSS_EXCEPTION_TAG = "COMPSS_EXCEPTION"       # -- "compssException" taskId exception_message
 ERROR_TASK_TAG = "ERROR_TASK"
-ERROR_TAG = "ERROR"                         # -- "error" [MESSAGE EXPECTED]
-PING_TAG = "PING"                           # -- "ping"
-PONG_TAG = "PONG"                           # -- "pong"
-ADD_EXECUTOR_TAG = "ADD_EXECUTOR"           # -- "addExecutor" in_pipe out_pipe
-ADDED_EXECUTOR_TAG = "ADDED_EXECUTOR"       # -- "addedExecutor"
-QUERY_EXECUTOR_ID_TAG = "QUERY_EXECUTOR_ID" # -- "query" in_pipe out_pipe
-REPLY_EXECUTOR_ID_TAG = "REPLY_EXECUTOR_ID" # -- "reply" executor_id
-REMOVE_EXECUTOR_TAG = "REMOVE_EXECUTOR"     # -- "removeExecutor" in_pipe out_pipe
-REMOVED_EXECUTOR_TAG = "REMOVED_EXECUTOR"   # -- "removedExecutor"
-QUIT_TAG = "QUIT"                           # -- "quit"
+ERROR_TAG = "ERROR"                             # -- "error" [MESSAGE EXPECTED]
+PING_TAG = "PING"                               # -- "ping"
+PONG_TAG = "PONG"                               # -- "pong"
+ADD_EXECUTOR_TAG = "ADD_EXECUTOR"               # -- "addExecutor" in_pipe out_pipe
+ADDED_EXECUTOR_TAG = "ADDED_EXECUTOR"           # -- "addedExecutor"
+QUERY_EXECUTOR_ID_TAG = "QUERY_EXECUTOR_ID"     # -- "query" in_pipe out_pipe
+REPLY_EXECUTOR_ID_TAG = "REPLY_EXECUTOR_ID"     # -- "reply" executor_id
+REMOVE_EXECUTOR_TAG = "REMOVE_EXECUTOR"         # -- "removeExecutor" in_pipe out_pipe
+REMOVED_EXECUTOR_TAG = "REMOVED_EXECUTOR"       # -- "removedExecutor"
+QUIT_TAG = "QUIT"                               # -- "quit"
 REMOVE_TAG = "REMOVE"
 SERIALIZE_TAG = "SERIALIZE"
 

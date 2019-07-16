@@ -71,7 +71,7 @@ extern "C" void GS_Get_File(long appId, char *file_name);
 // COMPSs API Calls
 extern "C" void GS_Barrier(long appId);
 extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
-extern "C" void GS_BarrierGroup(long _appId, char *group_name);
+extern "C" void GS_BarrierGroup(long _appId, char *group_name, char **exception_message);
 extern "C" void GS_OpenTaskGroup(char *group_name, int implicitBarrier);
 extern "C" void GS_CloseTaskGroup(char *group_name);
 

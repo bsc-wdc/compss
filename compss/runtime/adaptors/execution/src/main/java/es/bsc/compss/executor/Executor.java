@@ -171,7 +171,7 @@ public class Executor implements Runnable {
             if (WORKER_DEBUG) {
                 LOGGER.debug("Dequeuing job " + invocation.getJobId());
             }
-
+            
             Exception e = executeTask(invocation);
 
             boolean success = true;
@@ -183,8 +183,13 @@ public class Executor implements Runnable {
                 LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
             }
 
-            if (e instanceof COMPSsException) {
-                execution.notifyEnd((COMPSsException) e, success);
+            Throwable rootCause = ExceptionUtils.getRootCause(e);
+            if (rootCause instanceof COMPSsException) {
+                e = (COMPSsException)rootCause;
+            }
+            if (e instanceof COMPSsException ) {
+                execution.notifyEnd((COMPSsException)e, success);
+
             } else {
                 execution.notifyEnd(null, success);
             }
@@ -205,7 +210,7 @@ public class Executor implements Runnable {
     }
 
     private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
-            throws JobExecutionException {
+            throws Exception {
         /* Register outputs **************************************** */
         String streamsPath = context.getStandardStreamsPath(invocation);
         context.registerOutputs(streamsPath);
@@ -300,7 +305,6 @@ public class Executor implements Runnable {
                 executeTask(assignedResources, invocation, twd.getWorkingDir());
                 execDuration = System.currentTimeMillis() - startExec;
                 timerTask.cancel();
-
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
                 // Writing in the task .err/.out
@@ -308,7 +312,7 @@ public class Executor implements Runnable {
                 e.printStackTrace(context.getThreadErrStream());
                 //
                 // createEmptyFile(invocation);
-                throw e;
+                return e;
             } finally {
                 // Unbind files from task sandbox working dir
                 LOGGER.debug("Removing renamed files to sandboxed original names for Job " + invocation.getJobId());
@@ -333,10 +337,6 @@ public class Executor implements Runnable {
             // Writing in the task .err/.out
             context.getThreadOutStream().println("Exception executing task " + e.getMessage());
             e.printStackTrace(context.getThreadErrStream());
-            Throwable rootCause = ExceptionUtils.getRootCause(e);
-            if (rootCause instanceof COMPSsException) {
-                return (COMPSsException) rootCause;
-            }
             return e;
         } finally {
             // Always clean the task sandbox working dir

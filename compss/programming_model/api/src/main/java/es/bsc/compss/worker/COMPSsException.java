@@ -23,6 +23,7 @@ public class COMPSsException extends Exception {
      */
     private static final long serialVersionUID = 2L;
 
+    String errorMessage;
 
     /**
      * Creates a new COMPSsException.
@@ -31,5 +32,6 @@ public class COMPSsException extends Exception {
      */
     public COMPSsException(String errorMessage) {
         super(errorMessage);
+        this.errorMessage = errorMessage;
     }
 }

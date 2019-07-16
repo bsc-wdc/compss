@@ -146,7 +146,6 @@ public class TaskAnalyser {
         this.pendingToDrawCommutative = new TreeMap<>();
         this.currentTaskGroups = new Stack<>();
         this.taskGroups = new TreeMap<>();
-
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
 
@@ -581,7 +580,6 @@ public class TaskAnalyser {
                 LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
                 return;
             }
-
             TaskMonitor registeredMonitor = task.getTaskMonitor();
             switch (taskState) {
                 case FAILED:
@@ -642,7 +640,6 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Marking accessed parameters for task " + taskId);
             }
-
             for (Parameter param : task.getTaskDescription().getParameters()) {
                 updateParameterAccess(task, param);
             }
@@ -687,7 +684,7 @@ public class TaskAnalyser {
             }
         }
     }
-
+    
     /**
      * Releases the commutative groups dependencies.
      *
@@ -972,8 +969,8 @@ public class TaskAnalyser {
             this.gm.commitGraph();
         }
 
-        if (count == null || count == 0) {
-            if (!tg.hasPendingTasks()) {
+        if ((count == null || count == 0)) {
+            if (tg != null && !tg.hasPendingTasks()) {
                 if (tg.hasException()) {
                     request.setException(tg.getException());
                 }
@@ -986,7 +983,6 @@ public class TaskAnalyser {
             this.appIdBarrierFlags.add(appId);
             this.appIdToSemaphore.put(appId, request.getSemaphore());
         }
-
     }
 
     /**

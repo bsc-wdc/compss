@@ -715,6 +715,40 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 }
 
 
+// Given a COMPSsException, get its containing message
+static void getReceivedException(JNIEnv* env, jthrowable exception, char** buf)
+{
+    int success = 0;
+    jclass exceptionClazz = env->GetObjectClass((jobject)exception);
+    jclass classClazz = env->GetObjectClass((jobject)exceptionClazz);
+    jmethodID classGetNameMethod = env->GetMethodID(classClazz, "getName", "()Ljava/lang/String;");
+    jstring classNameStr = (jstring)env->CallObjectMethod(exceptionClazz, classGetNameMethod);
+    if (strcmp(env->GetStringUTFChars(classNameStr ,0), "es.bsc.compss.worker.COMPSsException") != 0) {
+        env->ExceptionClear();
+    } else {
+        const char* classNameChars = env->GetStringUTFChars(classNameStr, NULL);
+        if (classNameChars != NULL) {
+            jmethodID throwableGetMessageMethod = env->GetMethodID(exceptionClazz, "getMessage", "()Ljava/lang/String;");
+            jstring messageStr = (jstring)env->CallObjectMethod(exception, throwableGetMessageMethod);
+            if (messageStr != NULL) {
+                const char* messageChars = env->GetStringUTFChars( messageStr, NULL);
+                if (messageChars != NULL) {
+                    *buf = strdup(messageChars);
+                    env->ReleaseStringUTFChars(messageStr, messageChars);
+                    env->ExceptionClear();
+                } else {
+                    env->ExceptionClear();
+                }
+                env->DeleteLocalRef(messageStr);
+            }
+            env->ReleaseStringUTFChars(classNameStr, classNameChars);
+            env->DeleteLocalRef(classNameStr);
+        }
+        env->DeleteLocalRef(classClazz);
+        env->DeleteLocalRef(exceptionClazz);
+    }
+}
+
 
 // ******************************
 // API functions
@@ -1229,23 +1263,25 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Barrier  -  APP id: %lu\n", appId);
 }
 
-void GS_BarrierGroup(long _appId, char *group_name) {
+void GS_BarrierGroup(long _appId, char *group_name, char **exception_message) {
     jstring jstr = NULL;
     get_lock();
     JNIEnv* local_env = m_env;
     int isAttached = check_and_attach(m_jvm, local_env);
     release_lock();
     local_env->CallVoidMethod(jobjIT, midBarrierGroup, appId, local_env->NewStringUTF(group_name));
-
-    if (local_env->ExceptionOccurred()) {
+    jthrowable exception = local_env->ExceptionOccurred();
+    if (exception) {
         local_env->ExceptionDescribe();
-        exit(1);
+        getReceivedException(local_env, exception, exception_message);
     }
     if (isAttached==1) {
         m_jvm->DetachCurrentThread();
     }
     debug_printf("[BINDING-COMMONS]  -  @GS_BarrierGroup  -  COMPSs group name: %s\n", group_name);
 }
+
+
 
 void GS_OpenTaskGroup(char *group_name, int implicitBarrier){
     jstring jstr = NULL;

@@ -19,11 +19,11 @@ node[height=0.75];
 color="#A9A9A9"; 
 label="group0";
 
-1[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro0 -> 1 [label="d1v1"];
-2[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 1 -> 2 [label="d1v2"];
-3[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 2 -> 3 [label="d1v3"];
 }
 
@@ -36,11 +36,11 @@ node[height=0.75];
 color="#A9A9A9"; 
 label="group1";
 
-4[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+4[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro1 -> 4 [label="d1v4"];
-5[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 4 -> 5 [label="d1v5"];
-6[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+6[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 5 -> 6 [label="d1v6"];
 }
 
@@ -53,11 +53,11 @@ node[height=0.75];
 color="#A9A9A9"; 
 label="group2";
 
-7[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+7[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro2 -> 7 [label="d1v7"];
-8[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+8[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 7 -> 8 [label="d1v8"];
-9[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+9[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 8 -> 9 [label="d1v9"];
 }
 
@@ -70,11 +70,11 @@ node[height=0.75];
 color="#A9A9A9"; 
 label="group3";
 
-10[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+10[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro3 -> 10 [label="d1v10"];
-11[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+11[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 10 -> 11 [label="d1v11"];
-12[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+12[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 11 -> 12 [label="d1v12"];
 }
 
@@ -85,57 +85,118 @@ Synchro3 -> Synchro4 [color=grey];
 
 Synchro5[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro4 -> Synchro5 [color=grey];
-subgraph clusterTasksGroup1 {
+subgraph clusterTasksSmallGroup {
 shape=rect;
 node[height=0.75];
 color="#A9A9A9"; 
-label="Group1";
+label="SmallGroup";
 
-13[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+13[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro5 -> 13 [label="d1v13"];
-14[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+14[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 13 -> 14 [label="d1v14"];
-15[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+15[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 14 -> 15 [label="d1v15"];
-16[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
+16[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 15 -> 16 [label="d1v16"];
 }
 
 Synchro6[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro5 -> Synchro6 [color=grey];
 16 -> Synchro6 [color=grey];
-subgraph clusterTasksFailedGroup {
+subgraph clusterTasksBigGroup2 {
 shape=rect;
 node[height=0.75];
 color="#A9A9A9"; 
-label="FailedGroup";
+label="BigGroup2";
 
-17[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+subgraph clusterTasksgroup4 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group4";
+
+17[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro6 -> 17 [label="d1v17"];
-18[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+18[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 17 -> 18 [label="d1v18"];
-19[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
+19[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 18 -> 19 [label="d1v19"];
+}
+
+subgraph clusterTasksgroup5 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group5";
+
+20[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+19 -> 20 [label="d1v20"];
+21[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+20 -> 21 [label="d1v21"];
+22[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+21 -> 22 [label="d1v22"];
+}
+
+subgraph clusterTasksgroup6 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group6";
+
+23[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+22 -> 23 [label="d1v23"];
+24[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+23 -> 24 [label="d1v24"];
+25[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+24 -> 25 [label="d1v25"];
+}
+
+subgraph clusterTasksgroup7 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="group7";
+
+26[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+25 -> 26 [label="d1v26"];
+27[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+26 -> 27 [label="d1v27"];
+28[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+27 -> 28 [label="d1v28"];
+}
+
 }
 
 Synchro7[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro6 -> Synchro7 [color=grey];
-19 -> Synchro7 [color=grey];
-20[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
-Synchro7 -> 20 [label="d1v18"];
-21[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-20 -> 21 [label="d1v19"];
-Synchro8[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
-Synchro7 -> Synchro8;
-21 -> Synchro8 [label="d1v20"];
-22[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-Synchro8 -> 22 [label="d2v1"];
-23[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-22 -> 23 [label="d2v2"];
-24[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-23 -> 24 [label="d2v3"];
-25[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-24 -> 25 [label="d2v4"];  }
+28 -> Synchro7 [color=grey];
+Synchro8[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro7 -> Synchro8 [color=grey];
+Synchro9[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro8 -> Synchro9 [color=grey];
+Synchro10[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro9 -> Synchro10 [color=grey];
+subgraph clusterTasksSmallGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="SmallGroup2";
+
+29[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+Synchro10 -> 29 [label="d1v29"];
+30[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+29 -> 30 [label="d1v30"];
+31[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+30 -> 31 [label="d1v31"];
+32[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+31 -> 32 [label="d1v32"];
+}
+
+Synchro11[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro10 -> Synchro11 [color=grey];
+32 -> Synchro11 [color=grey];
+32 -> Synchro11 [label="d1v33"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];
@@ -145,31 +206,7 @@ Synchro8 -> 22 [label="d2v1"];
       <table border="0" cellpadding="2" cellspacing="0" cellborder="1">
 <tr>
 <td align="right">writeTwo</td>
-<td bgcolor="#ffff00">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">writeOne</td>
-<td bgcolor="#b30000">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">writeThree</td>
-<td bgcolor="#00ff00">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">writeFour</td>
-<td bgcolor="#ff0000">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">writeOnFailure</td>
-<td bgcolor="#ff00ae">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">timeOutTaskFast</td>
 <td bgcolor="#0000ff">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">timeOutTaskSlow</td>
-<td bgcolor="#ffffff">&nbsp;</td>
 </tr>
       </table>
     >]

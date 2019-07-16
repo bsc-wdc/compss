@@ -32,6 +32,7 @@ import thread_affinity
 
 from pycompss.worker.pipe_constants import EXECUTE_TASK_TAG
 from pycompss.worker.pipe_constants import END_TASK_TAG
+from pycompss.worker.pipe_constants import COMPSS_EXCEPTION_TAG
 from pycompss.worker.pipe_constants import PING_TAG
 from pycompss.worker.pipe_constants import PONG_TAG
 from pycompss.worker.pipe_constants import QUIT_TAG
@@ -323,11 +324,11 @@ def executor(queue, process_name, pipe, conf):
 
                     # Execute task
                     from pycompss.worker.worker_commons import execute_task
-                    exit_value, new_types, new_values = execute_task(process_name,
-                                                                     storage_conf,
-                                                                     current_line[9:],
-                                                                     tracing,
-                                                                     logger)
+                    exit_value, new_types, new_values, timed_out, exception_message = execute_task(process_name,
+                                                                                     storage_conf,
+                                                                                     current_line[9:],
+                                                                                     tracing,
+                                                                                     logger)
 
                     # Restore out/err wrappers
                     sys.stdout = stdout
@@ -344,14 +345,29 @@ def executor(queue, process_name, pipe, conf):
                         message = END_TASK_TAG + " " + str(job_id) \
                                   + " " + str(exit_value) \
                                   + " " + str(params) + "\n"
+                        if __debug__:
+                            logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                                str(pipe.output_pipe),
+                                                                                str(message)))
+                    elif exit_value == 2:
+                        # Task has finished with a COMPSs Exception
+                        # compssExceptionTask jobId exitValue message
+
+                        exception_message = exception_message.replace(" ", "_")
+                        message = COMPSS_EXCEPTION_TAG + " " + str(job_id)\
+                                   + " " + str(exception_message) + "\n"
+                        if __debug__:
+                            logger.debug("%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s" % (str(process_name),
+                                                                                            str(pipe.output_pipe),
+                                                                                            str(exception_message)))
                     else:
-                        # An exception has been raised in task
+                        # An exception other than COMPSsException has been raised in task
                         message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
 
-                    if __debug__:
-                        logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
-                                                                            str(pipe.output_pipe),
-                                                                            str(message)))
+                        if __debug__:
+                            logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                                str(pipe.output_pipe),
+                                                                                str(message)))
                     # The return message is:
                     #
                     # TaskResult ==> jobId exitValue D List<Object>

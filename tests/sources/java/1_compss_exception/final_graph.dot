@@ -1,0 +1,77 @@
+digraph {
+  rankdir=TB;
+  labeljust="l";
+  compound= true;
+  subgraph dependence_graph {
+    ranksep=0.20;
+    node[height=0.75];
+
+Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor="#FFFFFF"];
+subgraph clusterTasksFailedGroup {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="FailedGroup";
+
+1[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro0 -> 1 [label="d1v1"];
+2[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+1 -> 2 [label="d1v2"];
+3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+2 -> 3 [label="d1v3"];
+}
+
+Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro0 -> Synchro1 [color=grey];
+3 -> Synchro1 [color=grey];
+4[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+Synchro1 -> 4 [label="d1v2"];
+5[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+4 -> 5 [label="d1v3"];
+subgraph clusterTasksFailedGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="FailedGroup2";
+
+6[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+5 -> 6 [label="d1v4"];
+7[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+6 -> 7 [label="d1v5"];
+8[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+7 -> 8 [label="d1v6"];
+}
+
+Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro1 -> Synchro2 [color=grey];
+8 -> Synchro2 [color=grey];
+9[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+Synchro2 -> 9 [label="d1v5"];
+10[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+9 -> 10 [label="d1v6"];
+Synchro3[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro2 -> Synchro3;
+10 -> Synchro3 [label="d1v7"];  }
+  subgraph legend {
+    rank=sink;
+    node [shape=plaintext, height=0.75];
+    ranksep=0.20;
+    label = "Legend";
+    key [label=<
+      <table border="0" cellpadding="2" cellspacing="0" cellborder="1">
+<tr>
+<td align="right">writeOne</td>
+<td bgcolor="#ffffff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">writeThree</td>
+<td bgcolor="#ff0000">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">writeFour</td>
+<td bgcolor="#0000ff">&nbsp;</td>
+</tr>
+      </table>
+    >]
+  }
+}

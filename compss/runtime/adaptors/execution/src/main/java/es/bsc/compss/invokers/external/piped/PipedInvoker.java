@@ -18,6 +18,7 @@ package es.bsc.compss.invokers.external.piped;
 
 import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.piped.PipePair;
+import es.bsc.compss.executor.external.piped.commands.CompssExceptionPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.EndTaskPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.PipeCommand;
 import es.bsc.compss.executor.types.InvocationResources;
@@ -28,6 +29,7 @@ import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
+import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
 
@@ -52,7 +54,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
     }
 
     @Override
-    public void invokeMethod() throws JobExecutionException {
+    public void invokeMethod() throws JobExecutionException, COMPSsException {
         if (!pipes.sendCommand((PipeCommand) command)) {
             int jobId = invocation.getJobId();
             LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
@@ -89,6 +91,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
                                 parIdx++;
                             }
                             return;
+                        case COMPSS_EXCEPTION:
+                            throw new COMPSsException(((CompssExceptionPipeCommand)rcvdCommand).getMessage());
                         default:
                             LOGGER.warn("Unexpected tag on PipedInvoker: " + rcvdCommand + ". Skipping message");
                             break;

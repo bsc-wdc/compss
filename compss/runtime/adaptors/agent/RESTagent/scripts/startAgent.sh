@@ -303,7 +303,7 @@ echo "HOSTNAME: ${AGENT_HOSTNAME}"
 echo "------------------------"
 java \
 -cp "${CLASSPATH}" \
--Dcompss.agent.name="${AGENT_HOSTNAME}" \
+-Dcompss.masterName="${AGENT_HOSTNAME}" \
 -Dcompss.uuid="${uuid}" \
 -Dcompss.appLogDir="/tmp/${uuid}" \
 -Dcompss.lang=JAVA \

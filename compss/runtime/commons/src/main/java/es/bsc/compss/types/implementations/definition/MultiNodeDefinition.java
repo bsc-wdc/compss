@@ -39,7 +39,8 @@ public class MultiNodeDefinition extends ImplementationDefinition<MethodResource
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new MultiNodeImplementation(multiNodeClass, multiNodeName, coreId, implId, this.getConstraints());
+        return new MultiNodeImplementation(multiNodeClass, multiNodeName, coreId, implId, this.getSignature(),
+                this.getConstraints());
     }
 
     @Override

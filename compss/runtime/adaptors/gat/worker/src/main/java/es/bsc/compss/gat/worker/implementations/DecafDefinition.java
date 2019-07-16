@@ -58,7 +58,7 @@ public class DecafDefinition extends ImplementationDefinition {
         }
 
         this.impl = new DecafImplementation(this.dfScript, this.dfExecutor, this.dfLib, this.workingDir, this.mpiRunner,
-                null, null, null);
+                null, null, "", null);
     }
 
     @Override

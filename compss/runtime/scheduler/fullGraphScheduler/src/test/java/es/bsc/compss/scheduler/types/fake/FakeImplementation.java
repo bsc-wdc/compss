@@ -22,8 +22,8 @@ import es.bsc.compss.types.implementations.TaskType;
 
 public class FakeImplementation extends Implementation {
 
-    public FakeImplementation(int coreId, int implementationId, FakeResourceDescription annot) {
-        super(coreId, implementationId, annot);
+    public FakeImplementation(int coreId, int implementationId, String signature, FakeResourceDescription annot) {
+        super(coreId, implementationId, signature, annot);
     }
 
     @Override

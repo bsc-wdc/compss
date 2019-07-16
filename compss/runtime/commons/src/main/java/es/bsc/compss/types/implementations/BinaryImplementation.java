@@ -52,12 +52,13 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
      * @param workingDir Working directory.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param annot Method annotations.
+     * @param signature Binary signature.
+     * @param annot Binary requirements.
      */
     public BinaryImplementation(String binary, String workingDir, Integer coreId, Integer implementationId,
-            MethodResourceDescription annot) {
+            String signature, MethodResourceDescription annot) {
 
-        super(coreId, implementationId, annot);
+        super(coreId, implementationId, signature, annot);
 
         this.binary = binary;
         this.workingDir = workingDir;

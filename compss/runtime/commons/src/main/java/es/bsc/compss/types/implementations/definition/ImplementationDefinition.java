@@ -31,7 +31,6 @@ import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
-import es.bsc.compss.types.resources.ServiceResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 
 
@@ -277,40 +276,4 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
      * @return The associated implementation.
      */
     public abstract Implementation getImpl(int coreId, int implId);
-
-
-    private static class ServiceDefinition extends ImplementationDefinition<ServiceResourceDescription> {
-
-        private final String namespace;
-        private final String serviceName;
-        private final String operation;
-        private final String port;
-
-
-        protected ServiceDefinition(String signature, String namespace, String serviceName, String operation,
-                String port) {
-            super(signature, null);
-            this.namespace = namespace;
-            this.serviceName = serviceName;
-            this.operation = operation;
-            this.port = port;
-        }
-
-        @Override
-        public Implementation getImpl(int coreId, int implId) {
-            return new ServiceImplementation(coreId, namespace, serviceName, port, operation);
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("SERVICE Implementation \n");
-            sb.append("\t Signature: ").append(this.getSignature()).append("\n");
-            sb.append("\t Namespace: ").append(namespace).append("\n");
-            sb.append("\t Service name: ").append(serviceName).append("\n");
-            sb.append("\t Operation: ").append(operation).append("\n");
-            sb.append("\t Port: ").append(port).append("\n");
-            return sb.toString();
-        }
-    }
 }

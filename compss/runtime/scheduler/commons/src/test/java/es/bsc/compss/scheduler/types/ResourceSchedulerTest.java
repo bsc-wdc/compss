@@ -19,6 +19,7 @@ package es.bsc.compss.scheduler.types;
 import static org.junit.Assert.fail;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.fake.FakeWorker;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
@@ -58,7 +59,6 @@ public class ResourceSchedulerTest {
 
     private static FakeWorker worker;
 
-
     /**
      * Sets up the class environment before launching the unit tests.
      */
@@ -71,24 +71,24 @@ public class ResourceSchedulerTest {
         description.addProcessor(p);
         worker = new FakeWorker(description, 4);
 
-        int coreId = CoreManager.registerNewCoreElement("methodA");
+        CoreElement ce = CoreManager.registerNewCoreElement("methodA");
+        int coreId = ce.getCoreId();
         LinkedList<Implementation> impls = new LinkedList<>();
-        LinkedList<String> signs = new LinkedList<>();
-        Implementation impl = new MethodImplementation("ClassA", "methodA", coreId, 0, new MethodResourceDescription());
+        Implementation impl = new MethodImplementation("ClassA", "methodA", coreId, 0, "ClassA.methodA",
+                new MethodResourceDescription());
         impls.add(impl);
-        signs.add("ClassA.methodA");
-        impl = new MethodImplementation("ClassB", "methodA", coreId, 1, new MethodResourceDescription());
+        impl = new MethodImplementation("ClassB", "methodA", coreId, 1, "ClassB.methodA",
+                new MethodResourceDescription());
         impls.add(impl);
-        signs.add("ClassB.methodA");
-        CoreManager.registerNewImplementations(coreId, impls, signs);
+        CoreManager.registerNewImplementations(coreId, impls);
 
-        coreId = CoreManager.registerNewCoreElement("methodB");
+        ce = CoreManager.registerNewCoreElement("methodB");
+        coreId = ce.getCoreId();
         impls = new LinkedList<>();
-        signs = new LinkedList<>();
-        impl = new MethodImplementation("ClassA", "methodB", coreId, 0, new MethodResourceDescription());
+        impl = new MethodImplementation("ClassA", "methodB", coreId, 0, "ClassA.methodB",
+                new MethodResourceDescription());
         impls.add(impl);
-        signs.add("ClassA.methodB");
-        CoreManager.registerNewImplementations(coreId, impls, signs);
+        CoreManager.registerNewImplementations(coreId, impls);
     }
 
     @AfterClass
@@ -505,7 +505,6 @@ public class ResourceSchedulerTest {
         private static final long serialVersionUID = 2L;
 
         private final String feature;
-
 
         public CheckerException(String feature) {
             this.feature = feature;

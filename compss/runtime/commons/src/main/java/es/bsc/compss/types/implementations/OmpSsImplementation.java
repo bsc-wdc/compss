@@ -52,11 +52,12 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
      * @param workingDir Binary working directory.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param annot Method annotations.
+     * @param signature OmpSs operation signature.
+     * @param annot OmpSs method requirements.
      */
     public OmpSsImplementation(String binary, String workingDir, Integer coreId, Integer implementationId,
-            MethodResourceDescription annot) {
-        super(coreId, implementationId, annot);
+            String signature, MethodResourceDescription annot) {
+        super(coreId, implementationId, signature, annot);
 
         this.binary = binary;
         this.workingDir = workingDir;

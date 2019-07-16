@@ -52,12 +52,13 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
      * @param workingDir Binary working directory.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param annot Method annotations.
+     * @param signature Method signature.
+     * @param annot Method requirements.
      */
     public OpenCLImplementation(String kernel, String workingDir, Integer coreId, Integer implementationId,
-            MethodResourceDescription annot) {
+            String signature, MethodResourceDescription annot) {
 
-        super(coreId, implementationId, annot);
+        super(coreId, implementationId, signature, annot);
 
         this.kernel = kernel;
         this.workingDir = workingDir;

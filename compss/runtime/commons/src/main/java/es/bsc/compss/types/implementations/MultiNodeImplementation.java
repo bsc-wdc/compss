@@ -52,12 +52,13 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
      * @param methodName Method name.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param requirements Method annotations.
+     * @param signature Method signature.
+     * @param requirements Method requirements.
      */
     public MultiNodeImplementation(String methodClass, String methodName, Integer coreId, Integer implementationId,
-            MethodResourceDescription requirements) {
+            String signature, MethodResourceDescription requirements) {
 
-        super(coreId, implementationId, requirements);
+        super(coreId, implementationId, signature, requirements);
         this.declaringClass = methodClass;
         this.methodName = methodName;
     }

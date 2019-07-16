@@ -66,11 +66,11 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             case WORKER:
             case MASTER:
                 Worker<T> mw = worker.getResource();
-                this.impl = new MethodImplementation("", "", null, null,
+                this.impl = new MethodImplementation("", "", null, null, "",
                         (MethodResourceDescription) mw.getDescription());
                 break;
             default:
-                this.impl = new ServiceImplementation(null, "", "", "", "");
+                this.impl = new ServiceImplementation(null, "", "", "", "", "");
         }
     }
 

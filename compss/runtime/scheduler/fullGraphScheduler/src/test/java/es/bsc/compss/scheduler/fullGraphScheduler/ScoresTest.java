@@ -34,6 +34,7 @@ import es.bsc.compss.scheduler.types.fake.FakeProfile;
 import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
 import es.bsc.compss.scheduler.types.fake.FakeResourceScheduler;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -72,7 +73,6 @@ public class ScoresTest {
     private static long CORE4_0;
     private static long CORE4_1;
 
-
     public ScoresTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
@@ -94,46 +94,34 @@ public class ScoresTest {
 
         // TODO: Comm should be initialized?
         // Comm.init();
-
         ds = new FullGraphScheduler();
 
-        FakeImplementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
+        FakeImplementation impl00 = new FakeImplementation(0, 0, "fakeSignature00", new FakeResourceDescription(2));
         List<Implementation> impls0 = new LinkedList<>();
         impls0.add(impl00);
-        List<String> signatures0 = new LinkedList<>();
-        signatures0.add("fakeSignature00");
-        CoreManager.registerNewImplementations(0, impls0, signatures0);
+        CoreManager.registerNewImplementations(0, impls0);
 
-        FakeImplementation impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
+        FakeImplementation impl10 = new FakeImplementation(1, 0, "fakeSignature10", new FakeResourceDescription(3));
         List<Implementation> impls1 = new LinkedList<>();
         impls1.add(impl10);
-        List<String> signatures1 = new LinkedList<>();
-        signatures1.add("fakeSignature10");
-        CoreManager.registerNewImplementations(1, impls1, signatures1);
+        CoreManager.registerNewImplementations(1, impls1);
 
-        FakeImplementation impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
+        FakeImplementation impl20 = new FakeImplementation(2, 0, "fakeSignature20", new FakeResourceDescription(1));
         List<Implementation> impls2 = new LinkedList<>();
         impls2.add(impl20);
-        List<String> signatures2 = new LinkedList<>();
-        signatures2.add("fakeSignature20");
-        CoreManager.registerNewImplementations(2, impls2, signatures2);
+        CoreManager.registerNewImplementations(2, impls2);
 
-        FakeImplementation impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
+        FakeImplementation impl30 = new FakeImplementation(3, 0, "fakeSignature30", new FakeResourceDescription(4));
         List<Implementation> impls3 = new LinkedList<>();
         impls3.add(impl30);
-        List<String> signatures3 = new LinkedList<>();
-        signatures3.add("fakeSignature30");
-        CoreManager.registerNewImplementations(3, impls3, signatures3);
+        CoreManager.registerNewImplementations(3, impls3);
 
-        FakeImplementation impl40 = new FakeImplementation(4, 0, new FakeResourceDescription(4));
-        FakeImplementation impl41 = new FakeImplementation(4, 1, new FakeResourceDescription(2));
+        FakeImplementation impl40 = new FakeImplementation(4, 0, "fakeSignature40", new FakeResourceDescription(4));
+        FakeImplementation impl41 = new FakeImplementation(4, 1, "fakeSignature41", new FakeResourceDescription(2));
         List<Implementation> impls4 = new LinkedList<>();
         impls4.add(impl40);
         impls4.add(impl41);
-        List<String> signatures4 = new LinkedList<>();
-        signatures4.add("fakeSignature40");
-        signatures4.add("fakeSignature41");
-        CoreManager.registerNewImplementations(4, impls4, signatures4);
+        CoreManager.registerNewImplementations(4, impls4);
 
         int maxSlots = 4;
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);
@@ -223,8 +211,8 @@ public class ScoresTest {
                 Constants.PREFIX_EMPTY, "dp2");
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
-        TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", 0, false,
-                Constants.SINGLE_NODE, false, false, false, 0, 0, Arrays.asList(dpD1V1, dpD2V2));
+        TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""),
+                false, Constants.SINGLE_NODE, false, false, false, 0, 0, Arrays.asList(dpD1V1, dpD2V2));
 
         FullGraphScore actionScore = (FullGraphScore) ds.generateActionScore(action1);
 
@@ -253,8 +241,8 @@ public class ScoresTest {
         drs1.clear();
         // No resources and no dependencies
         FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
-        TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", 0, false,
-                Constants.SINGLE_NODE, false, false, false, 0, 0, new LinkedList<Parameter>());
+        TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""), false,
+                Constants.SINGLE_NODE, false, false, false, 0, 0, new LinkedList<>());
         FullGraphScore score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
 

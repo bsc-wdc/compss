@@ -752,12 +752,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      *
      * @param appId Application Id.
      * @param monitor Task monitor.
+     * @param lang Task language
      * @param hasSignature indicates whether the signature parameter is valid or must be constructed from the methodName
      *            and methodClass parameters.
      * @param methodClass Method class.
      * @param methodName Method name.
      * @param signature Method signature.
      * @param onFailure On failure behavior.
+     * @param timeOut Amount of time for an application time out.
      * @param isPrioritary Whether the task has priority or not.
      * @param numNodes Number of associated nodes.
      * @param isReplicated Whether it is a replicated task or not.
@@ -768,7 +770,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * @param parameters Parameter values.
      * @return The task id.
      */
-    private int executeTask(Long appId, TaskMonitor monitor, Lang lang, boolean hasSignature, String methodClass,
+    public int executeTask(Long appId, TaskMonitor monitor, Lang lang, boolean hasSignature, String methodClass,
             String methodName, String signature, OnFailure onFailure, int timeOut, boolean isPrioritary, int numNodes,
             boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns, int parameterCount,
             Object... parameters) {

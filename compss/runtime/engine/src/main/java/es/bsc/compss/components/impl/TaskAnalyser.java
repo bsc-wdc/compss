@@ -261,7 +261,7 @@ public class TaskAnalyser {
             DependencyParameter dp = (DependencyParameter) p;
             if (am == AccessMode.CV) {
                 // Register commutative access
-                Integer coreId = currentTask.getTaskDescription().getCoreId();
+                Integer coreId = currentTask.getTaskDescription().getCoreElement().getCoreId();
                 CommutativeIdentifier comId = new CommutativeIdentifier(coreId, daId.getDataId());
                 CommutativeGroupTask com = null;
                 for (CommutativeGroupTask cgt : this.commutativeGroup.values()) {
@@ -476,7 +476,7 @@ public class TaskAnalyser {
         }
 
         // Update task count
-        Integer methodId = params.getCoreId();
+        Integer methodId = params.getCoreElement().getCoreId();
         Integer actualCount = this.currentTaskCount.get(methodId);
         if (actualCount == null) {
             actualCount = 0;

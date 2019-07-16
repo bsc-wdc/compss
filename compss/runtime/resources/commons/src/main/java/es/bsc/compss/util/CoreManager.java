@@ -17,12 +17,13 @@
 package es.bsc.compss.util;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.ResourceDescription;
-import java.util.Iterator;
+import java.util.HashMap;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -47,17 +48,14 @@ public class CoreManager {
     private static final String WARN_REGISTERED_CORE_ELEMENT = "Already registered CoreElement. Skipping addition of ";
     private static final String WARN_UNREGISTERED_IMPL = "Unregistered implementation. Skipping addition";
 
-    // List of implementations of each coreElement
-    private static final List<List<Implementation>> IMPLEMENTATIONS = new LinkedList<>();
-    // List of signatures of each implementation of each coreElement
-    // The first signature is always the signature of the coreElement
-    private static final List<List<String>> SIGNATURES = new LinkedList<>();
-    // Map for signatures to coreElementId (several signatures may point to the same coreId since there is versioning)
-    private static final Map<String, Integer> SIGNATURE_TO_CORE_ID = new LinkedHashMap<>();
+    // List of core elements
+    private static final List<CoreElement> CORE_ELEMENTS = new LinkedList<>();
+
+    // Map for signatures to coreElement (several signatures may point to the same coreId since there is versioning)
+    private static final Map<String, CoreElement> SIGNATURE_TO_CORE = new LinkedHashMap<>();
 
     // Structure counters
     private static int coreCount = 0;
-
 
     /**
      * Private constructor to avoid instantiation.
@@ -79,9 +77,9 @@ public class CoreManager {
      * Registers or updates a Core Element according to the description passed in as a {@code ced} parameter.
      *
      * @param ced Core Element Definition with its implementations.
-     * @return coreId Assigned to the registered Core Element.
+     * @return Core Element of the registered definition.
      */
-    public static Integer registerNewCoreElement(CoreElementDefinition ced) {
+    public static CoreElement registerNewCoreElement(CoreElementDefinition ced) {
         String ceSignature = ced.getCeSignature();
 
         // Check that the signature is valid
@@ -91,51 +89,30 @@ public class CoreManager {
         }
 
         // Check that the signature does not exist
-        Integer coreId = SIGNATURE_TO_CORE_ID.get(ceSignature);
-        if (coreId == null) {
-            coreId = insertCoreElement(ceSignature);
+        CoreElement coreElement = SIGNATURE_TO_CORE.get(ceSignature);
+        if (coreElement == null) {
+            coreElement = insertCoreElement(ceSignature);
         }
-
-        List<Implementation> coreImplementations = IMPLEMENTATIONS.get(coreId);
-        List<String> coreSignatures = SIGNATURES.get(coreId);
-
         for (ImplementationDefinition<?> implDef : ced.getImplementations()) {
 
             String implSignature = implDef.getSignature();
             if (implSignature != null && !implSignature.isEmpty()) {
-
-                // Check whether the implementation is already registered
-                boolean alreadyExisting = false;
-                Iterator<String> it = coreSignatures.iterator();
-                it.next();// Skip method signature with no implementation
-                while (it.hasNext()) {
-                    String registeredImplSign = it.next();
-                    if (implSignature.compareTo(registeredImplSign) == 0) {
-                        alreadyExisting = true;
-                        break;
-                    }
-                }
-
+                boolean alreadyExisting = coreElement.addImplementation(implDef);
                 if (!alreadyExisting) {
-                    // Register Implementation
-                    int implId = coreImplementations.size();
-                    Implementation impl = implDef.getImpl(coreId, implId);
-                    coreImplementations.add(impl);
-                    coreSignatures.add(implSignature);
-                    SIGNATURE_TO_CORE_ID.put(implSignature, coreId);
+                    SIGNATURE_TO_CORE.put(implSignature, coreElement);
                 }
             }
         }
-        return coreId;
+        return coreElement;
     }
 
     /**
      * Registers a new Method as Core Element if it doesn't exist.
      *
      * @param signature Method signature for the new Core Element.
-     * @return The methodId assigned to the new Core Element.
+     * @return The core element assigned to the signature; {@literal null}, if it already existed.
      */
-    public static Integer registerNewCoreElement(String signature) {
+    public static CoreElement registerNewCoreElement(String signature) {
         // Check that the signature is valid
         if (signature == null || signature.isEmpty()) {
             LOGGER.warn(ERROR_INVALID_SIGNATURE);
@@ -143,54 +120,49 @@ public class CoreManager {
         }
 
         // Check that the signature does not exist
-        Integer methodId = SIGNATURE_TO_CORE_ID.get(signature);
-        if (methodId != null) {
+        CoreElement ce = SIGNATURE_TO_CORE.get(signature);
+        if (ce != null) {
             LOGGER.warn(WARN_REGISTERED_CORE_ELEMENT + signature);
             return null;
         }
 
         // Insert new core element
-        methodId = insertCoreElement(signature);
+        ce = insertCoreElement(signature);
 
-        return methodId;
+        return ce;
     }
 
-    private static Integer insertCoreElement(String signature) {
+    private static CoreElement insertCoreElement(String signature) {
         // Insert new core element
         Integer methodId = coreCount;
+        CoreElement ce = new CoreElement(methodId, signature);
+
         // Increase the coreCount counter
         ++coreCount;
-        // Register the cross-reference
-        SIGNATURE_TO_CORE_ID.put(signature, methodId);
-        // Register the coreElement
-        List<Implementation> impls = new LinkedList<>();
-        IMPLEMENTATIONS.add(impls);
-        // Register the signature
-        List<String> signs = new LinkedList<>();
-        signs.add(signature);
-        SIGNATURES.add(signs);
 
-        return methodId;
+        // Register the cross-reference
+        SIGNATURE_TO_CORE.put(signature, ce);
+
+        // Register the coreElement
+        CORE_ELEMENTS.add(ce);
+
+        return ce;
     }
 
     /**
-     * Registers a new Implementation for a given CoreElement. The CoreElement MUST have been previously registered. The
-     * implementations {@code impls} and signatures {@code signs} must have the same size and must be equally sorted.
+     * Registers a new Implementation for a given CoreElement. The CoreElement MUST have been previously registered.
      *
      * @param coreId Core Id.
-     * @param impls List of implementations.
-     * @param signs List of signatures of each implementation.
+     * @param impls  List of implementations.
      */
-    public static void registerNewImplementations(int coreId, List<Implementation> impls, List<String> signs) {
+    public static void registerNewImplementations(int coreId, List<Implementation> impls) {
         if (coreId < 0 || coreId >= coreCount) {
             ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT + coreId);
             return;
         }
-        if (impls.size() != signs.size()) {
-            ErrorManager.error(ERROR_INVALID_IMPLS_SIGNS);
-            return;
-        }
-        for (String signature : signs) {
+
+        for (Implementation impl : impls) {
+            String signature = impl.getSignature();
             if (signature == null || signature.isEmpty()) {
                 ErrorManager.error(ERROR_INVALID_SIGNATURE);
                 return;
@@ -198,29 +170,24 @@ public class CoreManager {
         }
 
         // Register all the new implementations
-        List<Implementation> coreImplementations = IMPLEMENTATIONS.get(coreId);
-        coreImplementations.addAll(impls);
-        IMPLEMENTATIONS.set(coreId, coreImplementations);
-
-        // Register all the new signatures
-        List<String> coreSignatures = SIGNATURES.get(coreId);
-        coreSignatures.addAll(signs);
-        SIGNATURES.set(coreId, coreSignatures);
+        CoreElement ce = CORE_ELEMENTS.get(coreId);
+        ce.registerImplementations(impls);
 
         // Update the cross-reference
-        for (String signature : signs) {
-            SIGNATURE_TO_CORE_ID.put(signature, coreId);
+        for (Implementation impl : impls) {
+            String signature = impl.getSignature();
+            SIGNATURE_TO_CORE.put(signature, ce);
         }
     }
 
     /**
-     * Returns the CoreId associated to a registered signature. If the requested signature has not been previously
+     * Returns the Core associated to a registered signature. If the requested signature has not been previously
      * registered raises an ErrorManager ERROR and stops the execution.
      *
      * @param signature Method signature.
-     * @return CoreId value.
+     * @return Core Element associated to the signature.
      */
-    public static Integer getCoreId(String signature) {
+    public static CoreElement getCore(String signature) {
         // Check that the signature is valid
         if (signature == null || signature.isEmpty()) {
             ErrorManager.error(ERROR_INVALID_SIGNATURE);
@@ -228,13 +195,13 @@ public class CoreManager {
         }
 
         // Check that the signature does not exist
-        Integer methodId = SIGNATURE_TO_CORE_ID.get(signature);
-        if (methodId == null) {
+        CoreElement ce = SIGNATURE_TO_CORE.get(signature);
+        if (ce == null) {
             ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT + signature);
             return null;
         }
 
-        return methodId;
+        return ce;
     }
 
     /**
@@ -250,14 +217,13 @@ public class CoreManager {
             LOGGER.warn(ERROR_UNREGISTERED_CORE_ELEMENT);
             return null;
         }
-        List<String> coreSignatures = SIGNATURES.get(coreId);
-        int implSignaturePosition = implId + 1;
-        if (implSignaturePosition < 0 || implSignaturePosition >= coreSignatures.size()) {
+
+        CoreElement ce = CORE_ELEMENTS.get(coreId);
+        if (implId < 0 || implId >= ce.getImplementationsCount()) {
             LOGGER.warn(WARN_UNREGISTERED_IMPL);
             return null;
         }
-
-        return coreSignatures.get(implSignaturePosition);
+        return ce.getImplementationSignature(implId);
     }
 
     /**
@@ -266,16 +232,19 @@ public class CoreManager {
      * @return The map of registered signatures and coreIds.
      */
     public static Map<String, Integer> getSignaturesToId() {
-        return SIGNATURE_TO_CORE_ID;
+        HashMap<String, Integer> result = new HashMap<>();
+        for (Entry<String, CoreElement> ceEntry : SIGNATURE_TO_CORE.entrySet()) {
+            result.put(ceEntry.getKey(), ceEntry.getValue().getCoreId());
+        }
+        return result;
     }
 
     /**
      * Clears the internal structures.
      */
     public static void clear() {
-        IMPLEMENTATIONS.clear();
-        SIGNATURES.clear();
-        SIGNATURE_TO_CORE_ID.clear();
+        CORE_ELEMENTS.clear();
+        SIGNATURE_TO_CORE.clear();
         coreCount = 0;
     }
 
@@ -298,7 +267,7 @@ public class CoreManager {
             return null;
         }
 
-        return IMPLEMENTATIONS.get(coreId);
+        return CORE_ELEMENTS.get(coreId).getImplementations();
     }
 
     /**
@@ -313,7 +282,7 @@ public class CoreManager {
             return -1;
         }
 
-        return IMPLEMENTATIONS.get(coreId).size();
+        return CORE_ELEMENTS.get(coreId).getImplementationsCount();
     }
 
     /**
@@ -323,14 +292,14 @@ public class CoreManager {
      * @param rd ResourceDescription to find cores compatible with.
      * @return List of cores whose constraints are compatible with the given resource.
      */
-    public static List<Integer> findExecutableCores(ResourceDescription rd) {
-        List<Integer> executableList = new LinkedList<>();
+    public static List<CoreElement> findExecutableCores(ResourceDescription rd) {
+        List<CoreElement> executableList = new LinkedList<>();
 
-        for (int coreId = 0; coreId < coreCount; ++coreId) {
-            for (Implementation impl : IMPLEMENTATIONS.get(coreId)) {
+        for (CoreElement ce : CORE_ELEMENTS) {
+            for (Implementation impl : ce.getImplementations()) {
                 if (rd.canHost(impl)) {
                     // Add core to executable list
-                    executableList.add(coreId);
+                    executableList.add(ce);
                     // Break the search to next core
                     break;
                 }
@@ -355,9 +324,9 @@ public class CoreManager {
     public static String debugString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Core Count: ").append(coreCount).append("\n");
-        for (int coreId = 0; coreId < coreCount; coreId++) {
-            sb.append("\tCore ").append(coreId).append(":\n");
-            for (Implementation impl : IMPLEMENTATIONS.get(coreId)) {
+        for (CoreElement ce : CORE_ELEMENTS) {
+            sb.append("\tCore ").append(ce.getCoreId()).append(":\n");
+            for (Implementation impl : ce.getImplementations()) {
                 sb.append("\t\t -").append(impl.toString()).append("\n");
             }
         }
@@ -372,9 +341,9 @@ public class CoreManager {
     public static String debugSignaturesString() {
         StringBuilder sb = new StringBuilder();
         sb.append("REGISTERED SIGNATURES: \n");
-        for (Entry<String, Integer> entry : SIGNATURE_TO_CORE_ID.entrySet()) {
+        for (Entry<String, CoreElement> entry : SIGNATURE_TO_CORE.entrySet()) {
             sb.append("Signature: ").append(entry.getKey());
-            sb.append(" with MethodId ").append(entry.getValue());
+            sb.append(" with MethodId ").append(entry.getValue().getCoreId());
             sb.append("\n");
         }
 

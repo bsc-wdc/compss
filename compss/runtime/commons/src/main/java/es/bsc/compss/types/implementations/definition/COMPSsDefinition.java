@@ -46,7 +46,7 @@ public class COMPSsDefinition extends ImplementationDefinition<MethodResourceDes
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new COMPSsImplementation(runcompss, flags, appName, workerInMaster, workingDir, coreId, implId,
-                this.getConstraints());
+                this.getSignature(), this.getConstraints());
     }
 
     @Override

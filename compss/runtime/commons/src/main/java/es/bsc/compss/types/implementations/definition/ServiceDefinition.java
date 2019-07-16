@@ -43,7 +43,7 @@ public class ServiceDefinition extends ImplementationDefinition<ServiceResourceD
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new ServiceImplementation(coreId, namespace, serviceName, port, operation);
+        return new ServiceImplementation(coreId, namespace, serviceName, port, operation, this.getSignature());
     }
 
     @Override

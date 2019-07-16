@@ -33,8 +33,8 @@ public abstract class Implementation implements Externalizable {
 
     protected Integer coreId;
     protected Integer implementationId;
+    protected String signature;
     protected WorkerResourceDescription requirements;
-
 
     /**
      * Creates a new Implementation instance for serialization.
@@ -45,20 +45,22 @@ public abstract class Implementation implements Externalizable {
 
     /**
      * Creates a new Implementation instance from the given parameters.
-     * 
-     * @param coreId Core Id.
+     *
+     * @param coreId           Core Id.
      * @param implementationId Implementation Id.
-     * @param annot Method annotations.
+     * @param signature        Signature of the implementation
+     * @param requirements     Implementation requirements.
      */
-    public Implementation(Integer coreId, Integer implementationId, WorkerResourceDescription annot) {
+    public Implementation(Integer coreId, Integer implementationId, String signature, WorkerResourceDescription requirements) {
         this.coreId = coreId;
         this.implementationId = implementationId;
-        this.requirements = annot;
+        this.signature = signature;
+        this.requirements = requirements;
     }
 
     /**
      * Returns the core Id.
-     * 
+     *
      * @return The core Id.
      */
     public Integer getCoreId() {
@@ -67,7 +69,7 @@ public abstract class Implementation implements Externalizable {
 
     /**
      * Returns the implementation Id.
-     * 
+     *
      * @return The implementation Id.
      */
     public Integer getImplementationId() {
@@ -75,8 +77,17 @@ public abstract class Implementation implements Externalizable {
     }
 
     /**
+     * Returns the signature of the implemention operation.
+     *
+     * @return signature of the implemention operation.
+     */
+    public String getSignature() {
+        return signature;
+    }
+
+    /**
      * Returns the implementation requirements.
-     * 
+     *
      * @return The implementation requirements.
      */
     public WorkerResourceDescription getRequirements() {
@@ -85,7 +96,7 @@ public abstract class Implementation implements Externalizable {
 
     /**
      * Returns the global task type.
-     * 
+     *
      * @return The global task type.
      */
     public abstract TaskType getTaskType();
@@ -102,12 +113,14 @@ public abstract class Implementation implements Externalizable {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.coreId = (Integer) in.readObject();
         this.implementationId = (Integer) in.readObject();
+        this.signature = in.readUTF();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(this.coreId);
         out.writeObject(this.implementationId);
+        out.writeUTF(signature);
     }
 
 }

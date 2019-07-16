@@ -74,9 +74,9 @@ public class StopWorkerAction extends AllocatableAction {
         this.worker = worker;
         this.ru = (PerformedReduction<WorkerResourceDescription>) modification;
         if (worker.getResource().getType() == ResourceType.WORKER) {
-            this.impl = new MethodImplementation("", "", null, null, new MethodResourceDescription());
+            this.impl = new MethodImplementation("", "", null, null, "", new MethodResourceDescription());
         } else {
-            this.impl = new ServiceImplementation(null, "", "", "", "");
+            this.impl = new ServiceImplementation(null, "", "", "", "", "");
         }
     }
 

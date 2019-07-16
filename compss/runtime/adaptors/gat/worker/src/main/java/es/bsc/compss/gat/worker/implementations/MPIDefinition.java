@@ -53,7 +53,7 @@ public class MPIDefinition extends ImplementationDefinition {
             this.workingDir = wDir;
         }
 
-        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, null, null, null);
+        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, null, null, "", null);
     }
 
     @Override

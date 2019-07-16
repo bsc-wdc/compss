@@ -93,7 +93,7 @@ class CommAgentJob extends NIOJob {
         CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, null,
                 this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, numParams,
                 absMethodImpl.getRequirements(), slaveWorkersNodeNames,
-                this.taskId, this.taskParams.getType(), this.jobId, this.history, this.transferId, this.getTimeOut(),
+                this.taskId, this.impl.getTaskType(), this.jobId, this.history, this.transferId, this.getTimeOut(),
                 CommAgentAdaptor.LOCAL_RESOURCE
         );
 

@@ -49,7 +49,6 @@ public class InitialSchedulingTest {
     private static long CORE1;
     private static long CORE2;
 
-
     public InitialSchedulingTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
@@ -63,26 +62,20 @@ public class InitialSchedulingTest {
         CoreManager.registerNewCoreElement("fakeSignature10");
         CoreManager.registerNewCoreElement("fakeSignature20");
 
-        FakeImplementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
+        FakeImplementation impl00 = new FakeImplementation(0, 0, "fakeSignature00", new FakeResourceDescription(2));
         List<Implementation> impls0 = new LinkedList<>();
         impls0.add(impl00);
-        List<String> signatures0 = new LinkedList<>();
-        signatures0.add("fakeSignature00");
-        CoreManager.registerNewImplementations(0, impls0, signatures0);
+        CoreManager.registerNewImplementations(0, impls0);
 
-        FakeImplementation impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
+        FakeImplementation impl10 = new FakeImplementation(1, 0, "fakeSignature10", new FakeResourceDescription(3));
         List<Implementation> impls1 = new LinkedList<>();
         impls1.add(impl10);
-        List<String> signatures1 = new LinkedList<>();
-        signatures1.add("fakeSignature10");
-        CoreManager.registerNewImplementations(1, impls1, signatures1);
+        CoreManager.registerNewImplementations(1, impls1);
 
-        FakeImplementation impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
+        FakeImplementation impl20 = new FakeImplementation(2, 0, "fakeSignature20", new FakeResourceDescription(1));
         List<Implementation> impls2 = new LinkedList<>();
         impls2.add(impl20);
-        List<String> signatures2 = new LinkedList<>();
-        signatures2.add("fakeSignature20");
-        CoreManager.registerNewImplementations(2, impls2, signatures2);
+        CoreManager.registerNewImplementations(2, impls2);
 
         int maxSlots = 4;
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);

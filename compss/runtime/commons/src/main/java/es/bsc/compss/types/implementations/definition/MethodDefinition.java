@@ -38,7 +38,7 @@ public class MethodDefinition extends ImplementationDefinition<MethodResourceDes
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new MethodImplementation(declaringClass, methodName, coreId, implId,
+        return new MethodImplementation(declaringClass, methodName, coreId, implId, this.getSignature(),
                 this.getConstraints());
     }
 

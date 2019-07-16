@@ -69,10 +69,10 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
         this.worker = worker;
         this.ru = (PendingReduction<T>) modification;
         if (modification.getModification() instanceof MethodResourceDescription) {
-            impl = new MethodImplementation("", "", null, null,
+            impl = new MethodImplementation("", "", null, null, "",
                     (MethodResourceDescription) modification.getModification());
         } else {
-            impl = new ServiceImplementation(null, "", "", "", "");
+            impl = new ServiceImplementation(null, "", "", "", "", "");
         }
     }
 

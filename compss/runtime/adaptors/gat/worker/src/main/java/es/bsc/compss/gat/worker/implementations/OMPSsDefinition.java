@@ -51,7 +51,7 @@ public class OMPSsDefinition extends ImplementationDefinition {
             this.workingDir = wDir;
         }
 
-        this.impl = new OmpSsImplementation(this.binary, this.workingDir, null, null, null);
+        this.impl = new OmpSsImplementation(this.binary, this.workingDir, null, null, "", null);
     }
 
     @Override

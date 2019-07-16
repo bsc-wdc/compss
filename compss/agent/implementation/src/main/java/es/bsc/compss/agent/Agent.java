@@ -18,6 +18,7 @@ package es.bsc.compss.agent;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.agent.loader.Loader;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
@@ -50,7 +51,6 @@ import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,6 +65,10 @@ import storage.StorageItf;
 public class Agent {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
+    private static final String LOADER_CLASS_NAME = Loader.class.getCanonicalName();
+    private static final String LOADER_METHOD_NAME = "load";
+    private static final String LOADER_PARAMS = "(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,INT_T,OBJECT_T)";
+    private static final String LOADER_SIGNATURE = LOADER_METHOD_NAME + LOADER_PARAMS;
 
     private static final String AGENT_NAME;
 
@@ -103,16 +107,15 @@ public class Agent {
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
         RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
         RUNTIME.startIT();
-        String loadSignature = "load(OBJECT_T,OBJECT_T,STRING_T,LONG_T,STRING_T,STRING_T,INT_T,OBJECT_T)";
         CoreElementDefinition ced = new CoreElementDefinition();
-        ced.setCeSignature(loadSignature);
+        ced.setCeSignature(LOADER_SIGNATURE);
         MethodResourceDescription mrd = new MethodResourceDescription("");
         for (Processor p : mrd.getProcessors()) {
             p.setName("LocalProcessor");
         }
         ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation("METHOD",
-                loadSignature + "es.bsc.compss.agent.loader.Loader", new MethodResourceDescription(""),
-                "es.bsc.compss.agent.loader.Loader", "load");
+                LOADER_SIGNATURE + LOADER_CLASS_NAME, new MethodResourceDescription(""),
+                LOADER_CLASS_NAME, LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
 
@@ -205,11 +208,12 @@ public class Agent {
 
             RUNTIME.executeTask(mainAppId, // Task application ID
                     monitor, // Corresponding task monitor
-                    lang, "es.bsc.compss.agent.loader.Loader", "load", // Method to run
-                    false, 1, false, false, // Scheduler hints
-                    false, totalParamsCount, // Parameters information
+                    lang, // language of the task
+                    true, LOADER_CLASS_NAME, LOADER_METHOD_NAME, LOADER_SIGNATURE + LOADER_CLASS_NAME, // Method to run
                     OnFailure.RETRY, // On failure behavior
                     0, // Time out of the task
+                    false, 1, false, false, // Scheduler hints
+                    false, null, totalParamsCount, // Parameters information
                     params // Argument values
             );
         } catch (Exception e) {
@@ -217,7 +221,7 @@ public class Agent {
         }
         return mainAppId;
     }
-
+    
     /**
      * Requests the execution of a method as a task.
      *

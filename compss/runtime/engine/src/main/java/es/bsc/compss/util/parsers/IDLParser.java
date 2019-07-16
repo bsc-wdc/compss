@@ -17,6 +17,7 @@
 package es.bsc.compss.util.parsers;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -56,10 +57,9 @@ public class IDLParser {
         IMPLEMENTATION // Implementation
     }
 
-
     /**
      * Parses the methods found in the IDL file.
-     * 
+     *
      * @param constraintsFile IDL file location.
      */
     public static void parseIDLMethods(String constraintsFile) {
@@ -80,31 +80,37 @@ public class IDLParser {
                     if (line.startsWith("//")) {
                         // Line is a comment inside the core region ignoring it
                         continue;
-                    } else if (type.equals(CodeRegion.COMMENT)) {
-                        if (line.endsWith("*/")) {
-                            isReadingCodeRegion = false;
-                        } else {
-                            continue;
-                        }
                     } else {
-                        if (line.matches(".*[)];")) {
-                            isReadingCodeRegion = false;
-                            structureString.append(line);
-                            if (type.equals(CodeRegion.CONSTRAINT)) {
-                                LOGGER.debug("[IDL Parser] Loading constraint: " + structureString.toString());
-                                currConstraints = loadCConstraints(structureString.toString());
-                            } else if (type.equals(CodeRegion.IMPLEMENTATION)) {
-                                LOGGER.debug("[IDL Parser] Loading implementation: " + structureString.toString());
-                                implementation = loadCImplementation(structureString.toString());
-                            } else if (type.equals(CodeRegion.FUNCTION)) {
-                                LOGGER.debug("[IDL Parser] Loading function: " + structureString.toString()
-                                        + " constraint:" + currConstraints);
-                                parseCFunction(structureString.toString(), currConstraints, implementation);
-                                currConstraints = new MethodResourceDescription(defaultCtr);
-                                implementation = null;
+                        if (type.equals(CodeRegion.COMMENT)) {
+                            if (line.endsWith("*/")) {
+                                isReadingCodeRegion = false;
+                            } else {
+                                continue;
                             }
                         } else {
-                            structureString.append(line);
+                            if (line.matches(".*[)];")) {
+                                isReadingCodeRegion = false;
+                                structureString.append(line);
+                                if (type.equals(CodeRegion.CONSTRAINT)) {
+                                    LOGGER.debug("[IDL Parser] Loading constraint: " + structureString.toString());
+                                    currConstraints = loadCConstraints(structureString.toString());
+                                } else {
+                                    if (type.equals(CodeRegion.IMPLEMENTATION)) {
+                                        LOGGER.debug("[IDL Parser] Loading implementation: " + structureString.toString());
+                                        implementation = loadCImplementation(structureString.toString());
+                                    } else {
+                                        if (type.equals(CodeRegion.FUNCTION)) {
+                                            LOGGER.debug("[IDL Parser] Loading function: " + structureString.toString()
+                                                    + " constraint:" + currConstraints);
+                                            parseCFunction(structureString.toString(), currConstraints, implementation);
+                                            currConstraints = new MethodResourceDescription(defaultCtr);
+                                            implementation = null;
+                                        }
+                                    }
+                                }
+                            } else {
+                                structureString.append(line);
+                            }
                         }
                     }
 
@@ -113,42 +119,56 @@ public class IDLParser {
                             || (line.startsWith("/*") && line.endsWith("*/"))) {
                         // Line is a comment of pre-processor pragma ignoring it
                         continue;
-                    } else if (line.startsWith("/*")) {
-                        // Line starts comment region
-                        isReadingCodeRegion = true;
-                        type = CodeRegion.COMMENT;
-                    } else if (line.matches(CONSTRAINT_IDL + "[(].*[)];")) {
-                        // Line contains
-                        LOGGER.debug("[IDL Parser] Loading constraint: " + line);
-                        currConstraints = loadCConstraints(line);
-                        continue;
-                    } else if (line.matches(CONSTRAINT_IDL + "[(].*")) {
-                        // Line starts a constraints region
-                        isReadingCodeRegion = true;
-                        structureString = new StringBuilder(line);
-                        type = CodeRegion.CONSTRAINT;
-                    } else if (line.matches(IMPLEMENTS_IDL + "[(].*[)];")) {
-                        // Line implements
-                        LOGGER.debug("[IDL Parser] Loading implementation: " + line);
-                        implementation = loadCImplementation(line);
-                        continue;
-                    } else if (line.matches(IMPLEMENTS_IDL + "[(].*")) {
-                        // Line starts a constraints region
-                        isReadingCodeRegion = true;
-                        structureString = new StringBuilder(line);
-                        type = CodeRegion.IMPLEMENTATION;
-                    } else if (line.matches(".*[(].*[)];")) {
-                        // Line contains a function
-                        LOGGER.debug("[IDL Parser] Loading function: " + line + " constraint:" + currConstraints);
-                        parseCFunction(line, currConstraints, implementation);
+                    } else {
+                        if (line.startsWith("/*")) {
+                            // Line starts comment region
+                            isReadingCodeRegion = true;
+                            type = CodeRegion.COMMENT;
+                        } else {
+                            if (line.matches(CONSTRAINT_IDL + "[(].*[)];")) {
+                                // Line contains
+                                LOGGER.debug("[IDL Parser] Loading constraint: " + line);
+                                currConstraints = loadCConstraints(line);
+                                continue;
+                            } else {
+                                if (line.matches(CONSTRAINT_IDL + "[(].*")) {
+                                    // Line starts a constraints region
+                                    isReadingCodeRegion = true;
+                                    structureString = new StringBuilder(line);
+                                    type = CodeRegion.CONSTRAINT;
+                                } else {
+                                    if (line.matches(IMPLEMENTS_IDL + "[(].*[)];")) {
+                                        // Line implements
+                                        LOGGER.debug("[IDL Parser] Loading implementation: " + line);
+                                        implementation = loadCImplementation(line);
+                                        continue;
+                                    } else {
+                                        if (line.matches(IMPLEMENTS_IDL + "[(].*")) {
+                                            // Line starts a constraints region
+                                            isReadingCodeRegion = true;
+                                            structureString = new StringBuilder(line);
+                                            type = CodeRegion.IMPLEMENTATION;
+                                        } else {
+                                            if (line.matches(".*[(].*[)];")) {
+                                                // Line contains a function
+                                                LOGGER.debug("[IDL Parser] Loading function: " + line + " constraint:" + currConstraints);
+                                                parseCFunction(line, currConstraints, implementation);
 
-                        currConstraints = new MethodResourceDescription(defaultCtr);
-                        implementation = null;
-                    } else if (line.matches(".*[(].*")) {
-                        // Line starts a function region
-                        isReadingCodeRegion = true;
-                        structureString = new StringBuilder(line);
-                        type = CodeRegion.FUNCTION;
+                                                currConstraints = new MethodResourceDescription(defaultCtr);
+                                                implementation = null;
+                                            } else {
+                                                if (line.matches(".*[(].*")) {
+                                                    // Line starts a function region
+                                                    isReadingCodeRegion = true;
+                                                    structureString = new StringBuilder(line);
+                                                    type = CodeRegion.FUNCTION;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -182,7 +202,7 @@ public class IDLParser {
 
     private static void parseCFunction(String line, MethodResourceDescription currConstraints,
             CImplementation implementation) {
-        
+
         final StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         final StringBuilder implementationSignatureBuffer = new StringBuilder();
         // TODO: Check isStatic and hasReturn information
@@ -215,16 +235,15 @@ public class IDLParser {
          * implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
          * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(","); }
          */
-        /*
+ /*
          * if (hasReturn) { implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
          * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(",");
          */
-        /*
+ /*
          * OLD Binding Objects as FILE implementedTaskSignatureBuffer.append("FILE_T").append(",");
          * implementationSignatureBuffer.append("FILE_T").append(",");
          */
         // }
-        
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
@@ -237,33 +256,57 @@ public class IDLParser {
              */
             if (paramType.toUpperCase().compareTo("FILE") == 0) {
                 type = "FILE_T";
-            } else if (paramDirection.toUpperCase().compareTo("INOUT") == 0) {
-                type = "BINDING_OBJECT_T";
-            } else if (paramDirection.toUpperCase().compareTo("OUT") == 0) {
-                type = "BINDING_OBJECT_T";
-            } else if (paramType.compareTo("boolean") == 0) {
-                type = "BOOLEAN_T";
-            } else if (paramType.compareTo("char") == 0) {
-                type = "CHAR_T";
-            } else if (paramType.compareTo("int") == 0) {
-                type = "INT_T";
-            } else if (paramType.compareTo("float") == 0) {
-                type = "FLOAT_T";
-            } else if (paramType.compareTo("double") == 0) {
-                type = "DOUBLE_T";
-            } else if (paramType.compareTo("byte") == 0) {
-                type = "BYTE_T";
-            } else if (paramType.compareTo("short") == 0) {
-                type = "SHORT_T";
-            } else if (paramType.compareTo("long") == 0) {
-                type = "LONG_T";
-            } else if (paramType.compareTo("string") == 0) {
-                type = "STRING_T";
-            } else if (paramType.compareTo("enum") == 0) {
-                type = "INT_T";
-                i++;
+            } else {
+                if (paramDirection.toUpperCase().compareTo("INOUT") == 0) {
+                    type = "BINDING_OBJECT_T";
+                } else {
+                    if (paramDirection.toUpperCase().compareTo("OUT") == 0) {
+                        type = "BINDING_OBJECT_T";
+                    } else {
+                        if (paramType.compareTo("boolean") == 0) {
+                            type = "BOOLEAN_T";
+                        } else {
+                            if (paramType.compareTo("char") == 0) {
+                                type = "CHAR_T";
+                            } else {
+                                if (paramType.compareTo("int") == 0) {
+                                    type = "INT_T";
+                                } else {
+                                    if (paramType.compareTo("float") == 0) {
+                                        type = "FLOAT_T";
+                                    } else {
+                                        if (paramType.compareTo("double") == 0) {
+                                            type = "DOUBLE_T";
+                                        } else {
+                                            if (paramType.compareTo("byte") == 0) {
+                                                type = "BYTE_T";
+                                            } else {
+                                                if (paramType.compareTo("short") == 0) {
+                                                    type = "SHORT_T";
+                                                } else {
+                                                    if (paramType.compareTo("long") == 0) {
+                                                        type = "LONG_T";
+                                                    } else {
+                                                        if (paramType.compareTo("string") == 0) {
+                                                            type = "STRING_T";
+                                                        } else {
+                                                            if (paramType.compareTo("enum") == 0) {
+                                                                type = "INT_T";
+                                                                i++;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            
+
             implementedTaskSignatureBuffer.append(type).append(",");
             implementationSignatureBuffer.append(type).append(",");
         }
@@ -286,21 +329,21 @@ public class IDLParser {
         final String implementationSignature = implementationSignatureBuffer.toString();
 
         // Create the core Element if it does not exist
-        Integer coreId = CoreManager.registerNewCoreElement(taskSignature);
-        if (coreId == null) {
+        CoreElement ce = CoreManager.registerNewCoreElement(taskSignature);
+        if (ce == null) {
             // The coreId already exists
-            coreId = CoreManager.getCoreId(taskSignature);
+            ce = CoreManager.getCore(taskSignature);
         }
+        Integer coreId = ce.getCoreId();
         LOGGER.debug("CoreId for task " + taskSignature + " is " + coreId);
 
         // Add the implementation to the core element
         int implId = CoreManager.getNumberCoreImplementations(coreId);
         List<Implementation> newImpls = new LinkedList<>();
-        MethodImplementation m = new MethodImplementation(declaringClass, methodName, coreId, implId, currConstraints);
+        MethodImplementation m = new MethodImplementation(declaringClass, methodName, coreId, implId, 
+                implementationSignature, currConstraints);
         newImpls.add(m);
-        List<String> newSigns = new LinkedList<>();
-        newSigns.add(implementationSignature);
-        CoreManager.registerNewImplementations(coreId, newImpls, newSigns);
+        CoreManager.registerNewImplementations(coreId, newImpls);
         LOGGER.debug(
                 "[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + coreId);
     }
@@ -333,7 +376,6 @@ public class IDLParser {
 
         private final String className;
         private final String methodName;
-
 
         public CImplementation(String className, String methodName) {
             this.className = className;

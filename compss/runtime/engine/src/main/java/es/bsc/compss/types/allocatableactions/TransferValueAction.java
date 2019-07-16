@@ -58,7 +58,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     // LOGGER
     private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
 
-    private static final Implementation DUMMY_IMPL = new MethodImplementation("", "", null, null, null);
+    private static final Implementation DUMMY_IMPL = new MethodImplementation("", "", null, null, "", null);
 
     private final DependencyParameter dataToTransfer;
     private final ResourceScheduler<T> receiver;

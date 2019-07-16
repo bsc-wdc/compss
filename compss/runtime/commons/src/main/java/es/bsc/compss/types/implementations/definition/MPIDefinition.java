@@ -41,7 +41,8 @@ public class MPIDefinition extends ImplementationDefinition<MethodResourceDescri
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new MPIImplementation(binary, workingDir, mpiRunner, coreId, implId, this.getConstraints());
+        return new MPIImplementation(binary, workingDir, mpiRunner, coreId, implId, this.getSignature(),
+                this.getConstraints());
     }
 
     @Override

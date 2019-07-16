@@ -277,8 +277,8 @@ if [ -f "${APPLICATION_PATH}" ]; then
   CLASSPATH="${CLASSPATH}:${APPLICATION_FOLDER}/lib/*"
 fi
 
-CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/worker/compss-adaptors-agent-rest-worker.jar"
-CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/RESTagent/master/compss-adaptors-agent-rest-master.jar"
+CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/CommAgent/worker/compss-adaptors-agent-comm-worker.jar"
+#CLASSPATH="${CLASSPATH}:${COMPSS_HOME}/Runtime/adaptors/Commagent/master/compss-adaptors-agent-comm-master.jar"
 
 if [ "$DC_ENABLED" = true ] ; then
   echo "GENERATING DATACLAY CONFIGURATION FILES..."
@@ -301,19 +301,18 @@ fi
 echo "------------------------"
 echo "HOSTNAME: ${AGENT_HOSTNAME}"
 echo "------------------------"
+
 java \
 -cp "${CLASSPATH}" \
--Dcompss.agent.name="${AGENT_HOSTNAME}" \
+-Dcompss.masterName="${AGENT_HOSTNAME}" \
 -Dcompss.uuid="${uuid}" \
 -Dcompss.appLogDir="/tmp/${uuid}" \
--Dcompss.lang=JAVA \
--Dcompss.project.file="${COMPSS_HOME}/Runtime/configuration/xml/projects/default_project.xml" \
--Dcompss.resources.file="${COMPSS_HOME}/Runtime/configuration/xml/resources/default_resources.xml" \
+-Dcompss.project.file="${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml" \
+-Dcompss.resources.file="${COMPSS_HOME}/Runtime/configuration/xml/resources/examples/local/resources.xml" \
 -Dcompss.project.schema="${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd" \
 -Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
 -Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler \
--Dcompss.comm=es.bsc.compss.agent.rest.master.Adaptor \
 ${DATACLAY_CONFIG_OPT} \
-es.bsc.compss.agent.comm.CommAgent ${AGENT_PORT}
+es.bsc.compss.agent.comm.CommAgentImpl ${AGENT_PORT}
 

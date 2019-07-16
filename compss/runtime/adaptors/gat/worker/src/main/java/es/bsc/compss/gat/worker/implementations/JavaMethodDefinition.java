@@ -44,7 +44,7 @@ public class JavaMethodDefinition extends ImplementationDefinition {
         this.className = args[execArgsIdx++];
         this.methodName = args[execArgsIdx];
 
-        this.impl = new MethodImplementation(this.className, this.methodName, null, null, null);
+        this.impl = new MethodImplementation(this.className, this.methodName, null, null, "", null);
     }
 
     @Override

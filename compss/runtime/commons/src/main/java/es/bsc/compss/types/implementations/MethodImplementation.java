@@ -53,12 +53,13 @@ public class MethodImplementation extends AbstractMethodImplementation implement
      * @param altMethodName Method name.
      * @param coreId Core Id.
      * @param implementationId Implementation id.
+     * @param signature Method signature.
      * @param requirements Method annotations.
      */
     public MethodImplementation(String methodClass, String altMethodName, Integer coreId, Integer implementationId,
-            MethodResourceDescription requirements) {
+            String signature, MethodResourceDescription requirements) {
 
-        super(coreId, implementationId, requirements);
+        super(coreId, implementationId, signature, requirements);
 
         this.declaringClass = methodClass;
         this.alternativeMethod = altMethodName;

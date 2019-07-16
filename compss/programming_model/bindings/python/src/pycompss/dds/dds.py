@@ -172,7 +172,7 @@ class DDS(object):
         :return:
         """
 
-        files = os.listdir(dir_path)
+        files = sorted(os.listdir(dir_path))
         for _f in files:
             file_name = os.path.join(dir_path, _f)
             _partition_loader = PickleLoader(file_name)
@@ -438,7 +438,7 @@ class DDS(object):
         processed = list()
         if self.func:
             for _p in self.partitions:
-                processed.append(map_partition(self.func, _p, self.paafo))
+                processed.append(map_partition(self.func, _p, col=self.paafo))
             # Reset the function!
             self.func = None
         else:
@@ -470,14 +470,11 @@ class DDS(object):
         :param path:
         :return:
         """
+        processed = self.collect(future_objects=True)
+        for i, _p in enumerate(processed):
+            save_text_file(_p, i, path)
 
-        def _write(partition):
-            file_name = os.path.join(path, str(id(partition)))
-            with open(file_name, "w") as _:
-                _.write("\n".join([str(item) for item in partition]))
-            return list()
-
-        self.map_partitions(_write).count()
+        return None
 
     def save_as_pickle(self, path):
         """
@@ -486,12 +483,11 @@ class DDS(object):
         :param path:
         :return:
         """
-        def _write(partition):
-            file_name = os.path.join(path, str(id(partition)))
-            pickle.dump(partition, open(file_name, "wb"))
-            return list()
+        processed = self.collect(future_objects=True)
+        for i, _p in enumerate(processed):
+            save_pickle_file(_p, i, path)
 
-        self.map_partitions(_write).count()
+        return None
 
     """
     Functions for (Key, Value) pairs.

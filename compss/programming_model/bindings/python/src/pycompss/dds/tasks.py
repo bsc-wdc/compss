@@ -14,6 +14,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import os
+import pickle
 
 from pycompss.api.api import compss_wait_on as cwo
 from pycompss.api.parameter import INOUT, IN, COLLECTION_INOUT
@@ -21,6 +23,7 @@ from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 
 marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
+FILE_NAME_LENGTH = 5
 
 
 def map_partition(f, partition, col=False):
@@ -153,4 +156,19 @@ def task_collect_samples(partition, num_of_samples, key_func):
         ret.append(key_func(partition[_i][0]))
 
     return ret
+
+
+@task()
+def save_text_file(partition, index, path):
+
+    file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
+    with open(file_name, "w") as _:
+        _.write("\n".join([str(item) for item in partition]))
+
+
+@task()
+def save_pickle_file(partition, index, path):
+
+    file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
+    pickle.dump(list(partition), open(file_name, "wb"))
 

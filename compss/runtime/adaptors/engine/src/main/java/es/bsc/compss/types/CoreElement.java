@@ -29,8 +29,6 @@ public class CoreElement {
 
     private final int coreId;
 
-    // List of signatures of each implementation of each coreElement
-    // The first signature is always the signature of the coreElement
     private final String signature;
 
     private final List<Implementation> implementations;

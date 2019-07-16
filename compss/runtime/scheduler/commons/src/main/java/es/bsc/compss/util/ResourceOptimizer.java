@@ -21,6 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.scheduler.types.WorkloadState;
 import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.ResourceCreationRequest;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
@@ -359,10 +360,11 @@ public class ResourceOptimizer extends Thread {
         int coreCount = CoreManager.getCoreCount();
         List<ConstraintsCore>[] unfulfilledConstraints = new LinkedList[coreCount];
         int[] maxSimTasks = ResourceManager.getTotalSlots();
-        for (int coreId = 0; coreId < coreCount; coreId++) {
+        for (CoreElement ce: CoreManager.getAllCores()){
+            int coreId = ce.getCoreId();
             unfulfilledConstraints[coreId] = new LinkedList<>();
             if (maxSimTasks[coreId] == 0) {
-                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+                List<Implementation> impls = ce.getImplementations();
                 for (Implementation impl : impls) {
                     if (impl.getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription requirements = (MethodResourceDescription) impl.getRequirements();
@@ -744,8 +746,8 @@ public class ResourceOptimizer extends Thread {
         }
 
         for (int coreId = 0; coreId < creationRecommendations.length; coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-            for (Implementation impl : impls) {
+            CoreElement ce = CoreManager.getCore(coreId);
+            for (Implementation impl : ce.getImplementations()) {
                 if (impl.getTaskType() == TaskType.SERVICE) {
                     continue;
                 }
@@ -764,8 +766,8 @@ public class ResourceOptimizer extends Thread {
 
         for (int coreId = 0; coreId < creationRecommendations.length; coreId++) {
             if (creationRecommendations[coreId] > 1) {
-                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-                for (Implementation impl : impls) {
+                CoreElement ce = CoreManager.getCore(coreId);
+                for (Implementation impl : ce.getImplementations()) {
                     if (impl.getTaskType() == TaskType.SERVICE) {
                         continue;
                     }
@@ -1448,12 +1450,13 @@ public class ResourceOptimizer extends Thread {
             Profile[][] profiles;
             int coreCount = CoreManager.getCoreCount();
             profiles = new Profile[coreCount][];
-            for (int coreId = 0; coreId < coreCount; ++coreId) {
-                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+            for (CoreElement ce : CoreManager.getAllCores()) {
+                int coreId = ce.getCoreId();
+                List<Implementation> impls = ce.getImplementations();
                 int implCount = impls.size();
                 profiles[coreId] = new Profile[implCount];
                 for (Implementation impl : impls) {
-                    String signature = CoreManager.getSignature(coreId, impl.getImplementationId());
+                    String signature = impl.getSignature();
                     JSONObject jsonImpl = null;
                     if (resMap != null) {
                         try {

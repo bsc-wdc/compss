@@ -1238,7 +1238,7 @@ public class TaskScheduler {
             logger.warn("--- Summary for COMPSs Worker " + workerName);
 
             long totalExecutedTasksInWorker = 0;
-            for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
+            for (Entry<String, Integer> entry : CoreManager.getSignaturesToCoreIds().entrySet()) {
                 String signature = entry.getKey();
                 boolean isPhantomSignature = signature.endsWith(")");
                 if (!isPhantomSignature) {
@@ -1257,7 +1257,7 @@ public class TaskScheduler {
         logger.warn("");
         logger.warn("------------ COMPSs Task Execution Summary ------------");
         long totalExecutedTasks = 0;
-        for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
+        for (Entry<String, Integer> entry : CoreManager.getSignaturesToCoreIds().entrySet()) {
             String signature = entry.getKey();
             boolean isPhantomSignature = signature.endsWith(")");
             if (!isPhantomSignature) {

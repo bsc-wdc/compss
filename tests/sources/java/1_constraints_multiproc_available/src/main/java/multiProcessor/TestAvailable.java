@@ -1,3 +1,4 @@
+
 package multiProcessor;
 
 import java.util.LinkedList;
@@ -12,6 +13,9 @@ import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
 
 import commons.Action;
+import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.implementations.Implementation;
+import java.util.List;
 
 
 /**
@@ -58,7 +62,7 @@ public class TestAvailable {
      * GPU CUs (internalMemory=1), 1 FPGA CU) CE2 -> 1 CPU CUs, 1 FPGA , 2 OTHER CUs , nodeMemSize= 2.0) CE3 -> 1 CPU
      * CUs, 2 GPU CU (internalMemory=3) CE4 -> 1 CPU CUs (internalMemory=3); ***************************************
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();
@@ -66,9 +70,9 @@ public class TestAvailable {
         // Loading Core names from the interface
         idToSignatures = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            idToSignatures[coreId] = new LinkedList<String>();
+            idToSignatures[coreId] = new LinkedList<>();
         }
-        for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
+        for (Entry<String, Integer> entry : CoreManager.getSignaturesToCoreIds().entrySet()) {
             String signature = entry.getKey();
             Integer coreId = entry.getValue();
             idToSignatures[coreId].add(signature);
@@ -79,28 +83,28 @@ public class TestAvailable {
         boolean found_ce2 = false;
         boolean found_ce3 = false;
         boolean found_ce4 = false;
-        int ce1 = 0;
-        int ce2 = 0;
-        int ce3 = 0;
-        int ce4 = 0;
+        int ceId1 = 0;
+        int ceId2 = 0;
+        int ceId3 = 0;
+        int ceId4 = 0;
         coreToName = new String[coreCount];
         for (int i = 0; i < coreCount; i++) {
             int cutValue = idToSignatures[i].getFirst().indexOf("(");
             coreToName[i] = idToSignatures[i].getFirst().substring(0, cutValue);
             if (coreToName[i].equals(NAME_CORE_ELEMENT_1)) {
-                ce1 = i;
+                ceId1 = i;
                 found_ce1 = true;
             }
             if (coreToName[i].equals(NAME_CORE_ELEMENT_2)) {
-                ce2 = i;
+                ceId2 = i;
                 found_ce2 = true;
             }
             if (coreToName[i].equals(NAME_CORE_ELEMENT_3)) {
-                ce3 = i;
+                ceId3 = i;
                 found_ce3 = true;
             }
             if (coreToName[i].equals(NAME_CORE_ELEMENT_4)) {
-                ce4 = i;
+                ceId4 = i;
                 found_ce4 = true;
             }
         }
@@ -132,6 +136,7 @@ public class TestAvailable {
          * ***********************************************
          */
         ActionOrchestrator orchestrator = COMPSsRuntimeImpl.getOrchestrator();
+        CoreElement ce3 = CoreManager.getCore(ceId3);
         Action a = new Action(orchestrator, ce3);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println(
@@ -139,6 +144,7 @@ public class TestAvailable {
             System.exit(-1);
         }
 
+        CoreElement ce4 = CoreManager.getCore(ceId4);
         a = new Action(orchestrator, ce4);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources processorInternalMemorySize filter is not working");
@@ -149,11 +155,13 @@ public class TestAvailable {
          * ************************************************* Reserve and free for GPU and FPGA computingUnits test
          * ***********************************************
          */
+        CoreElement ce1 = CoreManager.getCore(ceId1);
+        List<Implementation> ce1Impls = ce1.getImplementations();
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
-        System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1).get(0));
+        System.out.println("Implementation 1: " + ce1Impls.get(0));
 
         MethodResourceDescription consumed1 = (MethodResourceDescription) worker
-                .runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
+                .runTask(ce1Impls.get(0).getRequirements());
 
         System.out.println("CONSUMED: " + consumed1);
         // Check Consumed: 2 CPUs 2 GPUs 1 FPGA
@@ -161,7 +169,7 @@ public class TestAvailable {
             System.out.println("[ERROR] consumed resources for CPU + GPU + FPGA is not working");
             System.exit(-1);
         }
-        ;
+
         MethodResourceDescription remaining = ((MethodWorker) worker).getAvailable();
         System.out.println("REMAINING: " + remaining);
         // Check Remaining: 2CPUs 1GPU , 2FPGA 3 OTHER
@@ -169,8 +177,11 @@ public class TestAvailable {
             System.out.println("[ERROR] remaining resources for CPU + GPU + FPGA is not working");
             System.exit(-1);
         }
+
+        CoreElement ce2 = CoreManager.getCore(ceId2);
+        List<Implementation> ce2Impls = ce2.getImplementations();
         MethodResourceDescription consumed2 = (MethodResourceDescription) worker
-                .runTask(CoreManager.getCoreImplementations(ce2).get(0).getRequirements());
+                .runTask(ce2Impls.get(0).getRequirements());
         System.out.println("CONSUMED: " + consumed2);
 
         // Check consumed 1 CPU 2 OTHER 1 FPGA

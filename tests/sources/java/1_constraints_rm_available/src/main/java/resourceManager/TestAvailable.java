@@ -1,3 +1,4 @@
+
 package resourceManager;
 
 import java.util.LinkedList;
@@ -10,6 +11,9 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
 import commons.Action;
+import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.implementations.Implementation;
+import java.util.List;
 
 
 /**
@@ -52,7 +56,7 @@ public class TestAvailable {
      * AVAILABLE RESOURCES TEST IMPLEMENTATION
      * ********************************************************************************************************
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();
@@ -60,9 +64,9 @@ public class TestAvailable {
         // Loading Core names from the interface
         idToSignatures = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            idToSignatures[coreId] = new LinkedList<String>();
+            idToSignatures[coreId] = new LinkedList<>();
         }
-        for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
+        for (Entry<String, Integer> entry : CoreManager.getSignaturesToCoreIds().entrySet()) {
             String signature = entry.getKey();
             Integer coreId = entry.getValue();
             idToSignatures[coreId].add(signature);
@@ -71,18 +75,18 @@ public class TestAvailable {
         // Search for the specific CoreElement ids
         boolean found_ce1 = false;
         boolean found_ce2 = false;
-        int ce1 = 0;
-        int ce2 = 0;
+        int ceId1 = 0;
+        int ceId2 = 0;
         coreToName = new String[coreCount];
         for (int i = 0; i < coreCount; i++) {
             int cutValue = idToSignatures[i].getFirst().indexOf("(");
             coreToName[i] = idToSignatures[i].getFirst().substring(0, cutValue);
             if (coreToName[i].equals(NAME_CORE_ELEMENT_1)) {
-                ce1 = i;
+                ceId1 = i;
                 found_ce1 = true;
             }
             if (coreToName[i].equals(NAME_CORE_ELEMENT_2)) {
-                ce2 = i;
+                ceId2 = i;
                 found_ce2 = true;
             }
         }
@@ -103,14 +107,14 @@ public class TestAvailable {
          * ********************************************************************************************************
          */
         Worker worker = ResourceManager.getWorker(NAME_WORKER);
-
+        
+        CoreElement ce1 = CoreManager.getCore(ceId1);
+        List<Implementation> ce1Impls = ce1.getImplementations();
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
-        System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1).get(0));
+        System.out.println("Implementation 1: " + ce1Impls.get(0));
 
-        WorkerResourceDescription consumed1 = worker
-                .runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
-        WorkerResourceDescription consumed2 = worker
-                .runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
+        WorkerResourceDescription consumed1 = worker.runTask(ce1Impls.get(0).getRequirements());
+        WorkerResourceDescription consumed2 = worker.runTask(ce1Impls.get(0).getRequirements());
 
         System.out.println("CONSUMED: " + consumed1);
         System.out.println("CONSUMED: " + consumed2);
@@ -140,12 +144,14 @@ public class TestAvailable {
          * Reserve and free for memorySize test
          * ********************************************************************************************************
          */
+        CoreElement ce2 = CoreManager.getCore(ceId2);
+        List<Implementation> ce2Impls = ce2.getImplementations();
         a = new Action(orchestrator, ce2);
         // System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
-        // System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce2)[0]);
+        // System.out.println("Implementation 1: " + ce2Impls.get(0));
 
-        consumed1 = worker.runTask(CoreManager.getCoreImplementations(ce2).get(0).getRequirements());
-        consumed2 = worker.runTask(CoreManager.getCoreImplementations(ce2).get(0).getRequirements());
+        consumed1 = worker.runTask(ce2Impls.get(0).getRequirements());
+        consumed2 = worker.runTask(ce2Impls.get(0).getRequirements());
 
         // System.out.println("CONSUMED: " + consumed1);
         // System.out.println("CONSUMED: " + consumed2);

@@ -543,7 +543,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             }
 
             LOGGER.debug("Stopping Comm...");
-            Comm.stop(CoreManager.getSignaturesToId());
+            Comm.stop(CoreManager.getSignaturesToCoreIds());
             LOGGER.debug("Runtime stopped");
 
         }

@@ -9,6 +9,7 @@ import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
@@ -24,12 +25,12 @@ import java.util.Map;
 
 public class Action extends AllocatableAction {
 
-    private final int coreId;
+    private final CoreElement core;
 
-    public Action(ActionOrchestrator orchestrator, int coreId) {
+    public Action(ActionOrchestrator orchestrator, CoreElement core) {
 
         super(new SchedulingInformation(null), orchestrator);
-        this.coreId = coreId;
+        this.core = core;
     }
 
     @Override
@@ -49,18 +50,18 @@ public class Action extends AllocatableAction {
 
     @Override
     public List<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
-        return getCoreElementExecutors(coreId);
+        return getCoreElementExecutors(core.getCoreId());
     }
 
     @Override
     public <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
             ResourceScheduler<T> r) {
-        return r.getExecutableImpls(coreId);
+        return r.getExecutableImpls(core.getCoreId());
     }
 
     @Override
     public Implementation[] getImplementations() {
-        List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        List<Implementation> impls = core.getImplementations();
 
         int implsSize = impls.size();
         Implementation[] resultImpls = new Implementation[implsSize];
@@ -72,7 +73,7 @@ public class Action extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> boolean isCompatible(Worker<T> r) {
-        return r.canRun(coreId);
+        return r.canRun(core.getCoreId());
     }
 
     @Override
@@ -143,10 +144,10 @@ public class Action extends AllocatableAction {
         Map<Worker<?>, List<Implementation>> m = new HashMap<>();
 
         List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = getCoreElementExecutors(
-                coreId);
+                core.getCoreId());
         for (ResourceScheduler<? extends WorkerResourceDescription> ui : compatibleWorkers) {
             Worker<WorkerResourceDescription> r = (Worker<WorkerResourceDescription>) ui.getResource();
-            List<Implementation> compatibleImpls = r.getExecutableImpls(coreId);
+            List<Implementation> compatibleImpls = r.getExecutableImpls(core.getCoreId());
             List<Implementation> runnableImpls = new LinkedList<>();
             for (Implementation impl : compatibleImpls) {
                 if (r.canRunNow(impl.getRequirements())) {
@@ -162,7 +163,7 @@ public class Action extends AllocatableAction {
 
     @Override
     public Integer getCoreId() {
-        return coreId;
+        return core.getCoreId();
     }
 
     @Override

@@ -61,7 +61,7 @@ public class IDLParserTest {
         assertEquals(CoreManager.getCoreCount(), CORECOUNT_RESULT);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");
-        List<Implementation> implList = CoreManager.getCoreImplementations(0);
+        List<Implementation> implList = CoreManager.getCore(0).getImplementations();
         assertNotNull(implList);
         MethodImplementation impl = (MethodImplementation) implList.get(0);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
@@ -71,7 +71,7 @@ public class IDLParserTest {
         assertEquals(p.getArchitecture(), "x86_64");
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 1");
-        implList = CoreManager.getCoreImplementations(1);
+        implList = CoreManager.getCore(1).getImplementations();
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (3)");
         assertEquals(implList.size(), CORE1_6_IMPLS_RESULT);
@@ -87,19 +87,19 @@ public class IDLParserTest {
         assertEquals(p.getComputingUnits(), 1);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 2");
-        implList = CoreManager.getCoreImplementations(2);
+        implList = CoreManager.getCore(2).getImplementations();
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
         assertEquals(implList.size(), CORE0_2_3_4_5_IMPLS_RESULT);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 3");
-        implList = CoreManager.getCoreImplementations(3);
+        implList = CoreManager.getCore(3).getImplementations();
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
         assertEquals(implList.size(), CORE0_2_3_4_5_IMPLS_RESULT);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 4");
-        implList = CoreManager.getCoreImplementations(4);
+        implList = CoreManager.getCore(4).getImplementations();
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
         assertEquals(implList.size(), CORE0_2_3_4_5_IMPLS_RESULT);
@@ -121,7 +121,7 @@ public class IDLParserTest {
         assertEquals(p2.getInternalMemory(), 0.024f, 0);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 5");
-        implList = CoreManager.getCoreImplementations(5);
+        implList = CoreManager.getCore(5).getImplementations();
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (1)");
         assertEquals(implList.size(), CORE0_2_3_4_5_IMPLS_RESULT);
@@ -134,7 +134,7 @@ public class IDLParserTest {
         assertEquals(p.getComputingUnits(), 2);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 6");
-        implList = CoreManager.getCoreImplementations(6);
+        implList = CoreManager.getCore(6).getImplementations();
         assertNotNull(implList);
         LOGGER.debug("[IDL-Loader]: Checking Number of implementations (3)");
         assertEquals(implList.size(), CORE1_6_IMPLS_RESULT);
@@ -180,7 +180,7 @@ public class IDLParserTest {
         assertEquals(CoreManager.getCoreCount(), 3);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");
-        List<Implementation> implList = CoreManager.getCoreImplementations(0);
+        List<Implementation> implList = CoreManager.getCore(0).getImplementations();
         assertNotNull(implList);
         assertEquals(implList.size(), 1);
 
@@ -199,13 +199,13 @@ public class IDLParserTest {
         assertEquals(CoreManager.getCoreCount(), 1);
 
         LOGGER.debug("[IDL-Loader]: *** Checking Core Element 0");
-        List<Implementation> implList = CoreManager.getCoreImplementations(0);
+        List<Implementation> implList = CoreManager.getCore(0).getImplementations();
         assertNotNull(implList);
         assertEquals(implList.size(), 1);
 
         MethodImplementation impl = (MethodImplementation) implList.get(0);
         LOGGER.debug(impl.getDeclaringClass());
-        String signature = CoreManager.getSignature(0, 0);
+        String signature = impl.getSignature();
         assertEquals(signature, TEST_2_SIGNATURE);
     }
 

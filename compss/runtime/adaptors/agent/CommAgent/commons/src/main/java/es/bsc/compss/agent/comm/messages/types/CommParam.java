@@ -54,11 +54,11 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
      * @param stream      stream to redirect to the parameter
      * @param prefix      prefix to add to the parameter
      * @param name        name of the parameter
-     * @param originaName original name of the parameter value
+     * @param originalName original name of the parameter value
      */
     public CommParam(String dataMgmtId, DataType type, Direction direction, StdIOStream stream, String prefix, 
-            String name, String originaName) {
-        super(dataMgmtId, type, stream, prefix, name, false, false, null, null, originaName);
+            String name, String originalName) {
+        super(dataMgmtId, type, stream, prefix, name, false, false, null, null, originalName);
         this.direction = direction;
     }
 

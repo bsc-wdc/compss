@@ -1,6 +1,8 @@
+
 package cloudManager;
 
 import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -53,9 +55,10 @@ public class Test {
         // Check for each implementation the correctness of its resources
         coreCount = CoreManager.getCoreCount();
         CloudProvider cp = ResourceManager.getCloudProvider("BSC");
-        for (int coreId = 0; coreId < coreCount; coreId++) {
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
             System.out.println("[LOG] Checking Core" + coreId);
-            for (Implementation impl : CoreManager.getCoreImplementations(coreId)) {
+            for (Implementation impl : ce.getImplementations()) {
                 if (impl.getTaskType().equals(TaskType.METHOD)) {
                     System.out.println("[LOG]\t Checking Implementation: " + impl.getImplementationId());
                     System.out.println("\t\t Checking obtained compatible cloud images");

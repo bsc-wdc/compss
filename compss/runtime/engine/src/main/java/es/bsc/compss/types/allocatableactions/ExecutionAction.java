@@ -30,6 +30,7 @@ import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CommutativeGroupTask;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.TaskGroup;
@@ -58,7 +59,6 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.SimpleURI;
-import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
@@ -782,8 +782,8 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final Implementation[] getImplementations() {
-        int coreId = this.task.getTaskDescription().getCoreElement().getCoreId();
-        List<Implementation> coreImpls = CoreManager.getCoreImplementations(coreId);
+        CoreElement ce = this.task.getTaskDescription().getCoreElement();
+        List<Implementation> coreImpls = ce.getImplementations();
 
         int coreImplsSize = coreImpls.size();
         Implementation[] impls = (Implementation[]) new Implementation[coreImplsSize];

@@ -22,13 +22,14 @@ import es.bsc.compss.scheduler.multiobjective.MOResourceScheduler;
 import es.bsc.compss.scheduler.multiobjective.types.MOProfile;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
 import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -43,7 +44,8 @@ import org.junit.Test;
 
 
 public class MOResourceSchedulerTest {
-
+    
+    private static final String METHOD = MethodType.METHOD.toString();
     private static final double DEFAULT_IDLE_POWER = 1;
     private static final double DEFAULT_IDLE_PRICE = 0;
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
@@ -79,25 +81,24 @@ public class MOResourceSchedulerTest {
         MethodResourceDescription description = new MethodResourceDescription();
         description.addProcessor(p);
         worker = new FakeWorker(description, 4);
-        CoreElement ce = CoreManager.registerNewCoreElement("methodA");
-        int coreId = ce.getCoreId();
-        LinkedList<Implementation> impls = new LinkedList<>();
-        Implementation impl = new MethodImplementation("ClassA", "methodA", coreId, 0, "ClassA.methodA",
-                new MethodResourceDescription());
-        impls.add(impl);
-        impl = new MethodImplementation("ClassB", "methodA", coreId, 1, "ClassB.methodA",
-                new MethodResourceDescription());
-        impls.add(impl);
+        
+        CoreElementDefinition cedA = new CoreElementDefinition();
+        cedA.setCeSignature("methodA");
+        ImplementationDefinition<?> implDef = null;
+        implDef = ImplementationDefinition.defineImplementation(METHOD,
+                "ClassA.methodA", new MethodResourceDescription(), "ClassA", "methodA");
+        cedA.addImplementation(implDef);
+        implDef = ImplementationDefinition.defineImplementation(METHOD,
+                "ClassB.methodA", new MethodResourceDescription(), "ClassB", "methodA");
+        cedA.addImplementation(implDef);
+        CoreManager.registerNewCoreElement(cedA);
 
-        CoreManager.registerNewImplementations(coreId, impls);
-
-        ce = CoreManager.registerNewCoreElement("methodB");
-        coreId = ce.getCoreId();
-        impls = new LinkedList<>();
-        impl = new MethodImplementation("ClassA", "methodB", coreId, 0, "ClassA.methodB",
-                new MethodResourceDescription());
-        impls.add(impl);
-        CoreManager.registerNewImplementations(coreId, impls);
+        CoreElementDefinition cedB = new CoreElementDefinition();
+        cedB.setCeSignature("methodB");
+        implDef = ImplementationDefinition.defineImplementation(METHOD,
+                "ClassA.methodB", new MethodResourceDescription(), "ClassA", "methodB");
+        cedB.addImplementation(implDef);
+        CoreManager.registerNewCoreElement(cedB);
     }
 
     @AfterClass
@@ -117,7 +118,6 @@ public class MOResourceSchedulerTest {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 null, null);
         for (CoreElement ce : CoreManager.getAllCores()) {
-            int coreId = ce.getCoreId();
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
@@ -142,7 +142,6 @@ public class MOResourceSchedulerTest {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 new JSONObject("{\"implementations\":{}}"), null);
         for (CoreElement ce : CoreManager.getAllCores()) {
-            int coreId = ce.getCoreId();
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
@@ -170,7 +169,6 @@ public class MOResourceSchedulerTest {
                         + SET_PROFILE + "}}"),
                 null);
         for (CoreElement ce : CoreManager.getAllCores()) {
-            int coreId = ce.getCoreId();
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
@@ -198,7 +196,6 @@ public class MOResourceSchedulerTest {
                         + SET_PROFILE + "}}"),
                 null);
         for (CoreElement ce : CoreManager.getAllCores()) {
-            int coreId = ce.getCoreId();
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
@@ -226,7 +223,6 @@ public class MOResourceSchedulerTest {
                         + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
                 null);
         for (CoreElement ce : CoreManager.getAllCores()) {
-            int coreId = ce.getCoreId();
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
@@ -256,7 +252,6 @@ public class MOResourceSchedulerTest {
         JSONObject jo = rs.toJSONObject();
         rs = new MOResourceScheduler<MethodResourceDescription>(worker, jo, null);
         for (CoreElement ce : CoreManager.getAllCores()) {
-            int coreId = ce.getCoreId();
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);

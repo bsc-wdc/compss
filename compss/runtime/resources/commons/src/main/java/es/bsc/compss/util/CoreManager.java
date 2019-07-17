@@ -105,79 +105,25 @@ public class CoreManager {
         return coreElement;
     }
 
-    /**
-     * Registers a new Method as Core Element if it doesn't exist.
-     *
-     * @param signature Method signature for the new Core Element.
-     * @return The core element assigned to the signature; {@literal null}, if it already existed.
-     */
-    public static CoreElement registerNewCoreElement(String signature) {
-        // Check that the signature is valid
-        if (signature == null || signature.isEmpty()) {
-            LOGGER.warn(ERROR_INVALID_SIGNATURE);
-            return null;
-        }
-
-        // Check that the signature does not exist
-        CoreElement ce = SIGNATURE_TO_CORE.get(signature);
-        if (ce != null) {
-            LOGGER.warn(WARN_REGISTERED_CORE_ELEMENT + signature);
-            return null;
-        }
-
-        // Insert new core element
-        ce = insertCoreElement(signature);
-
-        return ce;
-    }
 
     private static CoreElement insertCoreElement(String signature) {
         // Insert new core element
         Integer methodId = coreCount;
         CoreElement ce = new CoreElement(methodId, signature);
 
-        // Increase the coreCount counter
-        ++coreCount;
 
         // Register the cross-reference
         SIGNATURE_TO_CORE.put(signature, ce);
 
         // Register the coreElement
         CORE_ELEMENTS.add(ce);
-
+        
+        // Increase the coreCount counter
+        ++coreCount;
+        
         return ce;
     }
 
-    /**
-     * Registers a new Implementation for a given CoreElement. The CoreElement MUST have been previously registered.
-     *
-     * @param coreId Core Id.
-     * @param impls  List of implementations.
-     */
-    public static void registerNewImplementations(int coreId, List<Implementation> impls) {
-        if (coreId < 0 || coreId >= coreCount) {
-            ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT + coreId);
-            return;
-        }
-
-        for (Implementation impl : impls) {
-            String signature = impl.getSignature();
-            if (signature == null || signature.isEmpty()) {
-                ErrorManager.error(ERROR_INVALID_SIGNATURE);
-                return;
-            }
-        }
-
-        // Register all the new implementations
-        CoreElement ce = CORE_ELEMENTS.get(coreId);
-        ce.registerImplementations(impls);
-
-        // Update the cross-reference
-        for (Implementation impl : impls) {
-            String signature = impl.getSignature();
-            SIGNATURE_TO_CORE.put(signature, ce);
-        }
-    }
 
     /**
      * Returns a list with all the registered Core Elements.

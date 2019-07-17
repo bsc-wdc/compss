@@ -20,14 +20,15 @@ import static org.junit.Assert.fail;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.fake.FakeWorker;
 import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONObject;
@@ -40,6 +41,7 @@ import org.junit.Test;
 
 public class ResourceSchedulerTest {
 
+    private static final String METHOD = MethodType.METHOD.toString();
     private static final long DEFAULT_MIN_EXECUTION_TIME = Long.MAX_VALUE;
     private static final long DEFAULT_AVG_EXECUTION_TIME = 100L;
     private static final long DEFAULT_MAX_EXECUTION_TIME = Long.MIN_VALUE;
@@ -71,24 +73,23 @@ public class ResourceSchedulerTest {
         description.addProcessor(p);
         worker = new FakeWorker(description, 4);
 
-        CoreElement ce = CoreManager.registerNewCoreElement("methodA");
-        int coreId = ce.getCoreId();
-        LinkedList<Implementation> impls = new LinkedList<>();
-        Implementation impl = new MethodImplementation("ClassA", "methodA", coreId, 0, "ClassA.methodA",
-                new MethodResourceDescription());
-        impls.add(impl);
-        impl = new MethodImplementation("ClassB", "methodA", coreId, 1, "ClassB.methodA",
-                new MethodResourceDescription());
-        impls.add(impl);
-        CoreManager.registerNewImplementations(coreId, impls);
+        CoreElementDefinition cedA = new CoreElementDefinition();
+        cedA.setCeSignature("methodA");
+        ImplementationDefinition<?> implDef = null;
+        implDef = ImplementationDefinition.defineImplementation(METHOD,
+                "ClassA.methodA", new MethodResourceDescription(), "ClassA", "methodA");
+        cedA.addImplementation(implDef);
+        implDef = ImplementationDefinition.defineImplementation(METHOD,
+                "ClassB.methodA", new MethodResourceDescription(), "ClassB", "methodA");
+        cedA.addImplementation(implDef);
+        CoreManager.registerNewCoreElement(cedA);
 
-        ce = CoreManager.registerNewCoreElement("methodB");
-        coreId = ce.getCoreId();
-        impls = new LinkedList<>();
-        impl = new MethodImplementation("ClassA", "methodB", coreId, 0, "ClassA.methodB",
-                new MethodResourceDescription());
-        impls.add(impl);
-        CoreManager.registerNewImplementations(coreId, impls);
+        CoreElementDefinition cedB = new CoreElementDefinition();
+        cedB.setCeSignature("methodB");
+        implDef = ImplementationDefinition.defineImplementation(METHOD,
+                "ClassA.methodB", new MethodResourceDescription(), "ClassA", "methodB");
+        cedB.addImplementation(implDef);
+        CoreManager.registerNewCoreElement(cedB);
     }
 
     @AfterClass

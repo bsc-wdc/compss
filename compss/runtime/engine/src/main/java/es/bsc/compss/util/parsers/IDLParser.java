@@ -18,16 +18,16 @@ package es.bsc.compss.util.parsers;
 
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.CoreElement;
-import es.bsc.compss.types.implementations.Implementation;
-import es.bsc.compss.types.implementations.MethodImplementation;
+import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.types.implementations.MethodType;
+import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.util.ErrorManager;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
@@ -328,22 +328,25 @@ public class IDLParser {
         final String taskSignature = implementedTaskSignatureBuffer.toString();
         final String implementationSignature = implementationSignatureBuffer.toString();
 
-        // Create the core Element if it does not exist
-        CoreElement ce = CoreManager.registerNewCoreElement(taskSignature);
-        if (ce == null) {
-            // The coreId already exists
-            ce = CoreManager.getCore(taskSignature);
+        final CoreElementDefinition ced = new CoreElementDefinition();
+        ced.setCeSignature(taskSignature);
+
+        // Register method implementation
+        ImplementationDefinition<?> implDef = null;
+        try {
+            implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(),
+                    implementationSignature, currConstraints, declaringClass, methodName);
+        } catch (Exception e) {
+            ErrorManager.error(e.getMessage());
         }
+        ced.addImplementation(implDef);
+
+        // Create the core Element if it does not exist
+        CoreElement ce = CoreManager.registerNewCoreElement(ced);
+
         Integer coreId = ce.getCoreId();
         LOGGER.debug("CoreId for task " + taskSignature + " is " + coreId);
 
-        // Add the implementation to the core element
-        int implId = CoreManager.getNumberCoreImplementations(coreId);
-        List<Implementation> newImpls = new LinkedList<>();
-        MethodImplementation m = new MethodImplementation(declaringClass, methodName, coreId, implId, 
-                implementationSignature, currConstraints);
-        newImpls.add(m);
-        CoreManager.registerNewImplementations(coreId, newImpls);
         LOGGER.debug(
                 "[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + coreId);
     }

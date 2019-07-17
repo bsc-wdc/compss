@@ -211,243 +211,7 @@ def executor(queue, process_name, pipe, conf):
 
     # MAIN EXECUTOR LOOP
     while alive:
-<<<<<<< HEAD
-        affinity_ok = True
-
-        def process_task(current_line):
-            if __debug__:
-                logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
-                             % (str(process_name), str(current_line)))
-            current_line = current_line.split()
-            if current_line[0] == EXECUTE_TASK_TAG:
-                # CPU binding
-                binded_cpus = current_line[-3]
-
-                def bind_cpus(binded_cpus):
-                    if binded_cpus != "-":
-                        os.environ['COMPSS_BINDED_CPUS'] = binded_cpus
-                        if __debug__:
-                            logger.debug("[PYTHON EXECUTOR] [%s] Assigning affinity %s"
-                                         % (str(process_name), str(binded_cpus)))
-                        binded_cpus = list(map(int, binded_cpus.split(",")))
-                        try:
-                            thread_affinity.setaffinity(binded_cpus)
-                        except Exception:
-                            if __debug__:
-                                logger.error("[PYTHON EXECUTOR] [%s] Warning: could not assign affinity %s" % (
-                                    str(process_name), str(binded_cpus)))
-                            affinity_ok = False
-
-                bind_cpus(binded_cpus)
-
-                # GPU binding
-                binded_gpus = current_line[-2]
-
-                def bind_gpus(current_binded_gpus):
-                    if current_binded_gpus != "-":
-                        os.environ['COMPSS_BINDED_GPUS'] = current_binded_gpus
-                        os.environ['CUDA_VISIBLE_DEVICES'] = current_binded_gpus
-                        os.environ['GPU_DEVICE_ORDINAL'] = current_binded_gpus
-                        if __debug__:
-                            logger.debug("[PYTHON EXECUTOR] [%s] Assigning GPU %s" % (
-                                str(process_name), str(current_binded_gpus)))
-
-                bind_gpus(binded_gpus)
-
-                # Remove the last elements: cpu and gpu bindings
-                current_line = current_line[0:-3]
-
-                # task jobId command
-                job_id = current_line[1]
-                job_out = current_line[2]
-                job_err = current_line[3]
-                # current_line[4] = <boolean> = tracing
-                # current_line[5] = <integer> = task id
-                # current_line[6] = <boolean> = debug
-                # current_line[7] = <string>  = storage conf.
-                # current_line[8] = <string>  = operation type (e.g. METHOD)
-                # current_line[9] = <string>  = module
-                # current_line[10]= <string>  = method
-                # current_line[11]= <string>  = time out
-                # current_line[12]= <integer> = Number of slaves (worker nodes) == #nodes
-                # <<list of slave nodes>>
-                # current_line[12 + #nodes] = <integer> = computing units
-                # current_line[13 + #nodes] = <boolean> = has target
-                # current_line[14 + #nodes] = <string>  = has return (always 'null')
-                # current_line[15 + #nodes] = <integer> = Number of parameters
-                # <<list of parameters>>
-                #       !---> type, stream, prefix , value
-
-                if __debug__:
-                    logger.debug("[PYTHON EXECUTOR] [%s] Received task with id: %s" % (str(process_name), str(job_id)))
-                    logger.debug("[PYTHON EXECUTOR] [%s] - TASK CMD: %s" % (str(process_name), str(current_line)))
-
-                # Swap logger from stream handler to file handler - All task output will be redirected to job.out/err
-                for log_handler in logger_handlers:
-                    logger.removeHandler(log_handler)
-                for storage_logger in storage_loggers:
-                    for log_handler in storage_logger.handlers:
-                        storage_logger.removeHandler(log_handler)
-                out_file_handler = logging.FileHandler(job_out)
-                out_file_handler.setLevel(logger_level)
-                out_file_handler.setFormatter(logger_formatter)
-                err_file_handler = logging.FileHandler(job_err)
-                err_file_handler.setLevel("ERROR")
-                err_file_handler.setFormatter(logger_formatter)
-                logger.addHandler(out_file_handler)
-                logger.addHandler(err_file_handler)
-                for storage_logger in storage_loggers:
-                    storage_logger.addHandler(out_file_handler)
-                    storage_logger.addHandler(err_file_handler)
-
-                if __debug__:
-                    logger.debug("Received task in process: %s" % str(process_name))
-                    logger.debug(" - TASK CMD: %s" % str(current_line))
-
-                try:
-                    # Setup out/err wrappers
-                    out = open(job_out, 'a')
-                    err = open(job_err, 'a')
-                    sys.stdout = out
-                    sys.stderr = err
-
-                    # Check thread affinity
-                    if not affinity_ok:
-                        err.write("WARNING: This task is going to be executed with default thread affinity %s"
-                                  % thread_affinity.getaffinity())
-
-                    # Setup process environment
-                    cn = int(current_line[12])
-                    cn_names = ','.join(current_line[13:13 + cn])
-                    cu = current_line[13 + cn]
-                    os.environ["COMPSS_NUM_NODES"] = str(cn)
-                    os.environ["COMPSS_HOSTNAMES"] = cn_names
-                    os.environ["COMPSS_NUM_THREADS"] = cu
-                    os.environ["OMP_NUM_THREADS"] = cu
-                    if __debug__:
-                        logger.debug("Process environment:")
-                        logger.debug("\t - Number of nodes: %s" % (str(cn)))
-                        logger.debug("\t - Hostnames: %s" % str(cn_names))
-                        logger.debug("\t - Number of threads: %s" % (str(cu)))
-
-                    # Execute task
-                    from pycompss.worker.commons.worker_commons import execute_task
-                    exit_value, new_types, new_values, timed_out, exception_message = execute_task(process_name,
-                                                                                                   storage_conf,
-                                                                                                   current_line[9:],
-                                                                                                   tracing,
-                                                                                                   logger)
-
-                    # Restore out/err wrappers
-                    sys.stdout = stdout
-                    sys.stderr = stderr
-                    sys.stdout.flush()
-                    sys.stderr.flush()
-                    out.close()
-                    err.close()
-
-                    if exit_value == 0:
-                        # Task has finished without exceptions
-                        # endTask jobId exitValue message
-                        params = build_return_params_message(new_types, new_values)
-                        message = END_TASK_TAG + " " + str(job_id) \
-                                  + " " + str(exit_value) \
-                                  + " " + str(params) + "\n"
-                        if __debug__:
-                            logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
-                                                                                str(pipe.output_pipe),
-                                                                                str(message)))
-                    elif exit_value == 2:
-                        # Task has finished with a COMPSs Exception
-                        # compssExceptionTask jobId exitValue message
-
-                        exception_message = exception_message.replace(" ", "_")
-                        message = COMPSS_EXCEPTION_TAG + " " + str(job_id)\
-                                   + " " + str(exception_message) + "\n"
-                        if __debug__:
-                            logger.debug("%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s" % (str(process_name),
-                                                                                            str(pipe.output_pipe),
-                                                                                            str(exception_message)))
-                    else:
-                        # An exception other than COMPSsException has been raised in task
-                        message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
-
-                        if __debug__:
-                            logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
-                                                                                str(pipe.output_pipe),
-                                                                                str(message)))
-                    # The return message is:
-                    #
-                    # TaskResult ==> jobId exitValue D List<Object>
-                    #
-                    # Where List<Object> has D * 2 length:
-                    # D = #parameters == #task_parameters + (has_target ? 1 : 0) + #returns
-                    # And contains a pair of elements per parameter:
-                    #     - Parameter new type.
-                    #     - Parameter new value:
-                    #         - 'null' if it is NOT a PSCO
-                    #         - PSCOId (String) if is a PSCO
-                    # Example:
-                    #     4 null 9 null 12 <pscoid>
-                    #
-                    # The order of the elements is: parameters + self + returns
-                    #
-                    # This is sent through the pipe with the END_TASK message.
-                    # If the task had an object or file as parameter and the worker returns the id,
-                    # the runtime can change the type (and locations) to a EXTERNAL_OBJ_T.
-                    pipe.write(message)
-
-                except Exception as e:
-                    logger.exception("%s - Exception %s" % (str(process_name), str(e)))
-                    if queue:
-                        queue.put("EXCEPTION")
-
-                # Clean environment variables
-                if __debug__:
-                    logger.debug("Cleaning environment.")
-                if binded_cpus != "-":
-                    del os.environ['COMPSS_BINDED_CPUS']
-                if binded_gpus != "-":
-                    del os.environ['COMPSS_BINDED_GPUS']
-                    del os.environ['CUDA_VISIBLE_DEVICES']
-                    del os.environ['GPU_DEVICE_ORDINAL']
-                del os.environ['COMPSS_HOSTNAMES']
-
-                # Restore loggers
-                if __debug__:
-                    logger.debug("Restoring loggers.")
-                logger.removeHandler(out_file_handler)
-                logger.removeHandler(err_file_handler)
-                for handler in logger_handlers:
-                    logger.addHandler(handler)
-                i = 0
-                for storage_logger in storage_loggers:
-                    storage_logger.removeHandler(out_file_handler)
-                    storage_logger.removeHandler(err_file_handler)
-                    for handler in storage_loggers_handlers[i]:
-                        storage_logger.addHandler(handler)
-                    i += 1
-                if __debug__:
-                    logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s"
-                                 % (str(process_name), str(job_id)))
-
-            elif current_line[0] == PING_TAG:
-                pipe.write(PONG_TAG)
-
-            elif current_line[0] == QUIT_TAG:
-                # Received quit message -> Suicide
-                if __debug__:
-                    logger.debug("[PYTHON EXECUTOR] [%s] Received quit." % str(process_name))
-                return False
-            else:
-                if __debug__:
-                    logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" % (str(process_name), str(current_line)))
-                raise Exception("Unexpected message: %s" % str(current_line))
-            return True
-
-=======
         # Runtime -> pipe - Read command from pipe
->>>>>>> Review piper commons.
         command = pipe.read_command(retry_period=0.5)
         if command != "":
             logger.debug("[PYTHON EXECUTOR] Received %s" % command)
@@ -614,11 +378,11 @@ def process_task(current_line, process_name, pipe, queue, tracing,
 
             # Execute task
             from pycompss.worker.commons.worker_commons import execute_task
-            exit_value, new_types, new_values = execute_task(process_name,
-                                                             storage_conf,
-                                                             current_line[9:],
-                                                             tracing,
-                                                             logger)
+            exit_value, new_types, new_values, timed_out, exception_message = execute_task(process_name,
+                                                                                           storage_conf,
+                                                                                           current_line[9:],
+                                                                                           tracing,
+                                                                                           logger)
 
             # Restore out/err wrappers
             sys.stdout = stdout
@@ -631,23 +395,33 @@ def process_task(current_line, process_name, pipe, queue, tracing,
             if exit_value == 0:
                 # Task has finished without exceptions
                 # endTask jobId exitValue message
-                params = build_return_params_message(new_types,
-                                                     new_values)
-                message = END_TASK_TAG + " " + \
-                          str(job_id) + " " + \
-                          str(exit_value) + " " + \
-                          str(params) + "\n"
-            else:
-                # An exception has been raised in task
-                message = END_TASK_TAG + " " + \
-                          str(job_id) + " " + \
-                          str(exit_value) + "\n"
+                params = build_return_params_message(new_types, new_values)
+                message = END_TASK_TAG + " " + str(job_id) \
+                          + " " + str(exit_value) \
+                          + " " + str(params) + "\n"
+                if __debug__:
+                    logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                        str(pipe.output_pipe),
+                                                                        str(message)))
+            elif exit_value == 2:
+                # Task has finished with a COMPSs Exception
+                # compssExceptionTask jobId exitValue message
 
-            if __debug__:
-                logger.debug("%s - Pipe %s END TASK MESSAGE: %s" %
-                             (str(process_name),
-                              str(pipe.output_pipe),
-                              str(message)))
+                exception_message = exception_message.replace(" ", "_")
+                message = COMPSS_EXCEPTION_TAG + " " + str(job_id) \
+                          + " " + str(exception_message) + "\n"
+                if __debug__:
+                    logger.debug("%s - Pipe %s COMPSS EXCEPTION TASK MESSAGE: %s" % (str(process_name),
+                                                                                     str(pipe.output_pipe),
+                                                                                     str(exception_message)))
+            else:
+                # An exception other than COMPSsException has been raised in task
+                message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"
+
+                if __debug__:
+                    logger.debug("%s - Pipe %s END TASK MESSAGE: %s" % (str(process_name),
+                                                                        str(pipe.output_pipe),
+                                                                        str(message)))
 
             # The return message is:
             #

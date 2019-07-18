@@ -409,20 +409,22 @@ public class TaskScheduler {
 
         // Check if stream consumers are free
         List<AllocatableAction> freeActions = action.executionStarted();
-        for (AllocatableAction fAction : freeActions) {
-            addToReady(fAction);
-        }
-
-        // Schedule data free actions
-        List<AllocatableAction> blockedCandidates = new LinkedList<>();
-        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
-        // and those that remain unassigned must be added to the unassigned list
-        handleDependencyFreeActions(freeActions, new LinkedList<>(), blockedCandidates, action.getAssignedResource());
-        for (AllocatableAction aa : blockedCandidates) {
-            if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
-                removeFromReady(aa);
+        if (freeActions != null && freeActions.size()>0) { 
+            for (AllocatableAction fAction : freeActions) {
+                addToReady(fAction);
             }
-            addToBlocked(aa);
+
+            // Schedule data free actions
+            List<AllocatableAction> blockedCandidates = new LinkedList<>();
+            // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
+            // and those that remain unassigned must be added to the unassigned list
+            handleDependencyFreeActions(freeActions, new LinkedList<>(), blockedCandidates, action.getAssignedResource());
+            for (AllocatableAction aa : blockedCandidates) {
+                if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
+                    removeFromReady(aa);
+                }
+                addToBlocked(aa);
+            }
         }
     }
 

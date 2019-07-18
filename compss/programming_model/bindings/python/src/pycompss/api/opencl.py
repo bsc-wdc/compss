@@ -27,6 +27,7 @@ PyCOMPSs API - OPENCL
 import inspect
 import logging
 import os
+from functools import wraps
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 
@@ -142,6 +143,7 @@ class Opencl(object):
             # worker code
             pass
 
+        @wraps(func)
         def opencl_f(*args, **kwargs):
             # This is executed only when called.
             if __debug__:

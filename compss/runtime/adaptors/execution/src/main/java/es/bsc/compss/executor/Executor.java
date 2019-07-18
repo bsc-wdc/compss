@@ -95,6 +95,7 @@ public class Executor implements Runnable {
     protected boolean isRegistered;
     protected PipePair cPipes;
     protected PipePair pyPipes;
+    private Timer timer;
 
     /**
      * Instantiates a new Executor.
@@ -109,6 +110,7 @@ public class Executor implements Runnable {
         this.platform = platform;
         this.id = executorId;
         this.isRegistered = false;
+        this.timer = new Timer("Timer executor" + this.getId());
     }
 
     /**
@@ -298,13 +300,17 @@ public class Executor implements Runnable {
                 // Execute task
                 LOGGER.debug("Executing Task of Job " + invocation.getJobId());
                 long startExec = System.currentTimeMillis();
-                Timer timer = new Timer("Timer" + invocation.getTaskId());
                 Long time = (long) invocation.getTimeOut();
-                TimeOutTask timerTask = new TimeOutTask(invocation.getTaskId());
-                timer.schedule(timerTask, time);
+                TimeOutTask timerTask = null;
+                if (time > 0) {
+                    timerTask = new TimeOutTask(invocation.getTaskId());
+                    timer.schedule(timerTask, time);
+                }
                 executeTask(assignedResources, invocation, twd.getWorkingDir());
                 execDuration = System.currentTimeMillis() - startExec;
-                timerTask.cancel();
+                if (timerTask!=null) {
+                    timerTask.cancel();
+                }
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
                 // Writing in the task .err/.out

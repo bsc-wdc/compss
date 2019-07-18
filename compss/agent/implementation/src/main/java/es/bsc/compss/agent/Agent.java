@@ -49,7 +49,9 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,6 +59,7 @@ import java.util.Map;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import storage.StorageException;
 import storage.StorageItf;
@@ -517,12 +520,42 @@ public class Agent {
     public static final void main(String[] args) throws Exception {
         LinkedList<AgentInterfaceConfig> agents = new LinkedList<>();
 
+        String agentConfig = System.getProperty(AgentConstants.AGENT_CONFIG_PATH);
+
+        if (agentConfig != null && !agentConfig.isEmpty()) {
+            LOGGER.info("Reading Agent config from " + agentConfig);
+            File configFile = new File(agentConfig);
+            if (configFile.exists()) {
+                String configString = new String(Files.readAllBytes(configFile.toPath()));
+                JSONArray array = new JSONArray(configString);
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject jo = array.getJSONObject(i);
+                    try {
+                        String interfaceClass = jo.getString("AGENT_IMPL");
+                        JSONObject conf = jo.getJSONObject("CONF");
+                        LOGGER.info("Loading " + agentConfig + "'s agent interface");
+                        AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
+                        agents.add(aic);
+                    } catch (Exception e) {
+                        ErrorManager.warn("Unexpected format for agent config: " + jo);
+                    }
+                }
+            } else {
+                ErrorManager.warn("Could not find the agent configuration file " + agentConfig);
+            }
+        }
+
         for (String arg : args) {
-            JSONObject jo = new JSONObject(arg);
-            String interfaceClass = jo.getString("AGENT_IMPL");
-            JSONObject conf = jo.getJSONObject("CONF");
-            AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
-            agents.add(aic);
+            try {
+                JSONObject jo = new JSONObject(arg);
+                String interfaceClass = jo.getString("AGENT_IMPL");
+                JSONObject conf = jo.getJSONObject("CONF");
+                LOGGER.info("Loading " + agentConfig + "'s agent interface");
+                AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
+                agents.add(aic);
+            } catch (Exception e) {
+                ErrorManager.warn("Unexpected format for agent config: " + arg);
+            }
         }
 
         for (AgentInterfaceConfig agent : agents) {

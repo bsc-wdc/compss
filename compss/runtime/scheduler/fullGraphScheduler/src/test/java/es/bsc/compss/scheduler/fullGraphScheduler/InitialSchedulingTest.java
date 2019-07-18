@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.scheduler.fullGraphScheduler;
 
+import es.bsc.compss.scheduler.types.fake.FakeImplDefinition;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
 import es.bsc.compss.scheduler.fullGraphScheduler.utils.Verifiers;
@@ -27,11 +28,11 @@ import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
 import es.bsc.compss.scheduler.types.fake.FakeResourceScheduler;
 import es.bsc.compss.scheduler.types.fake.FakeWorker;
 import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ResourceManager;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.After;
@@ -62,24 +63,32 @@ public class InitialSchedulingTest {
         ResourceManager.clear(null);
         
         CoreManager.clear();
-        CoreManager.registerNewCoreElement("fakeSignature00");
-        CoreManager.registerNewCoreElement("fakeSignature10");
-        CoreManager.registerNewCoreElement("fakeSignature20");
 
-        FakeImplementation impl00 = new FakeImplementation(0, 0, "fakeSignature00", new FakeResourceDescription(2));
-        List<Implementation> impls0 = new LinkedList<>();
-        impls0.add(impl00);
-        CoreManager.registerNewImplementations(0, impls0);
+        CoreElementDefinition ced;
+        FakeImplDefinition fid;
 
-        FakeImplementation impl10 = new FakeImplementation(1, 0, "fakeSignature10", new FakeResourceDescription(3));
-        List<Implementation> impls1 = new LinkedList<>();
-        impls1.add(impl10);
-        CoreManager.registerNewImplementations(1, impls1);
+        ced = new CoreElementDefinition();
+        ced.setCeSignature("fakeSignature00");
+        fid = new FakeImplDefinition("fakeSignature00", new FakeResourceDescription(2));
+        ced.addImplementation(fid);
+        CoreElement ce0 = CoreManager.registerNewCoreElement(ced);
+        Implementation impl00 = ce0.getImplementation(0);
 
-        FakeImplementation impl20 = new FakeImplementation(2, 0, "fakeSignature20", new FakeResourceDescription(1));
-        List<Implementation> impls2 = new LinkedList<>();
-        impls2.add(impl20);
-        CoreManager.registerNewImplementations(2, impls2);
+        ced = new CoreElementDefinition();
+        ced.setCeSignature("fakeSignature10");
+        fid = new FakeImplDefinition("fakeSignature10", new FakeResourceDescription(3));
+        ced.addImplementation(fid);
+        CoreManager.registerNewCoreElement(ced);
+        CoreElement ce1 = CoreManager.registerNewCoreElement(ced);
+        Implementation impl10 = ce1.getImplementation(0);
+
+        ced = new CoreElementDefinition();
+        ced.setCeSignature("fakeSignature20");
+        fid = new FakeImplDefinition("fakeSignature20", new FakeResourceDescription(3));
+        ced.addImplementation(fid);
+        CoreManager.registerNewCoreElement(ced);
+        CoreElement ce2 = CoreManager.registerNewCoreElement(ced);
+        Implementation impl20 = ce2.getImplementation(0);
 
         int maxSlots = 4;
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);

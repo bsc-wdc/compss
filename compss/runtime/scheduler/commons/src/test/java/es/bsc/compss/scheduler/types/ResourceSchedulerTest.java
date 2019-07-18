@@ -29,8 +29,6 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.CoreManager;
 
-import java.util.List;
-
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AfterClass;

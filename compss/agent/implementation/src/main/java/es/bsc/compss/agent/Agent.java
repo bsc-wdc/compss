@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.agent;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.loader.Loader;
 import es.bsc.compss.agent.types.ApplicationParameter;
@@ -58,6 +57,7 @@ import java.util.Map;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import storage.StorageException;
 import storage.StorageItf;
 
@@ -221,7 +221,7 @@ public class Agent {
         }
         return mainAppId;
     }
-    
+
     /**
      * Requests the execution of a method as a task.
      *
@@ -500,7 +500,7 @@ public class Agent {
         INTERFACES.add(itf);
     }
 
-    private static AgentInterfaceConfig getInterfaceConfig(String className, String arguments)
+    private static AgentInterfaceConfig getInterfaceConfig(String className, JSONObject arguments)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
 
         Class<?> agentClass = Class.forName(className);
@@ -511,12 +511,19 @@ public class Agent {
     /**
      * Main method to start a COMPSs agent. (Currently it only allows a REST agent)
      *
+     * @param args Set of JSONObjects describing the AgentInterfaces to start and their configurations.
      * @throws Exception Could not create the configuration for the REST agent due to internal errors
      */
     public static final void main(String[] args) throws Exception {
-        // TODO: Read Agents Setup
         LinkedList<AgentInterfaceConfig> agents = new LinkedList<>();
-        agents.add(getInterfaceConfig("es.bsc.compss.agent.rest.RESTAgent", args[0]));
+
+        for (String arg : args) {
+            JSONObject jo = new JSONObject(arg);
+            String interfaceClass = jo.getString("AGENT_IMPL");
+            JSONObject conf = jo.getJSONObject("CONF");
+            AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
+            agents.add(aic);
+        }
 
         for (AgentInterfaceConfig agent : agents) {
             try {

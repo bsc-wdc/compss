@@ -51,6 +51,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.jetty.server.Server;
+import org.json.JSONObject;
 
 
 @Path("/COMPSs")
@@ -60,10 +61,9 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     private Server server = null;
 
     @Override
-    public RESTAgentConf configure(String arguments) throws AgentException {
+    public RESTAgentConf configure(JSONObject confJSON) throws AgentException {
         RESTAgentConf conf;
         try {
-            int port = Integer.parseInt(arguments);
             conf = new RESTAgentConf(port);
         } catch (Exception e) {
             throw new AgentException(e);

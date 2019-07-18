@@ -38,6 +38,7 @@ import es.bsc.compss.util.ErrorManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 
 public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent {
@@ -48,7 +49,6 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
     // Adaptor
     private CommAgentAdaptor adaptor;
 
-
     public CommAgentImpl() {
         LOGGER.info("Init CommAgentImpl");
         this.adaptor = null;
@@ -58,8 +58,15 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
      * ----------- Agent Interface Methods ---------
      */
     @Override
-    public CommAgentConfig configure(final String arguments) throws AgentException {
-        return new CommAgentConfig(arguments);
+    public CommAgentConfig configure(final JSONObject confJSON) throws AgentException {
+        CommAgentConfig conf;
+        try {
+            int port = confJSON.getInt("PORT");
+            conf = new CommAgentConfig(port);
+        } catch (Exception e) {
+            throw new AgentException(e);
+        }
+        return conf;
     }
 
     @Override

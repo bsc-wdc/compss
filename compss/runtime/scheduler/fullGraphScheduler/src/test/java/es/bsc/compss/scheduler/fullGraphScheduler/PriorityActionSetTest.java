@@ -25,8 +25,10 @@ import es.bsc.compss.scheduler.types.fake.FakeActionOrchestrator;
 import es.bsc.compss.scheduler.types.fake.FakeAllocatableAction;
 import es.bsc.compss.scheduler.types.fake.FakeImplementation;
 import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.util.ResourceManager;
 
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -47,7 +49,6 @@ public class PriorityActionSetTest {
     private static FullGraphScheduler ds;
     private static FakeActionOrchestrator fao;
 
-
     public PriorityActionSetTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
@@ -56,12 +57,14 @@ public class PriorityActionSetTest {
 
     @BeforeClass
     public static void setUpClass() {
+        ResourceManager.clear(null);
+
         CoreManager.clear();
         CoreManager.registerNewCoreElement("fakeSignature00");
         CoreManager.registerNewCoreElement("fakeSignature10");
         CoreManager.registerNewCoreElement("fakeSignature20");
 
-        FakeImplementation impl00 = new FakeImplementation(0, 0,"fakeSignature00", new FakeResourceDescription(2));
+        FakeImplementation impl00 = new FakeImplementation(0, 0, "fakeSignature00", new FakeResourceDescription(2));
         List<Implementation> impls0 = new LinkedList<>();
         impls0.add(impl00);
         CoreManager.registerNewImplementations(0, impls0);
@@ -102,13 +105,16 @@ public class PriorityActionSetTest {
 
         PriorityQueue<AllocatableAction> peeks;
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(0));
+        CoreElement ce0 = CoreManager.getCore(0);
+        List<Implementation> ce0Impls = ce0.getImplementations();
+
+        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, ce0Impls);
         ((FullGraphSchedulingInformation) action1.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action1);
         if (action1 != pas.peek()) {
             fail(action1 + " expected to be the most prioritary action and " + pas.peek() + " was.");
         }
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 1, 0, ce0Impls);
         ((FullGraphSchedulingInformation) action2.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action2);
         if (action1 != pas.peek()) {
@@ -121,14 +127,17 @@ public class PriorityActionSetTest {
             fail(action1 + " expected to be the most prioritary action and " + pas.peek() + " was.");
         }
         peeks = pas.peekAll();
-        AllocatableAction[] expectedPeeks = new AllocatableAction[] { action1, action3 };
+        AllocatableAction[] expectedPeeks = new AllocatableAction[]{action1, action3};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, CoreManager.getCoreImplementations(1));
+        CoreElement ce1 = CoreManager.getCore(1);
+        List<Implementation> ce1Impls = ce1.getImplementations();
+
+        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, ce1Impls);
         ((FullGraphSchedulingInformation) action4.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action4);
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[] { action1, action3, action4 };
+        expectedPeeks = new AllocatableAction[]{action1, action3, action4};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         AllocatableAction action = pas.poll();
@@ -136,7 +145,7 @@ public class PriorityActionSetTest {
             fail(action1 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[] { action2, action3, action4 };
+        expectedPeeks = new AllocatableAction[]{action2, action3, action4};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         action = pas.poll();
@@ -144,7 +153,7 @@ public class PriorityActionSetTest {
             fail(action2 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[] { action3, action4 };
+        expectedPeeks = new AllocatableAction[]{action3, action4};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         action = pas.poll();
@@ -152,7 +161,7 @@ public class PriorityActionSetTest {
             fail(action3 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[] { action4 };
+        expectedPeeks = new AllocatableAction[]{action4};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         action = pas.poll();
@@ -160,12 +169,12 @@ public class PriorityActionSetTest {
             fail(action4 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[] {};
+        expectedPeeks = new AllocatableAction[]{};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, CoreManager.getCoreImplementations(1));
+        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, ce1Impls);
         ((FullGraphSchedulingInformation) action5.getSchedulingInfo()).setToReschedule(true);
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, CoreManager.getCoreImplementations(1));
+        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, ce1Impls);
         ((FullGraphSchedulingInformation) action6.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action6);
         action = pas.peek();

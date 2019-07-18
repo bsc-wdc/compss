@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import commons.Action;
+import es.bsc.compss.types.CoreElement;
 
 
 /**
@@ -65,17 +66,17 @@ public class TestCompatible {
 
         // Check for each implementation the correctness of its resources
         System.out.println("[LOG] Number of cores = " + coreCount);
-        for (int coreId = 0; coreId < coreCount; coreId++) {
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
             System.out.println("[LOG] Checking Core" + coreId);
 
-            Action a = new Action(orchestrator, coreId);
+            Action a = new Action(orchestrator, ce);
             Map<Worker<?>, List<Implementation>> m = a.findAvailableWorkers();
 
             // For the test construction, all implementations can be run. Check it
             if (m.size() == 0) {
                 System.err.println("[ERROR] CoreId " + coreId + " cannot be run");
-                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-                for (Implementation impl : impls) {
+                for (Implementation impl : ce.getImplementations()) {
                     System.out.println("-- Impl: " + impl.getRequirements().toString());
                 }
                 System.exit(-1);

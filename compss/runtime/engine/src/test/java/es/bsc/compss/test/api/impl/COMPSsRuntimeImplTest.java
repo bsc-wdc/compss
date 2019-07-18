@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.util.CoreManager;
@@ -70,7 +71,8 @@ public class COMPSsRuntimeImplTest {
         String[] implTypeArgs = new String[] { "methodClass", "methodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
-        AbstractMethodImplementation mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(0).get(0);
+        CoreElement ce0 = CoreManager.getCore(0);
+        AbstractMethodImplementation mi = (AbstractMethodImplementation) ce0.getImplementations().get(0);
         assertEquals(2, mi.getRequirements().getProcessors().get(0).getComputingUnits());
 
         // MPI
@@ -81,7 +83,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "mpiBinary", "mpiWorkingDir", "mpiRunner" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
-        mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(1).get(0);
+        mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(0);
         assertEquals(MethodType.MPI, mi.getMethodType());
         assertEquals("SSD", mi.getRequirements().getStorageType());
 
@@ -93,7 +95,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "dfScript", "dfExceutor", "dfLib", "dfWorkingDir", "mpiRunner" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
-        mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(1).get(1);
+        mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(1);
         assertEquals(MethodType.DECAF, mi.getMethodType());
         assertEquals(2.0, mi.getRequirements().getStorageSize(), 0.1);
 
@@ -105,7 +107,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "binary", "binaryWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
-        mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(2).get(0);
+        mi = (AbstractMethodImplementation) CoreManager.getCore(2).getImplementations().get(0);
         assertEquals(MethodType.BINARY, mi.getMethodType());
         assertEquals("RAM", mi.getRequirements().getMemoryType());
 
@@ -117,7 +119,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "ompssBinary", "ompssWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
-        mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(3).get(0);
+        mi = (AbstractMethodImplementation) CoreManager.getCore(3).getImplementations().get(0);
         assertEquals(MethodType.OMPSS, mi.getMethodType());
         assertEquals(3, mi.getRequirements().getProcessors().get(0).getComputingUnits());
 
@@ -129,7 +131,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "openclKernel", "openclWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
-        mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(4).get(0);
+        mi = (AbstractMethodImplementation) CoreManager.getCore(4).getImplementations().get(0);
         assertEquals(MethodType.OPENCL, mi.getMethodType());
         assertEquals(4, mi.getRequirements().getProcessors().get(0).getComputingUnits());
 
@@ -141,7 +143,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "anotherClass", "anotherMethodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
-        mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(0).get(1);
+        mi = (AbstractMethodImplementation) CoreManager.getCore(0).getImplementations().get(1);
         assertEquals(MethodType.METHOD, mi.getMethodType());
         assertEquals(1, mi.getRequirements().getProcessors().get(0).getComputingUnits());
     }

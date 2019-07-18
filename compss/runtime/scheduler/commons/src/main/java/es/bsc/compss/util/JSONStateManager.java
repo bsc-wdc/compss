@@ -21,6 +21,8 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.types.CloudProvider;
+import es.bsc.compss.types.CoreElement;
+import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -127,16 +129,15 @@ public class JSONStateManager {
     }
 
     /**
-     * Returns a JSON Object representation for the implementation with the given core Id and implementation Id.
+     * Returns a JSON Object representation for the implementation with the given implementation.
      * 
-     * @param coreId Core Id.
-     * @param implId Implementation Id.
-     * @return A JSON Object representation for the implementation with the given core Id and implementation Id.
+     * @param impl Implementation
+     * @return A JSON Object representation for the implementation with the given implementation
      */
-    public JSONObject getJSONForImplementation(int coreId, int implId) {
+    public JSONObject getJSONForImplementation(Implementation impl) {
         try {
             JSONObject implsJSON = this.jsonRepresentation.getJSONObject("implementations");
-            String signature = CoreManager.getSignature(coreId, implId);
+            String signature = impl.getSignature();
             return implsJSON.getJSONObject(signature);
         } catch (JSONException je) {
             // Do nothing it will return null
@@ -149,16 +150,15 @@ public class JSONStateManager {
      * 
      * @param cp Cloud Provider.
      * @param citd Cloud Instance Type.
-     * @param coreId Core Id.
-     * @param implId Implementation Id.
+     * @param impl Implementation .
      * @return A JSON Object representation for the given cloud implementation.
      */
-    public JSONObject getJSONForImplementation(CloudProvider cp, CloudInstanceTypeDescription citd, int coreId,
-            int implId) {
+    public JSONObject getJSONForImplementation(CloudProvider cp, CloudInstanceTypeDescription citd,
+            Implementation impl) {
         try {
             JSONObject citdJSON = getJSONForCloudInstanceTypeDescription(cp, citd);
             if (citdJSON != null) {
-                String signature = CoreManager.getSignature(coreId, implId);
+                String signature = impl.getSignature();
                 return citdJSON.getJSONObject(signature);
             }
         } catch (JSONException je) {
@@ -264,15 +264,14 @@ public class JSONStateManager {
      */
     public void addResourceJSON(ResourceScheduler<? extends WorkerResourceDescription> rs) {
         // Increasing Implementation stats
-        int coreCount = CoreManager.getCoreCount();
-        for (int coreId = 0; coreId < coreCount; coreId++) {
-            for (int implId = 0; implId < CoreManager.getNumberCoreImplementations(coreId); implId++) {
-                JSONObject implJSON = getJSONForImplementation(coreId, implId);
-                Profile p = rs.getProfile(coreId, implId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            for (Implementation impl : ce.getImplementations()) {
+                JSONObject implJSON = getJSONForImplementation(impl);
+                Profile p = rs.getProfile(impl);
                 if (implJSON == null) {
-                    addImplementationJSON(coreId, implId, p);
+                    addImplementationJSON(impl, p);
                 } else {
-                    accumulateImplementationJSON(coreId, implId, p);
+                    accumulateImplementationJSON(impl, p);
                 }
             }
         }
@@ -295,12 +294,11 @@ public class JSONStateManager {
     /**
      * Adds a new implementation to the JSON Object.
      * 
-     * @param coreId Core Id.
-     * @param implId Implementation Id.
+     * @param impl Implementation.
      * @param profile Execution profile.
      */
-    public void addImplementationJSON(int coreId, int implId, Profile profile) {
-        String signature = CoreManager.getSignature(coreId, implId);
+    public void addImplementationJSON(Implementation impl, Profile profile) {
+        String signature = impl.getSignature();
         JSONObject implsJSON = this.getJSONForImplementations();
         implsJSON.put(signature, profile.toJSONObject());
     }
@@ -308,12 +306,13 @@ public class JSONStateManager {
     /**
      * Accumulates the given profile of the given implementation into the JSON Object.
      * 
-     * @param coreId Core Id.
-     * @param implId Implementation Id.
+     * @param impl Implementation.
      * @param profile Execution profile to accumulate.
      */
-    public void accumulateImplementationJSON(int coreId, int implId, Profile profile) {
-        JSONObject oldImplJSON = this.getJSONForImplementation(coreId, implId);
+    public void accumulateImplementationJSON(Implementation impl, Profile profile) {
+        int coreId = impl.getCoreId();
+        int implId = impl.getImplementationId();
+        JSONObject oldImplJSON = this.getJSONForImplementation(impl);
         profile.accumulateJSON(oldImplJSON);
     }
 

@@ -116,14 +116,15 @@ public class MOResourceSchedulerTest {
     public void testNull() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 null, null);
-        for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
                 try {
                     checkUnsetProfile(p);
-                } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId()
+                } catch (CheckerException cEx) {
+                    fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
                             + " core " + impl.getCoreId() + " on null test");
                 }
             }
@@ -140,14 +141,15 @@ public class MOResourceSchedulerTest {
     public void testEmpty() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
                 new JSONObject("{\"implementations\":{}}"), null);
-        for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
                 try {
                     checkUnsetProfile(p);
-                } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId()
+                } catch (CheckerException cEx) {
+                    fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
                             + " core " + impl.getCoreId() + " on empty test");
                 }
             }
@@ -167,14 +169,15 @@ public class MOResourceSchedulerTest {
                         + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":"
                         + SET_PROFILE + "}}"),
                 null);
-        for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
                 try {
                     checkSetProfile(p);
-                } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId()
+                } catch (CheckerException cEx) {
+                    fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
                             + " core " + impl.getCoreId() + " on all set no-price test");
                 }
             }
@@ -194,14 +197,15 @@ public class MOResourceSchedulerTest {
                         + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":"
                         + SET_PROFILE + "}}"),
                 null);
-        for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
                 try {
                     checkSetProfile(p);
-                } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId()
+                } catch (CheckerException cEx) {
+                    fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
                             + " core " + impl.getCoreId() + " on all set no-power  test");
                 }
             }
@@ -221,14 +225,15 @@ public class MOResourceSchedulerTest {
                         + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":"
                         + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
                 null);
-        for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
                 try {
                     checkSetProfile(p);
-                } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId()
+                } catch (CheckerException cEx) {
+                    fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
                             + " core " + impl.getCoreId() + " on all set test");
                 }
             }
@@ -250,14 +255,15 @@ public class MOResourceSchedulerTest {
                 null);
         JSONObject jo = rs.toJSONObject();
         rs = new MOResourceScheduler<MethodResourceDescription>(worker, jo, null);
-        for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
                 MOProfile p = (MOProfile) rs.getProfile(impl);
                 try {
                     checkSetProfile(p);
-                } catch (CheckerException ce) {
-                    fail("Invalid " + ce.getFeature() + " for unset implementation " + impl.getImplementationId()
+                } catch (CheckerException cEx) {
+                    fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
                             + " core " + impl.getCoreId() + " on all set test");
                 }
             }

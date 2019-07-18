@@ -22,6 +22,7 @@ import es.bsc.compss.scheduler.exceptions.ActionNotWaitingException;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.scheduler.types.Score;
+import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
@@ -208,12 +209,13 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         Profile[][] profiles;
         int coreCount = CoreManager.getCoreCount();
         profiles = new Profile[coreCount][];
-        for (int coreId = 0; coreId < coreCount; ++coreId) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+        for (CoreElement ce:CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            List<Implementation> impls = ce.getImplementations();
             int implCount = impls.size();
             profiles[coreId] = new Profile[implCount];
             for (Implementation impl : impls) {
-                String signature = CoreManager.getSignature(coreId, impl.getImplementationId());
+                String signature = impl.getSignature();
                 JSONObject jsonImpl = null;
                 if (resMap != null) {
                     try {
@@ -259,12 +261,13 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
             implMap = null;
         }
 
-        for (int coreId = 0; coreId < newCoreCount; coreId++) {
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
             int oldImplCount = 0;
             if (coreId < oldCoreCount) {
                 oldImplCount = this.profiles[coreId].length;
             }
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+            List<Implementation> impls = ce.getImplementations();
             int newImplCount = impls.size();
 
             // Create new array
@@ -279,7 +282,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
                     JSONObject jsonImpl;
                     if (implMap != null) {
                         try {
-                            jsonImpl = implMap.getJSONObject(CoreManager.getSignature(coreId, implId));
+                            jsonImpl = implMap.getJSONObject(impl.getSignature());
                         } catch (JSONException je) {
                             jsonImpl = null;
                         }
@@ -616,15 +619,14 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     public JSONObject toJSONObject() {
         JSONObject jsonObject = new JSONObject();
-        int coreCount = CoreManager.getCoreCount();
         Map<String, JSONObject> implsMap = new HashMap<>();
 
-        for (int coreId = 0; coreId < coreCount; coreId++) {
-            List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-            for (Implementation impl : impls) {
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            for (Implementation impl : ce.getImplementations()) {
                 int implId = impl.getImplementationId();
                 JSONObject implProfile = profiles[coreId][implId].toJSONObject();
-                implsMap.put(CoreManager.getSignature(coreId, implId), implProfile);
+                implsMap.put(impl.getSignature(), implProfile);
             }
         }
         jsonObject.put("implementations", implsMap);
@@ -644,14 +646,14 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
 
         JSONObject implsMap = oldResource.getJSONObject("implementations");
 
-        int coreCount = CoreManager.getCoreCount();
-        for (int coreId = 0; coreId < coreCount; coreId++) {
-            int implCount = CoreManager.getNumberCoreImplementations(coreId);
-            for (int implId = 0; implId < implCount; implId++) {
-                String signature = CoreManager.getSignature(coreId, implId);
+        for (CoreElement ce : CoreManager.getAllCores()) {
+            int coreId = ce.getCoreId();
+            for (Implementation impl : ce.getImplementations()) {
+                int implId = impl.getImplementationId();
+                String signature = impl.getSignature();
                 if (implsMap.has(signature)) {
-                    JSONObject impl = implsMap.getJSONObject(signature);
-                    JSONObject diff = profiles[coreId][implId].updateJSON(impl);
+                    JSONObject implJSON = implsMap.getJSONObject(signature);
+                    JSONObject diff = profiles[coreId][implId].updateJSON(implJSON);
                     implsDiff.put(signature, diff);
                 } else {
                     JSONObject implProfile = profiles[coreId][implId].toJSONObject();

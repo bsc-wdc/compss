@@ -1,5 +1,7 @@
+
 package constraintManager;
 
+import es.bsc.compss.types.CoreElement;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,10 +70,10 @@ public class Test {
         }
 
         // Loading data from Cores
-        signatureToId = CoreManager.getSignaturesToId();
+        signatureToId = CoreManager.getSignaturesToCoreIds();
         idToSignatures = new LinkedList[coreCountItf];
         for (int coreId = 0; coreId < coreCountItf; coreId++) {
-            idToSignatures[coreId] = new LinkedList<String>();
+            idToSignatures[coreId] = new LinkedList<>();
         }
         for (Entry<String, Integer> entry : signatureToId.entrySet()) {
             String signature = entry.getKey();
@@ -92,9 +94,9 @@ public class Test {
             java.lang.reflect.Method m = null;
             try {
                 if (params.equals("(")) {
-                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[] {});
+                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[]{});
                 } else {
-                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[] { String.class });
+                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[]{String.class});
                 }
             } catch (NoSuchMethodException nsme) {
                 System.out.println("[ERROR] Method " + coreToName[i] + "not found.");
@@ -131,6 +133,7 @@ public class Test {
     }
 
     private static void checkCoreElementConstraints(int coreId) {
+        CoreElement ce = CoreManager.getCore(coreId);
         System.out.println("[LOG] Checking " + coreToName[coreId]);
         System.out.println("[LOG] \t Has " + declaringClassesItf[coreId].length + " declaring classes in the CEI");
         System.out.println("[LOG] \t Has " + idToSignatures[coreId].size() + " signatures registered");
@@ -143,12 +146,12 @@ public class Test {
             System.exit(-1);
         }
 
-        List<Implementation> implementations = CoreManager.getCoreImplementations(coreId);
+        List<Implementation> implementations = ce.getImplementations();
         System.out.println("[LOG] \t Has " + implementations.size() + " implementations registered");
         if (declaringClassesItf[coreId].length != implementations.size()) {
             System.out.println(
                     coreToName[coreId] + " has " + implementations.size() + " registered implementations and there are "
-                            + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
+                    + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
             System.exit(-1);
         }
 

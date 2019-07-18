@@ -23,6 +23,7 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.resources.ResourceDescription;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import java.util.LinkedHashMap;
@@ -43,13 +44,11 @@ public class CoreManager {
     // Constants definition
     private static final String ERROR_INVALID_SIGNATURE = "Invalid signature. Skipping addition";
     private static final String ERROR_UNREGISTERED_CORE_ELEMENT = "Unregistered CoreElement. Skipping addition of ";
-    private static final String ERROR_INVALID_IMPLS_SIGNS = "Attempting to register a different number of "
-            + "implementations and signatures. Skipping addition";
     private static final String WARN_REGISTERED_CORE_ELEMENT = "Already registered CoreElement. Skipping addition of ";
     private static final String WARN_UNREGISTERED_IMPL = "Unregistered implementation. Skipping addition";
 
     // List of core elements
-    private static final List<CoreElement> CORE_ELEMENTS = new LinkedList<>();
+    private static final List<CoreElement> CORE_ELEMENTS = new ArrayList<>();
 
     // Map for signatures to coreElement (several signatures may point to the same coreId since there is versioning)
     private static final Map<String, CoreElement> SIGNATURE_TO_CORE = new LinkedHashMap<>();
@@ -181,6 +180,15 @@ public class CoreManager {
     }
 
     /**
+     * Returns a list with all the registered Core Elements.
+     *
+     * @return list containing all the registered Core Elements
+     */
+    public static List<CoreElement> getAllCores() {
+        return CORE_ELEMENTS;
+    }
+
+    /**
      * Returns the Core associated to a registered signature. If the requested signature has not been previously
      * registered raises an ErrorManager ERROR and stops the execution.
      *
@@ -202,6 +210,22 @@ public class CoreManager {
         }
 
         return ce;
+    }
+
+    /**
+     * Returns the Core with coreId @{code coreId}. If the requested coreId is not related to any Core element, it
+     * registered raises an ErrorManager ERROR and stops the execution.
+     *
+     * @param coreId Id of the core to retrieve.
+     * @return Core Element with id {@code coreId}.
+     */
+    public static CoreElement getCore(int coreId) {
+        if (coreId < 0 || coreId >= coreCount) {
+            ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT + coreId);
+            return null;
+        }
+
+        return CORE_ELEMENTS.get(coreId);
     }
 
     /**
@@ -227,11 +251,20 @@ public class CoreManager {
     }
 
     /**
+     * Gets the map of registered signatures their corresponding core elements.
+     *
+     * @return The map of registered signatures and the corresponding core elements.
+     */
+    public static Map<String, CoreElement> getSignaturesToCores() {
+        return SIGNATURE_TO_CORE;
+    }
+
+    /**
      * Gets the map of registered signatures and coreIds.
      *
      * @return The map of registered signatures and coreIds.
      */
-    public static Map<String, Integer> getSignaturesToId() {
+    public static Map<String, Integer> getSignaturesToCoreIds() {
         HashMap<String, Integer> result = new HashMap<>();
         for (Entry<String, CoreElement> ceEntry : SIGNATURE_TO_CORE.entrySet()) {
             result.put(ceEntry.getKey(), ceEntry.getValue().getCoreId());

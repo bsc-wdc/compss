@@ -27,6 +27,7 @@ PyCOMPSs API - MPI
 import inspect
 import logging
 import os
+from functools import wraps
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 
@@ -118,6 +119,7 @@ class Mpi(object):
         :return: Decorated function.
         """
 
+        @wraps(func)
         def mpi_f(*args, **kwargs):
             if not self.scope:
                 # from pycompss.api.dummy.mpi import mpi as dummy_mpi

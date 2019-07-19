@@ -2,13 +2,13 @@
     {
         "AGENT_IMPL": "es.bsc.compss.agent.rest.RESTAgent",
         "CONF": {
-            "PORT": 45001
+            "PORT": "$REST_AGENT_PORT"
         }
     },
     {
         "AGENT_IMPL": "es.bsc.compss.agent.comm.CommAgentImpl",
         "CONF": {
-            "PORT": 46001
+            "PORT": "46001"
         }
     }
 ]

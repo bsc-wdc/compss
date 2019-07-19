@@ -34,6 +34,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.resources.MethodResourceDescription;
+import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 
 import org.apache.logging.log4j.LogManager;
@@ -61,9 +62,12 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
     public CommAgentConfig configure(final JSONObject confJSON) throws AgentException {
         CommAgentConfig conf;
         try {
-            int port = confJSON.getInt("PORT");
+            String portSTR = confJSON.getString("PORT");
+            portSTR = EnvironmentLoader.loadFromEnvironment(portSTR);
+            int port = Integer.valueOf(portSTR);
             conf = new CommAgentConfig(port);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new AgentException(e);
         }
         return conf;

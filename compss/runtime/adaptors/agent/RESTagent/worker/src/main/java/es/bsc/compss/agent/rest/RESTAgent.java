@@ -38,6 +38,7 @@ import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
+import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 
 import java.util.List;
@@ -61,11 +62,15 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     private Server server = null;
 
     @Override
-    public RESTAgentConf configure(JSONObject confJSON) throws AgentException {
+    public RESTAgentConf configure(final JSONObject confJSON) throws AgentException {
         RESTAgentConf conf;
         try {
+            String portSTR = confJSON.getString("PORT");
+            portSTR = EnvironmentLoader.loadFromEnvironment(portSTR);
+            int port = Integer.valueOf(portSTR);
             conf = new RESTAgentConf(port);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new AgentException(e);
         }
         return conf;

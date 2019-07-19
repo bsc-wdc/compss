@@ -533,7 +533,7 @@ public class Agent {
                     try {
                         String interfaceClass = jo.getString("AGENT_IMPL");
                         JSONObject conf = jo.getJSONObject("CONF");
-                        LOGGER.info("Loading " + agentConfig + "'s agent interface");
+                        LOGGER.info("Loading " + interfaceClass + "'s agent interface");
                         AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
                         agents.add(aic);
                     } catch (Exception e) {

@@ -27,6 +27,7 @@ PyCOMPSs API - Implement (Versioning)
 import inspect
 import logging
 import os
+from functools import wraps
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 
@@ -81,6 +82,7 @@ class Implement(object):
         :return: Decorated function.
         """
 
+        @wraps(func)
         def implement_f(*args, **kwargs):
             # This is executed only when called.
             if not self.scope:

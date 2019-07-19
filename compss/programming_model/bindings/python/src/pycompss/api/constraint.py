@@ -27,6 +27,7 @@ PyCOMPSs API - CONSTRAINT
 import inspect
 import logging
 import os
+from functools import wraps
 import pycompss.util.context as context
 
 if __debug__:
@@ -67,6 +68,7 @@ class Constraint(object):
         :return: Decorated function.
         """
 
+        @wraps(func)
         def constrained_f(*args, **kwargs):
             if not self.scope:
                 from pycompss.api.dummy.constraint import constraint as dummy_constraint

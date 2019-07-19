@@ -26,6 +26,7 @@ from __future__ import print_function
 import os
 import sys
 import threading
+from functools import wraps
 
 import pycompss.api.parameter as parameter
 from pycompss.runtime.core_element import CE
@@ -35,7 +36,6 @@ from pycompss.util.arguments import check_arguments
 
 if __debug__:
     import logging
-
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}
@@ -282,6 +282,7 @@ class task(object):
 
         self.update_if_interactive()
 
+        @wraps(user_function)
         def task_decorator(*args, **kwargs):
             # Determine the context and decide what to do
             if context.in_master():

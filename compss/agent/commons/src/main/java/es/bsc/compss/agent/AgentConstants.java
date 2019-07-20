@@ -19,5 +19,6 @@ package es.bsc.compss.agent;
 public class AgentConstants {
 
     public static final String DATACLAY_CONFIG_PATH = "dataclay.configpath";
+    public static final String AGENT_CONFIG_PATH = "compss.agent.configpath";
 
 }

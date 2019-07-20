@@ -31,11 +31,6 @@ public class CommAgentConfig extends AgentInterfaceConfig {
         this.port = port;
     }
 
-    public CommAgentConfig(String args) {
-        super(CommAgent.class.getCanonicalName());
-        this.port = Integer.parseInt(args);
-    }
-
     /**
      * Returns the port where the Comm interface server should be listenning on.
      *

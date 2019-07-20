@@ -1,0 +1,8 @@
+[
+    {
+        "AGENT_IMPL": "es.bsc.compss.agent.rest.RESTAgent",
+        "CONF": {
+            "PORT": "45001"
+        }
+    }
+]

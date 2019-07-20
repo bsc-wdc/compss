@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.agent;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.loader.Loader;
 import es.bsc.compss.agent.types.ApplicationParameter;
@@ -50,7 +49,9 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.parsers.ITFParser;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,6 +59,8 @@ import java.util.Map;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import storage.StorageException;
 import storage.StorageItf;
 
@@ -221,7 +224,7 @@ public class Agent {
         }
         return mainAppId;
     }
-    
+
     /**
      * Requests the execution of a method as a task.
      *
@@ -500,7 +503,7 @@ public class Agent {
         INTERFACES.add(itf);
     }
 
-    private static AgentInterfaceConfig getInterfaceConfig(String className, String arguments)
+    private static AgentInterfaceConfig getInterfaceConfig(String className, JSONObject arguments)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
 
         Class<?> agentClass = Class.forName(className);
@@ -511,12 +514,49 @@ public class Agent {
     /**
      * Main method to start a COMPSs agent. (Currently it only allows a REST agent)
      *
+     * @param args Set of JSONObjects describing the AgentInterfaces to start and their configurations.
      * @throws Exception Could not create the configuration for the REST agent due to internal errors
      */
     public static final void main(String[] args) throws Exception {
-        // TODO: Read Agents Setup
         LinkedList<AgentInterfaceConfig> agents = new LinkedList<>();
-        agents.add(getInterfaceConfig("es.bsc.compss.agent.rest.RESTAgent", args[0]));
+
+        String agentConfig = System.getProperty(AgentConstants.AGENT_CONFIG_PATH);
+
+        if (agentConfig != null && !agentConfig.isEmpty()) {
+            LOGGER.info("Reading Agent config from " + agentConfig);
+            File configFile = new File(agentConfig);
+            if (configFile.exists()) {
+                String configString = new String(Files.readAllBytes(configFile.toPath()));
+                JSONArray array = new JSONArray(configString);
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject jo = array.getJSONObject(i);
+                    try {
+                        String interfaceClass = jo.getString("AGENT_IMPL");
+                        JSONObject conf = jo.getJSONObject("CONF");
+                        LOGGER.info("Loading " + interfaceClass + "'s agent interface");
+                        AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
+                        agents.add(aic);
+                    } catch (Exception e) {
+                        ErrorManager.warn("Unexpected format for agent config: " + jo);
+                    }
+                }
+            } else {
+                ErrorManager.warn("Could not find the agent configuration file " + agentConfig);
+            }
+        }
+
+        for (String arg : args) {
+            try {
+                JSONObject jo = new JSONObject(arg);
+                String interfaceClass = jo.getString("AGENT_IMPL");
+                JSONObject conf = jo.getJSONObject("CONF");
+                LOGGER.info("Loading " + agentConfig + "'s agent interface");
+                AgentInterfaceConfig aic = getInterfaceConfig(interfaceClass, conf);
+                agents.add(aic);
+            } catch (Exception e) {
+                ErrorManager.warn("Unexpected format for agent config: " + arg);
+            }
+        }
 
         for (AgentInterfaceConfig agent : agents) {
             try {

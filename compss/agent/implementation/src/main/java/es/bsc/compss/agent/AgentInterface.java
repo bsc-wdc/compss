@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.agent;
 
+import org.json.JSONObject;
+
+
 /**
  * Interface that any external component might call to invoke the agent.
  *
@@ -26,11 +29,11 @@ public interface AgentInterface<T extends AgentInterfaceConfig> {
     /**
      * Constructs the configuration description for the agent parsing a string.
      *
-     * @param arguments String containing the arguments.
+     * @param conf JSONObject containing the necessary elements to startup the agent interface.
      * @return Configuration object obtained from parsing the string.
      * @throws AgentException Could not properly parse the string to generate a configuration description.
      */
-    public T configure(String arguments) throws AgentException;
+    public T configure(JSONObject conf) throws AgentException;
 
     /**
      * Starts any underlying mechanism required by the interface to receive messages from other processes.

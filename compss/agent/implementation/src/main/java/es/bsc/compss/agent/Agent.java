@@ -496,9 +496,7 @@ public class Agent {
      */
     public static final void startInterface(AgentInterfaceConfig conf)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
-
-        Class<?> agentClass = Class.forName(conf.getInterfaceClass());
-        AgentInterface itf = (AgentInterface) agentClass.newInstance();
+        AgentInterface itf = conf.getAgentInterface();
         itf.start(conf);
         INTERFACES.add(itf);
     }

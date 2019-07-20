@@ -8,7 +8,7 @@
     {
         "AGENT_IMPL": "es.bsc.compss.agent.comm.CommAgentImpl",
         "CONF": {
-            "PORT": "46001"
+            "PORT": "$COMM_AGENT_PORT"
         }
     }
 ]

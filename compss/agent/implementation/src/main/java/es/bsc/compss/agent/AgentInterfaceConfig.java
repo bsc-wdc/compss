@@ -22,14 +22,14 @@ package es.bsc.compss.agent;
  */
 public abstract class AgentInterfaceConfig {
 
-    private final String interfaceClass;
+    private final AgentInterface<?> agentInterface;
 
-    public AgentInterfaceConfig(String interfaceClass) {
-        this.interfaceClass = interfaceClass;
+    public AgentInterfaceConfig(AgentInterface<?> agentInterface) {
+        this.agentInterface = agentInterface;
     }
 
-    public String getInterfaceClass() {
-        return interfaceClass;
+    public AgentInterface<?> getAgentInterface() {
+        return agentInterface;
     }
 
 }

@@ -51,7 +51,6 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
     private CommAgentAdaptor adaptor;
 
     public CommAgentImpl() {
-        LOGGER.info("Init CommAgentImpl");
         this.adaptor = null;
     }
 
@@ -65,7 +64,11 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             String portSTR = confJSON.getString("PORT");
             portSTR = EnvironmentLoader.loadFromEnvironment(portSTR);
             int port = Integer.valueOf(portSTR);
-            conf = new CommAgentConfig(port);
+            if (port > 0) {
+                conf = new CommAgentConfig(this, port);
+            } else {
+                throw new AgentException("Invalid port number for Comm agent's interface.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new AgentException(e);
@@ -80,6 +83,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         adaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.ID);
         if (adaptor == null) {
             adaptor = new CommAgentAdaptor(this);
+            LOGGER.info("Starting CommAgent on port " + port);
             adaptor.init();
             Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
             Comm.registerAdaptor(CommAgentAdaptor.class.getCanonicalName(), adaptor);
@@ -215,7 +219,8 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
      */
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(args[0]);
-        CommAgentConfig config = new CommAgentConfig(port);
+        CommAgentImpl cai = new CommAgentImpl();
+        CommAgentConfig config = new CommAgentConfig(cai, port);
         Agent.startInterface(config);
     }
 

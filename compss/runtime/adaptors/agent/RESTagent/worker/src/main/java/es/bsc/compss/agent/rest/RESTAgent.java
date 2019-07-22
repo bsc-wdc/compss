@@ -32,6 +32,7 @@ import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.agent.util.RemoteJobsRegistry;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -50,6 +51,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.eclipse.jetty.server.Server;
 import org.json.JSONObject;
@@ -57,6 +60,9 @@ import org.json.JSONObject;
 
 @Path("/COMPSs")
 public class RESTAgent implements AgentInterface<RESTAgentConf> {
+
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
     private int port;
     private Server server = null;
@@ -68,7 +74,11 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             String portSTR = confJSON.getString("PORT");
             portSTR = EnvironmentLoader.loadFromEnvironment(portSTR);
             int port = Integer.valueOf(portSTR);
-            conf = new RESTAgentConf(port);
+            if (port > 0) {
+                conf = new RESTAgentConf(this, port);
+            } else {
+                throw new AgentException("Invalid port number for REST agent's interface.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new AgentException(e);
@@ -87,6 +97,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             this.port = args.getPort();
             System.setProperty(RESTAgentConstants.COMPSS_AGENT_PORT, Integer.toString(port));
             launcher = new RESTServiceLauncher(port);
+            LOGGER.info("Starting RESTAgent on port " + port);
             new Thread(launcher).start();
             launcher.waitForBoot();
         } catch (Exception e) {
@@ -275,7 +286,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(args[0]);
-        RESTAgentConf config = new RESTAgentConf(port);
+        RESTAgent ra = new RESTAgent();
+        RESTAgentConf config = new RESTAgentConf(ra, port);
         Agent.startInterface(config);
     }
 

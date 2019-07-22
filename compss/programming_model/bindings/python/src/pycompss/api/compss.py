@@ -27,6 +27,7 @@ PyCOMPSs API - COMPSs
 import inspect
 import logging
 import os
+from functools import wraps
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 
@@ -121,6 +122,7 @@ class COMPSs(object):
         :return: Decorated function.
         """
 
+        @wraps(func)
         def compss_f(*args, **kwargs):
             if not self.scope:
                 # from pycompss.api.dummy.compss import COMPSs as dummy_compss

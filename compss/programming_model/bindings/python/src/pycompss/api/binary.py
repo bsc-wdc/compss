@@ -27,6 +27,7 @@ PyCOMPSs API - BINARY
 import inspect
 import logging
 import os
+from functools import wraps
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
 
@@ -83,6 +84,7 @@ class Binary(object):
         :return: Decorated function.
         """
 
+        @wraps(func)
         def binary_f(*args, **kwargs):
             if not self.scope:
                 # from pycompss.api.dummy.binary import binary as dummy_binary

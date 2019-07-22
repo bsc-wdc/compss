@@ -36,12 +36,13 @@
 
     adaptor_name=$(basename "${src_path}")
     echo "------ Copying ${adaptor_name} adaptor"
-      mkdir "${dest_path}/${adaptor_name}"
+    mkdir "${dest_path}/${adaptor_name}"
+    if [ -d "${src_path}"/master/ ]; then
       mkdir "${dest_path}/${adaptor_name}"/master
       cp "${src_path}"/master/*.jar "${dest_path}/${adaptor_name}"/master
-      
-    if [ -f "${src_path}"/master/properties ]; then
-      cp "${src_path}"/master/properties "${dest_path}/${adaptor_name}"/master
+      if [ -f "${src_path}"/master/properties ]; then
+        cp "${src_path}"/master/properties "${dest_path}/${adaptor_name}"/master
+      fi
     fi
     if [ -d "${src_path}"/worker/ ]; then
       mkdir "${dest_path}/${adaptor_name}"/worker
@@ -220,9 +221,8 @@
   for adaptor in ${path_source}/*; do
     adaptor_name=$(basename "${adaptor}")
     if [ "${adaptor_name}" != "target" ] && [ "${adaptor_name}" != "checkstyle-cachefile" ]; then
-      if [ "${adaptor_name}" != "agent" ]; then
-        install_adaptor "${adaptor}" "${path_target}"
-      else
+      install_adaptor "${adaptor}" "${path_target}"
+      if [ "${adaptor_name}" == "agent" ]; then
         for agent in ${adaptor}/*; do
             agent_name=$(basename "$agent")
             if [ "${agent_name}" != "target" ]; then

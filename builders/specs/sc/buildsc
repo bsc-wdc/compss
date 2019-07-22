@@ -7,12 +7,13 @@
 install_adaptor() {
     adaptor_name=$(basename "$1")
     echo "------ Copying ${adaptor_name} adaptor"
-      mkdir "$2/${adaptor_name}"
+    mkdir "$2/${adaptor_name}"
+    if [ -d "${src_path}"/master/ ]; then
       mkdir "$2/${adaptor_name}"/master
       cp "$1"/master/*.jar "$2"/"${adaptor_name}"/master
-      
-    if [ -f "$1"/master/properties ]; then
-      cp "$1"/master/properties "$2"/"${adaptor_name}"/master
+      if [ -f "$1"/master/properties ]; then
+        cp "$1"/master/properties "$2"/"${adaptor_name}"/master
+      fi
     fi
     if [ -d "$1"/worker/ ]; then
       mkdir "$2/${adaptor_name}"/worker
@@ -101,9 +102,8 @@ install_adaptor() {
     adaptor_name=$(basename "${adaptor}")
     echo " -- Copying adaptor $adaptor_name"
     if [ "$adaptor_name" != "commons" ] && [ "$adaptor_name" != "execution" ] && [ "$adaptor_name" != "pom.xml" ] && [ "$adaptor_name" != "target" ]; then
-      if [ "${adaptor_name}" != "agent" ]; then
-          install_adaptor "${adaptor}" "${path_target}"
-      else
+      install_adaptor "${adaptor}" "${path_target}"
+      if [ "${adaptor_name}" == "agent" ]; then
           for agent in ${adaptor}/*; do
               agent_name=$(basename "$agent")
 	      if [ "${agent_name}" != "pom.xml" ] && [ "${agent_name}" != "target" ]; then

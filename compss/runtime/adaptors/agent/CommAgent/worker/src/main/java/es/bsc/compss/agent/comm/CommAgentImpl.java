@@ -64,7 +64,11 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             String portSTR = confJSON.getString("PORT");
             portSTR = EnvironmentLoader.loadFromEnvironment(portSTR);
             int port = Integer.valueOf(portSTR);
-            conf = new CommAgentConfig(this, port);
+            if (port > 0) {
+                conf = new CommAgentConfig(this, port);
+            } else {
+                throw new AgentException("Invalid port number for Comm agent's interface.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new AgentException(e);

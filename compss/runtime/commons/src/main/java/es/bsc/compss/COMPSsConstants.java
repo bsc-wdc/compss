@@ -31,10 +31,9 @@ public class COMPSsConstants {
      * Accepted Execution modes.
      */
     public static enum TaskExecution {
-        COMPSS, // Internal Execution
-        STORAGE // External execution
+    COMPSS, // Internal Execution
+    STORAGE // External execution
     }
-
 
     /**
      * Languages.
@@ -45,7 +44,6 @@ public class COMPSsConstants {
         PYTHON, // For Python applications
         UNKNOWN // For Services
     }
-
 
     /**
      * Python Interpreters.
@@ -134,6 +132,7 @@ public class COMPSsConstants {
 
     // Streaming properties
     public static final String STREAMING_BACKEND = "compss.streaming";
+    public static final String STREAMING_MASTER_NAME = "compss.streaming.masterName";
     public static final String STREAMING_MASTER_PORT = "compss.streaming.masterPort";
 
     // Persistent worker c property
@@ -196,6 +195,7 @@ public class COMPSsConstants {
     public static final String DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT = "null";
     public static final String DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = "true";
     public static final String DEFAULT_PYTHON_MPI_WORKER = "false";
+
 
     /**
      * Private constructor to avoid instantiation.

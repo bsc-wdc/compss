@@ -46,10 +46,10 @@ RUN /framework/builders/buildlocal -N --skip-tests && \
 FROM base
 
 # SET UP ENVIRONMENT
-ENV AGENT_HOST=localhost AGENT_PORT=46100 DEBUG=off DATACLAY_ARG="-DC " APP_JAR=/app/app.jar DATACLAY_EP=127.0.0.1:1034
+ENV AGENT_HOST=localhost REST_AGENT_PORT=0 COMM_AGENT_PORT=0 DEBUG=off DATACLAY_ARG="-DC " APP_JAR=/app/app.jar DATACLAY_EP=127.0.0.1:1034
 WORKDIR /tmp
 
 # COPY COMPSs INSTALLATION
 COPY --from=builder /opt/COMPSs /opt/COMPSs
 
-CMD /opt/COMPSs/Runtime/scripts/system/adaptors/RESTagent/startAgent.sh -h ${AGENT_HOST} -p ${AGENT_PORT} -d ${DEBUG} -a ${APP_JAR} ${DATACLAY_ARG} -lm ${DATACLAY_EP}
+CMD /opt/COMPSs/Runtime/scripts/system/adaptors/agent/startAgent.sh -h ${AGENT_HOST} -cp "${COMM_AGENT_PORT}" -rp "${REST_AGENT_PORT}" -d ${DEBUG} -a ${APP_JAR} ${DATACLAY_ARG} -lm ${DATACLAY_EP}

@@ -8,18 +8,11 @@ INIT_DIR=$(pwd)
 RUNTIME_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )"
 
 echo "Copying framework to ${SANDBOX}"
-cp -r "${RUNTIME_DIR}" ${SANDBOX}
-cp "${RUNTIME_DIR}/utils/docker/agent/Dockerfile" ${SANDBOX}/framework/Dockerfile
+cp -r -L "${RUNTIME_DIR}" ${SANDBOX}
 
 echo "Removing Tests from maven"
 sed -i -e 's#<module>tests/sources</module># #g'  ${SANDBOX}/framework/pom.xml
 sed -i -e 's#<module>performance_analysis/auto-cbm</module># #g'  ${SANDBOX}/framework/pom.xml
-
-
-# UPDATE DEFAULT CONFIGURATION FILES
-echo "Updating configuration files"
-sed -i '/default_resources.xml/d' ${SANDBOX}/framework/compss/runtime/adaptors/agent/RESTagent/scripts/startAgent.sh
-sed -i '/default_project.xml/d' ${SANDBOX}/framework/compss/runtime/adaptors/agent/RESTagent/scripts/startAgent.sh
 
 # CLEANING MAVEN PROJECT
 cd "${SANDBOX}"/framework
@@ -29,7 +22,7 @@ mvn clean
 # BUILDING IMAGE
 echo "Building image"
 cd "${SANDBOX}"
-docker build -t compss/agent:2.5 ./framework
+docker build -t compss/agent:2.5 ./framework -f ./framework/utils/docker/agent/Dockerfile
 
 rm -rf "${SANDBOX}"
 cd "${INIT_DIR}"

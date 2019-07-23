@@ -18,7 +18,6 @@
 package es.bsc.compss.agent.comm;
 
 import es.bsc.compss.agent.comm.messages.types.CommParam;
-import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.RemoteDataInformation;
 import es.bsc.compss.agent.types.RemoteDataLocation;
@@ -90,12 +89,10 @@ class CommAgentJob extends NIOJob {
         LinkedList<NIOParam> params = addParams();
         int numParams = params.size() - taskParams.getNumReturns();
 
-        CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, null,
-                this.taskParams.hasTargetObject(), this.taskParams.getNumReturns(), params, numParams,
-                absMethodImpl.getRequirements(), slaveWorkersNodeNames,
-                this.taskId, this.impl.getTaskType(), this.jobId, this.history, this.transferId, this.getTimeOut(),
-                CommAgentAdaptor.LOCAL_RESOURCE
-        );
+        CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, null, this.taskParams.hasTargetObject(),
+                this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
+                slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(), this.jobId, this.history, this.transferId,
+                this.getTimeOut(), CommAgentAdaptor.LOCAL_RESOURCE);
 
         return nt;
     }
@@ -118,7 +115,7 @@ class CommAgentJob extends NIOJob {
                     break;
                 case COLLECTION_T:
                     throw new UnsupportedOperationException();
-                //break;
+                    // break;
                 default:
                     commParam = buildCommParamFromBasicParameter((BasicTypeParameter) param);
                     break;

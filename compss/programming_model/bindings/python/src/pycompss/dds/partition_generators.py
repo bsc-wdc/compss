@@ -21,6 +21,7 @@ objects are necessary. Inside 'task' functions we will call their 'generate'
 method in order to retrieve the partition. These partitions can previously be
 loaded on master and sent to workers, or read from files on worker nodes.
 """
+import pickle
 import sys
 
 
@@ -106,6 +107,17 @@ class WorkerFileLoader(IPartitionGenerator):
             content = open(file_path).read()
             ret.append((file_path, content))
 
+        return ret
+
+
+class PickleLoader(IPartitionGenerator):
+
+    def __init__(self, pickle_path):
+        super(PickleLoader, self).__init__()
+        self.pickle_path = pickle_path
+
+    def retrieve_data(self):
+        ret = pickle.load(open(self.pickle_path, "rb"))
         return ret
 
 

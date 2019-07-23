@@ -18,6 +18,7 @@
 import sys
 import time
 
+from pycompss.api.api import compss_barrier
 from pycompss.dds import DDS
 
 
@@ -77,21 +78,19 @@ def terasort():
     """
 
     dir_path = sys.argv[1]
-    partitions = sys.argv[2] if len(sys.argv) > 2 else -1
+    dest_path = sys.argv[2]
+    # partitions = sys.argv[2] if len(sys.argv) > 2 else -1
 
     start_time = time.time()
 
-    dds = DDS().load_files_from_dir(dir_path, partitions)\
+    dds = DDS().load_files_from_dir(dir_path)\
         .map_and_flatten(files_to_pairs)\
-        .sort_by_key().collect()
+        .sort_by_key().save_as_text_file(dest_path)
 
-    temp = 0
-    for i, k in dds:
-        if i < temp:
-            print("FAILED")
-            break
-        temp = i
-    print(dds[-1:])
+    # compss_barrier()
+    # test = DDS().load_pickle_files(dest_path).map(lambda x: x).collect()
+    # print(test[-1:])
+
     print("Elapsed Time {} (s)".format(time.time() - start_time))
 
 
@@ -109,8 +108,8 @@ def main_program():
     print("________RUNNING EXAMPLES_________")
     # pi_estimation()
     # word_count()
-    # terasort()
-    inverted_indexing()
+    terasort()
+    # inverted_indexing()
 
 
 if __name__ == '__main__':

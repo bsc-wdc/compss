@@ -17,6 +17,7 @@
 import bisect
 import itertools
 import os
+import pickle
 from collections import deque, defaultdict
 
 from pycompss.api.api import compss_barrier
@@ -45,6 +46,7 @@ class DDS(object):
         self.partitions = list()
         self.func = None
 
+        # Todo: Rename this variable
         # Partition As A Future Object
         # True if partitions are not Future Objects but list of Future Objects
         self.paafo = False
@@ -161,6 +163,21 @@ class DDS(object):
             _partition_loader = WorkerFileLoader(partition_files)
             self.partitions.append(_partition_loader)
             start = end
+
+        return self
+
+    def load_pickle_files(self, dir_path):
+        """
+        Load serialized partitions from pickle files.
+        :param dir_path: path to serialized partitions.
+        :return:
+        """
+
+        files = sorted(os.listdir(dir_path))
+        for _f in files:
+            file_name = os.path.join(dir_path, _f)
+            _partition_loader = PickleLoader(file_name)
+            self.partitions.append(_partition_loader)
 
         return self
 
@@ -422,7 +439,7 @@ class DDS(object):
         processed = list()
         if self.func:
             for _p in self.partitions:
-                processed.append(map_partition(self.func, _p, self.paafo))
+                processed.append(map_partition(self.func, _p, col=self.paafo))
             # Reset the function!
             self.func = None
         else:
@@ -446,6 +463,32 @@ class DDS(object):
             for _pp in processed:
                 ret.append(list(_pp))
         return ret
+
+    def save_as_text_file(self, path):
+        """
+        Save string representations of DDS elements as text files (one file per
+        partition).
+        :param path:
+        :return:
+        """
+        processed = self.collect(future_objects=True)
+        for i, _p in enumerate(processed):
+            save_text_file(_p, i, path)
+
+        return None
+
+    def save_as_pickle(self, path):
+        """
+        Save partitions of this DDS as pickle files. Each partition is saved as
+        a separate file for the sake of parallelism.
+        :param path:
+        :return:
+        """
+        processed = self.collect(future_objects=True)
+        for i, _p in enumerate(processed):
+            save_pickle_file(_p, i, path)
+
+        return None
 
     """
     Functions for (Key, Value) pairs.
@@ -516,8 +559,8 @@ class DDS(object):
                 grouped[_i].append(col[_i])
 
         future_partitions = list()
-        for bucket in grouped.values():
-            future_partitions.append(bucket)
+        for key in sorted(grouped.keys()):
+            future_partitions.append(grouped[key])
 
         return DDS().load(future_partitions, -1, True)\
             .map_partitions(combine_lists)
@@ -554,6 +597,22 @@ class DDS(object):
     def combine_by_key(self, creator_func, combiner_func, merger_function,
                        total_parts=-1):
         """
+        Combine elements of each key.
+        :param creator_func: to apply to the first element of the key. Takes
+                             only one argument which is the value from (k, v)
+                             pair. (e.g: v = list(v))
+        :param combiner_func: to apply when a new element with the same 'key' is
+                              found. It is used to combine partitions locally.
+                              Takes 2 arguments; first one is the result of
+                              'creator_func' where the second one is a 'value'
+                              of the same 'key' from the same partition.
+                              (e.g: v1.append(v2))
+        :param merger_function: to merge local results. Basically takes two
+                                arguments- both are results of 'combiner_func'.
+                                (e.g: list_1.extend(list_2) )
+
+        :param total_parts: number of partitions after combinations
+        :return:
         """
 
         def combine_partition(partition):

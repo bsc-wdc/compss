@@ -187,8 +187,9 @@ def get_input_params(num_params, logger, args):
     return ret
 
 
-def task_execution(logger, process_name, module, method_name, time_out, types, values,
-                   compss_kwargs, persistent_storage, storage_conf):
+def task_execution(logger, process_name, module, method_name, time_out,
+                   types, values, compss_kwargs,
+                   persistent_storage, storage_conf):
     """
     Task execution function.
 
@@ -196,6 +197,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
     :param process_name: Process name
     :param module: Module which contains the function
     :param method_name: Function to invoke
+    :param time_out: Time out
     :param types: List of the parameter's types
     :param values: List of the parameter's values
     :param compss_kwargs: PyCOMPSs keywords
@@ -207,7 +209,7 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
         logger.debug("Starting task execution")
         logger.debug("module     : %s " % str(module))
         logger.debug("method_name: %s " % str(method_name))
-        logger.debug("time_out: %s " % str(time_out))
+        logger.debug("time_out   : %s " % str(time_out))
         logger.debug("Types      : %s " % str(types))
         logger.debug("Values     : %s " % str(values))
         logger.debug("P. storage : %s " % str(persistent_storage))
@@ -293,8 +295,8 @@ def task_execution(logger, process_name, module, method_name, time_out, types, v
                         False, "", logger)
 
 
-def task_returns (exit_code, new_types, new_values, target_direction,
-                  timed_out, return_message, logger):
+def task_returns(exit_code, new_types, new_values, target_direction,
+                 timed_out, return_message, logger):
     """
     Unified task return function
     :param exit_code: Exit value (0 ok, 1 error)
@@ -327,7 +329,8 @@ def task_timed_out(signum, frame):
     raise TimeOutError
 
 
-def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi=False):
+def execute_task(process_name, storage_conf, params, tracing, logger,
+                 python_mpi=False):
     """
     ExecuteTask main method.
 
@@ -336,6 +339,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger, python_mpi
     :param params: List of parameters
     :param tracing: Tracing flag
     :param logger: Logger to use
+    :param python_mpi: If it is a MPI task
     :return: exit code, new types and new values
     """
     if __debug__:

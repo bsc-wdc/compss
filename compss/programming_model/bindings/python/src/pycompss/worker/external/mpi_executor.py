@@ -31,10 +31,10 @@ import sys
 from mpi4py import MPI
 
 from pycompss.util.logs import init_logging_worker
-
 from pycompss.worker.piper.commons.pipe_constants import EXECUTE_TASK_TAG
 from pycompss.worker.piper.commons.pipe_constants import END_TASK_TAG
 from pycompss.worker.commons.executor_commons import build_return_params_message
+from pycompss.worker.commons.worker_commons import execute_task
 
 
 def shutdown_handler(signal, frame):
@@ -59,6 +59,7 @@ def executor(process_name, command):
     parameters) and process them.
 
     :param process_name: Process name (MPI Process-X, where X is the MPI rank).
+    :param command: Command to execute
     :return: None
     """
     # Replace Python Worker's SIGTERM handler.
@@ -113,8 +114,8 @@ def process_task(current_line, process_name,
     stderr = sys.stderr
 
     if __debug__:
-       logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
-                    % (str(process_name), str(current_line)))
+        logger.debug("[PYTHON EXECUTOR] [%s] Received message: %s"
+                     % (str(process_name), str(current_line)))
     current_line = current_line.split()
 
     if current_line[0] == EXECUTE_TASK_TAG:
@@ -143,10 +144,10 @@ def process_task(current_line, process_name,
         #       !---> type, stream, prefix , value
 
         if __debug__:
-           logger.debug("[PYTHON EXECUTOR] [%s] Received task with id: %s" %
-                        (str(process_name), str(job_id)))
-           logger.debug("[PYTHON EXECUTOR] [%s] - TASK CMD: %s" %
-                        (str(process_name), str(current_line)))
+            logger.debug("[PYTHON EXECUTOR] [%s] Received task with id: %s" %
+                         (str(process_name), str(job_id)))
+            logger.debug("[PYTHON EXECUTOR] [%s] - TASK CMD: %s" %
+                         (str(process_name), str(current_line)))
 
         # Swap logger from stream handler to file handler
         # All task output will be redirected to job.out/err
@@ -186,7 +187,6 @@ def process_task(current_line, process_name,
                 logger.debug("\t - Hostnames: %s" % str(cn_names))
 
             # Execute task
-            from pycompss.worker.commons.worker_commons import execute_task
             storage_conf = "null"
             tracing = False
             python_mpi = True

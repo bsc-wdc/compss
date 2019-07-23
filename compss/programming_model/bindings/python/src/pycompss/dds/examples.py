@@ -85,7 +85,7 @@ def terasort():
 
     dds = DDS().load_files_from_dir(dir_path)\
         .map_and_flatten(files_to_pairs)\
-        .sort_by_key().save_as_pickle(dest_path)
+        .sort_by_key().save_as_text_file(dest_path)
 
     # compss_barrier()
     # test = DDS().load_pickle_files(dest_path).map(lambda x: x).collect()

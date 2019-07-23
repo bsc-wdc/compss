@@ -46,6 +46,7 @@ class DDS(object):
         self.partitions = list()
         self.func = None
 
+        # Todo: Rename this variable
         # Partition As A Future Object
         # True if partitions are not Future Objects but list of Future Objects
         self.paafo = False
@@ -558,8 +559,8 @@ class DDS(object):
                 grouped[_i].append(col[_i])
 
         future_partitions = list()
-        for bucket in grouped.values():
-            future_partitions.append(bucket)
+        for key in sorted(grouped.keys()):
+            future_partitions.append(grouped[key])
 
         return DDS().load(future_partitions, -1, True)\
             .map_partitions(combine_lists)

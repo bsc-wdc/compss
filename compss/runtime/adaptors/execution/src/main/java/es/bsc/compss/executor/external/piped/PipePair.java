@@ -77,6 +77,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     private int readers;
     private boolean closed = false;
 
+
     public PipePair(String basePipePath, String id) {
         this.pipePath = basePipePath + id;
     }
@@ -272,11 +273,12 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
             case COMPSS_EXCEPTION:
                 if (command.length < 2) {
                     LOGGER.warn("WARN: Skipping endTask line because is malformed");
-                    break; 
+                    break;
                 }
-                // Line of the form: "compssException" ID exceptionMessage 
+                // Line of the form: "compssException" ID exceptionMessage
                 readCommand = new CompssExceptionPipeCommand(command);
-                LOGGER.debug("Received compssException message: " + ((CompssExceptionPipeCommand)readCommand).getMessage());
+                LOGGER.debug(
+                        "Received compssException message: " + ((CompssExceptionPipeCommand) readCommand).getMessage());
                 break;
             case ERROR:
                 String[] expected = Arrays.copyOfRange(command, 1, command.length);

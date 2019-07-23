@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.components.impl;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
@@ -622,12 +621,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
         // Wait for response
         sem.acquireUninterruptibly();
-        
+
         TaskGroup tg = taskAnalyser.getTaskGroup(groupName);
         if (tg != null && tg.hasException()) {
             throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
         }
-        
+
         LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 

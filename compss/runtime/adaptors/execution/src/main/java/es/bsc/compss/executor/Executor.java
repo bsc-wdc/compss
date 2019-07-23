@@ -97,11 +97,12 @@ public class Executor implements Runnable {
     protected PipePair pyPipes;
     private Timer timer;
 
+
     /**
      * Instantiates a new Executor.
      *
-     * @param context    Invocation context
-     * @param platform   Executor context (Execution Platform
+     * @param context Invocation context
+     * @param platform Executor context (Execution Platform
      * @param executorId Executor Identifier
      */
     public Executor(InvocationContext context, ExecutorContext platform, String executorId) {
@@ -173,7 +174,7 @@ public class Executor implements Runnable {
             if (WORKER_DEBUG) {
                 LOGGER.debug("Dequeuing job " + invocation.getJobId());
             }
-            
+
             Exception e = executeTask(invocation);
 
             boolean success = true;
@@ -187,10 +188,10 @@ public class Executor implements Runnable {
 
             Throwable rootCause = ExceptionUtils.getRootCause(e);
             if (rootCause instanceof COMPSsException) {
-                e = (COMPSsException)rootCause;
+                e = (COMPSsException) rootCause;
             }
-            if (e instanceof COMPSsException ) {
-                execution.notifyEnd((COMPSsException)e, success);
+            if (e instanceof COMPSsException) {
+                execution.notifyEnd((COMPSsException) e, success);
 
             } else {
                 execution.notifyEnd(null, success);
@@ -308,7 +309,7 @@ public class Executor implements Runnable {
                 }
                 executeTask(assignedResources, invocation, twd.getWorkingDir());
                 execDuration = System.currentTimeMillis() - startExec;
-                if (timerTask!=null) {
+                if (timerTask != null) {
                     timerTask.cancel();
                 }
             } catch (Exception e) {
@@ -482,7 +483,7 @@ public class Executor implements Runnable {
      * Create symbolic links from files with the original name in task sandbox to the renamed file.
      *
      * @param invocation task description
-     * @param sandbox    created sandbox
+     * @param sandbox created sandbox
      * @throws IOException returns exception is a problem occurs during creation
      */
     private void bindOriginalFilenamesToRenames(Invocation invocation, File sandbox) throws IOException {
@@ -539,7 +540,7 @@ public class Executor implements Runnable {
      * Undo symbolic links and renames done with the original names in task sandbox to the renamed file.
      *
      * @param invocation task description
-     * @throws IOException           Exception with file operations
+     * @throws IOException Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
     private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
@@ -548,11 +549,11 @@ public class Executor implements Runnable {
         for (InvocationParam param : invocation.getParams()) {
             try {
                 unbindOriginalFilenameToRename(param, invocation.getLang());
-            } catch(JobExecutionException e ) {
+            } catch (JobExecutionException e) {
                 if (!failure) {
                     message = e.getMessage();
-                }else {
-                    message = message.concat("\n"+e.getMessage());
+                } else {
+                    message = message.concat("\n" + e.getMessage());
                 }
                 failure = true;
             }
@@ -560,23 +561,23 @@ public class Executor implements Runnable {
         if (invocation.getTarget() != null) {
             try {
                 unbindOriginalFilenameToRename(invocation.getTarget(), invocation.getLang());
-            } catch(JobExecutionException e ) {
+            } catch (JobExecutionException e) {
                 if (!failure) {
                     message = e.getMessage();
-                }else {
-                    message = message.concat("\n"+e.getMessage());
+                } else {
+                    message = message.concat("\n" + e.getMessage());
                 }
                 failure = true;
-            }   
+            }
         }
         for (InvocationParam param : invocation.getResults()) {
             try {
                 unbindOriginalFilenameToRename(param, invocation.getLang());
-            } catch(JobExecutionException e ) {
+            } catch (JobExecutionException e) {
                 if (!failure) {
                     message = e.getMessage();
-                }else {
-                    message = message.concat("\n"+e.getMessage());
+                } else {
+                    message = message.concat("\n" + e.getMessage());
                 }
                 failure = true;
             }
@@ -630,7 +631,8 @@ public class Executor implements Runnable {
                         String msg = "ERROR: Output file " + inSandboxFile.toPath() + " does not exist";
                         // Unexpected case (except for C binding when not serializing outputs)
                         if (lang != Lang.C) {
-                            LOGGER.debug("Generating empty renamed file (" + renamedFilePath + ") for on_failure management");
+                            LOGGER.debug("Generating empty renamed file (" + renamedFilePath
+                                    + ") for on_failure management");
                             renamedFile.createNewFile();
                             LOGGER.error(msg);
                             System.err.println(msg);
@@ -795,6 +797,7 @@ public class Executor implements Runnable {
 
         private final File workingDir;
         private final boolean isSpecific;
+
 
         public TaskWorkingDir(File workingDir, boolean isSpecific) {
             this.workingDir = workingDir;

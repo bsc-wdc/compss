@@ -100,13 +100,13 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     break;
 
                 case PYTHON_MPI:
-                	// 3 required parameters: declaringClass, methodName, mpi runner
+                    // 3 required parameters: declaringClass, methodName, mpi runner
                     if (implTypeArgs.length < PythonMPIImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type MPI on " + implSignature);
                     }
                     String pythonMPIdeclaringClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String pythonMPImethodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
-                    String pythonMPIWorkingDir= EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
+                    String pythonMPIWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String pythonMPIRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     if (pythonMPIdeclaringClass == null || pythonMPIdeclaringClass.isEmpty()) {
                         throw new IllegalArgumentException(
@@ -116,9 +116,10 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
                     }
 
-                    id = new PythonMPIDefinition(implSignature, pythonMPIdeclaringClass, pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner, (MethodResourceDescription)implConstraints);
+                    id = new PythonMPIDefinition(implSignature, pythonMPIdeclaringClass, pythonMPImethodName,
+                            pythonMPIWorkingDir, pythonMPIRunner, (MethodResourceDescription) implConstraints);
                     break;
-                	
+
                 case BINARY:
                     if (implTypeArgs.length != BinaryImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);

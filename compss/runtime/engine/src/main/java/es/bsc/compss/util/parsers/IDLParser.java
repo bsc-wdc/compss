@@ -57,6 +57,7 @@ public class IDLParser {
         IMPLEMENTATION // Implementation
     }
 
+
     /**
      * Parses the methods found in the IDL file.
      *
@@ -96,7 +97,8 @@ public class IDLParser {
                                     currConstraints = loadCConstraints(structureString.toString());
                                 } else {
                                     if (type.equals(CodeRegion.IMPLEMENTATION)) {
-                                        LOGGER.debug("[IDL Parser] Loading implementation: " + structureString.toString());
+                                        LOGGER.debug(
+                                                "[IDL Parser] Loading implementation: " + structureString.toString());
                                         implementation = loadCImplementation(structureString.toString());
                                     } else {
                                         if (type.equals(CodeRegion.FUNCTION)) {
@@ -151,7 +153,8 @@ public class IDLParser {
                                         } else {
                                             if (line.matches(".*[(].*[)];")) {
                                                 // Line contains a function
-                                                LOGGER.debug("[IDL Parser] Loading function: " + line + " constraint:" + currConstraints);
+                                                LOGGER.debug("[IDL Parser] Loading function: " + line + " constraint:"
+                                                        + currConstraints);
                                                 parseCFunction(line, currConstraints, implementation);
 
                                                 currConstraints = new MethodResourceDescription(defaultCtr);
@@ -235,11 +238,11 @@ public class IDLParser {
          * implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
          * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(","); }
          */
- /*
+        /*
          * if (hasReturn) { implementedTaskSignatureBuffer.append("BINDING_OBJECT_T").append(",");
          * implementationSignatureBuffer.append("BINDING_OBJECT_T").append(",");
          */
- /*
+        /*
          * OLD Binding Objects as FILE implementedTaskSignatureBuffer.append("FILE_T").append(",");
          * implementationSignatureBuffer.append("FILE_T").append(",");
          */
@@ -379,6 +382,7 @@ public class IDLParser {
 
         private final String className;
         private final String methodName;
+
 
         public CImplementation(String className, String methodName) {
             this.className = className;

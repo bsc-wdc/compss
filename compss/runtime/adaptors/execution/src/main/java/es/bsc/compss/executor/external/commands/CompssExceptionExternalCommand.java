@@ -16,7 +16,8 @@
  */
 package es.bsc.compss.executor.external.commands;
 
-public class CompssExceptionExternalCommand implements ExternalCommand{
+public class CompssExceptionExternalCommand implements ExternalCommand {
+
     @Override
     public CommandType getType() {
         return CommandType.COMPSS_EXCEPTION;

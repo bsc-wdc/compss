@@ -360,7 +360,7 @@ public class ResourceOptimizer extends Thread {
         int coreCount = CoreManager.getCoreCount();
         List<ConstraintsCore>[] unfulfilledConstraints = new LinkedList[coreCount];
         int[] maxSimTasks = ResourceManager.getTotalSlots();
-        for (CoreElement ce: CoreManager.getAllCores()){
+        for (CoreElement ce : CoreManager.getAllCores()) {
             int coreId = ce.getCoreId();
             unfulfilledConstraints[coreId] = new LinkedList<>();
             if (maxSimTasks[coreId] == 0) {

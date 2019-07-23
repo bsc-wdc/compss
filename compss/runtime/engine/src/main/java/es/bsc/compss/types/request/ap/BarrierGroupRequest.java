@@ -31,7 +31,8 @@ public class BarrierGroupRequest extends APRequest {
     private Semaphore sem;
     private Long appId;
     private COMPSsException exception;
-    
+
+
     /**
      * Creates a new group barrier request.
      * 
@@ -49,7 +50,7 @@ public class BarrierGroupRequest extends APRequest {
     public Long getAppId() {
         return this.appId;
     }
-    
+
     public String getGroupName() {
         return this.groupName;
     }
@@ -65,13 +66,13 @@ public class BarrierGroupRequest extends APRequest {
     public COMPSsException getException() {
         return this.exception;
     }
-    
+
     public void setException(COMPSsException exception) {
         this.exception = exception;
     }
-    
+
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td){
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.barrierGroup(this);
     }
 

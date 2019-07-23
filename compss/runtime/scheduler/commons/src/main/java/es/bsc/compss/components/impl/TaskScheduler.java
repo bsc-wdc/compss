@@ -409,7 +409,7 @@ public class TaskScheduler {
 
         // Check if stream consumers are free
         List<AllocatableAction> freeActions = action.executionStarted();
-        if (freeActions != null && freeActions.size()>0) { 
+        if (freeActions != null && freeActions.size() > 0) {
             for (AllocatableAction fAction : freeActions) {
                 addToReady(fAction);
             }
@@ -418,7 +418,8 @@ public class TaskScheduler {
             List<AllocatableAction> blockedCandidates = new LinkedList<>();
             // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
             // and those that remain unassigned must be added to the unassigned list
-            handleDependencyFreeActions(freeActions, new LinkedList<>(), blockedCandidates, action.getAssignedResource());
+            handleDependencyFreeActions(freeActions, new LinkedList<>(), blockedCandidates,
+                    action.getAssignedResource());
             for (AllocatableAction aa : blockedCandidates) {
                 if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {
                     removeFromReady(aa);
@@ -513,7 +514,7 @@ public class TaskScheduler {
             addToBlocked(aa);
         }
     }
-    
+
     /**
      * Registers an error on the action given as a parameter. The action itself processes the error and triggers with
      * any possible solution to re-execute it. This code is executed only on re-schedule (no resubmit).
@@ -1221,7 +1222,6 @@ public class TaskScheduler {
             for (int i = 0; i < coreCount; ++i) {
                 coreProfiles[i] = new Profile();
             }
-            List<Implementation>[] impls = ui.getExecutableImpls();
             for (CoreElement ce : CoreManager.getAllCores()) {
                 int coreId = ce.getCoreId();
                 for (Implementation impl : ce.getImplementations()) {
@@ -1351,8 +1351,8 @@ public class TaskScheduler {
             int coreId = ce.getCoreId();
             coresInfo.append(prefix).append("\t").append("<Core id=\"").append(coreId).append("\"").append(">")
                     .append("\n");
-            for (Implementation impl: ce.getImplementations()) {
-                int implId = impl.getImplementationId() ;
+            for (Implementation impl : ce.getImplementations()) {
+                int implId = impl.getImplementationId();
                 // Get method's signature
                 String signature = impl.getSignature();
 

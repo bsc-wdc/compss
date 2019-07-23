@@ -18,6 +18,7 @@ package es.bsc.compss.api;
 
 import es.bsc.compss.worker.COMPSsException;
 
+
 /**
  * COMPSs API Class for JAVA.
  */
@@ -49,11 +50,11 @@ public class COMPSs {
      * 
      * @param groupName Name of the group to perform the barrier.
      */
-    public static void barrierGroup(String groupName) throws COMPSsException{
+    public static void barrierGroup(String groupName) throws COMPSsException {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
-    
+
     /**
      * Unregister the given object from the Runtime.
      * 
@@ -73,6 +74,5 @@ public class COMPSs {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }
-   
 
 }

@@ -36,6 +36,7 @@ public abstract class Implementation implements Externalizable {
     protected String signature;
     protected WorkerResourceDescription requirements;
 
+
     /**
      * Creates a new Implementation instance for serialization.
      */
@@ -46,12 +47,14 @@ public abstract class Implementation implements Externalizable {
     /**
      * Creates a new Implementation instance from the given parameters.
      *
-     * @param coreId           Core Id.
+     * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param signature        Signature of the implementation
-     * @param requirements     Implementation requirements.
+     * @param signature Signature of the implementation
+     * @param requirements Implementation requirements.
      */
-    public Implementation(Integer coreId, Integer implementationId, String signature, WorkerResourceDescription requirements) {
+    public Implementation(Integer coreId, Integer implementationId, String signature,
+            WorkerResourceDescription requirements) {
+        
         this.coreId = coreId;
         this.implementationId = implementationId;
         this.signature = signature;

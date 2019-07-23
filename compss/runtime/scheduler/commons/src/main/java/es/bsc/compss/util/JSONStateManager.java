@@ -310,8 +310,8 @@ public class JSONStateManager {
      * @param profile Execution profile to accumulate.
      */
     public void accumulateImplementationJSON(Implementation impl, Profile profile) {
-        int coreId = impl.getCoreId();
-        int implId = impl.getImplementationId();
+        // int coreId = impl.getCoreId();
+        // int implId = impl.getImplementationId();
         JSONObject oldImplJSON = this.getJSONForImplementation(impl);
         profile.accumulateJSON(oldImplJSON);
     }

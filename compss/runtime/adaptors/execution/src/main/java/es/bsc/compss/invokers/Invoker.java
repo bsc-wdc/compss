@@ -256,8 +256,8 @@ public abstract class Invoker {
     /**
      * Perform the task execution (job).
      * 
-     * @throws JobExecutionException Error execution the task
-     * @throws COMPSsException 
+     * @throws JobExecutionException When an error in the task execution occurs.
+     * @throws COMPSsException When the task needs to be stopped (task groups, failure management).
      */
     public void processTask() throws JobExecutionException, COMPSsException {
         /* Invoke the requested method ****************************** */
@@ -329,7 +329,7 @@ public abstract class Invoker {
             invokeMethod();
         } catch (JobExecutionException jee) {
             throw jee;
-        } catch(COMPSsException e) {
+        } catch (COMPSsException e) {
             throw e;
         } finally {
             emitEndTask();

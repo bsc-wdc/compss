@@ -37,6 +37,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
 
     private String operation;
 
+
     /**
      * Creates a new ServiceImplementation for serialization.
      */
@@ -55,8 +56,9 @@ public class ServiceImplementation extends Implementation implements Externaliza
      * @param operation Service operation.
      * @param signature Service operation signature.
      */
-    public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation
-            , String signature) {
+    public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation,
+            String signature) {
+        
         super(coreId, 0, signature, null);
 
         this.requirements = new ServiceResourceDescription(service, namespace, port, 1);

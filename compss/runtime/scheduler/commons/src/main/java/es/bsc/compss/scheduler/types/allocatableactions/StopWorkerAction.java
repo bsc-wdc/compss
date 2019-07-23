@@ -172,8 +172,9 @@ public class StopWorkerAction extends AllocatableAction {
 
     @Override
     protected void doException(COMPSsException e) {
-        
+
     }
+
     /*
      * ***************************************************************************************************************
      * SCHEDULING MANAGEMENT
@@ -271,7 +272,7 @@ public class StopWorkerAction extends AllocatableAction {
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
 
     }
-    
+
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

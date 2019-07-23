@@ -1,4 +1,3 @@
-
 package commons;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
@@ -14,7 +13,6 @@ import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
-import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.HashMap;
@@ -26,6 +24,7 @@ import java.util.Map;
 public class Action extends AllocatableAction {
 
     private final CoreElement core;
+
 
     public Action(ActionOrchestrator orchestrator, CoreElement core) {
 
@@ -113,9 +112,9 @@ public class Action extends AllocatableAction {
 
     @Override
     protected void doException(COMPSsException e) {
-        
+
     }
-    
+
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
             Score actionScore) {
@@ -183,9 +182,9 @@ public class Action extends AllocatableAction {
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        
+
     }
-    
+
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

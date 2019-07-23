@@ -1,4 +1,3 @@
-
 package commons;
 
 import es.bsc.compss.components.impl.ResourceScheduler;

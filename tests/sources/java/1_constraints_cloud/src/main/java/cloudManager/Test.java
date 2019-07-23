@@ -24,9 +24,6 @@ public class Test {
 
     private static final int WAIT_FOR_RUNTIME_TIME = 10_000; // ms
 
-    // Interface data
-    private static int coreCount;
-
 
     /*
      * *************************************** MAIN IMPLEMENTATION ***************************************
@@ -53,7 +50,6 @@ public class Test {
         System.out.println("[LOG] CloudManager Static Structures definition");
 
         // Check for each implementation the correctness of its resources
-        coreCount = CoreManager.getCoreCount();
         CloudProvider cp = ResourceManager.getCloudProvider("BSC");
         for (CoreElement ce : CoreManager.getAllCores()) {
             int coreId = ce.getCoreId();

@@ -15,6 +15,12 @@
 #  limitations under the License.
 #
 
+"""
+PyCOMPSs Worker Commons
+=======================
+    This file contains the common code of all workers.
+"""
+
 import sys
 import signal
 import traceback
@@ -322,10 +328,20 @@ def task_returns(exit_code, new_types, new_values, target_direction,
 
 
 class TimeOutError(Exception):
+    """
+    Time out error exception
+    """
     pass
 
 
 def task_timed_out(signum, frame):
+    """
+    Task time out signal handler
+
+    :param signum: Signal number
+    :param frame: Frame
+    :raise: TimeOutError exception
+    """
     raise TimeOutError
 
 

@@ -23,6 +23,7 @@ PyCOMPSs PYTHON MPI Executor
     This file contains the code of an executor running Python MPI execution
     command that is passed from the runtime worker.
 """
+
 import copy
 import signal
 import logging

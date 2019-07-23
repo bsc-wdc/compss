@@ -23,6 +23,7 @@ PyCOMPSs Persistent Worker Pipe Executor
     This file contains the code of an executor running the commands that it
     reads from a pipe.
 """
+
 import copy
 import signal
 import logging

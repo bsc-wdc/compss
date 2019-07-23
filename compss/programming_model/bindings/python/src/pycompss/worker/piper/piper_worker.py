@@ -189,15 +189,12 @@ def compss_persistent_worker(config):
         from storage.api import initWorker as initStorageAtWorker
         initStorageAtWorker(config_file_path=config.storage_conf)
 
-    def create_threads(process_name, pipe):
-        """
-        Creates and starts a new process where to run tasks and updates
-        the corresponding variables (PROCESSES, queues).
-
-        :param i: index of the process
-        :param process_name: name of the process
-        :return pid: id of process running the new executor
-        """
+    # Create new threads
+    queues = []
+    for i in range(0, config.tasks_x_node):
+        if __debug__:
+            logger.debug("[PYTHON WORKER] Launching process " + str(i))
+        process_name = 'Process-' + str(i)
         queue = Queue()
         queues.append(queue)
         conf = ExecutorConf(TRACING,
@@ -209,19 +206,10 @@ def compss_persistent_worker(config):
                             config.stream_master_port)
         process = Process(target=executor, args=(queue,
                                                  process_name,
-                                                 pipe,
+                                                 config.pipes[i],
                                                  conf))
-        PROCESSES[pipe.input_pipe] = process
+        PROCESSES[config.pipes[i].input_pipe] = process
         process.start()
-        return process.pid
-
-    # Create new threads
-    queues = []
-    for i in range(0, config.tasks_x_node):
-        if __debug__:
-            logger.debug("[PYTHON WORKER] Launching process " + str(i))
-        process_name = 'Process-' + str(i)
-        create_threads(process_name, config.pipes[i])
 
     # Read command from control pipe
     alive = True

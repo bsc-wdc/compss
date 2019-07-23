@@ -597,6 +597,22 @@ class DDS(object):
     def combine_by_key(self, creator_func, combiner_func, merger_function,
                        total_parts=-1):
         """
+        Combine elements of each key.
+        :param creator_func: to apply to the first element of the key. Takes
+                             only one argument which is the value from (k, v)
+                             pair. (e.g: v = list(v))
+        :param combiner_func: to apply when a new element with the same 'key' is
+                              found. It is used to combine partitions locally.
+                              Takes 2 arguments; first one is the result of
+                              'creator_func' where the second one is a 'value'
+                              of the same 'key' from the same partition.
+                              (e.g: v1.append(v2))
+        :param merger_function: to merge local results. Basically takes two
+                                arguments- both are results of 'combiner_func'.
+                                (e.g: list_1.extend(list_2) )
+
+        :param total_parts: number of partitions after combinations
+        :return:
         """
 
         def combine_partition(partition):

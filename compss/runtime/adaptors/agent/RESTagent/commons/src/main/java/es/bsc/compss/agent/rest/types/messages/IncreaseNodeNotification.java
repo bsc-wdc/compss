@@ -26,6 +26,10 @@ import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
+/**
+ * This class contains all the information required to add new resources to the REST Agent.
+ * interface.
+ */
 @XmlRootElement(name = "newResource")
 public class IncreaseNodeNotification {
 
@@ -34,7 +38,17 @@ public class IncreaseNodeNotification {
     public IncreaseNodeNotification() {
     }
 
-    public IncreaseNodeNotification(String name, MethodResourceDescription mrd, String adaptor, Object resourcesConf, Object projectConf) {
+    /**
+     * Constructs a new notification to increase the resources within a node.
+     *
+     * @param name          Name of the resource
+     * @param mrd           New resources available on the node
+     * @param adaptor       Adaptor to interact with the node.
+     * @param resourcesConf Resources.xml configuration for the node.
+     * @param projectConf   Project.xml configuration for the node.
+     */
+    public IncreaseNodeNotification(String name, MethodResourceDescription mrd, String adaptor, Object resourcesConf,
+            Object projectConf) {
         this.resource = RESTResource.createResource(name, mrd, adaptor, resourcesConf, projectConf);
     }
 

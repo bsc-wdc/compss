@@ -23,15 +23,31 @@ import es.bsc.compss.types.job.JobEndStatus;
 import java.util.HashMap;
 
 
+/**
+ * Register of jobs currently dispatched to local/remote resources.
+ */
 public class RemoteJobsRegistry {
 
     public static final HashMap<String, RemoteJobListener> REGISTERED_JOBS = new HashMap<>();
 
-
-    public static synchronized void registerJobListener(String jobId, RemoteJobListener o) {
-        REGISTERED_JOBS.put(jobId, o);
+    /**
+     * Registers a job running and its corresponding listener.
+     *
+     * @param jobId    Id of the submitted job.
+     * @param listener listener handling the job status updates.
+     */
+    public static synchronized void registerJobListener(String jobId, RemoteJobListener listener) {
+        REGISTERED_JOBS.put(jobId, listener);
     }
 
+    /**
+     * Notifies the end of a job execution.
+     *
+     * @param jobId          Id of the ended job.
+     * @param endStatus      end status of the job.
+     * @param paramTypes     array containing the Data types of all the parameters involved in the operation.
+     * @param paramLocations location where to find the parameter value on the node/id on the persistent storage system.
+     */
     public static synchronized void notifyJobEnd(String jobId, JobEndStatus endStatus, DataType[] paramTypes,
             String[] paramLocations) {
 

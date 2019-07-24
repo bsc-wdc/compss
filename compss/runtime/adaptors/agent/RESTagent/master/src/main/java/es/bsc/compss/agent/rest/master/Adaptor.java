@@ -20,7 +20,6 @@ import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.types.project.ProjectFile;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
@@ -39,12 +38,12 @@ public class Adaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Map<String, Object> project_properties, Map<String, Object> resources_properties)
+    public Configuration constructConfiguration(Map<String, Object> projectConf, Map<String, Object> resourcesConf)
             throws ConstructConfigurationException {
 
         AgentConfiguration ac = new AgentConfiguration(this.getClass().getName());
 
-        ResourcesExternalAdaptorProperties eap = (ResourcesExternalAdaptorProperties) resources_properties.get("Properties");
+        ResourcesExternalAdaptorProperties eap = (ResourcesExternalAdaptorProperties) resourcesConf.get("Properties");
         for (ResourcesPropertyAdaptorType prop : eap.getProperty()) {
             ac.addProperty(prop.getName(), prop.getValue());
         }

@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.agent.rest.types.messages;
 
-import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ArrayParameter;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ElementParameter;
+import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -31,6 +31,10 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
+/**
+ * This class contains all the information required to start an execution on a remote agent through the REST Agent
+ * interface.
+ */
 @XmlRootElement(name = "startApplication")
 public class StartApplicationRequest implements Serializable {
 
@@ -47,7 +51,6 @@ public class StartApplicationRequest implements Serializable {
     private ApplicationParameterImpl target;
     private boolean hasResult;
     private Orchestrator orchestrator;
-
 
     public StartApplicationRequest() {
 
@@ -93,65 +96,58 @@ public class StartApplicationRequest implements Serializable {
         this.target = target;
     }
 
-    public void addParameter(boolean value) {
-        addParameter(value, Direction.IN, DataType.BOOLEAN_T);
+    public void addParameter(String name, String prefix, boolean value) {
+        addParameter(value, Direction.IN, DataType.BOOLEAN_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
-    public void addParameter(byte value) {
-        addParameter(value, Direction.IN, DataType.BYTE_T);
+    public void addParameter(String name, String prefix, byte value) {
+        addParameter(value, Direction.IN, DataType.BYTE_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
-    public void addParameter(char value) {
-        addParameter(value, Direction.IN, DataType.CHAR_T);
+    public void addParameter(String name, String prefix, char value) {
+        addParameter(value, Direction.IN, DataType.CHAR_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
-    public void addParameter(short value) {
-        addParameter(value, Direction.IN, DataType.SHORT_T);
+    public void addParameter(String name, String prefix, short value) {
+        addParameter(value, Direction.IN, DataType.SHORT_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
-    public void addParameter(int value) {
-        addParameter(value, Direction.IN, DataType.INT_T);
+    public void addParameter(String name, String prefix, int value) {
+        addParameter(value, Direction.IN, DataType.INT_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
-    public void addParameter(long value) {
-        addParameter(value, Direction.IN, DataType.LONG_T);
+    public void addParameter(String name, String prefix, long value) {
+        addParameter(value, Direction.IN, DataType.LONG_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
-    public void addParameter(float value) {
-        addParameter(value, Direction.IN, DataType.FLOAT_T);
+    public void addParameter(String name, String prefix, float value) {
+        addParameter(value, Direction.IN, DataType.FLOAT_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
-    public void addParameter(double value) {
-        addParameter(value, Direction.IN, DataType.DOUBLE_T);
+    public void addParameter(String name, String prefix, double value) {
+        addParameter(value, Direction.IN, DataType.DOUBLE_T, StdIOStream.UNSPECIFIED, prefix, name);
     }
 
     public void addParameter(String value) {
-        addParameter(value, Direction.IN, DataType.STRING_T);
+        addParameter(value, Direction.IN, DataType.STRING_T, StdIOStream.UNSPECIFIED, "", "");
     }
 
     public void addParameter(Object value) {
-        addParameter(value, Direction.IN);
+        addParameter(Direction.IN, value);
     }
 
-    public void addParameter(Object value, Direction direction) {
-        addParameter(value, Direction.IN, DataType.OBJECT_T);
-    }
-
-    public void addPersistedParameter(String id) {
-        addPersistedParameter(id, Direction.IN);
-    }
-
-    public void addPersistedParameter(String id, Direction direction) {
-        ApplicationParameterImpl p = addParameter(id, direction, DataType.PSCO_T);
-        ((ElementParameter) p.getValue()).setClassName("storage.StubItf");
+    public void addParameter(Direction direction, Object value) {
+        addParameter(value, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED, "", "");
     }
 
     public void addParameter(Parameter p, Object value) {
-        addParameter(value, p.getDirection(), p.getType());
+        addParameter(value, p.getDirection(), p.getType(), p.getStream(), p.getPrefix(), p.getName());
     }
 
-    private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type) {
-        ApplicationParameterImpl p = new ApplicationParameterImpl(value, direction, type, StdIOStream.UNSPECIFIED);
+    private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type, StdIOStream stream,
+            String prefix, String name) {
+        ApplicationParameterImpl p;
+        p = new ApplicationParameterImpl(value, direction, type, stream, prefix, name);
         p.setParamId(params.length);
 
         ApplicationParameterImpl[] oldParams = params;
@@ -163,6 +159,15 @@ public class StartApplicationRequest implements Serializable {
         return p;
     }
 
+    public void addPersistedParameter(String id) {
+        addPersistedParameter(Direction.IN, id);
+    }
+
+    public void addPersistedParameter(Direction direction, String id) {
+        ApplicationParameterImpl p = addParameter(id, direction, DataType.PSCO_T, StdIOStream.UNSPECIFIED, "", "");
+        ((ElementParameter) p.getValue()).setClassName("storage.StubItf");
+    }
+
     @XmlElementWrapper(name = "parameters")
     public ApplicationParameterImpl[] getParams() {
         return params;
@@ -170,26 +175,6 @@ public class StartApplicationRequest implements Serializable {
 
     public void setParams(ApplicationParameterImpl[] params) {
         this.params = params;
-    }
-
-    public ApplicationParameterValue[] getParamsValues() throws ClassNotFoundException {
-        int paramsCount = params.length;
-        ApplicationParameterValue[] paramValues = new ApplicationParameterValue[paramsCount];
-        for (ApplicationParameterImpl param : params) {
-            int paramIdx = param.getParamId();
-            paramValues[paramIdx] = param.getValue();
-        }
-        return paramValues;
-    }
-
-    public Object[] getParamsValuesContent() throws Exception {
-        int paramsCount = params.length;
-        Object[] paramValues = new Object[paramsCount];
-        for (ApplicationParameterImpl param : params) {
-            int paramIdx = param.getParamId();
-            paramValues[paramIdx] = param.getValue().getContent();
-        }
-        return paramValues;
     }
 
     public void setHasResult(boolean hasResult) {

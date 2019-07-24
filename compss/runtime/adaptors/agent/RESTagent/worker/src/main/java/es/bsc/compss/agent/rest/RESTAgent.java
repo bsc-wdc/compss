@@ -58,6 +58,10 @@ import org.eclipse.jetty.server.Server;
 import org.json.JSONObject;
 
 
+/**
+ * Class providing a REST Interface for the COMPSs Agent.
+ * 
+ */
 @Path("/COMPSs")
 public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
@@ -131,11 +135,17 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return Response.ok().build();
     }
 
+    /**
+     ** Adds new available resources to the runtime system.
+     *
+     * @param nodeRequest requested resource description.
+     * @return REST response containing the service reply to the request
+     */
     @PUT
     @Path("addResources/")
     @Consumes(MediaType.APPLICATION_XML)
-    public Response addResource(IncreaseNodeNotification notification) {
-        Resource r = notification.getResource();
+    public Response addResource(IncreaseNodeNotification nodeRequest) {
+        Resource r = nodeRequest.getResource();
         // Updating processors
         MethodResourceDescription description = r.getDescription();
         List<Processor> procs = description.getProcessors();
@@ -149,6 +159,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return Response.ok().build();
     }
 
+    /**
+     * Removes some resources from the pool of available resources.
+     *
+     * @param request request describing the resources to release.
+     * @return REST response containing the service reply to the request
+     */
     @PUT
     @Path("removeResources/")
     @Consumes(MediaType.APPLICATION_XML)
@@ -166,6 +182,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return Response.ok().build();
     }
 
+    /**
+     * Removes all the resources from a node from the resource pool.
+     *
+     * @param request request describing the node to release.
+     * @return REST response containing the service reply to the request
+     */
     @PUT
     @Path("removeNode/")
     @Consumes(MediaType.APPLICATION_XML)
@@ -180,6 +202,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return Response.ok().build();
     }
 
+    /**
+     * Removes all the resources from the node and assumes that all the tasks running there fail.
+     *
+     * @param notification request describing the lost node.
+     * @return REST response containing the service reply to the request
+     */
     @PUT
     @Path("lostNode/")
     @Consumes(MediaType.APPLICATION_XML)
@@ -194,6 +222,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return Response.ok().build();
     }
 
+    /**
+     * Request to run a method as a task.
+     *
+     * @param request description of the method to execute.
+     * @return REST response containing the service reply to the request
+     */
     @PUT
     @Path("startApplication/")
     @Consumes(MediaType.APPLICATION_XML)
@@ -246,7 +280,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         boolean hasResult = request.isHasResult();
         if (hasResult) {
             results = new ApplicationParameterImpl[1];
-            results[1] = new ApplicationParameterImpl(null, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED);
+            results[1] = new ApplicationParameterImpl(null, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED,
+                    "", "result");
         } else {
             results = new ApplicationParameterImpl[0];
         }
@@ -271,6 +306,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return Response.ok(appId, MediaType.TEXT_PLAIN).build();
     }
 
+    /**
+     * Notification that a task submitted to another REST agent has finished.
+     *
+     * @param notification Result of the operation.
+     * @return REST response containing the service reply to the request
+     */
     @PUT
     @Path("endApplication/")
     @Consumes(MediaType.APPLICATION_XML)
@@ -284,6 +325,13 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         return Response.ok().build();
     }
 
+    /**
+     * Main method of the application starting a REST service.
+     *
+     * @param args Arguments to configuring the REST service. Position 0: port.
+     *
+     * @throws Exception Error starting the REST Agent
+     */
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(args[0]);
         RESTAgent ra = new RESTAgent();

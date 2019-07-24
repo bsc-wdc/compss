@@ -37,6 +37,9 @@ import org.glassfish.jersey.client.ClientConfig;
 import storage.StubItf;
 
 
+/**
+ * Class handling the status changes for a task and the corresponding notifications to its orchestrator.
+ */
 public class AppTaskMonitor extends AppMonitor {
 
     private static final Client CLIENT = ClientBuilder.newClient(new ClientConfig());
@@ -46,6 +49,12 @@ public class AppTaskMonitor extends AppMonitor {
     private final String[] paramLocations;
     private boolean successful;
 
+    /**
+     * Constructs a new AppTaskMonitor.
+     *
+     * @param numParams    number of parameters of the task to monitor.
+     * @param orchestrator orchestrator to notify any task status updates.
+     */
     public AppTaskMonitor(int numParams, Orchestrator orchestrator) {
         super();
         this.orchestrator = orchestrator;
@@ -113,7 +122,7 @@ public class AppTaskMonitor extends AppMonitor {
     @Override
     public void onCancellation() {
     }
-    
+
     @Override
     public void onException() {
     }

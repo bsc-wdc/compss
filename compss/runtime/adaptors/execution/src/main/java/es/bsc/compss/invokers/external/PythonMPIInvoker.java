@@ -45,10 +45,10 @@ public class PythonMPIInvoker extends ExternalInvoker {
     /**
      * Python MPI Invoker constructor.
      *
-     * @param context               Task execution context.
-     * @param invocation            Task execution description.
+     * @param context Task execution context.
+     * @param invocation Task execution description.
      * @param taskSandboxWorkingDir Task execution sandbox directory.
-     * @param assignedResources     Assigned resources.
+     * @param assignedResources Assigned resources.
      * @throws JobExecutionException Error creating the MPI invoker.
      */
     public PythonMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
@@ -137,8 +137,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
                 .getPythonVersion();
         String pyCOMPSsHome = installDir + pycompssRelativePath + File.separator + pythonVersion;
 
-        cmd[5] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator + "external" + File.separator
-                + "mpi_executor.py";
+        cmd[5] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator + "external"
+                + File.separator + "mpi_executor.py";
 
         cmd[6] = taskCMD;
 

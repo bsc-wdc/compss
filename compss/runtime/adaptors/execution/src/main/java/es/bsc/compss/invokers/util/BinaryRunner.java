@@ -28,6 +28,7 @@ import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
 import es.bsc.distrostreamlib.DistroStream;
 import es.bsc.distrostreamlib.api.files.FileDistroStream;
+import es.bsc.distrostreamlib.api.objects.ObjectDistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.CloseStreamRequest;
 
@@ -153,6 +154,10 @@ public class BinaryRunner {
                     // Add prefix and file name
                     binaryParamFields.add(param.getPrefix() + param.getOriginalName());
                     break;
+                case COLLECTION_T:
+                    // TODO: Handle collections instead of passing the collection dXvY
+                    binaryParamFields.add(param.getPrefix() + String.valueOf(param.getValue()));
+                    break;
                 case STREAM_T:
                     // No need to check prefix
                     DistroStream<?> ds = (DistroStream<?>) param.getValue();
@@ -160,6 +165,11 @@ public class BinaryRunner {
                         case FILE:
                             FileDistroStream fds = (FileDistroStream) ds;
                             binaryParamFields.add(param.getPrefix() + fds.getBaseDir());
+                            break;
+                        case OBJECT:
+                            // For an ods we send its alias (can be null)
+                            ObjectDistroStream<?> ods = (ObjectDistroStream<?>) ds;
+                            binaryParamFields.add(param.getPrefix() + ods.getAlias());
                             break;
                         default:
                             throw new InvokeExecutionException(ERROR_STREAM);
@@ -191,20 +201,29 @@ public class BinaryRunner {
                     // Add file name
                     binaryParamFields.add(param.getOriginalName());
                     break;
+                case COLLECTION_T:
+                    // TODO: Handle collections instead of passing the collection dXvY
+                    binaryParamFields.add(String.valueOf(param.getValue()));
+                    break;
                 case STREAM_T:
                     // No need to check prefix
                     DistroStream<?> ds = (DistroStream<?>) param.getValue();
                     switch (ds.getStreamType()) {
                         case FILE:
+                            // For an fds we send the base dir path
                             FileDistroStream fds = (FileDistroStream) ds;
                             binaryParamFields.add(fds.getBaseDir());
+                            break;
+                        case OBJECT:
+                            // For an ods we send its alias (can be null)
+                            ObjectDistroStream<?> ods = (ObjectDistroStream<?>) ds;
+                            binaryParamFields.add(ods.getAlias());
                             break;
                         default:
                             throw new InvokeExecutionException(ERROR_STREAM);
                     }
                     break;
                 case EXTERNAL_STREAM_T:
-                    // No need
                     String serializedFile = (String) param.getValue();
                     String baseDir = null;
                     try {

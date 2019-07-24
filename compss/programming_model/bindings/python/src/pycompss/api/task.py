@@ -1028,7 +1028,7 @@ class task(object):
                         sub_name = "%s.%s" % (name_prefix, arg.name)
                     else:
                         sub_name = "@%s" % sub_name
-                    from pycompss.worker.worker_commons import build_task_parameter
+                    from pycompss.worker.commons.worker_commons import build_task_parameter
                     sub_arg, _ = build_task_parameter(int(content_type), None, "", sub_name, content_file)
                     # Recursively call the retrieve method, fill the content field in our new taskParameter object
                     retrieve_content(sub_arg, sub_name)

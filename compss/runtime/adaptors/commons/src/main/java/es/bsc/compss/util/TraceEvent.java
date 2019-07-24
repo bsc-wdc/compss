@@ -80,18 +80,16 @@ public enum TraceEvent {
     CREATING_TASK_SANDBOX(54, Tracer.RUNTIME_EVENTS, "Worker: Creating task sandbox"), // Create task sandbox
     REMOVING_TASK_SANDBOX(55, Tracer.RUNTIME_EVENTS, "Worker: Removing task sandbox"), // Erase task sandbox
     TASK_EXECUTION_PYTHON(1, Tracer.INSIDE_TASKS_TYPE, "Task execution"), // Execute python task
-    USER_CODE_PYTHON1(2, Tracer.INSIDE_TASKS_TYPE, "User code execution 1"), // User code 1
-    USER_CODE_PYTHON2(3, Tracer.INSIDE_TASKS_TYPE, "User code execution 2"), // User code 2
-    USER_CODE_PYTHON3(4, Tracer.INSIDE_TASKS_TYPE, "User code execution 3"), // User code 3
-    IMPORTING_MODULES_PYTHON(5, Tracer.INSIDE_TASKS_TYPE, "Importing modules"), // Import python
-    THREAD_BINDING_PYTHON(6, Tracer.INSIDE_TASKS_TYPE, "Thread binding"), // Thread binding
-    DESERIALIZE_OBJECT_PYTHON1(7, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-    DESERIALIZE_OBJECT_PYTHON2(8, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
-    SERIALIZE_OBJECT_PYTHON(9, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize
-    CREATE_THREADS_PYTHON(10, Tracer.INSIDE_TASKS_TYPE, "Create persistent threads"), // Create threads python
-    GET_BY_ID(11, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
-    MAKE_PERSISTENT(12, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
-    DELETE_PERSISTENT(13, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+    USER_CODE_PYTHON(2, Tracer.INSIDE_TASKS_TYPE, "User code execution"), // User code
+    IMPORTING_MODULES_PYTHON(3, Tracer.INSIDE_TASKS_TYPE, "Importing modules"), // Import python
+    THREAD_BINDING_PYTHON(4, Tracer.INSIDE_TASKS_TYPE, "Thread binding"), // Thread binding
+    DESERIALIZE_OBJECT_PYTHON1(5, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
+    DESERIALIZE_OBJECT_PYTHON2(6, Tracer.INSIDE_TASKS_TYPE, "Deserializing object"), // Deserialize
+    SERIALIZE_OBJECT_PYTHON(7, Tracer.INSIDE_TASKS_TYPE, "Serializing object"), // Serialize
+    CREATE_THREADS_PYTHON(8, Tracer.INSIDE_TASKS_TYPE, "Create persistent threads"), // Create threads python
+    GET_BY_ID(9, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
+    MAKE_PERSISTENT(10, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
+    DELETE_PERSISTENT(11, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
     WORKER_RUNNING(102, Tracer.INSIDE_TASKS_TYPE, "Worker running"), // Worker running
 
     READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count");// Ready count

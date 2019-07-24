@@ -135,10 +135,10 @@
   export PYTHONPATH=${PYCOMPSS_HOME}:${pythonpath}:${app_dir}:${PYTHONPATH}
 
   echo "[WORKER_PYTHON.SH] PYTHONPATH: ${PYTHONPATH}"
-  echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/worker.py ${workerConfDescription[*]} ${implDescription[*]} ${invocationParams[*]}"
+  echo "[WORKER_PYTHON.SH] EXEC CMD: $pythonInterpreter ${PYCOMPSS_HOME}/pycompss/worker/gat/worker.py ${workerConfDescription[*]} ${implDescription[*]} ${invocationParams[*]}"
 
   # shellcheck disable=SC2068
-  $pythonInterpreter "${PYCOMPSS_HOME}"/pycompss/worker/worker.py ${workerConfDescription[@]} ${implDescription[@]} ${invocationParams[@]}
+  $pythonInterpreter "${PYCOMPSS_HOME}"/pycompss/worker/gat/worker.py ${workerConfDescription[@]} ${implDescription[@]} ${invocationParams[@]}
   ev=$?
 
   #-------------------------------------

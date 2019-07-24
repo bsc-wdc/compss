@@ -137,7 +137,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
                 .getPythonVersion();
         String pyCOMPSsHome = installDir + pycompssRelativePath + File.separator + pythonVersion;
 
-        cmd[5] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator
+        cmd[5] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator + "external" + File.separator
                 + "mpi_executor.py";
 
         cmd[6] = taskCMD;

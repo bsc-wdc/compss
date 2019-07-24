@@ -21,6 +21,9 @@ import es.bsc.compss.types.job.JobEndStatus;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
+/**
+ * Class containing all the information required to notify the end of an application.
+ */
 @XmlRootElement(name = "endApplication")
 public class EndApplicationNotification {
 
@@ -29,11 +32,18 @@ public class EndApplicationNotification {
     private DataType[] paramTypes;
     private String[] paramLocations;
 
-
     public EndApplicationNotification() {
         // Nothing to do
     }
 
+    /**
+     * Constructs a new End application notification.
+     *
+     * @param jobId          job of the ended application
+     * @param status         end statud of the application execution
+     * @param paramTypes     array containing the types of the parameters of the job
+     * @param paramLocations locations where to find the values of the job parameters
+     */
     public EndApplicationNotification(String jobId, JobEndStatus status, DataType[] paramTypes,
             String[] paramLocations) {
 

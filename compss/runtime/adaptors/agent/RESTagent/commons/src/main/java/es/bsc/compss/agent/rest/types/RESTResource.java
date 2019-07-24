@@ -20,9 +20,25 @@ import es.bsc.compss.agent.types.Resource;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 
+/**
+ * Class describing the resources available on a node and the necessary configuration (Adaptor name, project's and
+ * resource's configuration values.
+ */
 public class RESTResource {
 
-    public static final Resource createResource(String name, MethodResourceDescription description, String adaptor, Object pConf, Object rConf) {
+    /**
+     * Constructs a new RESTResource instance for the resources on the node with name {@code name}.
+     *
+     * @param name        name of the node.
+     * @param description description of the resources of the node.
+     * @param adaptor     adaptor to interact with such node.
+     * @param pConf       configuration values related to the project file.
+     * @param rConf       confinguration values related to the resources file.
+     *
+     * @return RESTResource instance constructed with the values passed in as parameter.
+     */
+    public static final Resource createResource(String name, MethodResourceDescription description, String adaptor,
+            Object pConf, Object rConf) {
         switch (adaptor) {
             case "es.bsc.compss.nio.master.NIOAdaptor":
                 return new NIOAdaptorResource(

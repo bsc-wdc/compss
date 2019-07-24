@@ -26,13 +26,22 @@ import storage.StorageException;
 import storage.StorageItf;
 
 
+/**
+ * This class contains all the information to pass a parameter value through the REST Agent interface in XML format.
+ */
 public abstract class ApplicationParameterValue {
 
-    public static final ApplicationParameterValue createParameterValue(Object o) {
-        if (o.getClass().isArray()) {
-            return new ArrayParameter(o);
+    /**
+     * Constructs a new ApplicationParameterValue out of the object {@code obj}.
+     *
+     * @param obj value contained on the ParameterValue
+     * @return ApplicationParameterValue constructed with the value passed in as parameter.
+     */
+    public static final ApplicationParameterValue createParameterValue(Object obj) {
+        if (obj.getClass().isArray()) {
+            return new ArrayParameter(obj);
         } else {
-            return new ElementParameter(o);
+            return new ElementParameter(obj);
         }
     }
 

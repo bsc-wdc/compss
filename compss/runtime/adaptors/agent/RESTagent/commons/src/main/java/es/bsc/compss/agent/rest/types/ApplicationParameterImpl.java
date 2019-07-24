@@ -26,6 +26,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 
 
+/**
+ * This class contains all the necessary information to transfer a parameter through the REST Agent interface.
+ */
 public class ApplicationParameterImpl implements ApplicationParameter {
 
     private int paramId;
@@ -40,11 +43,24 @@ public class ApplicationParameterImpl implements ApplicationParameter {
 
     }
 
-    public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream) {
+    /**
+     * Constructs an ApplicationParameterImpl setting up all its characteristics.
+     *
+     * @param val Actual value of the parameter
+     * @param dir directionality of the parameter
+     * @param type type of data of the parameter
+     * @param stream stream to redirect to the parameter
+     * @param prefix prefix to attach to the parameter
+     * @param paramName name of the  parameter
+     */
+    public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream,
+            String prefix, String paramName) {
         this.value = ApplicationParameterValue.createParameterValue(val);
         this.direction = dir;
         this.stdIOStream = stream;
         this.type = type;
+        this.prefix = prefix;
+        this.paramName = paramName;
     }
 
     @XmlAttribute

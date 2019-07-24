@@ -55,7 +55,7 @@ import javax.ws.rs.core.Response;
 
 public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
-    private static final String REST_AGENT_URL = "http://" + COMPSsNode.getMasterName() 
+    private static final String REST_AGENT_URL = "http://" + COMPSsNode.getMasterName()
             + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
 
     public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl,
@@ -173,7 +173,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                         System.out.println("SUBMISSION[" + this.getJobId() + "]         Access " + dAccId);
                         value = dPar.getDataTarget();
                         System.out.println("SUBMISSION[" + this.getJobId() + "]         ID " + value);
-                        sar.addPersistedParameter((String) value, param.getDirection());
+                        sar.addPersistedParameter(param.getDirection(), (String) value);
                     } else {
                         throw new UnsupportedOperationException(
                                 "Non-persisted DependencyParameters are not supported yet");
@@ -238,12 +238,12 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 try {
                     DataLocation loc = DataLocation.createLocation(worker, uri);
                     if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
-                        String pscoId = loc.getLocationKey();
                         type = returnParameter.getType();
                         if (type == DataType.OBJECT_T) {
                             type = DataType.PSCO_T;
                         }
                         returnParameter.setType(type);
+                        String pscoId = loc.getLocationKey();
                         returnParameter.setDataTarget(pscoId);
                         System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
                         System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
@@ -271,19 +271,19 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 try {
                     DataLocation loc = DataLocation.createLocation(worker, uri);
                     if (loc.getProtocol() == ProtocolType.PERSISTENT_URI) {
-                        String pscoId = loc.getLocationKey();
                         type = targetParameter.getType();
                         if (type == DataType.OBJECT_T) {
                             type = DataType.PSCO_T;
                         }
                         targetParameter.setType(type);
+                        String pscoId = loc.getLocationKey();
                         targetParameter.setDataTarget(pscoId);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Target : ");
                         System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
                         System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
                     } else {
                         targetParameter.setType(type);
-                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Return : ");
+                        System.out.println("STAGE OUT[" + this.getJobId() + "]         * Target : ");
                         System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
                         System.out.println("STAGE OUT[" + this.getJobId() + "]             Value location: " + loc);
 
@@ -348,8 +348,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                             System.err.println(
                                     "STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK PARAMETER " + parIdx);
                         }
-                        break;
                     }
+                    break;
                 default:
             }
         }

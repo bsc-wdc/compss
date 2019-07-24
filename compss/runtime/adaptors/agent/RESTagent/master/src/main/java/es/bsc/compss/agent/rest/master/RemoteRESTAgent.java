@@ -49,6 +49,10 @@ import storage.StorageItf;
 import storage.StubItf;
 
 
+/**
+ * Class containing the handling of the interactions with a Remote REST agent.
+ *
+ */
 public class RemoteRESTAgent extends COMPSsWorker {
 
     private final String name;
@@ -56,7 +60,11 @@ public class RemoteRESTAgent extends COMPSsWorker {
     // REST endpoint for the node
     private final WebTarget target;
 
-
+    /**
+     * Constructs a new RemoteRESTAgent using the configuration passed in as parameter.
+     *
+     * @param config configuration values to interact with the remote agent.
+     */
     public RemoteRESTAgent(AgentConfiguration config) {
         super();
         this.config = config;
@@ -271,7 +279,6 @@ public class RemoteRESTAgent extends COMPSsWorker {
     private void newReplica(StorageCopy sc) {
         String targetHostname = this.getName();
         LogicalData srcLD = sc.getSourceData();
-        LogicalData targetLD = sc.getTargetData();
 
         System.out.println("STAGE IN Requesting Storage to place a new replica of " + srcLD.getPscoId() + " on "
                 + targetHostname + ")");
@@ -302,6 +309,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
         // Update information
         sc.setFinalTarget(pscoId);
+        LogicalData targetLD = sc.getTargetData();
         if (targetLD != null) {
             targetLD.setPscoId(pscoId);
         }

@@ -167,14 +167,13 @@ public class Agent {
             int totalParamsCount = taskParamsCount + loadParamsCount;
             Object[] params = new Object[6 * totalParamsCount];
 
-            Object[] loadParams = new Object[]{RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
-                "runtime", // Runtime API
+            Object[] loadParams = new Object[]{
+                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
                 RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
                 ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
                 appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
                 className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
-                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method
-                // name
+                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
                 /*
                      * When passing a single parameter with array type to the loaded method, the Object... parameter of
                      * the load method assumes that each element of the array is a different parameter ( any array
@@ -183,7 +182,7 @@ public class Agent {
                      * as [ Integer, array].
                  */
                 3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
-        };
+            };
 
             System.arraycopy(loadParams, 0, params, 0, loadParams.length);
             int position = loadParams.length;

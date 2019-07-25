@@ -444,7 +444,9 @@ create_simple_resources() {
     local worker_cus=${worker_info_fields[1]}
     #local worker_install_dir=${worker_info_fields[2]}
     #local worker_working_dir=${worker_info_fields[3]}
-    add_compute_node "${worker_name}" "${worker_cus}" "0" "0" "" "43101" "43102" "" ""
+    min_port=$((43101 + ( RANDOM % 100 )))
+    max_port=$((min_port + 1))
+    add_compute_node "${worker_name}" "${worker_cus}" "0" "0" "" "${min_port}" "${max_port}" "" ""
   done
   add_footer
 }

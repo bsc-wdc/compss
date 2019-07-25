@@ -83,8 +83,8 @@ public interface COMPSsRuntime {
      * @param parameters An object array containing the method parameters.
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName, 
-            boolean isPrioritary, boolean hasTarget, Integer numReturns,int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
+            boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding.
@@ -177,15 +177,15 @@ public interface COMPSsRuntime {
      */
     public void barrier(Long appId, boolean noMoreTasks);
 
-   /**
-    * Freezes the task generation until all the tasks of the group have finished execution. The name of the group to 
-    * wait is given as a parameter.
-    *
-    * @param appId The application id.
-    * @param groupName Name of the group to wait.
-    * @throws COMPSsException 
-    */
-   public void barrierGroup(Long appId, String groupName) throws COMPSsException; 
+    /**
+     * Freezes the task generation until all the tasks of the group have finished execution. The name of the group to
+     * wait is given as a parameter.
+     *
+     * @param appId The application id.
+     * @param groupName Name of the group to wait.
+     * @throws COMPSsException Custom COMPSs exception to handle groups.
+     */
+    public void barrierGroup(Long appId, String groupName) throws COMPSsException;
 
     /**
      * Unregisters an object to eventually free its memory.
@@ -196,19 +196,17 @@ public interface COMPSsRuntime {
     public void deregisterObject(Long appId, Object o);
 
     /**
-     * Creates a new task group
+     * Creates a new task group.
      *
      * @param groupName Group name.
      * @param implicitBarrier {@literal true}, if the task group requires a barrier
-     *
      */
     public void openTaskGroup(String groupName, boolean implicitBarrier);
-    
+
     /**
-     * Closes an existing task group
+     * Closes an existing task group.
      *
      * @param groupName Group name.
-     *
      */
     public void closeTaskGroup(String groupName);
 
@@ -216,8 +214,9 @@ public interface COMPSsRuntime {
      * *****************************************************************************************************************
      * DATA ACCESS METHODS
      ******************************************************************************************************************/
+
     /**
-     * Registers a new Data value
+     * Registers a new Data value.
      *
      * @param type Data type
      * @param stub Local object representing the data

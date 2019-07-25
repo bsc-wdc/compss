@@ -520,14 +520,18 @@ public class ResourcesFileTest {
         assertEquals(storageSize, resources.getStorageSize(cn), 0);
 
         assertEquals(osType, resources.getOperatingSystemType(cn));
-        
-        assertEquals(ResourcesNIOAdaptorProperties.class, resources.getAdaptorProperties(cn, adaptorName).get("Ports").getClass());
+
+        assertEquals(ResourcesNIOAdaptorProperties.class,
+                resources.getAdaptorProperties(cn, adaptorName).get("Ports").getClass());
         assertEquals(minPort,
-                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports")).getMinPort());
+                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
+                        .getMinPort());
         assertEquals(maxPort,
-                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports")).getMaxPort());
-        assertEquals(executor, ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
-                .getRemoteExecutionCommand());
+                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
+                        .getMaxPort());
+        assertEquals(executor,
+                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
+                        .getRemoteExecutionCommand());
     }
 
     @Test

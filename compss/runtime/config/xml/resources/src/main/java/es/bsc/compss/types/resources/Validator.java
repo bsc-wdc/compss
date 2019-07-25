@@ -528,7 +528,7 @@ public class Validator {
                         // Second occurency, throw exception
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
                                 "Appears more than once");
-                    } else if (portsTagFound ) {
+                    } else if (portsTagFound) {
                         // Cannot define multiple adaptor properties
                         throw new InvalidElementException("Adaptor", "Attribute " + obj.getName(),
                                 "An adaptor property (NIO) was already defined");

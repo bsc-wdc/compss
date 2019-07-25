@@ -16,12 +16,12 @@
  */
 package es.bsc.compss.scheduler.multiobjective.types;
 
-import java.util.List;
-
 import es.bsc.compss.scheduler.multiobjective.MOSchedulingInformation;
 import es.bsc.compss.scheduler.multiobjective.config.MOConfiguration;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
+
+import java.util.List;
 
 
 public class MOScore extends Score {
@@ -37,25 +37,35 @@ public class MOScore extends Score {
     private final double expectedEnergy;
 
 
+    /**
+     * Creates a new MO Score instance.
+     * 
+     * @param taskPriority Task priority score.
+     * @param dataAvailability Data availability score.
+     * @param resourceAvailability Resource availability score.
+     * @param execTime Execution time score.
+     * @param energy Energy score.
+     * @param cost Cost score.
+     */
     public MOScore(long taskPriority, long dataAvailability, long resourceAvailability, long execTime, double energy,
             double cost) {
         super(taskPriority, resourceAvailability, Math.max(resourceAvailability, dataAvailability), execTime);
 
-        expectedDataAvailable = dataAvailability;
-        expectedCost = cost;
-        expectedEnergy = energy;
+        this.expectedDataAvailable = dataAvailability;
+        this.expectedCost = cost;
+        this.expectedEnergy = energy;
     }
 
     @Override
     public boolean isBetter(Score other) {
         MOScore otherDS = (MOScore) other;
-        if (actionScore != otherDS.actionScore) {
-            return actionScore > otherDS.actionScore;
+        if (this.actionScore != otherDS.actionScore) {
+            return this.actionScore > otherDS.actionScore;
         }
 
-        double diffCost = expectedCost - otherDS.expectedCost;
-        double diffEnergy = expectedEnergy - otherDS.expectedEnergy;
-        long ownEnd = waitingScore + implementationScore;
+        double diffCost = this.expectedCost - otherDS.expectedCost;
+        double diffEnergy = this.expectedEnergy - otherDS.expectedEnergy;
+        long ownEnd = this.waitingScore + this.implementationScore;
         long otherEnd = otherDS.waitingScore + otherDS.implementationScore;
         long diffEnd = ownEnd - otherEnd;
         switch (MOConfiguration.getSchedulerOptimization()) {
@@ -92,10 +102,22 @@ public class MOScore extends Score {
         }
     }
 
+    /**
+     * Returns the action score.
+     * 
+     * @param action Action
+     * @return Action score.
+     */
     public static long getActionScore(AllocatableAction action) {
         return action.getPriority();
     }
 
+    /**
+     * Returns the latest time of the data predecessors.
+     * 
+     * @param predecessors Action predecessors.
+     * @return Latest time of the action predecessors.
+     */
     public static long getDataPredecessorTime(List<AllocatableAction> predecessors) {
         long dataTime = 0;
         for (AllocatableAction pred : predecessors) {
@@ -104,10 +126,20 @@ public class MOScore extends Score {
         return dataTime;
     }
 
+    /**
+     * Returns the expected data available time.
+     * 
+     * @return The expected data available time.
+     */
     public long getExpectedDataAvailable() {
-        return expectedDataAvailable;
+        return this.expectedDataAvailable;
     }
 
+    /**
+     * Returns the expected start time.
+     * 
+     * @return The expected start time.
+     */
     public long getExpectedStart() {
         return this.waitingScore;
     }

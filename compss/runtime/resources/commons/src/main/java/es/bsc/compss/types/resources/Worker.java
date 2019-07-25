@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.types.resources;
 
+import es.bsc.compss.exceptions.AnnounceException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.COMPSsWorker;
@@ -52,6 +53,15 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private int[] idealSimultaneousTasks;
 
 
+    /**
+     * Creates a new Worker instance.
+     * 
+     * @param name Worker name.
+     * @param description Worker description.
+     * @param worker Associated COMPSs worker.
+     * @param limitOfTasks Limit of tasks.
+     * @param sharedDisks Mounted shared disks.
+     */
     @SuppressWarnings("unchecked")
     public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, Map<String, String> sharedDisks) {
         super(worker, sharedDisks);
@@ -70,6 +80,14 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.description = description;
     }
 
+    /**
+     * Creates a new Worker instance.
+     *
+     * @param name Worker name.
+     * @param description Worker description.
+     * @param config Worker configuration.
+     * @param sharedDisks Mounted shared disks.
+     */
     @SuppressWarnings("unchecked")
     public Worker(String name, T description, Configuration config, Map<String, String> sharedDisks) {
         super(name, config, sharedDisks);
@@ -88,6 +106,11 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.description = description;
     }
 
+    /**
+     * Clones the given worker.
+     * 
+     * @param w Worker to clone.
+     */
     public Worker(Worker<T> w) {
         super(w);
         this.coreSimultaneousTasks = w.coreSimultaneousTasks;
@@ -100,11 +123,20 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
 
     }
 
+    /**
+     * Returns the worker description.
+     * 
+     * @return The worker description.
+     */
     public T getDescription() {
-        return description;
+        return this.description;
     }
 
+    /**
+     * Resets the number of used tasks.
+     */
     public void resetUsedTaskCounts() {
+        // Nothing to do.
     }
 
     /*-------------------------------------------------------------------------
@@ -114,6 +146,12 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * ************************************************************************
      * ************************************************************************
      * -----------------------------------------------------------------------*/
+
+    /**
+     * Updates the registered core elements.
+     * 
+     * @param updatedCoreIds New core elements.
+     */
     @SuppressWarnings("unchecked")
     public void updatedCoreElements(List<Integer> updatedCoreIds) {
         if (DEBUG) {
@@ -141,7 +179,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 coreSimultaneousTasks[coreId] = this.coreSimultaneousTasks[coreId];
                 idealSimultaneousTasks[coreId] = this.idealSimultaneousTasks[coreId];
                 if (wasExecutable[coreId]) {
-                    executableCores.add(coreId);
+                    this.executableCores.add(coreId);
                 }
             } else {
                 boolean executableCore = false;
@@ -160,7 +198,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                     }
                 }
                 if (executableCore) {
-                    executableCores.add(coreId);
+                    this.executableCores.add(coreId);
                 }
             }
         }
@@ -171,87 +209,136 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.idealSimultaneousTasks = idealSimultaneousTasks;
     }
 
+    /**
+     * Updates the internal features.
+     */
     @SuppressWarnings("unchecked")
     public void updatedFeatures() {
         int coreCount = CoreManager.getCoreCount();
-        executableCores.clear();
-        executableImpls = new LinkedList[coreCount];
-        implSimultaneousTasks = new int[coreCount][];
-        coreSimultaneousTasks = new int[coreCount];
-        idealSimultaneousTasks = new int[coreCount];
+        this.executableCores.clear();
+        this.executableImpls = new LinkedList[coreCount];
+        this.implSimultaneousTasks = new int[coreCount][];
+        this.coreSimultaneousTasks = new int[coreCount];
+        this.idealSimultaneousTasks = new int[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
             boolean executableCore = false;
             List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
-            implSimultaneousTasks[coreId] = new int[impls.size()];
-            executableImpls[coreId] = new LinkedList<>();
+            this.implSimultaneousTasks[coreId] = new int[impls.size()];
+            this.executableImpls[coreId] = new LinkedList<>();
             for (Implementation impl : impls) {
                 if (canRun(impl)) {
                     int simultaneousCapacity = simultaneousCapacity(impl);
-                    idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
-                    implSimultaneousTasks[coreId][impl.getImplementationId()] = simultaneousCapacity;
+                    this.idealSimultaneousTasks[coreId] = Math.max(this.idealSimultaneousTasks[coreId],
+                            simultaneousCapacity);
+                    this.implSimultaneousTasks[coreId][impl.getImplementationId()] = simultaneousCapacity;
                     if (simultaneousCapacity > 0) {
-                        executableImpls[coreId].add(impl);
+                        this.executableImpls[coreId].add(impl);
                         executableCore = true;
                     }
                 }
             }
             if (executableCore) {
-                coreSimultaneousTasks[coreId] = limitIdealSimultaneousTasks(idealSimultaneousTasks[coreId]);
-                executableCores.add(coreId);
+                this.coreSimultaneousTasks[coreId] = limitIdealSimultaneousTasks(this.idealSimultaneousTasks[coreId]);
+                this.executableCores.add(coreId);
             }
         }
     }
 
+    /**
+     * Returns the maximum simultaneous tasks.
+     * 
+     * @param ideal Ideal simultaneous tasks.
+     * @return Maximum simultaneous tasks.
+     */
     protected int limitIdealSimultaneousTasks(int ideal) {
         return ideal;
     }
 
+    /**
+     * Returns a list of the executable cores by the current worker.
+     * 
+     * @return A list of the executable cores by the current worker.
+     */
     public List<Integer> getExecutableCores() {
-
-        return executableCores;
+        return this.executableCores;
     }
 
+    /**
+     * Returns a list of the executable implementations by the current worker.
+     * 
+     * @return A list of the executable implementations by the current worker.
+     */
     public List<Implementation>[] getExecutableImpls() {
-        return executableImpls;
+        return this.executableImpls;
     }
 
+    /**
+     * Returns a list of the executable implementations of the core with id {@code coreId} by the current worker.
+     * 
+     * @param coreId Core Id.
+     * @return A list of the executable implementations of the core with id {@code coreId} by the current worker.
+     */
     public List<Implementation> getExecutableImpls(int coreId) {
-        return executableImpls[coreId];
+        return this.executableImpls[coreId];
     }
 
+    /**
+     * Returns the ideal simultaneous tasks per core.
+     * 
+     * @return The ideal simultaneous tasks per core.
+     */
     public int[] getIdealSimultaneousTasks() {
         return this.idealSimultaneousTasks;
     }
 
+    /**
+     * Returns the simultaneous tasks per core.
+     * 
+     * @return The simultaneous tasks per core.
+     */
     public int[] getSimultaneousTasks() {
-        return coreSimultaneousTasks;
+        return this.coreSimultaneousTasks;
     }
 
+    /**
+     * Returns the number of simultaneous executions of the given implementation {@code impl} that the current worker
+     * can run.
+     * 
+     * @param impl Implementation to run simultaneously.
+     * @return Number of simultaneous executions of the given implementation {@code impl} that the current worker can
+     *         run.
+     */
     public Integer simultaneousCapacity(Implementation impl) {
         return fitCount(impl);
     }
 
+    /**
+     * Dumps the resource links with the given prefix.
+     * 
+     * @param prefix Indentation prefix.
+     * @return String containing a dump of the resource links.
+     */
     public String getResourceLinks(String prefix) {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("NAME = ").append(getName()).append("\n");
-        sb.append(prefix).append("EXEC_CORES = ").append(executableCores).append("\n");
+        sb.append(prefix).append("EXEC_CORES = ").append(this.executableCores).append("\n");
         sb.append(prefix).append("CORE_SIMTASKS = [").append("\n");
-        for (int i = 0; i < coreSimultaneousTasks.length; ++i) {
+        for (int i = 0; i < this.coreSimultaneousTasks.length; ++i) {
             sb.append(prefix).append("\t").append("CORE = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("COREID = ").append(i).append("\n");
-            sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(coreSimultaneousTasks[i])
+            sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(this.coreSimultaneousTasks[i])
                     .append("\n");
             sb.append(prefix).append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("]").append("\n");
         sb.append(prefix).append("IMPL_SIMTASKS = [").append("\n");
-        for (int i = 0; i < implSimultaneousTasks.length; ++i) {
-            for (int j = 0; j < implSimultaneousTasks[i].length; ++j) {
+        for (int i = 0; i < this.implSimultaneousTasks.length; ++i) {
+            for (int j = 0; j < this.implSimultaneousTasks[i].length; ++j) {
                 sb.append(prefix).append("\t").append("IMPLEMENTATION = [").append("\n");
                 sb.append(prefix).append("\t").append("\t").append("COREID = ").append(i).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("IMPLID = ").append(j).append("\n");
-                sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(implSimultaneousTasks[i][j])
-                        .append("\n");
+                sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ")
+                        .append(this.implSimultaneousTasks[i][j]).append("\n");
                 sb.append(prefix).append("\t").append("]").append("\n");
             }
         }
@@ -267,6 +354,12 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * ************************************************************************
      * ************************************************************************
      * -----------------------------------------------------------------------*/
+
+    /**
+     * Returns a list of runnable cores by the current worker.
+     * 
+     * @return List of runnable cores by the current worker.
+     */
     public List<Integer> getRunnableCores() {
         List<Integer> cores = new LinkedList<>();
         int coreCount = CoreManager.getCoreCount();
@@ -278,6 +371,11 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return cores;
     }
 
+    /**
+     * Returns a list of runnable implementations per core by the current worker.
+     * 
+     * @return A list of runnable implementations per core by the current worker.
+     */
     @SuppressWarnings("unchecked")
     public List<Implementation>[] getRunnableImplementations() {
         int coreCount = CoreManager.getCoreCount();
@@ -288,6 +386,12 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return runnable;
     }
 
+    /**
+     * Returns a list of the runnable implementations of the core with id {@code coreId} by the current worker.
+     * 
+     * @param coreId Core Id.
+     * @return A list of the runnable implementations of the core with id {@code coreId} by the current worker.
+     */
     @SuppressWarnings("unchecked")
     public List<Implementation> getRunnableImplementations(int coreId) {
         List<Implementation> runnable = new LinkedList<>();
@@ -299,10 +403,30 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return runnable;
     }
 
+    /**
+     * Returns whether the current worker can run the core element with id {@code coreId} or not.
+     * 
+     * @param coreId Core Id.
+     * @return {@literal true} if the current worker can run the given core element, {@literal false} otherwise.
+     */
     public boolean canRun(int coreId) {
         return this.idealSimultaneousTasks[coreId] > 0;
     }
 
+    /**
+     * Returns whether the current worker can run the given implementation or not.
+     * 
+     * @param implementation Implementation to run.
+     * @return {@literal true} if the worker can run the current implementation, {@literal false} otherwise.
+     */
+    public abstract boolean canRun(Implementation implementation);
+
+    /**
+     * Returns the implementations inside {@code candidates} that can run now.
+     * 
+     * @param candidates Candidate implementations to run.
+     * @return A list of implementations inside {@code candidates} that can run now.
+     */
     @SuppressWarnings("unchecked")
     public List<Implementation> canRunNow(LinkedList<Implementation> candidates) {
         List<Implementation> runnable = new LinkedList<>();
@@ -314,11 +438,33 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return runnable;
     }
 
+    /**
+     * Returns whether the given consumption can be executed now or not.
+     * 
+     * @param consumption Consumption to execute.
+     * @return {@literal true} if the consumption can run now, {@literal false} otherwise.
+     */
     public boolean canRunNow(T consumption) {
         // Available slots
         return this.hasAvailable(consumption);
     }
 
+    /**
+     * Start the execution of a given consumption (and reserve it).
+     * 
+     * @param consumption Consumption that must be started.
+     * @return The real resource consumption reserved.
+     */
+    public T runTask(T consumption) {
+        // There are free task-slots
+        return reserveResource(consumption);
+    }
+
+    /**
+     * Ends the execution of the given consumption (and releases it).
+     * 
+     * @param consumption Consumption that must be ended.
+     */
     public void endTask(T consumption) {
         if (DEBUG) {
             LOGGER.debug("End task received. Releasing resource " + getName());
@@ -326,43 +472,91 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         releaseResource(consumption);
     }
 
-    public T runTask(T consumption) {
-        // There are free task-slots
-        return reserveResource(consumption);
-    }
-
+    /**
+     * Returns the monitoring data.
+     * 
+     * @param prefix Indentation prefix.
+     * @return The monitoring data.
+     */
     public abstract String getMonitoringData(String prefix);
 
-    public abstract boolean canRun(Implementation implementation);
+    /*
+     * Internal private methods depending on the resourceType
+     */
 
-    // Internal private methods depending on the resourceType
+    /**
+     * Returns the number of simultaneous executions of the given implementation.
+     * 
+     * @param impl Implementation.
+     * @return The number of simultaneous executions of the given implementation.
+     */
     public abstract Integer fitCount(Implementation impl);
 
+    /**
+     * Returns whether the current worker can host the given consumption or not.
+     * 
+     * @param consumption Consumption to host.
+     * @return {@literal true} if the current worker can host the given consumption, {@literal false} otherwise.
+     */
     public abstract boolean hasAvailable(T consumption);
 
+    /**
+     * Returns whether the current worker has available slots or not.
+     * 
+     * @return {@literal true} if the current worker has available slots, {@code literal} false otherwise.
+     */
     public abstract boolean hasAvailableSlots();
 
+    /**
+     * Reserves the given consumption.
+     * 
+     * @param consumption Consumption to reserve.
+     * @return Final consumption reserved.
+     */
     public abstract T reserveResource(T consumption);
 
+    /**
+     * Releases the given consumption.
+     * 
+     * @param consumption Consumption to release.
+     */
     public abstract void releaseResource(T consumption);
 
+    /**
+     * Releases all the resources inside the current worker.
+     */
     public abstract void releaseAllResources();
 
-    public void announceCreation() throws Exception {
+    /**
+     * Announces the creation of the current worker.
+     * 
+     * @throws AnnounceException When an internal error occurs in the worker announcement.
+     */
+    public void announceCreation() throws AnnounceException {
         COMPSsWorker w = (COMPSsWorker) this.getNode();
         w.announceCreation();
     }
 
-    public void announceDestruction() throws Exception {
+    /**
+     * Announces the destruction of the current worker.
+     * 
+     * @throws AnnounceException When an internal error occurs in the worker announcement.
+     */
+    public void announceDestruction() throws AnnounceException {
         COMPSsWorker w = (COMPSsWorker) this.getNode();
         w.announceDestruction();
     }
 
+    /**
+     * Returns an scheduling copy of the current worker.
+     * 
+     * @return An scheduling copy of the current worker.
+     */
     public abstract Worker<T> getSchedulingCopy();
 
     @Override
     public String toString() {
-        return "Worker " + description + " with the following description " + description;
+        return "Worker " + this.name + " with the following description " + this.description;
     }
 
 }

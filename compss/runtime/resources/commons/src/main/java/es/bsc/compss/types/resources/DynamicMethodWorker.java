@@ -34,6 +34,18 @@ public class DynamicMethodWorker extends MethodWorker {
     private final MethodResourceDescription toRemove;
 
 
+    /**
+     * Creates a new Dynamic Method Worker instance.
+     * 
+     * @param name Worker name.
+     * @param description Worker resource description.
+     * @param worker Associated COMPSs worker.
+     * @param limitOfTasks Limit of CPU tasks.
+     * @param limitGPUTasks Limit of GPU tasks.
+     * @param limitFPGATasks Limit of FPGA tasks.
+     * @param limitOTHERTasks Limit of OTHER tasks.
+     * @param sharedDisks Map of the available shared disks.
+     */
     public DynamicMethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker,
             int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
             Map<String, String> sharedDisks) {
@@ -43,6 +55,14 @@ public class DynamicMethodWorker extends MethodWorker {
         this.pendingReductions = new LinkedList<>();
     }
 
+    /**
+     * Creates a new Dynamic Method Worker instance.
+     * 
+     * @param name Worker name.
+     * @param description Worker resource description.
+     * @param config Method configuration.
+     * @param sharedDisks Map of the available shared disks.
+     */
     public DynamicMethodWorker(String name, MethodResourceDescription description, MethodConfiguration config,
             Map<String, String> sharedDisks) {
 
@@ -52,6 +72,11 @@ public class DynamicMethodWorker extends MethodWorker {
         this.pendingReductions = new LinkedList<>();
     }
 
+    /**
+     * Clones the given dynamic method worker.
+     * 
+     * @param cmw Dynamic method worker to clone.
+     */
     public DynamicMethodWorker(DynamicMethodWorker cmw) {
         super(cmw);
         this.toRemove = cmw.toRemove.copy();
@@ -76,23 +101,29 @@ public class DynamicMethodWorker extends MethodWorker {
         return sb.toString();
     }
 
+    /**
+     * Increases the current worker with the given increment {@code increment}.
+     * 
+     * @param increment Description of the increment to perform.
+     */
     public void increaseFeatures(MethodResourceDescription increment) {
-        int CPUCount = increment.getTotalCPUComputingUnits();
-        int GPUCount = increment.getTotalGPUComputingUnits();
-        int FPGACount = increment.getTotalFPGAComputingUnits();
-        int otherCount = increment.getTotalOTHERComputingUnits();
+        final int CPUCount = increment.getTotalCPUComputingUnits();
+        final int GPUCount = increment.getTotalGPUComputingUnits();
+        final int FPGACount = increment.getTotalFPGAComputingUnits();
+        final int otherCount = increment.getTotalOTHERComputingUnits();
+
         this.getNode().increaseComputingCapabilities(increment);
-        synchronized (available) {
-            available.increase(increment);
+        synchronized (this.available) {
+            this.available.increase(increment);
         }
-        synchronized (description) {
+        synchronized (this.description) {
             ((MethodResourceDescription) this.description).increase(increment);
         }
 
-        this.setMaxCPUTaskCount(this.getMaxCPUTaskCount() + CPUCount);
-        this.setMaxGPUTaskCount(this.getMaxGPUTaskCount() + GPUCount);
-        this.setMaxFPGATaskCount(this.getMaxFPGATaskCount() + FPGACount);
-        this.setMaxOthersTaskCount(this.getMaxOthersTaskCount() + otherCount);
+        setMaxCPUTaskCount(getMaxCPUTaskCount() + CPUCount);
+        setMaxGPUTaskCount(getMaxGPUTaskCount() + GPUCount);
+        setMaxFPGATaskCount(getMaxFPGATaskCount() + FPGACount);
+        setMaxOthersTaskCount(getMaxOthersTaskCount() + otherCount);
         updatedFeatures();
     }
 
@@ -109,22 +140,22 @@ public class DynamicMethodWorker extends MethodWorker {
     public synchronized void releaseResource(MethodResourceDescription consumption) {
         LOGGER.debug("Checking cloud resources to release...");
         // Freeing task constraints
-        synchronized (available) {
+        synchronized (this.available) {
             super.releaseResource(consumption);
 
             // Performing as many as possible reductions
-            synchronized (pendingReductions) {
-                if (!pendingReductions.isEmpty()) {
-                    Iterator<PendingReduction<MethodResourceDescription>> prIt = pendingReductions.iterator();
+            synchronized (this.pendingReductions) {
+                if (!this.pendingReductions.isEmpty()) {
+                    Iterator<PendingReduction<MethodResourceDescription>> prIt = this.pendingReductions.iterator();
                     while (prIt.hasNext()) {
                         PendingReduction<MethodResourceDescription> pRed = prIt.next();
-                        if (available.containsDynamic(pRed.getModification())) {
+                        if (this.available.containsDynamic(pRed.getModification())) {
                             // Perform reduction
-                            available.reduce(pRed.getModification());
+                            this.available.reduce(pRed.getModification());
 
                             // Untag pending to remove reduction
-                            synchronized (toRemove) {
-                                toRemove.reduce(pRed.getModification());
+                            synchronized (this.toRemove) {
+                                this.toRemove.reduce(pRed.getModification());
                             }
                             // Reduction is done, release sem
                             LOGGER.debug("Releasing cloud resource " + this.getName());
@@ -139,52 +170,55 @@ public class DynamicMethodWorker extends MethodWorker {
         }
     }
 
+    /**
+     * Decreases the current worker with the given reduction {@code pRed}.
+     * 
+     * @param pRed Reduction to perform.
+     */
     public synchronized void applyReduction(PendingReduction<MethodResourceDescription> pRed) {
         MethodResourceDescription reduction = pRed.getModification();
+        final int CPUCount = reduction.getTotalCPUComputingUnits();
+        final int GPUCount = reduction.getTotalGPUComputingUnits();
+        final int FPGACount = reduction.getTotalFPGAComputingUnits();
+        final int otherCount = reduction.getTotalOTHERComputingUnits();
 
-        int CPUCount = reduction.getTotalCPUComputingUnits();
-        int GPUCount = reduction.getTotalGPUComputingUnits();
-        int FPGACount = reduction.getTotalFPGAComputingUnits();
-        int otherCount = reduction.getTotalOTHERComputingUnits();
         this.getNode().reduceComputingCapabilities(reduction);
-
-        synchronized (description) {
+        synchronized (this.description) {
             this.getDescription().reduce(reduction);
         }
-        synchronized (available) {
+        synchronized (this.available) {
             if (!hasAvailable(reduction) && this.getUsedCPUTaskCount() > 0) {
 
                 // This resource is still running tasks. Wait for them to finish...
                 // Mark to remove and enqueue pending reduction
                 LOGGER.debug("Resource in use. Adding pending reduction");
-                synchronized (toRemove) {
-                    toRemove.increase(reduction);
+                synchronized (this.toRemove) {
+                    this.toRemove.increase(reduction);
                 }
-                synchronized (pendingReductions) {
-                    pendingReductions.add(pRed);
+                synchronized (this.pendingReductions) {
+                    this.pendingReductions.add(pRed);
                 }
             } else {
-
                 // Resource is not executing tasks. We can erase it, nothing to do
-                available.reduce(reduction);
+                this.available.reduce(reduction);
                 pRed.notifyCompletion();
             }
         }
-        this.setMaxCPUTaskCount(this.getMaxCPUTaskCount() - CPUCount);
-        this.setMaxGPUTaskCount(this.getMaxGPUTaskCount() - GPUCount);
-        this.setMaxFPGATaskCount(this.getMaxFPGATaskCount() - FPGACount);
-        this.setMaxOthersTaskCount(this.getMaxOthersTaskCount() - otherCount);
+        setMaxCPUTaskCount(getMaxCPUTaskCount() - CPUCount);
+        setMaxGPUTaskCount(getMaxGPUTaskCount() - GPUCount);
+        setMaxFPGATaskCount(getMaxFPGATaskCount() - FPGACount);
+        setMaxOthersTaskCount(getMaxOthersTaskCount() - otherCount);
 
         updatedFeatures();
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
-        synchronized (available) {
-            synchronized (toRemove) {
-                consumption.increaseDynamic(toRemove);
+        synchronized (this.available) {
+            synchronized (this.toRemove) {
+                consumption.increaseDynamic(this.toRemove);
                 boolean fits = super.hasAvailable(consumption);
-                consumption.reduceDynamic(toRemove);
+                consumption.reduceDynamic(this.toRemove);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Cloud Method Worker received:");
                     LOGGER.debug("With result: " + fits);
@@ -194,12 +228,22 @@ public class DynamicMethodWorker extends MethodWorker {
         }
     }
 
+    /**
+     * Returns whether the worker should be stopped or not.
+     * 
+     * @return {@literal true} if the worker should be stopped (is useless), {@literal false} otherwise.
+     */
     public boolean shouldBeStopped() {
-        synchronized (description) {
+        synchronized (this.description) {
             return this.getDescription().isDynamicUseless();
         }
     }
 
+    /**
+     * Destroys the current worker applying the given modifications.
+     * 
+     * @param modification Modifications to destroy.
+     */
     public <T extends WorkerResourceDescription> void destroyResources(T modification) {
         ResourceManager.terminateDynamicResource(this, (MethodResourceDescription) modification);
     }

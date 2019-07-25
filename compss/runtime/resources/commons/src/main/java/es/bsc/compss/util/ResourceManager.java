@@ -549,6 +549,12 @@ public class ResourceManager {
 
     }
 
+    /**
+     * Terminates the given dynamic resource.
+     * 
+     * @param worker Worker to stop.
+     * @param reduction Reduction to perform.
+     */
     public static void terminateDynamicResource(DynamicMethodWorker worker, MethodResourceDescription reduction) {
         if (worker.shouldBeStopped()) {
             pool.delete(worker);
@@ -558,6 +564,12 @@ public class ResourceManager {
         }
     }
 
+    /**
+     * Terminates the given cloud resource.
+     * 
+     * @param worker Worker to stop.
+     * @param reduction Reduction to perform.
+     */
     public static void terminateCloudResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         terminateDynamicResource(worker, reduction);
         CloudProvider cp = worker.getProvider();
@@ -565,19 +577,19 @@ public class ResourceManager {
     }
 
     /**
-     * Returns whether the cloud is enabled or not
+     * Returns whether the cloud is enabled or not.
      *
-     * @return
+     * @return {@literal true} if the cloud is enabled, {@literal false} otherwise.
      */
     public static boolean useCloud() {
         return cloudManager.isUseCloud();
     }
 
     /**
-     * Returns the mean creation time
+     * Returns the mean creation time.
      *
-     * @return
-     * @throws Exception
+     * @return The mean creation time.
+     * @throws Exception When the connector raises an internal exception.
      */
     public static Long getCreationTime() throws Exception {
         try {
@@ -588,18 +600,18 @@ public class ResourceManager {
     }
 
     /**
-     * Computes the cost per hour of the whole cloud resource pool
+     * Computes the cost per hour of the whole cloud resource pool.
      *
-     * @return the cost per hour of the whole pool
+     * @return The cost per hour of the whole pool.
      */
     public static float getCurrentCostPerHour() {
         return cloudManager.currentCostPerHour();
     }
 
     /**
-     * The cloudManager computes the accumulated cost of the execution
+     * The cloudManager computes the accumulated cost of the execution.
      *
-     * @return cost of the whole execution
+     * @return Cost of the whole execution.
      */
     public static float getTotalCost() {
         return cloudManager.getTotalCost();
@@ -609,30 +621,57 @@ public class ResourceManager {
      * **********************************************************************************************************
      * GETTERS
      ***********************************************************************************************************/
+
+    /**
+     * Returns the number of maximum cloud VMs.
+     * 
+     * @return The number of maximum cloud VMs.
+     */
     public static int getMaxCloudVMs() {
         return cloudManager.getMaxVMs();
     }
 
+    /**
+     * Return the number of initial cloud VMs.
+     * 
+     * @return The number of initial cloud VMs.
+     */
     public static int getInitialCloudVMs() {
         return cloudManager.getInitialVMs();
     }
 
+    /**
+     * The number of minimum cloud VMs.
+     * 
+     * @return The number of minimum cloud VMs.
+     */
     public static int getMinCloudVMs() {
         return cloudManager.getMinVMs();
     }
 
+    /**
+     * The number of current VMs.
+     * 
+     * @return Number of current VMs.
+     */
     public static int getCurrentVMCount() {
         return cloudManager.getCurrentVMCount();
     }
 
+    /**
+     * Returns the time until the next VM creation.
+     * 
+     * @return The time until the next VM creation.
+     * @throws Exception When the connector raises an internal error.
+     */
     public static long getNextCreationTime() throws Exception {
         return cloudManager.getNextCreationTime();
     }
 
     /**
-     * Returns the total slots per per core
+     * Returns the total slots per core.
      *
-     * @return
+     * @return The total slots per core.
      */
     public static int[] getTotalSlots() {
         int[] counts = new int[CoreManager.getCoreCount()];
@@ -652,18 +691,18 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the available slots per core
+     * Returns the available slots per core.
      *
-     * @return
+     * @return The available slots per core.
      */
     public static int[] getAvailableSlots() {
         return poolCoreMaxConcurrentTasks;
     }
 
     /**
-     * Returns the static resources available at the pool
+     * Returns the static resources available at the pool.
      *
-     * @return
+     * @return The static resource available at the pool.
      */
     public static Collection<Worker<? extends WorkerResourceDescription>> getStaticResources() {
         synchronized (pool) {
@@ -672,9 +711,9 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resources available at the pool
+     * Returns the dynamic resources available at the pool.
      *
-     * @return
+     * @return The dynamic resources available at the pool.
      */
     public static List<DynamicMethodWorker> getDynamicResources() {
         synchronized (pool) {
@@ -683,9 +722,9 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resources available at the pool that are in the critical set
+     * Returns the dynamic resources available at the pool that are in the critical set.
      *
-     * @return
+     * @return The dynamic resources available at the pool that are in the critical set.
      */
     public static Collection<DynamicMethodWorker> getCriticalDynamicResources() {
         synchronized (pool) {
@@ -694,9 +733,9 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resources available at the pool that are NOT in the critical set
+     * Returns the dynamic resources available at the pool that are NOT in the critical set.
      *
-     * @return
+     * @return The dynamic resources available at the pool that are NOT in the critical set.
      */
     public static Collection<DynamicMethodWorker> getNonCriticalDynamicResources() {
         synchronized (pool) {
@@ -705,10 +744,10 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resource with name = @name
+     * Returns the dynamic resource with the given name {@code name}.
      *
-     * @param name
-     * @return
+     * @param name Resource name.
+     * @return The dynamic resource with the given name {@code name}.
      */
     public static DynamicMethodWorker getDynamicResource(String name) {
         synchronized (pool) {
@@ -716,14 +755,30 @@ public class ResourceManager {
         }
     }
 
+    /**
+     * Returns the available cloud providers.
+     * 
+     * @return A list of the available cloud providers.
+     */
     public static Collection<CloudProvider> getAvailableCloudProviders() {
         return cloudManager.getProviders();
     }
 
+    /**
+     * Returns the cloud provider with the given name {@code name}.
+     * 
+     * @param name Cloud provider name.
+     * @return The cloud provider with the given name {@code name}.
+     */
     public static CloudProvider getCloudProvider(String name) {
         return cloudManager.getProvider(name);
     }
 
+    /**
+     * Returns the pending creation requests.
+     * 
+     * @return The pending creation requests.
+     */
     public static List<ResourceCreationRequest> getPendingCreationRequests() {
         return cloudManager.getPendingRequests();
     }
@@ -734,10 +789,10 @@ public class ResourceManager {
      **********************************************************************************************************
      */
     /**
-     * Prints out the information about the pending requests
+     * Dumps the information about the pending requests to a string respecting the given prefix.
      *
-     * @param prefix
-     * @return
+     * @param prefix Prefix indentation.
+     * @return A string containing the information about the pending requests.
      */
     public static String getPendingRequestsMonitorData(String prefix) {
         StringBuilder sb = new StringBuilder();
@@ -766,7 +821,7 @@ public class ResourceManager {
     }
 
     /**
-     * Prints out the resources state
+     * Prints out the resources state.
      */
     public static void printResourcesState() {
         RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
@@ -843,10 +898,10 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the current state of the resources pool
+     * Returns a string containing a dump of the current state of the resources pool.
      *
-     * @param prefix
-     * @return
+     * @param prefix Indentation prefix.
+     * @return A string containing a dump of the current state of the resources pool.
      */
     public static String getCurrentState(String prefix) {
         StringBuilder sb = new StringBuilder();

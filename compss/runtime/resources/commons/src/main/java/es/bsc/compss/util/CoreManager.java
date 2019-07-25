@@ -44,7 +44,6 @@ public class CoreManager {
     // Constants definition
     private static final String ERROR_INVALID_SIGNATURE = "Invalid signature. Skipping addition";
     private static final String ERROR_UNREGISTERED_CORE_ELEMENT = "Unregistered CoreElement. Skipping addition of ";
-    private static final String WARN_REGISTERED_CORE_ELEMENT = "Already registered CoreElement. Skipping addition of ";
     private static final String WARN_UNREGISTERED_IMPL = "Unregistered implementation. Skipping addition";
 
     // List of core elements

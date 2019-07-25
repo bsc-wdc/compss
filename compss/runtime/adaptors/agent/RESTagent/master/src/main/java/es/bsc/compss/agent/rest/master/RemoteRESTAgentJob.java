@@ -55,8 +55,9 @@ import javax.ws.rs.core.Response;
 
 public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
-    private static final String REST_AGENT_URL = "http://" + COMPSsNode.getMasterName()
-            + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
+    private static final String REST_AGENT_URL = "http://" + COMPSsNode.getMasterName() + ":"
+            + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
+
 
     public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl,
             Resource res, JobListener listener) {
@@ -118,6 +119,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                 }
             }
             Object target = Comm.getData(renaming).getValue();
+            System.out.println("Target: " + target);
             throw new UnsupportedOperationException("Instance methods not supported yet.");
         }
 

@@ -117,25 +117,26 @@ public class Agent {
             p.setName("LocalProcessor");
         }
         ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation("METHOD",
-                LOADER_SIGNATURE + LOADER_CLASS_NAME, new MethodResourceDescription(""),
-                LOADER_CLASS_NAME, LOADER_METHOD_NAME);
+                LOADER_SIGNATURE + LOADER_CLASS_NAME, new MethodResourceDescription(""), LOADER_CLASS_NAME,
+                LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
 
         INTERFACES = new LinkedList<>();
     }
 
+
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
      *
-     * @param lang       Programming language of the method.
-     * @param ceiClass   Core Element interface to detect nested tasks in the code.
-     * @param className  Name of the class containing the method to execute.
+     * @param lang Programming language of the method.
+     * @param ceiClass Core Element interface to detect nested tasks in the code.
+     * @param className Name of the class containing the method to execute.
      * @param methodName Name of the method to execute.
-     * @param arguments  Task arguments.
-     * @param target     Target object of the task.
-     * @param results    Results of the task.
-     * @param monitor    Monitor to notify changes on the method execution.
+     * @param arguments Task arguments.
+     * @param target Target object of the task.
+     * @param results Results of the task.
+     * @param monitor Monitor to notify changes on the method execution.
      * @return Identifier of the application associated to the main task
      * @throws AgentException error parsing the CEI
      */
@@ -167,19 +168,19 @@ public class Agent {
             int totalParamsCount = taskParamsCount + loadParamsCount;
             Object[] params = new Object[6 * totalParamsCount];
 
-            Object[] loadParams = new Object[]{
-                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "runtime", // Runtime API
+            Object[] loadParams = new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
+                "runtime", // Runtime API
                 RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
                 ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
                 appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
                 className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
                 methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
                 /*
-                     * When passing a single parameter with array type to the loaded method, the Object... parameter of
-                     * the load method assumes that each element of the array is a different parameter ( any array
-                     * matches Object...). To avoid it, we add a phantom basic-type parameter that avoids any data
-                     * transfer and ensures that the array is detected as the second parameter -- Object... is resolved
-                     * as [ Integer, array].
+                 * When passing a single parameter with array type to the loaded method, the Object... parameter of
+                 * the load method assumes that each element of the array is a different parameter ( any array
+                 * matches Object...). To avoid it, we add a phantom basic-type parameter that avoids any data
+                 * transfer and ensures that the array is detected as the second parameter -- Object... is resolved
+                 * as [ Integer, array].
                  */
                 3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
             };
@@ -227,14 +228,14 @@ public class Agent {
     /**
      * Requests the execution of a method as a task.
      *
-     * @param lang         programming language of the method
-     * @param className    name of the class containing the method to execute
-     * @param methodName   name of the method to execute
-     * @param arguments    paramter description of the task's arguments
-     * @param target       paramter description of the task's callee
-     * @param results      paramter description of the task's results
+     * @param lang programming language of the method
+     * @param className name of the class containing the method to execute
+     * @param methodName name of the method to execute
+     * @param arguments paramter description of the task's arguments
+     * @param target paramter description of the task's callee
+     * @param results paramter description of the task's results
      * @param requirements requirements to run the task
-     * @param monitor      monitor to notify changes on the method execution
+     * @param monitor monitor to notify changes on the method execution
      * @return Identifier of the application associated to the task
      * @throws AgentException could not retrieve the value of some parameter
      */
@@ -444,7 +445,7 @@ public class Agent {
      * Requests the agent to stop using some resources from a node.
      *
      * @param workerName name of the worker to whom the resources belong.
-     * @param reduction  description of the resources to stop using.
+     * @param reduction description of the resources to stop using.
      * @throws AgentException the worker was not set up for the agent.
      */
     public static void removeResources(String workerName, MethodResourceDescription reduction) throws AgentException {
@@ -491,11 +492,13 @@ public class Agent {
      * @throws ClassNotFoundException Could not find the specify agent interface class
      * @throws InstantiationException Could not instantiate the agent interface
      * @throws IllegalAccessException Could not call the empty constructor because is private
-     * @throws AgentException         Error during the interface boot process
+     * @throws AgentException Error during the interface boot process
      */
+    @SuppressWarnings("unchecked")
     public static final void startInterface(AgentInterfaceConfig conf)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
-        AgentInterface itf = conf.getAgentInterface();
+
+        AgentInterface<AgentInterfaceConfig> itf = (AgentInterface<AgentInterfaceConfig>) conf.getAgentInterface();
         itf.start(conf);
         INTERFACES.add(itf);
     }

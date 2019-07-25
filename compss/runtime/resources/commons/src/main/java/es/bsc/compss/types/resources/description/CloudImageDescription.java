@@ -56,6 +56,12 @@ public class CloudImageDescription {
     private MethodConfiguration config;
 
 
+    /**
+     * Creates a new CloudImageDescription with the given name and properties.
+     * 
+     * @param imageName Image name.
+     * @param providerProperties Cloud provider specific properties.
+     */
     public CloudImageDescription(String imageName, Map<String, String> providerProperties) {
         this.imageName = imageName;
 
@@ -68,10 +74,20 @@ public class CloudImageDescription {
         this.properties.putAll(providerProperties);
     }
 
+    /**
+     * Returns the operating system of the image.
+     * 
+     * @return The operating system of the image.
+     */
     public String getOperatingSystemType() {
-        return operatingSystemType;
+        return this.operatingSystemType;
     }
 
+    /**
+     * Sets a new operating system of the image.
+     * 
+     * @param operatingSystemType New operating system.
+     */
     public void setOperatingSystemType(String operatingSystemType) {
         if (operatingSystemType != null && !operatingSystemType.isEmpty()) {
             this.operatingSystemType = operatingSystemType;
@@ -80,10 +96,20 @@ public class CloudImageDescription {
         }
     }
 
+    /**
+     * Returns the operating system distribution of the image.
+     * 
+     * @return The operating system distribution of the image.
+     */
     public String getOperatingSystemDistribution() {
-        return operatingSystemDistribution;
+        return this.operatingSystemDistribution;
     }
 
+    /**
+     * Sets a new operating system distribution.
+     * 
+     * @param operatingSystemDistribution New operating system distribution.
+     */
     public void setOperatingSystemDistribution(String operatingSystemDistribution) {
         if (operatingSystemDistribution != null && !operatingSystemDistribution.isEmpty()) {
             this.operatingSystemDistribution = operatingSystemDistribution;
@@ -92,10 +118,20 @@ public class CloudImageDescription {
         }
     }
 
+    /**
+     * Returns the operating system version of the image.
+     * 
+     * @return The operating system version of the image.
+     */
     public String getOperatingSystemVersion() {
-        return operatingSystemVersion;
+        return this.operatingSystemVersion;
     }
 
+    /**
+     * Sets a new operating system version of the image.
+     * 
+     * @param operatingSystemVersion The new operating system version of the image.
+     */
     public void setOperatingSystemVersion(String operatingSystemVersion) {
         if (operatingSystemVersion != null && !operatingSystemVersion.isEmpty()) {
             this.operatingSystemVersion = operatingSystemVersion;
@@ -104,103 +140,209 @@ public class CloudImageDescription {
         }
     }
 
+    /**
+     * Returns the application software available at the image.
+     * 
+     * @return The application software available at the image.
+     */
     public List<String> getAppSoftware() {
-        return appSoftware;
+        return this.appSoftware;
     }
 
+    /**
+     * Sets a new list of application software available at the image.
+     * 
+     * @param appSoftware New list of application software available at the image.
+     */
     public void setAppSoftware(List<String> appSoftware) {
         if (appSoftware != null) {
             this.appSoftware = appSoftware;
         }
     }
 
+    /**
+     * Adds a new application software available at the image.
+     * 
+     * @param app New application software.
+     */
     public void addApplication(String app) {
         this.appSoftware.add(app);
     }
 
+    /**
+     * Adds all the given application software available at the image.
+     * 
+     * @param apps List of new application software.
+     */
     public void addAllApplications(List<String> apps) {
         this.appSoftware.addAll(apps);
     }
 
+    /**
+     * Returns a list of source and target of each package available at the image.
+     * 
+     * @return A list of source and target of each package available at the image.
+     */
     public List<String[]> getPackagesList() {
         List<String[]> packs = new LinkedList<>();
         for (ApplicationPackage p : this.packages) {
-            String[] str_pack = new String[2];
-            str_pack[0] = p.getSource();
-            str_pack[1] = p.getTarget();
-            packs.add(str_pack);
+            String[] strPack = new String[2];
+            strPack[0] = p.getSource();
+            strPack[1] = p.getTarget();
+            packs.add(strPack);
         }
 
         return packs;
     }
 
+    /**
+     * Returns a list of packages available at the image.
+     * 
+     * @return A list of packages available at the image.
+     */
     public List<ApplicationPackage> getPackages() {
         return this.packages;
     }
 
+    /**
+     * Sets a new list of packages available at the image.
+     * 
+     * @param packages New list of packages available at the image.
+     */
     public void setPackages(List<ApplicationPackage> packages) {
         if (packages != null) {
             this.packages = new ArrayList<>(packages);
         }
     }
 
+    /**
+     * Adds a new package to the image with the given source and target.
+     * 
+     * @param source Package source destination.
+     * @param target Package target destination.
+     */
     public void addPackage(String source, String target) {
         ApplicationPackage p = new ApplicationPackage(source, target);
         this.packages.add(p);
     }
 
+    /**
+     * Returns the shared disks mounted on the image.
+     * 
+     * @return The shared disks mounted on the image.
+     */
     public Map<String, String> getSharedDisks() {
-        return sharedDisks;
+        return this.sharedDisks;
     }
 
+    /**
+     * Sets a new map of shared disks mounted on the image.
+     * 
+     * @param sharedDisks New map of shared disks mounted on the image.
+     */
     public void setSharedDisks(Map<String, String> sharedDisks) {
         if (sharedDisks != null && !sharedDisks.isEmpty()) {
             this.sharedDisks = new HashMap<>(sharedDisks);
         }
     }
 
+    /**
+     * Returns the image creation time.
+     * 
+     * @return The image creation time.
+     */
     public int getCreationTime() {
-        return creationTime;
+        return this.creationTime;
     }
 
+    /**
+     * Sets a new image creation time.
+     * 
+     * @param creationTime New image creation time.
+     */
     public void setCreationTime(int creationTime) {
         this.creationTime = creationTime;
     }
 
+    /**
+     * Returns the price time unit.
+     * 
+     * @return The price time unit.
+     */
     public int getPriceTimeUnit() {
-        return priceTimeUnit;
+        return this.priceTimeUnit;
     }
 
+    /**
+     * Sets a new price time unit.
+     * 
+     * @param priceTimeUnit New price time unit.
+     */
     public void setPriceTimeUnit(int priceTimeUnit) {
         this.priceTimeUnit = priceTimeUnit;
     }
 
+    /**
+     * Returns the price per time unit.
+     * 
+     * @return The price per time unit.
+     */
     public float getPricePerUnit() {
-        return pricePerUnit;
+        return this.pricePerUnit;
     }
 
+    /**
+     * Sets a new price per time unit.
+     * 
+     * @param pricePerUnit New price per time unit.
+     */
     public void setPricePerUnit(float pricePerUnit) {
         this.pricePerUnit = pricePerUnit;
     }
 
+    /**
+     * Returns the available queues at the image.
+     * 
+     * @return The available queues at the image.
+     */
     public List<String> getQueues() {
-        return queues;
+        return this.queues;
     }
 
+    /**
+     * Sets a new list of available queues at the image.
+     * 
+     * @param queues New list of available queues at the image.
+     */
     public void setQueues(List<String> queues) {
         if (queues != null) {
             this.queues = new LinkedList<>(queues);
         }
     }
 
+    /**
+     * Adds a new queue to the available queues at the image.
+     * 
+     * @param queue Queue to add.
+     */
     public void addQueue(String queue) {
         this.queues.add(queue);
     }
 
+    /**
+     * Returns the image method configuration.
+     * 
+     * @return The image method configuration.
+     */
     public MethodConfiguration getConfig() {
-        return config;
+        return this.config;
     }
 
+    /**
+     * Sets a new image method configuration.
+     * 
+     * @param config Method configuration.
+     */
     public void setConfig(MethodConfiguration config) {
         this.config = config.copy();
 
@@ -215,14 +357,30 @@ public class CloudImageDescription {
         this.properties.put(AbstractConnector.ADAPTOR_MIN_PORT_PROPERTY_NAME, minPort);
     }
 
+    /**
+     * Returns the image name.
+     * 
+     * @return The image name.
+     */
     public String getImageName() {
-        return imageName;
+        return this.imageName;
     }
 
+    /**
+     * Returns the image specific properties.
+     * 
+     * @return The image specific properties.
+     */
     public Map<String, String> getProperties() {
-        return properties;
+        return this.properties;
     }
 
+    /**
+     * Dumps the current image information with the given prefix.
+     * 
+     * @param prefix Indentation prefix.
+     * @return String containing a dump of the current image information.
+     */
     public String toString(String prefix) {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("IMAGE = [").append("\n");

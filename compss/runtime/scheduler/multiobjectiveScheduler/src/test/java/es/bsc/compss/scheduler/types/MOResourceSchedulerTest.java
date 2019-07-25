@@ -44,7 +44,7 @@ import org.junit.Test;
 
 
 public class MOResourceSchedulerTest {
-    
+
     private static final String METHOD = MethodType.METHOD.toString();
     private static final double DEFAULT_IDLE_POWER = 1;
     private static final double DEFAULT_IDLE_PRICE = 0;
@@ -72,6 +72,10 @@ public class MOResourceSchedulerTest {
     // Test Logger
     private static final Logger LOGGER = LogManager.getLogger("Console");
 
+
+    /**
+     * Sets up the test class.
+     */
     @BeforeClass
     public static void setUpClass() {
         LOGGER.info("Setup Class");
@@ -81,22 +85,22 @@ public class MOResourceSchedulerTest {
         MethodResourceDescription description = new MethodResourceDescription();
         description.addProcessor(p);
         worker = new FakeWorker(description, 4);
-        
+
         CoreElementDefinition cedA = new CoreElementDefinition();
         cedA.setCeSignature("methodA");
         ImplementationDefinition<?> implDef = null;
-        implDef = ImplementationDefinition.defineImplementation(METHOD,
-                "ClassA.methodA", new MethodResourceDescription(), "ClassA", "methodA");
+        implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassA.methodA",
+                new MethodResourceDescription(), "ClassA", "methodA");
         cedA.addImplementation(implDef);
-        implDef = ImplementationDefinition.defineImplementation(METHOD,
-                "ClassB.methodA", new MethodResourceDescription(), "ClassB", "methodA");
+        implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassB.methodA",
+                new MethodResourceDescription(), "ClassB", "methodA");
         cedA.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedA);
 
         CoreElementDefinition cedB = new CoreElementDefinition();
         cedB.setCeSignature("methodB");
-        implDef = ImplementationDefinition.defineImplementation(METHOD,
-                "ClassA.methodB", new MethodResourceDescription(), "ClassA", "methodB");
+        implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassA.methodB",
+                new MethodResourceDescription(), "ClassA", "methodB");
         cedB.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedB);
     }
@@ -322,6 +326,7 @@ public class MOResourceSchedulerTest {
         private static final long serialVersionUID = 2L;
 
         private final String feature;
+
 
         public CheckerException(String feature) {
             this.feature = feature;

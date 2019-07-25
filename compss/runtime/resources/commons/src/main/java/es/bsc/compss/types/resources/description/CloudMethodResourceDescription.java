@@ -33,34 +33,63 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
 
     // Resource Description
     private String name = "";
-    private final Map<CloudInstanceTypeDescription, int[]> typeComposition = new HashMap<>();
+    private final Map<CloudInstanceTypeDescription, int[]> typeComposition;
     private CloudImageDescription image = null;
 
 
+    /**
+     * Creates a new empty CloudMethodResourceDescription.
+     */
     public CloudMethodResourceDescription() {
         super();
+        this.typeComposition = new HashMap<>();
     }
 
+    /**
+     * Creates a new CloudMethodResourceDescription from the given constraints.
+     * 
+     * @param constraints Constraints.
+     */
     public CloudMethodResourceDescription(Constraints constraints) {
         super(constraints);
+        this.typeComposition = new HashMap<>();
     }
 
+    /**
+     * Creates a new CloudMethodResourceDescription from the given constraints.
+     * 
+     * @param constraints Constraints.
+     */
     public CloudMethodResourceDescription(MethodResourceDescription constraints) {
         super(constraints);
+        this.typeComposition = new HashMap<>();
     }
 
+    /**
+     * Clones the given CloudMethodResourceDescription.
+     * 
+     * @param clone CloudMethodResourceDescription to clone.
+     */
     public CloudMethodResourceDescription(CloudMethodResourceDescription clone) {
         super(clone);
-        name = clone.name;
+        this.name = clone.name;
+        this.typeComposition = new HashMap<>();
         for (Entry<CloudInstanceTypeDescription, int[]> entry : clone.typeComposition.entrySet()) {
-            typeComposition.put(entry.getKey(), new int[] { entry.getValue()[0] });
+            this.typeComposition.put(entry.getKey(), new int[] { entry.getValue()[0] });
         }
-        image = clone.image;
+        this.image = clone.image;
     }
 
+    /**
+     * Creates a new CloudMethodResourceDescription from the given cloud instance type and image.
+     * 
+     * @param type Instance type.
+     * @param image Image.
+     */
     public CloudMethodResourceDescription(CloudInstanceTypeDescription type, CloudImageDescription image) {
         super(type.getResourceDescription());
-        typeComposition.put(type, new int[] { 1 });
+        this.typeComposition = new HashMap<>();
+        this.typeComposition.put(type, new int[] { 1 });
         this.image = image;
     }
 
@@ -69,33 +98,59 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         return new CloudMethodResourceDescription(this);
     }
 
+    /**
+     * Returns the CloudMethodResourceDescription name.
+     * 
+     * @return
+     */
     public String getName() {
-        return name;
+        return this.name;
     }
 
+    /**
+     * Sets a new name for the current CloudMethodResourceDescription.
+     * 
+     * @param name New name.
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the types composition.
+     * 
+     * @return The types composition.
+     */
     public Map<CloudInstanceTypeDescription, int[]> getTypeComposition() {
-        return typeComposition;
+        return this.typeComposition;
     }
 
+    /**
+     * Adds {@code count} slots of the given type {@code type} to the type composition.
+     * 
+     * @param type Instance type.
+     * @param count Number of count slots to add.
+     */
     public void addInstances(CloudInstanceTypeDescription type, int count) {
-        int[] counts = typeComposition.get(type);
+        int[] counts = this.typeComposition.get(type);
         if (counts != null) {
             counts[0] += count;
         } else {
-            typeComposition.put(type, new int[] { count });
+            this.typeComposition.put(type, new int[] { count });
         }
     }
 
+    /**
+     * Adds a new instance type to the type composition with a single slot.
+     * 
+     * @param type Instance type.
+     */
     public void addInstance(CloudInstanceTypeDescription type) {
-        int[] counts = typeComposition.get(type);
+        int[] counts = this.typeComposition.get(type);
         if (counts != null) {
             counts[0]++;
         } else {
-            typeComposition.put(type, new int[] { 1 });
+            this.typeComposition.put(type, new int[] { 1 });
         }
     }
 
@@ -110,30 +165,46 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         }
     }
 
+    /**
+     * Returns a list of the possible reductions.
+     * 
+     * @return A list fo the possible reductions.
+     */
     public List<CloudInstanceTypeDescription> getPossibleReductions() {
         List<CloudInstanceTypeDescription> reductions = new LinkedList<>();
-        for (CloudInstanceTypeDescription type : typeComposition.keySet()) {
+        for (CloudInstanceTypeDescription type : this.typeComposition.keySet()) {
             reductions.add(type);
         }
         return reductions;
     }
 
+    /**
+     * Removes the given instance type.
+     * 
+     * @param type Instance type to remove.
+     */
     public void removeInstance(CloudInstanceTypeDescription type) {
-        int[] counts = typeComposition.get(type);
+        int[] counts = this.typeComposition.get(type);
         if (counts != null) {
             counts[0]--;
             if (counts[0] == 0) {
-                typeComposition.remove(type);
+                this.typeComposition.remove(type);
             }
         }
     }
 
+    /**
+     * Remove the {@code count} slots from the given instance type {@code type}.
+     * 
+     * @param type Instance type.
+     * @param count Number of slots to remove.
+     */
     public void removeInstances(CloudInstanceTypeDescription type, int count) {
-        int[] counts = typeComposition.get(type);
+        int[] counts = this.typeComposition.get(type);
         if (counts != null) {
             counts[0] -= count;
             if (counts[0] < 1) {
-                typeComposition.remove(type);
+                this.typeComposition.remove(type);
             }
         }
     }
@@ -149,10 +220,20 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         }
     }
 
+    /**
+     * Returns the associated image.
+     * 
+     * @return The associated cloud image.
+     */
     public CloudImageDescription getImage() {
-        return image;
+        return this.image;
     }
 
+    /**
+     * Sets a new associated cloud image.
+     * 
+     * @param image New cloud image.
+     */
     public void setImage(CloudImageDescription image) {
         this.image = image;
     }
@@ -163,7 +244,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         sb.append("[CLOUD");
         sb.append(" IMAGE=").append((this.image == null) ? "NULL" : this.image.getImageName());
         sb.append(" TYPE_COMPOSITION=[");
-        for (Entry<CloudInstanceTypeDescription, int[]> entry : typeComposition.entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> entry : this.typeComposition.entrySet()) {
             sb.append(" ").append(entry.getKey().getName()).append("=").append(entry.getValue()[0]);
         }
         sb.append("]]");
@@ -171,12 +252,18 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         return sb.toString();
     }
 
+    /**
+     * Dumps the current state to a string leaded by the given prefix.
+     * 
+     * @param prefix Indentation prefix.
+     * @return String containing a dump of the current state.
+     */
     public String getCurrentState(String prefix) {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("\t").append("VIRTUAL_INSTANCE = [").append("\n");
-        sb.append(prefix).append("\t").append("\t").append("NAME = ").append(name).append("\n");
+        sb.append(prefix).append("\t").append("\t").append("NAME = ").append(this.name).append("\n");
         sb.append(prefix).append("\t").append("\t").append("COMPONENTS = [").append("\n");
-        for (Entry<CloudInstanceTypeDescription, int[]> component : typeComposition.entrySet()) {
+        for (Entry<CloudInstanceTypeDescription, int[]> component : this.typeComposition.entrySet()) {
             String componentName = component.getKey().getName();
             int[] amount = component.getValue();
             sb.append(prefix).append("\t").append("\t").append("\t").append("COMPONENT = [").append("\n");

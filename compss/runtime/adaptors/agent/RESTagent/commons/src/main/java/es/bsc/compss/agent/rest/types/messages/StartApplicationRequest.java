@@ -17,7 +17,6 @@
 package es.bsc.compss.agent.rest.types.messages;
 
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
-import es.bsc.compss.agent.rest.types.ApplicationParameterValue;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ArrayParameter;
 import es.bsc.compss.agent.rest.types.ApplicationParameterValue.ElementParameter;
 import es.bsc.compss.agent.rest.types.Orchestrator;
@@ -25,6 +24,7 @@ import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.parameter.Parameter;
+
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -52,8 +52,9 @@ public class StartApplicationRequest implements Serializable {
     private boolean hasResult;
     private Orchestrator orchestrator;
 
-    public StartApplicationRequest() {
 
+    public StartApplicationRequest() {
+        // Nothing to do
     }
 
     public void setServiceInstanceId(String serviceInstanceId) {
@@ -61,11 +62,11 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public String getServiceInstanceId() {
-        return serviceInstanceId;
+        return this.serviceInstanceId;
     }
 
     public String getCeiClass() {
-        return ceiClass;
+        return this.ceiClass;
     }
 
     public void setCeiClass(String ceiClass) {
@@ -73,7 +74,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public String getClassName() {
-        return className;
+        return this.className;
     }
 
     public void setClassName(String className) {
@@ -81,7 +82,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public String getMethodName() {
-        return methodName;
+        return this.methodName;
     }
 
     public void setMethodName(String methodName) {
@@ -89,7 +90,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public ApplicationParameterImpl getTarget() {
-        return target;
+        return this.target;
     }
 
     public void setTarget(ApplicationParameterImpl target) {
@@ -146,16 +147,17 @@ public class StartApplicationRequest implements Serializable {
 
     private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type, StdIOStream stream,
             String prefix, String name) {
+
         ApplicationParameterImpl p;
         p = new ApplicationParameterImpl(value, direction, type, stream, prefix, name);
-        p.setParamId(params.length);
+        p.setParamId(this.params.length);
 
-        ApplicationParameterImpl[] oldParams = params;
-        params = new ApplicationParameterImpl[oldParams.length + 1];
+        ApplicationParameterImpl[] oldParams = this.params;
+        this.params = new ApplicationParameterImpl[oldParams.length + 1];
         if (oldParams.length > 0) {
-            System.arraycopy(oldParams, 0, params, 0, oldParams.length);
+            System.arraycopy(oldParams, 0, this.params, 0, oldParams.length);
         }
-        params[oldParams.length] = p;
+        this.params[oldParams.length] = p;
         return p;
     }
 
@@ -170,7 +172,7 @@ public class StartApplicationRequest implements Serializable {
 
     @XmlElementWrapper(name = "parameters")
     public ApplicationParameterImpl[] getParams() {
-        return params;
+        return this.params;
     }
 
     public void setParams(ApplicationParameterImpl[] params) {
@@ -182,7 +184,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public boolean isHasResult() {
-        return hasResult;
+        return this.hasResult;
     }
 
     @Override
@@ -215,7 +217,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     public Orchestrator getOrchestrator() {
-        return orchestrator;
+        return this.orchestrator;
     }
 
 }

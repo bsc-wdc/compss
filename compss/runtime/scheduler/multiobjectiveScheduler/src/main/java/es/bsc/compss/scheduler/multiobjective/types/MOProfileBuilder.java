@@ -25,24 +25,45 @@ public class MOProfileBuilder extends ProfileBuilder {
     private double price = MOProfile.DEFAULT_PRICE;
 
 
+    /**
+     * Creates new MO Profile Builder.
+     */
     public MOProfileBuilder() {
         super();
     }
 
+    /**
+     * Builds the MO Profile.
+     */
     public MOProfile build() {
         MOProfile p = new MOProfile();
         update(p);
         return p;
     }
 
+    /**
+     * Sets a new power.
+     * 
+     * @param power New power.
+     */
     public void setPower(double power) {
         this.power = power;
     }
 
+    /**
+     * Sets a new price.
+     * 
+     * @param price New price.
+     */
     public void setPrice(double price) {
         this.price = price;
     }
 
+    /**
+     * Updates the current profile builder with the given profile information.
+     * 
+     * @param p Profile to update with.
+     */
     protected <P extends MOProfile> void update(P p) {
         super.update(p);
         MOProfile prof = (MOProfile) p;

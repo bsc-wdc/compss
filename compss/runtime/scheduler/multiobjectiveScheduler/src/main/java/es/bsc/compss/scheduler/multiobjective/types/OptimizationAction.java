@@ -36,6 +36,9 @@ import java.util.List;
 
 public class OptimizationAction extends AllocatableAction {
 
+    /**
+     * Creates a new OptimizationAction instance.
+     */
     public OptimizationAction() {
         super(new MOSchedulingInformation(null), null);
         MOSchedulingInformation asi = (MOSchedulingInformation) this.getSchedulingInfo();
@@ -47,41 +50,42 @@ public class OptimizationAction extends AllocatableAction {
 
     @Override
     protected void doAction() {
-
+        // Nothing to do
     }
 
     @Override
     protected void doAbort() {
+        // Nothing to do
     }
 
     @Override
     protected void doCompleted() {
-
+        // Nothing to do
     }
 
     @Override
     protected void doError() throws FailedActionException {
-
+        // Nothing to do
     }
 
     @Override
     protected void doFailed() {
-
+        // Nothing to do
     }
 
     @Override
     protected void doCanceled() {
-
+        // Nothing to do
     }
 
     @Override
     protected void doFailIgnored() {
-
+        // Nothing to do
     }
-    
+
     @Override
     protected void doException(COMPSsException e) {
-        
+        // Nothing to do
     }
 
     @Override
@@ -171,7 +175,7 @@ public class OptimizationAction extends AllocatableAction {
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
     }
-    
+
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

@@ -55,6 +55,11 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             "-------------------------\n" + "    CHECK SCALABILITY    \n" + "-------------------------\n");
 
 
+    /**
+     * Creates a new MOResourceOptimizer instance.
+     * 
+     * @param ts Associated MOScheduler.
+     */
     public MOResourceOptimizer(MOScheduler ts) {
         super(ts);
     }
@@ -86,7 +91,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         HashMap<CloudInstanceTypeDescription, Integer> pendingCreations = new HashMap<>();
         HashMap<CloudInstanceTypeDescription, Integer> pendingReductions = new HashMap<>();
 
-        ConfigurationCost actualCost = getContext(allResources, load, workers, creations, pendingCreations,
+        final ConfigurationCost actualCost = getContext(allResources, load, workers, creations, pendingCreations,
                 pendingReductions, elapsedTime, elapsedEnergy, elapsedCost, elapsedPower, elapsedPrice);
 
         addToLog("Boundaries\n" + "\tTime: " + timeBoundary + "s\n" + "\tEnergy: " + energyBoundary + "Wh\n"
@@ -274,16 +279,16 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         } else {
             if (rCost.energy > energyBudget && cCost.energy < rCost.energy) {
                 if (isAcceptable(cCost.cost, rCost.cost, costBudget)) {
-                    addToLog(
-                            "\t\t Time's higher than the currently selected option. But energy is closer to the boundary\n");
+                    addToLog("\t\t Time's higher than the currently selected option."
+                            + " But energy is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.cost, rCost.cost, costBudget);
             }
 
             if (rCost.cost > costBudget && cCost.cost < rCost.cost) {
                 if (isAcceptable(cCost.energy, rCost.energy, costBudget)) {
-                    addToLog(
-                            "\t\t Time's higher than the currently selected option. But cost is closer to the boundary\n");
+                    addToLog("\t\t Time's higher than the currently selected option."
+                            + " But cost is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.energy, rCost.energy, costBudget);
             }
@@ -316,15 +321,15 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         } else {
             if (rCost.time > timeBudget && cCost.time < rCost.time) {
                 if (isAcceptable(cCost.energy, rCost.energy, energyBudget)) {
-                    addToLog(
-                            "\t\t Cost's higher than the currently selected option. But time is closer to the boundary\n");
+                    addToLog("\t\t Cost's higher than the currently selected option."
+                            + " But time is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.cost, rCost.cost, energyBudget);
             }
             if (rCost.energy > energyBudget && cCost.energy < rCost.energy) {
                 if (isAcceptable(cCost.time, rCost.time, timeBudget)) {
-                    addToLog(
-                            "\t\t Energy's higher than the currently selected option. But energy is closer to the boundary\n");
+                    addToLog("\t\t Energy's higher than the currently selected option."
+                            + " But energy is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.time, rCost.time, timeBudget);
             }
@@ -355,15 +360,15 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         } else {
             if (rCost.time > timeBudget && cCost.time < rCost.time) {
                 if (isAcceptable(cCost.cost, rCost.cost, costBudget)) {
-                    addToLog(
-                            "\t\t Energy's higher than the currently selected option. But time is closer to the boundary\n");
+                    addToLog("\t\t Energy's higher than the currently selected option."
+                            + " But time is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.cost, rCost.cost, costBudget);
             }
             if (rCost.cost > costBudget && cCost.cost < rCost.cost) {
                 if (isAcceptable(cCost.time, rCost.time, timeBudget)) {
-                    addToLog(
-                            "\t\t Energy's higher than the currently selected option. But time is closer to the boundary\n");
+                    addToLog("\t\t Energy's higher than the currently selected option."
+                            + " But time is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.time, rCost.time, timeBudget);
             }
@@ -392,6 +397,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         double idlePower = 0;
         int resourceId = 0;
         for (ResourceScheduler<?> w : workers) {
+            @SuppressWarnings("unchecked")
             MOResourceScheduler<T> aw = (MOResourceScheduler<T>) w;
             Resource<T> r = new Resource<>(aw);
             allResources[resourceId] = r;
@@ -474,8 +480,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
             if (r.hasPendingModifications()) {
                 for (ResourceUpdate<T> ru : r.getPendingModifications()) {
-                    Map<CloudInstanceTypeDescription, int[]> modificationComposition = ((CloudMethodResourceDescription) ru
-                            .getModification()).getTypeComposition();
+                    Map<CloudInstanceTypeDescription, int[]> modificationComposition 
+                        = ((CloudMethodResourceDescription) ru.getModification()).getTypeComposition();
                     for (Map.Entry<CloudInstanceTypeDescription, int[]> entry : modificationComposition.entrySet()) {
                         CloudInstanceTypeDescription componentType = entry.getKey();
                         int count = entry.getValue()[0];

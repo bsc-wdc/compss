@@ -45,13 +45,22 @@ import org.apache.logging.log4j.Logger;
 
 public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
 
-    private static long OPTIMIZATION_THRESHOLD = 1_000;
-    private boolean stop = false;
-    private Semaphore sem = new Semaphore(0);
+    // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     protected static final String LOG_PREFIX = "[MOScheduleOptimizer] ";
 
+    // Optimization threshold
+    private static long OPTIMIZATION_THRESHOLD = 1_000;
 
+    private boolean stop = false;
+    private Semaphore sem = new Semaphore(0);
+
+
+    /**
+     * Creates a new MOSchedulerOptimizer instance.
+     * 
+     * @param scheduler Associated MOScheduler.
+     */
     public MOScheduleOptimizer(MOScheduler scheduler) {
         super(scheduler);
     }
@@ -64,22 +73,22 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         } catch (InterruptedException ie) {
             // Do nothing
         }
-        while (!stop) {
+        while (!this.stop) {
             long optimizationTS = System.currentTimeMillis();
-            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = scheduler.getWorkers();
+            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers = this.scheduler.getWorkers();
             globalOptimization(optimizationTS, workers);
             lastUpdate = optimizationTS;
             waitForNextIteration(lastUpdate);
         }
-        sem.release();
+        this.sem.release();
     }
 
     @Override
     public void shutdown() {
-        stop = true;
+        this.stop = true;
         this.interrupt();
         try {
-            sem.acquire();
+            this.sem.acquire();
         } catch (InterruptedException ie) {
             // Do nothing
         }
@@ -101,9 +110,17 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
      --------------- Local  optimization ---------------
      ---------------------------------------------------
      --------------------------------------------------*/
+
+    /**
+     * Performs a global optimization.
+     * 
+     * @param optimizationTS Optimization time stamp.
+     * @param workers Available workers.
+     */
     @SuppressWarnings("unchecked")
     public void globalOptimization(long optimizationTS,
             Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers) {
+
         LOGGER.debug(LOG_PREFIX + " --- Start Global Optimization ---");
         int workersCount = workers.size();
         if (workersCount == 0) {
@@ -153,6 +170,13 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         LOGGER.debug(LOG_PREFIX + "--- Global Optimization finished ---");
     }
 
+    /**
+     * Determines the task donors and receivers.
+     * 
+     * @param workers List of optimization workers.
+     * @param receivers List of receivers.
+     * @return List of donors.
+     */
     public static LinkedList<OptimizationWorker> determineDonorAndReceivers(OptimizationWorker[] workers,
             LinkedList<OptimizationWorker> receivers) {
 
@@ -189,6 +213,12 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
      ----------- Comparators  optimization -------------
      ---------------------------------------------------
      --------------------------------------------------*/
+
+    /**
+     * Returns a selection comparator.
+     * 
+     * @return A selection comparator.
+     */
     public static Comparator<AllocatableAction> getSelectionComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -204,6 +234,11 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         };
     }
 
+    /**
+     * Returns a donation comparator.
+     * 
+     * @return A donation comparator.
+     */
     public static Comparator<AllocatableAction> getDonationComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -221,6 +256,11 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         };
     }
 
+    /**
+     * Returns a reception comparator.
+     * 
+     * @return A reception comparator.
+     */
     public static final Comparator<OptimizationWorker> getReceptionComparator() {
         return new Comparator<OptimizationWorker>() {
 
@@ -282,6 +322,13 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         return false;
     }
 
+    /**
+     * Schedules the given action with the given implementation in the given worker.
+     * 
+     * @param action Action to perform.
+     * @param impl Action's implementation.
+     * @param ow Selected worker.
+     */
     public void scheduleOnWorker(AllocatableAction action, Implementation impl, OptimizationWorker ow) {
         boolean failedSpecificScheduling = false;
         try {
@@ -314,6 +361,12 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
         }
     }
 
+    /**
+     * Unschedule the given action from its worker.
+     * 
+     * @param action Action to unschedule.
+     * @throws ActionNotFoundException When the action is not registered.
+     */
     public void unscheduleFromWorker(AllocatableAction action) throws ActionNotFoundException {
         MOResourceScheduler<?> resource = (MOResourceScheduler<?>) action.getAssignedResource();
         resource.unscheduleAction(action);

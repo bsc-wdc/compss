@@ -178,9 +178,7 @@ public class Comm {
         }
 
         // Start storage interface
-        if (STORAGE_CONF == null)
-
-        {
+        if (STORAGE_CONF == null) {
             LOGGER.warn("No storage configuration file passed");
         } else {
             LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);

@@ -41,24 +41,25 @@ public class TaskDescription {
     private final int numReturns;
     private final int timeOut;
 
+
     /**
      * Task description constructor.
      *
-     * @param type          Type of task.
-     * @param lang          Method language.
-     * @param signature     Method signature.
-     * @param coreElement   Core Element to execute.
-     * @param isPrioritary  Whether the method is prioritary or not.
-     * @param numNodes      Number of nodes required for the method execution.
-     * @param isReplicated  Whether the method is replicated or not.
+     * @param type Type of task.
+     * @param lang Method language.
+     * @param signature Method signature.
+     * @param coreElement Core Element to execute.
+     * @param isPrioritary Whether the method is prioritary or not.
+     * @param numNodes Number of nodes required for the method execution.
+     * @param isReplicated Whether the method is replicated or not.
      * @param isDistributed Whether the method is distributed or not.
-     * @param hasTarget     Whether the method has a target parameter or not.
-     * @param numReturns    Number of return values.
-     * @param parameters    Number of parameters.
+     * @param hasTarget Whether the method has a target parameter or not.
+     * @param numReturns Number of return values.
+     * @param parameters Number of parameters.
      */
-    public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
-            int timeOut, List<Parameter> parameters) {
+    public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement, boolean isPrioritary,
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, int timeOut,
+            List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;

@@ -29,6 +29,15 @@ public class Gap {
     private final int capacity;
 
 
+    /**
+     * Creates a new Gap instance.
+     * 
+     * @param start Start time.
+     * @param endTime End time.
+     * @param origin Gap origin action.
+     * @param resources Gap resource.
+     * @param capacity Gap capacity.
+     */
     public Gap(long start, long endTime, AllocatableAction origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.endTime = endTime;
@@ -37,33 +46,63 @@ public class Gap {
         this.capacity = capacity;
     }
 
+    /**
+     * Returns the initial time.
+     * 
+     * @return The initial time.
+     */
     public long getInitialTime() {
-        return initialTime;
+        return this.initialTime;
     }
 
+    /**
+     * Returns the end time.
+     * 
+     * @return The end time.
+     */
     public long getEndTime() {
-        return endTime;
+        return this.endTime;
     }
 
+    /**
+     * Returns the origin of the gap.
+     * 
+     * @return The origin of the gap.
+     */
     public AllocatableAction getOrigin() {
-        return origin;
+        return this.origin;
     }
 
+    /**
+     * Returns the gap resources.
+     * 
+     * @return The gap resources.
+     */
     public ResourceDescription getResources() {
-        return resources;
+        return this.resources;
     }
 
+    /**
+     * Sets a new end time.
+     * 
+     * @param endTime New end time.
+     */
     public void setEndTime(long endTime) {
         this.endTime = endTime;
     }
 
+    /**
+     * Returns the gap capacity.
+     * 
+     * @return The gap capacity.
+     */
     public int getCapacity() {
-        return capacity;
+        return this.capacity;
     }
 
     @Override
     public String toString() {
-        return "<" + initialTime + "->" + endTime + ", " + origin + ", " + resources.getDynamicDescription() + ", with "
-                + capacity + " slots >";
+        return "<" + this.initialTime + "->" + this.endTime + ", " + this.origin + ", "
+                + this.resources.getDynamicDescription() + ", with " + this.capacity + " slots >";
     }
 }

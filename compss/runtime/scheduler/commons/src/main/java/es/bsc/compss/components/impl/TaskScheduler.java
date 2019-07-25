@@ -208,8 +208,9 @@ public class TaskScheduler {
      *
      * @return new instance of the specific Scheduling Optimizer for the Task Scheduler.
      */
-    public SchedulingOptimizer<TaskScheduler> generateSchedulingOptimizer() {
-        return new SchedulingOptimizer<>(this);
+    @SuppressWarnings("unchecked")
+    public <T extends TaskScheduler> SchedulingOptimizer<T> generateSchedulingOptimizer() {
+        return (SchedulingOptimizer<T>) new SchedulingOptimizer<>(this);
     }
 
     /**
@@ -1466,7 +1467,7 @@ public class TaskScheduler {
 
     private class WorkersMap {
 
-        private final Map<Worker<? extends WorkerResourceDescription>, 
+        private final Map<Worker<? extends WorkerResourceDescription>,
             ResourceScheduler<? extends WorkerResourceDescription>> map;
 
 

@@ -16,14 +16,14 @@
  */
 package es.bsc.compss.scheduler.multiobjective.config;
 
+import es.bsc.compss.COMPSsConstants;
+import es.bsc.compss.log.Loggers;
+import es.bsc.compss.util.ErrorManager;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import es.bsc.compss.COMPSsConstants;
-import es.bsc.compss.log.Loggers;
-import es.bsc.compss.util.ErrorManager;
 
 
 public class MOConfiguration {
@@ -58,6 +58,9 @@ public class MOConfiguration {
     protected static final String LOG_PREFIX = "[MOSchedulerConfig] ";
 
 
+    /**
+     * Loads the Configuration.
+     */
     public static void load() {
         String configFile = System.getProperty(COMPSsConstants.SCHEDULER_CONFIG_FILE);
         if (configFile != null && !configFile.isEmpty()) {
@@ -88,26 +91,56 @@ public class MOConfiguration {
         }
     }
 
+    /**
+     * Returns the monetary boundary.
+     * 
+     * @return The monetary boundary.
+     */
     public static double getMonetaryBoundary() {
         return MONETARY_BOUNDARY;
     }
 
+    /**
+     * Returns the power boundary.
+     * 
+     * @return The power boundary.
+     */
     public static double getPowerBoundary() {
         return POWER_BOUNDARY;
     }
 
+    /**
+     * Returns the price boundary.
+     * 
+     * @return The price boundary.
+     */
     public static double getPriceBoundary() {
         return PRICE_BOUNDARY;
     }
 
+    /**
+     * Returns the time boundary.
+     * 
+     * @return The time boundary.
+     */
     public static double getTimeBoundary() {
         return TIME_BOUNDARY;
     }
 
+    /**
+     * Returns the energy boundary.
+     * 
+     * @return The energy boundary.
+     */
     public static double getEnergyBoundary() {
         return ENERGY_BOUNDARY;
     }
 
+    /**
+     * Returns the scheduler optimization.
+     * 
+     * @return The scheduler optimization.
+     */
     public static OptimizationParameter getSchedulerOptimization() {
         return OP_PARAMETER;
     }

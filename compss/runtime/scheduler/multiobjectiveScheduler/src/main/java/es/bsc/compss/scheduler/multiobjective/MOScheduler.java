@@ -35,6 +35,9 @@ import org.json.JSONObject;
 
 public class MOScheduler extends TaskScheduler {
 
+    /**
+     * Creates a new MOScheduler.
+     */
     public MOScheduler() {
         MOConfiguration.load();
     }
@@ -47,6 +50,7 @@ public class MOScheduler extends TaskScheduler {
     @Override
     public <T extends WorkerResourceDescription> MOResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
             JSONObject res, JSONObject impls) {
+
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new MOResourceScheduler<>(w, res, impls);
     }
@@ -54,6 +58,7 @@ public class MOScheduler extends TaskScheduler {
     @Override
     public <T extends WorkerResourceDescription> MOSchedulingInformation generateSchedulingInformation(
             ResourceScheduler<T> enforcedTargetResource) {
+
         return new MOSchedulingInformation(enforcedTargetResource);
     }
 
@@ -62,6 +67,12 @@ public class MOScheduler extends TaskScheduler {
         return getActionScore(action);
     }
 
+    /**
+     * Returns the action score of the given action.
+     * 
+     * @param action Action to evaluate.
+     * @return The action score.
+     */
     public static MOScore getActionScore(AllocatableAction action) {
         long actionScore = MOScore.getActionScore(action);
         long dataTime = MOScore.getDataPredecessorTime(action.getDataPredecessors());
@@ -88,15 +99,15 @@ public class MOScheduler extends TaskScheduler {
         return new MOResourceOptimizer(this);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public SchedulingOptimizer generateSchedulingOptimizer() {
-        return new MOScheduleOptimizer(this);
+    public <T extends TaskScheduler> SchedulingOptimizer<T> generateSchedulingOptimizer() {
+        return (SchedulingOptimizer<T>) new MOScheduleOptimizer(this);
     }
 
     /**
      * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
      *
-     * @param <T>
      * @param dataFreeActions IN, list of actions free of data dependencies
      * @param resourceFreeActions IN, list of actions free of resource dependencies
      * @param blockedCandidates OUT, list of blocked candidates
@@ -106,6 +117,7 @@ public class MOScheduler extends TaskScheduler {
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(
             List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
             List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+
         LOGGER.debug("[MOScheduler] Treating dependency free actions on resource " + resource.getName());
         for (AllocatableAction freeAction : dataFreeActions) {
             tryToLaunch(freeAction);

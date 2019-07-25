@@ -81,17 +81,25 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     private final double idlePrice; // Currency/h
 
 
+    /**
+     * Creates a new MOResourceScheduler instance.
+     * 
+     * @param w Associated worker.
+     * @param resourceJSON Worker JSON resource description.
+     * @param implsJSON Implementation JSON description.
+     */
     public MOResourceScheduler(Worker<T> w, JSONObject resourceJSON, JSONObject implsJSON) {
         super(w, resourceJSON, implsJSON);
-        gaps = new LinkedList<>();
+
+        this.gaps = new LinkedList<>();
         addGap(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
-        implementationsCount = new int[CoreManager.getCoreCount()][];
-        runningImplementationsCount = new int[CoreManager.getCoreCount()][];
+        this.implementationsCount = new int[CoreManager.getCoreCount()][];
+        this.runningImplementationsCount = new int[CoreManager.getCoreCount()][];
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            implementationsCount[coreId] = new int[CoreManager.getCoreImplementations(coreId).size()];
-            runningImplementationsCount[coreId] = new int[CoreManager.getCoreImplementations(coreId).size()];
+            this.implementationsCount[coreId] = new int[CoreManager.getCoreImplementations(coreId).size()];
+            this.runningImplementationsCount[coreId] = new int[CoreManager.getCoreImplementations(coreId).size()];
         }
-        expectedEndTimeRunning = 0;
+        this.expectedEndTimeRunning = 0;
         double idlePower;
         double idlePrice;
 
@@ -120,15 +128,10 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      ------------------ Score Methods ------------------
      ---------------------------------------------------
      --------------------------------------------------*/
-    /**
-     * @param action
-     * @param params
-     * @param actionScore
-     * @return
-     */
+
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
-        long resScore = Score.calculateDataLocalityScore(params, myWorker);
+        long resScore = Score.calculateDataLocalityScore(params, this.myWorker);
         for (AllocatableAction pred : action.getDataPredecessors()) {
             if (pred.isPending() && pred.getAssignedResource() == this) {
                 resScore++;
@@ -136,7 +139,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         }
         resScore = params.getParameters().size() - resScore;
         long lessTimeStamp = Long.MAX_VALUE;
-        Gap g = gaps.peekFirst();
+        Gap g = this.gaps.peekFirst();
         if (g != null) {
             lessTimeStamp = g.getInitialTime();
             if (lessTimeStamp < 0) {
@@ -149,13 +152,6 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return new MOScore(actionPriority, expectedDataAvailable, lessTimeStamp, 0, 0, 0);
     }
 
-    /**
-     * @param action
-     * @param params
-     * @param impl
-     * @param resourceScore
-     * @return
-     */
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
             Score resourceScore) {
@@ -165,8 +161,19 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, impl);
     }
 
+    /**
+     * Generates a score for moving an implementation.
+     * 
+     * @param action Associated action.
+     * @param params Action parameters.
+     * @param impl Action implementation.
+     * @param resourceScore Resource score.
+     * @param moveTime Time to perform the move.
+     * @return Score for moving the given implementation.
+     */
     public MOScore generateMoveImplementationScore(AllocatableAction action, TaskDescription params,
             Implementation impl, Score resourceScore, long moveTime) {
+
         long resourceFreeTime = getResourceFreeTime(impl) + moveTime;
         long expectedDataAvailable = ((MOScore) resourceScore).getExpectedDataAvailable() + moveTime;
         long actionPriority = resourceScore.getActionScore();
@@ -177,7 +184,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         ResourceDescription rd = impl.getRequirements().copy();
         long resourceFreeTime = 0;
         try {
-            for (Gap g : gaps) {
+            for (Gap g : this.gaps) {
                 rd.reduceDynamic(g.getResources());
                 if (rd.isDynamicUseless()) {
                     resourceFreeTime = g.getInitialTime();
@@ -193,11 +200,20 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return resourceFreeTime;
     }
 
+    /**
+     * Generates a score for the current implementation.
+     * 
+     * @param action Action score.
+     * @param impl Implementation score.
+     * @param resourceScore Resource score.
+     * @return Full score for the current implementation.
+     */
     public MOScore generateCurrentImplementationScore(AllocatableAction action, Implementation impl,
             Score resourceScore) {
+
         // Check if it is to be deleted
         long resourceFreeTime = Long.MAX_VALUE;
-        Gap g = gaps.peekFirst();
+        Gap g = this.gaps.peekFirst();
         if (g != null) {
             resourceFreeTime = ((MOSchedulingInformation) action.getSchedulingInfo()).getExpectedStart();
         }
@@ -207,8 +223,18 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
     }
 
+    /**
+     * Generates a MOScore.
+     * 
+     * @param resourceFreeTime Resource free time.
+     * @param expectedDataAvailable Expected time for data available.
+     * @param actionPriority Action priority.
+     * @param impl Implementation to run.
+     * @return Score.
+     */
     public MOScore generateMOScore(long resourceFreeTime, long expectedDataAvailable, long actionPriority,
             Implementation impl) {
+
         long implScore = 0;
         double energy = 0;
         double cost = 0;
@@ -233,16 +259,17 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      ---------------- Scheduler Methods ----------------
      ---------------------------------------------------
      --------------------------------------------------*/
+
     @Override
     public void scheduleAction(AllocatableAction action) {
-        synchronized (gaps) {
-            if (opAction != null) { // If optimization in progress
-                ((MOSchedulingInformation) opAction.getSchedulingInfo()).addSuccessor(action);
-                Gap opActionGap = new Gap(0, 0, opAction, action.getAssignedImplementation().getRequirements().copy(),
-                        0);
+        synchronized (this.gaps) {
+            if (this.opAction != null) { // If optimization in progress
+                ((MOSchedulingInformation) this.opAction.getSchedulingInfo()).addSuccessor(action);
+                Gap opActionGap = new Gap(0, 0, this.opAction,
+                        action.getAssignedImplementation().getRequirements().copy(), 0);
                 ((MOSchedulingInformation) action.getSchedulingInfo()).addPredecessor(opActionGap);
             } else {
-                scheduleUsingGaps(action, gaps);
+                scheduleUsingGaps(action, this.gaps);
             }
         }
     }
@@ -356,15 +383,15 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         // Clear action's successors
         actionDSI.clearSuccessors();
 
-        // Indicate that the task is fully unsheduled
+        // Indicate that the task is fully unscheduled
         actionDSI.unscheduled();
 
         // Register those resources occupied by the task that haven't been used as free
-        synchronized (gaps) {
+        synchronized (this.gaps) {
             if (actionDSI.isOnOptimization()) {
-                pendingUnschedulings.add(action);
+                this.pendingUnschedulings.add(action);
             }
-            Iterator<Gap> gIt = gaps.iterator();
+            Iterator<Gap> gIt = this.gaps.iterator();
             while (gIt.hasNext()) {
                 Gap g = gIt.next();
                 if (g.getOrigin() == action) {
@@ -385,8 +412,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         if (p != null) {
             long length = actionDSI.getExpectedEnd()
                     - (actionDSI.getExpectedStart() < 0 ? 0 : actionDSI.getExpectedStart());
-            pendingActionsCost -= p.getPrice() * length;
-            pendingActionsEnergy -= p.getPower() * length;
+            this.pendingActionsCost -= p.getPrice() * length;
+            this.pendingActionsEnergy -= p.getPower() * length;
         }
         actionDSI.unlock();
         for (MOSchedulingInformation successorsDSI : successorsDSIs) {
@@ -399,8 +426,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     @Override
     public void clear() {
         super.clear();
-        gaps.clear();
-        addGap(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
+        this.gaps.clear();
+        addGap(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, this.myWorker.getDescription().copy(), 0));
     }
 
     private void scheduleUsingGaps(AllocatableAction action, List<Gap> gaps) {
@@ -417,9 +444,9 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
         if (expectedStart == Long.MAX_VALUE) {
             // There is some data dependency with blocked tasks in some resource
-            Gap opActionGap = new Gap(0, 0, dataBlockingAction,
+            final Gap opActionGap = new Gap(0, 0, this.dataBlockingAction,
                     action.getAssignedImplementation().getRequirements().copy(), 0);
-            MOSchedulingInformation dbaDSI = (MOSchedulingInformation) dataBlockingAction.getSchedulingInfo();
+            MOSchedulingInformation dbaDSI = (MOSchedulingInformation) this.dataBlockingAction.getSchedulingInfo();
             dbaDSI.lock();
             schedInfo.lock();
             dbaDSI.addSuccessor(action);
@@ -433,7 +460,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         }
 
         Implementation impl = action.getAssignedImplementation();
-        MOProfile p = (MOProfile) getProfile(impl);
+        final MOProfile p = (MOProfile) getProfile(impl);
         ResourceDescription constraints = impl.getRequirements().copy();
         List<Gap> predecessors = new LinkedList<>();
         Iterator<Gap> gapIt = ((LinkedList<Gap>) gaps).descendingIterator();
@@ -475,9 +502,9 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                     predDSI.unlock();
                 }
             }
-            Gap opActionGap = new Gap(0, 0, resourceBlockingAction,
+            final Gap opActionGap = new Gap(0, 0, this.resourceBlockingAction,
                     action.getAssignedImplementation().getRequirements(), 0);
-            MOSchedulingInformation rbaDSI = (MOSchedulingInformation) resourceBlockingAction.getSchedulingInfo();
+            MOSchedulingInformation rbaDSI = (MOSchedulingInformation) this.resourceBlockingAction.getSchedulingInfo();
             rbaDSI.lock();
             schedInfo.lock();
             rbaDSI.addSuccessor(action);
@@ -490,7 +517,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             return;
         }
 
-        // Lock acces to the current task
+        // Lock access to the current task
         schedInfo.lock();
         schedInfo.scheduled();
 
@@ -523,13 +550,14 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         long expectedEnd = expectedStart;
         if (p != null) {
             expectedEnd += p.getAverageExecutionTime();
-            pendingActionsCost += p.getPrice() * p.getAverageExecutionTime();
-            pendingActionsEnergy += p.getPower() * p.getAverageExecutionTime();
+            this.pendingActionsCost += p.getPrice() * p.getAverageExecutionTime();
+            this.pendingActionsEnergy += p.getPower() * p.getAverageExecutionTime();
         }
         schedInfo.setExpectedEnd(expectedEnd);
         // Unlock access to current task
         schedInfo.unlock();
-        if (action.isToReleaseResources()) {// Create new Gap correspondin to the resources released by the action
+        if (action.isToReleaseResources()) {
+            // Create new Gap corresponding to the resources released by the action
             addGap(new Gap(expectedEnd, Long.MAX_VALUE, action, impl.getRequirements().copy(), 0));
         } else {
             addGap(new Gap(Long.MAX_VALUE, Long.MAX_VALUE, action, impl.getRequirements().copy(), 0));
@@ -559,27 +587,37 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      -------------- Optimization Methods ---------------
      ---------------------------------------------------
      --------------------------------------------------*/
+
+    /**
+     * Performs a local optimization.
+     * 
+     * @param updateId Optimization update id.
+     * @param selectionComparator Action selection comparator.
+     * @param donorComparator Action donor comparator.
+     * @return Queue of optimized actions.
+     */
     @SuppressWarnings("unchecked")
     public PriorityQueue<AllocatableAction> localOptimization(long updateId,
             Comparator<AllocatableAction> selectionComparator, Comparator<AllocatableAction> donorComparator) {
+
         // System.out.println("Local Optimization for " + this.getName() + " starts");
         LocalOptimizationState state = new LocalOptimizationState(updateId,
                 (MOResourceScheduler<WorkerResourceDescription>) this, getReadyComparator(), selectionComparator);
-        PriorityQueue<AllocatableAction> actions = new PriorityQueue<AllocatableAction>(1, donorComparator);
+        final PriorityQueue<AllocatableAction> actions = new PriorityQueue<AllocatableAction>(1, donorComparator);
 
-        synchronized (gaps) {
-            opAction = new OptimizationAction();
+        synchronized (this.gaps) {
+            this.opAction = new OptimizationAction();
         }
         // No changes in the Gap structure
 
         // Scan actions: Filters ready and selectable actions
         LOGGER.debug(LOG_PREFIX + "Scanning current actions");
-        List<AllocatableAction> lockedActions = scanActions(state);
+        final List<AllocatableAction> lockedActions = scanActions(state);
         // Gets all the pending schedulings
         List<AllocatableAction> newPendingSchedulings = new LinkedList<>();
         List<AllocatableAction> pendingSchedulings;
-        synchronized (gaps) {
-            MOSchedulingInformation opDSI = (MOSchedulingInformation) opAction.getSchedulingInfo();
+        synchronized (this.gaps) {
+            MOSchedulingInformation opDSI = (MOSchedulingInformation) this.opAction.getSchedulingInfo();
             pendingSchedulings = opDSI.replaceSuccessors(newPendingSchedulings);
         }
         // Classify pending actions: Filters ready and selectable actions
@@ -620,34 +658,38 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         // Schedules all the pending scheduligns and unblocks the scheduling of new actions
         LOGGER.debug(LOG_PREFIX + "Manage new gaps");
         synchronized (gaps) {
-            gaps.clear();
-            gaps.addAll(newGaps);
-            MOSchedulingInformation opDSI = (MOSchedulingInformation) opAction.getSchedulingInfo();
+            this.gaps.clear();
+            this.gaps.addAll(newGaps);
+            MOSchedulingInformation opDSI = (MOSchedulingInformation) this.opAction.getSchedulingInfo();
             List<AllocatableAction> successors = opDSI.getSuccessors();
             for (AllocatableAction action : successors) {
                 actions.add(action);
                 MOSchedulingInformation actionDSI = (MOSchedulingInformation) action.getSchedulingInfo();
                 actionDSI.lock();
-                actionDSI.removePredecessor(opAction);
-                this.scheduleUsingGaps(action, gaps);
+                actionDSI.removePredecessor(this.opAction);
+                this.scheduleUsingGaps(action, this.gaps);
                 actionDSI.unlock();
             }
             opDSI.clearSuccessors();
-            opAction = null;
+            this.opAction = null;
         }
         // System.out.println("Local Optimization for " + this.getName() + " ends");
         return actions;
     }
 
-    // Classifies actions according to their start times. Selectable actions are
-    // those that can be selected to run from t=0. Ready actions are those actions
-    // that have data dependencies with tasks scheduled in other nodes. Actions
-    // with dependencies with actions scheduled in the same node, are not
-    // classified in any list since we cannot know the start time.
+    /**
+     * Classifies actions according to their start times. Selectable actions are those that can be selected to run from
+     * t=0. Ready actions are those actions that have data dependencies with tasks scheduled in other nodes. Actions
+     * with dependencies with actions scheduled in the same node, are not classified in any list since we cannot know
+     * the start time.
+     * 
+     * @param state Current state.
+     * @return List of scanned actions.
+     */
     public List<AllocatableAction> scanActions(LocalOptimizationState state) {
         List<AllocatableAction> pendingToUnlockActions = new LinkedList<AllocatableAction>();
         PriorityQueue<AllocatableAction> actions = new PriorityQueue<AllocatableAction>(1, getScanComparator());
-        MOSchedulingInformation blockSI = (MOSchedulingInformation) dataBlockingAction.getSchedulingInfo();
+        MOSchedulingInformation blockSI = (MOSchedulingInformation) this.dataBlockingAction.getSchedulingInfo();
         List<AllocatableAction> blockActions = blockSI.getSuccessors();
         for (AllocatableAction gapAction : blockActions) {
             MOSchedulingInformation dsi = (MOSchedulingInformation) gapAction.getSchedulingInfo();
@@ -656,7 +698,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             actions.add(gapAction);
         }
 
-        blockSI = (MOSchedulingInformation) resourceBlockingAction.getSchedulingInfo();
+        blockSI = (MOSchedulingInformation) this.resourceBlockingAction.getSchedulingInfo();
         blockActions = blockSI.getSuccessors();
         for (AllocatableAction gapAction : blockActions) {
             MOSchedulingInformation dsi = (MOSchedulingInformation) gapAction.getSchedulingInfo();
@@ -667,7 +709,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         LinkedList<AllocatableAction> modified = new LinkedList<>();
         while (true) {
             try {
-                for (Gap g : gaps) {
+                for (Gap g : this.gaps) {
                     AllocatableAction gapAction = g.getOrigin();
                     if (gapAction != null) {
                         MOSchedulingInformation dsi = (MOSchedulingInformation) gapAction.getSchedulingInfo();
@@ -776,6 +818,12 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return pendingToUnlockActions;
     }
 
+    /**
+     * Classify pending schedulings.
+     * 
+     * @param pendingSchedulings Pending schedulings to classify.
+     * @param state Current state.
+     */
     public void classifyPendingSchedulings(List<AllocatableAction> pendingSchedulings, LocalOptimizationState state) {
         for (AllocatableAction action : pendingSchedulings) {
             // Action has an artificial resource dependency with the opAction
@@ -818,8 +866,13 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         }
     }
 
+    /**
+     * Classify pending unschedulings.
+     * 
+     * @param state Current state.
+     */
     public void classifyPendingUnschedulings(LocalOptimizationState state) {
-        for (AllocatableAction unscheduledAction : pendingUnschedulings) {
+        for (AllocatableAction unscheduledAction : this.pendingUnschedulings) {
             MOSchedulingInformation actionDSI = (MOSchedulingInformation) unscheduledAction.getSchedulingInfo();
             List<AllocatableAction> successors = actionDSI.getOptimizingSuccessors();
             for (AllocatableAction successor : successors) {
@@ -857,9 +910,16 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                 state.classifyAction(successor, hasInternal, hasExternal, true, startTime);
             }
         }
-        pendingUnschedulings.clear();
+        this.pendingUnschedulings.clear();
     }
 
+    /**
+     * Re-schedules the given actions.
+     * 
+     * @param state Current state.
+     * @param rescheduledActions Actions to reschedule.
+     * @return List of generated gaps.
+     */
     @SuppressWarnings("unchecked")
     public List<Gap> rescheduleTasks(LocalOptimizationState state,
             PriorityQueue<AllocatableAction> rescheduledActions) {
@@ -868,9 +928,10 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             for (int implId = 0; implId < CoreManager.getNumberCoreImplementations(coreId); implId++) {
                 MOProfile profile = (MOProfile) this.getProfile(coreId, implId);
-                runActionsEnergy += profile.getPower() * profile.getExecutionCount()
+                this.runActionsEnergy += profile.getPower() * profile.getExecutionCount()
                         * profile.getAverageExecutionTime();
-                runActionsCost += profile.getPrice() * profile.getExecutionCount() * profile.getAverageExecutionTime();
+                this.runActionsCost += profile.getPrice() * profile.getExecutionCount()
+                        * profile.getAverageExecutionTime();
             }
         }
 
@@ -998,7 +1059,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             action.tryToLaunch();
             launched = true;
         } catch (InvalidSchedulingException ise) {
-
+            // Nothing to do
         }
         if (!launched) {
             long actionScore = MOScore.getActionScore(action);
@@ -1019,6 +1080,11 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         return launched;
     }
 
+    /**
+     * Returns an action scan comparator.
+     * 
+     * @return An action scan comparator.
+     */
     public static final Comparator<AllocatableAction> getScanComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -1035,6 +1101,11 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         };
     }
 
+    /**
+     * Returns a ready action comparator.
+     * 
+     * @return A ready action comparator.
+     */
     public static final Comparator<AllocatableAction> getReadyComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -1052,11 +1123,10 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     }
 
     private void addGap(Gap g) {
-
         AllocatableAction gapAction = g.getOrigin();
         ResourceDescription releasedResources = g.getResources();
         boolean merged = false;
-        for (Gap registeredGap : gaps) {
+        for (Gap registeredGap : this.gaps) {
             if (registeredGap.getOrigin() == gapAction) {
                 ResourceDescription registeredResources = registeredGap.getResources();
                 registeredResources.increaseDynamic(releasedResources);
@@ -1065,26 +1135,36 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             }
         }
         if (!merged) {
-            Iterator<Gap> gapIt = gaps.iterator();
+            Iterator<Gap> gapIt = this.gaps.iterator();
             int index = 0;
             Gap gap;
             while (gapIt.hasNext() && (gap = gapIt.next()) != null && gap.getInitialTime() <= g.getInitialTime()) {
                 index++;
             }
-            gaps.add(index, g);
+            this.gaps.add(index, g);
         }
     }
 
+    /**
+     * Returns the expected start of the first gap.
+     * 
+     * @return The expected start of the first gap.
+     */
     public long getFirstGapExpectedStart() {
-        Gap g = gaps.peekFirst();
+        Gap g = this.gaps.peekFirst();
         if (g == null) {
             return 0;
         }
         return g.getInitialTime();
     }
 
+    /**
+     * Returns the expected start of the last gap.
+     * 
+     * @return The expected start of the last gap.
+     */
     public long getLastGapExpectedStart() {
-        Gap g = gaps.peekLast();
+        Gap g = this.gaps.peekLast();
         if (g == null) {
             return 0;
         }
@@ -1098,53 +1178,114 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
     @Override
     public Profile generateProfileForRun(AllocatableAction action) {
-        return new MOProfile(action.getAssignedImplementation(), myWorker);
+        return new MOProfile(action.getAssignedImplementation(), this.myWorker);
     }
 
+    /**
+     * Returns the idle power.
+     * 
+     * @return The idle power.
+     */
     public double getIdlePower() {
-        return idlePower;
+        return this.idlePower;
     }
 
+    /**
+     * Returns the energy consumed by the run (past) actions.
+     * 
+     * @return The energy consumed by the run (past) actions.
+     */
     public double getRunActionsEnergy() {
         return this.runActionsEnergy;
     }
 
+    /**
+     * Returns the energy consumed by the running actions.
+     * 
+     * @return The energy consumed by the running actions.
+     */
     public double getRunningActionsEnergy() {
         return this.runningActionsEnergy;
     }
 
+    /**
+     * Returns the energy consumed by the scheduled actions.
+     * 
+     * @return The energy consumed by the scheduled actions.
+     */
     public double getScheduledActionsEnergy() {
         return this.pendingActionsEnergy;
     }
 
+    /**
+     * Returns the idle price.
+     * 
+     * @return The idle price.
+     */
     public double getIdlePrice() {
-        return idlePrice;
+        return this.idlePrice;
     }
 
+    /**
+     * Returns the cost of the run (past) actions.
+     * 
+     * @return The cost of the run (past) actions.
+     */
     public double getRunActionsCost() {
         return this.runActionsCost;
     }
 
+    /**
+     * Returns the cost of the running actions.
+     * 
+     * @return The cost of the running actions.
+     */
     public double getRunningActionsCost() {
         return this.runningActionsCost;
     }
 
+    /**
+     * Returns the cost of the scheduled actions.
+     * 
+     * @return The cost of the scheduled actions.
+     */
     public double getScheduledActionsCost() {
         return this.pendingActionsCost;
     }
 
+    /**
+     * Returns the maximum simultaneous runs of the given implementation.
+     * 
+     * @param impl Implementation.
+     * @return The maximum simultaneous runs of the given implementation.
+     */
     public int getSimultaneousCapacity(Implementation impl) {
-        return myWorker.fitCount(impl);
+        return this.myWorker.fitCount(impl);
     }
 
+    /**
+     * Returns the number of executions per implementation per core.
+     * 
+     * @return The number of executions per implementation per core.
+     */
     public int[][] getImplementationCounts() {
         return this.implementationsCount;
     }
 
+    /**
+     * Returns the expected end time.
+     * 
+     * @return The expected end time.
+     */
     public long getExpectedEndTimeRunning() {
         return this.expectedEndTimeRunning;
     }
 
+    /**
+     * Returns the number of executions per implementation per core running at the moment.
+     * 
+     * @return The number of executions per implementation per core running at the moment.
+     */
     public int[][] getRunningImplementationCounts() {
         return this.runningImplementationsCount;
     }
@@ -1163,12 +1304,12 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
         blockedActions.addAll(super.getBlockedActions());
 
-        MOSchedulingInformation baDSI = (MOSchedulingInformation) dataBlockingAction.getSchedulingInfo();
+        MOSchedulingInformation baDSI = (MOSchedulingInformation) this.dataBlockingAction.getSchedulingInfo();
         baDSI.lock();
         blockedActions.addAll(baDSI.getSuccessors());
         baDSI.unlock();
 
-        baDSI = (MOSchedulingInformation) resourceBlockingAction.getSchedulingInfo();
+        baDSI = (MOSchedulingInformation) this.resourceBlockingAction.getSchedulingInfo();
         baDSI.lock();
         blockedActions.addAll(baDSI.getSuccessors());
         baDSI.unlock();
@@ -1179,22 +1320,22 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
     @Override
     public JSONObject toJSONObject() {
         JSONObject json = super.toJSONObject();
-        json.put("idlePower", idlePower);
-        json.put("idlePrice", idlePrice);
+        json.put("idlePower", this.idlePower);
+        json.put("idlePrice", this.idlePrice);
         return json;
     }
 
     @Override
     public JSONObject updateJSON(JSONObject oldResource) {
         JSONObject difference = super.updateJSON(oldResource);
-        double diff = idlePower;
+        double diff = this.idlePower;
         if (oldResource.has("idlePower")) {
             diff -= oldResource.getDouble("idlePower");
         }
         difference.put("idlePower", diff);
         oldResource.put("idlePower", idlePower);
 
-        diff = idlePrice;
+        diff = this.idlePrice;
         if (oldResource.has("idlePrice")) {
             diff -= oldResource.getDouble("idlePrice");
         }

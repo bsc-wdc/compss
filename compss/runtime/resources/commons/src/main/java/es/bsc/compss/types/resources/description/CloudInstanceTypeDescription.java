@@ -31,6 +31,12 @@ public class CloudInstanceTypeDescription {
     private int[][] slotsImpl;
 
 
+    /**
+     * Creates a new cloud instance type description.
+     * 
+     * @param name Instance type name.
+     * @param rd Associated description.
+     */
     public CloudInstanceTypeDescription(String name, MethodResourceDescription rd) {
         this.instanceTypeName = name;
         this.rd = rd;
@@ -56,42 +62,96 @@ public class CloudInstanceTypeDescription {
         }
     }
 
+    /**
+     * Returns the instance type name.
+     * 
+     * @return The instance type name.
+     */
     public String getName() {
         return this.instanceTypeName;
     }
 
+    /**
+     * Returns the instance type description.
+     * 
+     * @return The instance type description.
+     */
     public MethodResourceDescription getResourceDescription() {
         return this.rd;
     }
 
+    /**
+     * Returns the slots per core that can run on the current instance type.
+     * 
+     * @return The slots per core that can run on the current instance type.
+     */
     public int[] getSlotsCore() {
         return this.slotsCore;
     }
 
+    /**
+     * Returns the slots of the core with index {@code index} that can run on the current instance type.
+     * 
+     * @param index Core index.
+     * @return The slots of the core with index {@code index} that can run on the current instance type.
+     */
     public int getSpecificSlotsCore(int index) {
         return this.slotsCore[index];
     }
 
+    /**
+     * Sets a new number of slots per core.
+     * 
+     * @param slotsCore New slots per core.
+     */
     public void setSlotsCore(int[] slotsCore) {
         this.slotsCore = slotsCore;
     }
 
+    /**
+     * Returns the slots per implementation per core that can run on the current instance type.
+     * 
+     * @return The slots per implementation per core that can run on the current instance type.
+     */
     public int[][] getSlotsImpl() {
         return this.slotsImpl;
     }
 
+    /**
+     * Returns the length of the slots per implementation (number of cores).
+     * 
+     * @return The length of the slots per implementation (number of cores).
+     */
     public int getSlotsImplLength() {
         return this.slotsImpl.length;
     }
 
+    /**
+     * Returns the slots per implementation of the core with the given index {@code coreId}.
+     * 
+     * @param coreId Core Index.
+     * @return The slots per implementation of the core with the given index {@code coreId}.
+     */
     public int[] getSpecificSlotsImpl(int coreId) {
         return this.slotsImpl[coreId];
     }
 
+    /**
+     * Returns the slots of the implementation with index {@code implId} and core with index {@code coreId}.
+     * 
+     * @param coreId Core index.
+     * @param implId Implementation index.
+     * @return The slots of the implementation with index {@code implId} and core with index {@code coreId}.
+     */
     public int getSpecificSlotsImpl(int coreId, int implId) {
         return this.slotsImpl[coreId][implId];
     }
 
+    /**
+     * Sets a new slots per implementation per core.
+     * 
+     * @param slotsImpl New slots per implementation per core.
+     */
     public void setSlotsImpl(int[][] slotsImpl) {
         this.slotsImpl = slotsImpl;
     }

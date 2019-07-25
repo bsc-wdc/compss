@@ -32,6 +32,14 @@ public class ResourceCreationRequest {
     private String requestID; // It will be the same as the VM name
 
 
+    /**
+     * Creates a new ResourceCreationRequest instance.
+     * 
+     * @param requestedResource Description of the requested resource.
+     * @param simultaneousTasks Simultaneous tasks that are required to run in the created resource.
+     * @param cp Associated Cloud Provider.
+     * @param requestID Request Id.
+     */
     public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks,
             CloudProvider cp, String requestID) {
 
@@ -42,26 +50,66 @@ public class ResourceCreationRequest {
         this.requestID = requestID;
     }
 
+    /**
+     * Returns the requested time.
+     * 
+     * @return The requested time.
+     */
     public long getRequestedTime() {
         return this.requestedTime;
     }
 
-    public int[][] requestedSimultaneousTaskCount() {
-        return this.requestedSimultaneousTaskCount;
-    }
-
-    public void updateRequestedSimultaneousTaskCount(int[][] newRequestedSimultaneousTaskCount) {
-        this.requestedSimultaneousTaskCount = newRequestedSimultaneousTaskCount;
-    }
-
+    /**
+     * Returns the requested resource description.
+     * 
+     * @return The requested resource description.
+     */
     public CloudMethodResourceDescription getRequested() {
         return this.requested;
     }
 
+    /**
+     * Returns the associated Cloud Provider.
+     * 
+     * @return The associated Cloud Provider.
+     */
     public CloudProvider getProvider() {
         return this.provider;
     }
 
+    /**
+     * Returns the request Id.
+     * 
+     * @return The request Id.
+     */
+    public String getRequestID() {
+        return this.requestID;
+    }
+
+    /**
+     * Returns the requested simultaneous task count.
+     * 
+     * @return The requested simultaneous task count.
+     */
+    public int[][] requestedSimultaneousTaskCount() {
+        return this.requestedSimultaneousTaskCount;
+    }
+
+    /**
+     * Updates the simultaneous task count.
+     * 
+     * @param newRequestedSimultaneousTaskCount New simultaneous task count.
+     */
+    public void updateRequestedSimultaneousTaskCount(int[][] newRequestedSimultaneousTaskCount) {
+        this.requestedSimultaneousTaskCount = newRequestedSimultaneousTaskCount;
+    }
+
+    /**
+     * Dumps the request information into the given logger.
+     * 
+     * @param resourcesLogger Logger where to dump the information.
+     * @param debug Whether the debug flag is enabled or not.
+     */
     public void print(Logger resourcesLogger, boolean debug) {
         StringBuilder compositionString = new StringBuilder();
         for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : this.getRequested().getTypeComposition()
@@ -88,10 +136,6 @@ public class ResourceCreationRequest {
             sb.append("]");
             resourcesLogger.debug(sb.toString());
         }
-    }
-
-    public String getRequestID() {
-        return this.requestID;
     }
 
 }

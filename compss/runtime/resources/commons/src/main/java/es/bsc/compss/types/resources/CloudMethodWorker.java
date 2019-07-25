@@ -31,6 +31,19 @@ public class CloudMethodWorker extends DynamicMethodWorker {
     private final CloudProvider provider;
 
 
+    /**
+     * Creates a new CloudMethodWorker instance.
+     * 
+     * @param name Worker name.
+     * @param provider Associated Cloud Provider.
+     * @param description Worker description.
+     * @param worker COMPSs worker.
+     * @param limitOfTasks Limit of CPU tasks.
+     * @param limitGPUTasks Limit of GPU tasks.
+     * @param limitFPGATasks Limit of FPGA tasks.
+     * @param limitOTHERTasks Limit of OTHER tasks.
+     * @param sharedDisks Mounted shared disks.
+     */
     public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description,
             COMPSsWorker worker, int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
             Map<String, String> sharedDisks) {
@@ -39,6 +52,15 @@ public class CloudMethodWorker extends DynamicMethodWorker {
         this.provider = provider;
     }
 
+    /**
+     * Creates a new CloudMethodWorker instance.
+     * 
+     * @param name Worker name.
+     * @param provider Associated Cloud Provider.
+     * @param description Worker description.
+     * @param config Worker configuration.
+     * @param sharedDisks Mounted shared disks.
+     */
     public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description,
             MethodConfiguration config, Map<String, String> sharedDisks) {
 
@@ -52,13 +74,23 @@ public class CloudMethodWorker extends DynamicMethodWorker {
 
     }
 
+    /**
+     * Clones the given CloudMethodWorker.
+     * 
+     * @param cmw CloudMethodWorker to clone.
+     */
     public CloudMethodWorker(CloudMethodWorker cmw) {
         super(cmw);
         this.provider = cmw.provider;
     }
 
+    /**
+     * Returns the associated provider.
+     * 
+     * @return The associated provider.
+     */
     public CloudProvider getProvider() {
-        return provider;
+        return this.provider;
     }
 
     @Override
@@ -71,13 +103,13 @@ public class CloudMethodWorker extends DynamicMethodWorker {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append(super.getMonitoringData(prefix));
 
-        String providerName = provider.getName();
+        String providerName = this.provider.getName();
         if (providerName == null) {
             providerName = "";
         }
         sb.append(prefix).append("<Provider>").append(providerName).append("</Provider>").append("\n");
 
-        CloudImageDescription image = ((CloudMethodResourceDescription) description).getImage();
+        CloudImageDescription image = ((CloudMethodResourceDescription) this.description).getImage();
         String imageName = "";
         if (image != null) {
             imageName = image.getImageName();

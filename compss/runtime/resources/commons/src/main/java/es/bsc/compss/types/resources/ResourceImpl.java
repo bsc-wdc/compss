@@ -61,7 +61,7 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
-    // Log and debug
+    // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
     public static final boolean DEBUG = LOGGER.isDebugEnabled();
 
@@ -72,6 +72,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     private final List<LogicalData> obsoletes = new LinkedList<>();
     private final Set<LogicalData> privateFiles = new HashSet<>();
 
+
+    /**
+     * Creates a new ResourceImplementation instance.
+     * 
+     * @param name Resource name.
+     * @param conf Resource configuration.
+     * @param sharedDisks Mounted shared disks.
+     */
     public ResourceImpl(String name, Configuration conf, Map<String, String> sharedDisks) {
         this.name = name;
         this.node = Comm.initWorker(conf);
@@ -80,6 +88,12 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         ResourcesPool.add(this);
     }
 
+    /**
+     * Creates a new ResourceImplementation instance.
+     * 
+     * @param node COMPSs node.
+     * @param sharedDisks Mounter shared disks.
+     */
     public ResourceImpl(COMPSsNode node, Map<String, String> sharedDisks) {
         this.name = node.getName();
         this.node = node;
@@ -88,30 +102,27 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         ResourcesPool.add(this);
     }
 
+    /**
+     * Clones the given ResourceImpl.
+     * 
+     * @param clone ResourceImpl to clone.
+     */
     public ResourceImpl(ResourceImpl clone) {
-        name = clone.name;
-        node = clone.node;
+        this.name = clone.name;
+        this.node = clone.node;
         ResourcesPool.add(this);
     }
 
-    /**
-     * Starts a resource execution
-     */
     @Override
     public void start() throws InitNodeException {
         this.node.start();
-        if (sharedDisks != null) {
-            for (Entry<String, String> disk : sharedDisks.entrySet()) {
+        if (this.sharedDisks != null) {
+            for (Entry<String, String> disk : this.sharedDisks.entrySet()) {
                 SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), this);
             }
         }
     }
 
-    /**
-     * Returns all the LogicalData stored in the host
-     *
-     * @return
-     */
     @Override
     public Set<LogicalData> getAllDataFromHost() {
         Set<LogicalData> data = new HashSet<>();
@@ -126,40 +137,30 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
             }
         }
 
-        synchronized (privateFiles) {
-            data.addAll(privateFiles);
+        synchronized (this.privateFiles) {
+            data.addAll(this.privateFiles);
         }
 
         return data;
     }
 
-    /**
-     * Adds a new LogicalData available in the host
-     *
-     * @param ld
-     */
     @Override
     public void addLogicalData(LogicalData ld) {
-        synchronized (privateFiles) {
-            privateFiles.add(ld);
+        synchronized (this.privateFiles) {
+            this.privateFiles.add(ld);
         }
     }
 
-    /**
-     * Marks a file as obsolete
-     *
-     * @param obsolete
-     */
     @Override
     public final void addObsolete(LogicalData obsolete) {
         if (getType() == ResourceType.WORKER) {
-            synchronized (obsoletes) {
-                obsoletes.add(obsolete);
+            synchronized (this.obsoletes) {
+                this.obsoletes.add(obsolete);
             }
         }
 
         // Remove from private files
-        synchronized (privateFiles) {
+        synchronized (this.privateFiles) {
             this.privateFiles.remove(obsolete);
         }
 
@@ -171,49 +172,44 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     }
 
-    /**
-     * Gets the list of obsolete files
-     *
-     * @return List of logicalData objects
-     */
     @Override
     public final LogicalData[] pollObsoletes() {
-        synchronized (obsoletes) {
-            LogicalData[] obs = obsoletes.toArray(new LogicalData[obsoletes.size()]);
-            obsoletes.clear();
+        synchronized (this.obsoletes) {
+            LogicalData[] obs = this.obsoletes.toArray(new LogicalData[this.obsoletes.size()]);
+            this.obsoletes.clear();
             return obs;
         }
     }
 
     /**
-     * Clears the list of obsolete files
+     * Clears the list of obsolete files.
      */
     public final void clearObsoletes() {
-        synchronized (obsoletes) {
-            obsoletes.clear();
+        synchronized (this.obsoletes) {
+            this.obsoletes.clear();
         }
     }
 
     @Override
     public String getName() {
-        return name;
+        return this.name;
     }
 
     @Override
     public COMPSsNode getNode() {
-        return node;
+        return this.node;
     }
 
     @Override
     public void setInternalURI(MultiURI u) throws UnstartedNodeException {
-        node.setInternalURI(u);
+        this.node.setInternalURI(u);
     }
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
             List<String> slaveWorkersNodeNames, JobListener listener) {
 
-        return node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
+        return this.node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
     }
 
     @Override
@@ -241,6 +237,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     @Override
     public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
             EventListener listener) {
+
         LogicalData ld = Comm.getData(dataId);
         this.getData(ld, newName, tgtData, reason, listener);
     }
@@ -248,6 +245,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     @Override
     public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
             EventListener listener) {
+
         if (reason.getType() == DataType.BINDING_OBJECT_T) {
             if (ld.getValue() == null) {
                 LOGGER.warn("[Resource] Getting data: " + newName
@@ -259,7 +257,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
                 newName = newName + "#" + bo.getType() + "#" + bo.getElements();
             }
         }
-        SimpleURI workingPath = node.getCompletePath(reason.getType(), newName);
+        SimpleURI workingPath = this.node.getCompletePath(reason.getType(), newName);
         DataLocation target = null;
         try {
             target = DataLocation.createLocation(this, workingPath);
@@ -293,31 +291,20 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     @Override
     public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        node.obtainData(srcData, null, target, tgtData, reason, listener);
+
+        this.node.obtainData(srcData, null, target, tgtData, reason, listener);
     }
 
     @Override
     public void enforceDataObtaning(Transferable t, EventListener listener) {
-        node.enforceDataObtaining(t, listener);
+        this.node.enforceDataObtaining(t, listener);
     }
 
-    /**
-     * Returns the complete remote path of a given data
-     *
-     * @param type
-     * @param name
-     * @return
-     */
     @Override
     public SimpleURI getCompleteRemotePath(DataType type, String name) {
-        return node.getCompletePath(type, name);
+        return this.node.getCompletePath(type, name);
     }
 
-    /**
-     * Retrieves all the data from the Resource
-     *
-     * @param saveUniqueData
-     */
     @Override
     public void retrieveData(boolean saveUniqueData) {
         if (DEBUG) {
@@ -383,7 +370,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
             shutdownExecutionManager();
 
             if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
-                if (node.generatePackage()) {
+                if (this.node.generatePackage()) {
                     getTracingPackageToMaster();
                     if (DEBUG) {
                         LOGGER.debug("Tracing package obtained for " + this.getName());
@@ -392,7 +379,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
             }
 
             if (DEBUG) {
-                if (node.generateWorkersDebugInfo()) {
+                if (this.node.generateWorkersDebugInfo()) {
                     getWorkersDebugInfo();
                     LOGGER.debug("Workers Debug files obtained for " + this.getName());
                 }
@@ -402,14 +389,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     @Override
     public void deleteIntermediate() {
-        node.deleteTemporary();
+        this.node.deleteTemporary();
     }
 
     @Override
     public void stop(ShutdownListener sl) {
         this.deleteIntermediate();
         sl.addOperation();
-        node.stop(sl);
+        this.node.stop(sl);
     }
 
     /**
@@ -424,7 +411,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         ExecutorShutdownListener executorShutdownListener = new ExecutorShutdownListener(sem);
 
         executorShutdownListener.addOperation();
-        node.shutdownExecutionManager(executorShutdownListener);
+        this.node.shutdownExecutionManager(executorShutdownListener);
         executorShutdownListener.enable();
         if (DEBUG) {
             LOGGER.debug("Waiting for shutting down the execution manager of " + this.getName());
@@ -439,11 +426,13 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         }
     }
 
+    /**
+     * Retrieves the tracing package to the master.
+     */
     private void getTracingPackageToMaster() {
-        COMPSsNode masterNode = Comm.getAppHost().getNode();
         Semaphore sem = new Semaphore(0);
         String fileName = getName() + "_compss_trace.tar.gz";
-        SimpleURI fileOriginURI = node.getCompletePath(DataType.FILE_T, fileName);
+        SimpleURI fileOriginURI = this.node.getCompletePath(DataType.FILE_T, fileName);
 
         if (DEBUG) {
             LOGGER.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : "
@@ -476,6 +465,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         }
 
         // Ask for data
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
         masterNode.obtainData(new LogicalData("tracing" + this.getName()), source, tgt,
                 new LogicalData("tracing" + this.getName()), new TracingCopyTransferable(), tracingListener);
 
@@ -500,19 +490,21 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         }
     }
 
+    /**
+     * Retrieves the worker debug files.
+     */
     private void getWorkersDebugInfo() {
         if (DEBUG) {
             LOGGER.debug("Copying Workers Information");
         }
 
-        COMPSsNode masterNode = Comm.getAppHost().getNode();
         Semaphore sem = new Semaphore(0);
         WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
 
         // Get Worker output
         wdil.addOperation();
         String outFileName = "worker_" + getName() + ".out";
-        SimpleURI outFileOrigin = node.getCompletePath(DataType.FILE_T,
+        SimpleURI outFileOrigin = this.node.getCompletePath(DataType.FILE_T,
                 "log" + File.separator + "static_" + outFileName);
         String outFileTarget = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath()
                 + File.separator + outFileName;
@@ -534,13 +526,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
         LOGGER.debug("- Source: " + outFileOrigin);
         LOGGER.debug("- Target: " + outFileTarget);
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
         masterNode.obtainData(new LogicalData("workerOut" + this.getName()), outSource, outTarget,
                 new LogicalData("workerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Get Worker error
         wdil.addOperation();
         String errFileName = "worker_" + getName() + ".err";
-        SimpleURI errFileOrigin = node.getCompletePath(DataType.FILE_T,
+        SimpleURI errFileOrigin = this.node.getCompletePath(DataType.FILE_T,
                 "log" + File.separator + "static_" + errFileName);
         String errFileTarget = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath()
                 + File.separator + errFileName;

@@ -684,7 +684,7 @@ public class TaskAnalyser {
             }
         }
     }
-    
+
     /**
      * Releases the commutative groups dependencies.
      *
@@ -1317,7 +1317,11 @@ public class TaskAnalyser {
         switch (dp.getType()) {
             case STREAM_T:
             case EXTERNAL_STREAM_T:
-                addStreamEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+                if (lastWriter != null) {
+                    addStreamEdgeFromTaskToTask(lastWriter, currentTask, dataId, dataVersion);
+                } else {
+                    addStreamEdgeFromMainToTask(currentTask, dataId, dataVersion);
+                }
                 break;
             default:
                 if (lastWriter != null && lastWriter != currentTask) {
@@ -1561,6 +1565,21 @@ public class TaskAnalyser {
         String dst = String.valueOf(dest.getId());
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
         this.gm.addEdgeToGraph(src, dst, EdgeType.DATA_DEPENDENCY, dep);
+    }
+
+    /**
+     * We will execute a task with no predecessors, data must be retrieved from the last synchronization point. STEPS:
+     * Add stream edge from sync to task
+     *
+     * @param dest Destination task.
+     * @param dataId Data causing the dependency.
+     * @param dataVersion Data version.
+     */
+    private void addStreamEdgeFromMainToTask(Task dest, int dataId, int dataVersion) {
+        String src = "Synchro" + dest.getSynchronizationId();
+        String dst = String.valueOf(dest.getId());
+        String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
+        this.gm.addEdgeToGraph(src, dst, EdgeType.STREAM_DEPENDENCY, dep);
     }
 
     /**

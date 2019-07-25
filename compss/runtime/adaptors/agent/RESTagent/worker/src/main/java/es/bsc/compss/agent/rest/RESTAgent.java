@@ -60,7 +60,6 @@ import org.json.JSONObject;
 
 /**
  * Class providing a REST Interface for the COMPSs Agent.
- * 
  */
 @Path("/COMPSs")
 public class RESTAgent implements AgentInterface<RESTAgentConf> {
@@ -70,6 +69,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
     private int port;
     private Server server = null;
+
 
     @Override
     public RESTAgentConf configure(final JSONObject confJSON) throws AgentException {
@@ -145,7 +145,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     @Path("addResources/")
     @Consumes(MediaType.APPLICATION_XML)
     public Response addResource(IncreaseNodeNotification nodeRequest) {
-        Resource r = nodeRequest.getResource();
+        Resource<?, ?> r = nodeRequest.getResource();
         // Updating processors
         MethodResourceDescription description = r.getDescription();
         List<Processor> procs = description.getProcessors();
@@ -244,26 +244,21 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     }
 
     private static Response runMain(StartApplicationRequest request) {
-        String serviceInstanceId = request.getServiceInstanceId();
+        // String serviceInstanceId = request.getServiceInstanceId();
         String ceiClass = request.getCeiClass();
 
         String className = request.getClassName();
         String methodName = request.getMethodName();
         ApplicationParameter[] params = request.getParams();
         /*
-        Object[] params;
-        try {
-            params = request.getParamsValuesContent();
-        } catch (Exception cnfe) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Could not recover an input parameter value. " + cnfe.getLocalizedMessage()).build();
-        }
+         * Object[] params; try { params = request.getParamsValuesContent(); } catch (Exception cnfe) { return
+         * Response.status(Response.Status.INTERNAL_SERVER_ERROR) .entity("Could not recover an input parameter value. "
+         * + cnfe.getLocalizedMessage()).build(); }
          */
         AppMainMonitor monitor = new AppMainMonitor();
         long appId;
         try {
-            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName,
-                    params, null, new ApplicationParameter[0],
+            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
                     monitor);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
@@ -297,8 +292,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         AppTaskMonitor monitor = new AppTaskMonitor(numParams, orchestrator);
 
         try {
-            appId = Agent.runTask(Lang.JAVA, className, methodName,
-                    arguments, target, results,
+            appId = Agent.runTask(Lang.JAVA, className, methodName, arguments, target, results,
                     MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
@@ -329,7 +323,6 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
      * Main method of the application starting a REST service.
      *
      * @param args Arguments to configuring the REST service. Position 0: port.
-     *
      * @throws Exception Error starting the REST Agent
      */
     public static void main(String[] args) throws Exception {

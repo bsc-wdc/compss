@@ -29,29 +29,23 @@ public class RESTResource {
     /**
      * Constructs a new RESTResource instance for the resources on the node with name {@code name}.
      *
-     * @param name        name of the node.
-     * @param description description of the resources of the node.
-     * @param adaptor     adaptor to interact with such node.
-     * @param pConf       configuration values related to the project file.
-     * @param rConf       confinguration values related to the resources file.
-     *
-     * @return RESTResource instance constructed with the values passed in as parameter.
+     * @param name Name of the node.
+     * @param description Description of the resources of the node.
+     * @param adaptor Adaptor to interact with such node.
+     * @param pConf Configuration values related to the project file.
+     * @param rConf Configuration values related to the resources file.
+     * @return RESTResource Instance constructed with the values passed in as parameter.
      */
-    public static final Resource createResource(String name, MethodResourceDescription description, String adaptor,
-            Object pConf, Object rConf) {
+    public static final Resource<?, ?> createResource(String name, MethodResourceDescription description,
+            String adaptor, Object pConf, Object rConf) {
+
         switch (adaptor) {
             case "es.bsc.compss.nio.master.NIOAdaptor":
-                return new NIOAdaptorResource(
-                        name,
-                        description,
+                return new NIOAdaptorResource(name, description,
                         (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) pConf,
-                        (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) rConf
-                );
+                        (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) rConf);
             default:
-                return new ExternalAdaptorResource(
-                        name,
-                        description,
-                        adaptor,
+                return new ExternalAdaptorResource(name, description, adaptor,
                         (es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties) pConf,
                         (es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties) rConf);
         }
@@ -59,6 +53,7 @@ public class RESTResource {
     }
 
     private RESTResource() {
+        // Private constructor to avoid instantiation.
     }
 
 }

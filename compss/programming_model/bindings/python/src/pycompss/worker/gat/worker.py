@@ -29,10 +29,10 @@ import logging
 import os
 import sys
 
-from pycompss.worker.commons.worker_constants import *
+from pycompss.worker.commons.constants import *
 from pycompss.runtime.commons import IS_PYTHON3
-from pycompss.util.logs import init_logging_worker
-from pycompss.worker.commons.worker_commons import execute_task
+from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.worker.commons.worker import execute_task
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
 

@@ -30,12 +30,12 @@ import signal
 import logging
 from multiprocessing import Process
 from multiprocessing import Queue
-from pycompss.util.logs import init_logging_worker
-from pycompss.worker.commons.worker_constants import *
-from pycompss.worker.piper.commons.pipe_constants import *
-from pycompss.worker.piper.commons.pipe_executor import Pipe
-from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
-from pycompss.worker.piper.commons.pipe_executor import executor
+from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.worker.commons.constants import *
+from pycompss.worker.piper.commons.constants import *
+from pycompss.worker.piper.commons.executor import Pipe
+from pycompss.worker.piper.commons.executor import ExecutorConf
+from pycompss.worker.piper.commons.executor import executor
 import pycompss.util.context as context
 
 # Persistent worker global variables

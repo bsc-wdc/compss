@@ -31,11 +31,11 @@ import os
 import sys
 from mpi4py import MPI
 
-from pycompss.util.logs import init_logging_worker
-from pycompss.worker.piper.commons.pipe_constants import EXECUTE_TASK_TAG
-from pycompss.worker.piper.commons.pipe_constants import END_TASK_TAG
-from pycompss.worker.commons.executor_commons import build_return_params_message
-from pycompss.worker.commons.worker_commons import execute_task
+from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
+from pycompss.worker.piper.commons.constants import END_TASK_TAG
+from pycompss.worker.commons.executor import build_return_params_message
+from pycompss.worker.commons.worker import execute_task
 
 
 def shutdown_handler(signal, frame):

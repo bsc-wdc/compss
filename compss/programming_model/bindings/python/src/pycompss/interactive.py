@@ -31,21 +31,21 @@ import time
 
 import pycompss.util.context as context
 import pycompss.runtime.binding as binding
-import pycompss.util.interactive_helpers as interactive_helpers
+import pycompss.util.interactive.helpers as interactive_helpers
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.binding import pending_to_synchronize
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.launcher import prepare_environment
-from pycompss.util.launcher import prepare_loglevel_graph_for_monitoring
-from pycompss.util.launcher import updated_variables_in_sc
-from pycompss.util.launcher import prepare_tracing_environment
-from pycompss.util.launcher import check_infrastructure_variables
-from pycompss.util.launcher import create_init_config_file
-from pycompss.util.launcher import setup_logger
+from pycompss.util.environment.configuration import prepare_environment
+from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring
+from pycompss.util.environment.configuration import updated_variables_in_sc
+from pycompss.util.environment.configuration import prepare_tracing_environment
+from pycompss.util.environment.configuration import check_infrastructure_variables
+from pycompss.util.environment.configuration import create_init_config_file
+from pycompss.util.environment.configuration import setup_logger
 
 # Storage imports
-from pycompss.util.persistent_storage import init_storage
-from pycompss.util.persistent_storage import stop_storage
+from pycompss.util.storage.persistent import init_storage
+from pycompss.util.storage.persistent import stop_storage
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming

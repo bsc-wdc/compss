@@ -53,7 +53,7 @@ def show_optional_module_warnings():
 
     :return: None
     """
-    from pycompss.util.object_properties import is_module_available
+    from pycompss.util.objects.properties import is_module_available
     for (name, description) in OPTIONAL_MODULES.items():
         if not is_module_available(name):
             print(get_optional_module_warning(name, description))

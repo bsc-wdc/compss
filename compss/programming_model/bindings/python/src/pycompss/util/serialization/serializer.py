@@ -49,7 +49,7 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.serialization.extended_support import pickle_generator
 from pycompss.util.serialization.extended_support import convert_to_generator
 from pycompss.util.serialization.extended_support import GeneratorIndicator
-from .object_properties import object_belongs_to_module
+from pycompss.util.objects.properties import object_belongs_to_module
 
 from io import BytesIO
 

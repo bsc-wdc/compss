@@ -32,13 +32,13 @@ import sys
 import time
 import thread_affinity
 
-from pycompss.worker.piper.commons.pipe_constants import EXECUTE_TASK_TAG
-from pycompss.worker.piper.commons.pipe_constants import END_TASK_TAG
-from pycompss.worker.piper.commons.pipe_constants import COMPSS_EXCEPTION_TAG
-from pycompss.worker.piper.commons.pipe_constants import PING_TAG
-from pycompss.worker.piper.commons.pipe_constants import PONG_TAG
-from pycompss.worker.piper.commons.pipe_constants import QUIT_TAG
-from pycompss.worker.commons.executor_commons import build_return_params_message
+from pycompss.worker.piper.commons.constants import EXECUTE_TASK_TAG
+from pycompss.worker.piper.commons.constants import END_TASK_TAG
+from pycompss.worker.piper.commons.constants import COMPSS_EXCEPTION_TAG
+from pycompss.worker.piper.commons.constants import PING_TAG
+from pycompss.worker.piper.commons.constants import PONG_TAG
+from pycompss.worker.piper.commons.constants import QUIT_TAG
+from pycompss.worker.commons.executor import build_return_params_message
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
 
@@ -378,7 +378,7 @@ def process_task(current_line, process_name, pipe, queue, tracing,
                 logger.debug("\t - Number of threads: %s" % (str(cu)))
 
             # Execute task
-            from pycompss.worker.commons.worker_commons import execute_task
+            from pycompss.worker.commons.worker import execute_task
             exit_value, new_types, new_values, timed_out, exception_message = execute_task(process_name,
                                                                                            storage_conf,
                                                                                            current_line[9:],

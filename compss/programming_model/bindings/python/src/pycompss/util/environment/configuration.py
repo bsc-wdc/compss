@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs Util - configurators
-=========================
+=============================
     This file contains the configurator methods.
     Currently it is used by interactive.py and launch.py
 """
@@ -29,16 +29,16 @@ import sys
 import logging
 from tempfile import mkstemp
 import pycompss.runtime.binding as binding
-from pycompss.util.scs import get_master_node
-from pycompss.util.scs import get_master_port
-from pycompss.util.scs import get_xmls
-from pycompss.util.scs import get_uuid
-from pycompss.util.scs import get_base_log_dir
-from pycompss.util.scs import get_specific_log_dir
-from pycompss.util.scs import get_log_level
-from pycompss.util.scs import get_tracing
-from pycompss.util.scs import get_storage_conf
-from pycompss.util.logs import init_logging
+from pycompss.util.supercomputer.scs import get_master_node
+from pycompss.util.supercomputer.scs import get_master_port
+from pycompss.util.supercomputer.scs import get_xmls
+from pycompss.util.supercomputer.scs import get_uuid
+from pycompss.util.supercomputer.scs import get_base_log_dir
+from pycompss.util.supercomputer.scs import get_specific_log_dir
+from pycompss.util.supercomputer.scs import get_log_level
+from pycompss.util.supercomputer.scs import get_tracing
+from pycompss.util.supercomputer.scs import get_storage_conf
+from pycompss.util.logger.helpers import init_logging
 
 
 def prepare_environment(interactive, o_c, storage_impl,
@@ -60,9 +60,9 @@ def prepare_environment(interactive, o_c, storage_impl,
 
     compss_home = ''
     if interactive:
-        # compss_home = launch_path without the last 5 folders:
-        # (Bindings/python/version/pycompss/util)
-        compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-5])
+        # compss_home = launch_path without the last 6 folders:
+        # (Bindings/python/version/pycompss/util/environment)
+        compss_home = os.path.sep.join(launch_path.split(os.path.sep)[:-6])
     os.environ['COMPSS_HOME'] = compss_home
 
     # Grab the existing PYTHONPATH, CLASSPATH and LD_LIBRARY_PATH environment

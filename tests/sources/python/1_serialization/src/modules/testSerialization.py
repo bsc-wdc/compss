@@ -12,7 +12,7 @@ import unittest
 import tempfile
 import numpy as np
 
-from pycompss.util.serializer import deserialize_from_file, serialize_to_file
+from pycompss.util.serialization.serializer import deserialize_from_file, serialize_to_file
 
 
 class testSerialization(unittest.TestCase):

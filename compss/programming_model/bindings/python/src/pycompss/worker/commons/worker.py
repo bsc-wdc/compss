@@ -30,13 +30,13 @@ from pycompss.api.parameter import TaskParameter
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.util.serializer import deserialize_from_string
-from pycompss.util.serializer import deserialize_from_file
-from pycompss.util.serializer import serialize_to_file
-from pycompss.util.serializer import SerializerException
-from pycompss.util.persistent_storage import storage_task_context
-from pycompss.util.persistent_storage import is_psco
-from pycompss.util.persistent_storage import get_by_id
+from pycompss.util.serialization.serializer import deserialize_from_string
+from pycompss.util.serialization.serializer import deserialize_from_file
+from pycompss.util.serialization.serializer import serialize_to_file
+from pycompss.util.serialization.serializer import SerializerException
+from pycompss.util.storage.persistent import storage_task_context
+from pycompss.util.storage.persistent import is_psco
+from pycompss.util.storage.persistent import get_by_id
 import pycompss.api.parameter as parameter
 
 

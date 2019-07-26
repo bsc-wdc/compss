@@ -17,6 +17,13 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs Utils - Supercomputer helpers
+======================================
+    This file contains the methods used within Supercomputers.
+    They are used when running a notebook in interactive mode within a SC.
+"""
+
 import os
 import subprocess
 
@@ -25,11 +32,13 @@ def get_reservation_nodes():
     """
     Get the nodes that belong to the current reservation.
     Currently only supports SLURM queuing system
+
     :return: List of nodes
     """
     nodes = os.environ['SLURM_JOB_NODELIST']
     expander_command = 'scontrol show hostname ' + nodes
-    # Get the list of nodes that belong to the reservation (for the future project and resources xml creation)
+    # Get the list of nodes that belong to the reservation
+    # (for the future project and resources xml creation)
     nodes = subprocess.check_output(expander_command.split(' ')).split()
     return nodes
 
@@ -37,7 +46,9 @@ def get_reservation_nodes():
 def get_master_node():
     """
     Get the master node.
-    TIP: The environment variable COMPSS_MASTER_NODE is defined in launch_compss script.
+    TIP: The environment variable COMPSS_MASTER_NODE is defined in the
+         launch_compss script.
+
     :return: Master node
     """
     return os.environ['COMPSS_MASTER_NODE']
@@ -46,7 +57,9 @@ def get_master_node():
 def get_master_port():
     """
     Get the master port.
-    TIP: The environment variable COMPSS_MASTER_PORT is defined in launch_compss script.
+    TIP: The environment variable COMPSS_MASTER_PORT is defined in the
+         launch_compss script.
+
     :return: Master port
     """
     return os.environ['COMPSS_MASTER_PORT']
@@ -55,7 +68,9 @@ def get_master_port():
 def get_worker_nodes():
     """
     Get the worker nodes.
-    TIP: The environment variable COMPSS_WORKER_NODES is defined in launch_compss script.
+    TIP: The environment variable COMPSS_WORKER_NODES is defined in the
+         launch_compss script.
+
     :return: List of worker nodes
     """
     return os.environ['COMPSS_WORKER_NODES']
@@ -63,7 +78,9 @@ def get_worker_nodes():
 
 def get_xmls():
     """
-    Get the project and resources from the environment variable exported from the submit_jupyter_job.sh
+    Get the project and resources from the environment variable exported
+    from the submit_jupyter_job.sh
+
     :return: the project and resources paths
     """
     project = os.environ['COMPSS_PROJECT_XML']
@@ -74,7 +91,9 @@ def get_xmls():
 def get_uuid():
     """
     Get UUID.
-    TIP: The environment variable COMPSS_UUID is defined in launch_compss script.
+    TIP: The environment variable COMPSS_UUID is defined in the
+         launch_compss script.
+
     :return: UUID
     """
     return os.environ['COMPSS_UUID']
@@ -83,7 +102,9 @@ def get_uuid():
 def get_base_log_dir():
     """
     Get base log dir.
-    TIP: The environment variable COMPSS_BASE_LOG_DIR is defined in launch_compss script.
+    TIP: The environment variable COMPSS_BASE_LOG_DIR is defined in the
+         launch_compss script.
+
     :return: Base log dir
     """
     return os.environ['COMPSS_BASE_LOG_DIR']
@@ -92,7 +113,9 @@ def get_base_log_dir():
 def get_specific_log_dir():
     """
     Get specific log dir.
-    TIP: The environment variable COMPSS_SPECIFIC_LOG_DIR is defined in launch_compss script.
+    TIP: The environment variable COMPSS_SPECIFIC_LOG_DIR is defined in the
+         launch_compss script.
+
     :return: Specific log dir
     """
     return os.environ['COMPSS_SPECIFIC_LOG_DIR']
@@ -101,7 +124,9 @@ def get_specific_log_dir():
 def get_log_level():
     """
     Get log level.
-    TIP: The environment variable COMPSS_LOG_LEVEL is defined in launch_compss script.
+    TIP: The environment variable COMPSS_LOG_LEVEL is defined in the
+         launch_compss script.
+
     :return: Log level
     """
     return os.environ['COMPSS_LOG_LEVEL']
@@ -110,7 +135,9 @@ def get_log_level():
 def get_tracing():
     """
     Get tracing boolean.
-    TIP: The environment variable COMPSS_TRACING is defined in launch_compss script.
+    TIP: The environment variable COMPSS_TRACING is defined in the
+         launch_compss script.
+
     :return: Tracing boolean
     """
     return 'true' == os.environ['COMPSS_TRACING']
@@ -119,7 +146,9 @@ def get_tracing():
 def get_storage_conf():
     """
     Get storage configuration file.
-    TIP: The environment variable COMPSS_STORAGE_CONF is defined in launch_compss script.
+    TIP: The environment variable COMPSS_STORAGE_CONF is defined in the
+         launch_compss script.
+
     :return: Storage configuration file path
     """
     return os.environ['COMPSS_STORAGE_CONF']
@@ -129,7 +158,9 @@ def generate_xmls(compss_home, nodes, master_port):
     """
     Generate project and resources xmls.
     This function should be used only within supercomputers
-    WARNING: The configuration assumes that the first node is the master and the rest are workers.
+    WARNING: The configuration assumes that the first node is the master and
+             the rest are workers.
+
     :param compss_home: COMPSs home path
     :param nodes: List of nodes
     :param master_port: Master port

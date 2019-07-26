@@ -18,18 +18,24 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils: Object properties.
-
-Offers some functions that check properties about objects.
-For example, check if an object belongs to a module and so on.
-
+PyCOMPSs Util - Object properties
+=================================
+    Offers some functions that check properties about objects.
+    For example, check if an object belongs to a module and so on.
 """
 
+import os
 import imp
+import inspect
+
 
 def get_defining_class(meth):
-    '''Given a method'''
-    import inspect
+    """
+    Given a method
+
+    :param meth: Method to check its defining class
+    :return: Class which meth belongs
+    """
     if inspect.ismethod(meth):
         for cls in inspect.getmro(meth.__self__.__class__):
             if cls.__dict__.get(meth.__name__) is meth:
@@ -39,19 +45,22 @@ def get_defining_class(meth):
                        meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
     return None  # not required since None would have been implicitly returned anyway
 
+
 def get_module_name(path, file_name):
-    '''Get the module name considering its path and filename.
+    """
+    Get the module name considering its path and filename.
 
     Example: runcompss -d src/kmeans.py
              path = "test/kmeans.py"
              file_name = "kmeans" (without py extension)
              return mod_name = "test.kmeans"
 
-    :param path: relative path until the file.py from where the runcompss has been executed
-    :param file_name: python file to be executed name (without the py extension)
+    :param path: relative path until the file.py from where the runcompss has
+                 been executed
+    :param file_name: python file to be executed name
+                      (without the py extension)
     :return: the module name
-    '''
-    import os
+    """
     dirs = path.split(os.path.sep)
     mod_name = file_name
     i = len(dirs) - 1
@@ -68,12 +77,15 @@ def get_module_name(path, file_name):
 
 
 def get_top_decorator(code, decorator_keys):
-    '''Retrieves the decorator which is on top of the current task decorators stack.
+    """
+    Retrieves the decorator which is on top of the current task decorators
+    stack.
 
-    :param code: Tuple which contains the task code to analyse and the number of lines of the code.
+    :param code: Tuple which contains the task code to analyse and the number
+                 of lines of the code.
     :param decorator_keys: Typle which contains the available decorator keys
     :return: the decorator name in the form "pycompss.api.__name__"
-    '''
+    """
     # Code has two fields:
     # code[0] = the entire function code.
     # code[1] = the number of lines of the function code.
@@ -90,19 +102,20 @@ def get_top_decorator(code, decorator_keys):
     # If no decorator is found, then the current decorator is the one to register
     return __name__
 
+
 def get_wrapped_source(f):
-    '''Gets the text of the source code for the given function.
+    """
+    Gets the text of the source code for the given function.
 
     :param f: Input function
     :return: Source
-    '''
+    """
 
     if hasattr(f, "__wrapped__"):
         # has __wrapped__, going deep
         return get_wrapped_source(f.__wrapped__)
     else:
         # Returning getsource
-        import inspect
         try:
             source = inspect.getsource(f)
         except TypeError:
@@ -111,31 +124,13 @@ def get_wrapped_source(f):
         return source
 
 
-
 def get_wrapped_sourcelines(f):
-    '''Gets a list of source lines and starting line number for the given function.
+    """
+    Gets a list of source lines and starting line number for the given function
+
     :param f: Input function
     :return: Source lines
-    '''
-    def _get_wrapped_sourcelines(f):
-        """
-        Gets a list of source lines and starting line number for the given function.
-
-        :param f: Input function
-        :return: Source lines
-        """
-        if hasattr(f, "__wrapped__"):
-            # has __wrapped__, going deep
-            return _get_wrapped_sourcelines(f.__wrapped__)
-        else:
-            # Returning getsourcelines
-            try:
-                sourcelines = inspect.getsourcelines(f)
-            except TypeError:
-                # This is a numba jit declared task
-                sourcelines = inspect.getsourcelines(f.py_func)
-            return sourcelines
-    import inspect
+    """
     if hasattr(f, '__wrapped__'):
         # has __wrapped__, apply the same function to the wrapped content
         return _get_wrapped_sourcelines(f.__wrapped__)
@@ -149,42 +144,60 @@ def get_wrapped_sourcelines(f):
         return sourcelines
 
 
+def _get_wrapped_sourcelines(f):
+    """
+    [PRIVATE] Recursive function which gets a list of source lines and starting
+    line number for the given function.
+
+    :param f: Input function
+    :return: Source lines
+    """
+    if hasattr(f, "__wrapped__"):
+        # has __wrapped__, going deep
+        return _get_wrapped_sourcelines(f.__wrapped__)
+    else:
+        # Returning getsourcelines
+        try:
+            sourcelines = inspect.getsourcelines(f)
+        except TypeError:
+            # This is a numba jit declared task
+            sourcelines = inspect.getsourcelines(f.py_func)
+        return sourcelines
+
 
 def is_module_available(module_name):
-    '''Checks if a module is available in the current Python installation.
+    """
+    Checks if a module is available in the current Python installation.
 
     :param module_name: Name of the module
     :return: Boolean -> True if the module is available, False otherwise
-    '''
+    """
     try:
         imp.find_module(module_name)
         return True
     except ImportError:
         return False
 
+
 def is_basic_iterable(obj):
-    '''Checks if an object is a basic iterable.
-    By basic iterable we want to mean objects that are iterable and from a basic type.
+    """
+    Checks if an object is a basic iterable. By basic iterable we want to
+    mean objects that are iterable and from a basic type.
 
     :param obj: Object to be analysed
-    :return: Boolean -> True if obj is a basic iterable (see list below), False otherwise
-    '''
+    :return: Boolean -> True if obj is a basic iterable (see list below),
+                        False otherwise
+    """
     return isinstance(obj, (list, tuple, bytearray, set, frozenset, dict))
 
+
 def object_belongs_to_module(obj, module_name):
-    '''Checks if a given object belongs to a given module (or some sub-module).
+    """
+    Checks if a given object belongs to a given module (or some sub-module).
 
     :param obj: Object to be analysed
     :param module_name: Name of the module we want to check
-    :return: Boolean -> True if obj belongs to the given module, False otherwise
-    '''
+    :return: Boolean -> True if obj belongs to the given module,
+                        False otherwise
+    """
     return any(module_name == x for x in type(obj).__module__.split('.'))
-
-def has_numpy_objects(obj):
-    '''Checks if the given object is a numpy object or some of its subojects are.
-
-    :param obj: An object
-    :return: Boolean -> True if obj is a numpy objects (or some of
-    its subobjects). False otherwise
-    '''
-    return has_subobjects_of_module(obj, 'numpy')

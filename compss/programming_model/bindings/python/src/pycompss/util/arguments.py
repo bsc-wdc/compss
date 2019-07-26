@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - arguments
+PyCOMPSs Util - Arguments
 ==========================
     This file contains the common methods to do any argument check
     or management.

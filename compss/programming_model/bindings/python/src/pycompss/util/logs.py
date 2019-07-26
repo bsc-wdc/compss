@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - logs
+PyCOMPSs Util - logs
 =====================
     This file contains all logging methods.
 """
@@ -40,7 +40,6 @@ def init_logging(log_config_file, log_path):
     :param log_path: Json log files path.
     :return: None
     """
-
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
@@ -63,7 +62,6 @@ def init_logging_worker(log_config_file):
     :param log_config_file: Log file name.
     :return: None
     """
-
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())

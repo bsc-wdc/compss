@@ -18,27 +18,28 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils: Data serializer/deserializer
-This file implements the main serialization/deserialization functions.
-All serialization/deserialization calls should be made using one of the
-following functions:
+PyCOMPSs Util - Data serializer/deserializer
+============================================
+    This file implements the main serialization/deserialization functions.
+    All serialization/deserialization calls should be made using one of the
+    following functions:
 
-- serialize_to_file(obj, file_name) -> dumps the object "obj" to the file
-                                       "file_name"
-- serialize_to_string(obj) -> dumps the object "obj" to a string
-- serialize_to_handler(obj, handler) -> writes the serialized object using the
-                                        specified handler it also moves the
-                                        handler's pointer to the end of the
-                                        dump
+    - serialize_to_file(obj, file_name) -> dumps the object "obj" to the file
+                                           "file_name"
+    - serialize_to_string(obj) -> dumps the object "obj" to a string
+    - serialize_to_handler(obj, handler) -> writes the serialized object using
+                                            the specified handler it also moves
+                                            the handler's pointer to the end of
+                                            the dump
 
-- deserialize_from_file(file_name) -> loads the first object from the tile
-                                      "file_name"
-- deserialize_from_string(serialized_content) -> loads the first object from
-                                                 the given string
-- deserialize_from_handler(handler) -> deserializes an object using the given
-                                       handler, it also leaves the handler's
-                                       pointer pointing to the end of the
-                                       serialized object
+    - deserialize_from_file(file_name) -> loads the first object from the tile
+                                          "file_name"
+    - deserialize_from_string(serialized_content) -> loads the first object
+                                                     from the given string
+    - deserialize_from_handler(handler) -> deserializes an object using the
+                                           given handler, it also leaves the
+                                           handler's pointer pointing to the
+                                           end of the serialized object
 """
 
 import types
@@ -88,7 +89,6 @@ class SerializerException(Exception):
     """
     Exception on serialization
     """
-
     pass
 
 
@@ -99,7 +99,6 @@ def get_serializer_priority(obj=()):
     :param obj: Object to be analysed.
     :return: <List> The serializers sorted by priority in descending order
     """
-
     if object_belongs_to_module(obj, 'numpy'):
         return [numpy, pickle, dill]
     return [pickle, dill]
@@ -112,7 +111,6 @@ def get_serializers():
 
     :return: <List> the available serializer modules
     """
-
     return get_serializer_priority()
 
 
@@ -124,7 +122,6 @@ def serialize_to_handler(obj, handler):
     :param handler: A handler object. It must implement methods like write,
                     writeline and similar stuff
     """
-
     # Get the serializer priority
     serializer_priority = get_serializer_priority(obj)
     i = 0
@@ -181,7 +178,6 @@ def serialize_to_file(obj, file_name):
     :param file_name: File name where the object is going to be serialized.
     :return: Nothing, it just serializes the object
     """
-
     handler = open(file_name, 'wb')
     serialize_to_handler(obj, handler)
     handler.close()
@@ -198,14 +194,13 @@ def serialize_to_file_multienv(obj, file_name, rank_zero_reduce):
      False for INOUT objects and True otherwise.
     :return: Nothing, it just serializes the object
     """
-
     from mpi4py import MPI
                        
     if rank_zero_reduce:
-       obj = MPI.COMM_WORLD.reduce([obj], root=0)
+        obj = MPI.COMM_WORLD.reduce([obj], root=0)
           
     if MPI.COMM_WORLD.rank == 0:
-       serialize_to_file(obj, file_name)
+        serialize_to_file(obj, file_name)
 
 
 def serialize_to_string(obj):
@@ -215,7 +210,6 @@ def serialize_to_string(obj):
     :param obj: Object to be serialized.
     :return: <String> the serialized content
     """
-
     handler = BytesIO()
     serialize_to_handler(obj, handler)
     ret = handler.getvalue()
@@ -232,7 +226,6 @@ def serialize_named_to_file(name, obj, file_name):
     :param file_name: Name of the file name
     :return: Nothing, it just serializes the named object
     """
-
     serialize_to_file((name, obj), file_name)
 
 
@@ -244,7 +237,6 @@ def serialize_named_to_string(name, obj):
     :param obj: Object to serialize
     :return: <String> the serialized content
     """
-
     return serialize_to_string((name, obj))
 
 
@@ -268,8 +260,8 @@ def deserialize_from_handler(handler):
                     deserialized.
     :return: The object deserialized.
     """
-
     # Retrieve the used library (if possible)
+    original_position = None
     try:
         original_position = handler.tell()
         serializer = idx2lib[int(handler.read(4))]
@@ -308,7 +300,6 @@ def deserialize_from_file(file_name):
     :param file_name: Name of the file with the contents to be deserialized
     :return: A deserialized object
     """
-
     handler = open(file_name, 'rb')
     ret = deserialize_from_handler(handler)
     handler.close()
@@ -322,7 +313,6 @@ def deserialize_from_string(serialized_content):
     :param serialized_content: A string with serialized contents
     :return: A deserialized object
     """
-
     handler = BytesIO(serialized_content)
     ret = deserialize_from_handler(handler)
     handler.close()
@@ -340,6 +330,5 @@ def serialize_objects(to_serialize):
                          pair of the form ['object','file name']
     :return: None
     """
-
     for obj_and_file in to_serialize:
         serialize_to_file(*obj_and_file)

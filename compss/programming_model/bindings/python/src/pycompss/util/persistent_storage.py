@@ -70,7 +70,6 @@ def is_psco(obj):
     :param obj: Object to check
     :return: <Boolean>
     """
-
     # Check from storage object requires a dummy storage object class
     # from storage.storage_object import storage_object
     # return issubclass(obj.__class__, storage_object) and get_id(obj) not in [None, 'None']
@@ -84,7 +83,6 @@ def has_id(obj):
     :param obj: Object to check
     :return: <Boolean>
     """
-
     if 'getID' in dir(obj):
         return True
     else:
@@ -98,7 +96,6 @@ def get_id(psco):
     :param psco: Persistent object
     :return: <String> Id
     """
-
     return psco.getID()
 
 
@@ -109,14 +106,14 @@ def get_by_id(id):
     :param id: Persistent object identifier
     :return: The object that corresponds to the id
     """
-
     return getByID(id)
 
 
 def init_storage(storage_conf, logger):
     """
     Initializes the persistent storage with the given storage configuration file.
-    The storage will be initialized if storage_conf is not None nor 'null'
+    The storage will be initialized if storage_conf is not None nor 'null'.
+
     :param storage_conf: Storage configuration file.
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
@@ -132,7 +129,8 @@ def init_storage(storage_conf, logger):
 
 def stop_storage():
     """
-    Stops the persistent storage
+    Stops the persistent storage.
+
     :return: None
     """
     finish()

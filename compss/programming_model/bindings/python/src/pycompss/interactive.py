@@ -392,7 +392,7 @@ def stop(sync=False):
     __clean_temp_files__()
 
     # Let the Python binding know we are not at master anymore
-    context.set_pycompss_context(context.OUTOFSCOPE)
+    context.set_pycompss_context(context.OUT_OF_SCOPE)
 
     print("****************************************************")
     logger.debug("--- END ---")

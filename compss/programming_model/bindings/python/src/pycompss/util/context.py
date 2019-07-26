@@ -68,8 +68,9 @@ def set_pycompss_context(where):
     :param where: New context (MASTER or WORKER or OUT_OF_SCOPE)
     :return: None
     """
-    assert where in [MASTER, WORKER, OUT_OF_SCOPE], 'PyCOMPSs context must be %s, %s or %s' % \
-                                                    (MASTER, WORKER, OUT_OF_SCOPE)
+    assert where in [MASTER, WORKER, OUT_OF_SCOPE], \
+        'PyCOMPSs context must be %s, %s or %s' % \
+        (MASTER, WORKER, OUT_OF_SCOPE)
     global _WHERE
     _WHERE = where
     global _WHO

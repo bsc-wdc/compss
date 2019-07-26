@@ -40,6 +40,11 @@ from pycompss.util.supercomputer.scs import get_tracing
 from pycompss.util.supercomputer.scs import get_storage_conf
 from pycompss.util.logger.helpers import init_logging
 
+DEFAULT_PROJECT_PATH = '/Runtime/configuration/xml/projects/'
+DEFAULT_RESOURCES_PATH = '/Runtime/configuration/xml/resources/'
+DEFAULT_LOG_PATH = '/Runtime/configuration/log/'
+DEFAULT_TRACING_PATH = '/Runtime/configuration/xml/tracing/'
+
 
 def prepare_environment(interactive, o_c, storage_impl,
                         app, debug, trace, mpi_worker):
@@ -92,7 +97,8 @@ def prepare_environment(interactive, o_c, storage_impl,
     # Set storage classpath
     if storage_impl:
         if storage_impl == 'redis':
-            cp = cp + ':' + compss_home + '/Tools/storage/redis/compss-redisPSCO.jar'
+            cp = cp + ':' + compss_home + \
+                 '/Tools/storage/redis/compss-redisPSCO.jar'
         else:
             cp = cp + ':' + storage_impl
 
@@ -202,8 +208,8 @@ def updated_variables_in_sc():
 
 def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
     """
-    Prepare the environment for tracing. Also retrieves the appropiate trace value
-    for the initial configuration file (which is an integer)
+    Prepare the environment for tracing. Also retrieves the appropriate trace
+    value for the initial configuration file (which is an integer)
 
     :param trace: [ True | basic ] | advanced | False Tracing mode.
     :param extrae_lib: Extrae lib path.
@@ -221,26 +227,33 @@ def prepare_tracing_environment(trace, extrae_lib, ld_library_path):
         os.environ['LD_PRELOAD'] = extrae_lib + '/libpttrace.so'
         ld_library_path = ld_library_path + ':' + extrae_lib
     else:
-        raise Exception("ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)")
+        msg = "ERROR: Wrong tracing parameter " + \
+              "( [ True | basic ] | advanced | False)"
+        raise Exception(msg)
     return trace_value, ld_library_path
 
 
-def check_infrastructure_variables(project_xml, resources_xml, compss_home, app_name, file_name, external_adaptation):
+def check_infrastructure_variables(project_xml, resources_xml, compss_home,
+                                   app_name, file_name, external_adaptation):
     """
     Checks the infrastructure variables and updates them if None.
     :param project_xml: Project xml file path (None if not defined)
     :param resources_xml: Resources xml file path (None if not defined)
     :param compss_home: Compss home path
-    :param app_name: Application name (if None, it will change it with filename)
+    :param app_name: Application name (if None, it changes it with filename)
     :param file_name: Application file name
     :param external_adaptation: External adaptation
-    :return: Updated variables (project_xml, resources_xml, app_name, external_adaptation, major_version,
-             python_interpreter, python_version and python_virtual_environment
+    :return: Updated variables (project_xml, resources_xml, app_name,
+                                external_adaptation, major_version,
+                                python_interpreter, python_version and
+                                python_virtual_environment)
     """
     if project_xml is None:
-        project_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
+        project_xml = compss_home + DEFAULT_PROJECT_PATH + \
+                      'default_project.xml'
     if resources_xml is None:
-        resources_xml = compss_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
+        resources_xml = compss_home + DEFAULT_RESOURCES_PATH + \
+                        'default_resources.xml'
     app_name = file_name if app_name is None else app_name
     external_adaptation = 'true' if external_adaptation else 'false'
     major_version = str(sys.version_info[0])
@@ -310,47 +323,62 @@ def create_init_config_file(compss_home,
     Creates the initialization files for the runtime start (java options file).
 
     :param compss_home: <String> COMPSs installation path
-    :param debug:  <Boolean> Enable/Disable debugging (True|False) (overrides log_level)
-    :param log_level: <String> Define the log level ('off' (default) | 'info' | 'debug')
+    :param debug:  <Boolean> Enable/Disable debugging
+                   (True|False) (overrides log_level)
+    :param log_level: <String> Define the log level
+                      ('off' (default) | 'info' | 'debug')
     :param project_xml: <String> Specific project.xml path
     :param resources_xml: <String> Specific resources.xml path
     :param summary: <Boolean> Enable/Disable summary (True|False)
-    :param task_execution: <String> Who performs the task execution (normally "compss")
+    :param task_execution: <String> Who performs the task execution
+                           (normally "compss")
     :param storage_conf: None|<String> Storage configuration file path
     :param streaming_backend: Streaming backend (default: None => 'null')
-    :param streaming_master_name: Streaming master name (default: None => 'null')
-    :param streaming_master_port: Streaming master port (default: None => 'null')
-    :param task_count: <Integer> Number of tasks (for structure initialization purposes)
+    :param streaming_master_name: Streaming master name
+                                  (default: None => 'null')
+    :param streaming_master_port: Streaming master port
+                                  (default: None => 'null')
+    :param task_count: <Integer> Number of tasks
+                       (for structure initialization purposes)
     :param app_name: <String> Application name
     :param uuid: None|<String> Application UUID
     :param base_log_dir: None|<String> Base log path
     :param specific_log_dir: None|<String> Specific log path
     :param graph: <Boolean> Enable/Disable graph generation
     :param monitor: None|<Integer> Disable/Frequency of the monitor
-    :param trace: <Boolean> Enable/Disable trace generation. Also accepts String (scorep, arm-map, arm-ddt)
-    :param extrae_cfg: None|<String> Default extrae configuration/User specific extrae configuration
+    :param trace: <Boolean> Enable/Disable trace generation. Also accepts
+                  String (scorep, arm-map, arm-ddt)
+    :param extrae_cfg: None|<String> Default extrae configuration/user
+                       specific extrae configuration
     :param comm: <String> GAT/NIO
-    :param conn: <String> Connector (normally: es.bsc.compss.connectors.DefaultSSHConnector)
+    :param conn: <String> Connector
+                 (normally: es.bsc.compss.connectors.DefaultSSHConnector)
     :param master_name: <String> Master node name
     :param master_port: <String> Master node port
-    :param scheduler: <String> Scheduler (normally: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)
+    :param scheduler: <String> Scheduler (normally:
+                  es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler)
     :param cp: <String>  Application path
     :param classpath: <String> CLASSPATH environment variable contents
-    :param ld_library_path: <String> LD_LIBRARY_PATH environment variable contents
+    :param ld_library_path: <String> LD_LIBRARY_PATH environment
+                            variable contents
     :param pythonpath: <String> PYTHONPATH environment variable contents
-    :param jvm_workers: <String> Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
+    :param jvm_workers: <String> Worker's jvm configuration
+                        (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
     :param cpu_affinity: <String> CPU affinity (default: automatic)
     :param gpu_affinity: <String> GPU affinity (default: automatic)
     :param fpga_affinity: <String> FPGA affinity (default: automatic)
     :param fpga_reprogram: <String> FPGA reprogram command (default: '')
     :param profile_input: <String> profiling input
     :param profile_output: <String> profiling output
-    :param scheduler_config: <String> Path to the file which contains the scheduler configuration.
-    :param external_adaptation: <String> Enable external adaptation. This option will disable the Resource Optimizer
+    :param scheduler_config: <String> Path to the file which contains the
+                             scheduler configuration.
+    :param external_adaptation: <String> Enable external adaptation.
+                                This option will disable the Resource Optimizer
     :param python_interpreter: <String> Python interpreter
     :param python_version: <String> Python interpreter version
     :param python_virtual_environment: <String> Python virtual environment path
-    :param propagate_virtual_environment: <Boolean> = Propagate python virtual environment to workers
+    :param propagate_virtual_environment: <Boolean> Propagate python virtual
+                                          environment to workers
     :param mpi_worker: Use the MPI worker [ True | False ] (default: False)
     :param kwargs: Any other parameter
     :return: None
@@ -366,25 +394,25 @@ def create_init_config_file(compss_home,
     jvm_options_file.write('-XX:ThreadPriorityPolicy=42\n')
     if debug or log_level == 'debug':
         jvm_options_file.write('-Dlog4j.configurationFile=' +
-                               compss_home +
-                               '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')  # DEBUG
+                               compss_home + DEFAULT_LOG_PATH +
+                               'COMPSsMaster-log4j.debug\n')  # DEBUG
     elif monitor is not None or log_level == 'info':
         jvm_options_file.write('-Dlog4j.configurationFile=' +
-                               compss_home +
-                               '/Runtime/configuration/log/COMPSsMaster-log4j.info\n')  # INFO
+                               compss_home + DEFAULT_LOG_PATH +
+                               'COMPSsMaster-log4j.info\n')   # INFO
     else:
         jvm_options_file.write('-Dlog4j.configurationFile=' +
-                               compss_home +
-                               '/Runtime/configuration/log/COMPSsMaster-log4j\n')  # NO DEBUG
+                               compss_home + DEFAULT_LOG_PATH +
+                               'COMPSsMaster-log4j\n')        # NO DEBUG
     jvm_options_file.write('-Dcompss.to.file=false\n')
     jvm_options_file.write('-Dcompss.project.file=' + project_xml + '\n')
     jvm_options_file.write('-Dcompss.resources.file=' + resources_xml + '\n')
     jvm_options_file.write('-Dcompss.project.schema=' +
-                           compss_home +
-                           '/Runtime/configuration/xml/projects/project_schema.xsd\n')
+                           compss_home + DEFAULT_PROJECT_PATH +
+                           'project_schema.xsd\n')
     jvm_options_file.write('-Dcompss.resources.schema=' +
-                           compss_home +
-                           '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
+                           compss_home + DEFAULT_RESOURCES_PATH +
+                           'resources_schema.xsd\n')
     jvm_options_file.write('-Dcompss.lang=python\n')
     if summary:
         jvm_options_file.write('-Dcompss.summary=true\n')
@@ -400,15 +428,18 @@ def create_init_config_file(compss_home,
     if streaming_backend is None:
         jvm_options_file.write('-Dcompss.streaming=null\n')
     else:
-        jvm_options_file.write('-Dcompss.streaming=' + str(streaming_backend) + '\n')
+        jvm_options_file.write('-Dcompss.streaming=' +
+                               str(streaming_backend) + '\n')
     if streaming_master_name is None:
         jvm_options_file.write('-Dcompss.streaming.masterName=null\n')
     else:
-        jvm_options_file.write('-Dcompss.streaming.masterName=' + str(streaming_master_name) + '\n')
+        jvm_options_file.write('-Dcompss.streaming.masterName=' +
+                               str(streaming_master_name) + '\n')
     if streaming_master_port is None:
         jvm_options_file.write('-Dcompss.streaming.masterPort=null\n')
     else:
-        jvm_options_file.write('-Dcompss.streaming.masterPort=' + str(streaming_master_port) + '\n')
+        jvm_options_file.write('-Dcompss.streaming.masterPort=' +
+                               str(streaming_master_port) + '\n')
 
     jvm_options_file.write('-Dcompss.core.count=' + str(task_count) + '\n')
 
@@ -426,12 +457,14 @@ def create_init_config_file(compss_home,
         # It will be within $HOME/.COMPSs
         jvm_options_file.write('-Dcompss.baseLogDir=\n')
     else:
-        jvm_options_file.write('-Dcompss.baseLogDir=' + base_log_dir + '\n')
+        jvm_options_file.write('-Dcompss.baseLogDir=' +
+                               base_log_dir + '\n')
 
     if specific_log_dir is None:
         jvm_options_file.write('-Dcompss.specificLogDir=\n')
     else:
-        jvm_options_file.write('-Dcompss.specificLogDir=' + specific_log_dir + '\n')
+        jvm_options_file.write('-Dcompss.specificLogDir=' +
+                               specific_log_dir + '\n')
 
     jvm_options_file.write('-Dcompss.appLogDir=/tmp/' + my_uuid + '/\n')
 
@@ -452,11 +485,13 @@ def create_init_config_file(compss_home,
     elif trace == 1:
         # Basic
         jvm_options_file.write('-Dcompss.tracing=1\n')
-        os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_basic.xml'
+        basic = compss_home + DEFAULT_TRACING_PATH + 'extrae_basic.xml'
+        os.environ['EXTRAE_CONFIG_FILE'] = basic
     elif trace == 2:
         # Advanced
         jvm_options_file.write('-Dcompss.tracing=2\n')
-        os.environ['EXTRAE_CONFIG_FILE'] = compss_home + '/Runtime/configuration/xml/tracing/extrae_advanced.xml'
+        advanced = compss_home + DEFAULT_TRACING_PATH + 'extrae_advanced.xml'
+        os.environ['EXTRAE_CONFIG_FILE'] = advanced
     elif trace == "scorep":
         # ScoreP tracing
         jvm_options_file.write('-Dcompss.tracing=-1\n')
@@ -476,46 +511,66 @@ def create_init_config_file(compss_home,
         jvm_options_file.write('-Dcompss.extrae.file=' + extrae_cfg + '\n')
 
     if comm == 'GAT':
-        jvm_options_file.write('-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor\n')
+        gat = '-Dcompss.comm=es.bsc.compss.gat.master.GATAdaptor'
+        jvm_options_file.write(gat + '\n')
     else:
-        jvm_options_file.write('-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor\n')
+        nio = '-Dcompss.comm=es.bsc.compss.nio.master.NIOAdaptor'
+        jvm_options_file.write(nio + '\n')
 
     # INTERNAL COMPONENTS JVM FLAGS
     jvm_options_file.write('-Dcompss.conn=' + conn + '\n')
     jvm_options_file.write('-Dcompss.masterName=' + master_name + '\n')
     jvm_options_file.write('-Dcompss.masterPort=' + master_port + '\n')
     jvm_options_file.write('-Dcompss.scheduler=' + scheduler + '\n')
-    jvm_options_file.write('-Dgat.adaptor.path=' + compss_home + '/Dependencies/JAVA_GAT/lib/adaptors\n')
+    jvm_options_file.write('-Dgat.adaptor.path=' + compss_home +
+                           '/Dependencies/JAVA_GAT/lib/adaptors\n')
     if debug:
         jvm_options_file.write('-Dgat.debug=true\n')
     else:
         jvm_options_file.write('-Dgat.debug=false\n')
     jvm_options_file.write('-Dgat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dgat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write(
-        '-Dcompss.worker.cp=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
-    jvm_options_file.write('-Dcompss.worker.jvm_opts=' + jvm_workers + '\n')
-    jvm_options_file.write('-Dcompss.worker.cpu_affinity=' + cpu_affinity + '\n')
-    jvm_options_file.write('-Dcompss.worker.gpu_affinity=' + gpu_affinity + '\n')
-    jvm_options_file.write('-Dcompss.worker.fpga_affinity=' + fpga_affinity + '\n')
-    jvm_options_file.write('-Dcompss.worker.fpga_reprogram=' + fpga_reprogram + '\n')
-    jvm_options_file.write('-Dcompss.profile.input=' + profile_input + '\n')
-    jvm_options_file.write('-Dcompss.profile.output=' + profile_output + '\n')
-    jvm_options_file.write('-Dcompss.scheduler.config=' + scheduler_config + '\n')
-    jvm_options_file.write('-Dcompss.external.adaptation=' + external_adaptation + '\n')
+    jvm_options_file.write('-Dcompss.worker.cp=' + cp + ':' +
+                           compss_home + '/Runtime/compss-engine.jar:' +
+                           classpath + '\n')
+    jvm_options_file.write('-Dcompss.worker.jvm_opts=' +
+                           jvm_workers + '\n')
+    jvm_options_file.write('-Dcompss.worker.cpu_affinity=' +
+                           cpu_affinity + '\n')
+    jvm_options_file.write('-Dcompss.worker.gpu_affinity=' +
+                           gpu_affinity + '\n')
+    jvm_options_file.write('-Dcompss.worker.fpga_affinity=' +
+                           fpga_affinity + '\n')
+    jvm_options_file.write('-Dcompss.worker.fpga_reprogram=' +
+                           fpga_reprogram + '\n')
+    jvm_options_file.write('-Dcompss.profile.input=' +
+                           profile_input + '\n')
+    jvm_options_file.write('-Dcompss.profile.output=' +
+                           profile_output + '\n')
+    jvm_options_file.write('-Dcompss.scheduler.config=' +
+                           scheduler_config + '\n')
+    jvm_options_file.write('-Dcompss.external.adaptation=' +
+                           external_adaptation + '\n')
 
     # SPECIFIC JVM OPTIONS FOR PYTHON
-    jvm_options_file.write(
-        '-Djava.class.path=' + cp + ':' + compss_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
-    jvm_options_file.write('-Djava.library.path=' + ld_library_path + '\n')
-    jvm_options_file.write('-Dcompss.worker.pythonpath=' + cp + ':' + pythonpath + '\n')
-    jvm_options_file.write('-Dcompss.python.interpreter=' + python_interpreter + '\n')
-    jvm_options_file.write('-Dcompss.python.version=' + python_version + '\n')
-    jvm_options_file.write('-Dcompss.python.virtualenvironment=' + python_virtual_environment + '\n')
+    jvm_options_file.write('-Djava.class.path=' + cp + ':' +
+                           compss_home + '/Runtime/compss-engine.jar:' +
+                           classpath + '\n')
+    jvm_options_file.write('-Djava.library.path=' +
+                           ld_library_path + '\n')
+    jvm_options_file.write('-Dcompss.worker.pythonpath=' + cp + ':' +
+                           pythonpath + '\n')
+    jvm_options_file.write('-Dcompss.python.interpreter=' +
+                           python_interpreter + '\n')
+    jvm_options_file.write('-Dcompss.python.version=' +
+                           python_version + '\n')
+    jvm_options_file.write('-Dcompss.python.virtualenvironment=' +
+                           python_virtual_environment + '\n')
+    virtualenv_prefix = '-Dcompss.python.propagate_virtualenvironment='
     if propagate_virtual_environment:
-        jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=true\n')
+        jvm_options_file.write(virtualenv_prefix + 'true\n')
     else:
-        jvm_options_file.write('-Dcompss.python.propagate_virtualenvironment=false\n')
+        jvm_options_file.write(virtualenv_prefix + 'false\n')
     if mpi_worker:
         jvm_options_file.write('-Dcompss.python.mpi_worker=true\n')
     else:

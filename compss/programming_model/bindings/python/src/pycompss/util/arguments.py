@@ -113,7 +113,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
             message = "ERROR: Unsupported argument: isModifier Found in " + \
                       str(where) + ".\n" + \
                       "       Please, use: target_direction"
-            print(message, file=sys.stderr)  # also show the warn through stderr
+            print(message, file=sys.stderr)  # also show the warn in stderr
             raise Exception("Unsupported argument: " + str(argument))
 
         if argument in deprecated_arguments:
@@ -126,7 +126,7 @@ def check_deprecated_arguments(deprecated_arguments, arguments, where):
             # appear twice in the console. So the warning message will only
             # appear in STDERR.
             # print(message)                 # show the warn through stdout
-            print(message, file=sys.stderr)  # also show the warn through stderr
+            print(message, file=sys.stderr)  # also show the warn in stderr
 
 
 def check_unexpected_arguments(supported_arguments, arguments, where):
@@ -147,4 +147,4 @@ def check_unexpected_arguments(supported_arguments, arguments, where):
             # appear twice in the console. So the warning message will only
             # appear in STDERR.
             # print(message)                 # show the warn through stdout
-            print(message, file=sys.stderr)  # also show the warn through stderr
+            print(message, file=sys.stderr)  # also show the warn in stderr

@@ -14,13 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler;
+package es.bsc.compss.scheduler.fullgraph;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.InvalidSchedulingException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.compss.scheduler.fullGraphScheduler.utils.Verifiers;
+import es.bsc.compss.scheduler.fullgraph.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullgraph.FullGraphScheduler;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.ScheduleOptimizer;
+import es.bsc.compss.scheduler.fullgraph.utils.Verifiers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.OptimizationWorker;
 import es.bsc.compss.scheduler.types.PriorityActionSet;
@@ -57,16 +61,23 @@ public class OptimizationTest {
     private static FullGraphResourceScheduler<FakeResourceDescription> drs1;
     private static FullGraphResourceScheduler<FakeResourceDescription> drs2;
 
+
+    /**
+     * Tests the optimization phase.
+     */
     public OptimizationTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
         ds.setOrchestrator(fao);
     }
 
+    /**
+     * To setup the class.
+     */
     @BeforeClass
     public static void setUpClass() {
         ResourceManager.clear(null);
-        
+
         CoreManager.clear();
 
         CoreElementDefinition ced;
@@ -77,49 +88,49 @@ public class OptimizationTest {
         fid = new FakeImplDefinition("fakeSignature00", new FakeResourceDescription(2));
         ced.addImplementation(fid);
         CoreElement ce0 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl00 = ce0.getImplementation(0);
+        final Implementation impl00 = ce0.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature10");
         fid = new FakeImplDefinition("fakeSignature10", new FakeResourceDescription(3));
         ced.addImplementation(fid);
         CoreElement ce1 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl10 = ce1.getImplementation(0);
+        final Implementation impl10 = ce1.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature20");
         fid = new FakeImplDefinition("fakeSignature20", new FakeResourceDescription(1));
         ced.addImplementation(fid);
         CoreElement ce2 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl20 = ce2.getImplementation(0);
+        final Implementation impl20 = ce2.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature30");
         fid = new FakeImplDefinition("fakeSignature30", new FakeResourceDescription(4));
         ced.addImplementation(fid);
         CoreElement ce3 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl30 = ce3.getImplementation(0);
+        final Implementation impl30 = ce3.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature40");
         fid = new FakeImplDefinition("fakeSignature40", new FakeResourceDescription(2));
         ced.addImplementation(fid);
         CoreElement ce4 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl40 = ce4.getImplementation(0);
+        final Implementation impl40 = ce4.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature50");
         fid = new FakeImplDefinition("fakeSignature50", new FakeResourceDescription(1));
         ced.addImplementation(fid);
         CoreElement ce5 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl50 = ce5.getImplementation(0);
+        final Implementation impl50 = ce5.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature60");
         fid = new FakeImplDefinition("fakeSignature60", new FakeResourceDescription(3));
         ced.addImplementation(fid);
         CoreElement ce6 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl60 = ce6.getImplementation(0);
+        final Implementation impl60 = ce6.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature70");
@@ -153,11 +164,14 @@ public class OptimizationTest {
     }
 
     // @Test
+    /**
+     * Tests the donors and receivers.
+     */
     @SuppressWarnings("unchecked")
     public void testDonorsAndReceivers() {
         ScheduleOptimizer so = new ScheduleOptimizer(ds);
 
-        long[] expectedEndTimes = new long[]{35000, 20000, 15000, 50000, 40000, 1000};
+        long[] expectedEndTimes = new long[] { 35000, 20000, 15000, 50000, 40000, 1000 };
         OptimizationWorker<?>[] optimizedWorkers = new OptimizationWorker[expectedEndTimes.length];
         for (int idx = 0; idx < expectedEndTimes.length; idx++) {
             int maxSlots = 1;
@@ -168,7 +182,7 @@ public class OptimizationTest {
         }
 
         LinkedList<OptimizationWorker<?>> receivers = new LinkedList<>();
-        LinkedList<OptimizationWorker<FakeResourceDescription>> receiversF = new LinkedList<>();
+        final LinkedList<OptimizationWorker<FakeResourceDescription>> receiversF = new LinkedList<>();
         OptimizationWorker<FakeResourceDescription> donor = (OptimizationWorker<FakeResourceDescription>) so
                 .determineDonorAndReceivers(optimizedWorkers, receivers);
 
@@ -189,10 +203,13 @@ public class OptimizationTest {
     }
 
     // @Test
+    /**
+     * Tests the global optimization.
+     */
     public void globalOptimization() {
-        ScheduleOptimizer so = new ScheduleOptimizer(ds);
+        final ScheduleOptimizer so = new ScheduleOptimizer(ds);
 
-        long updateId = System.currentTimeMillis();
+        final long updateId = System.currentTimeMillis();
 
         Collection<ResourceScheduler<?>> workers = new ArrayList<>();
         drs1.clear();
@@ -208,6 +225,7 @@ public class OptimizationTest {
         try {
             action1.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce4Impls);
@@ -216,6 +234,7 @@ public class OptimizationTest {
         try {
             action2.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, ce4Impls);
@@ -245,6 +264,9 @@ public class OptimizationTest {
         so.globalOptimization(updateId, workers);
     }
 
+    /**
+     * Tests the scan phase.
+     */
     // @Test
     public void testScan() {
         CoreElement ce4 = CoreManager.getCore(4);
@@ -274,6 +296,7 @@ public class OptimizationTest {
         try {
             action1.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce4Impls);
@@ -282,6 +305,7 @@ public class OptimizationTest {
         try {
             action2.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, ce4Impls);
@@ -350,16 +374,21 @@ public class OptimizationTest {
         drs1.scanActions(readyActions, selectableActions);
 
         HashMap<AllocatableAction, Long> expectedReady = new HashMap<>();
-        expectedReady.put(action7, 10l);
-        expectedReady.put(action8, 20l);
-        expectedReady.put(action9, 90l);
-        expectedReady.put(action3, 90l);
+        expectedReady.put(action7, 10L);
+        expectedReady.put(action8, 20L);
+        expectedReady.put(action9, 90L);
+        expectedReady.put(action3, 90L);
         Verifiers.verifyReadyActions(new PriorityQueue<>(readyActions), expectedReady);
 
-        AllocatableAction[] expectedSelectable = new AllocatableAction[]{action5, action6, action4};
+        AllocatableAction[] expectedSelectable = new AllocatableAction[] { action5, action6, action4 };
         Verifiers.verifyPriorityActions(new PriorityActionSet(selectableActions), expectedSelectable);
     }
 
+    /**
+     * Prints the given action.
+     * 
+     * @param action Action to print.
+     */
     public void printAction(AllocatableAction action) {
         System.out.println(action + " Core Element " + action.getCoreId() + " Implementation "
                 + action.getAssignedImplementation().getImplementationId() + " (" + action.getAssignedImplementation()
@@ -376,8 +405,11 @@ public class OptimizationTest {
     }
 
     // @Test
+    /**
+     * Tests the pending actions.
+     */
     public void testPendingActions() {
-        LinkedList<AllocatableAction> pendingActions = new LinkedList<>();
+        final LinkedList<AllocatableAction> pendingActions = new LinkedList<>();
 
         CoreElement ce4 = CoreManager.getCore(4);
         List<Implementation> ce4Impls = ce4.getImplementations();
@@ -406,6 +438,7 @@ public class OptimizationTest {
         try {
             action1.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce4Impls);
@@ -414,6 +447,7 @@ public class OptimizationTest {
         try {
             action2.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, ce4Impls);
@@ -483,13 +517,13 @@ public class OptimizationTest {
         drs1.classifyPendingSchedulings(pendingActions, readyActions, selectableActions, new LinkedList<>());
 
         HashMap<AllocatableAction, Long> expectedReady = new HashMap<>();
-        expectedReady.put(action7, 10l);
-        expectedReady.put(action8, 20l);
-        expectedReady.put(action9, 90l);
-        expectedReady.put(action3, 90l);
+        expectedReady.put(action7, 10L);
+        expectedReady.put(action8, 20L);
+        expectedReady.put(action9, 90L);
+        expectedReady.put(action3, 90L);
         Verifiers.verifyReadyActions(new PriorityQueue<>(readyActions), expectedReady);
 
-        AllocatableAction[] expectedSelectable = new AllocatableAction[]{action5, action6, action4};
+        AllocatableAction[] expectedSelectable = new AllocatableAction[] { action5, action6, action4 };
         Verifiers.verifyPriorityActions(new PriorityActionSet(selectableActions), expectedSelectable);
     }
 
@@ -524,6 +558,7 @@ public class OptimizationTest {
         try {
             action1.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce4Impls);
@@ -532,6 +567,7 @@ public class OptimizationTest {
         try {
             action2.tryToLaunch();
         } catch (Exception e) {
+            // Nothing to do
         }
 
         FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, ce4Impls);
@@ -589,11 +625,11 @@ public class OptimizationTest {
         drs1.scheduleAction(action12);
 
         // Simulate Scan results
-        LinkedList<AllocatableAction> runningActions = new LinkedList<>();
-        PriorityQueue<AllocatableAction> readyActions = new PriorityQueue<>(1, drs1.getReadyComparator());
-        PriorityActionSet selectableActions = new PriorityActionSet(ScheduleOptimizer.getSelectionComparator());
+        final LinkedList<AllocatableAction> runningActions = new LinkedList<>();
+        final PriorityQueue<AllocatableAction> readyActions = new PriorityQueue<>(1, drs1.getReadyComparator());
+        final PriorityActionSet selectableActions = new PriorityActionSet(ScheduleOptimizer.getSelectionComparator());
 
-        long updateId = System.currentTimeMillis();
+        final long updateId = System.currentTimeMillis();
 
         ((FullGraphSchedulingInformation) action1.getSchedulingInfo()).setOnOptimization(true);
         ((FullGraphSchedulingInformation) action1.getSchedulingInfo()).setToReschedule(true);
@@ -665,6 +701,14 @@ public class OptimizationTest {
     }
 
     // @Test
+    /**
+     * Tests the actions without data dependencies.
+     * 
+     * @throws BlockedActionException When the action is blocked.
+     * @throws UnassignedActionException When the action cannot be assigned.
+     * @throws InvalidSchedulingException When the action has an invalid scheduling state.
+     * @throws InterruptedException When the thread gets interrupted.
+     */
     @SuppressWarnings("unchecked")
     public void testNoDataDependencies()
             throws BlockedActionException, UnassignedActionException, InvalidSchedulingException, InterruptedException {
@@ -685,19 +729,19 @@ public class OptimizationTest {
         CoreElement ce3 = CoreManager.getCore(3);
         List<Implementation> ce3Impls = ce3.getImplementations();
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, ce0Impls);
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce0Impls);
-        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 0, ce0Impls);
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, ce0Impls);
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, ce1Impls);
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, ce0Impls);
-        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, ce2Impls);
-        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, ce3Impls);
-        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, ce0Impls);
-        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0, ce2Impls);
-        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0, ce3Impls);
-        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0, ce0Impls);
-        FakeAllocatableAction action13 = new FakeAllocatableAction(fao, 13, 0, ce1Impls);
+        final FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, ce0Impls);
+        final FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce0Impls);
+        final FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 0, ce0Impls);
+        final FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, ce0Impls);
+        final FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, ce1Impls);
+        final FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, ce0Impls);
+        final FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, ce2Impls);
+        final FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, ce3Impls);
+        final FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, ce0Impls);
+        final FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0, ce2Impls);
+        final FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0, ce3Impls);
+        final FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0, ce0Impls);
+        final FakeAllocatableAction action13 = new FakeAllocatableAction(fao, 13, 0, ce1Impls);
 
         FakeAllocatableAction action14 = new FakeAllocatableAction(fao, 14, 0, ce0Impls);
         action14.selectExecution(drs2, (FakeImplementation) action14.getImplementations()[0]);
@@ -775,13 +819,13 @@ public class OptimizationTest {
         // Sorted by data dependencies release
         PriorityActionSet selectableActions = new PriorityActionSet(FullGraphResourceScheduler.getScanComparator());
 
-        LinkedList<AllocatableAction> runningActions = drs1.scanActions(readyActions, selectableActions);
+        final LinkedList<AllocatableAction> runningActions = drs1.scanActions(readyActions, selectableActions);
 
         HashMap<AllocatableAction, Long> expectedReady = new HashMap<>();
-        expectedReady.put(action11, 10_000l);
-        expectedReady.put(action13, 12_000l);
+        expectedReady.put(action11, 10_000L);
+        expectedReady.put(action13, 12_000L);
         Verifiers.verifyReadyActions(new PriorityQueue<>(readyActions), expectedReady);
-        AllocatableAction[] expectedSelectable = new AllocatableAction[]{action3, action4, action10, action12};
+        AllocatableAction[] expectedSelectable = new AllocatableAction[] { action3, action4, action10, action12 };
         Verifiers.verifyPriorityActions(new PriorityActionSet(selectableActions), expectedSelectable);
 
         PriorityQueue<AllocatableAction> donationActions = new PriorityQueue<>(1,

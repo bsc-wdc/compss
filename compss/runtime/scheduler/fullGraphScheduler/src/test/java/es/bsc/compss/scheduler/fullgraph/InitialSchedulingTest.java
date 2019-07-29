@@ -14,14 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler;
+package es.bsc.compss.scheduler.fullgraph;
 
-import es.bsc.compss.scheduler.types.fake.FakeImplDefinition;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.compss.scheduler.fullGraphScheduler.utils.Verifiers;
+import es.bsc.compss.scheduler.fullgraph.FullGraphScheduler;
+import es.bsc.compss.scheduler.fullgraph.utils.Verifiers;
 import es.bsc.compss.scheduler.types.fake.FakeActionOrchestrator;
 import es.bsc.compss.scheduler.types.fake.FakeAllocatableAction;
+import es.bsc.compss.scheduler.types.fake.FakeImplDefinition;
 import es.bsc.compss.scheduler.types.fake.FakeImplementation;
 import es.bsc.compss.scheduler.types.fake.FakeProfile;
 import es.bsc.compss.scheduler.types.fake.FakeResourceDescription;
@@ -52,16 +53,23 @@ public class InitialSchedulingTest {
     private static long CORE1;
     private static long CORE2;
 
+
+    /**
+     * Tests the initial scheduling.
+     */
     public InitialSchedulingTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
         ds.setOrchestrator(fao);
     }
 
+    /**
+     * To setup the class.
+     */
     @BeforeClass
     public static void setUpClass() {
         ResourceManager.clear(null);
-        
+
         CoreManager.clear();
 
         CoreElementDefinition ced;
@@ -72,7 +80,7 @@ public class InitialSchedulingTest {
         fid = new FakeImplDefinition("fakeSignature00", new FakeResourceDescription(2));
         ced.addImplementation(fid);
         CoreElement ce0 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl00 = ce0.getImplementation(0);
+        final Implementation impl00 = ce0.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature10");
@@ -80,7 +88,7 @@ public class InitialSchedulingTest {
         ced.addImplementation(fid);
         CoreManager.registerNewCoreElement(ced);
         CoreElement ce1 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl10 = ce1.getImplementation(0);
+        final Implementation impl10 = ce1.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature20");
@@ -88,7 +96,7 @@ public class InitialSchedulingTest {
         ced.addImplementation(fid);
         CoreManager.registerNewCoreElement(ced);
         CoreElement ce2 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl20 = ce2.getImplementation(0);
+        final Implementation impl20 = ce2.getImplementation(0);
 
         int maxSlots = 4;
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);

@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.scheduler.types.fake;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 
 public class FakeResourceDescription extends WorkerResourceDescription {

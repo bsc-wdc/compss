@@ -16,8 +16,6 @@
  */
 package es.bsc.compss.scheduler.types.fake;
 
-import java.util.List;
-
 import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -34,6 +32,8 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
+
+import java.util.List;
 
 
 public class FakeNode extends COMPSsNode {

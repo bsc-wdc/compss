@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 
 import java.util.Comparator;
@@ -31,6 +31,11 @@ public class PriorityActionSet {
     public final Comparator<AllocatableAction> comparator;
 
 
+    /**
+     * Creates a new PriorityActionSet with the given action comparator.
+     * 
+     * @param comparator Action comparator.
+     */
     @SuppressWarnings("unchecked")
     public PriorityActionSet(Comparator<AllocatableAction> comparator) {
         this.comparator = comparator;
@@ -39,6 +44,11 @@ public class PriorityActionSet {
         this.coreActions = new PriorityQueue[0];
     }
 
+    /**
+     * Clones the given PriorityActionSet.
+     * 
+     * @param clone PriorityActionSet to clone.
+     */
     @SuppressWarnings("unchecked")
     public PriorityActionSet(PriorityActionSet clone) {
         this.comparator = clone.comparator;
@@ -50,6 +60,11 @@ public class PriorityActionSet {
         this.priority = new PriorityQueue<>(clone.priority);
     }
 
+    /**
+     * Adds a new action to the pool.
+     * 
+     * @param action New action.
+     */
     @SuppressWarnings("unchecked")
     public void offer(AllocatableAction action) {
         if (((FullGraphSchedulingInformation) action.getSchedulingInfo()).isToReschedule()) {
@@ -79,6 +94,11 @@ public class PriorityActionSet {
         }
     }
 
+    /**
+     * Returns and removes the first action of the pool.
+     * 
+     * @return The first action of the pool.
+     */
     public AllocatableAction poll() {
         AllocatableAction currentPeek;
         while ((currentPeek = this.priority.poll()) != null) {
@@ -102,6 +122,11 @@ public class PriorityActionSet {
         return currentPeek;
     }
 
+    /**
+     * Removes the first action of the pool associated to the core element with id {@code coreId}.
+     * 
+     * @param coreId Core Element Id.
+     */
     public void removeFirst(Integer coreId) {
         if (coreId == null) {
             this.noCoreActions.poll();
@@ -111,6 +136,11 @@ public class PriorityActionSet {
         rebuildPriorityQueue();
     }
 
+    /**
+     * Returns the first action of the pool (without removing it).
+     * 
+     * @return The first action of the pool.
+     */
     public AllocatableAction peek() {
         AllocatableAction currentPeek = this.priority.peek();
         while (currentPeek != null
@@ -121,6 +151,11 @@ public class PriorityActionSet {
         return currentPeek;
     }
 
+    /**
+     * Returns all the registered actions in the pool.
+     * 
+     * @return A queue with all the registered actions in the pool.
+     */
     public PriorityQueue<AllocatableAction> peekAll() {
         PriorityQueue<AllocatableAction> peeks = new PriorityQueue<>(this.coreActions.length + 1, this.comparator);
 
@@ -162,6 +197,11 @@ public class PriorityActionSet {
         }
     }
 
+    /**
+     * Returns the number of registered actions.
+     * 
+     * @return The number of registered actions.
+     */
     public int size() {
         int size = 0;
         size += this.noCoreActions.size();
@@ -171,10 +211,20 @@ public class PriorityActionSet {
         return size;
     }
 
+    /**
+     * Returns whether the action pool is empty or not.
+     * 
+     * @return {@literal true} if the action set is empty, {@literal false} otherwise.
+     */
     public boolean isEmpty() {
         return size() == 0;
     }
 
+    /**
+     * Retmoves the given action from the set.
+     * 
+     * @param action Action to remove.
+     */
     public void remove(AllocatableAction action) {
         if (action.getCoreId() == null) {
             this.noCoreActions.remove(action);

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler;
+package es.bsc.compss.scheduler.fullgraph;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskScheduler;
@@ -32,10 +32,7 @@ import org.json.JSONObject;
 
 
 /**
- * Implementation of a Scheduler that handles the full task graph
- *
- * @param <P>
- * @param <T>
+ * Implementation of a Scheduler that handles the full task graph.
  */
 public class FullGraphScheduler extends TaskScheduler {
 

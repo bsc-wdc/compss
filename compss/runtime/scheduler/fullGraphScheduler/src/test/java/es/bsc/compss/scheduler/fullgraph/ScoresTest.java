@@ -14,14 +14,17 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler;
+package es.bsc.compss.scheduler.fullgraph;
 
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.compss.scheduler.fullGraphScheduler.utils.Verifiers;
+import es.bsc.compss.scheduler.fullgraph.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullgraph.FullGraphScheduler;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.utils.Verifiers;
 import es.bsc.compss.scheduler.types.FullGraphScore;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.scheduler.types.fake.FakeActionOrchestrator;
@@ -61,23 +64,30 @@ import org.junit.Test;
 
 
 public class ScoresTest {
-    
+
     private static FullGraphScheduler ds;
     private static FakeActionOrchestrator fao;
     private static FakeResourceScheduler drs1;
     private static FakeResourceScheduler drs2;
-    
+
     private static long CORE0;
     private static long CORE2;
     private static long CORE4_0;
     private static long CORE4_1;
-    
+
+
+    /**
+     * Tests the scores.
+     */
     public ScoresTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
         ds.setOrchestrator(fao);
     }
-    
+
+    /**
+     * To setup the class.
+     */
     @BeforeClass
     public static void setUpClass() {
         ResourceManager.clear(null);
@@ -99,28 +109,28 @@ public class ScoresTest {
         fid = new FakeImplDefinition("fakeSignature00", new FakeResourceDescription(2));
         ced.addImplementation(fid);
         CoreElement ce0 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl00 = ce0.getImplementation(0);
+        final Implementation impl00 = ce0.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature10");
         fid = new FakeImplDefinition("fakeSignature10", new FakeResourceDescription(3));
         ced.addImplementation(fid);
         CoreElement ce1 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl10 = ce1.getImplementation(0);
+        final Implementation impl10 = ce1.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature20");
         fid = new FakeImplDefinition("fakeSignature20", new FakeResourceDescription(1));
         ced.addImplementation(fid);
         CoreElement ce2 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl20 = ce2.getImplementation(0);
+        final Implementation impl20 = ce2.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature30");
         fid = new FakeImplDefinition("fakeSignature30", new FakeResourceDescription(4));
         ced.addImplementation(fid);
         CoreElement ce3 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl30 = ce3.getImplementation(0);
+        final Implementation impl30 = ce3.getImplementation(0);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("fakeSignature40");
@@ -129,8 +139,8 @@ public class ScoresTest {
         fid = new FakeImplDefinition("fakeSignature41", new FakeResourceDescription(2));
         ced.addImplementation(fid);
         CoreElement ce4 = CoreManager.registerNewCoreElement(ced);
-        Implementation impl40 = ce4.getImplementation(0);
-        Implementation impl41 = ce4.getImplementation(1);
+        final Implementation impl40 = ce4.getImplementation(0);
+        final Implementation impl41 = ce4.getImplementation(1);
 
         ced = new CoreElementDefinition();
         ced.setCeSignature("task");
@@ -140,18 +150,18 @@ public class ScoresTest {
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);
         FakeWorker fw = new FakeWorker("worker1", frd, maxSlots);
         drs1 = new FakeResourceScheduler(fw, null, null, fao, 0);
-        
+
         FakeResourceDescription frd2 = new FakeResourceDescription(maxSlots);
         FakeWorker fw2 = new FakeWorker("worker2", frd2, maxSlots);
         drs2 = new FakeResourceScheduler(fw2, null, null, fao, 0);
-        
+
         drs1.profiledExecution(impl00, new FakeProfile(50));
         drs1.profiledExecution(impl10, new FakeProfile(50));
         drs1.profiledExecution(impl20, new FakeProfile(30));
         drs1.profiledExecution(impl30, new FakeProfile(50));
         drs1.profiledExecution(impl40, new FakeProfile(20));
         drs1.profiledExecution(impl41, new FakeProfile(30));
-        
+
         CORE0 = drs1.getProfile(impl00).getAverageExecutionTime();
         CORE2 = drs1.getProfile(impl20).getAverageExecutionTime();
         CORE4_0 = drs1.getProfile(impl40).getAverageExecutionTime();
@@ -159,108 +169,108 @@ public class ScoresTest {
 
         // debugConfiguration();
     }
-    
+
     @AfterClass
     public static void tearDownClass() {
         // Nothing to do
     }
-    
+
     @Before
     public void setUp() {
         // Nothing to do
     }
-    
+
     @After
     public void tearDown() {
         // Nothing to do
     }
-    
+
     @Test
     public void testActionScores() throws BlockedActionException, UnassignedActionException {
         drs1.clear();
-        
+
         CoreElement ce0 = CoreManager.getCore(0);
         List<Implementation> ce0Impls = ce0.getImplementations();
-        
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 1, ce0Impls);
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce0Impls);
-        
+
+        final FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 1, ce0Impls);
+        final FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce0Impls);
+
         FakeAllocatableAction action14 = new FakeAllocatableAction(fao, 14, 0, ce0Impls);
         action14.selectExecution(drs2, (FakeImplementation) action14.getImplementations()[0]);
         FullGraphSchedulingInformation dsi14 = (FullGraphSchedulingInformation) action14.getSchedulingInfo();
         dsi14.setExpectedEnd(10_000);
-        
+
         FakeAllocatableAction action15 = new FakeAllocatableAction(fao, 15, 0, ce0Impls);
         action15.selectExecution(drs2, (FakeImplementation) action15.getImplementations()[0]);
         FullGraphSchedulingInformation dsi15 = (FullGraphSchedulingInformation) action15.getSchedulingInfo();
         dsi15.setExpectedEnd(12_000);
-        
+
         FullGraphScore score1 = (FullGraphScore) ds.generateActionScore(action1);
         Score score2 = ds.generateActionScore(action2);
         Verifiers.verifyScore(score1, 1, 0, 0, 0, 0);
         Verifiers.verifyScore((FullGraphScore) score2, 0, 0, 0, 0, 0);
         Verifiers.validateBetterScore(score1, score2, true);
-        
+
         action1.addDataPredecessor(action14);
         score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 1, 10_000, 0, 0, 10_000);
-        
+
         action1.addDataPredecessor(action15);
         score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 1, 12_000, 0, 0, 12_000);
     }
-    
+
     @Test
     public void testResourceScores() throws BlockedActionException, UnassignedActionException, Exception {
         drs1.clear();
-        
+
         CoreElement ce0 = CoreManager.getCore(0);
         List<Implementation> ce0Impls = ce0.getImplementations();
-        
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, ce0Impls);
-        
+
+        final FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, ce0Impls);
+
         DataInstanceId d1v1 = new DataInstanceId(1, 1);
         Comm.registerData(d1v1.getRenaming());
         DataInstanceId d2v2 = new DataInstanceId(2, 2);
         Comm.registerData(d2v2.getRenaming());
-        
+
         DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
                 Constants.PREFIX_EMPTY, "dp1");
         dpD1V1.setDataAccessId(new RAccessId(1, 1));
-        
+
         DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
                 Constants.PREFIX_EMPTY, "dp2");
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
-        
+
         TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""),
                 false, Constants.SINGLE_NODE, false, false, false, 0, 0, Arrays.asList(dpD1V1, dpD2V2));
-        
+
         FullGraphScore actionScore = (FullGraphScore) ds.generateActionScore(action1);
-        
+
         FullGraphScore score1 = (FullGraphScore) drs1.generateResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 2 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY, 0, 0,
                 2 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
-        
+
         Comm.registerLocation(d1v1.getRenaming(),
                 DataLocation.createLocation(drs1.getResource(), new SimpleURI("/home/test/a")));
         score1 = (FullGraphScore) drs1.generateResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 1 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY, 0, 0,
                 1 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
-        
+
         Comm.registerLocation(d2v2.getRenaming(),
                 DataLocation.createLocation(drs1.getResource(), new SimpleURI("/home/test/b")));
         score1 = (FullGraphScore) drs1.generateResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 0 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY, 0, 0,
                 0 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
-        
+
         Comm.removeData(d1v1.getRenaming());
         Comm.removeData(d2v2.getRenaming());
     }
-    
+
     @Test
     public void testImplementationScores() throws BlockedActionException, UnassignedActionException {
         drs1.clear();
-        
+
         CoreElement ce4 = CoreManager.getCore(4);
         List<Implementation> ce4Impls = ce4.getImplementations();
 
@@ -270,15 +280,15 @@ public class ScoresTest {
                 Constants.SINGLE_NODE, false, false, false, 0, 0, new LinkedList<>());
         FullGraphScore score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
-        
-        FullGraphScore score1_0 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1,
+
+        FullGraphScore score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1,
                 action1.getImplementations()[0], score1);
-        Verifiers.verifyScore(score1_0, 0, 0, 0, CORE4_0, 0);
-        FullGraphScore score1_1 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1,
+        Verifiers.verifyScore(score10, 0, 0, 0, CORE4_0, 0);
+        FullGraphScore score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1,
                 action1.getImplementations()[1], score1);
-        Verifiers.verifyScore(score1_1, 0, 0, 0, CORE4_1, 0);
-        Verifiers.validateBetterScore(score1_0, score1_1, true);
-        
+        Verifiers.verifyScore(score11, 0, 0, 0, CORE4_1, 0);
+        Verifiers.validateBetterScore(score10, score11, true);
+
         CoreElement ce0 = CoreManager.getCore(0);
         List<Implementation> ce0Impls = ce0.getImplementations();
 
@@ -286,27 +296,27 @@ public class ScoresTest {
         FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce0Impls);
         action2.selectExecution(drs1, (FakeImplementation) action2.getImplementations()[0]);
         drs1.scheduleAction(action2);
-        score1_0 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
+        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
                 score1);
-        Verifiers.verifyScore(score1_0, 0, 0, CORE0, CORE4_0, CORE0);
-        score1_1 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
+        Verifiers.verifyScore(score10, 0, 0, CORE0, CORE4_0, CORE0);
+        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
                 score1);
-        Verifiers.verifyScore(score1_1, 0, 0, 0, CORE4_1, 0);
-        Verifiers.validateBetterScore(score1_0, score1_1, false);
-        
+        Verifiers.verifyScore(score11, 0, 0, 0, CORE4_1, 0);
+        Verifiers.validateBetterScore(score10, score11, false);
+
         CoreElement ce2 = CoreManager.getCore(2);
         List<Implementation> ce2Impls = ce2.getImplementations();
-        
+
         FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 0, ce2Impls);
         action3.selectExecution(drs1, (FakeImplementation) action3.getImplementations()[0]);
         drs1.scheduleAction(action3);
-        score1_0 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
+        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
                 score1);
-        Verifiers.verifyScore(score1_0, 0, 0, CORE0, CORE4_0, CORE0);
-        score1_1 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
+        Verifiers.verifyScore(score10, 0, 0, CORE0, CORE4_0, CORE0);
+        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
                 score1);
-        Verifiers.verifyScore(score1_1, 0, 0, CORE2, CORE4_1, CORE2);
-        Verifiers.validateBetterScore(score1_0, score1_1, false);
+        Verifiers.verifyScore(score11, 0, 0, CORE2, CORE4_1, CORE2);
+        Verifiers.validateBetterScore(score10, score11, false);
 
         // Data Dependencies
         FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0, ce0Impls);
@@ -316,15 +326,15 @@ public class ScoresTest {
         action1.addDataPredecessor(action10);
         score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 10, 0, 0, 10);
-        
-        score1_0 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
+
+        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
                 score1);
-        Verifiers.verifyScore(score1_0, 0, 10, CORE0, CORE4_0, CORE0);
-        score1_1 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
+        Verifiers.verifyScore(score10, 0, 10, CORE0, CORE4_0, CORE0);
+        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
                 score1);
-        Verifiers.verifyScore(score1_1, 0, 10, CORE2, CORE4_1, CORE2);
-        Verifiers.validateBetterScore(score1_0, score1_1, false);
-        
+        Verifiers.verifyScore(score11, 0, 10, CORE2, CORE4_1, CORE2);
+        Verifiers.validateBetterScore(score10, score11, false);
+
         FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0, ce0Impls);
         action11.selectExecution(drs2, (FakeImplementation) action11.getImplementations()[0]);
         FullGraphSchedulingInformation dsi11 = (FullGraphSchedulingInformation) action11.getSchedulingInfo();
@@ -332,13 +342,13 @@ public class ScoresTest {
         action1.addDataPredecessor(action11);
         score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 10_000, 0, 0, 10_000);
-        score1_0 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
+        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
                 score1);
-        Verifiers.verifyScore(score1_0, 0, 10_000, CORE0, CORE4_0, 10_000);
-        score1_1 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
+        Verifiers.verifyScore(score10, 0, 10_000, CORE0, CORE4_0, 10_000);
+        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
                 score1);
-        Verifiers.verifyScore(score1_1, 0, 10_000, CORE2, CORE4_1, 10_000);
-        Verifiers.validateBetterScore(score1_0, score1_1, true);
+        Verifiers.verifyScore(score11, 0, 10_000, CORE2, CORE4_1, 10_000);
+        Verifiers.validateBetterScore(score10, score11, true);
     }
-    
+
 }

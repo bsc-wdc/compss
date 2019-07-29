@@ -20,7 +20,7 @@ import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
@@ -41,6 +41,14 @@ public class FakeAllocatableAction extends AllocatableAction {
     private final List<Implementation> impls;
 
 
+    /**
+     * Creates a new FakeAllocatableAction.
+     * 
+     * @param orchestrator Associated action orchestrator.
+     * @param id Action Id.
+     * @param priority Whether the action has priority or not.
+     * @param impls List of action implementations.
+     */
     public FakeAllocatableAction(ActionOrchestrator orchestrator, int id, int priority, List<Implementation> impls) {
         super(new FullGraphSchedulingInformation(null), orchestrator);
 
@@ -150,6 +158,11 @@ public class FakeAllocatableAction extends AllocatableAction {
         assignImplementation(impl);
     }
 
+    /**
+     * Dumps the dependencies description.
+     * 
+     * @return String containing the dependencies description.
+     */
     public String dependenciesDescription() {
         StringBuilder sb = new StringBuilder("Action" + id + "\n");
         FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) this.getSchedulingInfo();

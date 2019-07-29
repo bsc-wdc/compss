@@ -93,9 +93,10 @@ public class DeletionThread extends Thread {
             CloudMethodWorker cloudWorker = this.vm.getWorker();
             // I think this part now is not needed
             /*
-             * if (cloudWorker.shouldBeStopped()) { cloudWorker.retrieveData(true); Semaphore sem = new Semaphore(0);
-             * ShutdownListener sl = new ShutdownListener(sem); RUNTIME_LOGGER.info("[Deletion Thread] Stopping worker "
-             * + cloudWorker.getName() + "..."); cloudWorker.stop(sl);
+             * if (cloudWorker.shouldBeStopped()) { cloudWorker.retrieveUniqueData(); cloudWorker.retrieveTracingData();
+             * Semaphore sem = new Semaphore(0); ShutdownListener sl = new ShutdownListener(sem);
+             * RUNTIME_LOGGER.info("[Deletion Thread] Stopping worker " + cloudWorker.getName() + "...");
+             * cloudWorker.stop(sl);
              * 
              * sl.enable(); try { sem.acquire(); } catch (Exception e) {
              * RESOURCE_LOGGER.error("ERROR: Exception raised on worker shutdown"); } if (DEBUG) {

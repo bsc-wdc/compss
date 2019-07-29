@@ -173,7 +173,8 @@ public class ResourceManager {
         if (pool != null && !pool.getStaticResources().isEmpty()) {
             RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager retrieving data from workers...]");
             for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
-                r.retrieveData(false);
+                r.disableExecution();
+                r.retrieveTracingAndDebugData();
             }
             Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
@@ -195,7 +196,8 @@ public class ResourceManager {
 
         // Stopping worker at master process
         RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
-        Comm.getAppHost().retrieveData(false);
+        Comm.getAppHost().disableExecution();
+        Comm.getAppHost().retrieveTracingAndDebugData();
         Semaphore sem = new Semaphore(0);
         ShutdownListener sl = new ShutdownListener(sem);
         RESOURCES_LOGGER.debug("DEBUG_MSG = [Resource Manager stopping worker in master process...]");
@@ -247,7 +249,7 @@ public class ResourceManager {
 
     /**
      * Adds a new static resource.
-     * 
+     *
      * @param <T> WorkerResourceDescription extension.
      * @param worker Worker to add.
      */
@@ -271,7 +273,7 @@ public class ResourceManager {
 
     /**
      * Removes a given worker.
-     * 
+     *
      * @param r Worker description.
      */
     public static void removeWorker(Worker<? extends WorkerResourceDescription> r) {
@@ -448,7 +450,7 @@ public class ResourceManager {
 
     /**
      * Decrease all the capabilities of a given worker.
-     * 
+     *
      * @param name Worker name.
      */
     public static void requestWholeWorkerReduction(String name) {
@@ -459,7 +461,7 @@ public class ResourceManager {
 
     /**
      * Decrease all the capabilities of a given worker.
-     * 
+     *
      * @param worker Worker.
      */
     public static void requestWholeWorkerReduction(MethodWorker worker) {
@@ -469,7 +471,7 @@ public class ResourceManager {
 
     /**
      * Confirms the reduction of a given worker.
-     * 
+     *
      * @param worker Decreased worker.
      * @param reduction Decreased reduction.
      */
@@ -482,7 +484,7 @@ public class ResourceManager {
 
     /**
      * Notifies when the worker has been reduced.
-     * 
+     *
      * @param worker Worker to reduce.
      * @param reduction Reduction performed.
      */
@@ -495,7 +497,7 @@ public class ResourceManager {
 
     /**
      * Notifies the reduction of the whole worker.
-     * 
+     *
      * @param name Worker name.
      */
     public static void notifyWholeWorkerReduction(String name) {
@@ -509,7 +511,7 @@ public class ResourceManager {
 
     /**
      * Notifies the reduction of the whole worker.
-     * 
+     *
      * @param worker Worker.
      */
     public static void notifyWholeWorkerReduction(DynamicMethodWorker worker) {
@@ -551,7 +553,7 @@ public class ResourceManager {
 
     /**
      * Terminates the given dynamic resource.
-     * 
+     *
      * @param worker Worker to stop.
      * @param reduction Reduction to perform.
      */
@@ -566,7 +568,7 @@ public class ResourceManager {
 
     /**
      * Terminates the given cloud resource.
-     * 
+     *
      * @param worker Worker to stop.
      * @param reduction Reduction to perform.
      */
@@ -621,10 +623,9 @@ public class ResourceManager {
      * **********************************************************************************************************
      * GETTERS
      ***********************************************************************************************************/
-
     /**
      * Returns the number of maximum cloud VMs.
-     * 
+     *
      * @return The number of maximum cloud VMs.
      */
     public static int getMaxCloudVMs() {
@@ -633,7 +634,7 @@ public class ResourceManager {
 
     /**
      * Return the number of initial cloud VMs.
-     * 
+     *
      * @return The number of initial cloud VMs.
      */
     public static int getInitialCloudVMs() {
@@ -642,7 +643,7 @@ public class ResourceManager {
 
     /**
      * The number of minimum cloud VMs.
-     * 
+     *
      * @return The number of minimum cloud VMs.
      */
     public static int getMinCloudVMs() {
@@ -651,7 +652,7 @@ public class ResourceManager {
 
     /**
      * The number of current VMs.
-     * 
+     *
      * @return Number of current VMs.
      */
     public static int getCurrentVMCount() {
@@ -660,7 +661,7 @@ public class ResourceManager {
 
     /**
      * Returns the time until the next VM creation.
-     * 
+     *
      * @return The time until the next VM creation.
      * @throws Exception When the connector raises an internal error.
      */
@@ -757,7 +758,7 @@ public class ResourceManager {
 
     /**
      * Returns the available cloud providers.
-     * 
+     *
      * @return A list of the available cloud providers.
      */
     public static Collection<CloudProvider> getAvailableCloudProviders() {
@@ -766,7 +767,7 @@ public class ResourceManager {
 
     /**
      * Returns the cloud provider with the given name {@code name}.
-     * 
+     *
      * @param name Cloud provider name.
      * @return The cloud provider with the given name {@code name}.
      */
@@ -776,7 +777,7 @@ public class ResourceManager {
 
     /**
      * Returns the pending creation requests.
-     * 
+     *
      * @return The pending creation requests.
      */
     public static List<ResourceCreationRequest> getPendingCreationRequests() {

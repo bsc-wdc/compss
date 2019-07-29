@@ -205,7 +205,8 @@ sd = S.q
 
 # -----------------------------------------------------------------------------
 def examine_vars(id1, id2, id3):
-    ex = lambda v, id_: str(v) + ("" if id(v) == id_ else " - ERROR!")
+    def ex(v, id_):
+        return str(v) + ("" if id(v) == id_ else " - ERROR!")
     print("dict (local var):  ", ex(a, id1))
     print("dict (class attr): ", ex(X.cattr, id1))
     print("dict (inst attr):  ", ex(x.iattr, id1))

@@ -26,7 +26,7 @@ PyCOMPSs Utils - Optional Modules
 """
 
 OPTIONAL_MODULES = {
-    "dill": """Dill is a pickle extension which is capable to serialize a wider variety of objects."""
+    "dill": """Dill is a pickle extension which is capable to serialize a wider variety of objects."""  # noqa: E501
 }
 
 
@@ -41,8 +41,8 @@ def get_optional_module_warning(module_name, module_description):
     ret = [
         "\n[ WARNING ]:\t%s module is not installed." % module_name,
         "\t\t%s" % module_description.replace('\n', '\n\t\t'),
-        "\t\tPyCOMPSs can work without %s, but it is recommended to have it installed." % module_name,
-        "\t\tYou can install it via pip typing pip install %s, or (probably) with your package manager.\n" % module_name
+        "\t\tPyCOMPSs can work without %s, but it is recommended to have it installed." % module_name,  # noqa: E501
+        "\t\tYou can install it via pip typing pip install %s, or (probably) with your package manager.\n" % module_name  # noqa: E501
     ]
     return '\n'.join(ret)
 

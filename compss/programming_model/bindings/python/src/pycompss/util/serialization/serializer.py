@@ -148,8 +148,8 @@ def serialize_to_handler(obj, handler):
                 if serializer is numpy and NUMPY_AVAILABLE:
                     serializer.save(handler, obj, allow_pickle=False)
                 else:
-                    serializer.dump(obj, 
-                                    handler, 
+                    serializer.dump(obj,
+                                    handler,
                                     protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
             except Exception:
@@ -190,15 +190,16 @@ def serialize_to_file_multienv(obj, file_name, rank_zero_reduce):
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
-    :param rank_zero_reduce: A boolean to indicate whether objects should be reduced to MPI rank zero.
+    :param rank_zero_reduce: A boolean to indicate whether objects should be
+                             reduced to MPI rank zero.
      False for INOUT objects and True otherwise.
     :return: Nothing, it just serializes the object
     """
     from mpi4py import MPI
-                       
+
     if rank_zero_reduce:
         obj = MPI.COMM_WORLD.reduce([obj], root=0)
-          
+
     if MPI.COMM_WORLD.rank == 0:
         serialize_to_file(obj, file_name)
 

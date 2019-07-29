@@ -47,18 +47,23 @@ except ImportError:
     class TaskContext(object):
         def __init__(self, logger, values, config_file_path=None):
             self.logger = logger
-            self.logger.error('Unexpected call to dummy storage task context.')
-            raise Exception('Unexpected call to dummy storage task context.')
+            err_msg = 'Unexpected call to dummy storage task context.'
+            self.logger.error(err_msg)
+            self.values = values
+            self.config_file_path = config_file_path
+            raise Exception(err_msg)
 
         def __enter__(self):
             # Ready to start the task
-            self.logger.error('Unexpected call to dummy storage task context __enter__.')
-            raise Exception('Unexpected call to dummy storage task context __enter__.')
+            err_msg = 'Unexpected call to dummy storage task context __enter__'
+            self.logger.error(err_msg)
+            raise Exception(err_msg)
 
         def __exit__(self, type, value, traceback):
             # Task finished
-            self.logger.error('Unexpected call to dummy storage task context __exit__.')
-            raise Exception('Unexpected call to dummy storage task context __exit__.')
+            err_msg = 'Unexpected call to dummy storage task context __exit__'
+            self.logger.error(err_msg)
+            raise Exception(err_msg)
 
 storage_task_context = TaskContext  # Renamed for importing it from the worker
 
@@ -72,7 +77,8 @@ def is_psco(obj):
     """
     # Check from storage object requires a dummy storage object class
     # from storage.storage_object import storage_object
-    # return issubclass(obj.__class__, storage_object) and get_id(obj) not in [None, 'None']
+    # return issubclass(obj.__class__, storage_object) and
+    #        get_id(obj) not in [None, 'None']
     return has_id(obj) and get_id(obj) not in [None, 'None']
 
 
@@ -111,7 +117,7 @@ def get_by_id(id):
 
 def init_storage(storage_conf, logger):
     """
-    Initializes the persistent storage with the given storage configuration file.
+    Initializes the persistent storage with the given storage_conf file.
     The storage will be initialized if storage_conf is not None nor 'null'.
 
     :param storage_conf: Storage configuration file.

@@ -34,7 +34,7 @@ def get_defining_class(meth):
     Given a method
 
     :param meth: Method to check its defining class
-    :return: Class which meth belongs
+    :return: Class which meth belongs. None if not found.
     """
     if inspect.ismethod(meth):
         for cls in inspect.getmro(meth.__self__.__class__):
@@ -42,8 +42,10 @@ def get_defining_class(meth):
                 return cls
     if inspect.isfunction(meth):
         return getattr(inspect.getmodule(meth),
-                       meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
-    return None  # not required since None would have been implicitly returned anyway
+                       meth.__qualname__.split('.<locals>',
+                                               1)[0].rsplit('.', 1)[0])
+    # Return not required since None would have been implicitly returned anyway
+    return None
 
 
 def get_module_name(path, file_name):
@@ -99,7 +101,7 @@ def get_top_decorator(code, decorator_keys):
         for d in decorators:
             if d.startswith('@' + dk):
                 return 'pycompss.api.' + dk.lower()  # each decorator __name__
-    # If no decorator is found, then the current decorator is the one to register
+    # If no decorator is found, the current decorator is the one to register
     return __name__
 
 

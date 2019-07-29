@@ -31,10 +31,14 @@ import inspect
 DEBUG = False
 
 
-SEPARATORS = {'globals_separator': "### GLOBALS ###",      # for user defined lines in the entire/global scope
-              'classes_separator': '### CLASSES ###',      # for user defined classes
-              'functions_separator': "### FUNCTIONS ###",  # for user defined functions (that are not decorated)
-              'tasks_separator': "### TASKS ###"}          # for user defined tasks
+SEPARATORS = {  # for user defined lines in the entire/global scope
+              'globals_separator': "### GLOBALS ###",
+                # for user defined classes
+              'classes_separator': '### CLASSES ###',
+                # for user defined functions (that are not decorated)
+              'functions_separator': "### FUNCTIONS ###",
+                # for user defined tasks
+              'tasks_separator': "### TASKS ###"}
 
 
 # ################################################################# #
@@ -268,7 +272,7 @@ def _get_classes():
                 classes[class_name].append(line + '\n')
             else:
                 class_found = False
-    # Plain classes content (from {key: [line, line,...]} to {key: line\nline}).
+    # Plain classes content (from {key: [line, line,...]} to {key: line\nline})
     for k, v in list(classes.items()):
         # Collapse all lines into a single one
         classes[k] = ''.join(v).strip()
@@ -591,7 +595,8 @@ def _update_functions(new_functions, old_functions):
 
     :param new_functions: dictionary containing all functions (last version)
     :param old_functions: dictionary containing the existing functions.
-    :return: dictionary with the merging result (keeping all functions and updating the old ones).
+    :return: dictionary with the merging result (keeping all functions and
+             updating the old ones).
     """
 
     if len(old_functions) == 0:
@@ -617,8 +622,9 @@ def _update_tasks(new_tasks, old_tasks):
     :return: dictionary with the merging result.
     """
     if not new_tasks:
-        # when new_tasks is empty, means that the update was triggered by a class
-        # task. No need to update as a tasks since the class has already been updated
+        # when new_tasks is empty, means that the update was triggered by a
+        # class task. No need to update as a tasks since the class has already
+        # been updated
         pass
     else:
         task_name = list(new_tasks.keys())[0]
@@ -634,8 +640,8 @@ def _update_tasks(new_tasks, old_tasks):
 # FILE UPDATE FUNCTIONS #
 # #######################
 
-def _update_code_file(new_imports, new_globals, new_classes, new_functions, new_tasks,
-                      file_path):
+def _update_code_file(new_imports, new_globals, new_classes, new_functions,
+                      new_tasks, file_path):
     """
     Writes the results to the code file used by the workers.
 

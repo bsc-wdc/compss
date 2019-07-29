@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler;
+package es.bsc.compss.scheduler.fullgraph;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
@@ -49,9 +49,9 @@ public class ScheduleOptimizer extends Thread {
 
 
     /**
-     * Construct a new scheduler optimizer for a given scheduler
+     * Construct a new scheduler optimizer for a given scheduler.
      * 
-     * @param scheduler
+     * @param scheduler Associated scheduler.
      */
     public ScheduleOptimizer(FullGraphScheduler scheduler) {
         this.setName("ScheduleOptimizer");
@@ -77,9 +77,9 @@ public class ScheduleOptimizer extends Thread {
     }
 
     /**
-     * Shutdown the process
+     * Shutdown the process.
      * 
-     * @throws InterruptedException
+     * @throws InterruptedException When the current thread is interrupted.
      */
     public void shutdown() throws InterruptedException {
         stop = true;
@@ -103,6 +103,12 @@ public class ScheduleOptimizer extends Thread {
      --------------- Local  optimization ---------------
      ---------------------------------------------------
      --------------------------------------------------*/
+    /**
+     * Performs a global optimization.
+     * 
+     * @param optimizationTS Threshold.
+     * @param workers List of resource workers.
+     */
     public void globalOptimization(long optimizationTS, Collection<ResourceScheduler<?>> workers) {
         int workersCount = workers.size();
         if (workersCount == 0) {
@@ -146,6 +152,13 @@ public class ScheduleOptimizer extends Thread {
         }
     }
 
+    /**
+     * Determines the donors and receivers.
+     * 
+     * @param workers List of workers.
+     * @param receivers List of receivers.
+     * @return Top donor.
+     */
     public OptimizationWorker<?> determineDonorAndReceivers(OptimizationWorker<?>[] workers,
             LinkedList<OptimizationWorker<?>> receivers) {
 
@@ -178,6 +191,11 @@ public class ScheduleOptimizer extends Thread {
      ----------- Comparators  optimization -------------
      ---------------------------------------------------
      --------------------------------------------------*/
+    /**
+     * Returns a comparator for selection.
+     * 
+     * @return A comparator for selection.
+     */
     public static Comparator<AllocatableAction> getSelectionComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -193,6 +211,11 @@ public class ScheduleOptimizer extends Thread {
         };
     }
 
+    /**
+     * Returns a comparator for donation.
+     * 
+     * @return A comparator for donation.
+     */
     public static Comparator<AllocatableAction> getDonationComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -212,6 +235,11 @@ public class ScheduleOptimizer extends Thread {
         };
     }
 
+    /**
+     * Returns a comparator for reception.
+     * 
+     * @return A comparator for reception.
+     */
     public static Comparator<OptimizationWorker<?>> getReceptionComparator() {
         return new Comparator<OptimizationWorker<?>>() {
 
@@ -259,6 +287,13 @@ public class ScheduleOptimizer extends Thread {
         return false;
     }
 
+    /**
+     * Schedules an action.
+     * 
+     * @param action Action to schedule.
+     * @param impl Implementation to schedule.
+     * @param ow Selected worker.
+     */
     public void schedule(AllocatableAction action, Implementation impl, OptimizationWorker<?> ow) {
         try {
             action.schedule(ow.getResource(), impl);

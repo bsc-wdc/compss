@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.ResourceDescription;
 
@@ -36,6 +36,12 @@ public class LocalOptimizationState {
     private long topStartTime;
 
 
+    /**
+     * Creates a new LocalOptimizationState instance.
+     * 
+     * @param updateId Optimization id.
+     * @param rd Associated resouce description.
+     */
     public LocalOptimizationState(long updateId, ResourceDescription rd) {
         this.action = null;
 
@@ -46,10 +52,22 @@ public class LocalOptimizationState {
         this.gaps.add(g);
     }
 
+    /**
+     * Returns the optimization Id.
+     * 
+     * @return The optimization Id.
+     */
     public long getId() {
         return this.updateId;
     }
 
+    /**
+     * Reserves the given resources from the given start time.
+     * 
+     * @param resources Resources to reserve.
+     * @param startTime Starting time.
+     * @return List of previous gaps.
+     */
     public List<Gap> reserveResources(ResourceDescription resources, long startTime) {
         List<Gap> previousGaps = new LinkedList<>();
         // Remove requirements from resource description
@@ -67,6 +85,7 @@ public class LocalOptimizationState {
 
     private boolean checkGapForReserve(Gap g, ResourceDescription requirements, long reserveStart,
             List<Gap> previousGaps) {
+
         boolean remove = false;
         AllocatableAction gapAction = g.getOrigin();
         ResourceDescription rd = g.getResources();
@@ -93,6 +112,12 @@ public class LocalOptimizationState {
         return remove;
     }
 
+    /**
+     * Releases the resources allocated by the given action at the given start time.
+     * 
+     * @param expectedStart Expected start time.
+     * @param action Action.
+     */
     public void releaseResources(long expectedStart, AllocatableAction action) {
         Gap gap = new Gap(expectedStart, Long.MAX_VALUE, action, action.getAssignedImplementation().getRequirements(),
                 0);
@@ -106,6 +131,11 @@ public class LocalOptimizationState {
         }
     }
 
+    /**
+     * Replaces the action by the given one.
+     * 
+     * @param action New action.
+     */
     public void replaceAction(AllocatableAction action) {
         this.action = action;
         if (this.action != null) {
@@ -125,16 +155,32 @@ public class LocalOptimizationState {
         }
     }
 
+    /**
+     * Add temporary gap.
+     * 
+     * @param g Temporary gap.
+     */
     public void addTmpGap(Gap g) {
         AllocatableAction gapAction = g.getOrigin();
         FullGraphSchedulingInformation gapDSI = (FullGraphSchedulingInformation) gapAction.getSchedulingInfo();
         gapDSI.addGap();
     }
 
+    /**
+     * Replace temporary gap.
+     * 
+     * @param gap New gap.
+     * @param previousGap Previous gap.
+     */
     public void replaceTmpGap(Gap gap, Gap previousGap) {
-
+        // TODO: Replace tmp gap
     }
 
+    /**
+     * Removes the given gap.
+     * 
+     * @param g Gap to remove.
+     */
     public void removeTmpGap(Gap g) {
         AllocatableAction gapAction = g.getOrigin();
         if (gapAction != null) {
@@ -146,15 +192,30 @@ public class LocalOptimizationState {
         }
     }
 
+    /**
+     * Returns the associated action.
+     * 
+     * @return The associated action.
+     */
     public AllocatableAction getAction() {
         return this.action;
     }
 
+    /**
+     * Returns the maximum action start time.
+     * 
+     * @return The maximum action start time.
+     */
     public long getActionStartTime() {
         return Math.max(this.topStartTime,
                 ((FullGraphSchedulingInformation) this.action.getSchedulingInfo()).getExpectedStart());
     }
 
+    /**
+     * Returns whether the action can run or not.
+     * 
+     * @return {@literal true} if the action can run, {@literal false} otherwise.
+     */
     public boolean canActionRun() {
         if (this.missingResources != null) {
             return this.missingResources.isDynamicUseless();
@@ -163,18 +224,36 @@ public class LocalOptimizationState {
         }
     }
 
+    /**
+     * Returns whether there are gaps or not.
+     * 
+     * @return {@literal true} if there are gaps, {@literal false} otherwise.
+     */
     public boolean areGaps() {
         return !this.gaps.isEmpty();
     }
 
+    /**
+     * Returns the first available gap.
+     * 
+     * @return The first available gap.
+     */
     public Gap peekFirstGap() {
         return this.gaps.peekFirst();
     }
 
+    /**
+     * Removes the first available gap.
+     */
     public void pollGap() {
         this.gaps.removeFirst();
     }
 
+    /**
+     * Returns all the registered gaps.
+     * 
+     * @return A list of the registered gaps.
+     */
     public LinkedList<Gap> getGaps() {
         return this.gaps;
     }

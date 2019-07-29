@@ -14,11 +14,15 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler;
+package es.bsc.compss.scheduler.fullgraph;
+
+import static org.junit.Assert.fail;
 
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.UnassignedActionException;
-import es.bsc.compss.scheduler.fullGraphScheduler.utils.Verifiers;
+import es.bsc.compss.scheduler.fullgraph.FullGraphScheduler;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.utils.Verifiers;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.PriorityActionSet;
 import es.bsc.compss.scheduler.types.fake.FakeActionOrchestrator;
@@ -41,20 +45,25 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
-
 
 public class PriorityActionSetTest {
 
     private static FullGraphScheduler ds;
     private static FakeActionOrchestrator fao;
 
+
+    /**
+     * Tests the PriorityActionSet.
+     */
     public PriorityActionSetTest() {
         ds = new FullGraphScheduler();
         fao = new FakeActionOrchestrator(ds);
         ds.setOrchestrator(fao);
     }
 
+    /**
+     * To setup the class.
+     */
     @BeforeClass
     public static void setUpClass() {
         ResourceManager.clear(null);
@@ -105,8 +114,6 @@ public class PriorityActionSetTest {
             }
         });
 
-        PriorityQueue<AllocatableAction> peeks;
-
         CoreElement ce0 = CoreManager.getCore(0);
         List<Implementation> ce0Impls = ce0.getImplementations();
 
@@ -128,8 +135,8 @@ public class PriorityActionSetTest {
         if (action1 != pas.peek()) {
             fail(action1 + " expected to be the most prioritary action and " + pas.peek() + " was.");
         }
-        peeks = pas.peekAll();
-        AllocatableAction[] expectedPeeks = new AllocatableAction[]{action1, action3};
+        PriorityQueue<AllocatableAction> peeks = pas.peekAll();
+        AllocatableAction[] expectedPeeks = new AllocatableAction[] { action1, action3 };
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         CoreElement ce1 = CoreManager.getCore(1);
@@ -139,7 +146,7 @@ public class PriorityActionSetTest {
         ((FullGraphSchedulingInformation) action4.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action4);
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[]{action1, action3, action4};
+        expectedPeeks = new AllocatableAction[] { action1, action3, action4 };
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         AllocatableAction action = pas.poll();
@@ -147,7 +154,7 @@ public class PriorityActionSetTest {
             fail(action1 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[]{action2, action3, action4};
+        expectedPeeks = new AllocatableAction[] { action2, action3, action4 };
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         action = pas.poll();
@@ -155,7 +162,7 @@ public class PriorityActionSetTest {
             fail(action2 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[]{action3, action4};
+        expectedPeeks = new AllocatableAction[] { action3, action4 };
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         action = pas.poll();
@@ -163,7 +170,7 @@ public class PriorityActionSetTest {
             fail(action3 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[]{action4};
+        expectedPeeks = new AllocatableAction[] { action4 };
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         action = pas.poll();
@@ -171,7 +178,7 @@ public class PriorityActionSetTest {
             fail(action4 + " expected to be the most prioritary action and " + action + " was.");
         }
         peeks = pas.peekAll();
-        expectedPeeks = new AllocatableAction[]{};
+        expectedPeeks = new AllocatableAction[] {};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, ce1Impls);

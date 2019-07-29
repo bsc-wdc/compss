@@ -14,9 +14,11 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler.utils;
+package es.bsc.compss.scheduler.fullgraph.utils;
 
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import static org.junit.Assert.fail;
+
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.FullGraphScore;
 import es.bsc.compss.scheduler.types.Gap;
@@ -32,13 +34,16 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
-import static org.junit.Assert.fail;
-
 
 public class Verifiers {
 
+    /**
+     * Verifies priority actions.
+     * 
+     * @param obtained Obtained actions.
+     * @param expected Expected actions.
+     */
     public static void verifyPriorityActions(PriorityActionSet obtained, AllocatableAction[] expected) {
-
         int idx = 0;
         if (obtained.size() != expected.length) {
             fail("Obtained lists doesn't match on size.");
@@ -54,6 +59,12 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Verifies priority actions.
+     * 
+     * @param obtained Obtained actions.
+     * @param expected Expected actions.
+     */
     public static void verifyPriorityActions(PriorityQueue<AllocatableAction> obtained, AllocatableAction[] expected) {
         int idx = 0;
         if (obtained.size() != expected.length) {
@@ -70,6 +81,12 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Verifies ready actions.
+     * 
+     * @param obtained Obtained ready actions.
+     * @param expectedReady Expected ready actions.
+     */
     public static void verifyReadyActions(PriorityQueue<AllocatableAction> obtained,
             HashMap<AllocatableAction, Long> expectedReady) {
         if (obtained.size() != expectedReady.size()) {
@@ -90,6 +107,12 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Verifies workers' priority.
+     * 
+     * @param obtained Obtained workers' priority.
+     * @param expected Expected workers' priority.
+     */
     public static <T extends WorkerResourceDescription> void verifyWorkersPriority(
             LinkedList<OptimizationWorker<T>> obtained, LinkedList<String> expected) {
 
@@ -108,6 +131,16 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Verify score.
+     * 
+     * @param ds FullGraphScore.
+     * @param action Associated action.
+     * @param data Data score.
+     * @param res Resource score.
+     * @param impl Implementation score.
+     * @param start Start time score.
+     */
     public static void verifyScore(FullGraphScore ds, long action, long data, long res, long impl, long start) {
         if (action != ds.getActionScore()) {
             System.out.println("Scores do not match. Expected action score " + action + " and " + ds.getActionScore()
@@ -139,6 +172,13 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Validates the result obtained of comparing the given scores {@code a} and {@code b}.
+     * 
+     * @param a First score to compare.
+     * @param b Second score to compare.
+     * @param result Obtained result of comparing the given scores.
+     */
     public static void validateBetterScore(Score a, Score b, boolean result) {
         if (Score.isBetter(a, b) != result) {
             System.out.println("Scores are not properly compared");
@@ -146,6 +186,12 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Verifies an action update.
+     * 
+     * @param actions Updated actions.
+     * @param times Times.
+     */
     public static void verifyUpdate(LinkedList<AllocatableAction>[] actions, long[][][] times) {
         for (int coreId = 0; coreId < actions.length; coreId++) {
             for (int actionIdx = 0; actionIdx < actions[coreId].size(); actionIdx++) {
@@ -165,6 +211,12 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Verifies the gaps.
+     * 
+     * @param gaps Obtained gaps.
+     * @param expectedGaps Expected gaps.
+     */
     public static void verifyGaps(LinkedList<Gap> gaps, Gap[] expectedGaps) {
         for (Gap eg : expectedGaps) {
             boolean found = false;
@@ -199,6 +251,13 @@ public class Verifiers {
         }
     }
 
+    /**
+     * Verifies the intial plan.
+     * 
+     * @param action Action.
+     * @param executionTime Execution time.
+     * @param predecessors Action predecessors.
+     */
     public static void verifyInitialPlan(AllocatableAction action, long executionTime,
             AllocatableAction... predecessors) {
 

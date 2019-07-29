@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Score;
 
@@ -33,12 +33,30 @@ public class FullGraphScore extends Score {
     private double expectedStart;
 
 
+    /**
+     * Creates a FullGraphScore instance.
+     * 
+     * @param actionScore Associated action score.
+     * @param dataAvailability Data score.
+     * @param waiting Waiting score.
+     * @param res Resource score.
+     * @param impl Implementation score.
+     */
     public FullGraphScore(long actionScore, double dataAvailability, long waiting, long res, long impl) {
         super(actionScore, res, waiting, impl);
         this.expectedDataAvailable = dataAvailability;
         this.expectedStart = Math.max(this.resourceScore, this.expectedDataAvailable);
     }
 
+    /**
+     * Creates a new FullGraphScore instance.
+     * 
+     * @param actionScore Action score.
+     * @param transferTime Data transferring time.
+     * @param waiting Waiting score.
+     * @param resourceTime Resource score.
+     * @param impl Implementation score.
+     */
     public FullGraphScore(FullGraphScore actionScore, double transferTime, long waiting, long resourceTime, long impl) {
         super(actionScore.getActionScore(), resourceTime, waiting, impl);
         this.expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
@@ -56,10 +74,22 @@ public class FullGraphScore extends Score {
         return ownEnd < otherEnd;
     }
 
+    /**
+     * Returns the action score.
+     * 
+     * @param action Action.
+     * @return The associated action score.
+     */
     public static long getActionScore(AllocatableAction action) {
         return action.getPriority();
     }
 
+    /**
+     * Returns the maximum time of the data predecessors.
+     * 
+     * @param predecessors List of action predecessors.
+     * @return The maximum time of the data predecessors.
+     */
     public long getDataPredecessorTime(List<AllocatableAction> predecessors) {
         long dataTime = 0;
         for (AllocatableAction pred : predecessors) {
@@ -68,10 +98,20 @@ public class FullGraphScore extends Score {
         return dataTime;
     }
 
+    /**
+     * Returns the expected time when the data will be available.
+     * 
+     * @return The expected time when the data will be available.
+     */
     public double getExpectedDataAvailable() {
         return this.expectedDataAvailable;
     }
 
+    /**
+     * Returns the expected task start time.
+     * 
+     * @return The expected task start time.
+     */
     public double getExpectedStart() {
         return this.expectedStart;
     }

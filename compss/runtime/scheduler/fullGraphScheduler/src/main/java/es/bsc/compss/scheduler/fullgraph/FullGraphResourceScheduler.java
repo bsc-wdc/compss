@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package es.bsc.compss.scheduler.fullGraphScheduler;
+package es.bsc.compss.scheduler.fullgraph;
 
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
@@ -49,11 +49,9 @@ import org.json.JSONObject;
 
 
 /**
- * Representation of a Scheduler that considers the full task graph
+ * Representation of a Scheduler that considers the full task graph.
  *
- * @param <P>
- * @param <T>
- * @param <I>
+ * @param <T> Type of the associated Worker.
  */
 public class FullGraphResourceScheduler<T extends WorkerResourceDescription> extends ResourceScheduler<T> {
 
@@ -66,6 +64,14 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
     private OptimizationAction opAction;
 
 
+    /**
+     * Creates a new FullGraphResourceScheduler instance.
+     * 
+     * @param w Associated worker.
+     * @param defaultResource JSON resource description.
+     * @param defaultImplementations JSON implementation description.
+     * @param orchestrator Associated Action Orchestrator.
+     */
     public FullGraphResourceScheduler(Worker<T> w, JSONObject defaultResource, JSONObject defaultImplementations,
             ActionOrchestrator orchestrator) {
 
@@ -248,9 +254,9 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
                 expectedStart = Math.max(expectedStart, predEnd);
             }
         }
-        FullGraphSchedulingInformation schedInfo = (FullGraphSchedulingInformation) action.getSchedulingInfo();
+        final FullGraphSchedulingInformation schedInfo = (FullGraphSchedulingInformation) action.getSchedulingInfo();
         Implementation impl = action.getAssignedImplementation();
-        Profile p = getProfile(impl);
+        final Profile p = getProfile(impl);
         ResourceDescription constraints = impl.getRequirements().copy();
         LinkedList<AllocatableAction> predecessors = new LinkedList<>();
 
@@ -336,10 +342,18 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
      -------------- Optimization Methods ---------------
      ---------------------------------------------------
      --------------------------------------------------*/
+    /**
+     * Performs a local optimization.
+     * 
+     * @param updateId Update Id.
+     * @param selectionComparator Selection comparator.
+     * @param donorComparator Donor comparator.
+     * @return List of optimized actions.
+     */
     public PriorityQueue<AllocatableAction> localOptimization(long updateId,
             Comparator<AllocatableAction> selectionComparator, Comparator<AllocatableAction> donorComparator) {
 
-        PriorityQueue<AllocatableAction> actions = new PriorityQueue<>(1, donorComparator);
+        final PriorityQueue<AllocatableAction> actions = new PriorityQueue<>(1, donorComparator);
 
         // Actions not depending on other actions scheduled on the same resource
         // Sorted by data dependencies release
@@ -392,11 +406,16 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
         return actions;
     }
 
-    // Classifies actions according to their start times. Selectable actions are
-    // those that can be selected to run from t=0. Ready actions are those actions
-    // that have data dependencies with tasks scheduled in other nodes. Actions
-    // with dependencies with actions scheduled in the same node, are not
-    // classified in any list since we cannot know the start time.
+    /**
+     * Classifies actions according to their start times. Selectable actions are those that can be selected to run from
+     * t=0. Ready actions are those actions that have data dependencies with tasks scheduled in other nodes. Actions
+     * with dependencies with actions scheduled in the same node, are not classified in any list since we cannot know
+     * the start time.
+     * 
+     * @param readyActions Ready actions.
+     * @param selectableActions List of selectable actions.
+     * @return List of scanned actions.
+     */
     public LinkedList<AllocatableAction> scanActions(PriorityQueue<AllocatableAction> readyActions,
             PriorityActionSet selectableActions) {
 
@@ -483,6 +502,14 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
         return runningActions;
     }
 
+    /**
+     * Classifies the pending schedulings.
+     * 
+     * @param pendingSchedulings Schedulings to classify.
+     * @param readyActions Ready actions.
+     * @param selectableActions Selectable actions.
+     * @param runningActions Running actions.
+     */
     public void classifyPendingSchedulings(LinkedList<AllocatableAction> pendingSchedulings,
             PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions,
             LinkedList<AllocatableAction> runningActions) {
@@ -530,6 +557,13 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
         }
     }
 
+    /**
+     * Classifies the pending schedulings.
+     * 
+     * @param readyActions List of ready actions.
+     * @param selectableActions List of selectable actions.
+     * @param runningActions List of running actions.
+     */
     public void classifyPendingSchedulings(PriorityQueue<AllocatableAction> readyActions,
             PriorityActionSet selectableActions, LinkedList<AllocatableAction> runningActions) {
 
@@ -577,6 +611,16 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
         this.pendingUnschedulings.clear();
     }
 
+    /**
+     * Re-schedules the given actions.
+     * 
+     * @param updateId Update action Id.
+     * @param readyActions List of ready actions.
+     * @param selectableActions List of selectable actions.
+     * @param runningActions List of running actions.
+     * @param rescheduledActions List of actions to re-schedule.
+     * @return Generated gaps.
+     */
     public LinkedList<Gap> rescheduleTasks(long updateId, PriorityQueue<AllocatableAction> readyActions,
             PriorityActionSet selectableActions, LinkedList<AllocatableAction> runningActions,
             PriorityQueue<AllocatableAction> rescheduledActions) {
@@ -746,6 +790,11 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
         return false;
     }
 
+    /**
+     * Returns a new scan comparator.
+     * 
+     * @return A comparator for scanning.
+     */
     public static Comparator<AllocatableAction> getScanComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -764,6 +813,11 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
         };
     }
 
+    /**
+     * Returns a new ready comparator.
+     * 
+     * @return A ready comparator.
+     */
     public static Comparator<AllocatableAction> getReadyComparator() {
         return new Comparator<AllocatableAction>() {
 
@@ -792,6 +846,11 @@ public class FullGraphResourceScheduler<T extends WorkerResourceDescription> ext
         this.gaps.add(index, g);
     }
 
+    /**
+     * Returns the expected start of the last gap.
+     * 
+     * @return The expected start of the last gap.
+     */
     public long getLastGapExpectedStart() {
         return this.gaps.peekFirst().getInitialTime();
     }

@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
-import es.bsc.compss.scheduler.fullGraphScheduler.ScheduleOptimizer;
+import es.bsc.compss.scheduler.fullgraph.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullgraph.ScheduleOptimizer;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 

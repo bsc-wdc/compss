@@ -29,6 +29,14 @@ public class Gap {
     private final int capacity;
 
 
+    /**
+     * Creates a new Gap instance.
+     * 
+     * @param start Gap start time.
+     * @param origin AllocatableAction that has generated the gap.
+     * @param resources Gap resources.
+     * @param capacity Gap capacity.
+     */
     public Gap(long start, AllocatableAction origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.origin = origin;
@@ -36,6 +44,15 @@ public class Gap {
         this.capacity = capacity;
     }
 
+    /**
+     * Creates a new Gap instance.
+     * 
+     * @param start Gap start time.
+     * @param endTime Gap end time.
+     * @param origin AllocatableAction that has generated the gap.
+     * @param resources Gap resources.
+     * @param capacity Gap capacity.
+     */
     public Gap(long start, long endTime, AllocatableAction origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.endTime = endTime;
@@ -44,28 +61,58 @@ public class Gap {
         this.capacity = capacity;
     }
 
+    /**
+     * Returns the Gap initial time.
+     * 
+     * @return The Gap initial time.
+     */
     public long getInitialTime() {
         return this.initialTime;
     }
 
+    /**
+     * Returns the Gap end time.
+     * 
+     * @return The Gap end time.
+     */
     public long getEndTime() {
         return this.endTime;
     }
 
+    /**
+     * Returns the AllocatableAction that has generated the Gap.
+     * 
+     * @return The AllocatableAction that has generated the Gap.
+     */
     public AllocatableAction getOrigin() {
         return this.origin;
     }
 
+    /**
+     * Returns the associated resources.
+     * 
+     * @return The associated resources.
+     */
     public ResourceDescription getResources() {
         return this.resources;
     }
 
-    public void setEndTime(long endTime) {
-        this.endTime = endTime;
-    }
-
+    /**
+     * Returns the Gap capacity.
+     * 
+     * @return The Gap capacity.
+     */
     public int getCapacity() {
         return this.capacity;
+    }
+
+    /**
+     * Sets a new Gap end time.
+     * 
+     * @param endTime New Gap end time.
+     */
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 
     @Override

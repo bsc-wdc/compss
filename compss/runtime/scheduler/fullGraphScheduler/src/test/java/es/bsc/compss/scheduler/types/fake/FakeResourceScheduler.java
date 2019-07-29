@@ -16,11 +16,11 @@
  */
 package es.bsc.compss.scheduler.types.fake;
 
-import org.json.JSONObject;
-
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullgraph.FullGraphResourceScheduler;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.types.resources.Worker;
+
+import org.json.JSONObject;
 
 
 public class FakeResourceScheduler extends FullGraphResourceScheduler<FakeResourceDescription> {
@@ -28,6 +28,15 @@ public class FakeResourceScheduler extends FullGraphResourceScheduler<FakeResour
     private long fakeLastGapStart;
 
 
+    /**
+     * Creates a new FakeResourceScheduler instance.
+     * 
+     * @param w Associated worker.
+     * @param defaultResource Worker JSON description.
+     * @param defaultImplementations Implementation JSON description.
+     * @param orchestrator Action orchestrator.
+     * @param fakeLastGapStart Fake last gap.
+     */
     public FakeResourceScheduler(Worker<FakeResourceDescription> w, JSONObject defaultResource,
             JSONObject defaultImplementations, ActionOrchestrator orchestrator, long fakeLastGapStart) {
 

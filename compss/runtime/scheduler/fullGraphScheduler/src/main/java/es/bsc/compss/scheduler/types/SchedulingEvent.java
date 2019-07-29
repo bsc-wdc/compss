@@ -16,8 +16,8 @@
  */
 package es.bsc.compss.scheduler.types;
 
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphResourceScheduler;
-import es.bsc.compss.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import es.bsc.compss.scheduler.fullgraph.FullGraphResourceScheduler;
+import es.bsc.compss.scheduler.fullgraph.FullGraphSchedulingInformation;
 import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.Profile;
 import es.bsc.compss.types.implementations.Implementation;
@@ -37,6 +37,12 @@ public abstract class SchedulingEvent<T extends WorkerResourceDescription> imple
     protected AllocatableAction action;
 
 
+    /**
+     * Creates a new Scheduling Event.
+     * 
+     * @param timeStamp Event timestamp.
+     * @param action Associated action.
+     */
     public SchedulingEvent(long timeStamp, AllocatableAction action) {
         this.expectedTimeStamp = timeStamp;
         this.action = action;
@@ -51,12 +57,32 @@ public abstract class SchedulingEvent<T extends WorkerResourceDescription> imple
         return time;
     }
 
+    /**
+     * Returns the associated action.
+     * 
+     * @return The associated action.
+     */
     public AllocatableAction getAction() {
         return this.action;
     }
 
+    /**
+     * Returns the event priority.
+     * 
+     * @return The event priority.
+     */
     protected abstract int getPriority();
 
+    /**
+     * Launches the event processing.
+     * 
+     * @param state Optimization state.
+     * @param worker Associated worker.
+     * @param readyActions List of ready actions.
+     * @param selectableActions List of selectable actions.
+     * @param rescheduledActions List of re-scheduled actions.
+     * @return List of generated events.
+     */
     public abstract List<SchedulingEvent<T>> process(LocalOptimizationState state, FullGraphResourceScheduler<T> worker,
             PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions,
             PriorityQueue<AllocatableAction> rescheduledActions);
@@ -335,6 +361,15 @@ public abstract class SchedulingEvent<T extends WorkerResourceDescription> imple
     }
 
 
+    /**
+     * Releases the successors.
+     * 
+     * @param dsi FullGraphSchedulingInformation.
+     * @param worker Associated worker.
+     * @param readyActions Ready actions.
+     * @param selectableActions Selectable actions.
+     * @param timeLimit Threshold time.
+     */
     public void releaseSuccessors(FullGraphSchedulingInformation dsi, FullGraphResourceScheduler<T> worker,
             PriorityQueue<AllocatableAction> readyActions, PriorityActionSet selectableActions, long timeLimit) {
 

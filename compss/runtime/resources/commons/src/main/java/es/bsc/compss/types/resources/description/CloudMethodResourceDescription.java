@@ -158,7 +158,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     public void increase(ResourceDescription cmrd) {
         super.increase(cmrd);
         for (Entry<CloudInstanceTypeDescription, int[]> typeCount : ((CloudMethodResourceDescription) cmrd)
-                .getTypeComposition().entrySet()) {
+            .getTypeComposition().entrySet()) {
             CloudInstanceTypeDescription type = typeCount.getKey();
             int[] count = typeCount.getValue();
             addInstances(type, count[0]);
@@ -213,7 +213,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     public void reduce(ResourceDescription cmrd) {
         super.reduce(cmrd);
         for (Entry<CloudInstanceTypeDescription, int[]> typeCount : ((CloudMethodResourceDescription) cmrd)
-                .getTypeComposition().entrySet()) {
+            .getTypeComposition().entrySet()) {
             CloudInstanceTypeDescription type = typeCount.getKey();
             int[] count = typeCount.getValue();
             removeInstances(type, count[0]);
@@ -268,9 +268,9 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
             int[] amount = component.getValue();
             sb.append(prefix).append("\t").append("\t").append("\t").append("COMPONENT = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("NAME = ")
-                    .append(componentName).append("\n");
+                .append(componentName).append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("AMOUNT = ").append(amount[0])
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("\t").append("\t").append("]").append("\n");

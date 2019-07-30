@@ -27,6 +27,7 @@ public class OpenTaskGroupRequest extends APRequest {
     private String groupName;
     private boolean barrier;
 
+
     public OpenTaskGroupRequest(String groupName, boolean implicitBarrier) {
         this.barrier = implicitBarrier;
         this.groupName = groupName;
@@ -43,4 +44,3 @@ public class OpenTaskGroupRequest extends APRequest {
     }
 
 }
-

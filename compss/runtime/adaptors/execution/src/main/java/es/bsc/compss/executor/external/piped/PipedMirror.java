@@ -62,9 +62,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     protected static final String TOKEN_NEW_LINE = "\n";
     protected static final String TOKEN_SEP = " ";
 
-    protected static final String PIPER_SCRIPT_RELATIVE_PATH = File.separator + "Runtime" + File.separator + "scripts"
-            + File.separator + "system" + File.separator + "adaptors" + File.separator + "nio" + File.separator
-            + "pipers" + File.separator;
+    protected static final String PIPER_SCRIPT_RELATIVE_PATH =
+        File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator
+            + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
     private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
     private static final String PIPE_FILE_BASENAME = "pipe_";
 
@@ -81,6 +81,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     private StreamGobbler pipeBuildeErrGobbler;
 
     private ControlPipePair pipeWorkerPipe;
+
 
     /**
      * Piped Mirror constructor.
@@ -168,8 +169,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 ErrorManager.fatal(ERROR_PB_START + ": Error sending first Ping command. ");
             }
         } catch (IOException e) {
-            ErrorManager.error(
-                    ERROR_PB_START + ": Exception during process builder creation. Message: " + e.getMessage(), e);
+            ErrorManager
+                .error(ERROR_PB_START + ": Exception during process builder creation. Message: " + e.getMessage(), e);
         }
     }
 
@@ -241,7 +242,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
      * Returns the launch command for every binding.
      *
      * @param context Invocation context
-     * @param pipe    Control pipes
+     * @param pipe Control pipes
      * @return
      */
     public abstract String getLaunchWorkerCommand(InvocationContext context, ControlPipePair pipe);

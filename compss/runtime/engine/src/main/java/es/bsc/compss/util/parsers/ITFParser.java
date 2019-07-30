@@ -145,28 +145,28 @@ public class ITFParser {
          */
         for (Annotation annot : m.getAnnotations()) {
             if (!annot.annotationType().getName().equals(Constraints.class.getName())
-                    // Simple annotations
-                    && !annot.annotationType().getName().equals(Method.class.getName())
-                    && !annot.annotationType().getName().equals(Service.class.getName())
-                    && !annot.annotationType().getName().equals(Binary.class.getName())
-                    && !annot.annotationType().getName().equals(MPI.class.getName())
-                    && !annot.annotationType().getName().equals(Decaf.class.getName())
-                    && !annot.annotationType().getName().equals(COMPSs.class.getName())
-                    && !annot.annotationType().getName().equals(MultiNode.class.getName())
-                    && !annot.annotationType().getName().equals(OmpSs.class.getName())
-                    && !annot.annotationType().getName().equals(OpenCL.class.getName())
-                    // Repeatable annotations
-                    && !annot.annotationType().getName().equals(Methods.class.getName())
-                    && !annot.annotationType().getName().equals(Services.class.getName())
-                    && !annot.annotationType().getName().equals(Binaries.class.getName())
-                    && !annot.annotationType().getName().equals(MPIs.class.getName())
-                    && !annot.annotationType().getName().equals(Decafs.class.getName())
-                    && !annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
-                    && !annot.annotationType().getName().equals(MultiMultiNode.class.getName())
-                    && !annot.annotationType().getName().equals(MultiOmpSs.class.getName())
-                    && !annot.annotationType().getName().equals(OpenCLs.class.getName())
-                    // Scheduler hints
-                    && !annot.annotationType().getName().equals(SchedulerHints.class.getName())) {
+                // Simple annotations
+                && !annot.annotationType().getName().equals(Method.class.getName())
+                && !annot.annotationType().getName().equals(Service.class.getName())
+                && !annot.annotationType().getName().equals(Binary.class.getName())
+                && !annot.annotationType().getName().equals(MPI.class.getName())
+                && !annot.annotationType().getName().equals(Decaf.class.getName())
+                && !annot.annotationType().getName().equals(COMPSs.class.getName())
+                && !annot.annotationType().getName().equals(MultiNode.class.getName())
+                && !annot.annotationType().getName().equals(OmpSs.class.getName())
+                && !annot.annotationType().getName().equals(OpenCL.class.getName())
+                // Repeatable annotations
+                && !annot.annotationType().getName().equals(Methods.class.getName())
+                && !annot.annotationType().getName().equals(Services.class.getName())
+                && !annot.annotationType().getName().equals(Binaries.class.getName())
+                && !annot.annotationType().getName().equals(MPIs.class.getName())
+                && !annot.annotationType().getName().equals(Decafs.class.getName())
+                && !annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
+                && !annot.annotationType().getName().equals(MultiMultiNode.class.getName())
+                && !annot.annotationType().getName().equals(MultiOmpSs.class.getName())
+                && !annot.annotationType().getName().equals(OpenCLs.class.getName())
+                // Scheduler hints
+                && !annot.annotationType().getName().equals(SchedulerHints.class.getName())) {
 
                 ErrorManager.warn("Unrecognised annotation " + annot.annotationType().getName() + " . SKIPPING");
             }
@@ -185,20 +185,20 @@ public class ITFParser {
          */
         for (Annotation annot : m.getAnnotations()) {
             if (annot.annotationType().getName().equals(Binary.class.getName())
-                    || annot.annotationType().getName().equals(MPI.class.getName())
-                    || annot.annotationType().getName().equals(Decaf.class.getName())
-                    || annot.annotationType().getName().equals(COMPSs.class.getName())
-                    || annot.annotationType().getName().equals(MultiNode.class.getName())
-                    || annot.annotationType().getName().equals(OmpSs.class.getName())
-                    || annot.annotationType().getName().equals(OpenCL.class.getName())
-                    // Repeatable annotations
-                    || annot.annotationType().getName().equals(Binaries.class.getName())
-                    || annot.annotationType().getName().equals(MPIs.class.getName())
-                    || annot.annotationType().getName().equals(Decafs.class.getName())
-                    || annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
-                    || annot.annotationType().getName().equals(MultiMultiNode.class.getName())
-                    || annot.annotationType().getName().equals(MultiOmpSs.class.getName())
-                    || annot.annotationType().getName().equals(OpenCLs.class.getName())) {
+                || annot.annotationType().getName().equals(MPI.class.getName())
+                || annot.annotationType().getName().equals(Decaf.class.getName())
+                || annot.annotationType().getName().equals(COMPSs.class.getName())
+                || annot.annotationType().getName().equals(MultiNode.class.getName())
+                || annot.annotationType().getName().equals(OmpSs.class.getName())
+                || annot.annotationType().getName().equals(OpenCL.class.getName())
+                // Repeatable annotations
+                || annot.annotationType().getName().equals(Binaries.class.getName())
+                || annot.annotationType().getName().equals(MPIs.class.getName())
+                || annot.annotationType().getName().equals(Decafs.class.getName())
+                || annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
+                || annot.annotationType().getName().equals(MultiMultiNode.class.getName())
+                || annot.annotationType().getName().equals(MultiOmpSs.class.getName())
+                || annot.annotationType().getName().equals(OpenCLs.class.getName())) {
 
                 return true;
             }
@@ -217,7 +217,7 @@ public class ITFParser {
      * @return Two booleans indicating if the method contains StdIO Streams and prefixes.
      */
     private static boolean[] constructSignatureAndCheckParameters(java.lang.reflect.Method m, boolean hasNonNative,
-            StringBuilder calleeMethodSignature) {
+        StringBuilder calleeMethodSignature) {
 
         boolean hasStreams = false;
         boolean hasPrefixes = false;
@@ -246,21 +246,21 @@ public class ITFParser {
                     case STDIN:
                         if (hasSTDIN) {
                             ErrorManager.error(
-                                    "Method " + methodName + " has more than one parameter annotated has Stream.STDIN");
+                                "Method " + methodName + " has more than one parameter annotated has Stream.STDIN");
                         }
                         hasSTDIN = true;
                         break;
                     case STDOUT:
                         if (hasSTDOUT) {
-                            ErrorManager.error("Method " + methodName
-                                    + " has more than one parameter annotated has Stream.STDOUT");
+                            ErrorManager.error(
+                                "Method " + methodName + " has more than one parameter annotated has Stream.STDOUT");
                         }
                         hasSTDOUT = true;
                         break;
                     case STDERR:
                         if (hasSTDERR) {
-                            ErrorManager.error("Method " + methodName
-                                    + " has more than one parameter annotated has Stream.STDERR");
+                            ErrorManager.error(
+                                "Method " + methodName + " has more than one parameter annotated has Stream.STDERR");
                         }
                         hasSTDERR = true;
                         break;
@@ -276,7 +276,8 @@ public class ITFParser {
         }
         calleeMethodSignature.append(")");
 
-        boolean[] hasAnnotation = { hasStreams, hasPrefixes };
+        boolean[] hasAnnotation = { hasStreams,
+            hasPrefixes };
         return hasAnnotation;
     }
 
@@ -327,10 +328,10 @@ public class ITFParser {
      * @param hasNonNative Indicates if the method has non-native annotations or not.
      */
     private static void checkParameterAnnotation(java.lang.reflect.Method m, Parameter par, int i,
-            boolean hasNonNative) {
+        boolean hasNonNative) {
 
         final String warningLocation = "In parameter number " + (i + 1) + " of method '" + m.getName()
-                + "' in interface '" + m.getDeclaringClass().toString().replace("interface ", "") + "'.";
+            + "' in interface '" + m.getDeclaringClass().toString().replace("interface ", "") + "'.";
 
         Type annotType = par.type();
         Direction annotDirection = par.direction();
@@ -346,22 +347,21 @@ public class ITFParser {
             // Strings are immutable
             if (isOut || isInOut) {
                 ErrorManager.warn("Can't specify a String with direction OUT/INOUT since they are immutable."
-                        + ErrorManager.NEWLINE + warningLocation + ErrorManager.NEWLINE
-                        + "Using direction=IN instead.");
+                    + ErrorManager.NEWLINE + warningLocation + ErrorManager.NEWLINE + "Using direction=IN instead.");
             }
         } else if (m.getParameterTypes()[i].isPrimitive()) {
             // Primitive types are immutable (int, boolean, long, float, char, byte, short, double)
             if (isOut || isInOut) {
                 String primType = m.getParameterTypes()[i].getName();
                 ErrorManager.warn("Can't specify a primitive type ('" + primType + "') with direction OUT/INOUT, "
-                        + "since they are always passed by value. " + ErrorManager.NEWLINE + warningLocation
-                        + ErrorManager.NEWLINE + "Using direction=IN instead.");
+                    + "since they are always passed by value. " + ErrorManager.NEWLINE + warningLocation
+                    + ErrorManager.NEWLINE + "Using direction=IN instead.");
             }
         } else if (annotType.equals(Type.OBJECT)) {
             // Objects are not supported as OUT parameters
             if (isOut) {
                 ErrorManager.warn("Can't specify an Object with direction OUT." + ErrorManager.NEWLINE + warningLocation
-                        + ErrorManager.NEWLINE + "Using direction=INOUT instead.");
+                    + ErrorManager.NEWLINE + "Using direction=INOUT instead.");
             }
         }
 
@@ -372,7 +372,7 @@ public class ITFParser {
             if (!annotType.equals(Type.FILE) && !annotType.equals(Type.STREAM)) {
                 if (isOut || isInOut) {
                     ErrorManager.error("Non-Native tasks only supports " + annotType.name() + " types in mode IN"
-                            + ErrorManager.NEWLINE + warningLocation);
+                        + ErrorManager.NEWLINE + warningLocation);
                 }
             }
         }
@@ -383,27 +383,27 @@ public class ITFParser {
         if (!stream.equals(StdIOStream.UNSPECIFIED)) {
             // Stream parameters can only be files
             if (!annotType.equals(Type.FILE)) {
-                ErrorManager.error("Can't specify an Stream with type different than File." + ErrorManager.NEWLINE
-                        + warningLocation);
+                ErrorManager.error(
+                    "Can't specify an Stream with type different than File." + ErrorManager.NEWLINE + warningLocation);
             }
 
             switch (stream) {
                 case STDIN:
                     if (isOut || isInOut) {
                         ErrorManager
-                                .error("Stream STDIN must have direction IN" + ErrorManager.NEWLINE + warningLocation);
+                            .error("Stream STDIN must have direction IN" + ErrorManager.NEWLINE + warningLocation);
                     }
                     break;
                 case STDOUT:
                     if (!isOut && !isInOut) {
-                        ErrorManager.error("Stream STDOUT must have direction OUT or INOUT" + ErrorManager.NEWLINE
-                                + warningLocation);
+                        ErrorManager.error(
+                            "Stream STDOUT must have direction OUT or INOUT" + ErrorManager.NEWLINE + warningLocation);
                     }
                     break;
                 case STDERR:
                     if (!isOut && !isInOut) {
-                        ErrorManager.error("Stream STDERR must have direction OUT or INOUT" + ErrorManager.NEWLINE
-                                + warningLocation);
+                        ErrorManager.error(
+                            "Stream STDERR must have direction OUT or INOUT" + ErrorManager.NEWLINE + warningLocation);
                     }
                     break;
                 case UNSPECIFIED:
@@ -424,7 +424,7 @@ public class ITFParser {
      * @param ced The CoreElement definition of the method.
      */
     private static void checkDefinedImplementations(java.lang.reflect.Method m, StringBuilder calleeMethodSignature,
-            boolean hasStreams, boolean hasPrefixes, CoreElementDefinition ced) {
+        boolean hasStreams, boolean hasPrefixes, CoreElementDefinition ced) {
 
         /*
          * Global constraints of the method
@@ -447,14 +447,14 @@ public class ITFParser {
 
             // Warning for ignoring streams
             if (hasStreams) {
-                ErrorManager.warn("Java method " + methodName
-                        + " does not support stream annotations. SKIPPING stream annotation");
+                ErrorManager.warn(
+                    "Java method " + methodName + " does not support stream annotations. SKIPPING stream annotation");
             }
 
             // Warning for ignoring prefixes
             if (hasPrefixes) {
-                ErrorManager.warn("Java method " + methodName
-                        + " does not support prefix annotations. SKIPPING prefix annotation");
+                ErrorManager.warn(
+                    "Java method " + methodName + " does not support prefix annotations. SKIPPING prefix annotation");
             }
 
             String declaringClass = methodAnnot.declaringClass();
@@ -471,7 +471,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.METHOD.toString(), methodSignature,
-                        implConstraints, declaringClass, methodName);
+                    implConstraints, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -487,8 +487,8 @@ public class ITFParser {
 
             // Warning for ignoring streams
             if (hasStreams) {
-                ErrorManager.warn("Java service " + methodName
-                        + " does not support stream annotations. SKIPPING stream annotation");
+                ErrorManager.warn(
+                    "Java service " + methodName + " does not support stream annotations. SKIPPING stream annotation");
             }
 
             calleeMethodSignature.append(serviceAnnot.namespace()).append(',');
@@ -501,8 +501,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(TaskType.SERVICE.toString(), serviceSignature,
-                        null, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(),
-                        serviceAnnot.port());
+                    null, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.operation(), serviceAnnot.port());
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -534,7 +533,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                        implConstraints, binary, workingDir);
+                    implConstraints, binary, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -577,7 +576,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                        implConstraints, binary, workingDir, mpiRunner);
+                    implConstraints, binary, workingDir, mpiRunner);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -623,7 +622,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.DECAF.toString(), decafSignature,
-                        implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner);
+                    implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -666,7 +665,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
-                        implConstraints, runcompss, flags, appName, workerInMaster, workingDir);
+                    implConstraints, runcompss, flags, appName, workerInMaster, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -683,13 +682,13 @@ public class ITFParser {
             // Warning for ignoring streams
             if (hasStreams) {
                 ErrorManager.warn("Java multi-node method " + methodName
-                        + " does not support stream annotations. SKIPPING stream annotation");
+                    + " does not support stream annotations. SKIPPING stream annotation");
             }
 
             // Warning for ignoring prefixes
             if (hasPrefixes) {
                 ErrorManager.warn("Java multi-node method " + methodName
-                        + " does not support prefix annotations. SKIPPING prefix annotation");
+                    + " does not support prefix annotations. SKIPPING prefix annotation");
             }
 
             String declaringClass = multiNodeAnnot.declaringClass();
@@ -706,7 +705,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.MULTI_NODE.toString(),
-                        methodSignature, implConstraints, declaringClass, methodName);
+                    methodSignature, implConstraints, declaringClass, methodName);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -739,7 +738,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
-                        implConstraints, binary, workingDir);
+                    implConstraints, binary, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -771,7 +770,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.OPENCL.toString(), openclSignature,
-                        implConstraints, kernel, workingDir);
+                    implConstraints, kernel, workingDir);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

@@ -69,8 +69,8 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         assertEquals("Running the method before expected", e.getType(), Event.Type.RUNNING_METHOD);
 
         @SuppressWarnings("unchecked")
-        LinkedList<InvocationParameterAssertion> asserts = (LinkedList<InvocationParameterAssertion>) e
-                .getExpectedState();
+        LinkedList<InvocationParameterAssertion> asserts =
+            (LinkedList<InvocationParameterAssertion>) e.getExpectedState();
         for (InvocationParameterAssertion assertion : asserts) {
             assertion.validate(inv);
         }
@@ -93,7 +93,7 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
                             break;
                         default:
                             fail("Cannot apply action " + action.getAction()
-                                    + " to return value. Test design failure!!");
+                                + " to return value. Test design failure!!");
                     }
                     break;
                 default:
@@ -109,7 +109,7 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
                             break;
                         default:
                             fail("Cannot apply action " + action.getAction()
-                                    + " to return value. Test design failure!!");
+                                + " to return value. Test design failure!!");
                     }
             }
         }
@@ -126,14 +126,14 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         List<Object> expectedResults = (List<Object>) e.getExpectedState();
         if (results.size() != expectedResults.size()) {
             fail("Unexpected number of results. Expecting " + expectedResults.size() + " and obtained "
-                    + results.size());
+                + results.size());
         }
         int resIdx = 0;
         Iterator<Object> resultsItr = results.iterator();
         for (Object expectedResult : expectedResults) {
             Object result = resultsItr.next();
             assertEquals("Unexpected value for result value #" + resIdx + " the method execution",
-                    ((TestObject) expectedResult).getValue(), ((TestObject) result).getValue());
+                ((TestObject) expectedResult).getValue(), ((TestObject) result).getValue());
             resIdx++;
         }
     }
@@ -145,7 +145,7 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         assertNotNull("Getting object " + rename + " when no more events where expected", e);
         assertEquals("Getting object when expecting " + e.getType(), e.getType(), Event.Type.GET_OBJECT);
         assertEquals("Getting object " + rename + " when expecting getting " + e.getExpectedState(),
-                e.getExpectedState(), rename);
+            e.getExpectedState(), rename);
         return e.getAttachedReply();
     }
 
@@ -155,9 +155,9 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         Event e = expectedEvents.pollFirst();
         assertNotNull("Getting persisted object " + id + " when no more events where expected", e);
         assertEquals("Getting persisted object when expecting " + e.getType(), e.getType(),
-                Event.Type.GET_PERSISTENT_OBJECT);
+            Event.Type.GET_PERSISTENT_OBJECT);
         assertEquals("Getting persisted object " + id + " when expecting getting " + e.getExpectedState(),
-                e.getExpectedState(), id);
+            e.getExpectedState(), id);
         return e.getAttachedReply();
     }
 
@@ -168,10 +168,10 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         assertNotNull("Storing object " + rename + " when no more events where expected", e);
         assertEquals("Storing object when expecting " + e.getType(), e.getType(), Event.Type.STORE_OBJECT);
         assertEquals("Storing object " + rename + " when expecting storing " + e.getExpectedState(),
-                e.getExpectedState(), rename);
+            e.getExpectedState(), rename);
         assertEquals(
-                "Storing value " + value + "for object " + rename + " when expecting getting" + e.getAttachedReply(),
-                ((TestObject) value).getValue(), e.getAttachedReply());
+            "Storing value " + value + "for object " + rename + " when expecting getting" + e.getAttachedReply(),
+            ((TestObject) value).getValue(), e.getAttachedReply());
     }
 
     @Override
@@ -180,11 +180,12 @@ public class ExecutionFlowVerifier implements InvocationContextListener, Invoker
         Event e = expectedEvents.pollFirst();
         assertNotNull("Storing persisted object " + id + " when no more events where expected", e);
         assertEquals("Storing persited object when expecting " + e.getType(), e.getType(),
-                Event.Type.STORE_PERSISTENT_OBJECT);
+            Event.Type.STORE_PERSISTENT_OBJECT);
         assertEquals("Storing persitend object " + id + " when expecting storing " + e.getExpectedState(),
-                e.getExpectedState(), id);
-        assertEquals("Storing value " + obj + "for persisted object " + id + " when expecting getting"
-                + e.getAttachedReply(), ((TestObject) obj).getValue(), e.getAttachedReply());
+            e.getExpectedState(), id);
+        assertEquals(
+            "Storing value " + obj + "for persisted object " + id + " when expecting getting" + e.getAttachedReply(),
+            ((TestObject) obj).getValue(), e.getAttachedReply());
 
     }
 

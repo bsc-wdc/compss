@@ -24,6 +24,7 @@ public class AgentConfiguration extends MethodConfiguration {
 
     private MethodResourceDescription description;
 
+
     public AgentConfiguration(String adaptorName) {
         super(adaptorName);
     }

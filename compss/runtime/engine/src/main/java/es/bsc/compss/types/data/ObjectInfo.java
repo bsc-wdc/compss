@@ -24,6 +24,7 @@ public class ObjectInfo extends DataInfo {
     // Hash code of the object
     private int code;
 
+
     /**
      * Creates a new ObjectInfo instance with the given hashcode.
      *

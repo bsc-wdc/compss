@@ -466,7 +466,7 @@ public class LogicalData {
      * @return a valid location if the file is unique
      */
     public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host,
-            Map<String, String> sharedMountPoints) {
+        Map<String, String> sharedMountPoints) {
         // If the file is being saved means that this function has already been
         // executed
         // for the same LogicalData. Thus, all the host locations are already
@@ -676,6 +676,7 @@ public class LogicalData {
 
         private final Copy c;
         private final DataLocation loc;
+
 
         public CopyInProgress(Copy c, DataLocation loc) {
             this.c = c;

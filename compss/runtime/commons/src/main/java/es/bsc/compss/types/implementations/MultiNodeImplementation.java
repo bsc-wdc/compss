@@ -56,7 +56,7 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
      * @param requirements Method requirements.
      */
     public MultiNodeImplementation(String methodClass, String methodName, Integer coreId, Integer implementationId,
-            String signature, MethodResourceDescription requirements) {
+        String signature, MethodResourceDescription requirements) {
 
         super(coreId, implementationId, signature, requirements);
         this.declaringClass = methodClass;
@@ -108,7 +108,7 @@ public class MultiNodeImplementation extends AbstractMethodImplementation implem
     @Override
     public String toString() {
         return super.toString() + " Multi-Node Method declared in class " + this.declaringClass + "." + methodName
-                + ": " + this.requirements.toString();
+            + ": " + this.requirements.toString();
     }
 
     @Override

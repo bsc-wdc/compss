@@ -25,6 +25,7 @@ public class COMPSsException extends Exception {
 
     String errorMessage;
 
+
     /**
      * Creates a new COMPSsException.
      * 

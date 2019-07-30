@@ -54,7 +54,7 @@ import java.util.List;
 class CommAgentJob extends NIOJob {
 
     public CommAgentJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
         super(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
 
@@ -90,9 +90,9 @@ class CommAgentJob extends NIOJob {
         int numParams = params.size() - taskParams.getNumReturns();
 
         CommTask nt = new CommTask(this.getLang(), DEBUG, absMethodImpl, null, this.taskParams.hasTargetObject(),
-                this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
-                slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(), this.jobId, this.history, this.transferId,
-                this.getTimeOut(), CommAgentAdaptor.LOCAL_RESOURCE);
+            this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(), slaveWorkersNodeNames,
+            this.taskId, this.impl.getTaskType(), this.jobId, this.history, this.transferId, this.getTimeOut(),
+            CommAgentAdaptor.LOCAL_RESOURCE);
 
         return nt;
     }

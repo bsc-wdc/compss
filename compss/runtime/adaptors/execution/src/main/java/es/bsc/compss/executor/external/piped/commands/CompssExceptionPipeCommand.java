@@ -18,14 +18,16 @@ package es.bsc.compss.executor.external.piped.commands;
 
 import es.bsc.compss.executor.external.commands.CompssExceptionExternalCommand;
 
+
 public class CompssExceptionPipeCommand extends CompssExceptionExternalCommand implements PipeCommand {
 
     public final Integer jobId;
     public final String message;
-    
+
+
     public CompssExceptionPipeCommand(String[] line) {
         this.jobId = Integer.parseInt(line[1]);
-        this.message = line[2].replaceAll("_"," ");
+        this.message = line[2].replaceAll("_", " ");
     }
 
     public String getMessage() {
@@ -46,4 +48,3 @@ public class CompssExceptionPipeCommand extends CompssExceptionExternalCommand i
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }
-

@@ -29,19 +29,19 @@ import java.util.LinkedList;
 
 
 public abstract class ImmediateCopy extends Copy {
-    
+
     /**
      * Constructs a new ImmediateCopy.
      *
-     * @param srcData  source logical data
-     * @param prefSrc  preferred source data location
-     * @param prefTgt  preferred target data location
-     * @param tgtData  target logical data
-     * @param reason   Transfer reason
+     * @param srcData source logical data
+     * @param prefSrc preferred source data location
+     * @param prefTgt preferred target data location
+     * @param tgtData target logical data
+     * @param reason Transfer reason
      * @param listener listener to notify events
      */
     public ImmediateCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
         if (DEBUG) {
             LOGGER.debug("Created Immediate Copy " + this.getName() + " (id: " + this.getId() + ")");
@@ -63,7 +63,7 @@ public abstract class ImmediateCopy extends Copy {
                     setFinalTarget(u.getPath());
                     end(OperationEndState.OP_OK);
                     LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - A copy of " + getName()
-                            + " is already present at " + targetHost + " on path " + u.getPath());
+                        + " is already present at " + targetHost + " on path " + u.getPath());
                     return;
                 }
                 Copy copyInProgress = null;
@@ -78,7 +78,7 @@ public abstract class ImmediateCopy extends Copy {
                         copyInProgress.addEventListeners(getEventListeners());
                     }
                     LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - A copy to " + path
-                            + " is already in progress, skipping replication");
+                        + " is already in progress, skipping replication");
                     return;
                 }
             }

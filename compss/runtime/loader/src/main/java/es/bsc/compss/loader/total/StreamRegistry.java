@@ -113,7 +113,7 @@ public class StreamRegistry {
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
             throw new FileNotFoundException(
-                    "Loader - Error creating FileInputStream for file " + file + LINE_SEP + e.getMessage());
+                "Loader - Error creating FileInputStream for file " + file + LINE_SEP + e.getMessage());
         }
 
         return fis;
@@ -164,7 +164,7 @@ public class StreamRegistry {
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
             throw new FileNotFoundException(
-                    "Loader - Error creating FileOutputStream for file " + file + LINE_SEP + e.getMessage());
+                "Loader - Error creating FileOutputStream for file " + file + LINE_SEP + e.getMessage());
         }
 
         return fos;
@@ -254,7 +254,7 @@ public class StreamRegistry {
         } catch (IOException e) {
             // We must go up as a FileNotFoundException, since it is the one that the application deals with
             throw new FileNotFoundException(
-                    "Loader - Error creating RandomAccessFile for file " + file + LINE_SEP + e.getMessage());
+                "Loader - Error creating RandomAccessFile for file " + file + LINE_SEP + e.getMessage());
         }
 
         return raf;
@@ -334,7 +334,7 @@ public class StreamRegistry {
      * TODO javadoc.
      */
     public InputStreamReader newInputStreamReader(InputStream is, String charsetName)
-            throws UnsupportedEncodingException {
+        throws UnsupportedEncodingException {
         InputStreamReader isr = new InputStreamReader(is, charsetName);
         replaceStream(is, isr);
 
@@ -445,7 +445,7 @@ public class StreamRegistry {
      * TODO javadoc.
      */
     public OutputStreamWriter newOutputStreamWriter(OutputStream os, String charsetName)
-            throws UnsupportedEncodingException {
+        throws UnsupportedEncodingException {
         OutputStreamWriter osw = new OutputStreamWriter(os, charsetName);
         replaceStream(os, osw);
 
@@ -495,7 +495,7 @@ public class StreamRegistry {
      * TODO javadoc.
      */
     public PrintStream newPrintStream(File file, String csn)
-            throws FileNotFoundException, UnsupportedEncodingException {
+        throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(file, direction);
 
@@ -513,7 +513,7 @@ public class StreamRegistry {
     }
 
     public PrintStream newPrintStream(String fileName, String csn)
-            throws FileNotFoundException, UnsupportedEncodingException {
+        throws FileNotFoundException, UnsupportedEncodingException {
         return newPrintStream(new File(fileName), csn);
     }
 
@@ -541,7 +541,7 @@ public class StreamRegistry {
      * TODO javadoc.
      */
     public PrintStream newPrintStream(OutputStream os, boolean autoFlush, String encoding)
-            throws UnsupportedEncodingException {
+        throws UnsupportedEncodingException {
         PrintStream ps = new PrintStream(os, autoFlush, encoding);
         replaceStream(os, ps);
 
@@ -565,7 +565,7 @@ public class StreamRegistry {
      * TODO javadoc.
      */
     public PrintWriter newPrintWriter(File file, String csn)
-            throws FileNotFoundException, UnsupportedEncodingException {
+        throws FileNotFoundException, UnsupportedEncodingException {
         Direction direction = Direction.OUT;
         StreamList list = obtainList(file, direction);
 
@@ -580,7 +580,7 @@ public class StreamRegistry {
     }
 
     public PrintWriter newPrintWriter(String fileName, String csn)
-            throws FileNotFoundException, UnsupportedEncodingException {
+        throws FileNotFoundException, UnsupportedEncodingException {
         return newPrintWriter(new File(fileName), csn);
     }
 
@@ -660,8 +660,8 @@ public class StreamRegistry {
             path = file.getCanonicalPath();
         } catch (IOException e) {
             // The Integrated Toolkit must finish
-            ErrorManager.fatal(
-                    "Cannot create stream for file " + file.getAbsolutePath() + " with direction " + direction, e);
+            ErrorManager
+                .fatal("Cannot create stream for file " + file.getAbsolutePath() + " with direction " + direction, e);
             return null;
         }
 
@@ -708,8 +708,8 @@ public class StreamRegistry {
         } else {
             if (direction != Direction.IN || list.written) {
                 ErrorManager.error("ERROR: File " + path
-                        + " is going to be accessed more than once and one of these accesses is for writting. "
-                        + "This can produce and inconsistency");
+                    + " is going to be accessed more than once and one of these accesses is for writting. "
+                    + "This can produce and inconsistency");
             }
         }
 
@@ -723,8 +723,8 @@ public class StreamRegistry {
         }
 
         if (DEBUG) {
-            LOGGER.debug("New stream for file " + path + " with renaming " + list.getRenaming() + " and direction "
-                    + direction);
+            LOGGER.debug(
+                "New stream for file " + path + " with renaming " + list.getRenaming() + " and direction " + direction);
         }
 
         return list;
@@ -761,7 +761,7 @@ public class StreamRegistry {
 
                         if (DEBUG) {
                             LOGGER.debug("Replaced stream of " + oldStream.getClass() + " by another of "
-                                    + newStream.getClass());
+                                + newStream.getClass());
                         }
 
                         continue;

@@ -92,7 +92,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     /**
      * Creates a new NIOWorkerNode instance.
      *
-     * @param config  Worker configuration.
+     * @param config Worker configuration.
      * @param adaptor Worker communication adaptor.
      */
     public NIOWorkerNode(NIOConfiguration config, NIOAdaptor adaptor) {
@@ -261,7 +261,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return new NIOJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
@@ -320,7 +320,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
         if (DEBUG) {
             LOGGER.debug("Sending data " + ld.getName() + " from worker node " + this.getName());
         }
@@ -366,7 +366,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
         if (ld == null) {
             LOGGER.debug("Logical data to obtain is null");
@@ -472,7 +472,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         if (DEBUG) {
             LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getPscoId() + " to "
-                    + targetHostname + " with must preserve " + preserveSource);
+                + targetHostname + " with must preserve " + preserveSource);
         }
 
         // Get the PSCOId to replicate
@@ -528,7 +528,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     path = u.getPath();
                     try {
                         c.setTargetLoc(DataLocation.createLocation(tgtRes,
-                                new SimpleURI(u.getScheme(), u.getHost().getName(), u.getPath())));
+                            new SimpleURI(u.getScheme(), u.getHost().getName(), u.getPath())));
                     } catch (Exception e) {
                         c.end(OperationEndState.OP_FAILED, e);
                         return;
@@ -667,7 +667,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     /**
      * Submits a new task to the worker.
      *
-     * @param job      Job to submit.
+     * @param job Job to submit.
      * @param obsolete List of obsolete objects to delete.
      * @throws UnstartedNodeException If the node has not started yet.
      */

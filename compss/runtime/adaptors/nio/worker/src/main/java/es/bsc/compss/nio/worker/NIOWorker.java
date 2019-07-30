@@ -132,41 +132,42 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         System.setOut(OUT);
     }
 
+
     /**
      * Creates a new NIOWorker instance.
      *
-     * @param transferLogs       Whether to transfer the output/error files or not.
-     * @param snd                Number of senders.
-     * @param rcv                Number of receivers.
-     * @param hostName           Worker hostname.
-     * @param masterName         Master hostname.
-     * @param masterPort         Master port.
-     * @param streamingPort      Streaming port.
-     * @param computingUnitsCPU  Worker CPU computing units.
-     * @param computingUnitsGPU  Worker GPU computing units.
+     * @param transferLogs Whether to transfer the output/error files or not.
+     * @param snd Number of senders.
+     * @param rcv Number of receivers.
+     * @param hostName Worker hostname.
+     * @param masterName Master hostname.
+     * @param masterPort Master port.
+     * @param streamingPort Streaming port.
+     * @param computingUnitsCPU Worker CPU computing units.
+     * @param computingUnitsGPU Worker GPU computing units.
      * @param computingUnitsFPGA Worker FPGA computing units
-     * @param cpuMap             String describing the thread-cpu mapping.
-     * @param gpuMap             String describing the thread-gpu mapping.
-     * @param fpgaMap            String describing the thread-fpga mapping.
-     * @param limitOfTasks       Limit of simultaneous tasks.
-     * @param appUuid            Application UUID.
-     * @param traceFlag          Tracing flag.
-     * @param traceHost          Tracing host name.
-     * @param storageConf        Storage configuration file path.
-     * @param executionType      Task execution type.
-     * @param persistentC        Whether to spawn persistent C workers or not.
-     * @param workingDir         Worker working directory.
-     * @param installDir         Installation directory.
-     * @param appDir             Application directory.
-     * @param javaParams         Java specific parameters.
-     * @param pyParams           Python specific parameters.
-     * @param cParams            C specific parameters.
+     * @param cpuMap String describing the thread-cpu mapping.
+     * @param gpuMap String describing the thread-gpu mapping.
+     * @param fpgaMap String describing the thread-fpga mapping.
+     * @param limitOfTasks Limit of simultaneous tasks.
+     * @param appUuid Application UUID.
+     * @param traceFlag Tracing flag.
+     * @param traceHost Tracing host name.
+     * @param storageConf Storage configuration file path.
+     * @param executionType Task execution type.
+     * @param persistentC Whether to spawn persistent C workers or not.
+     * @param workingDir Worker working directory.
+     * @param installDir Installation directory.
+     * @param appDir Application directory.
+     * @param javaParams Java specific parameters.
+     * @param pyParams Python specific parameters.
+     * @param cParams C specific parameters.
      */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
-            int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
-            String gpuMap, String fpgaMap, int limitOfTasks, String appUuid, String traceFlag, String traceHost,
-            String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir,
-            String appDir, JavaParams javaParams, PythonParams pyParams, CParams cParams) {
+        int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
+        String gpuMap, String fpgaMap, int limitOfTasks, String appUuid, String traceFlag, String traceHost,
+        String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir,
+        String appDir, JavaParams javaParams, PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
 
@@ -224,7 +225,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
-                computingUnitsFPGA, fpgaMap, limitOfTasks);
+            computingUnitsFPGA, fpgaMap, limitOfTasks);
 
         if (this.tracingLevel == NIOTracer.BASIC_MODE) {
             NIOTracer.enablePThreads();
@@ -269,7 +270,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("TARGET:");
             if (task.getTarget() != null) {
                 WORKER_LOGGER.info("    -" + task.getTarget().getPrefix() + " " + task.getTarget().getType() + ":"
-                        + task.getTarget().getValue());
+                    + task.getTarget().getValue());
             }
             WORKER_LOGGER.debug("RESULTS:");
             for (InvocationParam param : task.getResults()) {
@@ -279,7 +280,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK.getId(),
-                    TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
+                TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
         final long obsolSt = System.currentTimeMillis();
         // Remove obsolete
@@ -299,8 +300,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             if (param.getData() != null) {
                 // Parameter has associated data
                 if (WORKER_LOGGER_DEBUG) {
-                    WORKER_LOGGER.debug(
-                            "- Checking transfers for data " + param.getDataMgmtId() + " for parameter " + paramIdx);
+                    WORKER_LOGGER
+                        .debug("- Checking transfers for data " + param.getDataMgmtId() + " for parameter " + paramIdx);
                 }
                 listener.addOperation();
                 dataManager.fetchParam(param, paramIdx, listener);
@@ -311,7 +312,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (targetParam != null) {
             // Parameter has associated data
             WORKER_LOGGER
-                    .debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
+                .debug("- Checking transfers for data " + targetParam.getDataMgmtId() + " for target parameter");
             listener.addOperation();
             dataManager.fetchParam(targetParam, -1, listener);
         }
@@ -361,18 +362,18 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     @Override
     public void askForTransfer(InvocationParam param, int index, FetchDataListener listener) {
-        DataRequest dr = new WorkerDataRequest(listener, param.getType(), ((NIOParam) param).getData(),
-                (String) param.getValue());
+        DataRequest dr =
+            new WorkerDataRequest(listener, param.getType(), ((NIOParam) param).getData(), (String) param.getValue());
         addTransferRequest(dr);
     }
-    
+
     @Override
     public boolean isTransferingData(InvocationParam param) {
         List<DataRequest> requests = getDataRequests(((NIOParam) param).getData().getDataMgmtId());
         return (requests != null) && (!requests.isEmpty());
-        
+
     }
-    
+
     @Override
     protected void handleDataToSendNotAvailable(Connection c, NIOData d) {
         // Now only manage at C (python could do the same when cache available)
@@ -384,7 +385,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          */
         // If error or not external
         ErrorManager.warn(
-                "Data " + d.getDataMgmtId() + "in this worker " + this.getHostName() + " could not be sent to master.");
+            "Data " + d.getDataMgmtId() + "in this worker " + this.getHostName() + " could not be sent to master.");
         c.finishConnection();
     }
 
@@ -420,8 +421,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
             if (WORKER_LOGGER_DEBUG) {
-                WORKER_LOGGER.debug("Pending parameters: "
-                        + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
+                WORKER_LOGGER.debug(
+                    "Pending parameters: " + ((MultiOperationFetchListener) wdr.getListener()).getMissingOperations());
             }
         }
     }
@@ -453,10 +454,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("RESULT FOR JOB " + jobId + " (TASK ID: " + taskId + ")");
             WORKER_LOGGER.debug(tr);
         }
-       
+
         CommandNIOTaskDone cmd = null;
         if (e instanceof COMPSsException) {
-            cmd = new CommandNIOTaskDone(tr, successful, (COMPSsException)e);
+            cmd = new CommandNIOTaskDone(tr, successful, (COMPSsException) e);
         } else {
             cmd = new CommandNIOTaskDone(tr, successful, null);
         }
@@ -466,10 +467,10 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             // Check that output files already exists. If not exists generate an empty one.
             String taskFileOutName = this.getStandardStreamsPath(invocation) + ".out";
             checkStreamFileExistence(taskFileOutName, "out",
-                    "Autogenerated Empty file. An error was produced before generating any log in the stdout");
+                "Autogenerated Empty file. An error was produced before generating any log in the stdout");
             String taskFileErrName = this.getStandardStreamsPath(invocation) + ".err";
             checkStreamFileExistence(taskFileErrName, "err",
-                    "Autogenerated Empty file. An error was produced before generating any log in the stderr");
+                "Autogenerated Empty file. An error was produced before generating any log in the stderr");
             if (WORKER_LOGGER_DEBUG) {
                 WORKER_LOGGER.debug("Sending file " + taskFileOutName + ", for connection: " + c.hashCode());
             }
@@ -491,7 +492,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * Checks whether a STD IO stream file (OUT / ERR) exists or not.
      *
      * @param taskFileName Task file name.
-     * @param streamName   Stream name.
+     * @param streamName Stream name.
      * @param errorMessage Error message.
      */
     public void checkStreamFileExistence(String taskFileName, String streamName, String errorMessage) {
@@ -660,14 +661,14 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public void generateWorkersDebugInfo(Connection c) {
         // Freeze output
         String outSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + hostName + ".out";
-        String outTarget = workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName
-                + ".out";
+        String outTarget =
+            workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName + ".out";
         freezeFile(outSourcePath, outTarget);
 
         // Freeze error
         String errSourcePath = workingDir + File.separator + "log" + File.separator + "worker_" + hostName + ".err";
-        String errTarget = workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName
-                + ".err";
+        String errTarget =
+            workingDir + File.separator + "log" + File.separator + "static_" + "worker_" + hostName + ".err";
         freezeFile(errSourcePath, errTarget);
 
         // End
@@ -751,7 +752,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     @Override
     public LanguageParams getLanguageParams(Lang lang) {
         WORKER_LOGGER
-                .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
+            .info("GETTING LANGUAGE PARAMS :" + Lang.PYTHON.ordinal() + " -> " + this.langParams[lang.ordinal()]);
         return this.langParams[lang.ordinal()];
     }
 
@@ -772,7 +773,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     public String getStandardStreamsPath(Invocation invocation) {
         // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
         return this.getWorkingDir() + "jobs" + File.separator + "job" + invocation.getJobId() + "_"
-                + invocation.getHistory();
+            + invocation.getHistory();
     }
 
     /**
@@ -918,7 +919,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
-                pythonPropagateVirtualEnvironment, pythonpath, pythonMpiWorker);
+            pythonPropagateVirtualEnvironment, pythonpath, pythonMpiWorker);
         final CParams cParams = new CParams(classpath);
 
         // Print arguments
@@ -977,9 +978,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * LAUNCH THE WORKER
          *************************************************************************************************************/
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
-                computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, traceFlag,
-                traceHost, storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams,
-                pyParams, cParams);
+            computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, traceFlag, traceHost,
+            storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams, cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

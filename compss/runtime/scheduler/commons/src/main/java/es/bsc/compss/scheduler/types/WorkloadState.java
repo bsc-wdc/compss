@@ -215,8 +215,8 @@ public class WorkloadState {
      * @param executedTime Execution time.
      */
     public void registerRunning(int coreId, long executedTime) {
-        this.runningCoreMeanTime[coreId] = (this.runningCoreMeanTime[coreId] + executedTime)
-                / (this.runningCounts[coreId] + 1);
+        this.runningCoreMeanTime[coreId] =
+            (this.runningCoreMeanTime[coreId] + executedTime) / (this.runningCounts[coreId] + 1);
         this.runningCounts[coreId]++;
         this.runningCount++;
     }
@@ -244,7 +244,7 @@ public class WorkloadState {
             sb.append("\t").append("\t").append("MEAN = ").append(this.coreMeanTime[coreId]).append("\n");
             sb.append("\t").append("\t").append("MAX = ").append(this.coreMaxTime[coreId]).append("\n");
             sb.append("\t").append("\t").append("RUNNING_MEAN = ").append(this.runningCoreMeanTime[coreId])
-                    .append("\n");
+                .append("\n");
             sb.append("\t").append("]").append("\n");
         }
         sb.append("]").append("\n");

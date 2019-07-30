@@ -207,7 +207,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return this.node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
     }
@@ -236,7 +236,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     @Override
     public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+        EventListener listener) {
 
         LogicalData ld = Comm.getData(dataId);
         this.getData(ld, newName, tgtData, reason, listener);
@@ -244,12 +244,12 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     @Override
     public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+        EventListener listener) {
 
         if (reason.getType() == DataType.BINDING_OBJECT_T) {
             if (ld.getValue() == null) {
                 LOGGER.warn("[Resource] Getting data: " + newName
-                        + ", source logical data value is null. Trying with data target from reason ");
+                    + ", source logical data value is null. Trying with data target from reason ");
                 BindingObject bo = BindingObject.generate((String) reason.getDataTarget());
                 newName = newName + "#" + bo.getType() + "#" + bo.getElements();
             } else {
@@ -275,7 +275,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     @Override
     public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason,
-            EventListener listener) {
+        EventListener listener) {
         LogicalData srcData = Comm.getData(dataId);
         LogicalData tgtData = Comm.getData(tgtDataId);
         getData(srcData, target, tgtData, reason, listener);
@@ -283,14 +283,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     @Override
     public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+        EventListener listener) {
         LogicalData ld = Comm.getData(dataId);
         getData(ld, target, tgtData, reason, listener);
     }
 
     @Override
     public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener) {
+        EventListener listener) {
 
         this.node.obtainData(srcData, null, target, tgtData, reason, listener);
     }
@@ -331,7 +331,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
                 if (lastLoc.getType().equals(LocationType.BINDING)) {
                     BindingObject bo = BindingObject.generate(lastLoc.getPath());
                     safePath = ProtocolType.BINDING_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName()
-                            + "#" + bo.getType() + "#" + bo.getElements();
+                        + "#" + bo.getType() + "#" + bo.getElements();
                 } else {
                     safePath = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
                 }
@@ -344,7 +344,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
                 if (isBindingData) {
                     masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(DataType.BINDING_OBJECT_T),
-                            listener);
+                        listener);
                 } else {
                     masterNode.obtainData(ld, lastLoc, safeLoc, ld, new SafeCopyTransferable(), listener);
                 }
@@ -436,7 +436,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
         if (DEBUG) {
             LOGGER.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : "
-                    + Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator + fileName);
+                + Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator + fileName);
         }
 
         TracingCopyListener tracingListener = new TracingCopyListener(sem);
@@ -455,7 +455,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         // Target data location
         DataLocation tgt;
         String targetPath = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getAppLogDirPath() + "trace"
-                + File.separator + fileName;
+            + File.separator + fileName;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             tgt = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -467,7 +467,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         // Ask for data
         COMPSsNode masterNode = Comm.getAppHost().getNode();
         masterNode.obtainData(new LogicalData("tracing" + this.getName()), source, tgt,
-                new LogicalData("tracing" + this.getName()), new TracingCopyTransferable(), tracingListener);
+            new LogicalData("tracing" + this.getName()), new TracingCopyTransferable(), tracingListener);
 
         tracingListener.enable();
         try {
@@ -504,10 +504,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         // Get Worker output
         wdil.addOperation();
         String outFileName = "worker_" + getName() + ".out";
-        SimpleURI outFileOrigin = this.node.getCompletePath(DataType.FILE_T,
-                "log" + File.separator + "static_" + outFileName);
-        String outFileTarget = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath()
-                + File.separator + outFileName;
+        SimpleURI outFileOrigin =
+            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + outFileName);
+        String outFileTarget =
+            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + outFileName;
 
         DataLocation outSource = null;
         try {
@@ -528,15 +528,15 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         LOGGER.debug("- Target: " + outFileTarget);
         COMPSsNode masterNode = Comm.getAppHost().getNode();
         masterNode.obtainData(new LogicalData("workerOut" + this.getName()), outSource, outTarget,
-                new LogicalData("workerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
+            new LogicalData("workerOut" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Get Worker error
         wdil.addOperation();
         String errFileName = "worker_" + getName() + ".err";
-        SimpleURI errFileOrigin = this.node.getCompletePath(DataType.FILE_T,
-                "log" + File.separator + "static_" + errFileName);
-        String errFileTarget = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath()
-                + File.separator + errFileName;
+        SimpleURI errFileOrigin =
+            this.node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + errFileName);
+        String errFileTarget =
+            ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + errFileName;
 
         DataLocation errSource = null;
         try {
@@ -556,7 +556,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         LOGGER.debug("- Source: " + errFileOrigin);
         LOGGER.debug("- Target: " + errFileTarget);
         masterNode.obtainData(new LogicalData("workerErr" + this.getName()), errSource, errTarget,
-                new LogicalData("workerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
+            new LogicalData("workerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
 
         // Wait transfers
         wdil.enable();

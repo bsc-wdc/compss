@@ -37,6 +37,7 @@ public class Execution {
 
     /**
      * Execution end notification.
+     * 
      * @param success Flags to indicate if execution was successful
      */
     public void notifyEnd(COMPSsException e, boolean success) {

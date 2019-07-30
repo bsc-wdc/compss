@@ -133,7 +133,7 @@ public class BindingObjectLocation extends DataLocation {
         this.bindingObject = new BindingObject(path, bindingObject.getType(), bindingObject.getElements());
         MultiURI olduri = this.uri;
         this.uri = new MultiURI(ProtocolType.BINDING_URI, olduri.getHost(),
-                id + "#" + bindingObject.getType() + "#" + bindingObject.getElements());
+            id + "#" + bindingObject.getType() + "#" + bindingObject.getElements());
 
     }
 

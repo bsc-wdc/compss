@@ -49,22 +49,23 @@ public abstract class ExternalInvoker extends Invoker {
 
     protected final ExecuteTaskExternalCommand command;
 
+
     /**
      * External Invoker constructor.
      *
-     * @param context               Task execution context
-     * @param invocation            Task execution description
+     * @param context Task execution context
+     * @param invocation Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
-     * @param assignedResources     Assigned resources
+     * @param assignedResources Assigned resources
      * @throws JobExecutionException Error creating the External invoker
      */
     public ExternalInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
-        this.command = getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(),
-                assignedResources);
+        this.command =
+            getTaskExecutionCommand(context, invocation, taskSandboxWorkingDir.getAbsolutePath(), assignedResources);
         this.command.appendAllArguments(getExternalCommand(invocation, context, assignedResources));
         String streamsName = context.getStandardStreamsPath(invocation);
         this.command.prependArgument(streamsName + SUFFIX_ERR);
@@ -73,10 +74,10 @@ public abstract class ExternalInvoker extends Invoker {
     }
 
     protected abstract ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context,
-            Invocation invocation, String sandBox, InvocationResources assignedResources);
+        Invocation invocation, String sandBox, InvocationResources assignedResources);
 
     private static ArrayList<String> getExternalCommand(Invocation invocation, InvocationContext context,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         ArrayList<String> args = new ArrayList<>();
 
@@ -89,11 +90,11 @@ public abstract class ExternalInvoker extends Invoker {
     }
 
     private static ArrayList<String> addArguments(InvocationContext context, Invocation invocation)
-            throws JobExecutionException {
+        throws JobExecutionException {
         // The implementation to execute externally can only be METHOD or MULTI_NODE but we double check it
         if (invocation.getMethodImplementation().getMethodType() != MethodType.METHOD
-                && invocation.getMethodImplementation().getMethodType() != MethodType.MULTI_NODE
-                && invocation.getMethodImplementation().getMethodType() != MethodType.PYTHON_MPI) {
+            && invocation.getMethodImplementation().getMethodType() != MethodType.MULTI_NODE
+            && invocation.getMethodImplementation().getMethodType() != MethodType.PYTHON_MPI) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
 
@@ -192,7 +193,7 @@ public abstract class ExternalInvoker extends Invoker {
                     destFile = originalFile;
                 }
                 paramArgs.add(originalFile + ":" + destFile + ":" + np.isPreserveSourceData() + ":"
-                        + np.isWriteFinalValue() + ":" + np.getOriginalName());
+                    + np.isWriteFinalValue() + ":" + np.getOriginalName());
                 break;
             case OBJECT_T:
             case PSCO_T:
@@ -220,7 +221,7 @@ public abstract class ExternalInvoker extends Invoker {
                     destData = originalData;
                 }
                 paramArgs.add(originalData + ":" + destData + ":" + np.isPreserveSourceData() + ":"
-                        + np.isWriteFinalValue() + ":" + np.getOriginalName());
+                    + np.isWriteFinalValue() + ":" + np.getOriginalName());
                 paramArgs.add(Integer.toString(bo.getType()));
                 paramArgs.add(Integer.toString(bo.getElements()));
                 break;

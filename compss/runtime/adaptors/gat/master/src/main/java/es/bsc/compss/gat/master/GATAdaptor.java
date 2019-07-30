@@ -117,14 +117,13 @@ public class GATAdaptor implements CommAdaptor {
 
     @Override
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
-            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         String brokerAdaptorName = System.getProperty(COMPSsConstants.GAT_BROKER_ADAPTOR);
-        String projectBrokerAdaptor = (projectProperties != null) ? (String) projectProperties.get("BrokerAdaptor")
-                : null;
-        String resourcesBrokerAdaptor = (resourcesProperties != null)
-                ? (String) resourcesProperties.get("BrokerAdaptor")
-                : null;
+        String projectBrokerAdaptor =
+            (projectProperties != null) ? (String) projectProperties.get("BrokerAdaptor") : null;
+        String resourcesBrokerAdaptor =
+            (resourcesProperties != null) ? (String) resourcesProperties.get("BrokerAdaptor") : null;
         if (projectBrokerAdaptor != null) {
             if (resourcesBrokerAdaptor != null) {
                 // Both
@@ -134,7 +133,7 @@ public class GATAdaptor implements CommAdaptor {
                 } else {
                     // Specified Broker adaptors don't match
                     throw new ConstructConfigurationException(
-                            "GATAdaptor: BrokerAdaptor defined in resources.xml and" + " project.xml donesn't match");
+                        "GATAdaptor: BrokerAdaptor defined in resources.xml and" + " project.xml donesn't match");
                 }
             } else {
                 // Only project

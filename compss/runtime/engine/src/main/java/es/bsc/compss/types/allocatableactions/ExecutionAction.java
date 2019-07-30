@@ -95,12 +95,12 @@ public class ExecutionAction extends AllocatableAction {
      * Creates a new execution action.
      *
      * @param schedulingInformation Associated scheduling information.
-     * @param orchestrator          Task orchestrator.
-     * @param producer              Task producer.
-     * @param task                  Associated task.
+     * @param orchestrator Task orchestrator.
+     * @param producer Task producer.
+     * @param task Associated task.
      */
     public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-            TaskProducer producer, Task task) {
+        TaskProducer producer, Task task) {
 
         super(schedulingInformation, orchestrator);
 
@@ -203,7 +203,6 @@ public class ExecutionAction extends AllocatableAction {
     public boolean taskIsReadyForExecution() {
         return task.canBeExecuted();
     }
-    
 
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
@@ -214,7 +213,7 @@ public class ExecutionAction extends AllocatableAction {
         }
         return false;
     }
-    
+
     private void doInputTransfers() {
         JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);
@@ -351,11 +350,11 @@ public class ExecutionAction extends AllocatableAction {
         ++transferErrors;
         if (transferErrors < TRANSFER_CHANCES && task.getOnFailure() == OnFailure.RETRY) {
             JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host "
-                    + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
+                + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
             doInputTransfers();
         } else {
             ErrorManager.warn("Transfers for running task " + task.getId() + " on worker "
-                    + getAssignedResource().getName() + " have failed.");
+                + getAssignedResource().getName() + " have failed.");
             this.notifyError();
         }
     }
@@ -374,7 +373,7 @@ public class ExecutionAction extends AllocatableAction {
         // Register job
         this.jobs.add(job.getJobId());
         JOB_LOGGER.info((this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
-                + " (Task: " + task.getId() + ")");
+            + " (Task: " + task.getId() + ")");
         JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
         JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
 
@@ -390,7 +389,7 @@ public class ExecutionAction extends AllocatableAction {
         Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         List<String> slaveNames = new ArrayList<>(); // No salves
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
-                slaveNames, listener);
+            slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
         job.setHistory(JobHistory.NEW);
 
@@ -423,7 +422,7 @@ public class ExecutionAction extends AllocatableAction {
     /**
      * Code executed when the job execution has failed.
      *
-     * @param job       Failed job.
+     * @param job Failed job.
      * @param endStatus Exit status.
      */
     public final void failedJob(Job<?> job, JobEndStatus endStatus) {
@@ -434,11 +433,11 @@ public class ExecutionAction extends AllocatableAction {
 
         ++this.executionErrors;
         if (this.transferErrors + this.executionErrors < SUBMISSION_CHANCES
-                && this.task.getOnFailure() == OnFailure.RETRY) {
+            && this.task.getOnFailure() == OnFailure.RETRY) {
             JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
-                    + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
+                + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             ErrorManager.warn("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
-                    + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
+                + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
             job.setHistory(JobHistory.RESUBMITTED);
             this.profile.start();
             JobDispatcher.dispatch(job);
@@ -463,7 +462,7 @@ public class ExecutionAction extends AllocatableAction {
         // Notify end
         int jobId = job.getJobId();
         JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK (avg. duration: "
-                + this.profile.getAverageExecutionTime() + ")");
+            + this.profile.getAverageExecutionTime() + ")");
         // Job finished, update info about the generated/updated data
         doOutputTransfers(job);
         // Notify completion
@@ -511,8 +510,8 @@ public class ExecutionAction extends AllocatableAction {
                     dId = ((WAccessId) dp.getDataAccessId()).getWrittenDataInstance();
                     break;
                 case COMMUTATIVE:
-                    CommutativeGroupTask cgt = this.getTask()
-                            .getCommutativeGroup(((DependencyParameter) p).getDataAccessId().getDataId());
+                    CommutativeGroupTask cgt =
+                        this.getTask().getCommutativeGroup(((DependencyParameter) p).getDataAccessId().getDataId());
                     cgt.getCommutativeTasks().remove(this.getTask());
                     cgt.nextVersion();
                     dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
@@ -529,7 +528,7 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     private final DataLocation storeOutputParameter(Job<?> job, Worker<? extends WorkerResourceDescription> w,
-            String dataName, DependencyParameter p) {
+        String dataName, DependencyParameter p) {
         DependencyParameter dp = (DependencyParameter) p;
         String targetProtocol;
         switch (dp.getType()) {
@@ -661,14 +660,14 @@ public class ExecutionAction extends AllocatableAction {
             if (this.getExecutingResources().size() >= SCHEDULING_CHANCES) {
                 LOGGER.warn("Task " + this.task.getId() + " has already been rescheduled; notifying task failure.");
                 ErrorManager
-                        .warn("Task " + this.task.getId() + " has already been rescheduled; notifying task failure.");
+                    .warn("Task " + this.task.getId() + " has already been rescheduled; notifying task failure.");
                 throw new FailedActionException();
             } else {
-                ErrorManager.warn(
-                        "Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
-                                + " has failed; rescheduling task execution. (changing worker)");
-                LOGGER.warn("Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
+                ErrorManager
+                    .warn("Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
                         + " has failed; rescheduling task execution. (changing worker)");
+                LOGGER.warn("Task " + this.task.getId() + " execution on worker " + this.getAssignedResource().getName()
+                    + " has failed; rescheduling task execution. (changing worker)");
             }
         } else {
             LOGGER.warn("Notifying task " + this.task.getId() + " failure");
@@ -727,7 +726,7 @@ public class ExecutionAction extends AllocatableAction {
         String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("COMPSs Exception raised : Task ").append(taskName)
-                .append(" has raised an exception. Successors will be cancelled.\n");
+            .append(" has raised an exception. Successors will be cancelled.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
 
@@ -739,7 +738,7 @@ public class ExecutionAction extends AllocatableAction {
         this.task.setStatus(TaskState.FINISHED);
         this.producer.notifyTaskEnd(task);
     }
-    
+
     @Override
     protected void doCanceled() {
         // Cancelled log message
@@ -799,8 +798,8 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     @Override
-    public final <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r) {
+    public final <T extends WorkerResourceDescription> List<Implementation>
+        getCompatibleImplementations(ResourceScheduler<T> r) {
         return r.getExecutableImpls(this.task.getTaskDescription().getCoreElement().getCoreId());
     }
 
@@ -821,7 +820,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
         Score computedScore = targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
         // LOGGER.debug("Scheduling Score " + computedScore);
         return computedScore;
@@ -850,8 +849,8 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     private <T extends WorkerResourceDescription> void schedule(Score actionScore,
-            List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
-            throws BlockedActionException, UnassignedActionException {
+        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates)
+        throws BlockedActionException, UnassignedActionException {
 
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
@@ -868,7 +867,7 @@ public class ExecutionAction extends AllocatableAction {
                     continue;
                 } else {
                     LOGGER.debug("No more candidate resources for task " + this.task.getId() + ". Trying to use worker "
-                            + worker.getName() + " again ... ");
+                        + worker.getName() + " again ... ");
                 }
             }
 
@@ -876,12 +875,12 @@ public class ExecutionAction extends AllocatableAction {
             ++usefulResources;
             if (resourceScore != null) {
                 for (Implementation impl : getCompatibleImplementations(worker)) {
-                    Score implScore = worker.generateImplementationScore(this, task.getTaskDescription(), impl,
-                            resourceScore);
+                    Score implScore =
+                        worker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
                     if (DEBUG) {
                         debugString.append(" Resource ").append(worker.getName()).append(" ").append(" Implementation ")
-                                .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore)
-                                .append("\n");
+                            .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore)
+                            .append("\n");
                     }
                     if (Score.isBetter(implScore, bestScore)) {
                         bestWorker = worker;
@@ -911,16 +910,16 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Score actionScore) throws BlockedActionException, UnassignedActionException {
+        Score actionScore) throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker == null
-                // Resource is not compatible with the Core
-                || !targetWorker.getResource().canRun(task.getTaskDescription().getCoreElement().getCoreId())
-                // already ran on the resource
-                || this.getExecutingResources().contains(targetWorker)) {
+            // Resource is not compatible with the Core
+            || !targetWorker.getResource().canRun(task.getTaskDescription().getCoreElement().getCoreId())
+            // already ran on the resource
+            || this.getExecutingResources().contains(targetWorker)) {
 
             String message = "Worker " + (targetWorker == null ? "null" : targetWorker.getName())
-                    + " has not available resources to run " + this;
+                + " has not available resources to run " + this;
             LOGGER.warn(message);
             throw new UnassignedActionException();
         }
@@ -929,8 +928,8 @@ public class ExecutionAction extends AllocatableAction {
         Score bestScore = null;
         Score resourceScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
         for (Implementation impl : getCompatibleImplementations(targetWorker)) {
-            Score implScore = targetWorker.generateImplementationScore(this, task.getTaskDescription(), impl,
-                    resourceScore);
+            Score implScore =
+                targetWorker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
             if (Score.isBetter(implScore, bestScore)) {
                 bestImpl = impl;
                 bestScore = implScore;
@@ -942,7 +941,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Implementation impl) throws BlockedActionException, UnassignedActionException {
+        Implementation impl) throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
@@ -950,18 +949,18 @@ public class ExecutionAction extends AllocatableAction {
 
         if (DEBUG) {
             LOGGER.debug("Scheduling " + this + " on worker " + (targetWorker == null ? "null" : targetWorker.getName())
-                    + " with implementation " + (impl == null ? "null" : impl.getImplementationId()));
+                + " with implementation " + (impl == null ? "null" : impl.getImplementationId()));
         }
 
         if (!targetWorker.getResource().canRun(impl) // Resource is not compatible with the implementation
-                || this.getExecutingResources().contains(targetWorker)// already ran on the resource
+            || this.getExecutingResources().contains(targetWorker)// already ran on the resource
         ) {
             LOGGER.debug("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();
         }
 
         LOGGER.info("Assigning action " + this + " to worker " + targetWorker.getName() + " with implementation "
-                + impl.getImplementationId());
+            + impl.getImplementationId());
 
         this.assignImplementation(impl);
         assignResource(targetWorker);

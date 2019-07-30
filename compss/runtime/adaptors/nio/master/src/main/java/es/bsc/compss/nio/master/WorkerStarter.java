@@ -50,55 +50,54 @@ public class WorkerStarter {
     // Static Environment variables
     private static final String LIB_SEPARATOR = ":";
     private static final String CLASSPATH_FROM_ENVIRONMENT = (System.getProperty(COMPSsConstants.WORKER_CP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_CP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_CP)
-                    : "";
+        && !System.getProperty(COMPSsConstants.WORKER_CP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_CP)
+            : "";
 
     private static final String PYTHONPATH_FROM_ENVIRONMENT = (System.getProperty(COMPSsConstants.WORKER_PP) != null
-            && !System.getProperty(COMPSsConstants.WORKER_PP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_PP)
-                    : "";
+        && !System.getProperty(COMPSsConstants.WORKER_PP).isEmpty()) ? System.getProperty(COMPSsConstants.WORKER_PP)
+            : "";
 
     private static final String LIBPATH_FROM_ENVIRONMENT = (System.getenv(COMPSsConstants.LD_LIBRARY_PATH) != null
-            && !System.getenv(COMPSsConstants.LD_LIBRARY_PATH).isEmpty())
-                    ? System.getenv(COMPSsConstants.LD_LIBRARY_PATH)
-                    : "";
+        && !System.getenv(COMPSsConstants.LD_LIBRARY_PATH).isEmpty()) ? System.getenv(COMPSsConstants.LD_LIBRARY_PATH)
+            : "";
 
-    private static final boolean IS_CPU_AFFINITY_DEFINED = System
-            .getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) != null
+    private static final boolean IS_CPU_AFFINITY_DEFINED =
+        System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY).isEmpty();
-    private static final String CPU_AFFINITY = IS_CPU_AFFINITY_DEFINED
-            ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
+    private static final String CPU_AFFINITY =
+        IS_CPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_CPU_AFFINITY)
             : ThreadBinder.BINDER_DISABLED;
 
-    private static final boolean IS_GPU_AFFINITY_DEFINED = System
-            .getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) != null
+    private static final boolean IS_GPU_AFFINITY_DEFINED =
+        System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY).isEmpty();
-    private static final String GPU_AFFINITY = IS_GPU_AFFINITY_DEFINED
-            ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
+    private static final String GPU_AFFINITY =
+        IS_GPU_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_GPU_AFFINITY)
             : ThreadBinder.BINDER_DISABLED;
 
-    private static final boolean IS_FPGA_AFFINITY_DEFINED = System
-            .getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
+    private static final boolean IS_FPGA_AFFINITY_DEFINED =
+        System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY) != null
             && !System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY).isEmpty();
-    private static final String FPGA_AFFINITY = IS_FPGA_AFFINITY_DEFINED
-            ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
+    private static final String FPGA_AFFINITY =
+        IS_FPGA_AFFINITY_DEFINED ? System.getProperty(COMPSsConstants.WORKER_FPGA_AFFINITY)
             : ThreadBinder.BINDER_DISABLED;
 
-    private static final String WORKER_APPDIR_FROM_ENVIRONMENT = System
-            .getProperty(COMPSsConstants.WORKER_APPDIR) != null
+    private static final String WORKER_APPDIR_FROM_ENVIRONMENT =
+        System.getProperty(COMPSsConstants.WORKER_APPDIR) != null
             && !System.getProperty(COMPSsConstants.WORKER_APPDIR).isEmpty()
-                    ? System.getProperty(COMPSsConstants.WORKER_APPDIR)
-                    : "";
+                ? System.getProperty(COMPSsConstants.WORKER_APPDIR)
+                : "";
 
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
 
     // Scripts configuration
     private static final String STARTER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
-            + File.separator + "adaptors" + File.separator + "nio" + File.separator;
+        + File.separator + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
 
     private static final String CLEAN_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
-            + File.separator + "adaptors" + File.separator + "nio" + File.separator;
+        + File.separator + "adaptors" + File.separator + "nio" + File.separator;
     private static final String CLEAN_SCRIPT_NAME = "persistent_worker_clean.sh";
     // Connection related parameters
     private static final long START_WORKER_INITIAL_WAIT = 100;
@@ -210,14 +209,14 @@ public class WorkerStarter {
             killPreviousWorker(user, name, pid);
             throw new InitNodeException(msg);
         } else if (!this.workerIsReady) {
-            String msg = "[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user
-                    + ".";
+            String msg =
+                "[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
             LOGGER.warn(msg);
             killPreviousWorker(user, name, pid);
             throw new InitNodeException(msg);
         } else {
-            String msg = "[UNKNOWN]: Could not start the NIO worker on resource " + name + " through user " + user
-                    + ".";
+            String msg =
+                "[UNKNOWN]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
             LOGGER.warn(msg);
             killPreviousWorker(user, name, pid);
             throw new InitNodeException(msg);
@@ -250,9 +249,9 @@ public class WorkerStarter {
             } else {
                 if (timer > MAX_WAIT_FOR_SSH) {
                     // Timeout
-                    throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name
-                            + " through user " + user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:"
-                            + po.getError() + "\n");
+                    throw new InitNodeException(
+                        "[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user "
+                            + user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
                 }
                 LOGGER.warn(" Worker process failed to start in resource " + name + ". Retrying...");
             }
@@ -276,12 +275,12 @@ public class WorkerStarter {
             ProcessOut po = executeCommand(user, name, command);
             if (po == null) {
                 // Queue System managed worker starter
-                LOGGER.error(
-                        "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
-                                + name + ". Retries not available in this option.");
+                LOGGER
+                    .error("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
+                        + name + ". Retries not available in this option.");
                 throw new InitNodeException(
-                        "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
-                                + name + ". Retries not available in this option.");
+                    "[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource " + name
+                        + ". Retries not available in this option.");
             } else {
                 if (po.getExitValue() != 0) {
                     // Normal starting process
@@ -412,13 +411,13 @@ public class WorkerStarter {
         // Configure python virtual environment
         String pythonVirtualEnvironment = System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT);
         if (pythonVirtualEnvironment == null || pythonVirtualEnvironment.isEmpty()
-                || pythonVirtualEnvironment.equals("null")) {
+            || pythonVirtualEnvironment.equals("null")) {
             pythonVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
         }
-        String pythonPropagateVirtualEnvironment = System
-                .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
+        String pythonPropagateVirtualEnvironment =
+            System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT);
         if (pythonPropagateVirtualEnvironment == null || pythonPropagateVirtualEnvironment.isEmpty()
-                || pythonPropagateVirtualEnvironment.equals("null")) {
+            || pythonPropagateVirtualEnvironment.equals("null")) {
             pythonPropagateVirtualEnvironment = COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
         }
 
@@ -433,11 +432,11 @@ public class WorkerStarter {
          * ************************************************************************************************************
          */
         String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER
-                + jvmFlags.length + 1 + fpgaArgs.length];
+            + jvmFlags.length + 1 + fpgaArgs.length];
 
         /* SCRIPT ************************************************ */
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH
-                + STARTER_SCRIPT_NAME;
+            + STARTER_SCRIPT_NAME;
 
         /* Values ONLY for persistent_worker.sh ****************** */
         cmd[1] = workerLibPath.isEmpty() ? "null" : workerLibPath;
@@ -449,7 +448,7 @@ public class WorkerStarter {
             if (!appDir.isEmpty()) {
                 if (!WORKER_APPDIR_FROM_ENVIRONMENT.isEmpty()) {
                     LOGGER.warn("Path passed via appdir option and xml AppDir field."
-                            + "The path provided by the xml will be used");
+                        + "The path provided by the xml will be used");
                 }
                 cmd[2] = appDir;
             } else {
@@ -544,7 +543,7 @@ public class WorkerStarter {
 
         if (cmd.length != nextPosition) {
             throw new InitNodeException(
-                    "ERROR: Incorrect number of parameters. Expected: " + cmd.length + ". Got: " + nextPosition);
+                "ERROR: Incorrect number of parameters. Expected: " + cmd.length + ". Got: " + nextPosition);
         }
 
         return cmd;
@@ -570,7 +569,7 @@ public class WorkerStarter {
         // kill -15 2796 kills the parentpid
         // necessary to check whether it has file separator or not? /COMPSs////Runtime == /COMPSs/Runtime in bash
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + CLEAN_SCRIPT_PATH
-                + CLEAN_SCRIPT_NAME;
+            + CLEAN_SCRIPT_NAME;
         cmd[1] = String.valueOf(pid);
 
         return cmd;

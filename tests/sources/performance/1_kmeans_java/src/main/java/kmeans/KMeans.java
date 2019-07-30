@@ -10,7 +10,7 @@ public class KMeans {
      * Given the current cluster, compute a new cluster
      */
     public static void computeNewLocalClusters(int myK, int numDimensions, float[] points, float[] clusterPoints,
-            float[] newClusterPoints, int[] clusterCounts) {
+        float[] newClusterPoints, int[] clusterCounts) {
 
         int numPoints = points.length / numDimensions;
         for (int pointNumber = 0; pointNumber < numPoints; pointNumber++) {

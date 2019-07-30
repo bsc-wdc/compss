@@ -34,6 +34,7 @@ public class CommandNewTask implements Command {
     // Job description
     private NIOTask task;
 
+
     /**
      * Creates a new CommandNewTask for externalization.
      */
@@ -44,7 +45,7 @@ public class CommandNewTask implements Command {
     /**
      * Creates a new CommandNewTask instance.
      *
-     * @param t        New task.
+     * @param t New task.
      * @param obsolete List of obsolete files.
      */
     public CommandNewTask(NIOTask t, List<String> obsolete) {

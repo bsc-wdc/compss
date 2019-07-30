@@ -69,18 +69,18 @@ public class LoaderConstants {
 
     // Supported Stream Types
     public static final List<String> SUPPORTED_STREAM_TYPES = Arrays.asList("FileInputStream", // 58,700
-            "FileOutputStream", // 57,700
-            "InputStreamReader", // 61,200
-            "BufferedReader", // 36,400
-            "FileWriter", // 33,900
-            "PrintWriter", // 35,200
-            "FileReader", // 16,800
-            "OutputStreamWriter", // 15,700
-            "BufferedWriter", // 11,800
-            "PrintStream", // 6,000
-            "RandomAccessFile", // 5,000
-            "DataInputStream", // 7,000
-            "DataOutputStream" // 7,000
+        "FileOutputStream", // 57,700
+        "InputStreamReader", // 61,200
+        "BufferedReader", // 36,400
+        "FileWriter", // 33,900
+        "PrintWriter", // 35,200
+        "FileReader", // 16,800
+        "OutputStreamWriter", // 15,700
+        "BufferedWriter", // 11,800
+        "PrintStream", // 6,000
+        "RandomAccessFile", // 5,000
+        "DataInputStream", // 7,000
+        "DataOutputStream" // 7,000
     );
 
     // Custom loader names

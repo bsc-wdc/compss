@@ -21,19 +21,21 @@ import es.bsc.compss.worker.COMPSsException;
 import java.util.LinkedList;
 import java.util.List;
 
+
 public class TaskGroup implements AutoCloseable {
-    
+
     // Tasks that access the data
     private final List<Task> tasks;
-    
+
     private String name;
-    
+
     private boolean graphDrawn;
-    
+
     private COMPSsException exception;
-    
+
     private boolean implicitBarrier;
-    
+
+
     /**
      * Creates a task group.
      * 
@@ -45,7 +47,7 @@ public class TaskGroup implements AutoCloseable {
         this.name = groupName;
         this.implicitBarrier = barrier;
     }
-    
+
     /**
      * Returns commutative tasks of group.
      * 
@@ -63,7 +65,7 @@ public class TaskGroup implements AutoCloseable {
     public String getName() {
         return this.name;
     }
-    
+
     /**
      * Adds task to group.
      *
@@ -75,12 +77,11 @@ public class TaskGroup implements AutoCloseable {
 
     /**
      * Sets the graph of the group as drawn.
-     *
      */
     public void setGraphDrawn() {
         this.graphDrawn = true;
     }
-    
+
     /**
      * Returns if the graph of the group has been drawn.
      *
@@ -89,7 +90,7 @@ public class TaskGroup implements AutoCloseable {
     public boolean getGraphDrawn() {
         return this.graphDrawn;
     }
-    
+
     /**
      * Removes a task from the group.
      * 
@@ -98,7 +99,7 @@ public class TaskGroup implements AutoCloseable {
     public void removeTask(Task t) {
         this.tasks.remove(t);
     }
-    
+
     /**
      * Returns a boolean stating if the group has pending tasks to execute.
      * 
@@ -107,11 +108,10 @@ public class TaskGroup implements AutoCloseable {
     public boolean hasPendingTasks() {
         return !this.tasks.isEmpty();
     }
-    
+
     @Override
     public void close() throws Exception {
-        
-        
+
     }
 
     /**
@@ -134,11 +134,10 @@ public class TaskGroup implements AutoCloseable {
 
     /**
      * A task of the group has raised a COMPSsException.
-     * 
      */
     public void setException(COMPSsException e) {
         this.exception = e;
-        
+
     }
 
     public boolean hasImplicitBarrier() {
@@ -146,4 +145,3 @@ public class TaskGroup implements AutoCloseable {
     }
 
 }
-

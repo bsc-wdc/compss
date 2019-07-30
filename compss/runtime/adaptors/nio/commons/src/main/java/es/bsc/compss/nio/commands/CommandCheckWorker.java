@@ -30,6 +30,7 @@ public class CommandCheckWorker implements Command {
     private String uuid;
     private String nodeName;
 
+
     /**
      * Creates a new CommandCheckWorker for externalization.
      */
@@ -40,7 +41,7 @@ public class CommandCheckWorker implements Command {
     /**
      * Creates a new CommandCheckWorker instance.
      *
-     * @param uuid     Associated application UUID.
+     * @param uuid Associated application UUID.
      * @param nodeName Worker node name.
      */
     public CommandCheckWorker(String uuid, String nodeName) {

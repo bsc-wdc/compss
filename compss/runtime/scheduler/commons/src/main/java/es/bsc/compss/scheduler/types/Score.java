@@ -156,8 +156,7 @@ public class Score implements Comparable<Score> {
         if (obj instanceof Score) {
             Score other = (Score) obj;
             return (this.actionScore == other.actionScore && this.resourceScore == other.resourceScore
-                    && this.waitingScore == other.waitingScore
-                    && this.implementationScore == other.implementationScore);
+                && this.waitingScore == other.waitingScore && this.implementationScore == other.implementationScore);
         }
 
         return false;
@@ -227,7 +226,7 @@ public class Score implements Comparable<Score> {
     @Override
     public String toString() {
         return "[Score = [" + "action:" + this.actionScore + ", " + "resource:" + this.resourceScore + ", " + "load:"
-                + this.waitingScore + ", " + "implementation:" + this.implementationScore + "]" + "]";
+            + this.waitingScore + ", " + "implementation:" + this.implementationScore + "]" + "]";
     }
 
 }

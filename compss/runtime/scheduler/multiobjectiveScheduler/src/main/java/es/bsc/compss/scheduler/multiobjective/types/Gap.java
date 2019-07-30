@@ -103,6 +103,6 @@ public class Gap {
     @Override
     public String toString() {
         return "<" + this.initialTime + "->" + this.endTime + ", " + this.origin + ", "
-                + this.resources.getDynamicDescription() + ", with " + this.capacity + " slots >";
+            + this.resources.getDynamicDescription() + ", with " + this.capacity + " slots >";
     }
 }

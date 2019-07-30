@@ -86,7 +86,7 @@ public class RuntimeLogParser {
                     if (i > lastParsedLine) {
                         // Check line information and add to structures
                         if (line.contains("@processTask")
-                                && (line.contains("New method task") || line.contains("New service task"))) {
+                            && (line.contains("New method task") || line.contains("New service task"))) {
                             LOGGER.debug("* New task");
                             String[] str = line.split(" ");
                             String taskId = str[str.length - 1];
@@ -105,8 +105,8 @@ public class RuntimeLogParser {
                             tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_CREATING);
                         } else if (line.contains("@endTask") && line.contains(" with end status ")) {
                             LOGGER.debug("* Task End");
-                            String taskId = line.substring(line.lastIndexOf("task ") + 5,
-                                    line.lastIndexOf(" with end status"));
+                            String taskId =
+                                line.substring(line.lastIndexOf("task ") + 5, line.lastIndexOf(" with end status"));
                             String state = line.substring(line.lastIndexOf(" with end status ") + 17);
                             if (state.equals("FINISHED")) {
                                 tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_DONE);
@@ -120,8 +120,8 @@ public class RuntimeLogParser {
                         } else if ((line.contains("@errorOnAction")) && (line.contains("Blocked Action"))) {
                             LOGGER.debug("* Blocked Action");
                             // Task is Blocked (we mark it as failed)
-                            String taskId = line.substring(line.lastIndexOf("Task ") + 5,
-                                    line.lastIndexOf(", CE name"));
+                            String taskId =
+                                line.substring(line.lastIndexOf("Task ") + 5, line.lastIndexOf(", CE name"));
                             tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_FAILED);
                             if (!tasksFailed.contains(tasks.get(Integer.valueOf(taskId)))) {
                                 tasksFailed.add(tasks.get(Integer.valueOf(taskId)));
@@ -163,18 +163,18 @@ public class RuntimeLogParser {
                             LOGGER.debug("* Add target for last new job");
                             String host = line.substring(line.lastIndexOf(": ") + 1);
                             tasks.get(jobsToTasks.get(Integer.valueOf(lastNewJobId))).setJobHost(lastNewJobId, false,
-                                    host);
+                                host);
                         } else if ((line.contains("@failedJob")) && (line.contains("with state FAILED"))) {
                             LOGGER.debug("* Failed job");
                             String[] info = line.split(" ");
                             String jobId = info[info.length - 4];
                             tasks.get(jobsToTasks.get(Integer.valueOf(jobId)))
-                                    .setJobStatus(Constants.STATUS_TASK_FAILED);
+                                .setJobStatus(Constants.STATUS_TASK_FAILED);
                             if (!tasksWithFailedJobs.contains(tasks.get(jobsToTasks.get(Integer.valueOf(jobId))))) {
                                 tasksWithFailedJobs.add(tasks.get(jobsToTasks.get(Integer.valueOf(jobId))));
                             }
                         } else if ((line.contains("@failedJob"))
-                                && (line.contains("resubmitting task to the same worker"))) {
+                            && (line.contains("resubmitting task to the same worker"))) {
                             LOGGER.debug("* Job Resubmited");
                             String[] info = line.split(" ");
                             String jobId = info[info.length - 16];

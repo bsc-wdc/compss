@@ -52,7 +52,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
      * @throws JobExecutionException Error creating the MPI invoker.
      */
     public PythonMPIInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         PythonMPIImplementation pythonmpiImpl = null;
@@ -60,7 +60,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
             pythonmpiImpl = (PythonMPIImplementation) this.invocation.getMethodImplementation();
         } catch (Exception e) {
             throw new JobExecutionException(
-                    ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
+                ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
 
         // Python MPI flags
@@ -70,7 +70,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
     }
 
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
-            String sandBox, InvocationResources assignedResources) {
+        String sandBox, InvocationResources assignedResources) {
 
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
         return taskExecution;
@@ -96,12 +96,12 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         if (this.invocation.isDebugEnabled()) {
             LOGGER.debug("Exit value of MPI executor of job " + this.invocation.getJobId() + " of task "
-                    + this.invocation.getTaskId() + ": " + retObj.toString());
+                + this.invocation.getTaskId() + ": " + retObj.toString());
         }
 
         if (retObj.toString().compareTo("0") != 0) {
             throw new JobExecutionException("Received non-zero exit value: " + retObj.toString() + " for job "
-                    + this.invocation.getJobId() + " of task " + this.invocation.getTaskId());
+                + this.invocation.getJobId() + " of task " + this.invocation.getTaskId());
         }
     }
 
@@ -117,7 +117,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-                this.invocation.getTarget(), streamValues, this.pythonInterpreter);
+            this.invocation.getTarget(), streamValues, this.pythonInterpreter);
 
         // Prepare command
         String[] cmd = new String[numBasePythonMpiArgs + binaryParams.size()];
@@ -133,12 +133,12 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         String installDir = this.context.getInstallDir();
         final String pycompssRelativePath = File.separator + "Bindings" + File.separator + "python";
-        String pythonVersion = ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON))
-                .getPythonVersion();
+        String pythonVersion =
+            ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonVersion();
         String pyCOMPSsHome = installDir + pycompssRelativePath + File.separator + pythonVersion;
 
         cmd[5] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator + "external"
-                + File.separator + "mpi_executor.py";
+            + File.separator + "mpi_executor.py";
 
         cmd[6] = taskCMD;
 
@@ -154,7 +154,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
             PrintStream outLog = this.context.getThreadOutStream();
             outLog.println("");
             outLog.println(
-                    "[Python MPI INVOKER] Begin MPI call to " + this.declaringclass + "." + this.alternativeMethod);
+                "[Python MPI INVOKER] Begin MPI call to " + this.declaringclass + "." + this.alternativeMethod);
             outLog.println("[Python MPI INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[Python MPI INVOKER] MPI CMD: ");
@@ -166,7 +166,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-                this.context.getThreadErrStream(), pythonPath);
+            this.context.getThreadErrStream(), pythonPath);
 
     }
 

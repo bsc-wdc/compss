@@ -55,7 +55,7 @@ public class CollectionParameter extends DependencyParameter {
      * @see es.bsc.compss.components.impl.TaskAnalyser
      */
     public CollectionParameter(String collectionFile, List<Parameter> parameters, Direction direction,
-            StdIOStream stream, String prefix, String name) {
+        StdIOStream stream, String prefix, String name) {
 
         // Type will always be COLLECTION_T, no need to pass it as a constructor parameter and wont be modified
         // Stream and prefix are still forwarded for possible, future uses

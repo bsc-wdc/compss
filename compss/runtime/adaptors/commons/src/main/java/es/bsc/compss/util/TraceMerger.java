@@ -108,8 +108,8 @@ public class TraceMerger {
         // Init master trace information
         final String traceNamePrefix = appName + MASTER_TRACE_SUFFIX;
         final File masterF = new File(workingDir + File.separator + TRACE_SUBDIR);
-        final File[] matchingMasterFiles = masterF.listFiles(
-            (File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_EXTENSION));
+        final File[] matchingMasterFiles = masterF
+            .listFiles((File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(TRACE_EXTENSION));
 
         if (matchingMasterFiles == null || matchingMasterFiles.length < 1) {
             throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + TRACE_EXTENSION + " not found.");
@@ -209,7 +209,7 @@ public class TraceMerger {
     private Map<Integer, List<LineInfo>> getSyncEvents(String tracePath, Integer workerID) throws IOException {
         Map<Integer, List<LineInfo>> idToSyncInfo = new HashMap<>();
         try (FileInputStream inputStream = new FileInputStream(tracePath);
-                Scanner sc = new Scanner(inputStream, "UTF-8")) {
+            Scanner sc = new Scanner(inputStream, "UTF-8")) {
 
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
@@ -240,7 +240,7 @@ public class TraceMerger {
     }
 
     private void writeWorkerEvents(Map<Integer, List<LineInfo>> masterSyncEvents,
-            Map<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) {
+        Map<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) {
 
         LOGGER.debug("Writing " + eventsLine.size() + " lines from worker " + workerID);
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));

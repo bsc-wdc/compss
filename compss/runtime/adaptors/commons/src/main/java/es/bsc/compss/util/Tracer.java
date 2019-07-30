@@ -44,23 +44,22 @@ public abstract class Tracer {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TRACING);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
     private static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
-    private static final String ERROR_MASTER_PACKAGE_FILEPATH = "Cannot locate master tracing package "
-            + "on working directory";
+    private static final String ERROR_MASTER_PACKAGE_FILEPATH =
+        "Cannot locate master tracing package " + "on working directory";
 
     // Tracing script and file paths
     protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
-            + File.separator + "system" + File.separator + "trace" + File.separator + "trace.sh";
+        + File.separator + "system" + File.separator + "trace" + File.separator + "trace.sh";
     protected static final String TRACE_OUT_RELATIVE_PATH = File.separator + "trace" + File.separator + "tracer.out";
     protected static final String TRACE_ERR_RELATIVE_PATH = File.separator + "trace" + File.separator + "tracer.err";
 
     // Extrae loaded properties
-    private static final boolean IS_CUSTOM_EXTRAE_FILE = (System
-            .getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) != null)
+    private static final boolean IS_CUSTOM_EXTRAE_FILE =
+        (System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) != null)
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).isEmpty()
             && !System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE).equals("null");
-    private static final String EXTRAE_FILE = IS_CUSTOM_EXTRAE_FILE
-            ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE)
-            : "null";
+    private static final String EXTRAE_FILE =
+        IS_CUSTOM_EXTRAE_FILE ? System.getProperty(COMPSsConstants.EXTRAE_CONFIG_FILE) : "null";
 
     // Extrae environment flags
     public static final String LD_PRELOAD = "LD_PRELOAD";
@@ -371,8 +370,8 @@ public abstract class Tracer {
         }
 
         if (DEBUG) {
-            LOGGER.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId
-                    + "]");
+            LOGGER.debug(
+                "Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
         }
     }
 
@@ -392,7 +391,7 @@ public abstract class Tracer {
 
         if (DEBUG) {
             LOGGER.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", "
-                    + partnerID + ", " + ownID + "]");
+                + partnerID + ", " + ownID + "]");
         }
     }
 
@@ -484,8 +483,8 @@ public abstract class Tracer {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
-                    LOGGER.debug("Tracing[API]: Api Event " + i + "=> value: " + values[i] + ", Desc: "
-                            + descriptionValues[i]);
+                    LOGGER.debug(
+                        "Tracing[API]: Api Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -510,7 +509,7 @@ public abstract class Tracer {
             descriptionValues[i] = methodName;
             if (DEBUG) {
                 LOGGER.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: "
-                        + values[i] + ", Desc: " + descriptionValues[i]);
+                    + values[i] + ", Desc: " + descriptionValues[i]);
             }
             i++;
         }
@@ -531,7 +530,7 @@ public abstract class Tracer {
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
                     LOGGER.debug("Tracing[TASK_TRANSFERS]: Event " + i + "=> value: " + values[i] + ", Desc: "
-                            + descriptionValues[i]);
+                        + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -553,7 +552,7 @@ public abstract class Tracer {
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
                     LOGGER.debug("Tracing[STORAGE_TYPE]: Event " + i + "=> value: " + values[i] + ", Desc: "
-                            + descriptionValues[i]);
+                        + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -575,7 +574,7 @@ public abstract class Tracer {
                 descriptionValues[i] = task.getSignature();
                 if (DEBUG) {
                     LOGGER.debug("Tracing[INSIDE_TASKS_EVENTS]: Event " + i + "=> value: " + values[i] + ", Desc: "
-                            + descriptionValues[i]);
+                        + descriptionValues[i]);
                 }
                 ++i;
             }
@@ -681,7 +680,7 @@ public abstract class Tracer {
         String appName = System.getProperty(COMPSsConstants.APP_NAME);
 
         ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), appName,
-                String.valueOf(hostToSlots.size() + 1));
+            String.valueOf(hostToSlots.size() + 1));
         Process p;
         pb.environment().remove(LD_PRELOAD);
         try {

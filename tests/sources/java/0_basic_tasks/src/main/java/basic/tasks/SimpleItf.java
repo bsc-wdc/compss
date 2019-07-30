@@ -11,8 +11,6 @@ public interface SimpleItf {
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "basic.tasks.SimpleImpl")
-    void increment(
-        @Parameter(type = Type.FILE, direction = Direction.INOUT) String file
-    );
+    void increment(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file);
 
 }

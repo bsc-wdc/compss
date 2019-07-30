@@ -33,18 +33,19 @@ public class StorageCopy extends Copy {
 
     private final boolean preserveSourceData;
 
+
     /**
      * Create a new Storage Copy.
      *
-     * @param srcData  Source logical data
-     * @param prefSrc  preferred source location
-     * @param prefTgt  preferred target location
-     * @param tgtData  Target logical data
-     * @param reason   Transferable action which requested the copy
+     * @param srcData Source logical data
+     * @param prefSrc preferred source location
+     * @param prefTgt preferred target location
+     * @param tgtData Target logical data
+     * @param reason Transferable action which requested the copy
      * @param listener Listener to notify events
      */
     public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
 
@@ -67,7 +68,6 @@ public class StorageCopy extends Copy {
             LOGGER.debug("Created StorageCopy " + this.getName() + " (id: " + this.getId() + ")");
         }
     }
-
 
     /**
      * Returns whether the source data must be preserved or not.

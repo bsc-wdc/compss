@@ -45,7 +45,7 @@ public class ErrorPipeCommand extends ErrorExternalCommand implements PipeComman
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

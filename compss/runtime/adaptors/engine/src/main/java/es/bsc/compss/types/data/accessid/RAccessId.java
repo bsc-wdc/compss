@@ -101,7 +101,7 @@ public class RAccessId extends DataAccessId {
     @Override
     public String toString() {
         return "Read data: " + this.readDataVersion.getDataInstanceId()
-                + (this.preserveSourceData ? ", Preserved" : ", Erased");
+            + (this.preserveSourceData ? ", Preserved" : ", Erased");
     }
 
 }

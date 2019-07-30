@@ -46,7 +46,7 @@ public class BasicTypeParameter extends Parameter {
      * @param value Parameter value.
      */
     public BasicTypeParameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
-            Object value) {
+        Object value) {
         super(type, direction, stream, prefix, name);
         this.value = value;
     }

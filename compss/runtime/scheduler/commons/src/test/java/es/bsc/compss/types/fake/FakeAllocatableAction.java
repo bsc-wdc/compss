@@ -127,10 +127,10 @@ public class FakeAllocatableAction extends AllocatableAction {
     protected void doFailIgnored() {
         // Nothing to do
     }
-    
+
     @Override
     protected void doException(COMPSsException e) {
-        
+
     }
 
     @Override
@@ -139,8 +139,8 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation>
+        getCompatibleImplementations(ResourceScheduler<T> r) {
 
         return null;
     }
@@ -182,19 +182,19 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
         // Nothing to do
     }
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
         // Nothing to do
     }
 
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
 
         return null;
     }
@@ -223,7 +223,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
         // Nothing to do
     }
-    
+
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

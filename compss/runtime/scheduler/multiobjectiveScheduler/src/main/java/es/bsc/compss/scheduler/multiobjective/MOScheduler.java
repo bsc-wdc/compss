@@ -49,15 +49,15 @@ public class MOScheduler extends TaskScheduler {
 
     @Override
     public <T extends WorkerResourceDescription> MOResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-            JSONObject res, JSONObject impls) {
+        JSONObject res, JSONObject impls) {
 
         // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new MOResourceScheduler<>(w, res, impls);
     }
 
     @Override
-    public <T extends WorkerResourceDescription> MOSchedulingInformation generateSchedulingInformation(
-            ResourceScheduler<T> enforcedTargetResource) {
+    public <T extends WorkerResourceDescription> MOSchedulingInformation
+        generateSchedulingInformation(ResourceScheduler<T> enforcedTargetResource) {
 
         return new MOSchedulingInformation(enforcedTargetResource);
     }
@@ -115,8 +115,8 @@ public class MOScheduler extends TaskScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void handleDependencyFreeActions(
-            List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
-            List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
+        List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
+        List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
 
         LOGGER.debug("[MOScheduler] Treating dependency free actions on resource " + resource.getName());
         for (AllocatableAction freeAction : dataFreeActions) {

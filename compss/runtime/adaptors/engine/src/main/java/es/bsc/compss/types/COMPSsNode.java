@@ -65,7 +65,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
         // Initializing host attributes
         String hostName = "";
         if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals(""))
-                && (!MASTER_NAME_PROPERTY.equals("null"))) {
+            && (!MASTER_NAME_PROPERTY.equals("null"))) {
             // Set the hostname from the defined property
             hostName = MASTER_NAME_PROPERTY;
         } else {
@@ -133,7 +133,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @return New job instance.
      */
     public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener);
+        List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
      * Commands the worker to send a data value.
@@ -146,7 +146,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @param listener Transfer listener.
      */
     public abstract void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener);
+        Transferable reason, EventListener listener);
 
     /**
      * Retrieves an specific data from the node.
@@ -159,7 +159,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @param listener Transfer listener.
      */
     public abstract void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener);
+        Transferable reason, EventListener listener);
 
     /**
      * Orders the complete a data value retrieval already commanded.

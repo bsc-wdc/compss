@@ -83,7 +83,7 @@ public class ObjectTest {
         C c = new C(a, b);
 
         System.out
-                .println("In app, A is " + c.getAField().getIntField() + " and B is " + c.getBField().getStringField());
+            .println("In app, A is " + c.getAField().getIntField() + " and B is " + c.getBField().getStringField());
     }
 
     private static void testArrays() {

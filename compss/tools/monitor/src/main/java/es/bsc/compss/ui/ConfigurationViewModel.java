@@ -105,16 +105,16 @@ public class ConfigurationViewModel {
         this.configurations = new LinkedList<>();
 
         // Add Refresh Time
-        RefreshTime rt = new RefreshTime("Refresh Time (s)", String.valueOf(Properties.getRefreshTime() / 1_000),
-                false);
+        RefreshTime rt =
+            new RefreshTime("Refresh Time (s)", String.valueOf(Properties.getRefreshTime() / 1_000), false);
         this.configurations.add(rt);
         // Add Sort Applications
         SortApplications sa = new SortApplications("Sort applications (true/false)",
-                String.valueOf(Properties.isSortApplications()), false);
+            String.valueOf(Properties.isSortApplications()), false);
         this.configurations.add(sa);
         // Add LoadGraph X-Scale
         LoadGraphXScale lgxs = new LoadGraphXScale("Load Graph's X-Scale factor (int >= 1)",
-                String.valueOf(Properties.getxScaleForLoadGraph()), false);
+            String.valueOf(Properties.getxScaleForLoadGraph()), false);
         this.configurations.add(lgxs);
 
         LOGGER.debug("Configurable parameters loaded");

@@ -55,11 +55,10 @@ public class OnFailureIgnore {
             OnFailureIgnoreImpl.processParamIgnoreFailure(FILE_NAME);
         }
 
-        
         // Wait for all tasks to finish
         COMPSs.barrier();
-        
-     // Get the renamed file
+
+        // Get the renamed file
         COMPSs.getFile(FILE_NAME);
 
         // Shell commands to execute to check contents of file
@@ -107,12 +106,13 @@ public class OnFailureIgnore {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         // Exception if number of writers has not been correct
         if (count != 1) {
             throw new Exception("Incorrect number of writers " + count);
         }
     }
+
     private static void initFiles() {
         // Initialize the test file
         try {
@@ -147,7 +147,7 @@ public class OnFailureIgnore {
             throw new IOException("[ERROR] Cannot create test file");
         }
     }
-    
+
     private static void deleteFile(String fileName) {
         File file = new File(fileName);
         // Delete previous occurrences of the file

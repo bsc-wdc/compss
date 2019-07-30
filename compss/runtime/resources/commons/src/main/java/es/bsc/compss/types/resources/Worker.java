@@ -228,8 +228,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
             for (Implementation impl : impls) {
                 if (canRun(impl)) {
                     int simultaneousCapacity = simultaneousCapacity(impl);
-                    this.idealSimultaneousTasks[coreId] = Math.max(this.idealSimultaneousTasks[coreId],
-                            simultaneousCapacity);
+                    this.idealSimultaneousTasks[coreId] =
+                        Math.max(this.idealSimultaneousTasks[coreId], simultaneousCapacity);
                     this.implSimultaneousTasks[coreId][impl.getImplementationId()] = simultaneousCapacity;
                     if (simultaneousCapacity > 0) {
                         this.executableImpls[coreId].add(impl);
@@ -327,7 +327,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
             sb.append(prefix).append("\t").append("CORE = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("COREID = ").append(i).append("\n");
             sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ").append(this.coreSimultaneousTasks[i])
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("]").append("\n");
@@ -338,7 +338,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 sb.append(prefix).append("\t").append("\t").append("COREID = ").append(i).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("IMPLID = ").append(j).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("SIM_TASKS = ")
-                        .append(this.implSimultaneousTasks[i][j]).append("\n");
+                    .append(this.implSimultaneousTasks[i][j]).append("\n");
                 sb.append(prefix).append("\t").append("]").append("\n");
             }
         }

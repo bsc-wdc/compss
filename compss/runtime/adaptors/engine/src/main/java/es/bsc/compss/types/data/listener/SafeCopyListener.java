@@ -101,7 +101,7 @@ public class SafeCopyListener extends EventListener {
     private void doFailures() {
         sem.release();
     }
-    
+
     public int getOperations() {
         return operation;
     }

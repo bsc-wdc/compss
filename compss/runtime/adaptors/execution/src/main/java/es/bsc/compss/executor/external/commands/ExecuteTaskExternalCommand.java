@@ -22,7 +22,6 @@ import java.util.List;
 
 /**
  * Command to describe an external task execution.
- *
  */
 public class ExecuteTaskExternalCommand implements ExternalCommand {
 

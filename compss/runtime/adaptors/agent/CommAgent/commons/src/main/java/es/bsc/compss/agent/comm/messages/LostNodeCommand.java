@@ -34,6 +34,7 @@ public class LostNodeCommand implements Command {
 
     private String node;
 
+
     public LostNodeCommand() {
     }
 

@@ -73,7 +73,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
      * @param receiver ResourceScheduler representing the worker receiver.
      */
     public TransferValueAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-            DependencyParameter dp, ResourceScheduler<T> receiver) {
+        DependencyParameter dp, ResourceScheduler<T> receiver) {
 
         super(schedulingInformation, orchestrator);
         this.receiver = receiver;
@@ -131,8 +131,8 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
                 tgtName = epp.getId();
             }
             if (DEBUG) {
-                JOB_LOGGER.debug("Setting data target job transfer: "
-                        + w.getCompleteRemotePath(dataToTransfer.getType(), tgtName));
+                JOB_LOGGER.debug(
+                    "Setting data target job transfer: " + w.getCompleteRemotePath(dataToTransfer.getType(), tgtName));
             }
             dataToTransfer.setDataTarget(w.getCompleteRemotePath(dataToTransfer.getType(), tgtName).getPath());
             return;
@@ -206,11 +206,11 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
         // Failed log message
         ErrorManager.warn("Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has failed.");
     }
-    
+
     @Override
     protected void doException(COMPSsException e) {
         ErrorManager.warn(
-                "Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has raised a COMPSs Exception.");
+            "Transfer of data " + dataToTransfer.getName() + " to " + receiver + " has raised a COMPSs Exception.");
     }
 
     /*
@@ -236,8 +236,8 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     }
 
     @Override
-    public final <W extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
-            ResourceScheduler<W> r) {
+    public final <W extends WorkerResourceDescription> List<Implementation>
+        getCompatibleImplementations(ResourceScheduler<W> r) {
 
         List<Implementation> impls = new LinkedList<>();
         impls.add(DUMMY_IMPL);
@@ -261,7 +261,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
     @Override
     public final <W extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<W> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
         if (targetWorker == this.receiver) {
             return actionScore;
         }
@@ -275,13 +275,13 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
         schedule(targetWorker, DUMMY_IMPL);
     }
 
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker != this.receiver) {
             throw new UnassignedActionException();
@@ -336,7 +336,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
         @Override
         public void notifyFailure(DataOperation d, Exception excptn) {
             ErrorManager.warn("Transfer for data " + TransferValueAction.this.dataToTransfer + " to "
-                    + TransferValueAction.this.receiver.getName() + " has failed.");
+                + TransferValueAction.this.receiver.getName() + " has failed.");
 
             boolean enabled;
             boolean finished;
@@ -387,6 +387,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
     }
 
+
     @Override
     public boolean taskIsReadyForExecution() {
         // TODO Auto-generated method stub
@@ -395,7 +396,7 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        
+
     }
 
     @Override

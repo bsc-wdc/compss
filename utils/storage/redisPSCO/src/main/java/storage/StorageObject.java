@@ -35,9 +35,9 @@ public class StorageObject implements StubItf {
 
     private String id = null;
 
+
     /**
      * Constructor
-     * 
      */
     public StorageObject() {
     }
@@ -68,10 +68,11 @@ public class StorageObject implements StubItf {
     @Override
     public void makePersistent(String id) throws IOException, StorageException {
         // The object is already persisted
-        if(this.id != null) return;
+        if (this.id != null)
+            return;
         // There was no given identifier, lets compute a random one
         setHost();
-        if(id == null) {
+        if (id == null) {
             id = UUID.randomUUID().toString();
         }
         this.id = id;
@@ -91,21 +92,21 @@ public class StorageObject implements StubItf {
         this.host = hostname;
     }
 
-
     /**
-     * Persist the object.
-     * The identifier will be a pseudo-randomly generated UUID
+     * Persist the object. The identifier will be a pseudo-randomly generated UUID
      */
     public void makePersistent() throws IOException, StorageException {
         this.makePersistent(null);
     }
+
     /**
      * Deletes the persistent object occurrences
      */
     @Override
     public void deletePersistent() {
         // The object is not persisted, do nothing
-        if(this.id == null) return;
+        if (this.id == null)
+            return;
         // Call the storage API
         StorageItf.removeById(this.id);
         // Set the id to null
@@ -115,15 +116,14 @@ public class StorageObject implements StubItf {
     /**
      * Sets the ID
      */
-    //TODO: Is this the intended behaviour?
+    // TODO: Is this the intended behaviour?
     protected void setID(String id) throws IOException, StorageException {
         this.id = id;
     }
 
     /**
-     * Updates the object in the database.
-     * That is, removes the current version and then adds the in-memory one with
-     * the same identifier.
+     * Updates the object in the database. That is, removes the current version and then adds the in-memory one with the
+     * same identifier.
      */
     public void updatePersistent() {
         String pId = this.getID();

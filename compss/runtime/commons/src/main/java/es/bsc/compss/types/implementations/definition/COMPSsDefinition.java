@@ -33,8 +33,9 @@ public class COMPSsDefinition extends ImplementationDefinition<MethodResourceDes
     private final String workerInMaster;
     private final String workingDir;
 
-    protected COMPSsDefinition(String signature, String runcompss, String flags, String appName,
-            String workerInMaster, String workingDir, MethodResourceDescription implConstraints) {
+
+    protected COMPSsDefinition(String signature, String runcompss, String flags, String appName, String workerInMaster,
+        String workingDir, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.runcompss = runcompss;
         this.flags = flags;
@@ -46,7 +47,7 @@ public class COMPSsDefinition extends ImplementationDefinition<MethodResourceDes
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new COMPSsImplementation(runcompss, flags, appName, workerInMaster, workingDir, coreId, implId,
-                this.getSignature(), this.getConstraints());
+            this.getSignature(), this.getConstraints());
     }
 
     @Override

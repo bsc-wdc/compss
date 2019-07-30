@@ -52,5 +52,5 @@ public class Cbm1 {
         System.out.println(":::::::::::");
         System.out.println("");
     }
-    
+
 }

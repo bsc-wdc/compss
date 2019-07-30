@@ -7,9 +7,10 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getWorkerResponse complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for getWorkerResponse complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="getWorkerResponse">
@@ -22,25 +23,19 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getWorkerResponse", propOrder = {
-    "_return"
-})
+@XmlType(name = "getWorkerResponse", propOrder = { "_return" })
 public class GetWorkerResponse {
 
     @XmlElement(name = "return")
     protected Person _return;
 
+
     /**
      * Gets the value of the return property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Person }
-     *     
+     * @return possible object is {@link Person }
      */
     public Person getReturn() {
         return _return;
@@ -49,10 +44,7 @@ public class GetWorkerResponse {
     /**
      * Sets the value of the return property.
      * 
-     * @param value
-     *     allowed object is
-     *     {@link Person }
-     *     
+     * @param value allowed object is {@link Person }
      */
     public void setReturn(Person value) {
         this._return = value;

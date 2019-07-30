@@ -32,7 +32,9 @@ public class SharedLocation extends DataLocation {
     private final ProtocolType protocol;
 
 
-    /** Shared location constructor.
+    /**
+     * Shared location constructor.
+     * 
      * @param protocol Protocol
      * @param sharedDisk Shared disk name/identifier
      * @param path Path from mount point

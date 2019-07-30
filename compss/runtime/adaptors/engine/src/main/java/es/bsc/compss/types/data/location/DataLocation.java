@@ -55,7 +55,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         ProtocolType protocol = ProtocolType.getBySchema(uri.getSchema());
         if (protocol == null) {
             LOGGER.warn("WARN: Unrecognised protocol [ " + uri.getSchema() + " ] for createLocation. Switching to "
-                    + ProtocolType.ANY_URI.getSchema());
+                + ProtocolType.ANY_URI.getSchema());
             protocol = ProtocolType.ANY_URI;
         }
         DataLocation loc = null;
@@ -71,8 +71,8 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 } catch (URISyntaxException e) {
                     canonicalPath = new File(uri.getPath()).getCanonicalPath();
                 }
-                LOGGER.debug(
-                        "Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
+                LOGGER
+                    .debug("Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
                 loc = createLocation(ProtocolType.FILE_URI, host, canonicalPath);
                 break;
             case SHARED_URI:
@@ -86,15 +86,15 @@ public abstract class DataLocation implements Comparable<DataLocation> {
             case OBJECT_URI:
                 // Object
                 String objectName = uri.getPath(); // The Object name is stored as path in the URI
-                LOGGER.debug(
-                        "Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
+                LOGGER
+                    .debug("Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
                 loc = createLocation(ProtocolType.OBJECT_URI, host, objectName);
                 break;
             case STREAM_URI:
                 // Stream
                 String streamName = uri.getPath(); // The Object name is stored as path in the URI
-                LOGGER.debug(
-                        "Creating new StreamLocation: " + protocol.getSchema() + host.getName() + "@" + streamName);
+                LOGGER
+                    .debug("Creating new StreamLocation: " + protocol.getSchema() + host.getName() + "@" + streamName);
                 loc = createLocation(ProtocolType.STREAM_URI, host, streamName);
                 break;
             case EXTERNAL_STREAM_URI:
@@ -109,7 +109,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                     streamCompletePath = new File(uri.getPath()).getCanonicalPath();
                 }
                 LOGGER.debug("Creating new ExternalStreamLocation: " + protocol.getSchema() + host.getName() + "@"
-                        + streamCompletePath);
+                    + streamCompletePath);
                 loc = createLocation(ProtocolType.EXTERNAL_STREAM_URI, host, streamCompletePath);
                 break;
             case PERSISTENT_URI:
@@ -126,7 +126,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 break;
             case ANY_URI:
                 LOGGER.debug("Creating new AnyLocation: " + ProtocolType.ANY_URI.getSchema() + host.getName() + "@"
-                        + uri.getPath());
+                    + uri.getPath());
                 loc = createLocation(ProtocolType.ANY_URI, host, uri.getPath());
                 break;
         }

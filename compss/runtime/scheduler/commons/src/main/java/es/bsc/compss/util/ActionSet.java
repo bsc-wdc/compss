@@ -217,7 +217,7 @@ public class ActionSet {
         sb.append("no Core (").append(noCore.size()).append(")-> ").append(noCore).append("\n");
         for (int coreId = 0; coreId < coreIndexed.length; coreId++) {
             sb.append("Core ").append(coreId).append(" (").append(counts[coreId]).append(") -> ")
-                    .append(coreIndexed[coreId]).append("\n");
+                .append(coreIndexed[coreId]).append("\n");
         }
 
         return sb.toString();

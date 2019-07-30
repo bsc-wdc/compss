@@ -45,7 +45,7 @@ public class BindingObjectParameter extends DependencyParameter {
      * @param hashCode Parameter object hashcode.
      */
     public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, BindingObject bo,
-            int hashCode) {
+        int hashCode) {
 
         super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name);
         this.bo = bo;
@@ -63,7 +63,7 @@ public class BindingObjectParameter extends DependencyParameter {
     @Override
     public String toString() {
         return "BindingObjectParameter with Id " + this.bo.getId() + ", type " + this.bo.getType() + ", elements "
-                + this.bo.getElements() + " and HashCode " + this.hashCode;
+            + this.bo.getElements() + " and HashCode " + this.hashCode;
     }
 
     @Override

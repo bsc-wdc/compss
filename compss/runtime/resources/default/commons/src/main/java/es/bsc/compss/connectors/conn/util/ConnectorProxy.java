@@ -59,7 +59,7 @@ public class ConnectorProxy {
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
     public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription,
-            Map<String, String> properties) throws ConnectorException {
+        Map<String, String> properties) throws ConnectorException {
 
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);

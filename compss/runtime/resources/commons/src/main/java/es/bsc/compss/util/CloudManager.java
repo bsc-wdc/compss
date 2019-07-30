@@ -41,17 +41,17 @@ import org.apache.logging.log4j.Logger;
  */
 public class CloudManager {
 
-    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "connectors"
-            + File.separator;
+    private static final String CONNECTORS_REL_PATH =
+        File.separator + "Runtime" + File.separator + "connectors" + File.separator;
 
     private static final String WARN_RESOURCES_PREFIX = "WARN_MSG = [";
     private static final String WARN_NO_COMPSS_HOME = "WARN: COMPSS_HOME not defined, no default connectors loaded";
-    private static final String WARN_NO_COMPSS_HOME_RESOURCES = WARN_RESOURCES_PREFIX
-            + "COMPSS_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
-    private static final String WARN_NO_CONNECTORS_FOLDER = "WARN: Connectors folder not defined,"
-            + " no default connectors loaded";
-    private static final String WARN_NO_CONNECTORS_FOLDER_RESOURCES = WARN_RESOURCES_PREFIX
-            + "CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
+    private static final String WARN_NO_COMPSS_HOME_RESOURCES =
+        WARN_RESOURCES_PREFIX + "COMPSS_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
+    private static final String WARN_NO_CONNECTORS_FOLDER =
+        "WARN: Connectors folder not defined," + " no default connectors loaded";
+    private static final String WARN_NO_CONNECTORS_FOLDER_RESOURCES =
+        WARN_RESOURCES_PREFIX + "CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
 
     private static final Logger RUNTIME_LOGGER = LogManager.getLogger(Loggers.CM_COMP);
     private static final Logger RESOURCES_LOGGER = LogManager.getLogger(Loggers.RESOURCES);
@@ -144,8 +144,8 @@ public class CloudManager {
                 this.minVMs = minVMs;
                 if (minVMs > this.maxVMs) {
                     ErrorManager.warn("Cloud: MaxVMs (" + this.maxVMs + ") is lower than MinVMs (" + this.minVMs
-                            + "). The current MaxVMs value (" + this.maxVMs + ") is ignored until MinVMs ("
-                            + this.minVMs + ") is lower than it");
+                        + "). The current MaxVMs value (" + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs
+                        + ") is lower than it");
                 }
             } else {
                 this.minVMs = 0;
@@ -167,8 +167,8 @@ public class CloudManager {
             }
             if (this.minVMs > maxVMs) {
                 ErrorManager.warn("Cloud: MaxVMs (" + this.maxVMs + ") is lower than MinVMs (" + this.minVMs
-                        + "). The current MaxVMs value (" + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs
-                        + ") is higher than it");
+                    + "). The current MaxVMs value (" + this.maxVMs + ") is ignored until MinVMs (" + this.minVMs
+                    + ") is higher than it");
             }
         }
     }
@@ -210,11 +210,11 @@ public class CloudManager {
      * @throws ConnectorException When initializing the CloudProvider.
      */
     public CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass,
-            String connectorJarPath, String connectorMainClass, Map<String, String> connectorProperties)
-            throws ConnectorException {
+        String connectorJarPath, String connectorMainClass, Map<String, String> connectorProperties)
+        throws ConnectorException {
 
         CloudProvider cp = new CloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath,
-                connectorMainClass, connectorProperties);
+            connectorMainClass, connectorProperties);
         this.useCloud = true;
         this.providers.put(cp.getName(), cp);
         return cp;
@@ -406,7 +406,7 @@ public class CloudManager {
                 // REQUEST ARE COMPOSED OF A SINGLE INSTANCE TYPE
                 for (CloudInstanceTypeDescription citd : composition.keySet()) {
                     sb.append(prefix).append("\t").append("\t").append("REQUEST = ").append(citd.getName())
-                            .append("\n");
+                        .append("\n");
                 }
             }
         }

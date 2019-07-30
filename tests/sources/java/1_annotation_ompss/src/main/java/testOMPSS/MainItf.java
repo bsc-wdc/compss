@@ -8,11 +8,9 @@ import es.bsc.compss.types.annotations.task.OmpSs;
 
 
 public interface MainItf {
-    
+
     @OmpSs(binary = "${HELLO_WORLD_OMPSS}")
-    int ompssTask(
-        @Parameter(type = Type.STRING, direction = Direction.IN) String message,
-        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String stdOut
-    );
+    int ompssTask(@Parameter(type = Type.STRING, direction = Direction.IN) String message,
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = StdIOStream.STDOUT) String stdOut);
 
 }

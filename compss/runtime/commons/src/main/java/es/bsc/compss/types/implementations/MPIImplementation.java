@@ -58,7 +58,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      * @param annot MPI requirements.
      */
     public MPIImplementation(String binary, String workingDir, String mpiRunner, Integer coreId,
-            Integer implementationId, String signature, MethodResourceDescription annot) {
+        Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 

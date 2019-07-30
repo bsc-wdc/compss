@@ -50,7 +50,7 @@ public class AddOrchestration {
      * @throws IOException description
      */
     public static void main(String[] args)
-            throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
+        throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
         if (args.length < 2) {
             ErrorManager.fatal("Error: missing arguments for loader");
         }
@@ -72,8 +72,8 @@ public class AddOrchestration {
             String methodName = getMethodName(methodLabel);
             CtClass[] params = getParamClasses(methodLabel, pool);
             CtMethod methodDescriptor = cc.getDeclaredMethod(methodName, params);
-            AnnotationsAttribute attr = (AnnotationsAttribute) methodDescriptor.getMethodInfo()
-                    .getAttribute(AnnotationsAttribute.visibleTag);
+            AnnotationsAttribute attr =
+                (AnnotationsAttribute) methodDescriptor.getMethodInfo().getAttribute(AnnotationsAttribute.visibleTag);
             if (attr == null) {
                 // Create the annotation
                 attr = new AnnotationsAttribute(constpool, AnnotationsAttribute.visibleTag);
@@ -86,7 +86,7 @@ public class AddOrchestration {
     }
 
     private static CtClass[] getParamClasses(String label, ClassPool pool)
-            throws NotFoundException, NameNotFoundException {
+        throws NotFoundException, NameNotFoundException {
         List<CtClass> classes = new LinkedList<>();
         List<String> params = getParametersTypeFromLabel(label);
         if (params != null && params.size() > 0) {

@@ -46,7 +46,7 @@ public class DeregisterObject extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
-            throws ShutdownException {
+        throws ShutdownException {
 
         ObjectInfo objectInfo = (ObjectInfo) dip.deleteData(this.hashCode);
         if (objectInfo == null) {

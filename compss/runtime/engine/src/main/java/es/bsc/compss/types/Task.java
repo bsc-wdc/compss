@@ -54,13 +54,14 @@ public class Task extends AbstractTask {
 
     // On failure behavior
     private final OnFailure onFailure;
-    
+
     // Commutative groups of the task
-    private TreeMap<Integer, CommutativeGroupTask>  commutativeGroup;
-    
+    private TreeMap<Integer, CommutativeGroupTask> commutativeGroup;
+
     // List of task groups
     private LinkedList<TaskGroup> taskGroups;
-    
+
+
     /**
      * Creates a new METHOD task with the given parameters.
      *
@@ -79,14 +80,13 @@ public class Task extends AbstractTask {
      * @param timeOut Time for a task time out.
      */
     public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
-            OnFailure onFailure, int timeOut) {
+        boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
+        OnFailure onFailure, int timeOut) {
 
         super(appId);
         CoreElement core = CoreManager.getCore(signature);
-        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, core,
-                isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, timeOut, parameters);
+        this.taskDescription = new TaskDescription(TaskType.METHOD, lang, signature, core, isPrioritary, numNodes,
+            isReplicated, isDistributed, hasTarget, numReturns, timeOut, parameters);
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
         this.commutativeGroup = new TreeMap<>();
@@ -110,21 +110,20 @@ public class Task extends AbstractTask {
      * @param timeOut Time for a task time out.
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
-            boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
-            int timeOut) {
-        
+        boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
+        int timeOut) {
+
         super(appId);
-        String signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget,
-                numReturns, parameters);
+        String signature =
+            ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, numReturns, parameters);
         CoreElement core = CoreManager.getCore(signature);
-        
+
         int numNodes = Constants.SINGLE_NODE;
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
 
-        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core,
-                isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, timeOut, parameters);
+        this.taskDescription = new TaskDescription(TaskType.SERVICE, Lang.UNKNOWN, signature, core, isPrioritary,
+            numNodes, isReplicated, isDistributed, hasTarget, numReturns, timeOut, parameters);
         this.taskMonitor = monitor;
         this.onFailure = onFailure;
         this.commutativeGroup = new TreeMap<>();
@@ -196,7 +195,7 @@ public class Task extends AbstractTask {
      * Registers a new commutative group for the dataId {@code daId}.
      *
      * @param daId DataId of the group.
-     * @param com  Commutative group task to be set.
+     * @param com Commutative group task to be set.
      */
     public void setCommutativeGroup(CommutativeGroupTask com, DataAccessId daId) {
         this.commutativeGroup.put(daId.getDataId(), com);
@@ -227,8 +226,7 @@ public class Task extends AbstractTask {
     }
 
     /**
-     * Returns whether the task is scheduling forced or not.
-     * Registers a new task group for the dataId @daId.
+     * Returns whether the task is scheduling forced or not. Registers a new task group for the dataId @daId.
      * 
      * @param taskGroup Group of tasks.
      */
@@ -236,7 +234,7 @@ public class Task extends AbstractTask {
     public void setTaskGroup(TaskGroup taskGroup) {
         this.taskGroups.add(taskGroup);
     }
-    
+
     /**
      * Returns a list of the task groups for the task.
      *
@@ -273,7 +271,7 @@ public class Task extends AbstractTask {
         // TODO: Future Shapes "triangle" "square" "pentagon"
 
         return getId() + "[shape=" + shape + ", " + "style=filled fillcolor=\"" + color.getFillColor()
-                + "\" fontcolor=\"" + color.getFontColor() + "\"];";
+            + "\" fontcolor=\"" + color.getFontColor() + "\"];";
     }
 
     /**
@@ -345,7 +343,7 @@ public class Task extends AbstractTask {
     public void setVersion(DataAccessId daId) {
         for (Parameter p : this.getTaskDescription().getParameters()) {
             if (p instanceof DependencyParameter
-                    && ((DependencyParameter) p).getDataAccessId().getDataId() == daId.getDataId()) {
+                && ((DependencyParameter) p).getDataAccessId().getDataId() == daId.getDataId()) {
                 ((DependencyParameter) p).setDataAccessId(daId);
             }
         }
@@ -359,7 +357,7 @@ public class Task extends AbstractTask {
     public boolean hasTaskGroups() {
         return !this.taskGroups.isEmpty();
     }
-    
+
     /**
      * Returns if any of the parameters of the task has a commutative direction.
      *

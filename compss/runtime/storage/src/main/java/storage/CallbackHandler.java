@@ -17,8 +17,7 @@
 package storage;
 
 /**
- * Abstract representation to handle callback events.
- * TODO: complete javadoc.
+ * Abstract representation to handle callback events. TODO: complete javadoc.
  */
 public abstract class CallbackHandler {
 

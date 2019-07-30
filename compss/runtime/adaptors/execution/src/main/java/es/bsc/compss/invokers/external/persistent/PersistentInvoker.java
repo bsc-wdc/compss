@@ -37,7 +37,7 @@ public abstract class PersistentInvoker extends ExternalInvoker {
 
 
     public PersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
     }

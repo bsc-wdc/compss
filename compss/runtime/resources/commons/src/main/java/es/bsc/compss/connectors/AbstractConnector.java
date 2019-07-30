@@ -131,8 +131,8 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         if (this.terminate) {
             return false;
         }
-        LOGGER.info(
-                "[Abstract Connector]Requesting a resource creation " + name + " : " + rR.getRequested().toString());
+        LOGGER
+            .info("[Abstract Connector]Requesting a resource creation " + name + " : " + rR.getRequested().toString());
         // Check if we can reuse one of the vms put to delete (but not yet destroyed)
         VM vmInfo = tryToReuseVM(rR.getRequested());
         if (vmInfo != null) {
@@ -278,7 +278,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
      * @throws ConnectorException An error occurred during the resources wait.
      */
     public abstract CloudMethodResourceDescription waitUntilCreation(Object endId,
-            CloudMethodResourceDescription requested) throws ConnectorException;
+        CloudMethodResourceDescription requested) throws ConnectorException;
 
     @Override
     public void vmReady(VM vmInfo) throws ConnectorException {
@@ -460,8 +460,8 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                                 if (timeLeft <= DELETE_SAFETY_INTERVAL) {
                                     if (vmInfo.isToDelete()) {
                                         LOGGER.info("[Abstract Connector] Deleting vm " + vmInfo.getName()
-                                                + " because is marked to delete"
-                                                + " and it is on the safety delete interval");
+                                            + " because is marked to delete"
+                                            + " and it is on the safety delete interval");
                                         vmsAlive.pollFirst();
                                         synchronized (vmsToDelete) {
                                             vmsToDelete.remove(vmInfo);
@@ -473,12 +473,12 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                                 } else if (sleepTime > timeLeft - DELETE_SAFETY_INTERVAL) {
                                     sleepTime = timeLeft - DELETE_SAFETY_INTERVAL;
                                     LOGGER.debug("[Abstract Connector] Evaluating sleep time for " + vmInfo.getName()
-                                            + " because an interval near to finish " + sleepTime + " ms.");
+                                        + " because an interval near to finish " + sleepTime + " ms.");
                                 }
                             }
                         } catch (ConcurrentModificationException e) {
                             LOGGER.debug("[Abstract Connector] Concurrent modification in deadline thread. Ignoring",
-                                    e);
+                                e);
                             sleepTime = 1_000L;
                         }
 
@@ -514,7 +514,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             }
             long result = limit - ((now - time) % limit);
             LOGGER.debug("Calculating sleep time at " + time + " now is " + now + ": remaining --> " + limit + " - "
-                    + (now - time) + " % " + limit + " = " + result + " ms to deadline");
+                + (now - time) + " % " + limit + " = " + result + " ms to deadline");
             return result;
         }
 

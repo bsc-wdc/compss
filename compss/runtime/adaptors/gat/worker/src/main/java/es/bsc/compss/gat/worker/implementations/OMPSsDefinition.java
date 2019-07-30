@@ -73,11 +73,10 @@ public class OMPSsDefinition extends ImplementationDefinition {
     public String toLogString() {
         return this.impl.getMethodDefinition();
     }
-    
+
     @Override
     public int getTimeOut() {
         return 0;
     }
 
-    
 }

@@ -49,6 +49,6 @@ public enum DataType {
     COLLECTION_T, // Collection
     STREAM_T, // Streams
     EXTERNAL_STREAM_T, // Binding Streams
-    ENUM_T, //Enum 
+    ENUM_T, // Enum
     NULL_T; // Null
 }

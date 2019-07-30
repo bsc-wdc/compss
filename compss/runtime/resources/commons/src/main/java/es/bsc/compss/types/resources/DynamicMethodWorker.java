@@ -47,8 +47,7 @@ public class DynamicMethodWorker extends MethodWorker {
      * @param sharedDisks Map of the available shared disks.
      */
     public DynamicMethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker,
-            int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
-            Map<String, String> sharedDisks) {
+        int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, limitGPUTasks, limitFPGATasks, limitOTHERTasks, sharedDisks);
         this.toRemove = new MethodResourceDescription();
@@ -64,7 +63,7 @@ public class DynamicMethodWorker extends MethodWorker {
      * @param sharedDisks Map of the available shared disks.
      */
     public DynamicMethodWorker(String name, MethodResourceDescription description, MethodConfiguration config,
-            Map<String, String> sharedDisks) {
+        Map<String, String> sharedDisks) {
 
         super(name, description, config, sharedDisks);
 

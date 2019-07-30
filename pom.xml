@@ -1,99 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<!-- GENERAL INFORMATION -->
-	<groupId>es.bsc.compss</groupId>
-	<artifactId>compss-trunk</artifactId>
-	<version>2.5.rc1907</version>
-	<packaging>pom</packaging>
+    <!-- GENERAL INFORMATION -->
+    <groupId>es.bsc.compss</groupId>
+    <artifactId>compss-trunk</artifactId>
+    <version>2.5.rc1907</version>
+    <packaging>pom</packaging>
 
-	<!-- PROJECT INFORMATION -->
-	<name>COMP Superscalar Trunk</name>
-	<description>COMPSs Trunk - Framework + Tests</description>
-	<url>http://compss.bsc.es</url>
-	<inceptionYear>2014</inceptionYear>
-	<licenses>
-		<license>
-			<name>Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-		</license>
-	</licenses>
-	<organization>
-		<name>BSC</name>
-		<url>http://www.bsc.es</url>
-	</organization>
+    <!-- PROJECT INFORMATION -->
+    <name>COMP Superscalar Trunk</name>
+    <description>COMPSs Trunk - Framework + Tests</description>
+    <url>http://compss.bsc.es</url>
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
 
-	<!-- PROPERTIES -->
-	<properties>
-		<compss.version>2.5.rc1907</compss.version>
+    <!-- PROPERTIES -->
+    <properties>
+        <compss.version>2.5.rc1907</compss.version>
 
-		<!-- BSC Streaming Component version -->
-		<streaming.version>1.0-21</streaming.version>
+        <!-- BSC Streaming Component version -->
+        <streaming.version>1.0-21</streaming.version>
 
-		<!-- Log4j version -->
-		<log4j.version>2.11.2</log4j.version>
+        <!-- Log4j version -->
+        <log4j.version>2.11.2</log4j.version>
 
-		<!-- JUNIT -->
-		<junit.version>4.12</junit.version>
-		<junit.rules.version>1.16.1</junit.rules.version>
+        <!-- JUNIT -->
+        <junit.version>4.12</junit.version>
+        <junit.rules.version>1.16.1</junit.rules.version>
 
-		<!-- Apache commons versions -->
-		<apache-commons-configuration.version>1.10</apache-commons-configuration.version>
-		<apache-commons-io.version>2.6</apache-commons-io.version>
+        <!-- Apache commons versions -->
+        <apache-commons-configuration.version>1.10</apache-commons-configuration.version>
+        <apache-commons-io.version>2.6</apache-commons-io.version>
 
-		<!-- Javassist -->
-		<javassist.version>3.21.0-GA</javassist.version>
+        <!-- Javassist -->
+        <javassist.version>3.21.0-GA</javassist.version>
 
-		<!-- Checkstyle -->
-		<maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-		<puppycrawl-tools-checkstyle.version>8.18</puppycrawl-tools-checkstyle.version>
+        <!-- Code format -->
+        <code-format.version>2.10.0</code-format.version>
 
-		<!-- Maven Plugins -->
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-		<maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
-		<maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
-		<maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
-		<maven-war-plugin.version>3.2.3</maven-war-plugin.version>
+        <!-- Checkstyle -->
+        <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
+        <puppycrawl-tools-checkstyle.version>8.18</puppycrawl-tools-checkstyle.version>
+
+        <!-- Maven Plugins -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
+        <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
+        <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+        <maven-war-plugin.version>3.2.3</maven-war-plugin.version>
         <tomcat7-maven-plugin.version>2.1</tomcat7-maven-plugin.version>
-		<maven-jaxb2-plugin.version>0.14.0</maven-jaxb2-plugin.version>
-		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+        <maven-jaxb2-plugin.version>0.14.0</maven-jaxb2-plugin.version>
+        <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 
-		<!-- Project encoding -->
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	</properties>
+        <!-- Project encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
 
-	<!-- SOURCE CONTROL MANAGEMENT -->
-	<scm>
-		<connection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</connection>
-		<developerConnection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</developerConnection>
-		<url>http://compss.bsc.es/gitlab/compss/framework.git</url>
-	</scm>
+    <!-- SOURCE CONTROL MANAGEMENT -->
+    <scm>
+        <connection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</connection>
+        <developerConnection>scm:git:http://compss.bsc.es/gitlab/compss/framework.git</developerConnection>
+        <url>http://compss.bsc.es/gitlab/compss/framework.git</url>
+    </scm>
 
-	<!-- DISTRIBUTION MANAGEMENT -->
-	<distributionManagement>
-		<repository>
-			<id>compss-repo</id>
-			<name>BSC Workflows and Distributed Computing group</name>
-			<url>http://compss.bsc.es/artifactory/libs-release</url>
-		</repository>
-	</distributionManagement>
+    <!-- DISTRIBUTION MANAGEMENT -->
+    <distributionManagement>
+        <repository>
+            <id>compss-repo</id>
+            <name>BSC Workflows and Distributed Computing group</name>
+            <url>http://compss.bsc.es/artifactory/libs-release</url>
+        </repository>
+    </distributionManagement>
 
-	<!-- REPOSITORIES -->
-	<repositories>
-		<repository>
-			<id>central</id>
-			<name>Central Repository</name>
-			<url>http://central.maven.org/maven2/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
+    <!-- REPOSITORIES -->
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>http://central.maven.org/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>ZK CE</id>
             <name>ZK CE Repository</name>
@@ -102,95 +105,95 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-		<repository>
-			<id>compss-repo</id>
-			<name>BSC Workflows and Distributed Computing group</name>
-			<url>http://compss.bsc.es/artifactory/libs-release</url>
-		</repository>
-	</repositories>
+        <repository>
+            <id>compss-repo</id>
+            <name>BSC Workflows and Distributed Computing group</name>
+            <url>http://compss.bsc.es/artifactory/libs-release</url>
+        </repository>
+    </repositories>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<releases>
-				<updatePolicy>never</updatePolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>central</id>
-			<name>Central Repository</name>
-			<url>http://central.maven.org/maven2/</url>
-		</pluginRepository>
-	</pluginRepositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>http://central.maven.org/maven2/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
-	<!-- DEPENDENCIES -->
-	<dependencyManagement>
-		<dependencies>
-			<!-- LOG4j -->
-			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-core</artifactId>
-				<version>${log4j.version}</version>
-			</dependency>
+    <!-- DEPENDENCIES -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- LOG4j -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
 
-			<!-- BSC Streaming -->
-			<dependency>
-				<groupId>es.bsc.distro-stream-lib</groupId>
-				<artifactId>distro-stream</artifactId>
-				<version>${streaming.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>es.bsc.distro-stream-lib</groupId>
-				<artifactId>server</artifactId>
-				<version>${streaming.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>es.bsc.distro-stream-lib</groupId>
-				<artifactId>client</artifactId>
-				<version>${streaming.version}</version>
-			</dependency>
+            <!-- BSC Streaming -->
+            <dependency>
+                <groupId>es.bsc.distro-stream-lib</groupId>
+                <artifactId>distro-stream</artifactId>
+                <version>${streaming.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.distro-stream-lib</groupId>
+                <artifactId>server</artifactId>
+                <version>${streaming.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.bsc.distro-stream-lib</groupId>
+                <artifactId>client</artifactId>
+                <version>${streaming.version}</version>
+            </dependency>
 
-			<!-- JUNIT -->
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.github.stefanbirkner</groupId>
-				<artifactId>system-rules</artifactId>
-				<version>${junit.rules.version}</version>
-				<scope>test</scope>
-			</dependency>
+            <!-- JUNIT -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.stefanbirkner</groupId>
+                <artifactId>system-rules</artifactId>
+                <version>${junit.rules.version}</version>
+                <scope>test</scope>
+            </dependency>
 
-			<!-- Apache Commons -->
-			<dependency>
-				<groupId>commons-configuration</groupId>
-				<artifactId>commons-configuration</artifactId>
-				<version>${apache-commons-configuration.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>commons-io</groupId>
-				<artifactId>commons-io</artifactId>
-				<version>${apache-commons-io.version}</version>
-			</dependency>
+            <!-- Apache Commons -->
+            <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>${apache-commons-configuration.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${apache-commons-io.version}</version>
+            </dependency>
 
-			<!-- Javassist -->
-			<dependency>
-				<groupId>org.javassist</groupId>
-				<artifactId>javassist</artifactId>
-				<version>${javassist.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+            <!-- Javassist -->
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${javassist.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	<!-- SUB-MODULES -->
-	<modules>
-		<module>maven-plugins</module>
-		<module>compss</module>
-		<module>tests/sources</module>
-		<module>utils/storage</module>
-		<module>performance_analysis/auto-cbm</module>
-	</modules>
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>maven-plugins</module>
+        <module>compss</module>
+        <module>tests/sources</module>
+        <module>utils/storage</module>
+        <module>performance_analysis/auto-cbm</module>
+    </modules>
 </project>

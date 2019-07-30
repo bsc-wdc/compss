@@ -25,6 +25,7 @@ public class COMPSsGroupLoader extends COMPSsGroup {
     private final COMPSsRuntime api;
     private long appId;
 
+
     /**
      * Creates a new COMPSs group for the loader.
      * 
@@ -40,7 +41,7 @@ public class COMPSsGroupLoader extends COMPSsGroup {
         this.api.openTaskGroup(this.groupName, implicitBarrier);
         this.appId = appId;
     }
-    
+
     /**
      * Creates a new COMPSs group for the loader.
      * 

@@ -55,12 +55,12 @@ import javax.ws.rs.core.Response;
 
 public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
-    private static final String REST_AGENT_URL = "http://" + COMPSsNode.getMasterName() + ":"
-            + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
+    private static final String REST_AGENT_URL =
+        "http://" + COMPSsNode.getMasterName() + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
 
 
     public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl,
-            Resource res, JobListener listener) {
+        Resource res, JobListener listener) {
         super(taskId, task, impl, res, listener);
     }
 
@@ -178,7 +178,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                         sar.addPersistedParameter(param.getDirection(), (String) value);
                     } else {
                         throw new UnsupportedOperationException(
-                                "Non-persisted DependencyParameters are not supported yet");
+                            "Non-persisted DependencyParameters are not supported yet");
                     }
                     break;
                 default:
@@ -232,8 +232,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
             DependencyParameter returnParameter = (DependencyParameter) taskParams.getParameters().get(numParams);
             DataType type = paramTypes[numParams];
             String locString = paramLocations[numParams];
-            System.out.println(
-                    "STAGE OUT[" + this.getJobId() + "]         * Return type: " + type + " Value: " + locString);
+            System.out
+                .println("STAGE OUT[" + this.getJobId() + "]         * Return type: " + type + " Value: " + locString);
 
             if (locString != null) {
                 SimpleURI uri = new SimpleURI(locString);
@@ -325,8 +325,8 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                                 }
                                 dp.setType(type);
                                 dp.setDataTarget(pscoId);
-                                System.out.println(
-                                        "STAGE OUT[" + this.getJobId() + "]         * Parameter " + parIdx + ": ");
+                                System.out
+                                    .println("STAGE OUT[" + this.getJobId() + "]         * Parameter " + parIdx + ": ");
                                 System.out.println("STAGE OUT[" + this.getJobId() + "]             Type: " + type);
                                 System.out.println("STAGE OUT[" + this.getJobId() + "]             ID: " + pscoId);
                             } else {
@@ -341,14 +341,14 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
                                 }
                                 dp.setType(type);
                                 System.out.println(
-                                        "STAGE OUT[" + this.getJobId() + "]          * Parameter " + parIdx + ": ");
+                                    "STAGE OUT[" + this.getJobId() + "]          * Parameter " + parIdx + ": ");
                                 System.out.println("STAGE OUT[" + this.getJobId() + "]              Type: " + type);
-                                System.out.println(
-                                        "STAGE OUT[" + this.getJobId() + "]              Value location: " + loc);
+                                System.out
+                                    .println("STAGE OUT[" + this.getJobId() + "]              Value location: " + loc);
                             }
                         } catch (IOException ioe) {
                             System.err.println(
-                                    "STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK PARAMETER " + parIdx);
+                                "STAGE OUT[" + this.getJobId() + "] ERROR PROCESSING TASK PARAMETER " + parIdx);
                         }
                     }
                     break;

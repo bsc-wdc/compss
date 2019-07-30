@@ -105,7 +105,7 @@ public class DeletionThread extends Thread {
              */
             if (DEBUG) {
                 RUNTIME_LOGGER
-                        .debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
+                    .debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }
             try {
                 this.operations.poweroff(this.vm);

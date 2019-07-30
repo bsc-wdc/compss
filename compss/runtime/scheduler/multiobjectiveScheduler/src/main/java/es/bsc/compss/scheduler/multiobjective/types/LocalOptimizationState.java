@@ -82,7 +82,7 @@ public class LocalOptimizationState {
      * @param selectionComparator Selection action comparator.
      */
     public LocalOptimizationState(long updateId, ResourceScheduler<WorkerResourceDescription> rs,
-            Comparator<AllocatableAction> readyComparator, Comparator<AllocatableAction> selectionComparator) {
+        Comparator<AllocatableAction> readyComparator, Comparator<AllocatableAction> selectionComparator) {
 
         this.action = null;
         this.updateId = updateId;
@@ -145,7 +145,7 @@ public class LocalOptimizationState {
     }
 
     private boolean checkGapForReserve(Gap g, ResourceDescription requirements, long reserveStart,
-            List<Gap> previousGaps) {
+        List<Gap> previousGaps) {
 
         boolean remove = false;
         AllocatableAction gapAction = g.getOrigin();
@@ -184,7 +184,7 @@ public class LocalOptimizationState {
         if (action.getAssignedImplementation() != null) {
             Gap gap;
             gap = new Gap(expectedStart, Long.MAX_VALUE, action,
-                    action.getAssignedImplementation().getRequirements().copy(), 0);
+                action.getAssignedImplementation().getRequirements().copy(), 0);
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
             dsi.addGap();
             this.gaps.add(gap);
@@ -275,7 +275,7 @@ public class LocalOptimizationState {
      */
     public long getActionStartTime() {
         return Math.max(this.topStartTime,
-                ((MOSchedulingInformation) this.action.getSchedulingInfo()).getExpectedStart());
+            ((MOSchedulingInformation) this.action.getSchedulingInfo()).getExpectedStart());
     }
 
     /**
@@ -449,8 +449,8 @@ public class LocalOptimizationState {
         MOSchedulingInformation rbaDSI = (MOSchedulingInformation) this.resourceBlockingAction.getSchedulingInfo();
         rbaDSI.lock();
         rbaDSI.addSuccessor(action);
-        Gap opActionGap = new Gap(0, 0, this.resourceBlockingAction,
-                action.getAssignedImplementation().getRequirements().copy(), 0);
+        Gap opActionGap =
+            new Gap(0, 0, this.resourceBlockingAction, action.getAssignedImplementation().getRequirements().copy(), 0);
         aDSI.addPredecessor(opActionGap);
         rbaDSI.unlock();
         updateConsumptions(action);
@@ -466,8 +466,8 @@ public class LocalOptimizationState {
         MOSchedulingInformation dbaDSI = (MOSchedulingInformation) this.dataBlockingAction.getSchedulingInfo();
         dbaDSI.lock();
         dbaDSI.addSuccessor(action);
-        Gap opActionGap = new Gap(0, 0, this.dataBlockingAction,
-                action.getAssignedImplementation().getRequirements().copy(), 0);
+        Gap opActionGap =
+            new Gap(0, 0, this.dataBlockingAction, action.getAssignedImplementation().getRequirements().copy(), 0);
         aDSI.addPredecessor(opActionGap);
         dbaDSI.unlock();
         updateConsumptions(action);
@@ -501,7 +501,7 @@ public class LocalOptimizationState {
      * @param startTime Expected start time.
      */
     public void classifyAction(AllocatableAction action, boolean hasInternal, boolean hasExternal,
-            boolean hasResourcePredecessors, long startTime) {
+        boolean hasResourcePredecessors, long startTime) {
 
         if (!hasInternal) {
             // Not needs to wait for some blocked action to end

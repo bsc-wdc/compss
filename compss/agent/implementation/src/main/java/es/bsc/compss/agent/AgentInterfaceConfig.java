@@ -16,13 +16,13 @@
  */
 package es.bsc.compss.agent;
 
-
 /**
  * Class containing the description of the configuration of an agent.
  */
 public abstract class AgentInterfaceConfig {
 
     private final AgentInterface<?> agentInterface;
+
 
     public AgentInterfaceConfig(AgentInterface<?> agentInterface) {
         this.agentInterface = agentInterface;

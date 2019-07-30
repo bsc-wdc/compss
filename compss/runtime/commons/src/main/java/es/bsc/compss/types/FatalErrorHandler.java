@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types;
 
-
 /**
  * Handler invoked by the ErrorManager whenever a fatal error raises and needs to stop the whole system.
  */

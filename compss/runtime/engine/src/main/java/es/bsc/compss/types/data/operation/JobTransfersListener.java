@@ -101,10 +101,10 @@ public class JobTransfersListener extends EventListener {
         }
         if (DEBUG) {
             LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOpName
-                    + ", file role is JOB_FILE, operation end state is FAILED", e);
+                + ", file role is JOB_FILE, operation end state is FAILED", e);
         } else {
             LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOpName
-                    + ", file role is JOB_FILE operation end state is FAILED");
+                + ", file role is JOB_FILE operation end state is FAILED");
         }
 
         boolean enabled;

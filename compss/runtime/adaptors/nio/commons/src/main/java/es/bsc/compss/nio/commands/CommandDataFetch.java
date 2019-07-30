@@ -31,6 +31,7 @@ public class CommandDataFetch implements Command {
     private NIOParam param;
     private int transferId;
 
+
     /**
      * Creates a new CommandDataFetch for externalization.
      */
@@ -41,7 +42,7 @@ public class CommandDataFetch implements Command {
     /**
      * Creates a new CommandDataFetch instance.
      *
-     * @param p          Parameter to fetch.
+     * @param p Parameter to fetch.
      * @param transferId Transfer Id.
      */
     public CommandDataFetch(NIOParam p, int transferId) {

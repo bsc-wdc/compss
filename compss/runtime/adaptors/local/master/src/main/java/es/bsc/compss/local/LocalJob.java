@@ -58,7 +58,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
      * @param listener Task listener.
      */
     public LocalJob(int taskId, TaskDescription task, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         super(taskId, task, impl, res, listener);
 
@@ -144,7 +144,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
                 break;
             default:
                 ErrorManager
-                        .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
+                    .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
                 return null;
         }
 
@@ -162,7 +162,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
                 return (MultiNodeImplementation) this.impl;
             default:
                 ErrorManager
-                        .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
+                    .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
                 return null;
         }
     }

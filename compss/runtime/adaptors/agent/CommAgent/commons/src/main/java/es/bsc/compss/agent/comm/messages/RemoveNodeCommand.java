@@ -34,6 +34,7 @@ public class RemoveNodeCommand implements Command {
 
     private String node;
 
+
     public RemoveNodeCommand() {
     }
 

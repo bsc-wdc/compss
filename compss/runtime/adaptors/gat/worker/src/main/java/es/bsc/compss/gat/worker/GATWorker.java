@@ -118,7 +118,7 @@ public class GATWorker implements InvocationContext {
         // Configures streaming if necessary
         String streamingArg = args[STREAMING_IDX];
         String streaming = (streamingArg == null || streamingArg.isEmpty() || streamingArg.equals("null")) ? "NONE"
-                : streamingArg.toUpperCase();
+            : streamingArg.toUpperCase();
         StreamBackend streamBackend = StreamBackend.valueOf(streaming);
         String streamMasterName = args[STREAMING_MASTER_IDX];
         int streamMasterPort = Integer.parseInt(args[STREAMING_PORT_IDX]);
@@ -133,8 +133,8 @@ public class GATWorker implements InvocationContext {
 
         // Configures storage API if necessary
         String storageConfArg = args[STORAGE_CONF_IDX];
-        String storageConf = (storageConfArg == null || storageConfArg.isEmpty() || storageConfArg.equals("null")) ? ""
-                : storageConfArg;
+        String storageConf =
+            (storageConfArg == null || storageConfArg.isEmpty() || storageConfArg.equals("null")) ? "" : storageConfArg;
 
         System.setProperty(COMPSsConstants.STORAGE_CONF, storageConf);
         if (!storageConf.isEmpty()) {
@@ -150,7 +150,7 @@ public class GATWorker implements InvocationContext {
 
         // Initialize GAT Worker
         GATWorker worker = new GATWorker(workerName, workingDir, debug, installDir, appDir, storageConf, streamBackend,
-                streamMasterName, streamMasterPort, implDef.getComputingUnits());
+            streamMasterName, streamMasterPort, implDef.getComputingUnits());
 
         // Run task
         boolean success = worker.runTask(implDef);
@@ -199,8 +199,8 @@ public class GATWorker implements InvocationContext {
      * @param computingUnitsCPU Number of worker computing units.
      */
     public GATWorker(String workerName, String workingDir, boolean debug, String installDir, String appDir,
-            String storageConf, StreamBackend streamBackend, String streamMasterName, int streamMasterPort,
-            int computingUnitsCPU) {
+        String storageConf, StreamBackend streamBackend, String streamMasterName, int streamMasterPort,
+        int computingUnitsCPU) {
 
         this.hostName = workerName;
         this.debug = debug;
@@ -214,7 +214,7 @@ public class GATWorker implements InvocationContext {
 
         // Prepare execution Manager
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0,
-                ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 1);
+            ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 1);
 
         if (this.debug) {
             System.out.println("Initializing ExecutionManager");

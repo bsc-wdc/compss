@@ -25,16 +25,15 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 
 @XmlRootElement(name = "nioResource")
-@XmlSeeAlso({NIOAdaptorProperties.class, ResourcesNIOAdaptorProperties.class})
+@XmlSeeAlso({ NIOAdaptorProperties.class,
+    ResourcesNIOAdaptorProperties.class })
 public class NIOAdaptorResource extends Resource<NIOAdaptorProperties, ResourcesNIOAdaptorProperties> {
 
     public NIOAdaptorResource() {
     }
 
-    public NIOAdaptorResource(String name,
-            MethodResourceDescription description,
-            NIOAdaptorProperties projectConf,
-            ResourcesNIOAdaptorProperties resourcesConf) {
+    public NIOAdaptorResource(String name, MethodResourceDescription description, NIOAdaptorProperties projectConf,
+        ResourcesNIOAdaptorProperties resourcesConf) {
         super(name, description, "es.bsc.compss.nio.master.NIOAdaptor", projectConf, resourcesConf);
 
     }

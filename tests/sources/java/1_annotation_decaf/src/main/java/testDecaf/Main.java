@@ -14,9 +14,12 @@ public class Main {
     private static final int SLEEP_TIME = 5_000;
 
     private static final String[] LINES = { "[DECAF] Retrieve Decaf arguments",
-            "[DECAF] Executing Decaf data-flow generator",
-            "[DECAF] CMD: python " + System.getenv("PWD") + "/decaf/test.py ", "Executing python script.",
-            "[DECAF] Executing Decaf data-flow", "[DECAF] CMD: ./test.sh", "Executing binary" };
+        "[DECAF] Executing Decaf data-flow generator",
+        "[DECAF] CMD: python " + System.getenv("PWD") + "/decaf/test.py ",
+        "Executing python script.",
+        "[DECAF] Executing Decaf data-flow",
+        "[DECAF] CMD: ./test.sh",
+        "Executing binary" };
     private static final String END_LINE2 = ".hostfile --args ";
 
 
@@ -97,13 +100,13 @@ public class Main {
             String startLine = LINES[2] + "-n " + tasks + " --hostfile ";
             String endLine = END_LINE2 + "\"" + arguments + "\"";
             if (!line.startsWith(startLine)) {
-                System.err.println("[ERROR] line 0 is not starting correctly : \"" + line + "\" options is: \""
-                        + startLine + "\"");
+                System.err.println(
+                    "[ERROR] line 0 is not starting correctly : \"" + line + "\" options is: \"" + startLine + "\"");
                 System.exit(1);
             }
             if (!line.endsWith(endLine)) {
                 System.err.println(
-                        "[ERROR] line 0 is not ending correctly : \"" + line + "\" options is: \"" + endLine + "\"");
+                    "[ERROR] line 0 is not ending correctly : \"" + line + "\" options is: \"" + endLine + "\"");
                 System.exit(1);
             }
 

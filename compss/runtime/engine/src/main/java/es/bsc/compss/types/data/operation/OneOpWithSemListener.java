@@ -46,10 +46,10 @@ public class OneOpWithSemListener extends EventListener {
     public void notifyFailure(DataOperation fOp, Exception e) {
         if (debug) {
             logger.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                    + ", file role is OPEN_FILE" + ", operation end state is FAILED", e);
+                + ", file role is OPEN_FILE" + ", operation end state is FAILED", e);
         } else {
             logger.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                    + ", file role is OPEN_FILE" + ", operation end state is FAILED");
+                + ", file role is OPEN_FILE" + ", operation end state is FAILED");
         }
 
         sem.release();

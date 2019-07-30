@@ -56,6 +56,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     private CommAgent ownAgent;
 
+
     public CommAgentAdaptor() {
         super();
     }
@@ -67,7 +68,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
 
     @Override
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
-            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
         System.out.println("Constructing configuration");
 
         ResourcesExternalAdaptorProperties reaProp;
@@ -133,7 +134,7 @@ public class CommAgentAdaptor extends NIOAdaptor implements CommAgent {
     }
 
     protected void retrieveAdditionalJobFiles(Connection connection, boolean success, int jobId, int taskId,
-            JobHistory history) {
+        JobHistory history) {
         // Agents to retrieve information of how the job finished.
     }
 }

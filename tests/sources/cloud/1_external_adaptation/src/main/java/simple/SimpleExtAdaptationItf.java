@@ -8,10 +8,7 @@ import es.bsc.compss.types.annotations.task.Method;
 
 public interface SimpleExtAdaptationItf {
 
-	@Method(declaringClass = "simple.SimpleImpl")
-	void increment(
-		@Parameter(type = Type.FILE, direction = Direction.INOUT)
-		String file
-	);
-	
+    @Method(declaringClass = "simple.SimpleImpl")
+    void increment(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file);
+
 }

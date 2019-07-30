@@ -61,7 +61,6 @@ public interface ApplicationParameter {
      * Returns the object passed in as parameter value.
      *
      * @return the object passed in as parameter value
-     *
      * @throws Exception Error unmarshalling the object
      */
     public Object getValueContent() throws Exception;

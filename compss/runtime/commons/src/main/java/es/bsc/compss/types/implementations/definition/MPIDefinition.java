@@ -31,8 +31,9 @@ public class MPIDefinition extends ImplementationDefinition<MethodResourceDescri
     private final String workingDir;
     private final String mpiRunner;
 
+
     protected MPIDefinition(String signature, String binary, String workingDir, String mpiRunner,
-            MethodResourceDescription implConstraints) {
+        MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;
         this.workingDir = workingDir;
@@ -42,7 +43,7 @@ public class MPIDefinition extends ImplementationDefinition<MethodResourceDescri
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new MPIImplementation(binary, workingDir, mpiRunner, coreId, implId, this.getSignature(),
-                this.getConstraints());
+            this.getConstraints());
     }
 
     @Override

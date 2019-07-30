@@ -1,11 +1,11 @@
 
 package workerinmaster;
 
-
 public class WorkerModification {
 
     private final long time;
     private final int change;
+
 
     public WorkerModification(long time, int change) {
         this.time = time;

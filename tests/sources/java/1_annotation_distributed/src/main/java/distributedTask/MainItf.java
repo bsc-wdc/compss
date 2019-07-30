@@ -13,15 +13,11 @@ public interface MainItf {
 
     @Method(declaringClass = "distributedTask.MainImpl")
     @Constraints(computingUnits = "1")
-    void normalTask(
-        @Parameter(type = Type.OBJECT, direction = Direction.IN) String msg
-    );
-    
+    void normalTask(@Parameter(type = Type.OBJECT, direction = Direction.IN) String msg);
+
     @Method(declaringClass = "distributedTask.MainImpl")
     @Constraints(computingUnits = "1")
     @SchedulerHints(isDistributed = Constants.IS_DISTRIBUTED_TASK)
-    void distributedTask(
-        @Parameter(type = Type.OBJECT, direction = Direction.IN) String msg
-    );
+    void distributedTask(@Parameter(type = Type.OBJECT, direction = Direction.IN) String msg);
 
 }

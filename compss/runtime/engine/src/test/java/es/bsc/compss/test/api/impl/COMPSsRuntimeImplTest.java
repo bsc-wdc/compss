@@ -68,7 +68,8 @@ public class COMPSsRuntimeImplTest {
         String implSignature = "methodClass.methodName";
         String implConstraints = "ComputingUnits:2";
         String implType = "METHOD";
-        String[] implTypeArgs = new String[] { "methodClass", "methodName" };
+        String[] implTypeArgs = new String[] { "methodClass",
+            "methodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         CoreElement ce0 = CoreManager.getCore(0);
@@ -80,7 +81,9 @@ public class COMPSsRuntimeImplTest {
         implSignature = "mpi.MPI";
         implConstraints = "StorageType:SSD";
         implType = "MPI";
-        implTypeArgs = new String[] { "mpiBinary", "mpiWorkingDir", "mpiRunner" };
+        implTypeArgs = new String[] { "mpiBinary",
+            "mpiWorkingDir",
+            "mpiRunner" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(0);
@@ -92,7 +95,11 @@ public class COMPSsRuntimeImplTest {
         implSignature = "decaf.DECAF";
         implConstraints = "StorageSize:2.0";
         implType = "DECAF";
-        implTypeArgs = new String[] { "dfScript", "dfExceutor", "dfLib", "dfWorkingDir", "mpiRunner" };
+        implTypeArgs = new String[] { "dfScript",
+            "dfExceutor",
+            "dfLib",
+            "dfWorkingDir",
+            "mpiRunner" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(1);
@@ -104,7 +111,8 @@ public class COMPSsRuntimeImplTest {
         implSignature = "binary.BINARY";
         implConstraints = "MemoryType:RAM";
         implType = "BINARY";
-        implTypeArgs = new String[] { "binary", "binaryWorkingDir" };
+        implTypeArgs = new String[] { "binary",
+            "binaryWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(2).getImplementations().get(0);
@@ -116,7 +124,8 @@ public class COMPSsRuntimeImplTest {
         implSignature = "ompss.OMPSS";
         implConstraints = "ComputingUnits:3";
         implType = "OMPSS";
-        implTypeArgs = new String[] { "ompssBinary", "ompssWorkingDir" };
+        implTypeArgs = new String[] { "ompssBinary",
+            "ompssWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(3).getImplementations().get(0);
@@ -128,7 +137,8 @@ public class COMPSsRuntimeImplTest {
         implSignature = "opencl.OPENCL";
         implConstraints = "ComputingUnits:4";
         implType = "OPENCL";
-        implTypeArgs = new String[] { "openclKernel", "openclWorkingDir" };
+        implTypeArgs = new String[] { "openclKernel",
+            "openclWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(4).getImplementations().get(0);
@@ -140,7 +150,8 @@ public class COMPSsRuntimeImplTest {
         implSignature = "anotherClass.anotherMethodName";
         implConstraints = "ComputingUnits:1";
         implType = "METHOD";
-        implTypeArgs = new String[] { "anotherClass", "anotherMethodName" };
+        implTypeArgs = new String[] { "anotherClass",
+            "anotherMethodName" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(0).getImplementations().get(1);

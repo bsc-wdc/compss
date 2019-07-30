@@ -30,7 +30,7 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
 
 
     protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
-            String mpiRunner, MethodResourceDescription implConstraints) {
+        String mpiRunner, MethodResourceDescription implConstraints) {
 
         super(implSignature, implConstraints);
 
@@ -43,7 +43,7 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, coreId, implId,
-                this.getSignature(), this.getConstraints());
+            this.getSignature(), this.getConstraints());
     }
 
     @Override

@@ -95,8 +95,8 @@ public class SimpleExtAdaptation {
                 fis = new FileInputStream(counterName + i);
                 int finalValue = fis.read();
                 int expected = initialValue + 1;
-                System.out.println(
-                        "[LOG] Final counter" + i + " value is " + finalValue + " (expected: " + expected + ")");
+                System.out
+                    .println("[LOG] Final counter" + i + " value is " + finalValue + " (expected: " + expected + ")");
                 fis.close();
                 if (finalValue != expected) {
                     System.out.println("FAIL: Incorrect final value at counter" + i);

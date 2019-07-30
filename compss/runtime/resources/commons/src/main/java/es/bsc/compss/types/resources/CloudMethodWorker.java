@@ -45,8 +45,8 @@ public class CloudMethodWorker extends DynamicMethodWorker {
      * @param sharedDisks Mounted shared disks.
      */
     public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description,
-            COMPSsWorker worker, int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
-            Map<String, String> sharedDisks) {
+        COMPSsWorker worker, int limitOfTasks, int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks,
+        Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, limitGPUTasks, limitFPGATasks, limitOTHERTasks, sharedDisks);
         this.provider = provider;
@@ -62,7 +62,7 @@ public class CloudMethodWorker extends DynamicMethodWorker {
      * @param sharedDisks Mounted shared disks.
      */
     public CloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description,
-            MethodConfiguration config, Map<String, String> sharedDisks) {
+        MethodConfiguration config, Map<String, String> sharedDisks) {
 
         super(name, description, config, sharedDisks);
         this.provider = provider;

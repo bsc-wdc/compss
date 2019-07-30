@@ -45,15 +45,15 @@ public class ITAppModifier {
     private static final String COMPSS_APP_CONSTANT = LoaderConstants.CLASS_COMPSS_CONSTANTS + ".APP_NAME";
     private static final ClassPool CLASS_POOL = ClassPool.getDefault();
     private static final boolean WRITE_TO_FILE = System.getProperty(COMPSsConstants.COMPSS_TO_FILE) != null
-            && System.getProperty(COMPSsConstants.COMPSS_TO_FILE).equals("true") ? true : false;
+        && System.getProperty(COMPSsConstants.COMPSS_TO_FILE).equals("true") ? true : false;
 
     // Flag to indicate in class is WS
     private static final boolean IS_WS_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_WS) != null
-            && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true") ? true : false;
+        && System.getProperty(COMPSsConstants.COMPSS_IS_WS).equals("true") ? true : false;
 
     // Flag to instrument main method. if COMPSS_IS_MAINCLASS main class not defined (Default case) isMain gets true;
     private static final boolean IS_MAIN_CLASS = System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS) != null
-            && System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS).equals("false") ? false : true;
+        && System.getProperty(COMPSsConstants.COMPSS_IS_MAINCLASS).equals("false") ? false : true;
 
 
     /**
@@ -113,8 +113,8 @@ public class ITAppModifier {
         // Candidates to be instrumented if they are not remote
         CtMethod[] instrCandidates = appClass.getDeclaredMethods();
 
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar,
-                itAppIdVar, appClass);
+        ITAppEditor itAppEditor =
+            new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
         // itAppEditor.setAppId(itAppIdVar);
         // itAppEditor.setAppClass(appClass);
 
@@ -124,7 +124,7 @@ public class ITAppModifier {
         CodeConverter converter = new CodeConverter();
         CtClass arrayWatcher = CLASS_POOL.get(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
         CodeConverter.DefaultArrayAccessReplacementMethodNames names =
-                new CodeConverter.DefaultArrayAccessReplacementMethodNames();
+            new CodeConverter.DefaultArrayAccessReplacementMethodNames();
         converter.replaceArrayAccess(arrayWatcher, (CodeConverter.ArrayAccessReplacementMethodNames) names);
 
         /*
@@ -132,8 +132,8 @@ public class ITAppModifier {
          * that are not in the remote list
          */
         if (DEBUG) {
-            LOGGER.debug(
-                    "Flags: ToFile: " + WRITE_TO_FILE + " isWS: " + IS_WS_CLASS + " isMainClass: " + IS_MAIN_CLASS);
+            LOGGER
+                .debug("Flags: ToFile: " + WRITE_TO_FILE + " isWS: " + IS_WS_CLASS + " isMainClass: " + IS_MAIN_CLASS);
         }
         for (CtMethod m : instrCandidates) {
             if (LoaderUtils.checkRemote(m, remoteMethods) == null) {
@@ -170,7 +170,7 @@ public class ITAppModifier {
                         // Set global variable for main as well, will be used in code inserted after to be run no matter
                         // what
                         toInsertBefore.append(appName).append('.').append(itAppIdVar)
-                                .append(" = new Long(Thread.currentThread().getId());");
+                            .append(" = new Long(Thread.currentThread().getId());");
                         // toInsertAfter.append("System.exit(0);");
                         toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
                         toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + appName + '.' + itAppIdVar + ");");
@@ -247,7 +247,7 @@ public class ITAppModifier {
     }
 
     private void manageStartAndStop(CtClass appClass, String itApiVar, String itSRVar, String itORVar)
-            throws CannotCompileException, NotFoundException {
+        throws CannotCompileException, NotFoundException {
 
         if (DEBUG) {
             LOGGER.debug("Previous class initializer is " + appClass.getClassInitializer());
@@ -264,12 +264,12 @@ public class ITAppModifier {
             toInsertBefore.append("System.setProperty(" + COMPSS_APP_CONSTANT + ", \"" + appClass.getName() + "\");");
         }
         toInsertBefore.append(itApiVar + " = new " + LoaderConstants.CLASS_COMPSS_API_IMPL + "();")
-                .append(itApiVar + " = (" + LoaderConstants.CLASS_COMPSSRUNTIME_API + ")" + itApiVar + ";")
-                .append(itSRVar + " = new " + LoaderConstants.CLASS_STREAM_REGISTRY + "(("
-                        + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + " );")
-                .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY + "(("
-                        + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + " );")
-                .append(itApiVar + ".startIT();");
+            .append(itApiVar + " = (" + LoaderConstants.CLASS_COMPSSRUNTIME_API + ")" + itApiVar + ";")
+            .append(itSRVar + " = new " + LoaderConstants.CLASS_STREAM_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI
+                + ") " + itApiVar + " );")
+            .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI
+                + ") " + itApiVar + " );")
+            .append(itApiVar + ".startIT();");
 
         initializer.insertBefore(toInsertBefore.toString());
     }

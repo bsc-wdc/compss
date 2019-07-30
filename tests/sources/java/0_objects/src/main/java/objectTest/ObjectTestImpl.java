@@ -34,7 +34,9 @@ public class ObjectTestImpl {
     }
 
     public static int[] createIntArray(int value) {
-        return new int[] { value, 2 * value, 3 * value };
+        return new int[] { value,
+            2 * value,
+            3 * value };
     }
 
     public static A[][] createObjectArray(int value) {

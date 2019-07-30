@@ -23,6 +23,7 @@ public class RESTAgentConf extends AgentInterfaceConfig {
 
     private final int port;
 
+
     public RESTAgentConf(RESTAgent agentItf, int port) {
         super(agentItf);
         this.port = port;

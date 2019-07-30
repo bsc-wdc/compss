@@ -35,7 +35,7 @@ public class OptimizationWorker {
 
     public void localOptimization(long optimizationTS) {
         donorActions = resource.localOptimization(optimizationTS, MOScheduleOptimizer.getSelectionComparator(),
-                MOScheduleOptimizer.getDonationComparator());
+            MOScheduleOptimizer.getDonationComparator());
     }
 
     public AllocatableAction pollDonorAction() {

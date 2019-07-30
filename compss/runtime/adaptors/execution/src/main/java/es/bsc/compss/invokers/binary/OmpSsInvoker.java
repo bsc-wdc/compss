@@ -51,7 +51,7 @@ public class OmpSsInvoker extends Invoker {
      * @throws JobExecutionException Error creating the COMPSs invoker.
      */
     public OmpSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
@@ -61,7 +61,7 @@ public class OmpSsInvoker extends Invoker {
             ompssImpl = (OmpSsImplementation) this.invocation.getMethodImplementation();
         } catch (Exception e) {
             throw new JobExecutionException(
-                    ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
+                ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
         this.ompssBinary = ompssImpl.getBinary();
     }
@@ -103,7 +103,7 @@ public class OmpSsInvoker extends Invoker {
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-                this.invocation.getTarget(), streamValues, this.pythonInterpreter);
+            this.invocation.getTarget(), streamValues, this.pythonInterpreter);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_OMPSS_ARGS + binaryParams.size()];
@@ -130,6 +130,6 @@ public class OmpSsInvoker extends Invoker {
         }
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-                this.context.getThreadErrStream());
+            this.context.getThreadErrStream());
     }
 }

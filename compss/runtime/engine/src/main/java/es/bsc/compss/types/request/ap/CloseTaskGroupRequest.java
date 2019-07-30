@@ -24,7 +24,6 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 
 public class CloseTaskGroupRequest extends APRequest {
 
-    
     public CloseTaskGroupRequest() {
     }
 

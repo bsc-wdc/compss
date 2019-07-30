@@ -44,7 +44,7 @@ public class ExternalPSCOParameter extends DependencyParameter {
      * @param hashCode Parameter object hashcode.
      */
     public ExternalPSCOParameter(Direction direction, StdIOStream stream, String prefix, String name, String pscoId,
-            int hashCode) {
+        int hashCode) {
 
         super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix, name);
         this.pscoId = pscoId;

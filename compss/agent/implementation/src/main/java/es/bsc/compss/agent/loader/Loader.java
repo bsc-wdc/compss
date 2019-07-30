@@ -43,23 +43,23 @@ public class Loader {
     /**
      * Instruments a method using a CEI and runs it passing in the parameters given.
      *
-     * @param runtime    COMPSs runtime that will handle the execution of the nested tasks
-     * @param api        COMPSs runtime that will handle the execution of the nested tasks
-     * @param ceiClass   CEI to detect tasks
-     * @param appId      application Id that will be used by the nested tasks
-     * @param className  name of the class containing the method to run
+     * @param runtime COMPSs runtime that will handle the execution of the nested tasks
+     * @param api COMPSs runtime that will handle the execution of the nested tasks
+     * @param ceiClass CEI to detect tasks
+     * @param appId application Id that will be used by the nested tasks
+     * @param className name of the class containing the method to run
      * @param methodName name of the method to run
-     * @param params     values of the parameters to pass in to the method
+     * @param params values of the parameters to pass in to the method
      * @return returns the return value of the executed method
      * @throws AgentException could not instrument the code or the execution raised an exception
      */
     public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className,
-            String methodName, Object... params) throws AgentException {
+        String methodName, Object... params) throws AgentException {
         try {
             // Add the jars that the custom class loader needs
             String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);
             String enginePath = "file:" + compssHome + LoaderConstants.ENGINE_JAR_WITH_REL_PATH;
-            ClassLoader myLoader = new URLClassLoader(new URL[]{new URL(enginePath)});
+            ClassLoader myLoader = new URLClassLoader(new URL[] { new URL(enginePath) });
 
             Thread.currentThread().setContextClassLoader(myLoader);
 
@@ -81,11 +81,13 @@ public class Loader {
             appClass.defrost();
 
             Method setter = app.getDeclaredMethod("setCOMPSsVariables",
-                    new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
-                            Class.forName(LoaderConstants.CLASS_LOADERAPI),
-                            Class.forName(LoaderConstants.CLASS_APP_ID) });
+                new Class<?>[] { Class.forName(LoaderConstants.CLASS_COMPSSRUNTIME_API),
+                    Class.forName(LoaderConstants.CLASS_LOADERAPI),
+                    Class.forName(LoaderConstants.CLASS_APP_ID) });
 
-            Object[] values = new Object[] { runtime, api, appId };
+            Object[] values = new Object[] { runtime,
+                api,
+                appId };
             setter.invoke(null, values);
 
             Object[] paramValues = new Object[params.length - 1];
@@ -106,7 +108,7 @@ public class Loader {
     }
 
     private static void addVariables(ClassPool cp, CtClass appClass, String itApiVar, String itSRVar, String itORVar,
-            String itAppIdVar) throws NotFoundException, CannotCompileException {
+        String itAppIdVar) throws NotFoundException, CannotCompileException {
         CtClass itApiClass = cp.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
         CtField itApiField = new CtField(itApiClass, itApiVar, appClass);
         itApiField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
@@ -129,8 +131,8 @@ public class Loader {
     }
 
     private static void instrumentClass(ClassPool cp, CtClass appClass, String ceiClass, String itApiVar,
-            String itSRVar, String itORVar, String itAppIdVar)
-            throws ClassNotFoundException, NotFoundException, CannotCompileException {
+        String itSRVar, String itORVar, String itAppIdVar)
+        throws ClassNotFoundException, NotFoundException, CannotCompileException {
         Class<?> annotItf = Class.forName(ceiClass);
         Method[] remoteMethods = annotItf.getMethods();
 
@@ -165,20 +167,20 @@ public class Loader {
     }
 
     private static void addModifyVariablesMethod(CtClass appClass, String itApiVar, String itSRVar, String itORVar,
-            String itAppIdVar) throws CannotCompileException, NotFoundException {
+        String itAppIdVar) throws CannotCompileException, NotFoundException {
 
         String methodBody;
         CtMethod m;
         methodBody = "public static void printCOMPSsVariables() { " + "System.out.println(\"Api Var: \" + " + itApiVar
-                + ");" + "System.out.println(\"SR Var: \" + " + itSRVar + ");" + "System.out.println(\"OR Var: \" + "
-                + itORVar + ");" + "System.out.println(\"App Id: \" + " + itAppIdVar + ");" + "}";
+            + ");" + "System.out.println(\"SR Var: \" + " + itSRVar + ");" + "System.out.println(\"OR Var: \" + "
+            + itORVar + ");" + "System.out.println(\"App Id: \" + " + itAppIdVar + ");" + "}";
         m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);
 
         methodBody = "public static void setCOMPSsVariables( " + LoaderConstants.CLASS_COMPSSRUNTIME_API + " runtime"
-                + ", " + LoaderConstants.CLASS_LOADERAPI + " loader" + ", " + LoaderConstants.CLASS_APP_ID + " appId"
-                + ") { \n" + itApiVar + "= runtime; \n" + itSRVar + "= loader.getStreamRegistry(); \n" + itORVar
-                + "= loader.getObjectRegistry(); \n" + itAppIdVar + "= appId; \n" + "}";
+            + ", " + LoaderConstants.CLASS_LOADERAPI + " loader" + ", " + LoaderConstants.CLASS_APP_ID + " appId"
+            + ") { \n" + itApiVar + "= runtime; \n" + itSRVar + "= loader.getStreamRegistry(); \n" + itORVar
+            + "= loader.getObjectRegistry(); \n" + itAppIdVar + "= appId; \n" + "}";
         m = CtNewMethod.make(methodBody, appClass);
         appClass.addMethod(m);
     }
@@ -195,7 +197,7 @@ public class Loader {
     }
 
     private static Method findMethod(Class<?> methodClass, String methodName, int numParams, Class<?>[] types,
-            Object[] values) {
+        Object[] values) {
         Method method = null;
         try {
             method = methodClass.getMethod(methodName, types);

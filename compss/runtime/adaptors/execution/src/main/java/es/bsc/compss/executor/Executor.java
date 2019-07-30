@@ -80,10 +80,10 @@ public class Executor implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not"
-            + " been created by task with Method Definition [";
-    private static final String WARN_ATOMIC_MOVE = "WARN: AtomicMoveNotSupportedException."
-            + " File cannot be atomically moved. Trying to move without atomic";
+    private static final String ERROR_OUT_FILES =
+        "ERROR: One or more OUT files have not" + " been created by task with Method Definition [";
+    private static final String WARN_ATOMIC_MOVE =
+        "WARN: AtomicMoveNotSupportedException." + " File cannot be atomically moved. Trying to move without atomic";
 
     // Attached component NIOWorker
     private final InvocationContext context;
@@ -201,8 +201,8 @@ public class Executor implements Runnable {
 
     private Exception executeTask(Invocation invocation) {
         if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
-                && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
-                && invocation.getLang() != Lang.C) {
+            && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
+            && invocation.getLang() != Lang.C) {
 
             LOGGER.error("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
             // Print to the job.err file
@@ -213,7 +213,7 @@ public class Executor implements Runnable {
     }
 
     private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
-            throws Exception {
+        throws Exception {
         /* Register outputs **************************************** */
         String streamsPath = context.getStandardStreamsPath(invocation);
         context.registerOutputs(streamsPath);
@@ -291,8 +291,8 @@ public class Executor implements Runnable {
 
             // Bind Computing units
             long startCUB = System.currentTimeMillis();
-            InvocationResources assignedResources = platform.acquireResources(invocation.getJobId(),
-                    invocation.getRequirements());
+            InvocationResources assignedResources =
+                platform.acquireResources(invocation.getJobId(), invocation.getRequirements());
             long cubDuration = System.currentTimeMillis() - startCUB;
 
             long execDuration = 0;
@@ -334,8 +334,8 @@ public class Executor implements Runnable {
                 long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
 
                 LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration
-                        + " bindCU: " + cubDuration + " execution" + execDuration + " restoreSimLinks: "
-                        + origFileDuration + " checkResults: " + checkResultsDuration);
+                    + " bindCU: " + cubDuration + " execution" + execDuration + " restoreSimLinks: " + origFileDuration
+                    + " checkResults: " + checkResultsDuration);
 
             }
             return null;
@@ -416,8 +416,8 @@ public class Executor implements Runnable {
             Files.createDirectories(workingDir.toPath());
         } else {
             // No specific working dir provided, set default sandbox
-            String completePath = this.context.getWorkingDir() + "sandBox" + File.separator + "job_"
-                    + invocation.getJobId();
+            String completePath =
+                this.context.getWorkingDir() + "sandBox" + File.separator + "job_" + invocation.getJobId();
             File workingDir = new File(completePath);
             taskWD = new TaskWorkingDir(workingDir, false);
 
@@ -518,13 +518,13 @@ public class Executor implements Runnable {
                     // IN or INOUT File creating a symbolic link
                     if (!inSandboxFile.exists()) {
                         LOGGER.debug(
-                                "Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
+                            "Creating symlink " + inSandboxFile.toPath() + " pointing to " + renamedFile.toPath());
                         Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
                     } else {
                         if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             Path oldRenamed = Files.readSymbolicLink(inSandboxFile.toPath());
                             LOGGER.debug("Checking if " + renamedFile.getName() + " is equal to "
-                                    + oldRenamed.getFileName().toString());
+                                + oldRenamed.getFileName().toString());
                             if (isMajorVersion(renamedFile.getName(), oldRenamed.getFileName().toString())) {
                                 Files.delete(inSandboxFile.toPath());
                                 Files.createSymbolicLink(inSandboxFile.toPath(), renamedFile.toPath());
@@ -588,7 +588,7 @@ public class Executor implements Runnable {
     }
 
     private void unbindOriginalFilenameToRename(InvocationParam param, Lang lang)
-            throws IOException, JobExecutionException {
+        throws IOException, JobExecutionException {
         if (param.getType().equals(DataType.FILE_T)) {
             String inSandboxPath = param.getOriginalName();
             String renamedFilePath = param.getRenamedName();
@@ -618,7 +618,7 @@ public class Executor implements Runnable {
                         if (Files.isSymbolicLink(inSandboxFile.toPath())) {
                             // Unexpected case
                             String msg = "ERROR: Unexpected case. A Problem occurred with File " + inSandboxPath
-                                    + ". Either this file or the original name " + renamedFilePath + " do not exist.";
+                                + ". Either this file or the original name " + renamedFilePath + " do not exist.";
                             LOGGER.error(msg);
                             System.err.println(msg);
                             throw new JobExecutionException(msg);
@@ -631,8 +631,8 @@ public class Executor implements Runnable {
                         String msg = "ERROR: Output file " + inSandboxFile.toPath() + " does not exist";
                         // Unexpected case (except for C binding when not serializing outputs)
                         if (lang != Lang.C) {
-                            LOGGER.debug("Generating empty renamed file (" + renamedFilePath
-                                    + ") for on_failure management");
+                            LOGGER.debug(
+                                "Generating empty renamed file (" + renamedFilePath + ") for on_failure management");
                             renamedFile.createNewFile();
                             LOGGER.error(msg);
                             System.err.println(msg);
@@ -670,7 +670,7 @@ public class Executor implements Runnable {
                     StringBuilder errMsg = new StringBuilder();
                     errMsg.append("ERROR: File with path '").append(filepath);
                     errMsg.append("' not generated by task with Method Definition ")
-                            .append(invocation.getMethodImplementation().getMethodDefinition());
+                        .append(invocation.getMethodImplementation().getMethodDefinition());
                     System.out.println(errMsg.toString());
                     System.err.println(errMsg.toString());
                     allOutFilesCreated = false;
@@ -679,7 +679,7 @@ public class Executor implements Runnable {
         }
         if (!allOutFilesCreated) {
             throw new JobExecutionException(
-                    ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
+                ERROR_OUT_FILES + invocation.getMethodImplementation().getMethodDefinition());
         }
 
     }
@@ -705,7 +705,7 @@ public class Executor implements Runnable {
     }
 
     private Invoker selectNativeMethodInvoker(Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
         switch (invocation.getLang()) {
             case JAVA:
                 Invoker javaInvoker = null;

@@ -33,12 +33,15 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.io.File;
 
+
 public abstract class PipedInvoker extends ExternalInvoker {
 
     private final PipePair pipes;
 
-    /** 
+
+    /**
      * Piped Invoker constructor.
+     * 
      * @param context Task execution context
      * @param invocation Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
@@ -47,7 +50,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
      * @throws JobExecutionException Error creating the Piped invoker
      */
     public PipedInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
+        InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
         this.pipes = pipes;
@@ -92,14 +95,14 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             }
                             return;
                         case COMPSS_EXCEPTION:
-                            throw new COMPSsException(((CompssExceptionPipeCommand)rcvdCommand).getMessage());
+                            throw new COMPSsException(((CompssExceptionPipeCommand) rcvdCommand).getMessage());
                         default:
                             LOGGER.warn("Unexpected tag on PipedInvoker: " + rcvdCommand + ". Skipping message");
                             break;
                     }
                 }
             } catch (ExternalExecutorException e) {
-                throw new JobExecutionException("Notification pipe closed",e);
+                throw new JobExecutionException("Notification pipe closed", e);
             }
         }
     }

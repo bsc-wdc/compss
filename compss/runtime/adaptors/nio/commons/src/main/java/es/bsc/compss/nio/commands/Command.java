@@ -28,7 +28,7 @@ public interface Command extends Externalizable {
      * Invokes the command handler.
      *
      * @param agent agent handling the command processing
-     * @param c     Connection.
+     * @param c Connection.
      */
     public abstract void handle(NIOAgent agent, Connection c);
 

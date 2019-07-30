@@ -31,6 +31,7 @@ public abstract class Data<T extends InvocationParamURI> implements Externalizab
     // Sources list
     private LinkedList<T> sources;
 
+
     public Data() {
         this.dataMgmtId = "";
         this.sources = new LinkedList<>();

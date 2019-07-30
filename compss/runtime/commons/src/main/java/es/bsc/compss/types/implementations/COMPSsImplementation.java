@@ -66,8 +66,8 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
      * @param annot Method annotations.
      */
     public COMPSsImplementation(String runcompss, String flags, String appName, String workerInMaster,
-            String workingDir, Integer coreId, Integer implementationId, String signature,
-            MethodResourceDescription annot) {
+        String workingDir, Integer coreId, Integer implementationId, String signature,
+        MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 

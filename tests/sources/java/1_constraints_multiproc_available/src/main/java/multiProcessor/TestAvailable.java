@@ -62,7 +62,8 @@ public class TestAvailable {
      * GPU CUs (internalMemory=1), 1 FPGA CU) CE2 -> 1 CPU CUs, 1 FPGA , 2 OTHER CUs , nodeMemSize= 2.0) CE3 -> 1 CPU
      * CUs, 2 GPU CU (internalMemory=3) CE4 -> 1 CPU CUs (internalMemory=3); ***************************************
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked",
+        "rawtypes" })
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();
@@ -140,7 +141,7 @@ public class TestAvailable {
         Action a = new Action(orchestrator, ce3);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println(
-                    "[ERROR] Available resources internalMemorySize filter inside Processor annotation is not working");
+                "[ERROR] Available resources internalMemorySize filter inside Processor annotation is not working");
             System.exit(-1);
         }
 
@@ -160,8 +161,8 @@ public class TestAvailable {
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
         System.out.println("Implementation 1: " + ce1Impls.get(0));
 
-        MethodResourceDescription consumed1 = (MethodResourceDescription) worker
-                .runTask(ce1Impls.get(0).getRequirements());
+        MethodResourceDescription consumed1 =
+            (MethodResourceDescription) worker.runTask(ce1Impls.get(0).getRequirements());
 
         System.out.println("CONSUMED: " + consumed1);
         // Check Consumed: 2 CPUs 2 GPUs 1 FPGA
@@ -180,8 +181,8 @@ public class TestAvailable {
 
         CoreElement ce2 = CoreManager.getCore(ceId2);
         List<Implementation> ce2Impls = ce2.getImplementations();
-        MethodResourceDescription consumed2 = (MethodResourceDescription) worker
-                .runTask(ce2Impls.get(0).getRequirements());
+        MethodResourceDescription consumed2 =
+            (MethodResourceDescription) worker.runTask(ce2Impls.get(0).getRequirements());
         System.out.println("CONSUMED: " + consumed2);
 
         // Check consumed 1 CPU 2 OTHER 1 FPGA
@@ -231,12 +232,11 @@ public class TestAvailable {
     }
 
     private static boolean checkDescription(MethodResourceDescription description, int CPUcus, int GPUcus, int FPGAcus,
-            int OTHERcus) {
+        int OTHERcus) {
 
         return description != null && description.getTotalCPUComputingUnits() == CPUcus
-                && description.getTotalGPUComputingUnits() == GPUcus
-                && description.getTotalFPGAComputingUnits() == FPGAcus
-                && description.getTotalOTHERComputingUnits() == OTHERcus;
+            && description.getTotalGPUComputingUnits() == GPUcus && description.getTotalFPGAComputingUnits() == FPGAcus
+            && description.getTotalOTHERComputingUnits() == OTHERcus;
 
     }
 

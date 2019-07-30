@@ -30,7 +30,6 @@ public class StorageObject implements StubItf {
 
     /**
      * Constructor
-     * 
      */
     public StorageObject() {
     }

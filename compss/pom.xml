@@ -1,270 +1,315 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-framework</artifactId>
-	<packaging>pom</packaging>
-	<parent>
-		<groupId>es.bsc.compss</groupId>
-		<artifactId>compss-trunk</artifactId>
-		<version>2.5.rc1907</version>
-		<relativePath>..</relativePath>
-	</parent>
+    <!-- GENERAL INFORMATION -->
+    <artifactId>compss-framework</artifactId>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>es.bsc.compss</groupId>
+        <artifactId>compss-trunk</artifactId>
+        <version>2.5.rc1907</version>
+        <relativePath>..</relativePath>
+    </parent>
 
-	<!-- PROJECT INFORMATION -->
-	<name>COMP Superscalar Framework</name>
-	<description>COMPSs Framework</description>
-	<url>http://www.bsc.es</url>
-	<inceptionYear>2014</inceptionYear>
-	<licenses>
-		<license>
-			<name>Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-		</license>
-	</licenses>
-	<organization>
-		<name>BSC</name>
-		<url>http://www.bsc.es</url>
-	</organization>
+    <!-- PROJECT INFORMATION -->
+    <name>COMP Superscalar Framework</name>
+    <description>COMPSs Framework</description>
+    <url>http://www.bsc.es</url>
+    <inceptionYear>2014</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>BSC</name>
+        <url>http://www.bsc.es</url>
+    </organization>
 
-	<!-- PROPERTIES -->
-	<properties>
-		<!-- BSC Components versions -->
-		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
-		<comm.version>1.6-16</comm.version>
-		<conn.version>1.5-34</conn.version>
+    <!-- PROPERTIES -->
+    <properties>
+        <!-- BSC Components versions -->
+        <cepbatools-extrae.version>1.4</cepbatools-extrae.version>
+        <comm.version>1.6-16</comm.version>
+        <conn.version>1.5-34</conn.version>
 
-		<!-- ZK version -->
-		<zk.version>8.5.0</zk.version>
+        <!-- ZK version -->
+        <zk.version>8.5.0</zk.version>
 
-		<!--JSON version -->
-		<json.version>20180813</json.version>
+        <!--JSON version -->
+        <json.version>20180813</json.version>
 
-		<!-- Jaxb version -->
-		<jaxb-api.version>2.3.0</jaxb-api.version>
-		<jaxb-xjc.version>2.3.0</jaxb-xjc.version>
-		<cxf.version>3.1.6</cxf.version>
-		<cxf.api.version>2.7.18</cxf.api.version>
+        <!-- Jaxb version -->
+        <jaxb-api.version>2.3.0</jaxb-api.version>
+        <jaxb-xjc.version>2.3.0</jaxb-xjc.version>
+        <cxf.version>3.1.6</cxf.version>
+        <cxf.api.version>2.7.18</cxf.api.version>
 
-		<!-- SSH -->
-		<jsch.version>0.1.55</jsch.version>
-		<!-- Java GAT -->
-		<gat.version>2.1.3</gat.version>
-		<ibis.version>2.3-pre</ibis.version>
-		<org.slf4j.version>1.7.25</org.slf4j.version>
+        <!-- SSH -->
+        <jsch.version>0.1.55</jsch.version>
+        <!-- Java GAT -->
+        <gat.version>2.1.3</gat.version>
+        <ibis.version>2.3-pre</ibis.version>
+        <org.slf4j.version>1.7.25</org.slf4j.version>
 
-		<!-- buildnumber -->
-		<buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
-	</properties>
+        <!-- buildnumber -->
+        <buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
+    </properties>
 
-	<!-- DEPENDENCIES -->
-	<dependencyManagement>
-		<dependencies>
-			<!-- Extrae -->
-			<dependency>
-				<groupId>es.bsc.cepbatools</groupId>
-				<artifactId>extrae</artifactId>
-				<version>${cepbatools-extrae.version}</version>
-			</dependency>
+    <!-- DEPENDENCIES -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Extrae -->
+            <dependency>
+                <groupId>es.bsc.cepbatools</groupId>
+                <artifactId>extrae</artifactId>
+                <version>${cepbatools-extrae.version}</version>
+            </dependency>
 
-			<!-- comm -->
-			<dependency>
-				<groupId>es.bsc.comm</groupId>
-				<artifactId>comm-all</artifactId>
-				<version>${comm.version}</version>
-			</dependency>
+            <!-- comm -->
+            <dependency>
+                <groupId>es.bsc.comm</groupId>
+                <artifactId>comm-all</artifactId>
+                <version>${comm.version}</version>
+            </dependency>
 
-			<!-- JSON -->
-			<dependency>
-				<groupId>org.json</groupId>
-				<artifactId>json</artifactId>
-				<version>${json.version}</version>
-			</dependency>
+            <!-- JSON -->
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
 
-			<!-- JAXB -->
-			<dependency>
-				<groupId>javax.xml.bind</groupId>
-				<artifactId>jaxb-api</artifactId>
-				<version>${jaxb-api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.sun.xml.bind</groupId>
-				<artifactId>jaxb-xjc</artifactId>
-				<version>${jaxb-xjc.version}</version>
-			</dependency>
+            <!-- JAXB -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-xjc</artifactId>
+                <version>${jaxb-xjc.version}</version>
+            </dependency>
 
-			<!-- CXF -->
-			<dependency>
-				<groupId>org.apache.cxf</groupId>
-				<artifactId>cxf-rt-frontend-jaxws</artifactId>
-				<version>${cxf.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.apache.geronimo.specs</groupId>
-						<artifactId>geronimo-javamail_1.4_spec</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.apache.geronimo.specs</groupId>
-						<artifactId>geronimo-activation_1.1_spec</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.apache.geronimo.specs</groupId>
-						<artifactId>geronimo-servlet_2.5_spec</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.cxf</groupId>
-				<artifactId>cxf-rt-transports-http</artifactId>
-				<version>${cxf.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.cxf</groupId>
-				<artifactId>cxf-api</artifactId>
-				<version>${cxf.api.version}</version>
-			</dependency>
+            <!-- CXF -->
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxws</artifactId>
+                <version>${cxf.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.geronimo.specs</groupId>
+                        <artifactId>geronimo-javamail_1.4_spec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.geronimo.specs</groupId>
+                        <artifactId>geronimo-activation_1.1_spec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.geronimo.specs</groupId>
+                        <artifactId>geronimo-servlet_2.5_spec</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-transports-http</artifactId>
+                <version>${cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-api</artifactId>
+                <version>${cxf.api.version}</version>
+            </dependency>
 
-			<!-- Java GAT -->
-			<dependency>
-				<groupId>org.gridlab.gat</groupId>
-				<artifactId>javagat-api</artifactId>
-				<version>${gat.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.gridlab.gat</groupId>
-				<artifactId>javagat-engine</artifactId>
-				<version>${gat.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>ibis.util</groupId>
-				<artifactId>ibis-util</artifactId>
-				<version>${ibis.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${org.slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>${org.slf4j.version}</version>
-			</dependency>
+            <!-- Java GAT -->
+            <dependency>
+                <groupId>org.gridlab.gat</groupId>
+                <artifactId>javagat-api</artifactId>
+                <version>${gat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.gridlab.gat</groupId>
+                <artifactId>javagat-engine</artifactId>
+                <version>${gat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ibis.util</groupId>
+                <artifactId>ibis-util</artifactId>
+                <version>${ibis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${org.slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${org.slf4j.version}</version>
+            </dependency>
 
-			<!-- SSH -->
-			<dependency>
-				<groupId>com.jcraft</groupId>
-				<artifactId>jsch</artifactId>
-				<version>${jsch.version}</version>
-			</dependency>
+            <!-- SSH -->
+            <dependency>
+                <groupId>com.jcraft</groupId>
+                <artifactId>jsch</artifactId>
+                <version>${jsch.version}</version>
+            </dependency>
 
-			<!-- ZK Framework -->
-			<dependency>
-				<groupId>org.zkoss.zk</groupId>
-				<artifactId>zkplus</artifactId>
-				<version>${zk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.zkoss.zk</groupId>
-				<artifactId>zhtml</artifactId>
-				<version>${zk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.zkoss.zk</groupId>
-				<artifactId>zkbind</artifactId>
-				<version>${zk.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.zkoss.zk</groupId>
-				<artifactId>zul</artifactId>
-				<version>${zk.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+            <!-- ZK Framework -->
+            <dependency>
+                <groupId>org.zkoss.zk</groupId>
+                <artifactId>zkplus</artifactId>
+                <version>${zk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zkoss.zk</groupId>
+                <artifactId>zhtml</artifactId>
+                <version>${zk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zkoss.zk</groupId>
+                <artifactId>zkbind</artifactId>
+                <version>${zk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.zkoss.zk</groupId>
+                <artifactId>zul</artifactId>
+                <version>${zk.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	<!-- BUILD -->
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>validate</id>
-						<phase>validate</phase>
-						<configuration>
-							<configLocation>checkstyle/checkstyle.xml</configLocation>
-							<suppressionsLocation>checkstyle/suppressed_files.xml</suppressionsLocation>
-							<suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
-							<encoding>UTF-8</encoding>
-							<consoleOutput>true</consoleOutput>
-							<failsOnError>true</failsOnError>
-							<linkXRef>false</linkXRef>
-						</configuration>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>${maven-checkstyle-plugin.version}</version>
-					<dependencies>
-						<dependency>
-							<groupId>es.bsc.compss</groupId>
-							<artifactId>checkstyle</artifactId>
-							<version>${project.version}</version>
-						</dependency>
-						<dependency>
-							<groupId>com.puppycrawl.tools</groupId>
-							<artifactId>checkstyle</artifactId>
-							<version>${puppycrawl-tools-checkstyle.version}</version>
-						</dependency>
-					</dependencies>
-				</plugin>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-checkstyle-plugin</artifactId>
-										<versionRange>[1.0,)</versionRange>
-										<goals>
-											<goal>check</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+    <!-- BUILD -->
+    <build>
+        <plugins>
+            <!-- Automatic formatter -->
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                        <configuration>
+                            <configFile>code_formatter/eclipse-formatter-config.xml</configFile>
+                            <overrideConfigCompilerVersion>true</overrideConfigCompilerVersion>
+                            <directories>
+                                <directory>${project.build.sourceDirectory}</directory>
+                                <directory>${project.build.testSourceDirectory}</directory>
+                            </directories>
+                            <excludes>
+                                <exclude>**/TaskScheduler.java</exclude>
+                                <exclude>**/jaxb/*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-	<!-- SUB-MODULES -->
-	<modules>
-		<module>tools</module>
-		<module>programming_model</module>
-		<module>runtime</module>
-		<module>agent</module>
-	</modules>
+            <!-- Check Style -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <configLocation>checkstyle/checkstyle.xml</configLocation>
+                            <suppressionsLocation>checkstyle/suppressed_files.xml</suppressionsLocation>
+                            <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <failsOnError>true</failsOnError>
+                            <linkXRef>false</linkXRef>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <!-- Automatic formatter -->
+                <plugin>
+                    <groupId>net.revelc.code.formatter</groupId>
+                    <artifactId>formatter-maven-plugin</artifactId>
+                    <version>${code-format.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>es.bsc.compss</groupId>
+                            <artifactId>code_formatter</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <!-- Check Style -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven-checkstyle-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>es.bsc.compss</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${puppycrawl-tools-checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <!--This plugin's configuration is used to store Eclipse m2e settings
+                    only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-checkstyle-plugin</artifactId>
+                                        <versionRange>[1.0,)</versionRange>
+                                        <goals>
+                                            <goal>check</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore/>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <!-- SUB-MODULES -->
+    <modules>
+        <module>tools</module>
+        <module>programming_model</module>
+        <module>runtime</module>
+        <module>agent</module>
+    </modules>
 </project>

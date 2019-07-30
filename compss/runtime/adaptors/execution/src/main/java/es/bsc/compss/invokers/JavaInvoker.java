@@ -55,7 +55,7 @@ public class JavaInvoker extends Invoker {
      * @throws JobExecutionException Error creating the Java invoker
      */
     public JavaInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
@@ -74,7 +74,7 @@ public class JavaInvoker extends Invoker {
             default:
                 // We have received an incorrect implementation type
                 throw new JobExecutionException(
-                        ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType());
+                    ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType());
         }
 
         // Use reflection to get the requested method
@@ -227,7 +227,7 @@ public class JavaInvoker extends Invoker {
                 // If the method has an arbitrary number of parameters, the last parameter is an array.
                 if (reflectionParam.isVarArgs()) {
                     int varArgsCount = params.size() - paramCount + 1;
-                    paramDest[paramIdx] = Array.newInstance(paramClass.getComponentType(),varArgsCount);
+                    paramDest[paramIdx] = Array.newInstance(paramClass.getComponentType(), varArgsCount);
                     paramDest = (Object[]) paramDest[paramIdx];
                     paramIdx = 0;
                     paramDest[paramIdx++] = param.getValue();
@@ -246,7 +246,7 @@ public class JavaInvoker extends Invoker {
         Object retValue = null;
         try {
             LOGGER.info("Invoked " + this.method.getName() + (target == null ? "" : " on object " + target) + " in "
-                    + this.context.getHostName());
+                + this.context.getHostName());
             retValue = this.method.invoke(target, values);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new JobExecutionException(ERROR_TASK_EXECUTION, e);

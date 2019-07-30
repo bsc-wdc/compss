@@ -78,7 +78,7 @@ public class MOConfiguration {
     private static void readConfiguration(String configFile) throws ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration(configFile);
         OP_PARAMETER = OptimizationParameter
-                .valueOf(config.getString("optimization.parameter", OptimizationParameter.TIME.toString()));
+            .valueOf(config.getString("optimization.parameter", OptimizationParameter.TIME.toString()));
         TIME_BOUNDARY = config.getLong("time.boundary", Long.MAX_VALUE);
         POWER_BOUNDARY = config.getLong("power.boundary", Long.MAX_VALUE);
         PRICE_BOUNDARY = config.getLong("price.boundary", Long.MAX_VALUE);
@@ -87,7 +87,7 @@ public class MOConfiguration {
         if (IS_DEBUG) {
             LOGGER.debug(LOG_PREFIX + " LOADED OPTIMIZATION_PARAMETER: " + OP_PARAMETER);
             LOGGER.debug(LOG_PREFIX + " LOADED BOUNDARIES: [" + TIME_BOUNDARY + ", " + POWER_BOUNDARY + ", "
-                    + PRICE_BOUNDARY + ", " + ENERGY_BOUNDARY + ", " + MONETARY_BOUNDARY + "]");
+                + PRICE_BOUNDARY + ", " + ENERGY_BOUNDARY + ", " + MONETARY_BOUNDARY + "]");
         }
     }
 

@@ -25,12 +25,12 @@ public class GetFile {
         }
 
         // Execute task loop
-        for (int i=0; i<M*2; i++) {
+        for (int i = 0; i < M * 2; i++) {
             GetFileImpl.readInFile(FILE_NAME);
         }
-        
+
         // Execute task loop
-        for (int i=0; i<1; i++) {
+        for (int i = 0; i < 1; i++) {
             GetFileImpl.writeInFile(FILE_NAME, i);
         }
 

@@ -30,8 +30,9 @@ public class MultiNodeDefinition extends ImplementationDefinition<MethodResource
     private final String multiNodeClass;
     private final String multiNodeName;
 
+
     protected MultiNodeDefinition(String signature, String multiNodeClass, String multiNodeName,
-            MethodResourceDescription implConstraints) {
+        MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.multiNodeClass = multiNodeClass;
         this.multiNodeName = multiNodeName;
@@ -40,7 +41,7 @@ public class MultiNodeDefinition extends ImplementationDefinition<MethodResource
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new MultiNodeImplementation(multiNodeClass, multiNodeName, coreId, implId, this.getSignature(),
-                this.getConstraints());
+            this.getConstraints());
     }
 
     @Override

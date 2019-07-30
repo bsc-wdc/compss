@@ -45,6 +45,7 @@ public class ControlPipePair {
 
     /**
      * Constructor for control pipe object.
+     * 
      * @param basePipePath Pipe path
      * @param id Pipe identifier
      */
@@ -58,8 +59,9 @@ public class ControlPipePair {
         return this.pipe.sendCommand(command);
     }
 
-    /** 
+    /**
      * Waiting for a command in the control pipe.
+     * 
      * @param command Command to wait
      * @throws ClosedPipeException Error Pipe closed.
      */
@@ -110,9 +112,9 @@ public class ControlPipePair {
     public String getInboundPipe() {
         return this.pipe.getInboundPipe();
     }
-    
+
     /**
-     *  Marking pipe as no longer exist.
+     * Marking pipe as no longer exist.
      */
     public void noLongerExists() {
         synchronized (this) {
@@ -143,8 +145,8 @@ public class ControlPipePair {
                     try {
                         command = pipe.readCommand();
                     } catch (UnknownCommandException uce) {
-                        LOGGER.warn("UNKNOWN COMMAND RECEIVED TRHOUGH PIPE " + pipe.getInboundPipe() + ": "
-                                + uce.getMessage());
+                        LOGGER.warn(
+                            "UNKNOWN COMMAND RECEIVED TRHOUGH PIPE " + pipe.getInboundPipe() + ": " + uce.getMessage());
                         continue;
                     }
                     synchronized (ControlPipePair.this) {

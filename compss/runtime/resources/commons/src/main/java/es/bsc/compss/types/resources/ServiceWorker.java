@@ -125,8 +125,8 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
             case SERVICE:
                 ServiceResourceDescription s = (ServiceResourceDescription) implementation.getRequirements();
                 return (this.description.getNamespace().compareTo(s.getNamespace()) == 0
-                        && this.description.getServiceName().compareTo(s.getServiceName()) == 0
-                        && this.description.getPort().compareTo(s.getPort()) == 0);
+                    && this.description.getServiceName().compareTo(s.getServiceName()) == 0
+                    && this.description.getPort().compareTo(s.getPort()) == 0);
             default:
                 return false;
         }

@@ -21,21 +21,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Class describing an endpoint and operation to invoke.
- *
  */
 @XmlRootElement(name = "Orchestrator")
 public class Orchestrator {
 
     public static enum HttpMethod {
-        GET,
-        POST,
-        PUT,
-        DELETE
+        GET, POST, PUT, DELETE
     }
+
 
     private String host;
     private HttpMethod method;
     private String operation;
+
 
     public Orchestrator() {
     }
@@ -43,8 +41,8 @@ public class Orchestrator {
     /**
      * Constructs a new Orchestrator instance.
      *
-     * @param host      name of the host to contact.
-     * @param method    HTTP method to invoke
+     * @param host name of the host to contact.
+     * @param method HTTP method to invoke
      * @param operation name of the operation to invoke on the agent.
      */
     public Orchestrator(String host, HttpMethod method, String operation) {

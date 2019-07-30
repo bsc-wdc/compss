@@ -505,7 +505,7 @@ public class DataInfoProvider {
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: R").append("\n");
                     sb.append("  * Read Datum: d").append(daId.getDataId()).append("v")
-                            .append(((RAccessId) daId).getRVersionId()).append("\n");
+                        .append(((RAccessId) daId).getRVersionId()).append("\n");
                     LOGGER.debug(sb.toString());
                 }
                 break;
@@ -518,7 +518,7 @@ public class DataInfoProvider {
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: W").append("\n");
                     sb.append("  * Write Datum: d").append(daId.getDataId()).append("v")
-                            .append(((WAccessId) daId).getWVersionId()).append("\n");
+                        .append(((WAccessId) daId).getWVersionId()).append("\n");
                     LOGGER.debug(sb.toString());
                 }
                 break;
@@ -535,9 +535,9 @@ public class DataInfoProvider {
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: RW").append("\n");
                     sb.append("  * Read Datum: d").append(daId.getDataId()).append("v")
-                            .append(((RWAccessId) daId).getRVersionId()).append("\n");
+                        .append(((RWAccessId) daId).getRVersionId()).append("\n");
                     sb.append("  * Write Datum: d").append(daId.getDataId()).append("v")
-                            .append(((RWAccessId) daId).getWVersionId()).append("\n");
+                        .append(((RWAccessId) daId).getWVersionId()).append("\n");
                     LOGGER.debug(sb.toString());
                 }
                 break;
@@ -898,8 +898,8 @@ public class DataInfoProvider {
             sem.release();
         } else {
             if (DEBUG) {
-                LOGGER.debug("Object " + sourceName + " not in memory. Requesting tranfers to "
-                        + Comm.getAppHost().getName());
+                LOGGER.debug(
+                    "Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
             }
             DataLocation targetLocation = null;
             String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
@@ -911,7 +911,7 @@ public class DataInfoProvider {
             }
             toRequest.setTargetData(ld);
             Comm.getAppHost().getData(sourceName, targetLocation, new ObjectTransferable(),
-                    new OneOpWithSemListener(sem));
+                new OneOpWithSemListener(sem));
         }
 
     }
@@ -993,7 +993,7 @@ public class DataInfoProvider {
                 }
                 if (renaming == null) {
                     LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming()
-                            + " nor any of its previous versions");
+                        + " nor any of its previous versions");
                     return null;
                 }
 
@@ -1003,7 +1003,7 @@ public class DataInfoProvider {
                         String pscoId = ((PersistentLocation) loc).getId();
                         if (Tracer.extraeEnabled()) {
                             Tracer.emitEvent(TraceEvent.STORAGE_CONSOLIDATE.getId(),
-                                    TraceEvent.STORAGE_CONSOLIDATE.getType());
+                                TraceEvent.STORAGE_CONSOLIDATE.getType());
                         }
                         try {
                             StorageItf.consolidateVersion(pscoId);
@@ -1079,7 +1079,7 @@ public class DataInfoProvider {
             // Inform the File Transfer Manager about the new file containing the object
             if (am != AccessMode.W) {
                 LOGGER.debug(
-                        "Collection " + cp.getCollectionId() + " contains " + cp.getParameters().size() + " accesses");
+                    "Collection " + cp.getCollectionId() + " contains " + cp.getParameters().size() + " accesses");
                 // Null until the two-step transfer method is implemented
                 Comm.registerCollection(renaming, null);
             }

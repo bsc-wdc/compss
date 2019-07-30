@@ -54,6 +54,7 @@ public class NIOTask implements Externalizable, Invocation {
     private int numReturns;
     private int timeOut;
 
+
     /**
      * New NIO Task.
      */
@@ -81,9 +82,8 @@ public class NIOTask implements Externalizable, Invocation {
      * @param timeOut Task timeout.
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns,
-            LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
-            List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
-            int transferGroupId, int timeOut) {
+        LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
+        int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId, int timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -134,10 +134,9 @@ public class NIOTask implements Externalizable, Invocation {
      * @param transferGroupId Transfer group Id.
      * @param timeOut Task deadline
      */
-    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl,
-            LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
-            List<String> slaveWorkersNodeNames,
-            int taskId, int jobId, JobHistory hist, int transferGroupId, int timeOut) {
+    public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, LinkedList<NIOParam> arguments,
+        NIOParam target, LinkedList<NIOParam> results, List<String> slaveWorkersNodeNames, int taskId, int jobId,
+        JobHistory hist, int transferGroupId, int timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -290,7 +289,7 @@ public class NIOTask implements Externalizable, Invocation {
     public List<String> getSlaveNodesNames() {
         return this.slaveWorkersNodeNames;
     }
-    
+
     @Override
     public int getTimeOut() {
         return this.timeOut;

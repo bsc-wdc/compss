@@ -7,11 +7,8 @@ import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface ConcurrentItf {
-	
-	@Method(declaringClass = "applicationConcurrent.ConcurrentImpl")
-	void increment(
-		@Parameter(type = Type.FILE, direction = Direction.INOUT)
-		String file
-	);
+
+    @Method(declaringClass = "applicationConcurrent.ConcurrentImpl")
+    void increment(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file);
 
 }

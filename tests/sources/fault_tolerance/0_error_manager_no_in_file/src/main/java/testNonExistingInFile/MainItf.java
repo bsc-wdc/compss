@@ -7,8 +7,7 @@ import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface MainItf {
-	@Method(declaringClass = "testNonExistingInFile.Main")
-	Dummy errorTask(
-		@Parameter(type = Type.FILE, direction = Direction.IN) String file
-	);
+
+    @Method(declaringClass = "testNonExistingInFile.Main")
+    Dummy errorTask(@Parameter(type = Type.FILE, direction = Direction.IN) String file);
 }

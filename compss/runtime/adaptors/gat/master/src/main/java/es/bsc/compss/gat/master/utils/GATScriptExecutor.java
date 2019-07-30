@@ -142,14 +142,14 @@ public class GATScriptExecutor {
                 if (DEBUG) {
                     try {
                         org.gridlab.gat.io.File outFile = GAT.createFile(this.node.getContext(),
-                                ProtocolType.ANY_URI.getSchema() + File.separator
-                                        + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
-                                        + stdOutFileName + ".out");
+                            ProtocolType.ANY_URI.getSchema() + File.separator
+                                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
+                                + ".out");
                         sd.setStdout(outFile);
                         org.gridlab.gat.io.File errFile = GAT.createFile(this.node.getContext(),
-                                ProtocolType.ANY_URI.getSchema() + File.separator
-                                        + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator
-                                        + stdOutFileName + ".err");
+                            ProtocolType.ANY_URI.getSchema() + File.separator
+                                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
+                                + ".err");
                         sd.setStderr(errFile);
                     } catch (Exception e) {
                         LOGGER.error(CLEAN_JOB_ERR, e);
@@ -199,11 +199,11 @@ public class GATScriptExecutor {
 
         // Move cleanX.out logs to default logger
         if (DEBUG) {
-            String stdOutFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
-                    + ".out";
+            String stdOutFilePath =
+                System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".out";
 
             try (FileReader cleanOut = new FileReader(stdOutFilePath);
-                    BufferedReader br = new BufferedReader(cleanOut)) {
+                BufferedReader br = new BufferedReader(cleanOut)) {
 
                 String line = br.readLine();
                 while (line != null) {
@@ -222,11 +222,11 @@ public class GATScriptExecutor {
 
         // Move cleanX.err logs to default logger
         if (DEBUG) {
-            String stdErrFilePath = System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName
-                    + ".err";
+            String stdErrFilePath =
+                System.getProperty(COMPSsConstants.APP_LOG_DIR) + File.separator + stdOutFileName + ".err";
 
             try (FileReader cleanErr = new FileReader(stdErrFilePath);
-                    BufferedReader br = new BufferedReader(cleanErr)) {
+                BufferedReader br = new BufferedReader(cleanErr)) {
                 String line = br.readLine();
                 while (line != null) {
                     LOGGER.error(line);
@@ -261,7 +261,7 @@ public class GATScriptExecutor {
          * @param jobQueue List where all the already executed tasks will be left.
          */
         public ScriptDispatcher(RequestQueue<SoftwareDescription> sdQueue, RequestQueue<Job> jobQueue,
-                GATWorkerNode node) {
+            GATWorkerNode node) {
 
             super(sdQueue);
             this.jobQueue = jobQueue;

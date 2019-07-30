@@ -54,9 +54,9 @@ public class CurrentGraphViewModel {
     public void download() {
         try {
             if ((this.graph.equals(Constants.GRAPH_NOT_FOUND_PATH))
-                    || (this.graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
-                    || (this.graph.equals(Constants.UNSELECTED_GRAPH_PATH))
-                    || (this.graph.equals(Constants.EMPTY_GRAPH_PATH))) {
+                || (this.graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
+                || (this.graph.equals(Constants.UNSELECTED_GRAPH_PATH))
+                || (this.graph.equals(Constants.EMPTY_GRAPH_PATH))) {
                 Filedownload.save(this.graph, null);
             } else {
                 Filedownload.save(this.graph.substring(0, this.graph.lastIndexOf("?")), null);
@@ -81,7 +81,7 @@ public class CurrentGraphViewModel {
                 if (!modifiedTime.equals(this.graphLastUpdateTime)) {
                     try {
                         String graphSVG = File.separator + "svg" + File.separator + monitoredApp.getName() + "_"
-                                + Constants.GRAPH_FILE_NAME;
+                            + Constants.GRAPH_FILE_NAME;
                         this.graph = loadGraph(monitorLocation, graphSVG);
                         this.graphLastUpdateTime = modifiedTime;
                     } catch (Exception e) {
@@ -118,8 +118,10 @@ public class CurrentGraphViewModel {
             LOGGER.debug("   - Monitoring target: " + target);
         }
         // Create SVG
-        String[] createSVG = { "/bin/sh", "-c", "dot -T svg " + location + " > " + System.getProperty("catalina.base")
-                + File.separator + "webapps" + File.separator + "compss-monitor" + File.separator + target };
+        String[] createSVG = { "/bin/sh",
+            "-c",
+            "dot -T svg " + location + " > " + System.getProperty("catalina.base") + File.separator + "webapps"
+                + File.separator + "compss-monitor" + File.separator + target };
         Process p1 = Runtime.getRuntime().exec(createSVG);
 
         try {

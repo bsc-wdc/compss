@@ -11,15 +11,11 @@ public interface SimpleItf {
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "deleteFile.SimpleImpl")
-    void increment(
-        @Parameter(type = Type.FILE, direction = Direction.INOUT) String file
-    );
-    
+    void increment(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file);
+
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "deleteFile.SimpleImpl")
-    void increment2(
-            @Parameter(type = Type.FILE, direction = Direction.IN) String file_in,
-            @Parameter(type = Type.FILE, direction = Direction.OUT) String file_out
-        );
+    void increment2(@Parameter(type = Type.FILE, direction = Direction.IN) String file_in,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String file_out);
 
 }

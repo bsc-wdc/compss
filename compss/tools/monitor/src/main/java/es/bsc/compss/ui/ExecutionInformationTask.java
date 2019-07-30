@@ -28,8 +28,8 @@ import org.zkoss.zul.ListModelList;
 
 public class ExecutionInformationTask {
 
-    private static final String STATE_IMAGES_RELATIVE_PATH = File.separator + "images" + File.separator + "state"
-            + File.separator;
+    private static final String STATE_IMAGES_RELATIVE_PATH =
+        File.separator + "images" + File.separator + "state" + File.separator;
     private static final String STATE_IMAGES_EXTENSION = ".jpg";
     private static final String JOBS_RELATIVE_PATH = Constants.JOBS_SUB_PATH + "job";
 
@@ -197,8 +197,8 @@ public class ExecutionInformationTask {
             this.resubmited = false;
             this.host = new String("");
             this.status = new String(Constants.STATUS_CREATION);
-            this.color = new String(
-                    STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
+            this.color =
+                new String(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
             this.executable = new String("");
             this.arguments = new String("");
         }
@@ -217,8 +217,8 @@ public class ExecutionInformationTask {
             this.resubmited = resubmited;
             this.host = host;
             this.status = new String(Constants.STATUS_CREATION);
-            this.color = new String(
-                    STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
+            this.color =
+                new String(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
             this.executable = executable;
             this.arguments = args;
         }
@@ -300,7 +300,7 @@ public class ExecutionInformationTask {
                     jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_OUT_FILE;
                 } else {
                     jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH
-                            + this.id.substring(0, this.id.length() - 1) + Constants.JOB_OUT_RESUBMITTED_FILE;
+                        + this.id.substring(0, this.id.length() - 1) + Constants.JOB_OUT_RESUBMITTED_FILE;
                 }
 
                 try (BufferedReader br = new BufferedReader(new FileReader(jobOutPath))) {
@@ -334,7 +334,7 @@ public class ExecutionInformationTask {
                     jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_OUT_FILE;
                 } else {
                     jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH
-                            + this.id.substring(0, this.id.length() - 1) + Constants.JOB_OUT_RESUBMITTED_FILE;
+                        + this.id.substring(0, this.id.length() - 1) + Constants.JOB_OUT_RESUBMITTED_FILE;
                 }
 
                 try (BufferedReader br = new BufferedReader(new FileReader(jobOutPath))) {
@@ -343,8 +343,8 @@ public class ExecutionInformationTask {
                     while ((line != null) && (!found)) {
                         if (line.contains("* Parameter values:")) {
                             found = true;
-                            arguments = line.substring(
-                                    line.lastIndexOf("* Parameter values:") + "* Parameter values:".length());
+                            arguments = line
+                                .substring(line.lastIndexOf("* Parameter values:") + "* Parameter values:".length());
                         }
                         line = br.readLine();
                     }
@@ -368,7 +368,7 @@ public class ExecutionInformationTask {
                     jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_OUT_FILE;
                 } else {
                     jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH
-                            + this.id.substring(0, this.id.length() - 1) + Constants.JOB_OUT_RESUBMITTED_FILE;
+                        + this.id.substring(0, this.id.length() - 1) + Constants.JOB_OUT_RESUBMITTED_FILE;
                 }
 
                 StringBuilder sb = new StringBuilder();
@@ -400,7 +400,7 @@ public class ExecutionInformationTask {
                     jobErrPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_ERR_FILE;
                 } else {
                     jobErrPath = Properties.getBasePath() + JOBS_RELATIVE_PATH
-                            + this.id.substring(0, this.id.length() - 1) + Constants.JOB_ERR_RESUBMITTED_FILE;
+                        + this.id.substring(0, this.id.length() - 1) + Constants.JOB_ERR_RESUBMITTED_FILE;
                 }
 
                 StringBuilder sb = new StringBuilder();

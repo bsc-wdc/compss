@@ -27,7 +27,7 @@ public class ExtendedCloudMethodWorker extends CloudMethodWorker {
 
 
     public ExtendedCloudMethodWorker(String name, CloudProvider provider, CloudMethodResourceDescription description,
-            COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+        COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
         super(name, provider, description, worker, limitOfTasks, 0, 0, 0, sharedDisks);
         terminated = false;
     }

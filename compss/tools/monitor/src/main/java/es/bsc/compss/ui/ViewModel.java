@@ -141,8 +141,14 @@ public class ViewModel {
      * @param selectedTab New selected tab.
      */
     @Command
-    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
-            "loadChartViewModel", "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })
+    @NotifyChange({ "resourcesViewModel",
+        "coresViewModel",
+        "currentGraphViewModel",
+        "completeGraphViewModel",
+        "loadChartViewModel",
+        "runtimeLogViewModel",
+        "executionInformationViewModel",
+        "statisticsViewModel" })
     public void select(@BindingParam("selectedTab") String selectedTab) {
         if (!this.selectedTab.equals(selectedTab)) {
             this.selectedTab = selectedTab;
@@ -152,18 +158,18 @@ public class ViewModel {
                 logger.debug("Trying to load runtime.log, displaying messagebox");
                 runtimeLogConfirmation = -1;
                 Messagebox.show(
-                        "The runtime.log can be huge and you may experience slowness loading this tab."
-                                + " Do you really want to load it?",
-                        "Warning", Messagebox.OK | Messagebox.CANCEL, Messagebox.QUESTION, new EventListener<Event>() {
+                    "The runtime.log can be huge and you may experience slowness loading this tab."
+                        + " Do you really want to load it?",
+                    "Warning", Messagebox.OK | Messagebox.CANCEL, Messagebox.QUESTION, new EventListener<Event>() {
 
-                            public void onEvent(Event e) {
-                                if (Messagebox.ON_OK.equals(e.getName())) {
-                                    runtimeLogConfirmation = 0;
-                                } else {
-                                    runtimeLogConfirmation = 1;
-                                }
+                        public void onEvent(Event e) {
+                            if (Messagebox.ON_OK.equals(e.getName())) {
+                                runtimeLogConfirmation = 0;
+                            } else {
+                                runtimeLogConfirmation = 1;
                             }
-                        });
+                        }
+                    });
             } else {
                 // Normal tab selection
                 this.update();
@@ -177,8 +183,13 @@ public class ViewModel {
      * Updates the current view in the UI.
      */
     @Command
-    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
-            "loadChartViewModel", "statisticsViewModel", "runtimeLogViewModel" })
+    @NotifyChange({ "resourcesViewModel",
+        "coresViewModel",
+        "currentGraphViewModel",
+        "completeGraphViewModel",
+        "loadChartViewModel",
+        "statisticsViewModel",
+        "runtimeLogViewModel" })
     public void update() {
         logger.debug("Loading Monitored Application...");
         Application monitoredApp = new Application();
@@ -359,8 +370,14 @@ public class ViewModel {
      * Refresh the complete UI.
      */
     @GlobalCommand
-    @NotifyChange({ "resourcesViewModel", "coresViewModel", "currentGraphViewModel", "completeGraphViewModel",
-            "loadChartViewModel", "runtimeLogViewModel", "executionInformationViewModel", "statisticsViewModel" })
+    @NotifyChange({ "resourcesViewModel",
+        "coresViewModel",
+        "currentGraphViewModel",
+        "completeGraphViewModel",
+        "loadChartViewModel",
+        "runtimeLogViewModel",
+        "executionInformationViewModel",
+        "statisticsViewModel" })
     public void refresh() {
         this.update();
         this.updateRuntimeLog();

@@ -30,8 +30,9 @@ public class BinaryDefinition extends ImplementationDefinition<MethodResourceDes
     private final String binary;
     private final String workingDir;
 
+
     protected BinaryDefinition(String signature, String binary, String workingDir,
-            MethodResourceDescription implConstraints) {
+        MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;
         this.workingDir = workingDir;

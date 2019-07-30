@@ -55,7 +55,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
      * @param sharedDisks Mounted shared disks.
      */
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
-            int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
+        int limitGPUTasks, int limitFPGATasks, int limitOTHERTasks, Map<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
@@ -76,7 +76,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
      * @param sharedDisks Mounted shared disks.
      */
     public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf,
-            Map<String, String> sharedDisks) {
+        Map<String, String> sharedDisks) {
 
         super(name, description, conf, sharedDisks);
         this.name = name;
@@ -171,8 +171,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     @Override
     public boolean hasAvailableSlots() {
         return ((this.usedCPUtaskCount < this.maxCPUtaskCount) || (this.usedGPUtaskCount < this.maxGPUtaskCount)
-                || (this.usedFPGAtaskCount < this.maxFPGAtaskCount)
-                || (this.usedOthersTaskCount < this.maxOthersTaskCount));
+            || (this.usedFPGAtaskCount < this.maxFPGAtaskCount)
+            || (this.usedOthersTaskCount < this.maxOthersTaskCount));
     }
 
     /**
@@ -363,13 +363,13 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("<TotalCPUComputingUnits>").append(this.description.getTotalCPUComputingUnits())
-                .append("</TotalCPUComputingUnits>").append("\n");
+            .append("</TotalCPUComputingUnits>").append("\n");
         sb.append(prefix).append("<TotalGPUComputingUnits>").append(this.description.getTotalGPUComputingUnits())
-                .append("</TotalGPUComputingUnits>").append("\n");
+            .append("</TotalGPUComputingUnits>").append("\n");
         sb.append(prefix).append("<TotalFPGAComputingUnits>").append(this.description.getTotalFPGAComputingUnits())
-                .append("</TotalFPGAComputingUnits>").append("\n");
+            .append("</TotalFPGAComputingUnits>").append("\n");
         sb.append(prefix).append("<TotalOTHERComputingUnits>").append(this.description.getTotalOTHERComputingUnits())
-                .append("</TotalOTHERComputingUnits>").append("\n");
+            .append("</TotalOTHERComputingUnits>").append("\n");
         sb.append(prefix).append("<Memory>").append(this.description.getMemorySize()).append("</Memory>").append("\n");
         sb.append(prefix).append("<Disk>").append(this.description.getStorageSize()).append("</Disk>").append("\n");
         return sb.toString();
@@ -437,8 +437,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         canRun = canRun && this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU();
         canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !consumption.containsGPU());
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !consumption.containsFPGA());
-        canRun = canRun
-                && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
+        canRun =
+            canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !consumption.containsOthers());
         canRun = canRun && this.hasAvailable(consumption);
         return canRun;
     }
@@ -493,13 +493,13 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         StringBuilder sb = new StringBuilder(super.getResourceLinks(prefix));
         sb.append(prefix).append("TYPE = WORKER").append("\n");
         sb.append(prefix).append("CPU_COMPUTING_UNITS = ").append(this.description.getTotalCPUComputingUnits())
-                .append("\n");
+            .append("\n");
         sb.append(prefix).append("GPU_COMPUTING_UNITS = ").append(this.description.getTotalGPUComputingUnits())
-                .append("\n");
+            .append("\n");
         sb.append(prefix).append("FPGA_COMPUTING_UNITS = ").append(this.description.getTotalFPGAComputingUnits())
-                .append("\n");
+            .append("\n");
         sb.append(prefix).append("OTHER_COMPUTING_UNITS = ").append(this.description.getTotalFPGAComputingUnits())
-                .append("\n");
+            .append("\n");
         sb.append(prefix).append("MEMORY = ").append(this.description.getMemorySize()).append("\n");
         return sb.toString();
     }
@@ -512,6 +512,6 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     @Override
     public String toString() {
         return "Worker " + this.name + " with usedTaskCount = " + this.usedCPUtaskCount + " and maxTaskCount = "
-                + this.maxCPUtaskCount + " with the following description " + this.description;
+            + this.maxCPUtaskCount + " with the following description " + this.description;
     }
 }

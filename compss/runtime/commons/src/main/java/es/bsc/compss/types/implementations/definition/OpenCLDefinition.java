@@ -30,8 +30,9 @@ public class OpenCLDefinition extends ImplementationDefinition<MethodResourceDes
     private final String kernel;
     private final String workingDir;
 
+
     protected OpenCLDefinition(String signature, String kernel, String workingDir,
-            MethodResourceDescription implConstraints) {
+        MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.kernel = kernel;
         this.workingDir = workingDir;

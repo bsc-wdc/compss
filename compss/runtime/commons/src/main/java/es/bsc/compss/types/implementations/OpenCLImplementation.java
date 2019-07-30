@@ -56,7 +56,7 @@ public class OpenCLImplementation extends AbstractMethodImplementation implement
      * @param annot Method requirements.
      */
     public OpenCLImplementation(String kernel, String workingDir, Integer coreId, Integer implementationId,
-            String signature, MethodResourceDescription annot) {
+        String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 

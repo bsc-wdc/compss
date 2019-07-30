@@ -170,8 +170,8 @@ public final class StorageItf {
             if (wd.exists()) {
                 FileUtils.deleteDirectory(new File(BASE_WORKING_DIR));
             }
-	} catch (Exception e) {
-            LOGGER.warn("[LOG] "+ERROR_ERASE_WD, e);
+        } catch (Exception e) {
+            LOGGER.warn("[LOG] " + ERROR_ERASE_WD, e);
         }
 
         // Log
@@ -324,8 +324,8 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
-            throws StorageException {
+    public static String executeTask(String id, String descriptor, Object[] values, String hostName,
+        CallbackHandler callback) throws StorageException {
 
         LOGGER.info("EXECUTE TASK: " + descriptor + " on host " + hostName);
 
@@ -368,10 +368,11 @@ public final class StorageItf {
 
                         String methodAvailableDescriptor;
                         try {
-                            methodAvailableDescriptor = methodAvailable.getName()
-                                    + Descriptor.ofMethod(pool.getCtClass(methodAvailable.getReturnType().getName()), ctParams);
+                            methodAvailableDescriptor = methodAvailable.getName() + Descriptor
+                                .ofMethod(pool.getCtClass(methodAvailable.getReturnType().getName()), ctParams);
                         } catch (NotFoundException e) {
-                            throw new Exception(ERROR_CLASS_NOT_FOUND + " " + methodAvailable.getReturnType().getName(), e);
+                            throw new Exception(ERROR_CLASS_NOT_FOUND + " " + methodAvailable.getReturnType().getName(),
+                                e);
                         }
 
                         if (descriptor.equals(methodAvailableDescriptor)) {

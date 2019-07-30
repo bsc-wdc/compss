@@ -93,21 +93,22 @@ public class Comm {
     static {
         String streamBackendProperty = System.getProperty(COMPSsConstants.STREAMING_BACKEND);
         String streamBackendPropertyFixed = (streamBackendProperty == null || streamBackendProperty.isEmpty()
-                || streamBackendProperty.toLowerCase().equals("null")
-                || streamBackendProperty.toLowerCase().equals("none")) ? "NONE" : streamBackendProperty.toUpperCase();
+            || streamBackendProperty.toLowerCase().equals("null") || streamBackendProperty.toLowerCase().equals("none"))
+                ? "NONE"
+                : streamBackendProperty.toUpperCase();
         STREAMING_BACKEND = StreamBackend.valueOf(streamBackendPropertyFixed);
 
         String streamMasterNameProperty = System.getProperty(COMPSsConstants.STREAMING_MASTER_NAME);
         STREAMING_MASTER_NAME = (streamMasterNameProperty == null || streamMasterNameProperty.isEmpty()
-                || streamMasterNameProperty.equals("null")) ? null : streamMasterNameProperty;
+            || streamMasterNameProperty.equals("null")) ? null : streamMasterNameProperty;
         String streamMasterPortProperty = System.getProperty(COMPSsConstants.STREAMING_MASTER_PORT);
         STREAMING_PORT = (streamMasterPortProperty == null || streamMasterPortProperty.isEmpty()
-                || streamMasterPortProperty.equals("null")) ? DEFAULT_STREAMING_PORT
-                        : Integer.parseInt(streamMasterPortProperty);
+            || streamMasterPortProperty.equals("null")) ? DEFAULT_STREAMING_PORT
+                : Integer.parseInt(streamMasterPortProperty);
 
         String storageCfgProperty = System.getProperty(COMPSsConstants.STORAGE_CONF);
-        STORAGE_CONF = (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null"))
-                ? null
+        STORAGE_CONF =
+            (storageCfgProperty == null || storageCfgProperty.isEmpty() || storageCfgProperty.equals("null")) ? null
                 : storageCfgProperty;
 
         ADAPTORS = new ConcurrentHashMap<>();
@@ -137,7 +138,7 @@ public class Comm {
 
         // Start tracing system
         if (System.getProperty(COMPSsConstants.TRACING) != null
-                && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
+            && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) != 0) {
             int tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
             LOGGER.debug("Tracing is activated [" + tracingLevel + ']');
             Tracer.init(Comm.getAppHost().getAppLogDirPath(), tracingLevel);
@@ -228,7 +229,7 @@ public class Comm {
      * @throws ConstructConfigurationException When adaptor class cannot be instantiated.
      */
     public static Configuration constructConfiguration(String adaptorName, Map<String, Object> projectProperties,
-            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         // Check if adaptor has already been used
         CommAdaptor adaptor = ADAPTORS.get(adaptorName);
@@ -238,7 +239,7 @@ public class Comm {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
             } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException
-                    | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 throw new ConstructConfigurationException(e);
             }
 

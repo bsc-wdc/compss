@@ -8,11 +8,11 @@ import java.io.FileReader;
 
 public class Tasks {
 
-    //------------------------------------------------------
-    //------------------------------------------------------
-    //------------- Create file With Content ---------------
-    //------------------------------------------------------
-    //------------------------------------------------------
+    // ------------------------------------------------------
+    // ------------------------------------------------------
+    // ------------- Create file With Content ---------------
+    // ------------------------------------------------------
+    // ------------------------------------------------------
     /**
      * Creates a new file with the content passed in as a parameter on any node.
      *
@@ -72,11 +72,11 @@ public class Tasks {
         createFileWithContent(content, fileName);
     }
 
-    //------------------------------------------------------
-    //------------------------------------------------------
-    //----------------- Check file Content  ----------------
-    //------------------------------------------------------
-    //------------------------------------------------------
+    // ------------------------------------------------------
+    // ------------------------------------------------------
+    // ----------------- Check file Content ----------------
+    // ------------------------------------------------------
+    // ------------------------------------------------------
     /**
      * Verifies that the content of the file matches the one passed in as a parameter on any node.
      *
@@ -149,11 +149,11 @@ public class Tasks {
 
     }
 
-    //------------------------------------------------------
-    //------------------------------------------------------
-    //---------- Check and update file content  ------------
-    //------------------------------------------------------
-    //------------------------------------------------------
+    // ------------------------------------------------------
+    // ------------------------------------------------------
+    // ---------- Check and update file content ------------
+    // ------------------------------------------------------
+    // ------------------------------------------------------
     /**
      * Verifies that the content of the file matches the one passed in as a parameter and updates it on any node.
      *
@@ -163,7 +163,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateFileWithContent(String content, String newContent, String fileName)
-            throws Exception {
+        throws Exception {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             if ((line = br.readLine()) != null) {
@@ -195,7 +195,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateFileWithContentMaster(String content, String newContent, String fileName)
-            throws Exception {
+        throws Exception {
         checkAndUpdateFileWithContent(content, newContent, fileName);
     }
 
@@ -208,7 +208,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateFileWithContentWorker(String content, String newContent, String fileName)
-            throws Exception {
+        throws Exception {
         checkAndUpdateFileWithContent(content, newContent, fileName);
     }
 
@@ -221,7 +221,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateFileWithContentWorker01(String content, String newContent, String fileName)
-            throws Exception {
+        throws Exception {
         checkAndUpdateFileWithContent(content, newContent, fileName);
     }
 
@@ -234,7 +234,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateFileWithContentWorker02(String content, String newContent, String fileName)
-            throws Exception {
+        throws Exception {
         checkAndUpdateFileWithContent(content, newContent, fileName);
     }
 
@@ -368,7 +368,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateObjectWithContent(String content, String newContent, StringWrapper sw)
-            throws Exception {
+        throws Exception {
 
         String line = sw.getValue();
 
@@ -395,7 +395,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateObjectWithContentMaster(String content, String newContent, StringWrapper sw)
-            throws Exception {
+        throws Exception {
         checkAndUpdateObjectWithContent(content, newContent, sw);
     }
 
@@ -409,7 +409,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateObjectWithContentWorker(String content, String newContent, StringWrapper sw)
-            throws Exception {
+        throws Exception {
         checkAndUpdateObjectWithContent(content, newContent, sw);
     }
 
@@ -423,7 +423,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateObjectWithContentWorker01(String content, String newContent, StringWrapper sw)
-            throws Exception {
+        throws Exception {
         checkAndUpdateObjectWithContent(content, newContent, sw);
     }
 
@@ -437,7 +437,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateObjectWithContentWorker02(String content, String newContent, StringWrapper sw)
-            throws Exception {
+        throws Exception {
         checkAndUpdateObjectWithContent(content, newContent, sw);
     }
 

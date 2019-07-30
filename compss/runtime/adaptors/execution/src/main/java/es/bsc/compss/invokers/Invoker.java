@@ -82,7 +82,7 @@ public abstract class Invoker {
      * @throws JobExecutionException Error creating task execution (job)
      */
     public Invoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         this.context = context;
         this.invocation = invocation;

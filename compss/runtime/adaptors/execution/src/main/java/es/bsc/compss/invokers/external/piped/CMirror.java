@@ -30,12 +30,12 @@ import java.util.Map;
 public class CMirror extends PipedMirror {
 
     // C worker relative path
-    private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator
-            + "bindings-common" + File.separator + "lib";
+    private static final String BINDINGS_RELATIVE_PATH =
+        File.separator + "Bindings" + File.separator + "bindings-common" + File.separator + "lib";
     private static final String C_PIPER = "c_piper.sh";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
-    private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c"
-            + File.separator + "lib";
+    private static final String C_LIB_RELATIVE_PATH =
+        File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
 
 
     /**

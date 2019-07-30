@@ -111,7 +111,7 @@ public abstract class ImplementationDefinition implements Invocation {
     }
 
     private LinkedList<Param> parseArguments(String[] args, int appArgsIdx, int numParams, int numReturns)
-            throws Exception {
+        throws Exception {
         LinkedList<Param> paramsList = new LinkedList<>();
         DataType[] dataTypesEnum = DataType.values();
         StdIOStream[] dataStream = StdIOStream.values();
@@ -330,7 +330,7 @@ public abstract class ImplementationDefinition implements Invocation {
 
 
         public Param(DataType type, String prefix, String name, StdIOStream stream, String originalName,
-                boolean writeFinalValue) {
+            boolean writeFinalValue) {
             this.type = type;
             this.prefix = prefix;
             this.name = name;

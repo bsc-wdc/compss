@@ -33,12 +33,12 @@ import java.util.List;
 
 /**
  * This class is a container describing a task that is submitted to a CommAgent.
- *
  */
 public class CommTask extends NIOTask {
 
     private CommResource orchestrator;
     private String cei;
+
 
     public CommTask() {
     }
@@ -46,31 +46,30 @@ public class CommTask extends NIOTask {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang                  Task language.
-     * @param workerDebug           Worker debug level.
-     * @param impl                  Implementation to execute.
-     * @param cei                   Interface class to parallelize the code
-     * @param hasTarget             Whether the task has a target object or not.
-     * @param params                List of task parameters.
-     * @param numReturns            Number of returns.
-     * @param numParams             Number of parameters.
-     * @param reqs                  Requirements.
+     * @param lang Task language.
+     * @param workerDebug Worker debug level.
+     * @param impl Implementation to execute.
+     * @param cei Interface class to parallelize the code
+     * @param hasTarget Whether the task has a target object or not.
+     * @param params List of task parameters.
+     * @param numReturns Number of returns.
+     * @param numParams Number of parameters.
+     * @param reqs Requirements.
      * @param slaveWorkersNodeNames Slave node names.
-     * @param taskId                Task Id.
-     * @param taskType              Task type.
-     * @param jobId                 Job Id.
-     * @param hist                  Job history.
-     * @param transferGroupId       Transfer group Id.
-     * @param timeOut               Task Deadline
-     * @param orchestrator          CommResource that will be notified at the end of the task
+     * @param taskId Task Id.
+     * @param taskType Task type.
+     * @param jobId Job Id.
+     * @param hist Job history.
+     * @param transferGroupId Transfer group Id.
+     * @param timeOut Task Deadline
+     * @param orchestrator CommResource that will be notified at the end of the task
      */
-    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei,
-            boolean hasTarget, int numReturns, LinkedList<NIOParam> params, int numParams,
-            MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
-            int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId, int timeOut,
-            CommResource orchestrator) {
+    public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei, boolean hasTarget,
+        int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
+        List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
+        int transferGroupId, int timeOut, CommResource orchestrator) {
         super(lang, workerDebug, impl, hasTarget, numReturns, params, numParams, reqs, slaveWorkersNodeNames, taskId,
-                taskType, jobId, hist, transferGroupId, timeOut);
+            taskType, jobId, hist, transferGroupId, timeOut);
         this.cei = cei;
         this.orchestrator = orchestrator;
     }
@@ -78,30 +77,27 @@ public class CommTask extends NIOTask {
     /**
      * Creates a new task instance with the given parameters.
      *
-     * @param lang                  Task language.
-     * @param workerDebug           Worker debug level.
-     * @param impl                  Implementation to execute.
-     * @param cei                   Interface class to parallelize the code
-     * @param arguments             List of task's method arguments.
-     * @param target                Task's method callee
-     * @param results               List of task's method results.
+     * @param lang Task language.
+     * @param workerDebug Worker debug level.
+     * @param impl Implementation to execute.
+     * @param cei Interface class to parallelize the code
+     * @param arguments List of task's method arguments.
+     * @param target Task's method callee
+     * @param results List of task's method results.
      * @param slaveWorkersNodeNames Slave node names.
-     * @param taskId                Task Id.
-     * @param jobId                 Job Id.
-     * @param hist                  Job history.
-     * @param transferGroupId       Transfer group Id.
-     * @param timeOut               Task deadline
-     * @param orchestrator          CommResource that will be notified at the end of the task
+     * @param taskId Task Id.
+     * @param jobId Job Id.
+     * @param hist Job history.
+     * @param transferGroupId Transfer group Id.
+     * @param timeOut Task deadline
+     * @param orchestrator CommResource that will be notified at the end of the task
      */
     public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei,
-            LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
-            List<String> slaveWorkersNodeNames,
-            int taskId, int jobId, JobHistory hist, int transferGroupId, int timeOut,
-            CommResource orchestrator) {
-        super(lang, workerDebug, impl,
-                arguments, target, results,
-                slaveWorkersNodeNames,
-                taskId, jobId, hist, transferGroupId, timeOut);
+        LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
+        List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId, int timeOut,
+        CommResource orchestrator) {
+        super(lang, workerDebug, impl, arguments, target, results, slaveWorkersNodeNames, taskId, jobId, hist,
+            transferGroupId, timeOut);
         this.cei = cei;
         this.orchestrator = orchestrator;
     }

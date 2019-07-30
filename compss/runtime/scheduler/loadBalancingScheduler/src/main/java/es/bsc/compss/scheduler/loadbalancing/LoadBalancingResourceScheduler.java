@@ -41,8 +41,8 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
     /**
      * New LoadBalancing Resource Scheduler instance.
      *
-     * @param w        Associated worker.
-     * @param resJSON  Worker JSON description.
+     * @param w Associated worker.
+     * @param resJSON Worker JSON description.
      * @param implJSON Implementation JSON description.
      */
     public LoadBalancingResourceScheduler(Worker<T> w, JSONObject resJSON, JSONObject implJSON) {
@@ -79,8 +79,8 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         // Computes the priority of the implementation (should not be computed)
         long implementationScore = -100;
 
-        LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourceScore, waitingScore,
-                implementationScore);
+        LoadBalancingScore score =
+            new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
         // LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore
         // + " " + waitingScore
         // + " " + implementationScore);
@@ -103,7 +103,7 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
     @SuppressWarnings("unchecked")
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
-            Score resourceScore) {
+        Score resourceScore) {
         // LOGGER.debug("[LoadBalancing] Generate implementation score for action " + action);
         if (this.hasBlockedActions()) {
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks?

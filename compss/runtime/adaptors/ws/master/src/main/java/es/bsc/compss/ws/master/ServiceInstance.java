@@ -97,7 +97,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return new WSJob(taskId, taskParams, impl, res, listener);
     }
@@ -110,13 +110,13 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
         // Never sends Data
     }
 
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
         // Delegate on the master to obtain the data value
         String path = target.getProtocol().getSchema() + target.getPath();

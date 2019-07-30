@@ -72,7 +72,7 @@ public class Processor implements Serializable {
      * @param propValue Processor custom property value.
      */
     public Processor(String name, int cu, float speed, String arch, String type, float internalMem, String propName,
-            String propValue) {
+        String propValue) {
         this.setName(name);
         this.setComputingUnits(cu);
         this.setSpeed(speed);

@@ -75,6 +75,7 @@ public class WSJob extends Job<ServiceInstance> {
 
     private Object returnValue;
 
+
     /**
      * Initializes the WSJob structures.
      */
@@ -217,7 +218,7 @@ public class WSJob extends Job<ServiceInstance> {
                     job.listener.jobCompleted(job);
                 } catch (Exception e) {
                     if (e instanceof COMPSsException) {
-                        job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, (COMPSsException)e);
+                        job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, (COMPSsException) e);
                     } else {
                         job.listener.jobFailed(job, JobEndStatus.EXECUTION_FAILED, null);
                     }

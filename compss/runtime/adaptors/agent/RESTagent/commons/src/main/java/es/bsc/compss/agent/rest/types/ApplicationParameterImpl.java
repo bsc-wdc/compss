@@ -39,6 +39,7 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     private String prefix;
     private String paramName;
 
+
     public ApplicationParameterImpl() {
 
     }
@@ -51,10 +52,10 @@ public class ApplicationParameterImpl implements ApplicationParameter {
      * @param type type of data of the parameter
      * @param stream stream to redirect to the parameter
      * @param prefix prefix to attach to the parameter
-     * @param paramName name of the  parameter
+     * @param paramName name of the parameter
      */
-    public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream,
-            String prefix, String paramName) {
+    public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream, String prefix,
+        String paramName) {
         this.value = ApplicationParameterValue.createParameterValue(val);
         this.direction = dir;
         this.stdIOStream = stream;
@@ -117,9 +118,8 @@ public class ApplicationParameterImpl implements ApplicationParameter {
         return this.paramName;
     }
 
-    @XmlElements({
-        @XmlElement(name = "array", type = ApplicationParameterValue.ArrayParameter.class, required = false),
-        @XmlElement(name = "element", type = ApplicationParameterValue.ElementParameter.class, required = false),})
+    @XmlElements({ @XmlElement(name = "array", type = ApplicationParameterValue.ArrayParameter.class, required = false),
+        @XmlElement(name = "element", type = ApplicationParameterValue.ElementParameter.class, required = false), })
     public ApplicationParameterValue getValue() {
         return value;
     }
@@ -135,7 +135,7 @@ public class ApplicationParameterImpl implements ApplicationParameter {
 
     @Override
     public RemoteDataInformation getRemoteData() {
-        //Cannot be obtained from a remote location
+        // Cannot be obtained from a remote location
         return null;
     }
 }

@@ -71,11 +71,11 @@ public class JSONStateManager {
             return new String(bytes, "UTF-8");
         } catch (FileNotFoundException e) {
             ErrorManager
-                    .warn("Error loading profile. File " + f.getAbsolutePath() + " not found. Using default values");
+                .warn("Error loading profile. File " + f.getAbsolutePath() + " not found. Using default values");
             return "{}";
         } catch (IOException e) {
-            ErrorManager.warn(
-                    "Error loading profile. Exception reading " + f.getAbsolutePath() + ". Using default values", e);
+            ErrorManager
+                .warn("Error loading profile. Exception reading " + f.getAbsolutePath() + ". Using default values", e);
             return "{}";
         }
 
@@ -154,7 +154,7 @@ public class JSONStateManager {
      * @return A JSON Object representation for the given cloud implementation.
      */
     public JSONObject getJSONForImplementation(CloudProvider cp, CloudInstanceTypeDescription citd,
-            Implementation impl) {
+        Implementation impl) {
         try {
             JSONObject citdJSON = getJSONForCloudInstanceTypeDescription(cp, citd);
             if (citdJSON != null) {
@@ -197,7 +197,7 @@ public class JSONStateManager {
                     CloudMethodWorker cmw = (CloudMethodWorker) resource;
                     if (!cmw.getDescription().getTypeComposition().isEmpty()) {
                         return getJSONForCloudInstanceTypeDescription(cmw.getProvider(),
-                                cmw.getDescription().getTypeComposition().keySet().iterator().next());
+                            cmw.getDescription().getTypeComposition().keySet().iterator().next());
                     }
                 }
             }

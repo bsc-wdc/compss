@@ -31,7 +31,8 @@ public class DummyPayload implements Serializable {
 
     public int size;
     private byte[] payload;
-    
+
+
     public DummyPayload() {
         size = 1;
         payload = new byte[1];
@@ -49,6 +50,6 @@ public class DummyPayload implements Serializable {
 
     public void foo() {
         // For sync
-    } 
+    }
 
 }

@@ -6,9 +6,10 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for setWorker complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for setWorker complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="setWorker">
@@ -22,26 +23,20 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "setWorker", propOrder = {
-    "worker",
-    "id"
-})
+@XmlType(name = "setWorker", propOrder = { "worker",
+    "id" })
 public class SetWorker {
 
     protected Person worker;
     protected int id;
 
+
     /**
      * Gets the value of the worker property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Person }
-     *     
+     * @return possible object is {@link Person }
      */
     public Person getWorker() {
         return worker;
@@ -50,10 +45,7 @@ public class SetWorker {
     /**
      * Sets the value of the worker property.
      * 
-     * @param value
-     *     allowed object is
-     *     {@link Person }
-     *     
+     * @param value allowed object is {@link Person }
      */
     public void setWorker(Person value) {
         this.worker = value;
@@ -61,7 +53,6 @@ public class SetWorker {
 
     /**
      * Gets the value of the id property.
-     * 
      */
     public int getId() {
         return id;
@@ -69,7 +60,6 @@ public class SetWorker {
 
     /**
      * Sets the value of the id property.
-     * 
      */
     public void setId(int value) {
         this.id = value;

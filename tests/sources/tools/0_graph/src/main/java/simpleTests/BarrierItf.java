@@ -9,14 +9,11 @@ import utils.GenericObject;
 
 
 public interface BarrierItf {
-    
-    @Method(declaringClass = "utils.TasksImplementation")
-    GenericObject initialize(
-    );
 
     @Method(declaringClass = "utils.TasksImplementation")
-    void increment(
-        @Parameter(type = Type.OBJECT, direction = Direction.INOUT) GenericObject go
-    );
+    GenericObject initialize();
+
+    @Method(declaringClass = "utils.TasksImplementation")
+    void increment(@Parameter(type = Type.OBJECT, direction = Direction.INOUT) GenericObject go);
 
 }

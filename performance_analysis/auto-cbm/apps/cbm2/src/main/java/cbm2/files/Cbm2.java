@@ -28,7 +28,7 @@ public class Cbm2 {
 
     private static void usage() {
         System.out.println(
-                ":::: Usage: runcompss cbm2.files.Cbm2 (num_Tasks) (deepness) (task_Sleep_Time) (txSizeInBytes) (INOUT | IN):::: ");
+            ":::: Usage: runcompss cbm2.files.Cbm2 (num_Tasks) (deepness) (task_Sleep_Time) (txSizeInBytes) (INOUT | IN):::: ");
         System.out.println("Exiting cbm2...!");
     }
 

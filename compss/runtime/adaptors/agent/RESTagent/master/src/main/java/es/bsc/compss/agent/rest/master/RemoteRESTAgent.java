@@ -51,7 +51,6 @@ import storage.StubItf;
 
 /**
  * Class containing the handling of the interactions with a Remote REST agent.
- *
  */
 public class RemoteRESTAgent extends COMPSsWorker {
 
@@ -59,6 +58,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
     private final AgentConfiguration config;
     // REST endpoint for the node
     private final WebTarget target;
+
 
     /**
      * Constructs a new RemoteRESTAgent using the configuration passed in as parameter.
@@ -134,14 +134,14 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return new RemoteRESTAgentJob(this, taskId, taskParams, impl, res, listener);
     }
 
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
         if (target.getHosts().contains(Comm.getAppHost())) {
             // Request to master
             System.out.println("[DATA] Trying to fetch data " + ld.getName());
@@ -164,7 +164,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
 
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
         if (ld == null) {
             return;
         }
@@ -186,7 +186,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
                 orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
             } else {
                 listener.notifyFailure(new DeferredCopy(ld, source, target, tgtData, reason, listener),
-                        new Exception("Regular objects are not supported yet"));
+                    new Exception("Regular objects are not supported yet"));
             }
         }
     }
@@ -281,7 +281,7 @@ public class RemoteRESTAgent extends COMPSsWorker {
         LogicalData srcLD = sc.getSourceData();
 
         System.out.println("STAGE IN Requesting Storage to place a new replica of " + srcLD.getPscoId() + " on "
-                + targetHostname + ")");
+            + targetHostname + ")");
         LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
         // Get the PSCO to replicate
@@ -326,11 +326,11 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // Get the PSCOId to replicate
         String pscoId = srcLD.getPscoId();
 
-        System.out.println(
-                "STAGE IN Requesting Storage to create a new Version of " + pscoId + "(" + srcLD.getName() + ")");
+        System.out
+            .println("STAGE IN Requesting Storage to create a new Version of " + pscoId + "(" + srcLD.getName() + ")");
         if (DEBUG) {
             LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + pscoId + " to " + targetHostname
-                    + " with must preserve " + preserveSource);
+                + " with must preserve " + preserveSource);
         }
 
         // Perform version

@@ -78,7 +78,7 @@ public class CloudProvider {
      * @throws ConnectorException When an internal connector exception occurs.
      */
     public CloudProvider(String providerName, Integer limitOfVMs, String runtimeConnectorClass, String connectorJarPath,
-            String connectorMainClass, Map<String, String> connectorProperties) throws ConnectorException {
+        String connectorMainClass, Map<String, String> connectorProperties) throws ConnectorException {
 
         this.name = providerName;
         this.limitOfVMs = limitOfVMs;
@@ -91,7 +91,10 @@ public class CloudProvider {
         // infrastructure dependent connector
         try {
             Class<?> conClass = Class.forName(runtimeConnectorClass);
-            Class<?>[] parameterTypes = new Class<?>[] { CloudProvider.class, String.class, String.class, Map.class };
+            Class<?>[] parameterTypes = new Class<?>[] { CloudProvider.class,
+                String.class,
+                String.class,
+                Map.class };
             Constructor<?> ctor = conClass.getConstructor(parameterTypes);
             Object conector = ctor.newInstance(this, connectorJarPath, connectorMainClass, connectorProperties);
             this.connector = (Connector) conector;
@@ -359,10 +362,10 @@ public class CloudProvider {
     public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription) {
         int[][] simultaneousCounts = computeSimultaneousCounts(instanceDescription);
         String requestID = "compss" + UUID.randomUUID().toString();
-        ResourceCreationRequest rcr = new ResourceCreationRequest(instanceDescription, simultaneousCounts, this,
-                requestID);
+        ResourceCreationRequest rcr =
+            new ResourceCreationRequest(instanceDescription, simultaneousCounts, this, requestID);
         LOGGER.debug("[Cloud Manager] Asking for resource creation " + instanceDescription.getName() + " with image "
-                + instanceDescription.getImage().getImageName());
+            + instanceDescription.getImage().getImageName());
 
         boolean isRequestAccepted = this.connector.turnON(requestID, rcr);
         if (isRequestAccepted) {
@@ -394,7 +397,7 @@ public class CloudProvider {
             simultaneousCounts[coreId] = new int[implCount];
         }
         for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> typeEntry : cloudDescription.getTypeComposition()
-                .entrySet()) {
+            .entrySet()) {
             CloudInstanceTypeDescription citd = typeEntry.getKey();
             int count = typeEntry.getValue()[0];
             for (int coreId = 0; coreId < coreCount; coreId++) {
@@ -436,7 +439,7 @@ public class CloudProvider {
      * @param granted Resource description of the granted VM.
      */
     public void confirmedCreation(ResourceCreationRequest rcr, CloudMethodWorker worker,
-            CloudMethodResourceDescription granted) {
+        CloudMethodResourceDescription granted) {
         CloudMethodResourceDescription cmrd = rcr.getRequested();
         for (int[] typeCount : cmrd.getTypeComposition().values()) {
             this.currentVMCount -= typeCount[0];

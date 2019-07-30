@@ -45,8 +45,8 @@ import java.util.UUID;
 
 public class COMPSsInvoker extends Invoker {
 
-    private static final String RELATIVE_PATH_XML_GENERATION = "Runtime" + File.separator + "scripts" + File.separator
-            + "system" + File.separator + "xmls" + File.separator;
+    private static final String RELATIVE_PATH_XML_GENERATION =
+        "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator + "xmls" + File.separator;
     private static final String GENERATE_PROJECT_SCRIPT = "generate_project.sh";
     private static final String GENERATE_RESOURCES_SCRIPT = "generate_resources.sh";
 
@@ -72,7 +72,7 @@ public class COMPSsInvoker extends Invoker {
      * @throws JobExecutionException Error creating the COMPSs invoker.
      */
     public COMPSsInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
         // Get method definition properties
@@ -81,7 +81,7 @@ public class COMPSsInvoker extends Invoker {
             compssImpl = (COMPSsImplementation) this.invocation.getMethodImplementation();
         } catch (Exception e) {
             throw new JobExecutionException(
-                    ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
+                ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
 
         // COMPSs specific flags
@@ -200,9 +200,11 @@ public class COMPSsInvoker extends Invoker {
 
         // Generate project.xml
         System.out.println("[COMPSs INVOKER] Generate project.xml at: " + projectXml);
-        String generateProjectScript = this.context.getInstallDir() + RELATIVE_PATH_XML_GENERATION
-                + GENERATE_PROJECT_SCRIPT;
-        String[] cmdProject = new String[] { generateProjectScript, projectXml, workersInfo };
+        String generateProjectScript =
+            this.context.getInstallDir() + RELATIVE_PATH_XML_GENERATION + GENERATE_PROJECT_SCRIPT;
+        String[] cmdProject = new String[] { generateProjectScript,
+            projectXml,
+            workersInfo };
         try {
             int ev = xmlGenerationScript(cmdProject);
             if (ev != 0) {
@@ -216,9 +218,11 @@ public class COMPSsInvoker extends Invoker {
 
         // Generate resources.xml
         System.out.println("[COMPSs INVOKER] Generate resources.xml at: " + resourcesXml);
-        String generateResourcesScript = this.context.getInstallDir() + RELATIVE_PATH_XML_GENERATION
-                + GENERATE_RESOURCES_SCRIPT;
-        String[] cmdResources = new String[] { generateResourcesScript, resourcesXml, workersInfo };
+        String generateResourcesScript =
+            this.context.getInstallDir() + RELATIVE_PATH_XML_GENERATION + GENERATE_RESOURCES_SCRIPT;
+        String[] cmdResources = new String[] { generateResourcesScript,
+            resourcesXml,
+            workersInfo };
         try {
             int ev = xmlGenerationScript(cmdResources);
             if (ev != 0) {
@@ -244,7 +248,7 @@ public class COMPSsInvoker extends Invoker {
                     // This avoids collisions when running multiple nested
                     System.out.println("[COMPSs INVOKER] Capturing flag " + flag);
                     System.out
-                            .println("[COMPSs INVOKER] Generating random UUID as specific_log_dir inside base_log_dir");
+                        .println("[COMPSs INVOKER] Generating random UUID as specific_log_dir inside base_log_dir");
                     int beginPos = "--base_log_dir=".length();
                     nestedLogDir = flag.substring(beginPos) + File.separator + UUID.randomUUID();
                 } else if (flag.startsWith("--specific_log_dir=")) {
@@ -270,7 +274,7 @@ public class COMPSsInvoker extends Invoker {
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
-                this.invocation.getTarget(), streamValues, this.pythonInterpreter);
+            this.invocation.getTarget(), streamValues, this.pythonInterpreter);
 
         // Prepare command (the +1 is for the appName)
         String[] cmd = new String[NUM_BASE_COMPSS_ARGS + extraFlagsList.size() + 1 + binaryParams.size()];
@@ -302,7 +306,7 @@ public class COMPSsInvoker extends Invoker {
 
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-                this.context.getThreadErrStream());
+            this.context.getThreadErrStream());
     }
 
     private int xmlGenerationScript(String[] cmd) throws IOException, InterruptedException {

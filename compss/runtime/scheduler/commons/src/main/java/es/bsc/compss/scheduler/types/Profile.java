@@ -231,8 +231,8 @@ public class Profile {
                 this.minTime = Math.min(this.minTime, profile.minTime);
                 this.maxTime = Math.max(this.maxTime, profile.maxTime);
             }
-            this.averageTime = (profile.averageTime * profile.executions + this.executions * this.averageTime)
-                    / totalExecutions;
+            this.averageTime =
+                (profile.averageTime * profile.executions + this.executions * this.averageTime) / totalExecutions;
             this.executions = totalExecutions;
         }
     }

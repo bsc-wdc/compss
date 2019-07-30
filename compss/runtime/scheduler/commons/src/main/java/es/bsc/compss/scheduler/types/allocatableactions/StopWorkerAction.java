@@ -67,8 +67,8 @@ public class StopWorkerAction extends AllocatableAction {
      */
     @SuppressWarnings("unchecked")
     public StopWorkerAction(SchedulingInformation schedulingInformation,
-            ResourceScheduler<? extends WorkerResourceDescription> worker, TaskScheduler ts,
-            PerformedReduction<? extends WorkerResourceDescription> modification) {
+        ResourceScheduler<? extends WorkerResourceDescription> worker, TaskScheduler ts,
+        PerformedReduction<? extends WorkerResourceDescription> modification) {
 
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
@@ -205,8 +205,8 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> LinkedList<Implementation>
+        getCompatibleImplementations(ResourceScheduler<T> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == this.worker) {
             impls.add(this.impl);
@@ -216,7 +216,7 @@ public class StopWorkerAction extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
 
         return null;
     }
@@ -230,14 +230,14 @@ public class StopWorkerAction extends AllocatableAction {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         schedule((ResourceScheduler<WorkerResourceDescription>) targetWorker, this.impl);
     }
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker != getEnforcedTargetResource()) {
             throw new UnassignedActionException();

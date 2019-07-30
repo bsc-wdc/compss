@@ -11,7 +11,7 @@ import java.io.FileReader;
 
 public class OnFailureInOutImpl {
 
-    public static void processParamRead(String filename) throws numberException{
+    public static void processParamRead(String filename) throws numberException {
         File file = new File(filename);
         BufferedReader br;
         String st = "";
@@ -32,7 +32,7 @@ public class OnFailureInOutImpl {
         failMultiple(n);
     }
 
-    public static void processParamWrite(String filename, String filename2) throws numberException{
+    public static void processParamWrite(String filename, String filename2) throws numberException {
         File file = new File(filename);
         File file2 = new File(filename2);
         BufferedReader br;
@@ -67,7 +67,7 @@ public class OnFailureInOutImpl {
         }
 
         System.out.println("The written number is : " + str);
-        
+
     }
 
     // Function called if the execution has to fail multiple times

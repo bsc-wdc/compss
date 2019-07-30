@@ -29,7 +29,10 @@ public class OpenCLInvoker extends Invoker {
 
     private final String kernel;
 
-    /** OpenCL Invoker constructor.
+
+    /**
+     * OpenCL Invoker constructor.
+     * 
      * @param context Task execution context
      * @param invocation Task execution description
      * @param taskSandboxWorkingDir Task execution sandbox directory
@@ -37,7 +40,7 @@ public class OpenCLInvoker extends Invoker {
      * @throws JobExecutionException Error creating the OpenCL invoker
      */
     public OpenCLInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
 
         // Get method definition properties
@@ -46,7 +49,7 @@ public class OpenCLInvoker extends Invoker {
             openclImpl = (OpenCLImplementation) this.invocation.getMethodImplementation();
         } catch (Exception e) {
             throw new JobExecutionException(
-                    ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
+                ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
         this.kernel = openclImpl.getKernel();
     }

@@ -25,6 +25,7 @@ public class FileTransferable implements Transferable {
     private Object source;
     private String target;
 
+
     public FileTransferable() {
     }
 

@@ -74,7 +74,7 @@ public class ResourceOptimizer extends Thread {
     // Error messages
     private static final String ERROR_OPT_RES = "Error optimizing resources.";
     private static final String PERSISTENT_BLOCK_ERR = "Unschedulable tasks detected.\n"
-            + "COMPSs has found tasks with constraints that cannot be fulfilled.\n" + "Shutting down COMPSs now...";
+        + "COMPSs has found tasks with constraints that cannot be fulfilled.\n" + "Shutting down COMPSs now...";
 
     private static boolean cleanUp;
     private static boolean redo;
@@ -245,12 +245,12 @@ public class ResourceOptimizer extends Thread {
                         // Retries limit not reached. Warn the user...
                         int retriesLeft = EVERYTHING_BLOCKED_MAX_RETRIES - this.everythingBlockedRetryCount;
                         ErrorManager.warn("No task could be scheduled to any of the available resources.\n"
-                                + "This could end up blocking COMPSs. Will check it again in "
-                                + (EVERYTHING_BLOCKED_INTERVAL_TIME / 1_000) + " seconds.\n" + "Possible causes: \n"
-                                + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
-                                + "    -There isn't any computing resource that fits the defined tasks constraints.\n"
-                                + "If this happens " + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "")
-                                + ", the runtime will shutdown.");
+                            + "This could end up blocking COMPSs. Will check it again in "
+                            + (EVERYTHING_BLOCKED_INTERVAL_TIME / 1_000) + " seconds.\n" + "Possible causes: \n"
+                            + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
+                            + "    -There isn't any computing resource that fits the defined tasks constraints.\n"
+                            + "If this happens " + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "")
+                            + ", the runtime will shutdown.");
                     } else {
                         // Retry limit reached. Error and shutdown.
                         ErrorManager.error(PERSISTENT_BLOCK_ERR);
@@ -347,9 +347,9 @@ public class ResourceOptimizer extends Thread {
         }
 
         if (DEBUG) {
-            RESOURCES_LOGGER.debug(
-                    "DEBUG_MSG = [\n" + "\tIn order to be able to execute all cores, Resource Manager has asked for "
-                            + createdCount + " Cloud resources\n" + "]");
+            RESOURCES_LOGGER
+                .debug("DEBUG_MSG = [\n" + "\tIn order to be able to execute all cores, Resource Manager has asked for "
+                    + createdCount + " Cloud resources\n" + "]");
         }
         return createdCount;
     }
@@ -425,9 +425,8 @@ public class ResourceOptimizer extends Thread {
                         continue;
                     }
                     if (os.compareTo(ctrs[j].desc.getOperatingSystemType()) == 0
-                            || os.compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0
-                            || ctrs[j].desc.getOperatingSystemType()
-                                    .compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0) {
+                        || os.compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0 || ctrs[j].desc
+                            .getOperatingSystemType().compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0) {
                         mergedTo[j] = i;
                         ctrs[i].join(ctrs[j]);
                         arch.remove(ctrs[j]);
@@ -534,7 +533,7 @@ public class ResourceOptimizer extends Thread {
 
         if (DEBUG) {
             RESOURCES_LOGGER.debug("DEBUG_MSG = [\n" + "\tALREADY_CREATED_INSTANCES = " + alreadyCreated + "\n"
-                    + "\tMAXIMUM_NEW_PETITIONS = " + vmCount + "\n" + "]");
+                + "\tMAXIMUM_NEW_PETITIONS = " + vmCount + "\n" + "]");
         }
 
         /*
@@ -673,7 +672,7 @@ public class ResourceOptimizer extends Thread {
         }
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Applying VM optimization policies (currentVMs: "
-                    + currentCloudVMCount + " maxVMs: " + maxNumberOfVMs + " minVMs: " + minNumberOfVMs + ")");
+                + currentCloudVMCount + " maxVMs: " + maxNumberOfVMs + " minVMs: " + minNumberOfVMs + ")");
         }
 
         // Check if there is some mandatory creation/destruction
@@ -684,7 +683,7 @@ public class ResourceOptimizer extends Thread {
             if (!requiredVMs.isEmpty()) {
                 RUNTIME_LOGGER.debug("[Resource Optimizer] Required VMs. Mandatory Increase");
                 float[] creationRecommendations = recommendCreations(coreCount, creationTime, readyMinCoreTime,
-                        readyMeanCoreTime, readyMaxCoreTime, totalSlots, realSlots);
+                    readyMeanCoreTime, readyMaxCoreTime, totalSlots, realSlots);
                 for (Integer coreId : requiredVMs) {
                     // Ensure that we ask one slot for it
                     creationRecommendations[coreId] = Math.max(creationRecommendations[coreId], 1);
@@ -696,18 +695,18 @@ public class ResourceOptimizer extends Thread {
             // For accomplishing the minimum amount of vms
             if (minNumberOfVMs != null && minNumberOfVMs > currentCloudVMCount) {
                 RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount
-                        + ") count smaller than minimum VMs (" + minNumberOfVMs + "). Mandatory Increase");
+                    + ") count smaller than minimum VMs (" + minNumberOfVMs + "). Mandatory Increase");
                 float[] creationRecommendations = orderCreations(coreCount, creationTime, readyMinCoreTime,
-                        readyMeanCoreTime, readyMaxCoreTime, totalSlots, realSlots);
+                    readyMeanCoreTime, readyMaxCoreTime, totalSlots, realSlots);
                 mandatoryIncrease(creationRecommendations, new LinkedList<>());
                 return;
             }
             // For not exceeding the VM top limit
             if (maxNumberOfVMs != null && maxNumberOfVMs < currentCloudVMCount) {
                 RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount
-                        + ") count bigger than maximum VMs (" + maxNumberOfVMs + "). Mandatory reduction");
+                    + ") count bigger than maximum VMs (" + maxNumberOfVMs + "). Mandatory reduction");
                 float[] destroyRecommendations = deleteRecommendations(coreCount, SLEEP_TIME, pendingMinCoreTime,
-                        pendingMeanCoreTime, pendingMaxCoreTime, totalSlots, realSlots);
+                    pendingMeanCoreTime, pendingMaxCoreTime, totalSlots, realSlots);
                 mandatoryReduction(destroyRecommendations);
                 return;
             }
@@ -716,21 +715,21 @@ public class ResourceOptimizer extends Thread {
         // Check Recommended creations
         if ((maxNumberOfVMs == null || maxNumberOfVMs > currentCloudVMCount) && workload.getReadyCount() > 1) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount
-                    + ") count smaller than maximum VMs (" + maxNumberOfVMs + ")");
+                + ") count smaller than maximum VMs (" + maxNumberOfVMs + ")");
             float[] creationRecommendations = recommendCreations(coreCount, creationTime, readyMinCoreTime,
-                    readyMeanCoreTime, readyMaxCoreTime, totalSlots, realSlots);
+                readyMeanCoreTime, readyMaxCoreTime, totalSlots, realSlots);
             if (optionalIncrease(creationRecommendations)) {
                 return;
             }
         }
         // Check Recommended destructions
         if ((minNumberOfVMs == null || minNumberOfVMs < currentCloudVMCount)
-                && totalPendingTasks <= workload.getReadyCount() + workload.getRunningTaskCount()
-                && workload.getReadyCount() + workload.getRunningTaskCount() <= maxConcurrentTasks) {
+            && totalPendingTasks <= workload.getReadyCount() + workload.getRunningTaskCount()
+            && workload.getReadyCount() + workload.getRunningTaskCount() <= maxConcurrentTasks) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Current VM (" + currentCloudVMCount
-                    + ") count bigger than minimum VMs (" + minNumberOfVMs + ")");
+                + ") count bigger than minimum VMs (" + minNumberOfVMs + ")");
             float[] destroyRecommendations = deleteRecommendations(coreCount, SLEEP_TIME, pendingMinCoreTime,
-                    pendingMeanCoreTime, pendingMaxCoreTime, totalSlots, realSlots);
+                pendingMeanCoreTime, pendingMaxCoreTime, totalSlots, realSlots);
             if (optionalReduction(destroyRecommendations)) {
                 return;
             }
@@ -753,8 +752,8 @@ public class ResourceOptimizer extends Thread {
                 }
 
                 MethodResourceDescription constraints = ((MethodImplementation) impl).getRequirements();
-                ValueResourceDescription v = new ValueResourceDescription(constraints, creationRecommendations[coreId],
-                        false);
+                ValueResourceDescription v =
+                    new ValueResourceDescription(constraints, creationRecommendations[coreId], false);
                 pq.add(v);
             }
         }
@@ -772,8 +771,8 @@ public class ResourceOptimizer extends Thread {
                         continue;
                     }
                     MethodResourceDescription constraints = ((MethodImplementation) impl).getRequirements();
-                    ValueResourceDescription v = new ValueResourceDescription(constraints,
-                            creationRecommendations[coreId], false);
+                    ValueResourceDescription v =
+                        new ValueResourceDescription(constraints, creationRecommendations[coreId], false);
                     pq.add(v);
                 }
             }
@@ -784,8 +783,8 @@ public class ResourceOptimizer extends Thread {
     }
 
     private boolean optionalReduction(float[] destroyRecommendations) {
-        List<DynamicMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
-                destroyRecommendations);
+        List<DynamicMethodWorker> nonCritical =
+            trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(), destroyRecommendations);
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Searching for best destruction");
         }
@@ -802,9 +801,9 @@ public class ResourceOptimizer extends Thread {
 
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Best resource to remove is " + nonCriticalSolution.getName()
-                    + "and record is [" + nonCriticalSolution.getUndesiredCEsAffected() + ","
-                    + nonCriticalSolution.getUndesiredSlotsAffected() + ","
-                    + nonCriticalSolution.getDesiredSlotsAffected() + "]");
+                + "and record is [" + nonCriticalSolution.getUndesiredCEsAffected() + ","
+                + nonCriticalSolution.getUndesiredSlotsAffected() + "," + nonCriticalSolution.getDesiredSlotsAffected()
+                + "]");
         }
         if (nonCriticalSolution.getUndesiredSlotsAffected() > 0 && res.getUsedCPUTaskCount() > 0) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] Optional destroy recommendation not applied");
@@ -817,12 +816,12 @@ public class ResourceOptimizer extends Thread {
     }
 
     private void mandatoryReduction(float[] destroyRecommendations) {
-        List<DynamicMethodWorker> critical = trimReductionOptions(ResourceManager.getCriticalDynamicResources(),
-                destroyRecommendations);
+        List<DynamicMethodWorker> critical =
+            trimReductionOptions(ResourceManager.getCriticalDynamicResources(), destroyRecommendations);
         // LinkedList<CloudMethodWorker> critical = checkCriticalSafeness
         // (critical);
-        List<DynamicMethodWorker> nonCritical = trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(),
-                destroyRecommendations);
+        List<DynamicMethodWorker> nonCritical =
+            trimReductionOptions(ResourceManager.getNonCriticalDynamicResources(), destroyRecommendations);
         ReductionOption criticalSolution = getBestDestruction(critical, destroyRecommendations);
         ReductionOption nonCriticalSolution = getBestDestruction(nonCritical, destroyRecommendations);
 
@@ -844,7 +843,7 @@ public class ResourceOptimizer extends Thread {
                         criticalIsBetter = true;
                     }
                 } else if (nonCriticalSolution.getUndesiredSlotsAffected() > criticalSolution
-                        .getUndesiredSlotsAffected()) {
+                    .getUndesiredSlotsAffected()) {
                     criticalIsBetter = true;
                 }
             } else if (nonCriticalSolution.getUndesiredCEsAffected() > criticalSolution.getUndesiredCEsAffected()) {
@@ -864,7 +863,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     private List<DynamicMethodWorker> trimReductionOptions(Collection<DynamicMethodWorker> options,
-            float[] recommendations) {
+        float[] recommendations) {
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] * Trimming reduction options");
         }
@@ -884,7 +883,7 @@ public class ResourceOptimizer extends Thread {
                 if (!aggressive && recommendations[coreId] < 1) {
                     if (DEBUG) {
                         RUNTIME_LOGGER.debug("\t\tVM not removed because of not agressive and recomendations < 1 ("
-                                + recommendations[coreId] + ")");
+                            + recommendations[coreId] + ")");
                     }
                     add = false;
                     break;
@@ -892,7 +891,7 @@ public class ResourceOptimizer extends Thread {
                 if (aggressive && recommendations[coreId] > 0) {
                     if (DEBUG) {
                         RUNTIME_LOGGER.debug("\t\tVM removed because of agressive and recomendations > 0 ("
-                                + recommendations[coreId] + ")");
+                            + recommendations[coreId] + ")");
                     }
                     add = true;
                     break;
@@ -909,7 +908,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     private static ResourceCreationRequest requestOneCreation(PriorityQueue<ValueResourceDescription> pq,
-            boolean include) {
+        boolean include) {
         ValueResourceDescription v;
         while ((v = pq.poll()) != null) {
             ResourceCreationRequest rcr = askForResources(v.value < 1 ? 1 : (int) v.value, v.constraints, include);
@@ -931,7 +930,7 @@ public class ResourceOptimizer extends Thread {
      */
 
     private List<Integer> checkNeededMachines(int noResourceCount, int[] noResourceCountPerCore,
-            int[] slotCountPerCore) {
+        int[] slotCountPerCore) {
         List<Integer> needed = new LinkedList<>();
         if (noResourceCount == 0) {
             return needed;
@@ -945,7 +944,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     private float[] recommendCreations(int coreCount, long creationTime, long[] aggregatedMinCoreTime,
-            long[] aggregatedMeanCoreTime, long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
+        long[] aggregatedMeanCoreTime, long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
 
         float[] creations = new float[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
@@ -959,13 +958,13 @@ public class ResourceOptimizer extends Thread {
             if (DEBUG) {
                 RUNTIME_LOGGER.debug("[Resource Optimizer] * Calculating increase recomendations");
                 RUNTIME_LOGGER.debug("\tRemaining load = " + aggregatedMeanCoreTime[coreId] + "-( " + totalSlots[coreId]
-                        + " * " + creationTime + " ) = " + remainingLoad);
+                    + " * " + creationTime + " ) = " + remainingLoad);
             }
             if (remainingLoad > 0) {
                 creations[coreId] = (int) (remainingLoad / creationTime);
                 if (DEBUG) {
                     RUNTIME_LOGGER.debug("\tRecomended slots = " + creations[coreId] + " ( " + remainingLoad + " / "
-                            + creationTime + " )");
+                        + creationTime + " )");
                 }
             } else {
                 creations[coreId] = 0;
@@ -975,7 +974,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     private float[] orderCreations(int coreCount, long creationTime, long[] aggregatedMinCoreTime,
-            long[] aggregatedMeanCoreTime, long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
+        long[] aggregatedMeanCoreTime, long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
 
         float[] creations = new float[coreCount];
         int maxI = 0;
@@ -994,11 +993,11 @@ public class ResourceOptimizer extends Thread {
     }
 
     private float[] deleteRecommendations(int coreCount, long limitTime, long[] aggregatedMinCoreTime,
-            long[] aggregatedMeanCoreTime, long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
+        long[] aggregatedMeanCoreTime, long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
 
         if (DEBUG) {
             RUNTIME_LOGGER.debug("[Resource Optimizer] * Delete Recomendations calculations:\n\tcoreCount: " + coreCount
-                    + " limitTime: " + limitTime);
+                + " limitTime: " + limitTime);
         }
         float[] destructions = new float[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
@@ -1009,7 +1008,7 @@ public class ResourceOptimizer extends Thread {
                 destructions[coreId] = 0;
                 if (DEBUG) {
                     RUNTIME_LOGGER.debug("\tembraceableLoad [ " + coreId + "] = " + limitTime + " * "
-                            + realSlots[coreId] + " = " + embraceableLoad);
+                        + realSlots[coreId] + " = " + embraceableLoad);
                     RUNTIME_LOGGER.debug("\tdestructions [ " + coreId + "] = 0");
                 }
             } else if (aggregatedMinCoreTime[coreId] > 0) {
@@ -1017,9 +1016,9 @@ public class ResourceOptimizer extends Thread {
                 destructions[coreId] = (float) (unusedTime / (double) limitTime);
                 if (DEBUG) {
                     RUNTIME_LOGGER.debug("\tembraceableLoad [ " + coreId + "] = " + limitTime + " * "
-                            + realSlots[coreId] + " = " + embraceableLoad);
+                        + realSlots[coreId] + " = " + embraceableLoad);
                     RUNTIME_LOGGER.debug("\tunused [ " + coreId + "] =  ( " + embraceableLoad + " / 2) - "
-                            + aggregatedMeanCoreTime[coreId] + " = " + unusedTime);
+                        + aggregatedMeanCoreTime[coreId] + " = " + unusedTime);
                     RUNTIME_LOGGER.debug("\tdestructions [ " + coreId + "] = " + destructions[coreId]);
                 }
             } else {
@@ -1077,7 +1076,7 @@ public class ResourceOptimizer extends Thread {
      * @return A ResourceCreationRequest.
      */
     public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements,
-            boolean contained) {
+        boolean contained) {
         // Search best resource
         CloudProvider bestProvider = null;
         CloudMethodResourceDescription bestConstraints = null;
@@ -1114,7 +1113,7 @@ public class ResourceOptimizer extends Thread {
      * @return A MethodResourceDescription describing the best increase to fit the requirements.
      */
     public static CloudMethodResourceDescription getBestIncreaseOnProvider(CloudProvider cp, Integer amount,
-            MethodResourceDescription requirements, boolean contained) {
+        MethodResourceDescription requirements, boolean contained) {
 
         RUNTIME_LOGGER.debug("[Resource Optimizer] Getting best increase in provider " + cp.getName());
         // Check Cloud capabilities
@@ -1159,7 +1158,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     private static CloudInstanceTypeDescription selectContainingInstance(List<CloudInstanceTypeDescription> instances,
-            MethodResourceDescription constraints, int amount) {
+        MethodResourceDescription constraints, int amount) {
 
         CloudInstanceTypeDescription result = null;
         MethodResourceDescription bestDescription = null;
@@ -1170,7 +1169,7 @@ public class ResourceOptimizer extends Thread {
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
             RUNTIME_LOGGER.debug("[Resource Optimizer] Can host: slots = " + slots + " amount = " + amount
-                    + " distance = " + distance + " bestDistance = " + bestDistance);
+                + " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance > 0.0) {
                 continue;
             }
@@ -1181,7 +1180,7 @@ public class ResourceOptimizer extends Thread {
                 bestDistance = distance;
             } else if (distance == bestDistance && bestDescription != null) {
                 if (bestDescription.getValue() != null && rd.getValue() != null
-                        && bestDescription.getValue() > rd.getValue()) {
+                    && bestDescription.getValue() > rd.getValue()) {
                     // Evaluate optimal candidate
                     result = type;
                     bestDescription = type.getResourceDescription();
@@ -1197,7 +1196,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     private static CloudInstanceTypeDescription selectContainedInstance(List<CloudInstanceTypeDescription> instances,
-            MethodResourceDescription constraints, int amount) {
+        MethodResourceDescription constraints, int amount) {
 
         CloudInstanceTypeDescription bestType = null;
         MethodResourceDescription bestDescription = null;
@@ -1208,7 +1207,7 @@ public class ResourceOptimizer extends Thread {
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
             RUNTIME_LOGGER.debug("[Resource Optimizer] Can host: slots = " + slots + " amount = " + amount
-                    + " distance = " + distance + " bestDistance = " + bestDistance);
+                + " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance < 0.0) {
                 continue;
             }
@@ -1219,7 +1218,7 @@ public class ResourceOptimizer extends Thread {
                 bestDistance = distance;
             } else if (distance == bestDistance && bestDescription != null) {
                 if (bestDescription.getValue() != null && rd.getValue() != null
-                        && bestDescription.getValue() > rd.getValue()) {
+                    && bestDescription.getValue() > rd.getValue()) {
                     // Evaluate optimal candidate
                     bestType = type;
                     bestDescription = type.getResourceDescription();
@@ -1249,7 +1248,7 @@ public class ResourceOptimizer extends Thread {
      *         recommended, #slots that will be removed and they were asked to be.
      */
     private ReductionOption getBestDestruction(Collection<DynamicMethodWorker> resourceSet,
-            float[] destroyRecommendations) {
+        float[] destroyRecommendations) {
 
         float bestUndesiredCEs = Float.MAX_VALUE;
         float bestUndesiredSlots = Float.MAX_VALUE;
@@ -1264,9 +1263,9 @@ public class ResourceOptimizer extends Thread {
             for (ReductionOption option : reductions) {
                 if (DEBUG) {
                     RUNTIME_LOGGER.debug("Type: " + option.getName() + " value 0: " + option.getUndesiredCEsAffected()
-                            + " (" + bestUndesiredCEs + ") " + " value 1: " + option.getUndesiredSlotsAffected() + " ("
-                            + bestUndesiredSlots + ") " + " value 2: " + option.getDesiredSlotsAffected() + " ("
-                            + bestDesiredSlots + ")");
+                        + " (" + bestUndesiredCEs + ") " + " value 1: " + option.getUndesiredSlotsAffected() + " ("
+                        + bestUndesiredSlots + ") " + " value 2: " + option.getDesiredSlotsAffected() + " ("
+                        + bestDesiredSlots + ")");
                 }
                 if (bestUndesiredCEs == option.getUndesiredCEsAffected()) {
                     if (bestUndesiredSlots == option.getUndesiredSlotsAffected()) {
@@ -1461,8 +1460,8 @@ public class ResourceOptimizer extends Thread {
                     if (resMap != null) {
                         try {
                             jsonImpl = resMap.getJSONObject(signature);
-                            profiles[coreId][impl.getImplementationId()] = generateProfileForImplementation(impl,
-                                    jsonImpl);
+                            profiles[coreId][impl.getImplementationId()] =
+                                generateProfileForImplementation(impl, jsonImpl);
                         } catch (JSONException je) {
                             // Do nothing
                         }

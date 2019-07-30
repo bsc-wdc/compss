@@ -22,7 +22,7 @@ public class BasicTypesImpl {
      * @throws FileNotFoundException When file is not found.
      */
     public static void testBasicTypes(String file, boolean b, char c, String s, byte by, short sh, int i, long l,
-            float f, double d) throws FileNotFoundException {
+        float f, double d) throws FileNotFoundException {
 
         try (PrintStream ps = new PrintStream(file)) {
             ps.println("TEST BASIC TYPES");

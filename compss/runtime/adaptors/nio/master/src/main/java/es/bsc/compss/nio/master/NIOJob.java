@@ -40,6 +40,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
     protected final List<String> slaveWorkersNodeNames;
 
+
     /**
      * Creates a new NIOJob instance.
      *
@@ -51,7 +52,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
      * @param listener Listener.
      */
     public NIOJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         super(taskId, taskParams, impl, res, listener);
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
@@ -110,9 +111,9 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
         // Create NIOTask
         NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, this.taskParams.hasTargetObject(),
-                this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
-                this.slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(), this.jobId, this.history,
-                this.transferId, this.getTimeOut());
+            this.taskParams.getNumReturns(), params, numParams, absMethodImpl.getRequirements(),
+            this.slaveWorkersNodeNames, this.taskId, this.impl.getTaskType(), this.jobId, this.history, this.transferId,
+            this.getTimeOut());
 
         return nt;
     }
@@ -129,7 +130,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
      * Marks the task as finished with the given {@code successful} error code.
      *
      * @param successful {@code true} if the task has successfully finished, {@code false} otherwise.
-     * @param e          Exception rised during the task execution, {@literal null} if no exception was rised.
+     * @param e Exception rised during the task execution, {@literal null} if no exception was rised.
      */
     public void taskFinished(boolean successful, Exception e) {
         if (successful) {

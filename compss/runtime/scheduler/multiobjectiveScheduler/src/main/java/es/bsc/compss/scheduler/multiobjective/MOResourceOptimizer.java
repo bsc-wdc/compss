@@ -52,7 +52,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
     private final long initialTimeStamp = System.currentTimeMillis();
     private StringBuilder log = new StringBuilder(
-            "-------------------------\n" + "    CHECK SCALABILITY    \n" + "-------------------------\n");
+        "-------------------------\n" + "    CHECK SCALABILITY    \n" + "-------------------------\n");
 
 
     /**
@@ -92,15 +92,15 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         HashMap<CloudInstanceTypeDescription, Integer> pendingReductions = new HashMap<>();
 
         final ConfigurationCost actualCost = getContext(allResources, load, workers, creations, pendingCreations,
-                pendingReductions, elapsedTime, elapsedEnergy, elapsedCost, elapsedPower, elapsedPrice);
+            pendingReductions, elapsedTime, elapsedEnergy, elapsedCost, elapsedPower, elapsedPrice);
 
-        addToLog("Boundaries\n" + "\tTime: " + timeBoundary + "s\n" + "\tEnergy: " + energyBoundary + "Wh\n"
-                + "\tCost: " + costBoundary + "€\n" + "\tPower: " + powerBoundary + "W\n" + "\tPrice: " + priceBoundary
-                + "€/h\n");
+        addToLog(
+            "Boundaries\n" + "\tTime: " + timeBoundary + "s\n" + "\tEnergy: " + energyBoundary + "Wh\n" + "\tCost: "
+                + costBoundary + "€\n" + "\tPower: " + powerBoundary + "W\n" + "\tPrice: " + priceBoundary + "€/h\n");
 
         addToLog("Elapsed\n" + "\tTime: " + elapsedTime[0] + "s\n" + "\tEnergy: " + elapsedEnergy[0] + "Wh\n"
-                + "\tCost: " + elapsedCost[0] + "€\n" + "\tPower: " + elapsedPower[0] + "W\n" + "\tPrice: "
-                + elapsedPrice[0] + "€/h\n");
+            + "\tCost: " + elapsedCost[0] + "€\n" + "\tPower: " + elapsedPower[0] + "W\n" + "\tPrice: "
+            + elapsedPrice[0] + "€/h\n");
 
         double timeBudget = timeBoundary - elapsedTime[0];
         double energyBudget = energyBoundary - elapsedEnergy[0];
@@ -108,8 +108,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         double powerBudget = powerBoundary - elapsedPower[0];
         double priceBudget = priceBoundary - elapsedPrice[0];
         addToLog("Budget\n" + "\tTime: " + timeBudget + "s\n" + "\tEnergy: " + energyBudget + "Wh - "
-                + (energyBudget * 3600) + "J\n" + "\tCost: " + costBudget + "€\n" + "\tPower: " + powerBudget + "W\n"
-                + "\tPrice: " + priceBudget + "€/h\n");
+            + (energyBudget * 3600) + "J\n" + "\tCost: " + costBudget + "€\n" + "\tPower: " + powerBudget + "W\n"
+            + "\tPrice: " + priceBudget + "€/h\n");
 
         addToLog("Current Resources\n");
         addToLog("Workload Info:\n");
@@ -127,8 +127,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         addToLog(currentSim.toString());
 
         LinkedList<Action> actions = generatePossibleActions(allResources, load);
-        Action action = this.selectBestAction(currentSim, actions, timeBudget, energyBudget, costBudget, powerBudget,
-                priceBudget);
+        Action action =
+            this.selectBestAction(currentSim, actions, timeBudget, energyBudget, costBudget, powerBudget, priceBudget);
         addToLog("Action to perform: " + action.title + "\n");
         printLog();
         action.perform();
@@ -150,7 +150,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
     }
 
     private void generatePossibleResourceAcquisitions(LinkedList<Action> actions, Resource<?>[] allResources,
-            int[] load) {
+        int[] load) {
         for (CloudProvider cp : ResourceManager.getAvailableCloudProviders()) {
             if (!cp.canHostMoreInstances()) {
                 continue;
@@ -182,8 +182,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             if (!(excludedWorker.hasPendingModifications())) {
                 CloudImageDescription image = description.getImage();
                 for (CloudInstanceTypeDescription typeReduction : description.getPossibleReductions()) {
-                    CloudMethodResourceDescription reductionDescription = new CloudMethodResourceDescription(
-                            typeReduction, image);
+                    CloudMethodResourceDescription reductionDescription =
+                        new CloudMethodResourceDescription(typeReduction, image);
                     CloudMethodResourceDescription reducedDescription = new CloudMethodResourceDescription(description);
                     reducedDescription.reduce(reductionDescription);
                     ConfigurationCost cc;
@@ -212,7 +212,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
     }
 
     private Action selectBestAction(Action currentAction, LinkedList<Action> candidates, double timeBudget,
-            double energyBudget, double costBudget, double powerBudget, double priceBudget) {
+        double energyBudget, double costBudget, double powerBudget, double priceBudget) {
 
         addToLog("SELECTING BEST ACTION ACCORDING TO " + MOConfiguration.getSchedulerOptimization() + "\n");
         Action bestAction = currentAction;
@@ -221,7 +221,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             boolean improves = false;
             if (action.cost.power > powerBudget || action.cost.price > priceBudget) {
                 addToLog("\t\t Surpasses the power (" + action.cost.power + ">" + powerBudget + ") or price budget ("
-                        + action.cost.price + ">" + priceBudget + ")");
+                    + action.cost.price + ">" + priceBudget + ")");
             } else {
                 addToLog("\tChecking " + action.title + "\n");
                 switch (MOConfiguration.getSchedulerOptimization()) {
@@ -267,7 +267,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                 addToLog("\t\t Surpasses the cost budget\n");
             }
             return isAcceptable(cCost.energy, rCost.energy, energyBudget)
-                    && isAcceptable(cCost.cost, rCost.cost, costBudget);
+                && isAcceptable(cCost.cost, rCost.cost, costBudget);
         } else if (cCost.time == rCost.time) {
             if (cCost.energy < rCost.energy) {
                 return isAcceptable(cCost.cost, rCost.cost, costBudget);
@@ -280,7 +280,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             if (rCost.energy > energyBudget && cCost.energy < rCost.energy) {
                 if (isAcceptable(cCost.cost, rCost.cost, costBudget)) {
                     addToLog("\t\t Time's higher than the currently selected option."
-                            + " But energy is closer to the boundary\n");
+                        + " But energy is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.cost, rCost.cost, costBudget);
             }
@@ -288,7 +288,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             if (rCost.cost > costBudget && cCost.cost < rCost.cost) {
                 if (isAcceptable(cCost.energy, rCost.energy, costBudget)) {
                     addToLog("\t\t Time's higher than the currently selected option."
-                            + " But cost is closer to the boundary\n");
+                        + " But cost is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.energy, rCost.energy, costBudget);
             }
@@ -309,7 +309,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                 addToLog("\t\t Surpasses the time budget " + cCost.time + " > " + timeBudget + "\n");
             }
             return isAcceptable(cCost.energy, rCost.energy, energyBudget)
-                    && isAcceptable(cCost.time, rCost.time, timeBudget);
+                && isAcceptable(cCost.time, rCost.time, timeBudget);
         } else if (cCost.cost == rCost.cost) {
             if (cCost.time < rCost.time) {
                 return isAcceptable(cCost.energy, rCost.energy, energyBudget);
@@ -322,14 +322,14 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             if (rCost.time > timeBudget && cCost.time < rCost.time) {
                 if (isAcceptable(cCost.energy, rCost.energy, energyBudget)) {
                     addToLog("\t\t Cost's higher than the currently selected option."
-                            + " But time is closer to the boundary\n");
+                        + " But time is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.cost, rCost.cost, energyBudget);
             }
             if (rCost.energy > energyBudget && cCost.energy < rCost.energy) {
                 if (isAcceptable(cCost.time, rCost.time, timeBudget)) {
                     addToLog("\t\t Energy's higher than the currently selected option."
-                            + " But energy is closer to the boundary\n");
+                        + " But energy is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.time, rCost.time, timeBudget);
             }
@@ -361,14 +361,14 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             if (rCost.time > timeBudget && cCost.time < rCost.time) {
                 if (isAcceptable(cCost.cost, rCost.cost, costBudget)) {
                     addToLog("\t\t Energy's higher than the currently selected option."
-                            + " But time is closer to the boundary\n");
+                        + " But time is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.cost, rCost.cost, costBudget);
             }
             if (rCost.cost > costBudget && cCost.cost < rCost.cost) {
                 if (isAcceptable(cCost.time, rCost.time, timeBudget)) {
                     addToLog("\t\t Energy's higher than the currently selected option."
-                            + " But time is closer to the boundary\n");
+                        + " But time is closer to the boundary\n");
                 }
                 return isAcceptable(cCost.time, rCost.time, timeBudget);
             }
@@ -379,10 +379,10 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
     // Get estimated cost (energy, price, time) of the current scheduling
     private <T extends WorkerResourceDescription> ConfigurationCost getContext(Resource<?>[] allResources, int[] load,
-            Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers,
-            List<ResourceCreationRequest> creations, HashMap<CloudInstanceTypeDescription, Integer> pendingCreations,
-            HashMap<CloudInstanceTypeDescription, Integer> pendingDestructions, double[] elapsedTime,
-            double[] elapsedEnergy, double[] elapsedCost, double[] elapsedPower, double[] elapsedPrice) {
+        Collection<ResourceScheduler<? extends WorkerResourceDescription>> workers,
+        List<ResourceCreationRequest> creations, HashMap<CloudInstanceTypeDescription, Integer> pendingCreations,
+        HashMap<CloudInstanceTypeDescription, Integer> pendingDestructions, double[] elapsedTime,
+        double[] elapsedEnergy, double[] elapsedCost, double[] elapsedPower, double[] elapsedPrice) {
 
         elapsedTime[0] = 0;
         elapsedEnergy[0] = 0;
@@ -409,11 +409,11 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
             elapsedCost[0] += aw.getRunActionsCost();
             addToLog("\t\tExecuted Actions Cost:" + aw.getRunActionsCost() + " €.ms/h -> total " + elapsedCost[0]
-                    + "€.ms/h\n");
+                + "€.ms/h\n");
 
             actionsCost += aw.getScheduledActionsCost();
             addToLog("\t\tScheduled Actions Cost:" + aw.getScheduledActionsCost() + " €.ms/h -> total " + actionsCost
-                    + "€.ms/h\n");
+                + "€.ms/h\n");
 
             r.idlePrice = aw.getIdlePrice();
             idlePrice += r.idlePrice;
@@ -421,11 +421,11 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
             elapsedEnergy[0] += aw.getRunActionsEnergy();
             addToLog("\t\tExecuted Actions Energy:" + aw.getRunActionsEnergy() + " mJ -> total " + elapsedEnergy[0]
-                    + "mJ\n");
+                + "mJ\n");
 
             actionsEnergy += aw.getScheduledActionsEnergy();
             addToLog("\t\tScheduled Actions Energy:" + aw.getScheduledActionsEnergy() + " mJ -> total " + actionsEnergy
-                    + "mJ\n");
+                + "mJ\n");
 
             r.idlePower = aw.getIdlePower();
             idlePower += r.idlePower;
@@ -446,10 +446,10 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                 int favCount = implsCount[coreId][0];
                 load[coreId] += implsCount[coreId][0] - runningCounts[coreId][0];
                 coreInfo[coreId].append("\t\t\t\tImplementation 0: " + implsCount[coreId][0] + ", "
-                        + runningCounts[coreId][0] + " of'em already running\n");
+                    + runningCounts[coreId][0] + " of'em already running\n");
                 for (int implId = 1; implId < CoreManager.getCoreImplementations(coreId).size(); implId++) {
                     coreInfo[coreId].append("\t\t\t\tImplementation " + implId + ": " + implsCount[coreId][implId]
-                            + ", " + runningCounts[coreId][implId] + " of'em already running\n");
+                        + ", " + runningCounts[coreId][implId] + " of'em already running\n");
                     load[coreId] += implsCount[coreId][implId] - runningCounts[coreId][implId];
                     if (implsCount[coreId][implId] > favCount) {
                         favId = implId;
@@ -480,8 +480,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
             if (r.hasPendingModifications()) {
                 for (ResourceUpdate<T> ru : r.getPendingModifications()) {
-                    Map<CloudInstanceTypeDescription, int[]> modificationComposition 
-                        = ((CloudMethodResourceDescription) ru.getModification()).getTypeComposition();
+                    Map<CloudInstanceTypeDescription, int[]> modificationComposition =
+                        ((CloudMethodResourceDescription) ru.getModification()).getTypeComposition();
                     for (Map.Entry<CloudInstanceTypeDescription, int[]> entry : modificationComposition.entrySet()) {
                         CloudInstanceTypeDescription componentType = entry.getKey();
                         int count = entry.getValue()[0];
@@ -504,7 +504,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         elapsedCost[0] = elapsedCost[0] / 3_600_000;
         for (ResourceCreationRequest rcr : creations) {
             for (Map.Entry<CloudInstanceTypeDescription, int[]> entry : rcr.getRequested().getTypeComposition()
-                    .entrySet()) {
+                .entrySet()) {
                 CloudInstanceTypeDescription componentType = entry.getKey();
                 int count = entry.getValue()[0];
                 addToLog("\tName: REQUESTED " + componentType.getName() + "\n");
@@ -557,7 +557,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
     }
 
     private ConfigurationCost simulate(int[] counts, Resource<?>[] resources, long minTime, double minEnergy,
-            double minCost) {
+        double minCost) {
         // addToLog("Simulation\n");
         int[] workingCounts = new int[counts.length];
         System.arraycopy(counts, 0, workingCounts, 0, counts.length);
@@ -600,10 +600,10 @@ public class MOResourceOptimizer extends ResourceOptimizer {
             idlePrice += r.idlePrice;
 
             for (int coreId = 0; coreId < r.counts.length; coreId++) {
-                rActionsEnergy += r.counts[coreId] * r.profiles[coreId].getPower()
-                        * r.profiles[coreId].getAverageExecutionTime();
-                rActionsCost += r.counts[coreId] * r.profiles[coreId].getPrice()
-                        * r.profiles[coreId].getAverageExecutionTime();
+                rActionsEnergy +=
+                    r.counts[coreId] * r.profiles[coreId].getPower() * r.profiles[coreId].getAverageExecutionTime();
+                rActionsCost +=
+                    r.counts[coreId] * r.profiles[coreId].getPrice() * r.profiles[coreId].getAverageExecutionTime();
             }
             actionsEnergy += rActionsEnergy;
             actionsCost += rActionsCost;
@@ -618,7 +618,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
     }
 
     private Resource<?> reduceResourceForComponent(Resource<?> excludedWorker,
-            CloudMethodResourceDescription reduction) {
+        CloudMethodResourceDescription reduction) {
         Resource<?> clone = new Resource<>(excludedWorker.worker);
         clone.idlePower = excludedWorker.idlePower;
         clone.idlePrice = excludedWorker.idlePrice;
@@ -641,12 +641,12 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                 List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
                 MOProfile[] profiles = new MOProfile[impls.size()];
                 for (int i = 0; i < impls.size(); i++) {
-                    profiles[i] = (MOProfile) moCloudTypeProf.getImplProfiles(coreId,
-                            impls.get(i).getImplementationId());
+                    profiles[i] =
+                        (MOProfile) moCloudTypeProf.getImplProfiles(coreId, impls.get(i).getImplementationId());
                 }
                 Implementation impl = getBestImplementation(impls, profiles);
-                clone.capacity[coreId] -= rd.canHostSimultaneously((MethodResourceDescription) impl.getRequirements())
-                        * count;
+                clone.capacity[coreId] -=
+                    rd.canHostSimultaneously((MethodResourceDescription) impl.getRequirements()) * count;
             }
         }
         return clone;
@@ -671,14 +671,14 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                 List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
                 MOProfile[] profiles = new MOProfile[impls.size()];
                 for (int i = 0; i < impls.size(); i++) {
-                    profiles[i] = (MOProfile) moCloudTypeProf.getImplProfiles(coreId,
-                            impls.get(i).getImplementationId());
+                    profiles[i] =
+                        (MOProfile) moCloudTypeProf.getImplProfiles(coreId, impls.get(i).getImplementationId());
                 }
                 Implementation impl = getBestImplementation(impls, profiles);
-                r.capacity[coreId] += rd.canHostSimultaneously((MethodResourceDescription) impl.getRequirements())
-                        * count;
-                MOProfile bestImplProf = (MOProfile) moCloudTypeProf.getImplProfiles(coreId,
-                        impl.getImplementationId());
+                r.capacity[coreId] +=
+                    rd.canHostSimultaneously((MethodResourceDescription) impl.getRequirements()) * count;
+                MOProfile bestImplProf =
+                    (MOProfile) moCloudTypeProf.getImplProfiles(coreId, impl.getImplementationId());
                 if (r.profiles[coreId] == null) {
                     r.profiles[coreId] = bestImplProf;
                 } else {
@@ -686,8 +686,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
                 }
             }
         }
-        r.startTime = (cmrd.getImage().getCreationTime() * 1000)
-                - (System.currentTimeMillis() - rcr.getRequestedTime());
+        r.startTime =
+            (cmrd.getImage().getCreationTime() * 1000) - (System.currentTimeMillis() - rcr.getRequestedTime());
         if (r.startTime < 0) {
             r.startTime = 0;
         }
@@ -720,8 +720,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
     private Implementation getBestImplementation(List<Implementation> impls, MOProfile[] profiles) {
         Implementation impl = impls.get(0);
-        MOScore bestScore = new MOScore(0, 0, 0, profiles[0].getAverageExecutionTime(), profiles[0].getPower(),
-                profiles[0].getPrice());
+        MOScore bestScore =
+            new MOScore(0, 0, 0, profiles[0].getAverageExecutionTime(), profiles[0].getPower(), profiles[0].getPrice());
         for (int i = 1; i < impls.size(); i++) {
             Implementation candidate = impls.get(i);
             long length = profiles[i].getAverageExecutionTime();
@@ -747,7 +747,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
     private void printLog() {
         System.out.println(log.toString() + "\n" + "-----------------------------\n");
         log = new StringBuilder(
-                "-------------------------\n" + "    CHECK SCALABILITY    \n" + "-------------------------\n");
+            "-------------------------\n" + "    CHECK SCALABILITY    \n" + "-------------------------\n");
     }
 
 
@@ -945,7 +945,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
 
         public ActionAdd(CloudProvider provider, CloudInstanceTypeDescription component, CloudImageDescription image,
-                ConfigurationCost cost) {
+            ConfigurationCost cost) {
             super("Add " + component, cost);
 
             this.provider = provider;
@@ -978,8 +978,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         public void perform() {
             RUNTIME_LOGGER.debug("[MOResourceOptimizer] Performing Remove action " + this);
             CloudMethodWorker worker = (CloudMethodWorker) this.res.getResource();
-            CloudMethodResourceDescription reduction = new CloudMethodResourceDescription(this.citd,
-                    worker.getDescription().getImage());
+            CloudMethodResourceDescription reduction =
+                new CloudMethodResourceDescription(this.citd, worker.getDescription().getImage());
             ResourceManager.requestWorkerReduction(worker, reduction);
         }
     }
@@ -994,7 +994,7 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
 
         public ConfigurationCost(double time, double idlePower, double fixedEnergy, double idlePrice,
-                double fixedCost) {
+            double fixedCost) {
             this.time = (double) (time / 1_000);
             this.energy = (double) ((idlePower * time + fixedEnergy) / 3_600_000);
             this.cost = (double) (((idlePrice * time) + fixedCost) / 3_600_000);
@@ -1005,8 +1005,8 @@ public class MOResourceOptimizer extends ResourceOptimizer {
         @Override
         public String toString() {
             return "Configuration Cost:\n" + "\tTime: " + this.time + "s\n" + "\tEnergy: " + this.energy + "Wh\n"
-                    + "\tCost: " + this.cost + "€\n" + "\tPower: " + this.power + "W\n" + "\tPrice: " + this.price
-                    + "€/h\n";
+                + "\tCost: " + this.cost + "€\n" + "\tPower: " + this.power + "W\n" + "\tPrice: " + this.price
+                + "€/h\n";
         }
     }
 

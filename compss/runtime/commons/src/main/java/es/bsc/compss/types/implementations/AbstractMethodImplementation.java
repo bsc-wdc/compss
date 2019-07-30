@@ -74,7 +74,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
      * @param annot Implementation's requirements.
      */
     public AbstractMethodImplementation(Integer coreId, Integer implementationId, String signature,
-            MethodResourceDescription annot) {
+        MethodResourceDescription annot) {
         super(coreId, implementationId, signature, annot);
     }
 
@@ -89,7 +89,7 @@ public abstract class AbstractMethodImplementation extends Implementation implem
      * @return The signature built from the given parameters.
      */
     public static String getSignature(String declaringClass, String methodName, boolean hasTarget, int numReturns,
-            List<Parameter> parameters) {
+        List<Parameter> parameters) {
 
         StringBuilder buffer = new StringBuilder();
         buffer.append(methodName).append("(");

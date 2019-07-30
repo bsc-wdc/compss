@@ -53,7 +53,7 @@ public class Main {
     }
 
     private static void produceConsume(int numProducers, int producerSleep, int numConsumers, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Clean and create base test path
         Utils.removeDirectory(TEST_PATH);
@@ -82,7 +82,7 @@ public class Main {
     }
 
     private static void produceSpawnConsumers(int numProducers, int producerSleep, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Clean and create base test path
         Utils.removeDirectory(TEST_PATH);
@@ -141,7 +141,7 @@ public class Main {
     }
 
     private static void byAlias(int numProducers, int producerSleep, int numConsumers, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Clean and create base test path
         Utils.removeDirectory(TEST_PATH_ALIAS);

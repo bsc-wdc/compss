@@ -78,8 +78,8 @@ public class PriorityActionSet {
                 } else {
                     // Resize coreActions array
                     int originalSize = this.coreActions.length;
-                    PriorityQueue<AllocatableAction>[] coreActions 
-                        = (PriorityQueue<AllocatableAction>[]) new PriorityQueue[coreId + 1];
+                    PriorityQueue<AllocatableAction>[] coreActions =
+                        (PriorityQueue<AllocatableAction>[]) new PriorityQueue[coreId + 1];
                     System.arraycopy(this.coreActions, 0, coreActions, 0, originalSize);
                     for (int coreIdx = originalSize; coreIdx < coreId + 1; coreIdx++) {
                         coreActions[coreIdx] = new PriorityQueue<>(1, this.comparator);
@@ -157,8 +157,8 @@ public class PriorityActionSet {
      * @return A priority queue with all the registered actions without removing them.
      */
     public PriorityQueue<AllocatableAction> peekAll() {
-        PriorityQueue<AllocatableAction> peeks = new PriorityQueue<AllocatableAction>(this.coreActions.length + 1,
-                this.comparator);
+        PriorityQueue<AllocatableAction> peeks =
+            new PriorityQueue<AllocatableAction>(this.coreActions.length + 1, this.comparator);
 
         AllocatableAction currentCore = this.noCoreActions.peek();
         if (currentCore != null && !((MOSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {

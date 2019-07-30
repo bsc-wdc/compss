@@ -45,7 +45,7 @@ public class FinishBindingObjectAccessRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
-            throws ShutdownException {
+        throws ShutdownException {
 
         dip.finishBindingObjectAccess(this.boAP.getMode(), this.boAP.getCode());
     }

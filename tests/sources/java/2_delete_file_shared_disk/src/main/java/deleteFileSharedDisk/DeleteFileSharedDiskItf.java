@@ -11,8 +11,6 @@ public interface DeleteFileSharedDiskItf {
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "deleteFileSharedDisk.DeleteFileSharedDiskImpl")
-    void readFromFile(
-        @Parameter(type = Type.FILE, direction = Direction.IN) String file
-    );
+    void readFromFile(@Parameter(type = Type.FILE, direction = Direction.IN) String file);
 
 }

@@ -259,7 +259,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         long appId;
         try {
             appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
-                    monitor);
+                monitor);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
@@ -276,7 +276,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         if (hasResult) {
             results = new ApplicationParameterImpl[1];
             results[1] = new ApplicationParameterImpl(null, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED,
-                    "", "result");
+                "", "result");
         } else {
             results = new ApplicationParameterImpl[0];
         }
@@ -293,7 +293,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
         try {
             appId = Agent.runTask(Lang.JAVA, className, methodName, arguments, target, results,
-                    MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
+                MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }

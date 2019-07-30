@@ -90,20 +90,20 @@ public class Resource {
         if (status.equals(Constants.STATUS_RUNNING)) {
             this.status = status;
             this.setColor(File.separator + "images" + File.separator + "state" + File.separator
-                    + Constants.COLOR_RUNNING + ".jpg");
+                + Constants.COLOR_RUNNING + ".jpg");
         } else if (status.equals(Constants.STATUS_CREATION)) {
             this.status = status;
             this.setColor(File.separator + "images" + File.separator + "state" + File.separator
-                    + Constants.COLOR_CREATION + ".jpg");
+                + Constants.COLOR_CREATION + ".jpg");
         } else if (status.equals(Constants.STATUS_REMOVING)) {
             this.status = status;
             this.setColor(File.separator + "images" + File.separator + "state" + File.separator
-                    + Constants.COLOR_REMOVING + ".jpg");
+                + Constants.COLOR_REMOVING + ".jpg");
         } else {
             // Default value for error
             this.status = Constants.STATUS_REMOVING;
             this.setColor(File.separator + "images" + File.separator + "state" + File.separator
-                    + Constants.COLOR_REMOVING + ".jpg");
+                + Constants.COLOR_REMOVING + ".jpg");
         }
     }
 

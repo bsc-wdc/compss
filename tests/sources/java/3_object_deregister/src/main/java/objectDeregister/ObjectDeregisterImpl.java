@@ -19,8 +19,8 @@ public class ObjectDeregisterImpl {
         Thread.sleep(100);
         int k = ClassInstanceTest.countInstances(Dummy.class);
         if (k > 0) {
-            throw new Exception("[ERROR] At the end in the WORKER" + String.valueOf(k)
-                    + " instances of the Dummy object were found");
+            throw new Exception(
+                "[ERROR] At the end in the WORKER" + String.valueOf(k) + " instances of the Dummy object were found");
         }
     }
 

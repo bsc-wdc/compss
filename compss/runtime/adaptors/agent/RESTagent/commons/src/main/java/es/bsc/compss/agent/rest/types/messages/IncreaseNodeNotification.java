@@ -49,7 +49,7 @@ public class IncreaseNodeNotification {
      * @param projectConf Project.xml configuration for the node.
      */
     public IncreaseNodeNotification(String name, MethodResourceDescription mrd, String adaptor, Object resourcesConf,
-            Object projectConf) {
+        Object projectConf) {
 
         this.resource = RESTResource.createResource(name, mrd, adaptor, resourcesConf, projectConf);
     }
@@ -59,7 +59,7 @@ public class IncreaseNodeNotification {
     }
 
     @XmlElements({ @XmlElement(name = "externalResource", type = ExternalAdaptorResource.class, required = false),
-            @XmlElement(name = "nioResource", type = NIOAdaptorResource.class, required = false), })
+        @XmlElement(name = "nioResource", type = NIOAdaptorResource.class, required = false), })
     public Resource<?, ?> getResource() {
         return this.resource;
     }

@@ -23,6 +23,7 @@ public abstract class AppMonitor implements TaskMonitor {
 
     private long appId;
 
+
     public AppMonitor() {
     }
 

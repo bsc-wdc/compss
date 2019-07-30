@@ -203,11 +203,11 @@ public class VM implements Comparable<VM> {
     @Override
     public String toString() {
         return "VM " + this.envId + " (ip = " + this.rd.getName() + ", request time = " + this.requestTime
-                + ", start time = " + this.startTime + ", creation time = " + this.creationTime + ", image = "
-                + this.rd.getImage().getImageName() + ", procs = CPU: " + this.rd.getTotalCPUComputingUnits()
-                + ", GPU: " + this.rd.getTotalGPUComputingUnits() + ", FPGA: " + this.rd.getTotalFPGAComputingUnits()
-                + ", OTHER: " + this.rd.getTotalOTHERComputingUnits() + ", memory = " + this.rd.getMemorySize()
-                + ", disk = " + this.rd.getStorageSize() + ", to delete = " + this.toDelete + ")";
+            + ", start time = " + this.startTime + ", creation time = " + this.creationTime + ", image = "
+            + this.rd.getImage().getImageName() + ", procs = CPU: " + this.rd.getTotalCPUComputingUnits() + ", GPU: "
+            + this.rd.getTotalGPUComputingUnits() + ", FPGA: " + this.rd.getTotalFPGAComputingUnits() + ", OTHER: "
+            + this.rd.getTotalOTHERComputingUnits() + ", memory = " + this.rd.getMemorySize() + ", disk = "
+            + this.rd.getStorageSize() + ", to delete = " + this.toDelete + ")";
     }
 
 }

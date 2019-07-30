@@ -136,7 +136,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 requestType = request.getType().toString();
                 if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.getTaskDispatcherRequestEvent(request.getType().name()).getId(),
-                            Tracer.getRuntimeEventsType());
+                        Tracer.getRuntimeEventsType());
                 }
                 request.process(scheduler);
                 if (Tracer.extraeEnabled()) {
@@ -233,7 +233,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         request.setCOMPSsException(e);
         addRequest(request);
     }
-    
+
     /**
      * Adds a new tasks summary request.
      *

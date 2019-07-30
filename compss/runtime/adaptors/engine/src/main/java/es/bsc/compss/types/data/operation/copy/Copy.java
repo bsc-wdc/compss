@@ -37,18 +37,19 @@ public abstract class Copy extends DataOperation {
     protected DataLocation tgtLoc;
     protected final Transferable reason;
 
+
     /**
      * Data Copy Constructor.
      *
-     * @param srcData  source logical data
-     * @param prefSrc  preferred source data location
-     * @param prefTgt  preferred target data location
-     * @param tgtData  target logical data
-     * @param reason   Transfer reason
+     * @param srcData source logical data
+     * @param prefSrc preferred source data location
+     * @param prefTgt preferred target data location
+     * @param tgtData target logical data
+     * @param reason Transfer reason
      * @param listener listener to notify events
      */
     public Copy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
         super(srcData, listener);
         this.srcData = srcData;
@@ -84,7 +85,7 @@ public abstract class Copy extends DataOperation {
     public DataLocation getPreferredSource() {
         return this.srcLoc;
     }
-    
+
     public void setTargetLoc(DataLocation loc) {
         tgtLoc = loc;
     }
@@ -139,7 +140,7 @@ public abstract class Copy extends DataOperation {
     /**
      * Blocks the thread until a copy to a resource is finished.
      *
-     * @param copy     Copy to wait
+     * @param copy Copy to wait
      * @param resource Resource
      */
     public static void waitForCopyTofinish(Copy copy, COMPSsNode resource) {

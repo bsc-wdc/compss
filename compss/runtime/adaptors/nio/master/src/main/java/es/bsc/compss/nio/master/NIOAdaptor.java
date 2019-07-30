@@ -137,6 +137,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         MASTER_PORT = masterPort;
     }
 
+
     /**
      * New NIOAdaptor instance.
      */
@@ -180,7 +181,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         /* Init tracing values */
         this.tracing = System.getProperty(COMPSsConstants.TRACING) != null
-                && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0;
+            && Integer.parseInt(System.getProperty(COMPSsConstants.TRACING)) > 0;
         this.tracingLevel = Integer.parseInt(System.getProperty(COMPSsConstants.TRACING));
 
         // Start the server
@@ -195,7 +196,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
-            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         final NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
@@ -203,11 +204,11 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties propsResources = null;
 
         if (resourcesProperties != null) {
-            propsResources = (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties
-                    .get("Ports");
+            propsResources =
+                (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) resourcesProperties.get("Ports");
 
-            ResourcesExternalAdaptorProperties reap = (ResourcesExternalAdaptorProperties) resourcesProperties
-                    .get("Properties");
+            ResourcesExternalAdaptorProperties reap =
+                (ResourcesExternalAdaptorProperties) resourcesProperties.get("Properties");
             if (reap != null) {
                 for (ResourcesPropertyAdaptorType prop : reap.getProperty()) {
                     config.addProperty(prop.getName(), prop.getValue());
@@ -266,7 +267,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     maxFinal = maxProject;
                 } else {
                     LOGGER.warn(
-                            "resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+                        "resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
                     maxFinal = maxResources;
                 }
             }
@@ -439,13 +440,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      * Retrieves from connection {@code connection} the files containing additional job information.
      *
      * @param connection connection to request/receive information
-     * @param success    {@literal true}, if job ended successfully
-     * @param jobId      Id of the executed job
-     * @param taskId     Id of the executed task
-     * @param history    job history tag
+     * @param success {@literal true}, if job ended successfully
+     * @param jobId Id of the executed job
+     * @param taskId Id of the executed task
+     * @param history job history tag
      */
     protected void retrieveAdditionalJobFiles(Connection connection, boolean success, int jobId, int taskId,
-            JobHistory history) {
+        JobHistory history) {
         if (WORKER_DEBUG || !success) {
             String jobOut = JOBS_DIR + "job" + jobId + "_" + history + ".out";
             String jobErr = JOBS_DIR + "job" + jobId + "_" + history + ".err";
@@ -462,7 +463,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         DataType previousType = dp.getType();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Updating parameter " + dp.getDataTarget() + " from type " + previousType + " to type "
-                    + newType + " with id " + pscoId);
+                + newType + " with id " + pscoId);
         }
 
         switch (previousType) {
@@ -473,8 +474,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     dp.setDataTarget(pscoId);
                 } else {
                     // The parameter types do not match, log exception
-                    LOGGER.warn("WARN: Cannot update parameter " + dp.getDataTarget()
-                            + " because types are not compatible");
+                    LOGGER.warn(
+                        "WARN: Cannot update parameter " + dp.getDataTarget() + " because types are not compatible");
                 }
                 break;
             default:
@@ -676,10 +677,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     /**
      * Requests a new data.
      *
-     * @param c         Associated copy.
+     * @param c Associated copy.
      * @param paramType Data type.
-     * @param d         NIOData to request.
-     * @param path      Target path.
+     * @param d NIOData to request.
+     * @param path Target path.
      */
     public void requestData(Copy c, DataType paramType, NIOData d, String path) {
         DataRequest dr = new MasterDataRequest(c, paramType, d, path);
@@ -691,8 +692,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     /**
      * Marks the worker to shutdown.
      *
-     * @param worker   Worker node.
-     * @param c        Connection.
+     * @param worker Worker node.
+     * @param c Connection.
      * @param listener Listener.
      */
     public void shuttingDown(NIOWorkerNode worker, Connection c, ShutdownListener listener) {
@@ -702,8 +703,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     /**
      * Marks the worker to shutdown only the execution manager.
      *
-     * @param worker   Worker node.
-     * @param c        Connection.
+     * @param worker Worker node.
+     * @param c Connection.
      * @param listener Listener.
      */
     public void shuttingDownEM(NIOWorkerNode worker, Connection c, ExecutorShutdownListener listener) {
@@ -795,7 +796,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     /**
      * Registers a pending modification of the current worker node.
      *
-     * @param c   Connection.
+     * @param c Connection.
      * @param sem Semaphore to wait until the modification is performed.
      */
     public void registerPendingResourceUpdateConfirmation(Connection c, Semaphore sem) {
@@ -830,16 +831,17 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         private final NIOWorkerNode worker;
         private final ShutdownListener listener;
 
+
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
             this.worker = w;
             this.listener = l;
         }
     }
 
-
     private class ClosingExecutor {
 
         private final ExecutorShutdownListener listener;
+
 
         public ClosingExecutor(ExecutorShutdownListener l) {
             this.listener = l;

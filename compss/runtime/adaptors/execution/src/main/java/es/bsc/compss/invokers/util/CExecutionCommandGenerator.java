@@ -33,10 +33,10 @@ import java.util.Map;
 
 public class CExecutionCommandGenerator {
 
-    private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator
-            + "bindings-common" + File.separator + "lib";
-    private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c"
-            + File.separator + "lib";
+    private static final String BINDINGS_RELATIVE_PATH =
+        File.separator + "Bindings" + File.separator + "bindings-common" + File.separator + "lib";
+    private static final String C_LIB_RELATIVE_PATH =
+        File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
     private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
     private static final String QUOTES = "\"";
@@ -52,7 +52,7 @@ public class CExecutionCommandGenerator {
      * @return execution command as list of strings
      */
     public static ArrayList<String> getTaskExecutionCommand(InvocationContext context, Invocation invocation,
-            String sandBox, InvocationResources assignedResources) {
+        String sandBox, InvocationResources assignedResources) {
 
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
@@ -115,7 +115,7 @@ public class CExecutionCommandGenerator {
 
         ArrayList<String> lArgs = new ArrayList<>();
         lArgs.add(cudaVisible.toString() + ";" + openCLVisible.toString() + ";" + reqs.toString() + " "
-                + taskset.toString() + context.getAppDir() + WORKER_C_RELATIVE_PATH);
+            + taskset.toString() + context.getAppDir() + WORKER_C_RELATIVE_PATH);
         return lArgs;
     }
 

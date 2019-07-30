@@ -108,8 +108,8 @@ public class MultiURI implements Comparable<MultiURI> {
      * @return
      */
     public String debugString() {
-        StringBuilder sb = new StringBuilder(
-                this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");
+        StringBuilder sb =
+            new StringBuilder(this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");
         for (Entry<String, Object> e : internal.entrySet()) {
             sb.append("\t * ").append(e.getKey()).append(" -> ").append(e.getValue()).append("\n");
         }

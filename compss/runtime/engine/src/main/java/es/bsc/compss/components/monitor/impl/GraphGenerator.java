@@ -41,10 +41,14 @@ import org.apache.logging.log4j.Logger;
 public class GraphGenerator {
 
     // Boolean to enable GraphGeneration or not
-    private static final boolean MONITOR_ENABLED = System.getProperty(COMPSsConstants.MONITOR) != null
-            && !"0".equals(System.getProperty(COMPSsConstants.MONITOR)) ? true : false;
-    private static final boolean DRAW_GRAPH = System.getProperty(COMPSsConstants.GRAPH) != null
-            && "true".equals(System.getProperty(COMPSsConstants.GRAPH)) ? true : false;
+    private static final boolean MONITOR_ENABLED =
+        System.getProperty(COMPSsConstants.MONITOR) != null && !"0".equals(System.getProperty(COMPSsConstants.MONITOR))
+            ? true
+            : false;
+    private static final boolean DRAW_GRAPH =
+        System.getProperty(COMPSsConstants.GRAPH) != null && "true".equals(System.getProperty(COMPSsConstants.GRAPH))
+            ? true
+            : false;
     private static final boolean GRAPH_GENERATOR_ENABLED = MONITOR_ENABLED || DRAW_GRAPH;
 
     // Graph filenames constants
@@ -198,9 +202,9 @@ public class GraphGenerator {
             full_graph.close();
 
             try (FileInputStream sourceFIS = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
-                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE);
-                    FileChannel sourceChannel = sourceFIS.getChannel();
-                    FileChannel destChannel = destFOS.getChannel()) {
+                FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE);
+                FileChannel sourceChannel = sourceFIS.getChannel();
+                FileChannel destChannel = destFOS.getChannel()) {
 
                 destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
             }
@@ -218,9 +222,9 @@ public class GraphGenerator {
             legend.close();
 
             try (FileInputStream sourceFIS = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
-                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true);
-                    FileChannel sourceChannel = sourceFIS.getChannel();
-                    FileChannel destChannel = destFOS.getChannel();) {
+                FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true);
+                FileChannel sourceChannel = sourceFIS.getChannel();
+                FileChannel destChannel = destFOS.getChannel();) {
 
                 destChannel.position(destChannel.size());
                 sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
@@ -250,10 +254,10 @@ public class GraphGenerator {
 
             if (synchId == 0) {
                 full_graph.write("Synchro" + synchId
-                        + "[label=\"main\", shape=octagon, style=filled fillcolor=\"#8B0000\" fontcolor=\"#FFFFFF\"];");
+                    + "[label=\"main\", shape=octagon, style=filled fillcolor=\"#8B0000\" fontcolor=\"#FFFFFF\"];");
             } else {
                 full_graph.write("Synchro" + synchId
-                        + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+                    + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
             }
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
@@ -269,7 +273,7 @@ public class GraphGenerator {
         try {
             full_graph.newLine();
             full_graph.write("Synchro" + synchId
-                    + "[label=\"barrier\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+                + "[label=\"barrier\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
@@ -403,8 +407,8 @@ public class GraphGenerator {
         try {
             full_graph.newLine();
             full_graph.write("subgraph clusterTasks" + identifier + " {\n");
-            full_graph.write("shape=rect;\n" + "node[height=0.75];\n" + "color=\"#A9A9A9\"; \n" + "label=\""
-                    + identifier + "\";\n");
+            full_graph.write(
+                "shape=rect;\n" + "node[height=0.75];\n" + "color=\"#A9A9A9\"; \n" + "label=\"" + identifier + "\";\n");
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_DATA, e);
         }
@@ -412,7 +416,6 @@ public class GraphGenerator {
 
     /**
      * Ends a commutative group subgraph.
-     * 
      */
     public void closeGroupInGraph() {
         try {

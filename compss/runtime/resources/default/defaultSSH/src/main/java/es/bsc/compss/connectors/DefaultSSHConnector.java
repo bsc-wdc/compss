@@ -42,8 +42,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class DefaultSSHConnector extends AbstractSSHConnector {
 
-    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn"
-            + File.separator;
+    private static final String CONNECTORS_REL_PATH =
+        File.separator + "Runtime" + File.separator + "cloud-conn" + File.separator;
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
@@ -64,7 +64,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
      * @throws ConnectorException When connector instantiation fails.
      */
     public DefaultSSHConnector(CloudProvider provider, String connectorJarPath, String connectorMainClass,
-            Map<String, String> connectorProperties) throws ConnectorException {
+        Map<String, String> connectorProperties) throws ConnectorException {
 
         super(provider, connectorProperties);
 
@@ -120,14 +120,14 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
         LOGGER.debug("Create connection " + name);
         return this.connector.create(name, Converter.getHardwareDescription(cmrd),
-                Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
+            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
 
     }
 
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested)
-            throws ConnectorException {
-        
+        throws ConnectorException {
+
         LOGGER.debug("Waiting for " + id);
         VirtualResource vr = this.connector.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);

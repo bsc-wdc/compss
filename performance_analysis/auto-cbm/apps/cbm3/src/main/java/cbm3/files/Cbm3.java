@@ -32,7 +32,8 @@ public class Cbm3 {
 
     // Compss BenchMark to test mergesort-like apps performance.
     private static void usage() {
-        System.out.println(":::: Usage: runcompss cbm3.files.Cbm3 (deepness) (task_Sleep_Time) (txSizeInBytes) (INOUT | IN) ::::");
+        System.out.println(
+            ":::: Usage: runcompss cbm3.files.Cbm3 (deepness) (task_Sleep_Time) (txSizeInBytes) (INOUT | IN) ::::");
         System.out.println("Exiting cbm3...!");
     }
 
@@ -126,7 +127,8 @@ public class Cbm3 {
 
     public static void computeSleep(int time) {
         long t = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
-        while ((ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - t) / 1000000 < time) {
+        while ((ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - t)
+            / 1000000 < time) {
             double x = new Random().nextDouble();
             for (int i = 0; i < 1000; ++i) {
                 x = Math.atan(Math.sqrt(Math.pow(x, 10)));

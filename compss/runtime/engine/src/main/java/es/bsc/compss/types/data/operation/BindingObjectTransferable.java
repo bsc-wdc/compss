@@ -27,6 +27,7 @@ public class BindingObjectTransferable implements Transferable {
     private String target;
     private TransferBindingObjectRequest toRequest;
 
+
     public BindingObjectTransferable(TransferBindingObjectRequest toRequest) {
         this.toRequest = toRequest;
     }

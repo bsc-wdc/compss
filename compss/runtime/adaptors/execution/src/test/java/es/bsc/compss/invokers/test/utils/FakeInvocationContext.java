@@ -53,7 +53,7 @@ public class FakeInvocationContext implements InvocationContext {
     }
 
     private FakeInvocationContext(String hostName, String appDir, String installDir, String wDir, PrintStream out,
-            PrintStream err, InvocationContextListener listener) {
+        PrintStream err, InvocationContextListener listener) {
 
         this.hostName = hostName;
         this.appDir = appDir;
@@ -258,7 +258,7 @@ public class FakeInvocationContext implements InvocationContext {
 
         public Builder setListener(InvocationContextListener listener) {
             return new Builder(new FakeInvocationContext(context.hostName, context.appDir, context.installDir,
-                    context.workingDir, context.out, context.err, listener));
+                context.workingDir, context.out, context.err, listener));
         }
 
         public FakeInvocationContext build() {

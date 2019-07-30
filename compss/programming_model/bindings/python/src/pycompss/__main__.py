@@ -20,8 +20,8 @@
 """
 PyCOMPSs Binding - Runnable as module
 =====================================
-Provides the current functionality to be run as a module.
-e.g. python -m pycompss run -dgt myapp.py
+    Provides the current functionality to be run as a module.
+    e.g. python -m pycompss run -dgt myapp.py
 """
 
 import sys
@@ -46,11 +46,14 @@ def setup_parser():
 
     parser = argparse.ArgumentParser(prog='python -m pycompss')
     parser.add_argument('action', choices=TAGS, nargs='?',
-                        help="Execution mode: \'run\' for launching an execution and \'enqueue\' " +
-                             "for submitting a job to the queuing system. Default value: \'run\'")
+                        help="Execution mode: \'run\' for launching an" +
+                             " execution and \'enqueue\' for submitting a" +
+                             " job to the queuing system." +
+                             " Default value: \'run\'")
     parser.add_argument('params', nargs=argparse.REMAINDER,
-                        help="COMPSs and application arguments (check \'runcompss\' or " +
-                             "\'enqueue_compss\' commands help).")
+                        help="COMPSs and application arguments" +
+                             " (check \'runcompss\' or \'enqueue_compss\'" +
+                             " commands help).")
     return parser
 
 
@@ -76,7 +79,9 @@ def main():
     help = ['-h', '--help']
 
     # Check params
-    if len(sys.argv) > 1 and sys.argv[1] not in TAGS and sys.argv[1] not in help:
+    if len(sys.argv) > 1 and \
+            sys.argv[1] not in TAGS and \
+            sys.argv[1] not in help:
         # No action specified. Assume run.
         class Object(object):
             # Dummy class to mimic argparse return object
@@ -96,7 +101,8 @@ def main():
         python_interpreter = []
     else:
         # Use the same as current
-        python_interpreter = ['--python_interpreter=python' + str(sys.version_info[0])]
+        python_interpreter = ['--python_interpreter=python' +
+                              str(sys.version_info[0])]
 
     # Take an action
     if args.action == RUN_TAG:

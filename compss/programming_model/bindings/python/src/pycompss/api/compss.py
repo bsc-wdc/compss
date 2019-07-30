@@ -140,7 +140,7 @@ class COMPSs(object):
                     # we need to find out the real module name.
 
                     # Get the real module name from our launch.py variable
-                    path = getattr(mod, "app_path")
+                    path = getattr(mod, "APP_PATH")
                     dirs = path.split(os.path.sep)
                     file_name = os.path.splitext(os.path.basename(path))[0]
                     mod_name = file_name

@@ -59,7 +59,7 @@ from pycompss.streams.environment import init_streaming
 from pycompss.streams.environment import stop_streaming
 
 # Global variable also used within decorators
-app_path = None
+APP_PATH = None
 
 if IS_PYTHON3:
     _py_version = 3
@@ -113,7 +113,7 @@ def compss_main():
 
     :return: None
     """
-    global app_path
+    global APP_PATH
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
@@ -141,7 +141,7 @@ def compss_main():
     storage_conf = args.storage_configuration
 
     # Get application execution path
-    app_path = args.app_path
+    APP_PATH = args.app_path
 
     binding_log_path = get_log_path()
     log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', str(_py_version), 'log')
@@ -188,7 +188,7 @@ def compss_main():
             with open(app_path) as f:
                 exec(compile(f.read(), app_path, 'exec'), globals())
         else:
-            execfile(app_path, globals())  # MAIN EXECUTION
+            execfile(APP_PATH, globals())  # MAIN EXECUTION
 
         # Stop streaming
         if __debug__:
@@ -218,7 +218,7 @@ def compss_main():
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         for line in lines:
-            if app_path in line:
+            if APP_PATH in line:
                 print('[ ERROR ]: In: %s', line)
         exit_code = 1
     except COMPSsException as e:

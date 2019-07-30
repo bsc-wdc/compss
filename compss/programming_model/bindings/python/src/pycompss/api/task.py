@@ -322,10 +322,10 @@ class task(object):
             # 1.- The runtime is running.
             # 2.- The module where the function is defined was run as __main__,
             # We need to find out the real module name
-            # Get the real module name from our launch.py app_path global variable
+            # Get the real module name from our launch.py APP_PATH global variable
             # It is guaranteed that this variable will always exist because this code is only executed
             # when we know we are in the master
-            path = getattr(mod, 'app_path')
+            path = getattr(mod, 'APP_PATH')
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Do any necessary pre processing action before executing any code
@@ -693,10 +693,10 @@ class task(object):
         if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name
-            # Get the real module name from our launch.py app_path global variable
+            # Get the real module name from our launch.py APP_PATH global variable
             # It is guaranteed that this variable will always exist because this code is only executed
             # when we know we are in the master
-            path = getattr(mod, 'app_path')
+            path = getattr(mod, 'APP_PATH')
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module

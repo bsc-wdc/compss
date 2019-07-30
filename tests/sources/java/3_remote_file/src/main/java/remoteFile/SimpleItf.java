@@ -9,9 +9,7 @@ import es.bsc.compss.types.annotations.task.Method;
 public interface SimpleItf {
 
     @Method(declaringClass = "remoteFile.SimpleImpl")
-    void increment(
-        @Parameter(type = Type.FILE, direction = Direction.IN) String fileIN,
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String fileOUT
-    );
+    void increment(@Parameter(type = Type.FILE, direction = Direction.IN) String fileIN,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String fileOUT);
 
 }

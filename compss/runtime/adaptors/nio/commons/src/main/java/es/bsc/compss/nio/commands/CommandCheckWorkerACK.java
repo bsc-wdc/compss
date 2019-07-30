@@ -29,6 +29,7 @@ public class CommandCheckWorkerACK implements Command {
     private String uuid;
     private String nodeName;
 
+
     /**
      * Creates a new CommandCheckWorkerACK for externalization.
      */
@@ -39,7 +40,7 @@ public class CommandCheckWorkerACK implements Command {
     /**
      * Creates a new CommandCheckWorkerACK instance.
      *
-     * @param uuid     Associated application UUID.
+     * @param uuid Associated application UUID.
      * @param nodeName Worker node name.
      */
     public CommandCheckWorkerACK(String uuid, String nodeName) {

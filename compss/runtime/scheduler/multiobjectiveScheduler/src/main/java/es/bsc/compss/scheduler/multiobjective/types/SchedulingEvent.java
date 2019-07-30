@@ -57,7 +57,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
     protected abstract int getPriority();
 
     public abstract List<SchedulingEvent> process(LocalOptimizationState state,
-            MOResourceScheduler<WorkerResourceDescription> worker, PriorityQueue<AllocatableAction> rescheduledActions);
+        MOResourceScheduler<WorkerResourceDescription> worker, PriorityQueue<AllocatableAction> rescheduledActions);
 
 
     public static class Start extends SchedulingEvent {
@@ -78,8 +78,8 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
 
         @Override
         public List<SchedulingEvent> process(LocalOptimizationState state,
-                MOResourceScheduler<WorkerResourceDescription> worker,
-                PriorityQueue<AllocatableAction> rescheduledActions) {
+            MOResourceScheduler<WorkerResourceDescription> worker,
+            PriorityQueue<AllocatableAction> rescheduledActions) {
 
             List<SchedulingEvent> enabledEvents = new LinkedList<>();
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
@@ -95,8 +95,8 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
             // Remove resources from the state and fill the gaps before its execution
             dsi.clearPredecessors();
             dsi.clearSuccessors();
-            List<Gap> tmpGaps = state.reserveResources(action.getAssignedImplementation().getRequirements(),
-                    expectedTimeStamp);
+            List<Gap> tmpGaps =
+                state.reserveResources(action.getAssignedImplementation().getRequirements(), expectedTimeStamp);
 
             for (Gap tmpGap : tmpGaps) {
                 AllocatableAction gapAction = tmpGap.getOrigin();
@@ -125,7 +125,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
         }
 
         private PriorityQueue<Gap> fillGap(MOResourceScheduler<WorkerResourceDescription> worker, Gap gap,
-                PriorityQueue<AllocatableAction> rescheduledActions, LocalOptimizationState state) {
+            PriorityQueue<AllocatableAction> rescheduledActions, LocalOptimizationState state) {
             // Find selected action predecessors
             PriorityQueue<Gap> availableGaps = new PriorityQueue<Gap>(1, new Comparator<Gap>() {
 
@@ -146,8 +146,8 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
 
                 // Fill previous gap space
                 if (gap.getInitialTime() != gapActionStart) {
-                    Gap previousGap = new Gap(gap.getInitialTime(), gapActionStart, gap.getOrigin(),
-                            gap.getResources().copy(), 0);
+                    Gap previousGap =
+                        new Gap(gap.getInitialTime(), gapActionStart, gap.getOrigin(), gap.getResources().copy(), 0);
                     state.replaceTmpGap(gap, previousGap);
                     availableGaps = fillGap(worker, previousGap, rescheduledActions, state);
                 } else {
@@ -167,8 +167,8 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
                     if (peekGap != null) {
                         AllocatableAction peekAction = peekGap.getOrigin();
                         if (peekAction != null) {
-                            MOSchedulingInformation predActionDSI = (MOSchedulingInformation) peekAction
-                                    .getSchedulingInfo();
+                            MOSchedulingInformation predActionDSI =
+                                (MOSchedulingInformation) peekAction.getSchedulingInfo();
                             gapActionDSI.addPredecessor(peekGap);
                             predActionDSI.addSuccessor(gapAction);
                         }
@@ -186,8 +186,8 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
                 List<Gap> extendedGaps = new LinkedList<>();
                 // Fill Concurrent
                 for (Gap g : availableGaps) {
-                    Gap extendedGap = new Gap(g.getInitialTime(), gap.getEndTime(), g.getOrigin(), g.getResources(),
-                            g.getCapacity());
+                    Gap extendedGap =
+                        new Gap(g.getInitialTime(), gap.getEndTime(), g.getOrigin(), g.getResources(), g.getCapacity());
                     state.replaceTmpGap(extendedGap, gap);
                     extendedGaps.add(extendedGap);
                 }
@@ -206,7 +206,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
 
                 // Fill Post action gap space
                 Gap actionGap = new Gap(expectedEnd, gap.getEndTime(), gapAction,
-                        gapAction.getAssignedImplementation().getRequirements(), 0);
+                    gapAction.getAssignedImplementation().getRequirements(), 0);
                 state.addTmpGap(actionGap);
                 availableGaps.addAll(fillGap(worker, actionGap, rescheduledActions, state));
             } else {
@@ -216,7 +216,7 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
         }
 
         private long getExpectedEnd(AllocatableAction action, MOResourceScheduler<WorkerResourceDescription> worker,
-                long expectedStart) {
+            long expectedStart) {
             long theoreticalEnd;
             if (action.isToReleaseResources()) {
                 Implementation impl = action.getAssignedImplementation();
@@ -254,8 +254,8 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
 
         @Override
         public List<SchedulingEvent> process(LocalOptimizationState state,
-                MOResourceScheduler<WorkerResourceDescription> worker,
-                PriorityQueue<AllocatableAction> rescheduledActions) {
+            MOResourceScheduler<WorkerResourceDescription> worker,
+            PriorityQueue<AllocatableAction> rescheduledActions) {
 
             List<SchedulingEvent> enabledEvents = new LinkedList<>();
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
@@ -315,8 +315,8 @@ public abstract class SchedulingEvent implements Comparable<SchedulingEvent> {
 
         @Override
         public List<SchedulingEvent> process(LocalOptimizationState state,
-                MOResourceScheduler<WorkerResourceDescription> worker,
-                PriorityQueue<AllocatableAction> rescheduledActions) {
+            MOResourceScheduler<WorkerResourceDescription> worker,
+            PriorityQueue<AllocatableAction> rescheduledActions) {
             MOSchedulingInformation dsi = (MOSchedulingInformation) action.getSchedulingInfo();
             dsi.setOnOptimization(false);
             dsi.clearPredecessors();

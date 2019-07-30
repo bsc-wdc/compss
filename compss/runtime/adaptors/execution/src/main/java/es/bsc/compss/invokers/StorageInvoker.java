@@ -43,8 +43,8 @@ import storage.StubItf;
 public class StorageInvoker extends JavaInvoker {
 
     private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Target object class not found";
-    private static final String ERROR_EXTERNAL_NO_PSCO 
-        = "ERROR: External ExecuteTask can only be used with target PSCOs";
+    private static final String ERROR_EXTERNAL_NO_PSCO =
+        "ERROR: External ExecuteTask can only be used with target PSCOs";
     private static final String ERROR_STORAGE_CALL = "ERROR: External executeTask call failed";
     private static final String ERROR_CALLBACK_INTERRUPTED = "ERROR: External callback interrupted";
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
@@ -52,7 +52,7 @@ public class StorageInvoker extends JavaInvoker {
 
 
     public StorageInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
     }
@@ -76,8 +76,8 @@ public class StorageInvoker extends JavaInvoker {
 
         String descriptor;
         try {
-            descriptor = method.getName()
-                    + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
+            descriptor =
+                method.getName() + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
         } catch (NotFoundException e) {
             throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + method.getReturnType().getName(), e);
         }
@@ -96,7 +96,7 @@ public class StorageInvoker extends JavaInvoker {
         // Call Storage executeTask
         if (LOGGER.isDebugEnabled()) {
             LOGGER.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in "
-                    + context.getHostName());
+                + context.getHostName());
         } else {
             LOGGER.info("External ExecuteTask " + method.getName());
         }

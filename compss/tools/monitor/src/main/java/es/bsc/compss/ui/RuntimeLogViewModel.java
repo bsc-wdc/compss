@@ -67,7 +67,8 @@ public class RuntimeLogViewModel {
      * @param filter Filter expression.
      */
     @Command
-    @NotifyChange({ "runtimeLog", "filter" })
+    @NotifyChange({ "runtimeLog",
+        "filter" })
     public void setFilter(@BindingParam("filter") String filter) {
         this.filter = filter;
         this.lastParsedLine = 0;
@@ -78,7 +79,8 @@ public class RuntimeLogViewModel {
      * Updates the UI view.
      */
     @Command
-    @NotifyChange({ "runtimeLog", "filter" })
+    @NotifyChange({ "runtimeLog",
+        "filter" })
     public void update() {
         if (!Properties.getBasePath().equals("")) {
             // Check if applicaction has changed

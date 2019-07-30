@@ -7,14 +7,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+
 public class TestTaskGroupsImpl {
 
     public static void writeTwo(String fileName) {
         writeFile(fileName, String.valueOf(2));
         System.out.println("2 written");
     }
-    
-    public static void writeFile (String fileName, String i) {
+
+    public static void writeFile(String fileName, String i) {
         File f = new File(fileName);
 
         BufferedWriter writer = null;
@@ -31,18 +32,18 @@ public class TestTaskGroupsImpl {
             }
         }
     }
-    
-    public static String readFile (String fileName) {
+
+    public static String readFile(String fileName) {
         File f = new File(fileName);
         BufferedReader br = null;
         String contents = "";
         try {
             br = new BufferedReader(new FileReader(f));
             String line;
-            while ((line = br.readLine()) != null) { 
-              contents = contents + line;
+            while ((line = br.readLine()) != null) {
+                contents = contents + line;
             }
-                
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

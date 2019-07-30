@@ -57,8 +57,8 @@ public class ServiceImplementation extends Implementation implements Externaliza
      * @param signature Service operation signature.
      */
     public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation,
-            String signature) {
-        
+        String signature) {
+
         super(coreId, 0, signature, null);
 
         this.requirements = new ServiceResourceDescription(service, namespace, port, 1);
@@ -87,7 +87,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
      * @return Signature built from the given parameters.
      */
     public static String getSignature(String namespace, String serviceName, String portName, String operation,
-            boolean hasTarget, int numReturns, List<Parameter> parameters) {
+        boolean hasTarget, int numReturns, List<Parameter> parameters) {
 
         StringBuilder buffer = new StringBuilder();
 
@@ -123,7 +123,7 @@ public class ServiceImplementation extends Implementation implements Externaliza
     public String toString() {
         ServiceResourceDescription description = (ServiceResourceDescription) this.requirements;
         return super.toString() + " Service in namespace " + description.getNamespace() + " with name "
-                + description.getPort() + " on port " + description.getPort() + "and operation " + this.operation;
+            + description.getPort() + " on port " + description.getPort() + "and operation " + this.operation;
     }
 
     @Override

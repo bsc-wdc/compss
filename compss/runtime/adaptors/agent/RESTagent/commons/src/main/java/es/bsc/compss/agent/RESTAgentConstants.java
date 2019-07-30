@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.agent;
 
-
 public class RESTAgentConstants extends AgentConstants {
 
     public static final String COMPSS_AGENT_PORT = "compss.agent.port";

@@ -54,7 +54,7 @@ public class Main {
     }
 
     private static void produceConsume(int numProducers, int producerSleep, int numConsumers, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Create stream
         ObjectDistroStream<MyObject> ods = new ObjectDistroStream<>(ConsumerMode.AT_MOST_ONCE);
@@ -91,7 +91,7 @@ public class Main {
     }
 
     private static void produceListConsume(int producerSleep, int numConsumers, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Create stream
         ObjectDistroStream<MyObject> ods = new ObjectDistroStream<>(ConsumerMode.AT_MOST_ONCE);
@@ -114,7 +114,7 @@ public class Main {
     }
 
     private static void produceConsumeTimeout(int numProducers, int producerSleep, int numConsumers, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Create stream
         ObjectDistroStream<MyObject> ods = new ObjectDistroStream<>(ConsumerMode.AT_MOST_ONCE);
@@ -151,7 +151,7 @@ public class Main {
     }
 
     private static void produceSpawnConsumers(int numProducers, int producerSleep, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Create stream
         ObjectDistroStream<MyObject> ods = new ObjectDistroStream<>(ConsumerMode.AT_MOST_ONCE);
@@ -167,8 +167,8 @@ public class Main {
         while (!ods.isClosed()) {
             List<MyObject> newObjects = ods.poll();
             for (MyObject obj : newObjects) {
-                System.out.println("Sending " + obj.hashCode() + ":" + obj.getName() + ":" + obj.getValue()
-                        + " to a process task");
+                System.out.println(
+                    "Sending " + obj.hashCode() + ":" + obj.getName() + ":" + obj.getValue() + " to a process task");
                 partialObjects[pos] = Tasks.processObject(obj);
                 pos = pos + 1;
             }
@@ -184,7 +184,7 @@ public class Main {
         List<MyObject> newObjects = ods.poll();
         for (MyObject obj : newObjects) {
             System.out.println(
-                    "Sending " + obj.hashCode() + ":" + obj.getName() + ":" + obj.getValue() + " to a process task");
+                "Sending " + obj.hashCode() + ":" + obj.getName() + ":" + obj.getValue() + " to a process task");
             partialObjects[pos] = Tasks.processObject(obj);
             pos = pos + 1;
         }
@@ -202,7 +202,7 @@ public class Main {
     }
 
     private static void byAlias(int numProducers, int producerSleep, int numConsumers, int consumerSleep)
-            throws RegistrationException, IOException, BackendException {
+        throws RegistrationException, IOException, BackendException {
 
         // Create stream
         ObjectDistroStream<MyObject> ods = new ObjectDistroStream<>(ALIAS, ConsumerMode.AT_MOST_ONCE);

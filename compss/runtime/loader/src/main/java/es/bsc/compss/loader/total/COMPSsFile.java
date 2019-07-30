@@ -44,35 +44,35 @@ public class COMPSsFile extends File {
     @Override
     public boolean createNewFile() throws java.io.IOException {
         System.out.println("COMPSs WARNING: You are creating a new file from a file " + this.pathname
-                + " which has been used in a task. This could make your program to not work as expected.");
+            + " which has been used in a task. This could make your program to not work as expected.");
         return super.createNewFile();
     }
 
     @Override
     public long getFreeSpace() {
         System.out.println("COMPSs WARNING: You are getting the free space in file " + this.pathname
-                + ". This has been used in a task. This could make your program to not work as expected.");
+            + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getFreeSpace();
     }
 
     @Override
     public long getUsableSpace() {
         System.out.println("COMPSs WARNING: You are getting the usable space in file " + this.pathname
-                + ". This has been used in a task. This could make your program to not work as expected.");
+            + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getUsableSpace();
     }
 
     @Override
     public long getTotalSpace() {
         System.out.println("COMPSs WARNING: You are getting the total space in file " + this.pathname
-                + ". This has been used in a task. This could make your program to not work as expected.");
+            + ". This has been used in a task. This could make your program to not work as expected.");
         return super.getTotalSpace();
     }
 
     @Override
     public boolean exists() {
         System.out.println("COMPSs WARNING: You are checking if file " + this.pathname
-                + " exists. This has been used in a task. This could make your program to not work as expected.");
+            + " exists. This has been used in a task. This could make your program to not work as expected.");
         return super.exists();
     }
 

@@ -65,8 +65,8 @@ public class MOResourceSchedulerTest {
     private static final double SET_PRICE = 0.45;
 
     private static final String SET_PROFILE = "{\"maxTime\":" + (SET_MAX_EXECUTION_TIME) + ",\"executions\":"
-            + (SET_EXECUTION_COUNT) + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME) + ",\"minTime\":"
-            + (SET_MIN_EXECUTION_TIME) + ",\"power\":" + (SET_POWER) + ",\"price\":" + (SET_PRICE) + "}";
+        + (SET_EXECUTION_COUNT) + ",\"avgTime\":" + (SET_AVG_EXECUTION_TIME) + ",\"minTime\":"
+        + (SET_MIN_EXECUTION_TIME) + ",\"power\":" + (SET_POWER) + ",\"price\":" + (SET_PRICE) + "}";
     private static FakeWorker worker;
 
     // Test Logger
@@ -90,17 +90,17 @@ public class MOResourceSchedulerTest {
         cedA.setCeSignature("methodA");
         ImplementationDefinition<?> implDef = null;
         implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassA.methodA",
-                new MethodResourceDescription(), "ClassA", "methodA");
+            new MethodResourceDescription(), "ClassA", "methodA");
         cedA.addImplementation(implDef);
         implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassB.methodA",
-                new MethodResourceDescription(), "ClassB", "methodA");
+            new MethodResourceDescription(), "ClassB", "methodA");
         cedA.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedA);
 
         CoreElementDefinition cedB = new CoreElementDefinition();
         cedB.setCeSignature("methodB");
         implDef = ImplementationDefinition.defineImplementation(METHOD, "ClassA.methodB",
-                new MethodResourceDescription(), "ClassA", "methodB");
+            new MethodResourceDescription(), "ClassA", "methodB");
         cedB.addImplementation(implDef);
         CoreManager.registerNewCoreElement(cedB);
     }
@@ -119,8 +119,8 @@ public class MOResourceSchedulerTest {
 
     @Test
     public void testNull() {
-        MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
-                null, null);
+        MOResourceScheduler<MethodResourceDescription> rs =
+            new MOResourceScheduler<MethodResourceDescription>(worker, null, null);
         for (CoreElement ce : CoreManager.getAllCores()) {
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
@@ -129,7 +129,7 @@ public class MOResourceSchedulerTest {
                     checkUnsetProfile(p);
                 } catch (CheckerException cEx) {
                     fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
-                            + " core " + impl.getCoreId() + " on null test");
+                        + " core " + impl.getCoreId() + " on null test");
                 }
             }
         }
@@ -144,7 +144,7 @@ public class MOResourceSchedulerTest {
     @Test
     public void testEmpty() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
-                new JSONObject("{\"implementations\":{}}"), null);
+            new JSONObject("{\"implementations\":{}}"), null);
         for (CoreElement ce : CoreManager.getAllCores()) {
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
@@ -153,7 +153,7 @@ public class MOResourceSchedulerTest {
                     checkUnsetProfile(p);
                 } catch (CheckerException cEx) {
                     fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
-                            + " core " + impl.getCoreId() + " on empty test");
+                        + " core " + impl.getCoreId() + " on empty test");
                 }
             }
         }
@@ -168,10 +168,10 @@ public class MOResourceSchedulerTest {
     @Test
     public void testAllSetNoPrice() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
-                new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":"
-                        + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":"
-                        + SET_PROFILE + "}}"),
-                null);
+            new JSONObject(
+                "{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
+                    + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
+            null);
         for (CoreElement ce : CoreManager.getAllCores()) {
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
@@ -180,7 +180,7 @@ public class MOResourceSchedulerTest {
                     checkSetProfile(p);
                 } catch (CheckerException cEx) {
                     fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
-                            + " core " + impl.getCoreId() + " on all set no-price test");
+                        + " core " + impl.getCoreId() + " on all set no-price test");
                 }
             }
         }
@@ -195,10 +195,10 @@ public class MOResourceSchedulerTest {
     @Test
     public void testAllSetNoPower() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
-                new JSONObject("{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":"
-                        + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":"
-                        + SET_PROFILE + "}}"),
-                null);
+            new JSONObject(
+                "{\"idlePrice\": " + SET_IDLE_PRICE + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + ","
+                    + "\"ClassB.methodA\":" + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
+            null);
         for (CoreElement ce : CoreManager.getAllCores()) {
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
@@ -207,7 +207,7 @@ public class MOResourceSchedulerTest {
                     checkSetProfile(p);
                 } catch (CheckerException cEx) {
                     fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
-                            + " core " + impl.getCoreId() + " on all set no-power  test");
+                        + " core " + impl.getCoreId() + " on all set no-power  test");
                 }
             }
         }
@@ -222,10 +222,10 @@ public class MOResourceSchedulerTest {
     @Test
     public void testAllSet() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
-                new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
-                        + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":"
-                        + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
-                null);
+            new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
+                + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE
+                + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
+            null);
         for (CoreElement ce : CoreManager.getAllCores()) {
             List<Implementation> impls = ce.getImplementations();
             for (Implementation impl : impls) {
@@ -234,7 +234,7 @@ public class MOResourceSchedulerTest {
                     checkSetProfile(p);
                 } catch (CheckerException cEx) {
                     fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
-                            + " core " + impl.getCoreId() + " on all set test");
+                        + " core " + impl.getCoreId() + " on all set test");
                 }
             }
         }
@@ -249,10 +249,10 @@ public class MOResourceSchedulerTest {
     @Test
     public void testAllSetCopy() {
         MOResourceScheduler<MethodResourceDescription> rs = new MOResourceScheduler<MethodResourceDescription>(worker,
-                new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
-                        + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":"
-                        + SET_PROFILE + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
-                null);
+            new JSONObject("{\"idlePower\": " + SET_IDLE_POWER + ", \"idlePrice\": " + SET_IDLE_PRICE
+                + ", \"implementations\":{\"ClassA.methodA\":" + SET_PROFILE + "," + "\"ClassB.methodA\":" + SET_PROFILE
+                + "," + "\"ClassA.methodB\":" + SET_PROFILE + "}}"),
+            null);
         JSONObject jo = rs.toJSONObject();
         rs = new MOResourceScheduler<MethodResourceDescription>(worker, jo, null);
         for (CoreElement ce : CoreManager.getAllCores()) {
@@ -263,7 +263,7 @@ public class MOResourceSchedulerTest {
                     checkSetProfile(p);
                 } catch (CheckerException cEx) {
                     fail("Invalid " + cEx.getFeature() + " for unset implementation " + impl.getImplementationId()
-                            + " core " + impl.getCoreId() + " on all set test");
+                        + " core " + impl.getCoreId() + " on all set test");
                 }
             }
         }

@@ -28,7 +28,10 @@ public class SimpleURI {
     private final String hostname;
     private final String path;
 
-    /** Simple URI Constructor.
+
+    /**
+     * Simple URI Constructor.
+     * 
      * @param scheme URI scheme
      * @param hostname URI hostname
      * @param path URI path

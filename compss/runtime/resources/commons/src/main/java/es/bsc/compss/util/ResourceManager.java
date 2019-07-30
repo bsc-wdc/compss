@@ -66,8 +66,8 @@ public class ResourceManager {
     // Error messages
     private static final String ERROR_RESOURCES_XML = "ERROR: Cannot parse resources.xml file";
     private static final String ERROR_PROJECT_XML = "ERROR: Cannot parse project.xml file";
-    private static final String ERROR_NO_RES = "ERROR: No computational resource available"
-            + " (ComputeNode, service or CloudProvider)";
+    private static final String ERROR_NO_RES =
+        "ERROR: No computational resource available" + " (ComputeNode, service or CloudProvider)";
     protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
     private static final String DEL_VM_ERR = "ERROR: Canot delete VMs";
 
@@ -266,7 +266,7 @@ public class ResourceManager {
         RESOURCES_LOGGER.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         RESOURCES_LOGGER.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
         RUNTIME_LOGGER.info("New " + ((worker.getType() == ResourceType.SERVICE) ? "service" : "computeNode")
-                + " available in the pool. Name = " + worker.getName());
+            + " available in the pool. Name = " + worker.getName());
     }
 
     /**
@@ -344,11 +344,11 @@ public class ResourceManager {
      * @throws ConnectorException When connector cannot be instantiated.
      */
     public static CloudProvider registerCloudProvider(String providerName, Integer limitOfVMs,
-            String runtimeConnectorClass, String connectorJarPath, String connectorMainClass,
-            Map<String, String> connectorProperties) throws ConnectorException {
+        String runtimeConnectorClass, String connectorJarPath, String connectorMainClass,
+        Map<String, String> connectorProperties) throws ConnectorException {
 
         return cloudManager.registerCloudProvider(providerName, limitOfVMs, runtimeConnectorClass, connectorJarPath,
-                connectorMainClass, connectorProperties);
+            connectorMainClass, connectorProperties);
     }
 
     /**
@@ -385,7 +385,7 @@ public class ResourceManager {
      * @param granted Worker resource description granted by the connector.
      */
     public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
-            CloudMethodResourceDescription granted) {
+        CloudMethodResourceDescription granted) {
         CloudProvider cloudProvider = origin.getProvider();
         cloudProvider.confirmedCreation(origin, worker, granted);
         addDynamicWorker(worker, granted);
@@ -429,7 +429,7 @@ public class ResourceManager {
      * @param extension Description of the increase.
      */
     public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
-            CloudMethodResourceDescription extension) {
+        CloudMethodResourceDescription extension) {
         CloudProvider cloudProvider = origin.getProvider();
         cloudProvider.confirmedCreation(origin, worker, extension);
         increasedDynamicWorker(worker, extension);
@@ -474,7 +474,7 @@ public class ResourceManager {
      * @param reduction Decreased reduction.
      */
     public static <T extends WorkerResourceDescription> void confirmWorkerReduction(Worker<T> worker,
-            PendingReduction<T> reduction) {
+        PendingReduction<T> reduction) {
 
         ResourceUpdate<T> ru = new PerformedReduction<>(reduction.getModification());
         resourceUser.updatedResource(worker, ru);
@@ -529,7 +529,7 @@ public class ResourceManager {
      */
     @SuppressWarnings("unchecked")
     public static <R extends WorkerResourceDescription> void reduceDynamicWorker(DynamicMethodWorker worker,
-            PendingReduction<R> reduction) {
+        PendingReduction<R> reduction) {
         synchronized (pool) {
             int[] maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
@@ -800,19 +800,19 @@ public class ResourceManager {
             // TODO: Add more information (i.e. information per processor, memory type, etc.)
             sb.append(prefix).append("<Resource id=\"requested new VM\">").append("\n");
             sb.append(prefix).append("\t").append("<CPUComputingUnits>").append(0).append("</CPUComputingUnits>")
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("<GPUComputingUnits>").append(0).append("</GPUComputingUnits>")
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("<FPGAComputingUnits>").append(0).append("</FPGAComputingUnits>")
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("<OTHERComputingUnits>").append(0).append("</OTHERComputingUnits>")
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("<Memory>").append(0).append("</Memory>").append("\n");
             sb.append(prefix).append("\t").append("<Disk>").append(0).append("</Disk>").append("\n");
             sb.append(prefix).append("\t").append("<Provider>").append(r.getProvider()).append("</Provider>")
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("<Image>").append(r.getRequested().getImage().getImageName())
-                    .append("</Image>").append("\n");
+                .append("</Image>").append("\n");
             sb.append(prefix).append("\t").append("<Status>").append("Creating").append("</Status>").append("\n");
             sb.append(prefix).append("\t").append("<Tasks>").append("</Tasks>").append("\n");
             sb.append(prefix).append("</Resource>").append("\n");
@@ -847,7 +847,7 @@ public class ResourceManager {
                     resourceState.append("\t\t\t").append("CORE = [").append("\n");
                     resourceState.append("\t\t\t").append("\t").append("COREID = ").append(i).append("\n");
                     resourceState.append("\t\t\t").append("\t").append("NUM_SLOTS = ").append(coreSlots[i])
-                            .append("\n");
+                        .append("\n");
                     resourceState.append("\t\t\t").append("]").append("\n");
                 }
                 resourceState.append("\t\t").append("]").append("\n"); // End CAN_RUN
@@ -860,10 +860,10 @@ public class ResourceManager {
 
         if (cloudManager.isUseCloud()) {
             resourceState.append("\t").append("CURRENT_CLOUD_VM_COUNT = ").append(cloudManager.getCurrentVMCount())
-                    .append("\n");
+                .append("\n");
             try {
                 resourceState.append("\t").append("CREATION_TIME = ")
-                        .append(Long.toString(cloudManager.getNextCreationTime())).append("\n");
+                    .append(Long.toString(cloudManager.getNextCreationTime())).append("\n");
             } catch (Exception ex) {
                 resourceState.append("\t").append("CREATION_TIME = ").append(120_000L).append("\n");
             }

@@ -11,8 +11,6 @@ public interface MainItf {
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "limitOfTasks.MainImpl")
-    void increment(
-        @Parameter(type = Type.FILE, direction = Direction.INOUT) String file
-    );
+    void increment(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file);
 
 }

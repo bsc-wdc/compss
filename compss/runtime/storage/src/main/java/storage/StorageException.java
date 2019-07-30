@@ -20,8 +20,7 @@ import java.io.Serializable;
 
 
 /**
- * Exception representation for errors when calling the Storage ITF.
- * TODO: complete javadoc
+ * Exception representation for errors when calling the Storage ITF. TODO: complete javadoc
  */
 public class StorageException extends Exception implements Serializable {
 

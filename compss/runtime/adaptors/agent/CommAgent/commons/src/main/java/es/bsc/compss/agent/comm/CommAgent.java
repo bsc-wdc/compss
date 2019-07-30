@@ -29,9 +29,9 @@ public interface CommAgent {
 
     public void print(Object o);
 
-    public void addResources(Resource<?,?> res);
+    public void addResources(Resource<?, ?> res);
 
-    public void removeResources(Resource<?,?> node);
+    public void removeResources(Resource<?, ?> node);
 
     public void removeNode(String node);
 

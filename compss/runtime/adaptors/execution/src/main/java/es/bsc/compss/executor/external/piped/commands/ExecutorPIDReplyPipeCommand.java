@@ -34,6 +34,7 @@ public class ExecutorPIDReplyPipeCommand extends ExecutorPIDReplyExternalCommand
 
     /**
      * Executor PID reply command constructor.
+     * 
      * @param line command content as a string array with in/out pipes and PIDs
      */
     public ExecutorPIDReplyPipeCommand(String[] line) {
@@ -46,7 +47,8 @@ public class ExecutorPIDReplyPipeCommand extends ExecutorPIDReplyExternalCommand
     }
 
     /**
-     *  Executor PID reply command constructor.
+     * Executor PID reply command constructor.
+     * 
      * @param pp In/out pipe pair
      */
     public ExecutorPIDReplyPipeCommand(PipePair pp) {

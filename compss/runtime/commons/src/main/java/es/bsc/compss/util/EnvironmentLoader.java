@@ -67,8 +67,8 @@ public class EnvironmentLoader {
                 if (variableValue != null) {
                     expressionValue = expressionValue.replace(variableFullName, variableValue);
                 } else {
-                    ErrorManager.warn(
-                            "[WARNING] Null value obtained while loading " + variableFullName + " from environment");
+                    ErrorManager
+                        .warn("[WARNING] Null value obtained while loading " + variableFullName + " from environment");
                     expressionValue = expressionValue.replace(variableFullName, "");
                 }
             }

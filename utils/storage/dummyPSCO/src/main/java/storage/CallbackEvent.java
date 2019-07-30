@@ -19,8 +19,7 @@ package storage;
 public class CallbackEvent {
 
     public static enum EventType {
-        FAIL, 
-        SUCCESS;
+        FAIL, SUCCESS;
 
         private EventType() {
         }

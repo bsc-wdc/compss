@@ -113,8 +113,8 @@ public class MirrorMonitor {
 
                 AliveGetPipeCommand aliveRequest = new AliveGetPipeCommand(elementsInfo);
                 if (LOGGER.isDebugEnabled()) {
-                    StringBuilder aliveQuery = new StringBuilder(
-                            "Piped mirrors monitor obtaining alive processes. Checking processes ");
+                    StringBuilder aliveQuery =
+                        new StringBuilder("Piped mirrors monitor obtaining alive processes. Checking processes ");
                     for (PipeElementInfo info : elementsInfo) {
                         aliveQuery.append(" ").append(info.getPID());
                     }
@@ -129,8 +129,8 @@ public class MirrorMonitor {
                     }
                     aliveProcesses = reply.getAliveProcesses();
                 } else {
-                    LOGGER.debug(
-                            "Piped mirrors monitor could not obtain the alive processes - Message couldn't be sent");
+                    LOGGER
+                        .debug("Piped mirrors monitor could not obtain the alive processes - Message couldn't be sent");
                     continue;
                 }
 
@@ -151,7 +151,7 @@ public class MirrorMonitor {
                         }
                         if (!removed) {
                             LOGGER.debug("Piped mirrors monitor has detected that worker process " + info.getPID()
-                                    + " has died.");
+                                + " has died.");
                             ControlPipePair workerPipe = info.getPipe();
                             workerPipe.noLongerExists();
                             workerPipe.delete();
@@ -178,7 +178,7 @@ public class MirrorMonitor {
                             // If it was not removed yet
                             PipePair workerPipe = info.getPipe();
                             LOGGER.debug("Piped mirrors monitor has detected that executor process " + info.getPID()
-                                    + " has died.");
+                                + " has died.");
                             workerPipe.noLongerExists();
                             workerPipe.delete();
                             PipedMirror mirror = info.getMirror();
@@ -227,6 +227,7 @@ public class MirrorMonitor {
 
     /**
      * Register a worker to the Mirror monitor.
+     * 
      * @param workerName Worker Name
      * @param workerPID Worker Process Identifier
      * @param workerControlPipe Worker control pipe
@@ -240,6 +241,7 @@ public class MirrorMonitor {
 
     /**
      * Unregister a worker to the Mirror monitor.
+     * 
      * @param workerName Worker name
      */
     public void unregisterWorker(String workerName) {
@@ -253,6 +255,7 @@ public class MirrorMonitor {
 
     /**
      * Register executor to the Mirror monitor.
+     * 
      * @param mirror Piped mirror
      * @param executorId Executor Identifier
      * @param executorPId Executor Process identifier
@@ -267,6 +270,7 @@ public class MirrorMonitor {
 
     /**
      * Unregister executor from the Mirror monitor.
+     * 
      * @param mirror Piped Mirror
      * @param executorId Executor Identifier
      */

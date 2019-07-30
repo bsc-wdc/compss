@@ -39,13 +39,13 @@ public class PythonMirror extends PipedMirror {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
     // Worker paths
-    private static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator
-            + "bindings-common" + File.separator + "lib";
+    private static final String BINDINGS_RELATIVE_PATH =
+        File.separator + "Bindings" + File.separator + "bindings-common" + File.separator + "lib";
     public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
     private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
-            + File.separator + "piper" + File.separator + "piper_worker.py";
+        + File.separator + "piper" + File.separator + "piper_worker.py";
     private static final String MPI_WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker"
-            + File.separator + "piper" + File.separator + "mpi_piper_worker.py";
+        + File.separator + "piper" + File.separator + "mpi_piper_worker.py";
 
     // Environment variable names
     private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
@@ -99,7 +99,7 @@ public class PythonMirror extends PipedMirror {
         if (this.pyParams.usePythonMpiWorker()) {
             // Rank 0 acts as the Piper Worker. Other processes act as piped executors
             cmd.append("mpirun").append(TOKEN_SEP).append("-np").append(TOKEN_SEP).append(this.size + 1)
-                    .append(TOKEN_SEP);
+                .append(TOKEN_SEP);
         }
         cmd.append(this.pyParams.getPythonInterpreter()).append(TOKEN_SEP).append("-u").append(TOKEN_SEP);
         cmd.append(this.pyCOMPSsHome);
@@ -142,8 +142,8 @@ public class PythonMirror extends PipedMirror {
         if (pythonPath == null) {
             pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir();
         } else {
-            pythonPath = this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir()
-                    + pythonPath;
+            pythonPath =
+                this.pyCOMPSsHome + ":" + this.pyParams.getPythonPath() + ":" + context.getAppDir() + pythonPath;
         }
         env.put(ENV_PYTHONPATH, pythonPath);
 

@@ -169,7 +169,7 @@ public abstract class NIOAgent {
      */
     public boolean hasPendingTransfers() {
         LOGGER.debug("pending: " + !this.pendingRequests.isEmpty() + " sendTransfers: " + (this.sendTransfers != 0)
-                + " receiveTrasnfers: " + (this.receiveTransfers != 0) + "\n");
+            + " receiveTrasnfers: " + (this.receiveTransfers != 0) + "\n");
         return !this.pendingRequests.isEmpty() || this.sendTransfers != 0 || this.receiveTransfers != 0;
     }
 
@@ -200,7 +200,7 @@ public abstract class NIOAgent {
                 c = TM.startConnection(nn);
                 if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will be used to acquire data "
-                            + dr.getTarget() + " stored in " + nn + " with name " + dr.getSource().getDataMgmtId());
+                        + dr.getTarget() + " stored in " + nn + " with name " + dr.getSource().getDataMgmtId());
                 }
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
                 CommandDataDemand cdd = new CommandDataDemand(remoteData, this.tracingId);
@@ -258,7 +258,7 @@ public abstract class NIOAgent {
     private void receiveBindingObject(Connection c, DataRequest dr) {
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Receiving binding data " + dr.getTarget() + " from "
-                    + dr.getSource().getFirstURI().getPath());
+                + dr.getSource().getFirstURI().getPath());
         }
         // BindingObject bo = BindingObject.generate(dr.getSource().getFirstURI().getPath());
         String targetId = dr.getTarget();
@@ -275,7 +275,7 @@ public abstract class NIOAgent {
     private void receiveBindingObjectAsFile(Connection c, DataRequest dr) {
         if (DEBUG) {
             LOGGER.debug(DBG_PREFIX + "Receiving binding data " + dr.getTarget() + " as file from "
-                    + dr.getSource().getFirstURI().getPath());
+                + dr.getSource().getFirstURI().getPath());
         }
         // BindingObject bo = BindingObject.generate(dr.getSource().getFirstURI().getPath());
         String targetId = dr.getTarget();
@@ -351,7 +351,7 @@ public abstract class NIOAgent {
             Object o = getObject(path);
             if (DEBUG) {
                 LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer an object as data "
-                        + d.getDataMgmtId());
+                    + d.getDataMgmtId());
             }
             c.sendDataObject(o);
         } catch (SerializedObjectException soe) {
@@ -359,7 +359,7 @@ public abstract class NIOAgent {
             String newLocation = getObjectAsFile(path);
             if (DEBUG) {
                 LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer an object-file " + newLocation
-                        + " as data " + d.getDataMgmtId());
+                    + " as data " + d.getDataMgmtId());
             }
             sendFile(c, newLocation, d);
         }
@@ -373,7 +373,7 @@ public abstract class NIOAgent {
             if (f.exists()) {
                 if (DEBUG) {
                     LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer file " + path + " as data "
-                            + d.getDataMgmtId());
+                        + d.getDataMgmtId());
                 }
                 c.sendDataFile(path);
             } else {
@@ -383,25 +383,25 @@ public abstract class NIOAgent {
                     if (renamed.exists()) {
                         if (DEBUG) {
                             LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer file "
-                                    + renamed.getAbsolutePath() + " as data " + d.getDataMgmtId());
+                                + renamed.getAbsolutePath() + " as data " + d.getDataMgmtId());
                         }
                         c.sendDataFile(renamed.getAbsolutePath());
                     } else {
                         ErrorManager
-                                .warn("Can't send niether file '" + path + "' nor file '" + renamed.getAbsolutePath()
-                                        + "' via connection " + c.hashCode() + " because files don't exist.");
+                            .warn("Can't send niether file '" + path + "' nor file '" + renamed.getAbsolutePath()
+                                + "' via connection " + c.hashCode() + " because files don't exist.");
                         handleDataToSendNotAvailable(c, d);
                     }
                 } else {
                     ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode()
-                            + " because file doesn't exist.");
+                        + " because file doesn't exist.");
                     handleDataToSendNotAvailable(c, d);
                 }
             }
         } else {
             if (DEBUG) {
-                LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer object of data "
-                        + d.getDataMgmtId());
+                LOGGER.debug(
+                    DBG_PREFIX + "Connection " + c.hashCode() + " will transfer object of data " + d.getDataMgmtId());
             }
             sendObject(c, path, d);
         }
@@ -416,7 +416,7 @@ public abstract class NIOAgent {
                     c.sendDataByteBuffer(bb);
                 } else {
                     ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
-                            + " because bytebuffer is null.");
+                        + " because bytebuffer is null.");
                     handleDataToSendNotAvailable(c, d);
                 }
             } else {
@@ -427,13 +427,13 @@ public abstract class NIOAgent {
                 int res = NIOBindingDataManager.sendNativeObject(bo.getName(), ncs);
                 if (res != 0) {
                     ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
-                            + " because sending native object call returned " + res);
+                        + " because sending native object call returned " + res);
                     handleDataToSendNotAvailable(c, d);
                 }
             }
         } else {
             ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
-                    + " because incorrect path (doesn't contain #).");
+                + " because incorrect path (doesn't contain #).");
             handleDataToSendNotAvailable(c, d);
         }
 
@@ -449,7 +449,7 @@ public abstract class NIOAgent {
                     sendFile(c, new File(bo.getId()).getAbsolutePath(), d);
                 } else {
                     ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
-                            + " because error serializing binding object.");
+                        + " because error serializing binding object.");
                     handleDataToSendNotAvailable(c, d);
                 }
             } else {
@@ -457,7 +457,7 @@ public abstract class NIOAgent {
                     sendFile(c, bo.getId(), d);
                 } else {
                     ErrorManager.warn("Can't send binding data '" + bo.getId() + "' via connection " + c.hashCode()
-                            + " because file doesn't exists.");
+                        + " because file doesn't exists.");
                     handleDataToSendNotAvailable(c, d);
                 }
             }
@@ -468,7 +468,7 @@ public abstract class NIOAgent {
                 sendFile(c, path, d);
             } else {
                 ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
-                        + " because incorrect path (doesn't contain #).");
+                    + " because incorrect path (doesn't contain #).");
                 handleDataToSendNotAvailable(c, d);
             }
         }
@@ -541,12 +541,12 @@ public abstract class NIOAgent {
                         String boPath = requests.get(0).getSource().getFirstURI().getPath();
                         BindingObject bo = getTargetBindingObject(targetName, boPath);
                         NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(),
-                                bo.getElements());
+                            bo.getElements());
                         receivedValue(t.getDestination(), targetName, bo.toString(), requests);
                     } else {
                         // Object already store in the cache
-                        BindingObject bo = getTargetBindingObject(targetName,
-                                requests.get(0).getSource().getFirstURI().getPath());
+                        BindingObject bo =
+                            getTargetBindingObject(targetName, requests.get(0).getSource().getFirstURI().getPath());
                         receivedValue(t.getDestination(), targetName, bo.toString(), requests);
                     }
                 }
@@ -585,16 +585,16 @@ public abstract class NIOAgent {
                         BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
                         if (DEBUG) {
                             LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
-                                    + " will be saved as name " + dataId);
+                                + " will be saved as name " + dataId);
                         }
                         NIOBindingDataManager.setByteArray(bo.getName(), t.getByteBuffer(), bo.getType(),
-                                bo.getElements());
+                            bo.getElements());
                         receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
                     } else {
                         BindingObject bo = getTargetBindingObject(workingDir + dataId, requests.get(0).getTarget());
                         if (DEBUG) {
                             LOGGER.debug(DBG_PREFIX + "Data " + dataId + " with target " + bo.toString()
-                                    + "will be saved as name " + dataId);
+                                + "will be saved as name " + dataId);
                         }
 
                         receivedValue(t.getDestination(), dataId, bo.toString(), byTarget.remove(bo.toString()));
@@ -607,7 +607,7 @@ public abstract class NIOAgent {
             // TODO: We copy byTarget to avoid concurrent modifications. Should be synchronized somehow.
             @SuppressWarnings("unchecked")
             Entry<String, List<DataRequest>>[] targetEntries = byTarget.entrySet().toArray(new Entry[byTarget.size()]);
-            
+
             for (Entry<String, List<DataRequest>> entry : targetEntries) {
                 String targetName = entry.getKey();
                 List<DataRequest> reqs = entry.getValue();
@@ -838,7 +838,7 @@ public abstract class NIOAgent {
     public abstract void receivedBindingObjectAsFile(String filename, String targetPath);
 
     public abstract void receivedValue(Destination type, String dataId, Object object,
-            List<DataRequest> achievedRequests);
+        List<DataRequest> achievedRequests);
 
     public abstract void copiedData(int transfergroupID);
 

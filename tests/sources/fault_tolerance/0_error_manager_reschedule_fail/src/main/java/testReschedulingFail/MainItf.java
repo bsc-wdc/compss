@@ -7,11 +7,9 @@ import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface MainItf {
-	
-	@Method(declaringClass = "testReschedulingFail.Main")
-	Dummy errorTask(
-		@Parameter(type = Type.INT, direction = Direction.IN) int x,
-		@Parameter(type = Type.OBJECT, direction = Direction.IN) Dummy din
-	);
-	
+
+    @Method(declaringClass = "testReschedulingFail.Main")
+    Dummy errorTask(@Parameter(type = Type.INT, direction = Direction.IN) int x,
+        @Parameter(type = Type.OBJECT, direction = Direction.IN) Dummy din);
+
 }

@@ -52,7 +52,7 @@ public class ResourceManager {
      * @throws InvalidMapException Incorrect mapping specification
      */
     public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap)
-            throws InvalidMapException {
+        throws InvalidMapException {
         // Instantiate CPU binders
         LOGGER.debug("Instantiate CPU Binder with " + cusCPU + " CUs");
 
@@ -72,9 +72,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn(
-                    "Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
-                            + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER
+                .warn("Could not load the desidered mapping policy for the CPU computing units. Using default policy ("
+                    + ThreadBinder.BINDER_AUTOMATIC + ")");
             String resourceMap = BindToMap.getResourceCpuDescription();
             binderCPUsTmp = new BindToMap(cusCPU, resourceMap);
         }
@@ -97,9 +97,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn(
-                    "Could not load the desidered mapping policy for the GPU computing units. Using default policy ("
-                            + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER
+                .warn("Could not load the desidered mapping policy for the GPU computing units. Using default policy ("
+                    + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderGPUsTmp = new BindToResource(cusGPU);
         }
         binderGPUs = binderGPUsTmp;
@@ -121,9 +121,9 @@ public class ResourceManager {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.warn(
-                    "Could not load the desidered mapping policy for the FPGA computing units. Using default policy ("
-                            + ThreadBinder.BINDER_AUTOMATIC + ")");
+            LOGGER
+                .warn("Could not load the desidered mapping policy for the FPGA computing units. Using default policy ("
+                    + ThreadBinder.BINDER_AUTOMATIC + ")");
             binderFPGAsTmp = new BindToResource(cusFPGA);
         }
         binderFPGAs = binderFPGAsTmp;
@@ -138,7 +138,7 @@ public class ResourceManager {
      * @throws UnsufficientAvailableComputingUnitsException Not enough available computing units
      */
     public InvocationResources acquireResources(int jobId, ResourceDescription rd)
-            throws UnsufficientAvailableComputingUnitsException {
+        throws UnsufficientAvailableComputingUnitsException {
         int cpus;
         int gpus;
         int fpgas;

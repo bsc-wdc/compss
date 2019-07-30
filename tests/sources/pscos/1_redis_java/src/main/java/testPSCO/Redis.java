@@ -112,7 +112,7 @@ public class Redis {
         int age = p.getAge();
         int numC = p.getNumComputers();
         System.out
-                .println("[LOG][PSCO_RETURN_NTP] Person " + name + " with age " + age + " has " + numC + " computers");
+            .println("[LOG][PSCO_RETURN_NTP] Person " + name + " with age " + age + " has " + numC + " computers");
         System.out.println("[LOG][PSCO_RETURN_NTP] BeginId = null EndId = " + p.getID());
     }
 
@@ -247,11 +247,11 @@ public class Redis {
             try {
                 StorageItf.getByID(currentId);
                 System.out
-                        .println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Error, id " + currentId + " is still in Redis!");
+                    .println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Error, id " + currentId + " is still in Redis!");
                 success = false;
             } catch (StorageException e) {
                 System.out
-                        .println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Ok, id " + currentId + " is no longer in Redis!");
+                    .println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE] Ok, id " + currentId + " is no longer in Redis!");
             }
         }
         System.out.println("[LOG][PSCO_NEW_VERSION_CONSOLIDATE]: " + (success ? "OK" : "ERROR"));

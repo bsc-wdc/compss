@@ -37,7 +37,7 @@ public class ExternalStreamHandler {
      *             issues or invalid property.
      */
     public static String getExternalStreamProperty(String pythonInterpreter, String fileName, String property)
-            throws ExternalPropertyException {
+        throws ExternalPropertyException {
 
         // Build Python call
         StringBuilder pythonCall = new StringBuilder();

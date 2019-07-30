@@ -12,28 +12,20 @@ public interface MainItf {
 
     @Constraints(processorArchitecture = "Intel")
     @Method(declaringClass = "fileStreamTest.Tasks")
-    void writeFiles(
-        @Parameter(type = Type.STREAM, direction = Direction.OUT) FileDistroStream fds,
-        @Parameter() int sleepTime
-    );
+    void writeFiles(@Parameter(type = Type.STREAM, direction = Direction.OUT) FileDistroStream fds,
+        @Parameter() int sleepTime);
 
     @Constraints(processorArchitecture = "AMD")
     @Method(declaringClass = "fileStreamTest.Tasks")
-    Integer readFiles(
-        @Parameter(type = Type.STREAM, direction = Direction.IN) FileDistroStream fds,
-        @Parameter() int sleepTime
-    );
-    
+    Integer readFiles(@Parameter(type = Type.STREAM, direction = Direction.IN) FileDistroStream fds,
+        @Parameter() int sleepTime);
+
     @Method(declaringClass = "fileStreamTest.Tasks")
-    Integer processFile(
-        @Parameter(type = Type.FILE, direction = Direction.IN) String fileName
-    );
-    
+    Integer processFile(@Parameter(type = Type.FILE, direction = Direction.IN) String fileName);
+
     @Constraints(processorArchitecture = "Intel")
     @Method(declaringClass = "fileStreamTest.Tasks")
-    void writeFilesAlias(
-        @Parameter(type = Type.STREAM, direction = Direction.OUT) FileDistroStream fds,
-        @Parameter() int sleepTime
-    );
+    void writeFilesAlias(@Parameter(type = Type.STREAM, direction = Direction.OUT) FileDistroStream fds,
+        @Parameter() int sleepTime);
 
 }

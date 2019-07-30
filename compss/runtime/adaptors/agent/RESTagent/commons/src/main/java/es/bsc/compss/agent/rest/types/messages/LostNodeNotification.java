@@ -24,6 +24,7 @@ public class LostNodeNotification {
 
     private String workerName;
 
+
     public LostNodeNotification() {
     }
 

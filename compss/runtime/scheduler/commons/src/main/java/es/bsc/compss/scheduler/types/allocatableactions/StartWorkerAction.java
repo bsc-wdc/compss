@@ -58,7 +58,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
      * @param ts Associated Task Scheduler
      */
     public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
-            TaskScheduler ts) {
+        TaskScheduler ts) {
 
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
@@ -66,8 +66,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             case WORKER:
             case MASTER:
                 Worker<T> mw = worker.getResource();
-                this.impl = new MethodImplementation("", "", null, null, "",
-                        (MethodResourceDescription) mw.getDescription());
+                this.impl =
+                    new MethodImplementation("", "", null, null, "", (MethodResourceDescription) mw.getDescription());
                 break;
             default:
                 this.impl = new ServiceImplementation(null, "", "", "", "", "");
@@ -101,8 +101,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             @SuppressWarnings("unchecked")
             @Override
             public void run() {
-                Worker<WorkerResourceDescription> workerResource = (Worker<WorkerResourceDescription>) worker
-                        .getResource();
+                Worker<WorkerResourceDescription> workerResource =
+                    (Worker<WorkerResourceDescription>) worker.getResource();
                 Thread.currentThread().setName(workerResource.getName() + " starter");
                 try {
                     workerResource.start();
@@ -196,8 +196,8 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
-    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
-            ResourceScheduler<R> r) {
+    public <R extends WorkerResourceDescription> LinkedList<Implementation>
+        getCompatibleImplementations(ResourceScheduler<R> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == this.worker) {
             impls.add(this.impl);
@@ -207,7 +207,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
         return null;
     }
 
@@ -219,13 +219,13 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
         schedule(targetWorker, this.impl);
     }
 
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker != getEnforcedTargetResource()) {
             throw new UnassignedActionException();
@@ -260,7 +260,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
 
     }
-    
+
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

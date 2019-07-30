@@ -37,8 +37,10 @@ public interface DataProvider {
      * @param tt Transfer listener.
      */
     public void askForTransfer(InvocationParam param, int index, FetchDataListener tt);
-    
-    /** Check if data in the parameter is being transferred.
+
+    /**
+     * Check if data in the parameter is being transferred.
+     * 
      * @param param Invocation Parameter to check
      * @return {@code true} if data is being transferred, {@code false} otherwise.
      */

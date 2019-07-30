@@ -43,7 +43,7 @@ public class MultiNodeDefinition extends ImplementationDefinition {
 
         this.methodClass = args[execArgsIdx++];
         this.methodName = args[execArgsIdx++];
-        
+
         this.impl = new MultiNodeImplementation(this.methodClass, this.methodName, null, null, "", null);
     }
 

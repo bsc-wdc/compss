@@ -58,9 +58,9 @@ public class CompleteGraphViewModel {
     public void download() {
         try {
             if ((this.completeGraph.equals(Constants.GRAPH_NOT_FOUND_PATH))
-                    || (this.completeGraph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
-                    || (this.completeGraph.equals(Constants.UNSELECTED_GRAPH_PATH))
-                    || (this.completeGraph.equals(Constants.EMPTY_GRAPH_PATH))) {
+                || (this.completeGraph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
+                || (this.completeGraph.equals(Constants.UNSELECTED_GRAPH_PATH))
+                || (this.completeGraph.equals(Constants.EMPTY_GRAPH_PATH))) {
                 Filedownload.save(this.completeGraph, null);
             } else {
                 Filedownload.save(this.completeGraph.substring(0, this.completeGraph.lastIndexOf("?")), null);
@@ -89,7 +89,7 @@ public class CompleteGraphViewModel {
                 // Update needed
                 try {
                     String completeGraphSVG = File.separator + "svg" + File.separator + monitoredApp.getName() + "_"
-                            + Constants.COMPLETE_GRAPH_FILE_NAME;
+                        + Constants.COMPLETE_GRAPH_FILE_NAME;
                     this.completeGraph = loadGraph(completeMonitorLocation, completeGraphSVG);
                     this.completeGraphLastUpdateTime = modifiedTime;
                 } catch (EmptyCompleteGraphException ecge) {
@@ -119,7 +119,7 @@ public class CompleteGraphViewModel {
     }
 
     private String loadGraph(String location, String target)
-            throws EmptyCompleteGraphException, IOException, InterruptedException {
+        throws EmptyCompleteGraphException, IOException, InterruptedException {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Loading Graph...");
@@ -128,8 +128,10 @@ public class CompleteGraphViewModel {
         }
         // Create SVG
         String targetFullPath = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator
-                + "compss-monitor" + File.separator + target;
-        String[] createSVG = { "/bin/bash", "-c", "dot -T svg -Gnewrank=true " + location + " > " + targetFullPath };
+            + "compss-monitor" + File.separator + target;
+        String[] createSVG = { "/bin/bash",
+            "-c",
+            "dot -T svg -Gnewrank=true " + location + " > " + targetFullPath };
         Process p1 = Runtime.getRuntime().exec(createSVG);
         p1.waitFor();
 
@@ -140,19 +142,22 @@ public class CompleteGraphViewModel {
         }
 
         // Add JSPan.js configuration
-        String[] addJSScript = { "/bin/bash", "-c",
+        String[] addJSScript = { "/bin/bash",
+            "-c",
             "sed -i \"s/\\<g id\\=\\\"graph0/script xlink:href\\=\\\"SVGPan.js\\\"\\/\\>\\n\\<g id\\=\\\"viewport/\" "
                 + targetFullPath };
         Process p2 = Runtime.getRuntime().exec(addJSScript);
         p2.waitFor();
         // Workaround for architectures with dot tool generating main graph as graph1 not graph0
-        String[] addJSScript2 = { "/bin/bash", "-c",
+        String[] addJSScript2 = { "/bin/bash",
+            "-c",
             "sed -i \"s/\\<g id\\=\\\"graph1/script xlink:href\\=\\\"SVGPan.js\\\"\\/\\>\\n\\<g id\\=\\\"viewport/\" "
                 + targetFullPath };
         Process p3 = Runtime.getRuntime().exec(addJSScript2);
         p3.waitFor();
 
-        String[] createViewBox = { "/bin/bash", "-c",
+        String[] createViewBox = { "/bin/bash",
+            "-c",
             "sed -i \"s/<svg .*/<svg xmlns\\=\\\"http:\\/\\/www.w3.org\\/2000\\/svg\\\" "
                 + "xmlns:xlink\\=\\\"http:\\/\\/www.w3.org\\/1999\\/xlink\\\"\\>/g\" " + targetFullPath };
         Process p4 = Runtime.getRuntime().exec(createViewBox);

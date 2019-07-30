@@ -10,17 +10,13 @@ import es.bsc.compss.types.annotations.task.Method;
 
 
 public interface MainItf {
-    
+
     @Method(declaringClass = "noEmptyConstructor.MainImpl")
-    ValidObject validTask(
-        @Parameter(type = Type.OBJECT, direction = Direction.IN) ValidObject voIN,
-        @Parameter(type = Type.OBJECT, direction = Direction.INOUT) ValidObject voINOUT
-    );
-    
+    ValidObject validTask(@Parameter(type = Type.OBJECT, direction = Direction.IN) ValidObject voIN,
+        @Parameter(type = Type.OBJECT, direction = Direction.INOUT) ValidObject voINOUT);
+
     @Method(declaringClass = "noEmptyConstructor.MainImpl")
-    InvalidObject invalidTask(
-        @Parameter(type = Type.OBJECT, direction = Direction.IN) InvalidObject invoIN,
-        @Parameter(type = Type.OBJECT, direction = Direction.INOUT) InvalidObject invoINOUT
-    );
+    InvalidObject invalidTask(@Parameter(type = Type.OBJECT, direction = Direction.IN) InvalidObject invoIN,
+        @Parameter(type = Type.OBJECT, direction = Direction.INOUT) InvalidObject invoINOUT);
 
 }

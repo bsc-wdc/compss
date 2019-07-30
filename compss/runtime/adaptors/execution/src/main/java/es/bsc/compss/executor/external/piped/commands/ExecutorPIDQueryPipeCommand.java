@@ -47,13 +47,13 @@ public class ExecutorPIDQueryPipeCommand extends ExecutorPIDQueryExternalCommand
 
         for (int idx = 0; idx < pipes.length && value == 0; idx++) {
             value = pipes[idx].getPipesLocation()
-                    .compareTo(((ExecutorPIDQueryPipeCommand) t).pipes[idx].getPipesLocation());
+                .compareTo(((ExecutorPIDQueryPipeCommand) t).pipes[idx].getPipesLocation());
         }
         return value;
     }
 
     @Override
     public void join(PipeCommand receivedCommand) {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

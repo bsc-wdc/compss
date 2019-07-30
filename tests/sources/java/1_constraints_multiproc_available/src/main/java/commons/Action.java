@@ -26,6 +26,7 @@ public class Action extends AllocatableAction {
 
     private final CoreElement core;
 
+
     public Action(ActionOrchestrator orchestrator, CoreElement core) {
 
         super(new SchedulingInformation(null), orchestrator);
@@ -53,8 +54,8 @@ public class Action extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r) {
+    public <T extends WorkerResourceDescription> List<Implementation>
+        getCompatibleImplementations(ResourceScheduler<T> r) {
         return r.getExecutableImpls(core.getCoreId());
     }
 
@@ -94,10 +95,10 @@ public class Action extends AllocatableAction {
     protected void doFailIgnored() {
 
     }
-    
+
     @Override
     protected void doException(COMPSsException e) {
-        
+
     }
 
     @Override
@@ -117,7 +118,7 @@ public class Action extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
         return new Score(0, 0, 0, 0);
     }
 
@@ -128,13 +129,13 @@ public class Action extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
     }
 
@@ -142,8 +143,8 @@ public class Action extends AllocatableAction {
     public Map<Worker<?>, List<Implementation>> findAvailableWorkers() {
         Map<Worker<?>, List<Implementation>> m = new HashMap<>();
 
-        List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers = getCoreElementExecutors(
-                core.getCoreId());
+        List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleWorkers =
+            getCoreElementExecutors(core.getCoreId());
         for (ResourceScheduler<? extends WorkerResourceDescription> ui : compatibleWorkers) {
             Worker<WorkerResourceDescription> r = (Worker<WorkerResourceDescription>) ui.getResource();
             List<Implementation> compatibleImpls = r.getExecutableImpls(core.getCoreId());
@@ -182,9 +183,9 @@ public class Action extends AllocatableAction {
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        
+
     }
-    
+
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

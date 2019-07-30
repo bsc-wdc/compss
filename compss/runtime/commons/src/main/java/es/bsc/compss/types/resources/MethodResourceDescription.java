@@ -171,15 +171,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
 
             // When loading from constraints, always use at least one computing unit
-            int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR)
-                     : ONE_INT;
+            int cu =
+                (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
             p.setComputingUnits(cu);
 
             String speedSTR = constraints.processorSpeed();
             speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
-            float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR))
-                          ? Float.valueOf(speedSTR)
-                          : UNASSIGNED_FLOAT;
+            float speed =
+                (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
+                    : UNASSIGNED_FLOAT;
             if (speed != UNASSIGNED_FLOAT) {
                 p.setSpeed(speed);
             }
@@ -198,8 +198,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
             String internalMemorySTR = constraints.processorInternalMemorySize();
             internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
-            float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty()
-                    && !internalMemorySTR.equals(UNASSIGNED_STR)) ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
+            float internalMemory =
+                (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
+                    ? Float.valueOf(internalMemorySTR)
+                    : UNASSIGNED_FLOAT;
             if (internalMemory != UNASSIGNED_FLOAT) {
                 p.setInternalMemory(internalMemory);
             }
@@ -246,8 +248,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String memorySizeSTR = constraints.memorySize();
         memorySizeSTR = EnvironmentLoader.loadFromEnvironment(memorySizeSTR);
         float memorySize = (memorySizeSTR != null && !memorySizeSTR.isEmpty() && !memorySizeSTR.equals(UNASSIGNED_STR))
-                           ? Float.valueOf(memorySizeSTR)
-                           : UNASSIGNED_FLOAT;
+            ? Float.valueOf(memorySizeSTR)
+            : UNASSIGNED_FLOAT;
         if (memorySize != UNASSIGNED_FLOAT) {
             this.memorySize = memorySize;
         }
@@ -259,8 +261,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String storageSizeSTR = constraints.storageSize();
         storageSizeSTR = EnvironmentLoader.loadFromEnvironment(storageSizeSTR);
-        float storageSize = (storageSizeSTR != null && !storageSizeSTR.isEmpty()
-                && !storageSizeSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(storageSizeSTR) : UNASSIGNED_FLOAT;
+        float storageSize =
+            (storageSizeSTR != null && !storageSizeSTR.isEmpty() && !storageSizeSTR.equals(UNASSIGNED_STR))
+                ? Float.valueOf(storageSizeSTR)
+                : UNASSIGNED_FLOAT;
         if (storageSize != UNASSIGNED_FLOAT) {
             this.storageSize = storageSize;
         }
@@ -288,8 +292,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String wallClockLimitSTR = constraints.wallClockLimit();
         wallClockLimitSTR = EnvironmentLoader.loadFromEnvironment(wallClockLimitSTR);
-        int wallClockLimit = (wallClockLimitSTR != null && !wallClockLimitSTR.isEmpty()
-                && !wallClockLimitSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(wallClockLimitSTR) : UNASSIGNED_INT;
+        int wallClockLimit =
+            (wallClockLimitSTR != null && !wallClockLimitSTR.isEmpty() && !wallClockLimitSTR.equals(UNASSIGNED_STR))
+                ? Integer.valueOf(wallClockLimitSTR)
+                : UNASSIGNED_INT;
         if (wallClockLimit != UNASSIGNED_INT) {
             this.wallClockLimit = wallClockLimit;
         }
@@ -299,17 +305,17 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean containsProcessorsProperties(Constraints constraints) {
         return (!constraints.processorName().equals(Constants.UNASSIGNED)
-                || !constraints.processorArchitecture().equals(Constants.UNASSIGNED)
-                || !constraints.processorType().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
-                || !constraints.processorSpeed().equals(Constants.UNASSIGNED)
-                || !constraints.processorInternalMemorySize().equals(Constants.UNASSIGNED)
-                || !constraints.processorPropertyName().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
-                || !constraints.processorPropertyValue().equals(Constants.UNASSIGNED_PROCESSOR_TYPE));
+            || !constraints.processorArchitecture().equals(Constants.UNASSIGNED)
+            || !constraints.processorType().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
+            || !constraints.processorSpeed().equals(Constants.UNASSIGNED)
+            || !constraints.processorInternalMemorySize().equals(Constants.UNASSIGNED)
+            || !constraints.processorPropertyName().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
+            || !constraints.processorPropertyValue().equals(Constants.UNASSIGNED_PROCESSOR_TYPE));
 
     }
 
-    private Processor getProcessorFromProcessorsConstraint(
-            es.bsc.compss.types.annotations.Processor processorConstraints) {
+    private Processor
+        getProcessorFromProcessorsConstraint(es.bsc.compss.types.annotations.Processor processorConstraints) {
         Processor p = new Processor();
         String procName = processorConstraints.name();
         if (procName != null && !procName.equals(UNASSIGNED_STR)) {
@@ -321,15 +327,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
 
         // When loading from constraints, always use at least one computing unit
-        int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR)
-                 : ONE_INT;
+        int cu =
+            (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
         p.setComputingUnits(cu);
 
         String speedSTR = processorConstraints.speed();
         speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
-        float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR))
-                      ? Float.valueOf(speedSTR)
-                      : UNASSIGNED_FLOAT;
+        float speed =
+            (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
+                : UNASSIGNED_FLOAT;
         if (speed != UNASSIGNED_FLOAT) {
             p.setSpeed(speed);
         }
@@ -348,8 +354,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         String internalMemorySTR = processorConstraints.internalMemorySize();
         internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
-        float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty()
-                && !internalMemorySTR.equals(UNASSIGNED_STR)) ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
+        float internalMemory =
+            (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
+                ? Float.valueOf(internalMemorySTR)
+                : UNASSIGNED_FLOAT;
         if (internalMemory != UNASSIGNED_FLOAT) {
             p.setInternalMemory(internalMemory);
         }
@@ -466,7 +474,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * Creates a new MethodResourceDescription from the given C constraints.
      *
-     * @param constraints     C constraints.
+     * @param constraints C constraints.
      * @param processorString C processor definition.
      */
     public MethodResourceDescription(String[] constraints, String processorString) {
@@ -518,8 +526,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * Adds a processor constraint from bindings (ignores letter case).
      *
-     * @param key  Constraint key.
-     * @param val  Constraint value.
+     * @param key Constraint key.
+     * @param val Constraint value.
      * @param proc Processor.
      */
     private void addConstraints(String key, String val, Processor proc) {
@@ -707,17 +715,17 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     /**
      * Adds a new Processor to the current resource with the given information.
      *
-     * @param procName       Processor name.
+     * @param procName Processor name.
      * @param computingUnits Processor computing units.
-     * @param architecture   Processor architecture.
-     * @param speed          Processor speed.
-     * @param type           Processor type.
+     * @param architecture Processor architecture.
+     * @param speed Processor speed.
+     * @param type Processor type.
      * @param internalMemory Processor internal memory.
-     * @param propName       Processor custom property name.
-     * @param propValue      Processor custom property value.
+     * @param propName Processor custom property name.
+     * @param propValue Processor custom property value.
      */
     public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type,
-            float internalMemory, String propName, String propValue) {
+        float internalMemory, String propName, String propValue) {
 
         // This method is called from XML: empty and null values must be checked
         Processor p = new Processor();
@@ -1315,15 +1323,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * {@code mr2}.
      *
      * @param mr2 MethodResourceDescription to compare with.
-     *
      * @return Difference value.
      */
     public float difference(MethodResourceDescription mr2) {
         float processorDif = this.getTotalCPUComputingUnits() - mr2.getTotalCPUComputingUnits();
         float otherProcessorsDif = (this.getTotalGPUComputingUnits() + this.getTotalFPGAComputingUnits()
-                + this.getTotalOTHERComputingUnits())
-                - (mr2.getTotalGPUComputingUnits() + mr2.getTotalFPGAComputingUnits()
-                + mr2.getTotalOTHERComputingUnits());
+            + this.getTotalOTHERComputingUnits())
+            - (mr2.getTotalGPUComputingUnits() + mr2.getTotalFPGAComputingUnits() + mr2.getTotalOTHERComputingUnits());
         float memoryDif = this.memorySize - mr2.memorySize;
 
         return (processorDif * DIFFERENCE_WEIGHT) + (otherProcessorsDif * OTHER_PROC_DIFFERENCE_WEIGHT) + memoryDif;
@@ -1333,7 +1339,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * Returns whether the current MethodResourceDescription contains the given MethodResourceDescription {@code rc2}.
      *
      * @param rc2 MethodResourceDescription to compare with.
-     *
      * @return {@code true} if the current MethodResourceDescription contains the given MethodResourceDescription
      *         {@code rc2}, {@code false} otherwise.
      */
@@ -1355,7 +1360,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * MethodResourceDescription {@code rc2}.
      *
      * @param rc2 MethodResourceDescription to compare with.
-     *
      * @return {@code true} if the current MethodResourceDescription contains the DYNAMIC constraints of the given
      *         MethodResourceDescription {@code rc2}, {@code false} otherwise.
      */
@@ -1388,7 +1392,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkProcessorContains(Processor pThis, Processor pRc2) {
         boolean contains = checkProcessorCompatibility(pThis, pRc2)
-                && checkInclusion(pThis.getComputingUnits(), pRc2.getComputingUnits());
+            && checkInclusion(pThis.getComputingUnits(), pRc2.getComputingUnits());
 
         return contains;
     }
@@ -1411,7 +1415,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkStorage(MethodResourceDescription rc2) {
         return checkInclusion(this.storageSize, rc2.storageSize)
-                && checkCompatibility(this.storageType, rc2.storageType);
+            && checkCompatibility(this.storageType, rc2.storageType);
     }
 
     private boolean checkCompatibility(ProcessorType type1, ProcessorType type2) {
@@ -1435,7 +1439,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * Returns the number of simultaneous executions of {@code rc2} that the current MethodResourceDescription can host.
      *
      * @param rc2 MethodResourceDescription to host simultaneously.
-     *
      * @return Maximum number of simultaneous executions.
      */
     public Integer canHostSimultaneously(MethodResourceDescription rc2) {
@@ -1478,7 +1481,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * Scales the current MethodResourceDescription by the {@code amount} factor.
      *
      * @param amount Scaling factor.
-     *
      * @return New scaled MethodResourceDescription.
      */
     public MethodResourceDescription multiply(int amount) {

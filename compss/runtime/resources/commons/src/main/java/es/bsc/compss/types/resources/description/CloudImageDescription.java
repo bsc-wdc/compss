@@ -396,14 +396,14 @@ public class CloudImageDescription {
         sb.append(prefix).append("\t").append("PYTHONPATH = ").append(this.getConfig().getPythonpath()).append("\n");
         sb.append(prefix).append("\t").append("USER = ").append(this.getConfig().getUser()).append("\n");
         sb.append(prefix).append("\t").append("PASSWORD = ")
-                .append(this.getProperties().get(AbstractSSHConnector.PROPERTY_PASSW_NAME)).append("\n");
+            .append(this.getProperties().get(AbstractSSHConnector.PROPERTY_PASSW_NAME)).append("\n");
         sb.append(prefix).append("\t").append("SHARED_DISKS = [").append("\n");
         for (Entry<String, String> entry : this.sharedDisks.entrySet()) {
             sb.append(prefix).append("\t").append("\t").append("SHARED_DISK = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("DISK_NAME = ").append(entry.getKey())
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("MOUNT_POINT = ").append(entry.getValue())
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("\t").append("]").append("\n");
@@ -411,9 +411,9 @@ public class CloudImageDescription {
         for (ApplicationPackage pack : this.packages) {
             sb.append(prefix).append("\t").append("\t").append("PACKAGE = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("SOURCE = ").append(pack.getSource())
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("TARGET = ").append(pack.getTarget())
-                    .append("\n");
+                .append("\n");
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("\t").append("]").append("\n");

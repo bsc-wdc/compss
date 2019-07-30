@@ -7,9 +7,10 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getOwnerResponse complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for getOwnerResponse complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="getOwnerResponse">
@@ -22,25 +23,19 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "getOwnerResponse", propOrder = {
-    "_return"
-})
+@XmlType(name = "getOwnerResponse", propOrder = { "_return" })
 public class GetOwnerResponse {
 
     @XmlElement(name = "return")
     protected Person _return;
 
+
     /**
      * Gets the value of the return property.
      * 
-     * @return
-     *     possible object is
-     *     {@link Person }
-     *     
+     * @return possible object is {@link Person }
      */
     public Person getReturn() {
         return _return;
@@ -49,10 +44,7 @@ public class GetOwnerResponse {
     /**
      * Sets the value of the return property.
      * 
-     * @param value
-     *     allowed object is
-     *     {@link Person }
-     *     
+     * @param value allowed object is {@link Person }
      */
     public void setReturn(Person value) {
         this._return = value;

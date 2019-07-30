@@ -236,7 +236,7 @@ public class MOSchedulingInformation extends SchedulingInformation {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("\tlastUpdate: " + this.lastUpdate + "\n" + "\texpectedStart: "
-                + this.expectedStart + "\n" + "\texpectedEnd:" + this.expectedEnd + "\n");
+            + this.expectedStart + "\n" + "\texpectedEnd:" + this.expectedEnd + "\n");
         sb.append("\t").append("schedPredecessors: ");
         for (Gap g : getPredecessors()) {
             sb.append(" ").append(g.getOrigin());

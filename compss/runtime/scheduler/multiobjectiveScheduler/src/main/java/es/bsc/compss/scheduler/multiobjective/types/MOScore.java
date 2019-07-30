@@ -48,7 +48,7 @@ public class MOScore extends Score {
      * @param cost Cost score.
      */
     public MOScore(long taskPriority, long dataAvailability, long resourceAvailability, long execTime, double energy,
-            double cost) {
+        double cost) {
         super(taskPriority, resourceAvailability, Math.max(resourceAvailability, dataAvailability), execTime);
 
         this.expectedDataAvailable = dataAvailability;
@@ -147,9 +147,9 @@ public class MOScore extends Score {
     @Override
     public String toString() {
         return "[MOScore = [" + "Action Priority:" + this.actionScore + ", " + "Resource Availability:"
-                + this.resourceScore + ", " + "Data Availability:" + this.expectedDataAvailable + ", "
-                + "Expected Start Timestamp:" + this.waitingScore + ", " + "Expected Execution Time:"
-                + this.implementationScore + ", " + "Expected Execution Consumption:" + this.expectedEnergy + ", "
-                + "Expected Execution Cost:" + this.expectedCost + "]" + "]";
+            + this.resourceScore + ", " + "Data Availability:" + this.expectedDataAvailable + ", "
+            + "Expected Start Timestamp:" + this.waitingScore + ", " + "Expected Execution Time:"
+            + this.implementationScore + ", " + "Expected Execution Consumption:" + this.expectedEnergy + ", "
+            + "Expected Execution Cost:" + this.expectedCost + "]" + "]";
     }
 }

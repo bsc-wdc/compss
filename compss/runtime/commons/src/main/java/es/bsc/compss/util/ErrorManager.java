@@ -70,6 +70,7 @@ public final class ErrorManager {
         }
     };
 
+
     /**
      * Initializes the ErrorManager.
      *

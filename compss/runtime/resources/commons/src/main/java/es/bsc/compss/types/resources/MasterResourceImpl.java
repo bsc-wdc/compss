@@ -32,13 +32,13 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
      */
     public MasterResourceImpl() {
         super(COMPSsMaster.getMasterName(), // Master name
-                new MethodResourceDescription(), // Master resource description
-                new COMPSsMaster(), // Master COMPSs node
-                0, // limit of tasks
-                0, // Limit of GPU tasks
-                0, // Limit of FPGA tasks
-                0, // Limit of OTHER tasks
-                new HashMap<>()// Shared disks
+            new MethodResourceDescription(), // Master resource description
+            new COMPSsMaster(), // Master COMPSs node
+            0, // limit of tasks
+            0, // Limit of GPU tasks
+            0, // Limit of FPGA tasks
+            0, // Limit of OTHER tasks
+            new HashMap<>()// Shared disks
         );
     }
 

@@ -47,7 +47,7 @@ public class ExternalTaskStatus {
         this.updatedParameterTypes = new LinkedList<>();
         this.updatedParameterValues = new LinkedList<>();
     }
-    
+
     /**
      * Creates a new task status instance with exitValue.
      *

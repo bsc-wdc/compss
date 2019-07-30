@@ -30,6 +30,7 @@ public class Event {
 
     /**
      * Event constructor.
+     * 
      * @param type Type
      * @param state State
      * @param reply Reply

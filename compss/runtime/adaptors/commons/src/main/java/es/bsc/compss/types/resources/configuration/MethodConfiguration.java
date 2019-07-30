@@ -49,6 +49,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Method Configuration constructors cloning an existing configuration.
+     * 
      * @param clone Configuration to clone
      */
     public MethodConfiguration(MethodConfiguration clone) {
@@ -81,6 +82,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set the installation directory.
+     * 
      * @param installDir Installation directory path
      */
     public void setInstallDir(String installDir) {
@@ -109,6 +111,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set the working directory.
+     * 
      * @param workingDir Working directory path
      */
     public void setWorkingDir(String workingDir) {
@@ -134,6 +137,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set total computing units.
+     * 
      * @param totalCUs Total computing units
      */
     public void setTotalComputingUnits(int totalCUs) {
@@ -150,6 +154,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set total GPU computing units.
+     * 
      * @param totalGPUs Total GPU computing units
      */
     public void setTotalGPUComputingUnits(int totalGPUs) {
@@ -166,6 +171,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set total FPGA computing units.
+     * 
      * @param totalFPGAs Total FPGA computing units
      */
     public void setTotalFPGAComputingUnits(int totalFPGAs) {
@@ -182,6 +188,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set total OTHER computing units.
+     * 
      * @param totalOTHERs Total OTHER computing units
      */
     public void setTotalOTHERComputingUnits(int totalOTHERs) {
@@ -198,6 +205,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set the application location directory.
+     * 
      * @param appDir Application directory path
      */
     public void setAppDir(String appDir) {
@@ -213,9 +221,10 @@ public class MethodConfiguration extends Configuration {
     public String getClasspath() {
         return classpath;
     }
-    
+
     /**
      * Set the application required classpath.
+     * 
      * @param classpath Application classpath
      */
     public void setClasspath(String classpath) {
@@ -232,6 +241,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set the application required pythonpath.
+     * 
      * @param pythonpath Application pythonpath
      */
     public void setPythonpath(String pythonpath) {
@@ -248,6 +258,7 @@ public class MethodConfiguration extends Configuration {
 
     /**
      * Set the application required library path.
+     * 
      * @param libraryPath Application library path
      */
     public void setLibraryPath(String libraryPath) {
@@ -261,9 +272,10 @@ public class MethodConfiguration extends Configuration {
     public String getHost() {
         return host;
     }
-    
+
     /**
      * Set the hostname of the configuration.
+     * 
      * @param host Hostname
      */
     public void setHost(String host) {
@@ -281,7 +293,9 @@ public class MethodConfiguration extends Configuration {
         return user;
     }
 
-    /** Set the username.
+    /**
+     * Set the username.
+     * 
      * @param user username
      */
     public void setUser(String user) {

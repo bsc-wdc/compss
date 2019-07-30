@@ -72,7 +72,7 @@ public class ExecutionPlatform implements ExecutorContext {
      * @param resManager Resource Manager
      */
     public ExecutionPlatform(String platformName, InvocationContext context, int initialSize,
-            ResourceManager resManager) {
+        ResourceManager resManager) {
         LOGGER.info("Initializing execution platform " + platformName);
         this.platformName = platformName;
 
@@ -243,7 +243,7 @@ public class ExecutionPlatform implements ExecutorContext {
 
     @Override
     public InvocationResources acquireResources(int jobId, ResourceDescription requirements)
-            throws UnsufficientAvailableComputingUnitsException {
+        throws UnsufficientAvailableComputingUnitsException {
 
         return this.rm.acquireResources(jobId, requirements);
     }

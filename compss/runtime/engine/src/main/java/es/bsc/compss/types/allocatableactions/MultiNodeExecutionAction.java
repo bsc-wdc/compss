@@ -49,7 +49,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      * @param group Multi-node group.
      */
     public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-            TaskProducer producer, Task task, MultiNodeGroup group) {
+        TaskProducer producer, Task task, MultiNodeGroup group) {
 
         super(schedulingInformation, orchestrator, producer, task);
 
@@ -117,7 +117,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
         List<String> slaveNames = group.getSlavesNames();
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
-                slaveNames, listener);
+            slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
         job.setHistory(JobHistory.NEW);
 
@@ -161,7 +161,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
     @Override
     public String toString() {
         return "MultiNodeExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName()
-                + ") with GroupId = " + this.multiNodeId;
+            + ") with GroupId = " + this.multiNodeId;
     }
 
 }

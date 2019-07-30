@@ -33,6 +33,7 @@ public class CommandDataNegate implements Command {
     // Whether the node has the file or not
     private boolean hosted;
 
+
     /**
      * Creates a new CommandDataNegate for externalization.
      */
@@ -43,7 +44,7 @@ public class CommandDataNegate implements Command {
     /**
      * Creates a new CommandDataNegate instance.
      *
-     * @param d      Data to negate.
+     * @param d Data to negate.
      * @param hosted Whether it is hosted or not.
      */
     public CommandDataNegate(NIOData d, boolean hosted) {
@@ -70,7 +71,7 @@ public class CommandDataNegate implements Command {
     @Override
     public String toString() {
         return "Data " + this.d + " can't be send"
-                + (this.hosted ? ", although it is in the node" : " since the node does not have it");
+            + (this.hosted ? ", although it is in the node" : " since the node does not have it");
     }
 
 }

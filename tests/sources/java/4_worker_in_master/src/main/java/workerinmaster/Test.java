@@ -22,6 +22,7 @@ public class Test {
     private static final String UPDATED_CONTENT_4 = "This is the updated content 4 of the file";
     private static final String UPDATED_CONTENT_5 = "This is the updated content 5 of the file";
 
+
     private static void verifyLine(String obtained, String expected) throws Exception {
         if (obtained != null) {
             if (expected == null || obtained.compareTo(expected) != 0) {
@@ -233,6 +234,7 @@ public class Test {
         // Verify the number of tasks able to run in parallel in the process
         TreeSet<WorkerModification> modifications;
         modifications = new TreeSet<>(new Comparator<WorkerModification>() {
+
             @Override
             public int compare(WorkerModification t1, WorkerModification t2) {
                 int result = Long.compare(t1.getTime(), t2.getTime());

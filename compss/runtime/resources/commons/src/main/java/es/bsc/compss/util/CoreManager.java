@@ -55,6 +55,7 @@ public class CoreManager {
     // Structure counters
     private static int coreCount = 0;
 
+
     /**
      * Private constructor to avoid instantiation.
      */
@@ -104,25 +105,22 @@ public class CoreManager {
         return coreElement;
     }
 
-
     private static CoreElement insertCoreElement(String signature) {
         // Insert new core element
         Integer methodId = coreCount;
         CoreElement ce = new CoreElement(methodId, signature);
-
 
         // Register the cross-reference
         SIGNATURE_TO_CORE.put(signature, ce);
 
         // Register the coreElement
         CORE_ELEMENTS.add(ce);
-        
+
         // Increase the coreCount counter
         ++coreCount;
-        
+
         return ce;
     }
-
 
     /**
      * Returns a list with all the registered Core Elements.

@@ -75,7 +75,7 @@ public class SparseLU {
                     for (int k = 0; k < _A_OUT_EXPECTED[i][j].length; ++k) {
                         if (_A[i][j][k] != _A_OUT_EXPECTED[i][j][k]) {
                             System.out.println("[ERROR] Matrix values do not match. GOT: " + _A[i][j][k] + " EXPECTED: "
-                                    + _A_OUT_EXPECTED[i][j][k]);
+                                + _A_OUT_EXPECTED[i][j][k]);
                             System.exit(-1);
                         }
                     }

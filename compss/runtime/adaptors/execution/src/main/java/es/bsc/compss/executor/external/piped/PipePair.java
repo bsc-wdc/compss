@@ -278,7 +278,7 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
                 // Line of the form: "compssException" ID exceptionMessage
                 readCommand = new CompssExceptionPipeCommand(command);
                 LOGGER.debug(
-                        "Received compssException message: " + ((CompssExceptionPipeCommand) readCommand).getMessage());
+                    "Received compssException message: " + ((CompssExceptionPipeCommand) readCommand).getMessage());
                 break;
             case ERROR:
                 String[] expected = Arrays.copyOfRange(command, 1, command.length);

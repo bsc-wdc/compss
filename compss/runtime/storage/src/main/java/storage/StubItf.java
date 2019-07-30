@@ -17,8 +17,7 @@
 package storage;
 
 /**
- * Abstract interface of Stub objects.
- * TODO complete javadoc
+ * Abstract interface of Stub objects. TODO complete javadoc
  */
 public interface StubItf {
 

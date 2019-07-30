@@ -49,7 +49,7 @@ public class LIFOScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> LIFOResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-            JSONObject resJSON, JSONObject implJSON) {
+        JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.info("[LIFOScheduler] Generate scheduler for resource " + w.getName());
         return new LIFOResourceScheduler<>(w, resJSON, implJSON);
     }
@@ -69,8 +69,8 @@ public class LIFOScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource) {
+        List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
+        ResourceScheduler<T> resource) {
 
         List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
         dataFreeActions.addAll(unassignedReadyActions);

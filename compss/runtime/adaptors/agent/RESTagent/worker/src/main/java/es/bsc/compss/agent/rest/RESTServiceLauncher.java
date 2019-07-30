@@ -54,7 +54,7 @@ public class RESTServiceLauncher implements Runnable {
             jerseyServlet.setInitOrder(0);
 
             jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",
-                    RESTAgent.class.getCanonicalName());
+                RESTAgent.class.getCanonicalName());
             try {
                 this.server.start();
             } catch (Exception e) {

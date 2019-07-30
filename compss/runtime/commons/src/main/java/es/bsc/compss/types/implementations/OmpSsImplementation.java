@@ -56,7 +56,7 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
      * @param annot OmpSs method requirements.
      */
     public OmpSsImplementation(String binary, String workingDir, Integer coreId, Integer implementationId,
-            String signature, MethodResourceDescription annot) {
+        String signature, MethodResourceDescription annot) {
         super(coreId, implementationId, signature, annot);
 
         this.binary = binary;

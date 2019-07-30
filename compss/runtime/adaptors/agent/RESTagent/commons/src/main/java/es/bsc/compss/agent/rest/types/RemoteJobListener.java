@@ -22,15 +22,14 @@ import es.bsc.compss.types.job.JobEndStatus;
 
 /**
  * Interface to handle the notification of a job end.
- *
  */
 public interface RemoteJobListener {
 
     /**
      * Notifies the end of a job execution.
      *
-     * @param endStatus      end status of the job
-     * @param paramTypes     array containing the Data types of all the parameters involved in the operation.
+     * @param endStatus end status of the job
+     * @param paramTypes array containing the Data types of all the parameters involved in the operation.
      * @param paramLocations location where to find the parameter value on the node/id on the persistent storage system
      */
     public void finishedExecution(JobEndStatus endStatus, DataType[] paramTypes, String[] paramLocations);

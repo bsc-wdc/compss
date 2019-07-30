@@ -95,19 +95,19 @@ public class FakeNode extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskparams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
         return null;
     }
 
     @Override
     public void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
     }
 
     @Override
     public void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
     }
 

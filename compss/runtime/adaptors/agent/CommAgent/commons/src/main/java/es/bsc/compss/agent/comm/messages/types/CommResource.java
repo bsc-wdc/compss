@@ -36,6 +36,7 @@ public class CommResource extends Resource<Void, ResourcesExternalAdaptorPropert
     private static final String ADAPTOR_NAME = "es.bsc.compss.agent.comm.CommAgentAdaptor";
     private int port;
 
+
     public CommResource() {
     }
 

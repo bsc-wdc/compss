@@ -29,8 +29,9 @@ public class MethodDefinition extends ImplementationDefinition<MethodResourceDes
     private final String declaringClass;
     private final String methodName;
 
+
     protected MethodDefinition(String implSignature, String declaringClass, String methodName,
-            MethodResourceDescription implConstraints) {
+        MethodResourceDescription implConstraints) {
         super(implSignature, implConstraints);
         this.declaringClass = declaringClass;
         this.methodName = methodName;
@@ -39,7 +40,7 @@ public class MethodDefinition extends ImplementationDefinition<MethodResourceDes
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new MethodImplementation(declaringClass, methodName, coreId, implId, this.getSignature(),
-                this.getConstraints());
+            this.getConstraints());
     }
 
     @Override

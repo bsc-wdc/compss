@@ -66,8 +66,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
 
     // Error messages
-    private static final String ERROR_NO_KEYPAIR = "Error: There is no key pair to configure."
-            + " Please create one with the ssh-keygen tool";
+    private static final String ERROR_NO_KEYPAIR =
+        "Error: There is no key pair to configure." + " Please create one with the ssh-keygen tool";
     private static final String ERROR_CONFIGURING_ACCESS = "Error configuring access for ";
     private static final String ERROR_PREPARING_MACHINE = "Error: Failed to prepare Machine ";
     private static final String ERROR_TRANSFER_PACKAGES = "Error: Cannot transfer packages to Machine";
@@ -80,8 +80,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final String ERROR_EXCEPTION_EXEC_COMMAND = "Exception running command on ";
     private static final String ERROR_SESSION_CREATION = "Error creating session to ";
     private static final String WARN_INPUTSTREAM_CLOSE = "Warn: InputStream for remote command cannot be closed";
-    private static final String WARN_DEFAULT_KEYPAIR = "Warn: Neither password nor key-pair specified."
-            + " Trying with default key-pair";
+    private static final String WARN_DEFAULT_KEYPAIR =
+        "Warn: Neither password nor key-pair specified." + " Trying with default key-pair";
 
     // Attributes
     private String defaultUser;
@@ -187,7 +187,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 LOGGER.debug("Configuring key pair: " + keypair);
             }
             configureKeys(workerIP, user, setPassword, passwordOrKeyPair, KeyManager.getPublicKey(keypair),
-                    KeyManager.getPrivateKey(keypair), KeyManager.getKeyType());
+                KeyManager.getPrivateKey(keypair), KeyManager.getKeyType());
 
         } catch (ConnectorException | IOException e) {
             LOGGER.error(ERROR_CONFIGURING_ACCESS + workerIP, e);
@@ -248,7 +248,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private void extractPackages(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
-            List<ApplicationPackage> packages) throws ConnectorException {
+        List<ApplicationPackage> packages) throws ConnectorException {
 
         for (ApplicationPackage p : packages) {
             String[] path = p.getSource().split(File.separator);
@@ -263,14 +263,14 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private void addPackagesToClasspath(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
-            List<ApplicationPackage> packages) throws ConnectorException {
+        List<ApplicationPackage> packages) throws ConnectorException {
 
         for (ApplicationPackage p : packages) {
             String target = p.getTarget();
 
             // Adding classpath in bashrc
             String command = "echo \"\nfor i in " + target
-                    + "/*.jar ; do\n\texport CLASSPATH=\\$CLASSPATH:\\$i\ndone\" >> ~/.bashrc";
+                + "/*.jar ; do\n\texport CLASSPATH=\\$CLASSPATH:\\$i\ndone\" >> ~/.bashrc";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         }
@@ -281,7 +281,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
         // Scan key ------------------------------------------------------------
         String key = new String();
-        String[] cmd = { "/bin/sh", "-c", "ssh-keyscan -t rsa,dsa " + workerIP };
+        String[] cmd = { "/bin/sh",
+            "-c",
+            "ssh-keyscan -t rsa,dsa " + workerIP };
         int errors = 0;
         String errorString = null;
         while (key.isEmpty() && errors < KNOWN_HOSTS_MAX_ALLOWED_ERRORS) {
@@ -352,8 +354,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
         // Insert key to known hosts ------------------------------------------------------
         LOGGER.debug("Modifiying known hosts");
-        cmd = new String[] { "/bin/sh", "-c", "/bin/echo " + "\"" + key + "\"" + " >> "
-                + System.getProperty("user.home") + File.separator + ".ssh" + File.separator + "known_hosts" };
+        cmd = new String[] { "/bin/sh",
+            "-c",
+            "/bin/echo " + "\"" + key + "\"" + " >> " + System.getProperty("user.home") + File.separator + ".ssh"
+                + File.separator + "known_hosts" };
 
         synchronized (knownHosts) {
             errors = 0;
@@ -377,7 +381,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         errorString = readInputStream(outStream);
                         errors++;
                         LOGGER.debug(
-                                "Error inserting key into known_hosts. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
+                            "Error inserting key into known_hosts. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
 
                         // Sleep until next retry
                         try {
@@ -417,14 +421,14 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private void configureKeys(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
-            String publicKey, String privateKey, String keyType) throws ConnectorException {
+        String publicKey, String privateKey, String keyType) throws ConnectorException {
 
         LOGGER.debug("Configuring keys for " + workerIP + " user: " + user);
 
         try {
             String command = "/bin/echo \"" + publicKey + "\" > ~/.ssh/" + keyType + ".pub" + "; " + "/bin/echo \""
-                    + privateKey + "\" > ~/.ssh/" + keyType + "; " + "chmod 600 ~/.ssh/" + keyType + "; "
-                    + "/bin/echo \"" + publicKey + "\" >> ~/.ssh/authorized_keys";
+                + privateKey + "\" > ~/.ssh/" + keyType + "; " + "chmod 600 ~/.ssh/" + keyType + "; " + "/bin/echo \""
+                + publicKey + "\" >> ~/.ssh/authorized_keys";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         } catch (ConnectorException e) {
@@ -436,7 +440,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private void executeTask(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
-            String command) throws ConnectorException {
+        String command) throws ConnectorException {
 
         int numRetries = 0;
         ConnectorException reason = null;
@@ -478,7 +482,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private boolean tryToExecuteCommand(String workerIP, String user, boolean setPassword, String passwordOrKeyPair,
-            String command) throws ConnectorException {
+        String command) throws ConnectorException {
 
         Session session = null;
         ChannelExec exec = null;
@@ -516,10 +520,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(
-                                ERROR_COMMAND_EXEC + command + " in " + workerIP + ".\nReturned std error: " + output);
+                            ERROR_COMMAND_EXEC + command + " in " + workerIP + ".\nReturned std error: " + output);
                     }
                     throw new ConnectorException(
-                            ERROR_COMMAND_EXEC + command + " in " + workerIP + " (exit status:" + exitStatus + ")");
+                        ERROR_COMMAND_EXEC + command + " in " + workerIP + " (exit status:" + exitStatus + ")");
                 }
 
                 LOGGER.debug("Command still on execution");
@@ -571,7 +575,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private Session getSession(String host, String user, boolean password, String keyPairOrPassword)
-            throws ConnectorException {
+        throws ConnectorException {
 
         Properties config = new Properties();
         config.put("StrictHostKeyChecking", "no");
@@ -604,8 +608,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         if (password) {
                             LOGGER.debug("Session created as " + user + "@" + host + " with password.");
                         } else {
-                            LOGGER.debug("Session created as " + user + "@" + host + " with public key "
-                                    + keyPairOrPassword);
+                            LOGGER.debug(
+                                "Session created as " + user + "@" + host + " with public key " + keyPairOrPassword);
                         }
                     }
                     return session;
@@ -615,8 +619,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     if (password) {
                         LOGGER.warn("Error connecting to " + user + "@" + host + " with password.");
                     } else {
-                        LOGGER.warn(
-                                "Error connecting to " + user + "@" + host + " with public key" + keyPairOrPassword);
+                        LOGGER
+                            .warn("Error connecting to " + user + "@" + host + " with public key" + keyPairOrPassword);
                     }
                     LOGGER.warn("Retrying after " + RETRY_TIME * errors + " seconds...");
                 }

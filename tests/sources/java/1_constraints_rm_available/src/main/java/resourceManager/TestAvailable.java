@@ -56,7 +56,8 @@ public class TestAvailable {
      * AVAILABLE RESOURCES TEST IMPLEMENTATION
      * ********************************************************************************************************
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked",
+        "rawtypes" })
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();
@@ -107,7 +108,7 @@ public class TestAvailable {
          * ********************************************************************************************************
          */
         Worker worker = ResourceManager.getWorker(NAME_WORKER);
-        
+
         CoreElement ce1 = CoreManager.getCore(ceId1);
         List<Implementation> ce1Impls = ce1.getImplementations();
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());

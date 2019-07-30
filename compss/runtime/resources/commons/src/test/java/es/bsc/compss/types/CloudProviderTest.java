@@ -98,7 +98,7 @@ public class CloudProviderTest {
         Set<String> imageNames = cp.getAllImageNames();
         if (!imageNames.contains(image1Name)) {
             fail("Cloud Provider is not storing properly the Images."
-                    + " Cannot find the Image name on the one single image scenario.");
+                + " Cannot find the Image name on the one single image scenario.");
         }
         if (imageNames.size() != 1) {
             fail("Cloud Provider is not storing properly the Images. only two images are supposed to be in the group.");
@@ -108,7 +108,7 @@ public class CloudProviderTest {
             checkRetrievedImage(retrieved1, image1Name, img1PropValue);
         } catch (Exception e) {
             fail("Cloud Provider is not storing properly the Images. The provider " + e.getMessage()
-                    + " on the one single image scenario.");
+                + " on the one single image scenario.");
         }
 
     }
@@ -149,11 +149,11 @@ public class CloudProviderTest {
         switch (contains) {
             case 0:
                 fail("Cloud Provider is not storing properly the Images."
-                        + " Cannot find any image name on the two images scenario.");
+                    + " Cannot find any image name on the two images scenario.");
                 break;
             case 1:
                 fail("Cloud Provider is not storing properly the Images."
-                        + " Cannot find one image name on the two images scenario.");
+                    + " Cannot find one image name on the two images scenario.");
                 break;
             default:
                 // Works properly
@@ -167,19 +167,19 @@ public class CloudProviderTest {
             checkRetrievedImage(retrieved1, image1Name, img1PropValue);
         } catch (Exception e) {
             fail("Cloud Provider is not storing properly the Images. The provider " + e.getMessage()
-                    + " on the two images scenario.");
+                + " on the two images scenario.");
         }
         CloudImageDescription retrieved2 = cp.getImage(image2Name);
         try {
             checkRetrievedImage(retrieved2, image2Name, img2PropValue);
         } catch (Exception e) {
             fail("Cloud Provider is not storing properly the Images. " + e.getMessage()
-                    + " on the two images scenario.");
+                + " on the two images scenario.");
         }
     }
 
     private void checkRetrievedImage(CloudImageDescription retrieved, String name, String imgProperty)
-            throws Exception {
+        throws Exception {
         if (retrieved == null) {
             throw new Exception("The provider cannot find the Image by its name");
         }
@@ -217,18 +217,18 @@ public class CloudProviderTest {
         Set<String> instanceNames = cp.getAllInstanceTypeNames();
         if (!instanceNames.contains(type1Name)) {
             fail("Cloud Provider is not storing properly the Images."
-                    + " Cannot find the template name with one single template.");
+                + " Cannot find the template name with one single template.");
         }
         if (instanceNames.size() != 1) {
             fail("Cloud Provider is not storing properly the Images."
-                    + " Only one template is supposed to be in the group.");
+                + " Only one template is supposed to be in the group.");
         }
         CloudInstanceTypeDescription retrieved1 = cp.getInstanceType(type1Name);
         try {
             checkRetrievedType(retrieved1, type1Name, type1Memory);
         } catch (Exception e) {
             fail("Cloud Provider is not storing properly the Images. The provider " + e.getMessage()
-                    + " on the one single template scenario.");
+                + " on the one single template scenario.");
         }
     }
 
@@ -268,11 +268,11 @@ public class CloudProviderTest {
         switch (contains) {
             case 0:
                 fail("Cloud Provider is not storing properly the Templates."
-                        + " Cannot find any template name on the two templates scenario.");
+                    + " Cannot find any template name on the two templates scenario.");
                 break;
             case 1:
                 fail("Cloud Provider is not storing properly the Templates."
-                        + " Cannot find one template name on the two templates scenario.");
+                    + " Cannot find one template name on the two templates scenario.");
                 break;
             default:
                 // Works properly
@@ -280,7 +280,7 @@ public class CloudProviderTest {
 
         if (instanceNames.size() != 2) {
             fail("Cloud Provider is not storing properly the Templates."
-                    + " only two templates are supposed to be in the set.");
+                + " only two templates are supposed to be in the set.");
         }
 
         CloudInstanceTypeDescription retrieved1 = cp.getInstanceType(type1Name);
@@ -288,19 +288,19 @@ public class CloudProviderTest {
             checkRetrievedType(retrieved1, type1Name, type1Memory);
         } catch (Exception e) {
             fail("Cloud Provider is not storing properly the Templates. The provider " + e.getMessage()
-                    + " on the two templates scenario.");
+                + " on the two templates scenario.");
         }
         CloudInstanceTypeDescription retrieved2 = cp.getInstanceType(type2Name);
         try {
             checkRetrievedType(retrieved2, type2Name, type2Memory);
         } catch (Exception e) {
             fail("Cloud Provider is not storing properly the Templates. The provider " + e.getMessage()
-                    + " on the two templates scenario.");
+                + " on the two templates scenario.");
         }
     }
 
     private void checkRetrievedType(CloudInstanceTypeDescription retrieved, String name, float memory)
-            throws Exception {
+        throws Exception {
 
         if (retrieved == null) {
             throw new Exception("The provider cannot find the type by its name");
@@ -526,8 +526,8 @@ public class CloudProviderTest {
         }
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
-                new HashMap<>());
+        CloudMethodWorker cmw =
+            new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0, new HashMap<>());
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);
         if (cp.getCurrentVMCount() != 1) {
@@ -572,8 +572,8 @@ public class CloudProviderTest {
         ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
-                new HashMap<>());
+        CloudMethodWorker cmw =
+            new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0, new HashMap<>());
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         granted.addInstance(citd);
         cp.confirmedCreation(crc, cmw, granted);
@@ -625,12 +625,12 @@ public class CloudProviderTest {
         }
 
         final String vmName = "VM" + (int) (Math.random() * 1000);
-        final CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
-                new HashMap<>());
+        final CloudMethodWorker cmw =
+            new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0, new HashMap<>());
 
         final String vmName2 = "VM" + (int) (Math.random() * 1000);
-        final CloudMethodWorker cmw2 = new CloudMethodWorker(vmName2, cp, cmrd, new FakeNode(vmName2), 0, 0, 0, 0,
-                new HashMap<>());
+        final CloudMethodWorker cmw2 =
+            new CloudMethodWorker(vmName2, cp, cmrd, new FakeNode(vmName2), 0, 0, 0, 0, new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);
@@ -699,8 +699,8 @@ public class CloudProviderTest {
         final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        final CloudMethodWorker cmw = new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0,
-                new HashMap<>());
+        final CloudMethodWorker cmw =
+            new CloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, 0, 0, 0, new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);
@@ -763,8 +763,8 @@ public class CloudProviderTest {
         ResourceCreationRequest crc = cp.requestResourceCreation(cmrd);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw = new ExtendedCloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0,
-                new HashMap<>());
+        ExtendedCloudMethodWorker cmw =
+            new ExtendedCloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, new HashMap<>());
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);
 
@@ -814,12 +814,12 @@ public class CloudProviderTest {
         ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw = new ExtendedCloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0,
-                new HashMap<>());
+        ExtendedCloudMethodWorker cmw =
+            new ExtendedCloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, new HashMap<>());
 
         String vmName2 = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw2 = new ExtendedCloudMethodWorker(vmName, cp, cmrd2, new FakeNode(vmName2), 0,
-                new HashMap<>());
+        ExtendedCloudMethodWorker cmw2 =
+            new ExtendedCloudMethodWorker(vmName, cp, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);
@@ -882,8 +882,8 @@ public class CloudProviderTest {
         final ResourceCreationRequest crc2 = cp.requestResourceCreation(cmrd2);
 
         String vmName = "VM" + (int) (Math.random() * 1000);
-        ExtendedCloudMethodWorker cmw = new ExtendedCloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0,
-                new HashMap<>());
+        ExtendedCloudMethodWorker cmw =
+            new ExtendedCloudMethodWorker(vmName, cp, cmrd, new FakeNode(vmName), 0, new HashMap<>());
 
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(citd, cid);
         cp.confirmedCreation(crc, cmw, granted);

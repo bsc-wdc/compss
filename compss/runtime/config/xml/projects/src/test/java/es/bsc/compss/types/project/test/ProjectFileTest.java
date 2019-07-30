@@ -69,7 +69,6 @@ public class ProjectFileTest {
     private static final String ERROR_SERVICES_XML = "Services XML doesn't exist";
     private static final String ERROR_ROCCI_XML = "Rocci XML doesn't exist";
     private static final String ERROR_JCLOUDS_XML = "JClouds XML doesn't exist";
-    
 
     // Test Logger
     private static final Logger logger = LogManager.getLogger("Console");
@@ -131,7 +130,7 @@ public class ProjectFileTest {
 
     @Test
     public void creation_XMLfile_XSDschema()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -157,7 +156,7 @@ public class ProjectFileTest {
 
     @Test
     public void creation_XMLstring_XSDschema()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -183,7 +182,7 @@ public class ProjectFileTest {
 
     @Test
     public void creation_XMLfile_XSDpath()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -208,7 +207,7 @@ public class ProjectFileTest {
 
     @Test
     public void creation_XMLstring_XSDpath()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -234,7 +233,7 @@ public class ProjectFileTest {
     /* ********** Dumpers checkers *************/
     @Test
     public void xmlToFile()
-            throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException, IOException {
+        throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -277,7 +276,7 @@ public class ProjectFileTest {
      ***************************************************************/
     @Test
     public void fullXML()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -289,10 +288,9 @@ public class ProjectFileTest {
 
         // Checkers
         assertNotNull(project);
-        
-        
-        Map<String, Object> props = project.getAdaptorProperties(project.getComputeNode("CN_full"),
-                "es.bsc.compss.nio.master.NIOAdaptor");
+
+        Map<String, Object> props =
+            project.getAdaptorProperties(project.getComputeNode("CN_full"), "es.bsc.compss.nio.master.NIOAdaptor");
         assertNotNull(props);
         assertEquals(NIOAdaptorProperties.class, props.get("Ports").getClass());
         assertEquals(ExternalAdaptorProperties.class, props.get("Properties").getClass());
@@ -304,7 +302,7 @@ public class ProjectFileTest {
 
     @Test
     public void gridXML()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -325,7 +323,7 @@ public class ProjectFileTest {
 
     @Test
     public void servicesXML()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -346,7 +344,7 @@ public class ProjectFileTest {
 
     @Test
     public void rocciXML()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -367,7 +365,7 @@ public class ProjectFileTest {
 
     @Test
     public void jclouds_gceXML()
-            throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 

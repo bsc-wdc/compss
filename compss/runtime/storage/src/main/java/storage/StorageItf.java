@@ -20,13 +20,12 @@ import java.util.List;
 
 
 /**
- * Representation of the Storage ITF.
- * TODO: complete javadoc
+ * Representation of the Storage ITF. TODO: complete javadoc
  */
 public final class StorageItf {
 
     private static final String STORAGE_NOT_FOUND_MESSAGE = "You are trying to start a run with "
-            + "persistent object storage but any back-end client is loaded in the classpath.";
+        + "persistent object storage but any back-end client is loaded in the classpath.";
 
 
     /**
@@ -69,7 +68,7 @@ public final class StorageItf {
     /**
      * Creates a new replica of PSCO id @id in host @hostname.
      *
-     * @param id       String
+     * @param id String
      * @param hostName String
      * @throws StorageException description
      */
@@ -81,9 +80,9 @@ public final class StorageItf {
      * Create a new version of the PSCO id @id in the host @hostname. The flag preserveSource indicates whether the PSCO
      * with ID @id must be preserved or can be removed. The method returns the id of the new version.
      *
-     * @param id             description
+     * @param id description
      * @param preserveSource description
-     * @param hostName       description
+     * @param hostName description
      * @return description
      * @throws StorageException description
      */
@@ -105,16 +104,16 @@ public final class StorageItf {
     /**
      * Executes the task into persistent storage.
      *
-     * @param id         description
+     * @param id description
      * @param descriptor description
-     * @param values     description
-     * @param hostName   description
-     * @param callback   description
+     * @param values description
+     * @param hostName description
+     * @param callback description
      * @return description
      * @throws StorageException description
      */
     public static String executeTask(String id, String descriptor, Object[] values, String hostName,
-                                     CallbackHandler callback) throws StorageException {
+        CallbackHandler callback) throws StorageException {
         throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
     }
 

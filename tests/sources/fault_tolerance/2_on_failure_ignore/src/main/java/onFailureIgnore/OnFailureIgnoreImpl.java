@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+
 public class OnFailureIgnoreImpl {
 
     public static int processParam(String filename) throws numberException {
@@ -64,8 +65,7 @@ public class OnFailureIgnoreImpl {
         failOnce(n);
     }
 
-    public static void processOutParamIgnoreFailure(String fileoutName1, String fileOut2) throws numberException{
-        
-        
+    public static void processOutParamIgnoreFailure(String fileoutName1, String fileOut2) throws numberException {
+
     }
 }

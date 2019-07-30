@@ -209,7 +209,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
         Profile[][] profiles;
         int coreCount = CoreManager.getCoreCount();
         profiles = new Profile[coreCount][];
-        for (CoreElement ce:CoreManager.getAllCores()) {
+        for (CoreElement ce : CoreManager.getAllCores()) {
             int coreId = ce.getCoreId();
             List<Implementation> impls = ce.getImplementations();
             int implCount = impls.size();
@@ -429,7 +429,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
             this.blocked.add(action);
         } else {
             LOGGER.warn("[ResourceScheduler] Blocked action " + action + " on removed resource " + getName()
-                    + ". Trying to reschedule... ");
+                + ". Trying to reschedule... ");
             try {
                 unscheduleAction(action);
                 action.schedule(generateBlockedScore(action));
@@ -483,7 +483,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
             AllocatableAction firstBlocked = this.getFirstBlocked();
             Implementation selectedImplementation = firstBlocked.getAssignedImplementation();
             if (!firstBlocked.isToReserveResources()
-                    || myWorker.canRunNow((T) selectedImplementation.getRequirements())) {
+                || myWorker.canRunNow((T) selectedImplementation.getRequirements())) {
                 try {
                     firstBlocked.resumeExecution();
                     this.removeFirstBlocked();
@@ -584,7 +584,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     @SuppressWarnings("unchecked")
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
-            Score resourceScore) {
+        Score resourceScore) {
         // LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
         long actionPriority = resourceScore.getActionScore();
         long resourcePriority = resourceScore.getResourceScore();

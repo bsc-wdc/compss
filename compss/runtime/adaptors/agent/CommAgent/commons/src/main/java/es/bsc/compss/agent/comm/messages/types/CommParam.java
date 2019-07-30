@@ -30,13 +30,13 @@ import java.io.ObjectOutput;
 
 /**
  * Class containing the parameter to invoke a main app/task on a Comm Agent.
- *
  */
 public class CommParam extends NIOParam implements ApplicationParameter, Externalizable {
 
     private Direction direction = Direction.IN;
 
     private RemoteDataInformation remoteData = null;
+
 
     /**
      * Constructs an empty CommParam.
@@ -48,16 +48,16 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
     /**
      * Constructs an initializes a CommParam.
      *
-     * @param dataMgmtId  id associated to the value
-     * @param type        type of the parameter value
-     * @param direction   direction of the parameter
-     * @param stream      stream to redirect to the parameter
-     * @param prefix      prefix to add to the parameter
-     * @param name        name of the parameter
+     * @param dataMgmtId id associated to the value
+     * @param type type of the parameter value
+     * @param direction direction of the parameter
+     * @param stream stream to redirect to the parameter
+     * @param prefix prefix to add to the parameter
+     * @param name name of the parameter
      * @param originalName original name of the parameter value
      */
-    public CommParam(String dataMgmtId, DataType type, Direction direction, StdIOStream stream, String prefix, 
-            String name, String originalName) {
+    public CommParam(String dataMgmtId, DataType type, Direction direction, StdIOStream stream, String prefix,
+        String name, String originalName) {
         super(dataMgmtId, type, stream, prefix, name, false, false, null, null, originalName);
         this.direction = direction;
     }
@@ -106,8 +106,8 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
 
     @Override
     public String toString() {
-        return direction + " " + super.getType()
-                + (super.getValue() != null ? " = " + super.getValue() + " " : " ") + remoteData;
+        return direction + " " + super.getType() + (super.getValue() != null ? " = " + super.getValue() + " " : " ")
+            + remoteData;
     }
 
 }

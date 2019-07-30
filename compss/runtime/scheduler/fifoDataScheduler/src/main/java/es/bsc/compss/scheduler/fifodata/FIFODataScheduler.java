@@ -53,7 +53,7 @@ public class FIFODataScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> FIFODataResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-            JSONObject resJSON, JSONObject implJSON) {
+        JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
         return new FIFODataResourceScheduler<>(w, resJSON, implJSON);
     }
@@ -73,8 +73,8 @@ public class FIFODataScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource) {
+        List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
+        ResourceScheduler<T> resource) {
 
         LOGGER.debug("[DataScheduler] Treating dependency free actions");
 

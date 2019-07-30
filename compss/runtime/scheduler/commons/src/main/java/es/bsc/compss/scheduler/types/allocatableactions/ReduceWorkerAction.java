@@ -63,14 +63,14 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
      * @param modification Modification to perform.
      */
     public ReduceWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<T> worker,
-            TaskScheduler ts, ResourceUpdate<T> modification) {
+        TaskScheduler ts, ResourceUpdate<T> modification) {
 
         super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         this.ru = (PendingReduction<T>) modification;
         if (modification.getModification() instanceof MethodResourceDescription) {
             impl = new MethodImplementation("", "", null, null, "",
-                    (MethodResourceDescription) modification.getModification());
+                (MethodResourceDescription) modification.getModification());
         } else {
             impl = new ServiceImplementation(null, "", "", "", "", "");
         }
@@ -157,7 +157,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     protected void doException(COMPSsException e) {
-        
+
     }
 
     @Override
@@ -184,8 +184,8 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
-    public <R extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(
-            ResourceScheduler<R> r) {
+    public <R extends WorkerResourceDescription> LinkedList<Implementation>
+        getCompatibleImplementations(ResourceScheduler<R> r) {
         LinkedList<Implementation> impls = new LinkedList<>();
         if (r == worker) {
             impls.add(impl);
@@ -195,7 +195,7 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     public <R extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<R> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
         return null;
     }
 
@@ -208,14 +208,14 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     @SuppressWarnings("unchecked")
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         schedule((ResourceScheduler<WorkerResourceDescription>) targetWorker, impl);
     }
 
     @Override
     public <R extends WorkerResourceDescription> void schedule(ResourceScheduler<R> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker != getEnforcedTargetResource()) {
             throw new UnassignedActionException();
@@ -248,9 +248,9 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-        
+
     }
-    
+
     @Override
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;

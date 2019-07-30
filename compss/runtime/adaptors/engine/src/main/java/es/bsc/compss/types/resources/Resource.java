@@ -110,7 +110,7 @@ public interface Resource extends Comparable<Resource> {
      * @return
      */
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl,
-            List<String> slaveWorkersNodeNames, JobListener listener);
+        List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
      * Retrieves a given data.
@@ -153,7 +153,7 @@ public interface Resource extends Comparable<Resource> {
      * @param listener Listener to notify operation events
      */
     public void getData(String dataId, String newName, LogicalData tgtData, Transferable reason,
-            EventListener listener);
+        EventListener listener);
 
     /**
      * Retrieves a given data.
@@ -165,7 +165,7 @@ public interface Resource extends Comparable<Resource> {
      * @param listener Listener to notify operation events
      */
     public void getData(LogicalData ld, String newName, LogicalData tgtData, Transferable reason,
-            EventListener listener);
+        EventListener listener);
 
     /**
      * Retrieves a given data.
@@ -178,7 +178,7 @@ public interface Resource extends Comparable<Resource> {
     public void getData(String dataId, DataLocation target, Transferable reason, EventListener listener);
 
     public void getData(String dataId, DataLocation target, String tgtDataId, Transferable reason,
-            EventListener listener);
+        EventListener listener);
 
     /**
      * Retrieves a given data.
@@ -190,7 +190,7 @@ public interface Resource extends Comparable<Resource> {
      * @param listener Listener to notify operation events
      */
     public void getData(String dataId, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener);
+        EventListener listener);
 
     /**
      * Retrieves a given data.
@@ -202,7 +202,7 @@ public interface Resource extends Comparable<Resource> {
      * @param listener Listener to notify operation events
      */
     public void getData(LogicalData srcData, DataLocation target, LogicalData tgtData, Transferable reason,
-            EventListener listener);
+        EventListener listener);
 
     /**
      * Enforces the retrieval of data whose transfer is supposed to be already ordered.

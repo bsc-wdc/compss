@@ -45,7 +45,7 @@ public class ShutdownRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
-            throws ShutdownException {
+        throws ShutdownException {
         // Close Graph
         ta.shutdown();
         // Clear delete Intermediate Files

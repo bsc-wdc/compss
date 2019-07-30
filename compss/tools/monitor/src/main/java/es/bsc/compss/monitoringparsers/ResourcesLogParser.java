@@ -55,7 +55,7 @@ public class ResourcesLogParser {
                 result.append(" ");
             }
             result.append(states.get(i).getTimestamp()).append(":").append(states.get(i).getTotalLoad()).append(":")
-                    .append(states.get(i).getTotalResources());
+                .append(states.get(i).getTotalResources());
         }
         result.append("'");
 
@@ -118,7 +118,7 @@ public class ResourcesLogParser {
                 result.append(" ");
             }
             result.append(states.get(i).getTimestamp()).append(":").append(states.get(i).getTotalCoresRunning())
-                    .append(":").append(states.get(i).getTotalResources());
+                .append(":").append(states.get(i).getTotalResources());
         }
         result.append("'");
 
@@ -183,7 +183,7 @@ public class ResourcesLogParser {
                 result.append(" ");
             }
             result.append(states.get(i).getTimestamp()).append(":").append(states.get(i).getTotalCoresPending())
-                    .append(":").append(states.get(i).getTotalResources());
+                .append(":").append(states.get(i).getTotalResources());
         }
         result.append("'");
 
@@ -292,7 +292,7 @@ public class ResourcesLogParser {
                                     states.add(new StateData(states.lastElement()));
                                     // Timestamp in seconds
                                     states.lastElement()
-                                            .setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp)) / 1_000);
+                                        .setTimestamp(((int) (lastSeenTimestamp - referenceTimestamp)) / 1_000);
                                 }
                             } else {
                                 processInformation = false;

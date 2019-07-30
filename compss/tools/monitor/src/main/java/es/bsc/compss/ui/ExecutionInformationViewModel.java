@@ -51,7 +51,7 @@ public class ExecutionInformationViewModel {
             // First entry is always empty. TaskId >= 1, JobId >= 1
             if (RuntimeLogParser.getTasks().size() > 1) {
                 return new ListModelList<ExecutionInformationTask>(
-                        RuntimeLogParser.getTasks().subList(1, RuntimeLogParser.getTasks().size()));
+                    RuntimeLogParser.getTasks().subList(1, RuntimeLogParser.getTasks().size()));
             } else {
                 return new ListModelList<ExecutionInformationTask>();
             }

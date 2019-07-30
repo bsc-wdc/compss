@@ -65,13 +65,13 @@ public class GATCopy extends ImmediateCopy {
      * @param listener Transfer listener.
      */
     public GATCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
         this.reason = reason;
         if (srcData.isBindingData() || (reason != null && reason.getType().equals(DataType.BINDING_OBJECT_T))
-                || (prefSrc != null && prefSrc.getType().equals(LocationType.BINDING))
-                || (prefTgt != null && prefTgt.getType().equals(LocationType.BINDING))) {
+            || (prefSrc != null && prefSrc.getType().equals(LocationType.BINDING))
+            || (prefTgt != null && prefTgt.getType().equals(LocationType.BINDING))) {
             isBindingObject = true;
         }
         for (MultiURI uri : prefTgt.getURIs()) {
@@ -83,10 +83,10 @@ public class GATCopy extends ImmediateCopy {
                 try {
                     if (isBindingObject) {
                         this.tgtLoc = DataLocation.createLocation(host,
-                                host.getCompleteRemotePath(DataType.BINDING_OBJECT_T, path));
+                            host.getCompleteRemotePath(DataType.BINDING_OBJECT_T, path));
                     } else {
-                        this.tgtLoc = DataLocation.createLocation(host,
-                                host.getCompleteRemotePath(DataType.FILE_T, path));
+                        this.tgtLoc =
+                            DataLocation.createLocation(host, host.getCompleteRemotePath(DataType.FILE_T, path));
                     }
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
@@ -218,7 +218,7 @@ public class GATCopy extends ImmediateCopy {
                         if (tgt.getHost().equals(Comm.getAppHost().getName())) {
                             if (LOGGER.isDebugEnabled()) {
                                 LOGGER.debug(DBG_PREFIX + "Loading Binding object from " + tgtPath + " with id: "
-                                        + getName() + " type: " + boType + " elements: " + boElements);
+                                    + getName() + " type: " + boType + " elements: " + boElements);
                             }
 
                             int result = BindingDataManager.loadFromFile(getName(), tgtPath, boType, boElements);
@@ -241,7 +241,7 @@ public class GATCopy extends ImmediateCopy {
 
         if (!(this.reason instanceof WorkersDebugInfoCopyTransferable)) {
             ErrorManager.error("File '" + srcData.getName() + "' could not be copied because it does not exist.",
-                    exception);
+                exception);
         }
 
         throw new GATCopyException(exception);
@@ -261,7 +261,7 @@ public class GATCopy extends ImmediateCopy {
             } else {
                 // Notify error to ErrorManager
                 errorMessage = "File '" + src.toString() + "' could not be copied to '" + dest.toString()
-                        + "' because it does not exist.";
+                    + "' because it does not exist.";
                 ErrorManager.warn(errorMessage);
                 LOGGER.warn(errorMessage);
             }

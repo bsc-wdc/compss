@@ -30,8 +30,9 @@ public class OmpSsDefinition extends ImplementationDefinition<MethodResourceDesc
     private final String binary;
     private final String workingDir;
 
+
     protected OmpSsDefinition(String signature, String binary, String workingDir,
-            MethodResourceDescription implConstraints) {
+        MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;
         this.workingDir = workingDir;

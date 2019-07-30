@@ -41,8 +41,10 @@ public class RuntimeMonitor implements Runnable {
     private static final String ERROR_GENERATING_DATA = "Error generating monitoring data";
 
     // Monitor properties
-    private static final boolean MONITOR_ENABLED = System.getProperty(COMPSsConstants.MONITOR) != null
-            && !System.getProperty(COMPSsConstants.MONITOR).equals("0") ? true : false;
+    private static final boolean MONITOR_ENABLED =
+        System.getProperty(COMPSsConstants.MONITOR) != null && !System.getProperty(COMPSsConstants.MONITOR).equals("0")
+            ? true
+            : false;
     private static final String MONITOR_DIR_PATH;
 
     /**
@@ -170,7 +172,7 @@ public class RuntimeMonitor implements Runnable {
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append("\n");
         sb.append("<?xml-stylesheet type=\"text/xsl\" href=\"").append(installDir)
-                .append("/xml/monitor/monitor.xsl\"?>").append("\n");
+            .append("/xml/monitor/monitor.xsl\"?>").append("\n");
         sb.append("<COMPSsState>").append("\n");
         sb.append(this.ap.getCurrentTaskState());
         sb.append(this.td.getCurrentMonitoringData());

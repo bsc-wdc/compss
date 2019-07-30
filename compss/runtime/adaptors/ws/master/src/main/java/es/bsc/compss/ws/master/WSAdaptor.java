@@ -54,11 +54,11 @@ public class WSAdaptor implements CommAdaptor {
 
     @Override
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
-            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
-        es.bsc.compss.types.project.jaxb.ServiceType sProject = 
+        es.bsc.compss.types.project.jaxb.ServiceType sProject =
             (es.bsc.compss.types.project.jaxb.ServiceType) projectProperties.get("Service");
-        es.bsc.compss.types.resources.jaxb.ServiceType sResources = 
+        es.bsc.compss.types.resources.jaxb.ServiceType sResources =
             (es.bsc.compss.types.resources.jaxb.ServiceType) resourcesProperties.get("Service");
 
         String wsdl = null;

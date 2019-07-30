@@ -32,8 +32,8 @@ public class ServiceDefinition extends ImplementationDefinition<ServiceResourceD
     private final String operation;
     private final String port;
 
-    protected ServiceDefinition(String signature, String namespace, String serviceName, String operation,
-            String port) {
+
+    protected ServiceDefinition(String signature, String namespace, String serviceName, String operation, String port) {
         super(signature, null);
         this.namespace = namespace;
         this.serviceName = serviceName;

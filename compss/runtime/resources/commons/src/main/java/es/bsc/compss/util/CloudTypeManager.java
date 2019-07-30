@@ -178,9 +178,9 @@ public class CloudTypeManager {
             for (int i = 0; i < coreCount; i++) {
                 sb.append(prefix).append("\t").append("\t").append("\t").append("CORE = [").append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i)
-                        .append("\n");
+                    .append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SLOTS = ")
-                        .append(type.getValue().getSpecificSlotsCore(i)).append("\n");
+                    .append(type.getValue().getSpecificSlotsCore(i)).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");
             }
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
@@ -190,11 +190,11 @@ public class CloudTypeManager {
                 for (int j = 0; j < CoreManager.getNumberCoreImplementations(i); ++j) {
                     sb.append(prefix).append("\t").append("\t").append("\t").append("IMPLEMENTATION = [").append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i)
-                            .append("\n");
+                        .append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("IMPLID = ").append(j)
-                            .append("\n");
+                        .append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SLOTS = ")
-                            .append(type.getValue().getSpecificSlotsImpl(i, j)).append("\n");
+                        .append(type.getValue().getSpecificSlotsImpl(i, j)).append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");
                 }
             }

@@ -33,8 +33,9 @@ public class DecafDefinition extends ImplementationDefinition<MethodResourceDesc
     private final String workingDir;
     private final String mpiRunner;
 
+
     protected DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir,
-            String mpiRunner, MethodResourceDescription implConstraints) {
+        String mpiRunner, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.dfScript = dfScript;
         this.dfExecutor = dfExecutor;
@@ -46,7 +47,7 @@ public class DecafDefinition extends ImplementationDefinition<MethodResourceDesc
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, coreId, implId,
-                this.getSignature(), this.getConstraints());
+            this.getSignature(), this.getConstraints());
     }
 
     @Override

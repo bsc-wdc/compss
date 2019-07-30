@@ -99,11 +99,14 @@ public class UserCredential {
             LOGGER.debug("Direct location detected. Path loaded.");
         } else {
             // Loading username
-            String[] cmd = { File.separator + "bin" + File.separator + "sh", "-c", "echo ~" + username };
+            String[] cmd = { File.separator + "bin" + File.separator + "sh",
+                "-c",
+                "echo ~" + username };
             // Execute command
             try {
-                String userHome = new BufferedReader(
-                        new InputStreamReader(Runtime.getRuntime().exec(cmd).getInputStream())).readLine();
+                String userHome =
+                    new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(cmd).getInputStream()))
+                        .readLine();
                 if (userHome != null) {
                     if (!userHome.isEmpty()) {
                         if (userHome.startsWith(File.separator)) {

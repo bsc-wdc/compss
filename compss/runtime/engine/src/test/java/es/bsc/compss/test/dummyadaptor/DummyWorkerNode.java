@@ -83,7 +83,7 @@ public class DummyWorkerNode extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return null;
     }
@@ -98,12 +98,12 @@ public class DummyWorkerNode extends COMPSsWorker {
 
     @Override
     public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
     }
 
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
     }
 
     @Override

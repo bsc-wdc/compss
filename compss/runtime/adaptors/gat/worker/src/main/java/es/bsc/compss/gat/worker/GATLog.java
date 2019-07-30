@@ -69,7 +69,7 @@ public class GATLog {
     }
 
     private static void addLogger(String name, Level level, AppenderRefComponentBuilder appender,
-            ConfigurationBuilder<?> builder) {
+        ConfigurationBuilder<?> builder) {
 
         final LoggerComponentBuilder logger = builder.newLogger(name, level);
         logger.add(appender);

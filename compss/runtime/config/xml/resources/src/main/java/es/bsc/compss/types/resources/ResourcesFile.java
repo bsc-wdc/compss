@@ -72,7 +72,6 @@ import org.apache.logging.log4j.Logger;
 import org.xml.sax.SAXException;
 
 
-
 public class ResourcesFile {
 
     // JAXB context
@@ -128,7 +127,8 @@ public class ResourcesFile {
     }
 
     /**
-     *  Creates an empty resources file.
+     * Creates an empty resources file.
+     * 
      * @param logger Logger to print debug information
      * @throws JAXBException Error parsing XML
      */
@@ -144,12 +144,12 @@ public class ResourcesFile {
      * internally validated.
      *
      * @param xmlString XML resources file as string
-     * @param xsd Resources XML schema 
+     * @param xsd Resources XML schema
      * @throws JAXBException Error parsing XML
      * @throws ResourcesFileValidationException Error validating data
      */
     public ResourcesFile(String xmlString, Schema xsd, Logger logger)
-            throws JAXBException, ResourcesFileValidationException {
+        throws JAXBException, ResourcesFileValidationException {
         this.logger = logger;
         this.logger.info("Init Resources.xml parsing");
         if (this.logger.isDebugEnabled()) {
@@ -184,7 +184,7 @@ public class ResourcesFile {
      * @throws ResourcesFileValidationException Error validating data
      */
     public ResourcesFile(File xml, String xsdPath, Logger logger)
-            throws SAXException, JAXBException, ResourcesFileValidationException {
+        throws SAXException, JAXBException, ResourcesFileValidationException {
         this.logger = logger;
         this.logger.info("Init Resources.xml parsing");
         if (this.logger.isDebugEnabled()) {
@@ -217,10 +217,10 @@ public class ResourcesFile {
      * @param logger Logger to print debug information
      * @throws SAXException Error parsing XML Schema
      * @throws JAXBException Error parsing XML file
-     * @throws ResourcesFileValidationException  Error validating data.
+     * @throws ResourcesFileValidationException Error validating data.
      */
     public ResourcesFile(String xmlString, String xsdPath, Logger logger)
-            throws SAXException, JAXBException, ResourcesFileValidationException {
+        throws SAXException, JAXBException, ResourcesFileValidationException {
 
         this.logger = logger;
         this.logger.info("Init Resources.xml parsing");
@@ -249,13 +249,13 @@ public class ResourcesFile {
      * Create an empty resourceFile object.
      *
      * @param xsdPath Resources XML schema location path
-     * @param logger Logger to print debug information 
+     * @param logger Logger to print debug information
      * @throws SAXException Error parsing Schema
      * @throws JAXBException Error parsing XML data
      * @throws ResourcesFileValidationException Invalid data
      */
     public ResourcesFile(String xsdPath, Logger logger)
-            throws SAXException, JAXBException, ResourcesFileValidationException {
+        throws SAXException, JAXBException, ResourcesFileValidationException {
         this.logger = logger;
         this.logger.info("Init Resources.xml parsing");
         if (this.logger.isDebugEnabled()) {
@@ -269,13 +269,13 @@ public class ResourcesFile {
         validator = new Validator(this, this.logger);
     }
 
-    /* *********** DUMPERS  *************/
+    /* *********** DUMPERS *************/
     /**
-     * Stores the current ResourceList object to the given file. 
+     * Stores the current ResourceList object to the given file.
      *
      * @param file File to write resources file
      * @throws JAXBException Error generating XML data
-     */ 
+     */
     public void toFile(File file) throws JAXBException {
         logger.info("Resources.xml to file");
         Marshaller m = this.context.createMarshaller();
@@ -307,7 +307,8 @@ public class ResourcesFile {
     }
 
     /*
-     * ************ GETTERS: MAIN ELEMENTS LISTS *****************/
+     * ************ GETTERS: MAIN ELEMENTS LISTS
+     *****************/
     /**
      * Returns the JAXB class representing the all XML file content.
      *
@@ -413,7 +414,7 @@ public class ResourcesFile {
     }
 
     /* ************* GETTERS: MAIN ELEMENTS HASH-MAPS ***************/
-    
+
     /**
      * Returns a HashMap of declared Shared Disks (Key: Name, Value: SD).
      *
@@ -567,7 +568,7 @@ public class ResourcesFile {
     }
 
     /* ********** GETTERS: MAIN ELEMENTS KEY-VALUES (NAME) *************/
-    
+
     /**
      * Returns a List of the names of the declared SharedDisks.
      *
@@ -686,9 +687,9 @@ public class ResourcesFile {
     }
 
     /* *********** GETTERS: MAIN ELEMENTS SINGLE **************/
-    
+
     /**
-     * Returns the SharedDisk with name=@name. 
+     * Returns the SharedDisk with name=@name.
      *
      * @param name Shared disk name
      * @return Null if name doesn't exist
@@ -774,7 +775,7 @@ public class ResourcesFile {
     /**
      * Returns the storage size of a given DataNode.
      *
-     * @param d  Data node object
+     * @param d Data node object
      * @return
      */
     public float getStorageSize(DataNodeType d) {
@@ -810,7 +811,7 @@ public class ResourcesFile {
 
         return (float) -1.0;
     }
-    
+
     /**
      * Returns the storage size of a given InstanceType.
      *
@@ -830,9 +831,9 @@ public class ResourcesFile {
 
         return (float) -1.0;
     }
-    
-    /** 
-     * Get storage size. 
+
+    /**
+     * Get storage size.
      * 
      * @param storage Storage description
      * @return
@@ -848,11 +849,11 @@ public class ResourcesFile {
         }
         return (float) -1.0;
     }
-    
+
     /**
      * Returns the storage type of a given DataNode.
      *
-     * @param d  Data node object
+     * @param d Data node object
      * @return
      */
     public String getStorageType(DataNodeType d) {
@@ -888,7 +889,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the storage type of a given InstanceType.
      *
@@ -908,9 +909,9 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
-     *  Get storage type.
+     * Get storage type.
      * 
      * @param storage Storage description
      * @return
@@ -971,7 +972,7 @@ public class ResourcesFile {
 
         return processors;
     }
-    
+
     /**
      * Returns the processors of a given InstanceType.
      *
@@ -992,7 +993,6 @@ public class ResourcesFile {
 
         return processors;
     }
-
 
     /**
      * Returns the memory size of a given ComputeNode.
@@ -1022,7 +1022,7 @@ public class ResourcesFile {
 
         return (float) -1.0;
     }
-    
+
     /**
      * Returns the memory size of a given InstanceType.
      *
@@ -1052,7 +1052,6 @@ public class ResourcesFile {
         return (float) -1.0;
     }
 
-
     /**
      * Returns the memory type of a given ComputeNode.
      *
@@ -1081,7 +1080,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the memory type of a given InstanceType.
      *
@@ -1111,12 +1110,11 @@ public class ResourcesFile {
         return null;
     }
 
-
     /**
      * Returns the OperatingSystem properties of a given ComputeNode.
      *
      * @param c Compute node description object
-     * @return 
+     * @return
      */
     public OSType getOperatingSystem(ComputeNodeType c) {
         List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
@@ -1150,7 +1148,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the OS Type associated to a given Image.
      *
@@ -1169,7 +1167,7 @@ public class ResourcesFile {
         }
         return null;
     }
-    
+
     /**
      * Returns the OS type.
      *
@@ -1208,11 +1206,11 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the OS Distribution associated to a given Image.
      *
-     * @param image Image description 
+     * @param image Image description
      * @return
      */
     public String getOperatingSystemDistribution(ImageType image) {
@@ -1227,7 +1225,7 @@ public class ResourcesFile {
         }
         return null;
     }
-    
+
     /**
      * Returns the OS Distribution.
      *
@@ -1265,7 +1263,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the OS Version associated to a given Image.
      *
@@ -1285,9 +1283,6 @@ public class ResourcesFile {
         return null;
     }
 
-
-
-
     /**
      * Returns the OS Version.
      *
@@ -1305,7 +1300,6 @@ public class ResourcesFile {
         }
         return null;
     }
-
 
     /**
      * Returns the applications of a given ComputeNode.
@@ -1325,7 +1319,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the applications associated to a given image.
      *
@@ -1364,7 +1358,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the price information associated to a given image.
      *
@@ -1384,7 +1378,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the price information of a given InstanceType.
      *
@@ -1427,7 +1421,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the shared Disks associated to a given image.
      *
@@ -1456,7 +1450,6 @@ public class ResourcesFile {
 
         return null;
     }
-
 
     /**
      * Returns the AttacSharedDisks of a given ComputeNode.
@@ -1509,11 +1502,11 @@ public class ResourcesFile {
 
         return adatorQueues; // Empty
     }
-    
+
     /**
      * Returns the queues of a given Adaptor within a given Image.
      *
-     * @param image Image description 
+     * @param image Image description
      * @param adaptorName Adaptor name
      * @return
      */
@@ -1542,7 +1535,7 @@ public class ResourcesFile {
 
         return adaptorQueues; // Empty
     }
-    
+
     /**
      * Returns the adaptor queues.
      *
@@ -1589,7 +1582,7 @@ public class ResourcesFile {
      * @param adaptorName Adaptor name
      * @return
      */
-    public Map<String,Object> getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
+    public Map<String, Object> getAdaptorProperties(ComputeNodeType cn, String adaptorName) {
         List<Object> objList = cn.getProcessorOrAdaptorsOrMemory();
         if (objList != null) {
             // Loop for adaptors tag
@@ -1612,7 +1605,7 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the declared properties of a given Adaptor within a given Image.
      *
@@ -1620,7 +1613,7 @@ public class ResourcesFile {
      * @param adaptorName Adaptor name
      * @return
      */
-    public Map<String,Object> getAdaptorProperties(ImageType image, String adaptorName) {
+    public Map<String, Object> getAdaptorProperties(ImageType image, String adaptorName) {
         List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
         if (objList != null) {
             // Loop for adaptors tag
@@ -1643,24 +1636,24 @@ public class ResourcesFile {
 
         return null;
     }
-    
+
     /**
      * Returns the adaptor properties.
      *
      * @param adaptor Adaptor description
      * @return
      */
-    public Map<String,Object> getAdaptorProperties(AdaptorType adaptor) {
+    public Map<String, Object> getAdaptorProperties(AdaptorType adaptor) {
         HashMap<String, Object> properties = new HashMap<String, Object>();
         List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
         if (innerElements != null) {
             // Loop for submission system
             for (JAXBElement<?> adaptorElement : innerElements) {
                 if (adaptorElement.getName().equals(new QName("Ports"))
-                        || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
-                        || adaptorElement.getName().equals(new QName("Properties"))) {
+                    || adaptorElement.getName().equals(new QName("BrokerAdaptor"))
+                    || adaptorElement.getName().equals(new QName("Properties"))) {
 
-                    properties.put(adaptorElement.getName().getLocalPart(),(Object) adaptorElement.getValue());
+                    properties.put(adaptorElement.getName().getLocalPart(), (Object) adaptorElement.getValue());
                 }
             }
         }
@@ -1748,7 +1741,7 @@ public class ResourcesFile {
     /**
      * Returns the instance with the given name within the given CloudProvider. Null if not found
      * 
-     * @param cp Cloud provider description 
+     * @param cp Cloud provider description
      * @param instanceName Cloud Instance name
      * @return
      */
@@ -1861,15 +1854,6 @@ public class ResourcesFile {
         return null;
     }
 
-
-
-
-
-
- 
-
-
-
     /**
      * Returns the image creation time associated to a given image.
      *
@@ -1891,8 +1875,8 @@ public class ResourcesFile {
     }
 
     /* ****************** ADDERS: MAIN ELEMENTS ********************** */
-    
-    /** 
+
+    /**
      * Adds the given SharedDisk @sd to the resources file.
      * 
      * @param sd Shared disk description
@@ -1964,7 +1948,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public DataNodeType addDataNode(String name, String host, String path, AdaptorsListType adaptors)
-            throws InvalidElementException {
+        throws InvalidElementException {
         return this.addDataNode(name, host, path, adaptors, null, (AttachedDisksListType) null);
     }
 
@@ -1979,7 +1963,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public DataNodeType addDataNode(String name, String host, String path, List<AdaptorType> adaptors)
-            throws InvalidElementException {
+        throws InvalidElementException {
         AdaptorsListType adaptorsList = new AdaptorsListType();
         if (adaptors != null) {
             for (AdaptorType a : adaptors) {
@@ -2003,7 +1987,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public DataNodeType addDataNode(String name, String host, String path, List<AdaptorType> adaptors,
-            StorageType storage, AttachedDisksListType sharedDisks) throws InvalidElementException {
+        StorageType storage, AttachedDisksListType sharedDisks) throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
         if (adaptors != null) {
@@ -2028,7 +2012,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public DataNodeType addDataNode(String name, String host, String path, AdaptorsListType adaptors,
-            StorageType storage, List<AttachedDiskType> sharedDisks) throws InvalidElementException {
+        StorageType storage, List<AttachedDiskType> sharedDisks) throws InvalidElementException {
 
         AttachedDisksListType sharedDisksList = new AttachedDisksListType();
         if (sharedDisks != null) {
@@ -2053,7 +2037,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public DataNodeType addDataNode(String name, String host, String path, List<AdaptorType> adaptors,
-            StorageType storage, List<AttachedDiskType> sharedDisks) throws InvalidElementException {
+        StorageType storage, List<AttachedDiskType> sharedDisks) throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
         if (adaptors != null) {
@@ -2085,29 +2069,29 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public DataNodeType addDataNode(String name, String host, String path, AdaptorsListType adaptors,
-            StorageType storage, AttachedDisksListType sharedDisks) throws InvalidElementException {
+        StorageType storage, AttachedDisksListType sharedDisks) throws InvalidElementException {
         DataNodeType dn = new DataNodeType();
         dn.setName(name);
-        
+
         JAXBElement<String> hostElement = new JAXBElement<String>(new QName("Host"), String.class, host);
         dn.getHostOrPathOrAdaptors().add(hostElement);
-        
+
         JAXBElement<String> pathElement = new JAXBElement<String>(new QName("Path"), String.class, path);
         dn.getHostOrPathOrAdaptors().add(pathElement);
-        
-        JAXBElement<AdaptorsListType> adaptorsElement = new JAXBElement<AdaptorsListType>(new QName("Adaptors"),
-                AdaptorsListType.class, adaptors);        
+
+        JAXBElement<AdaptorsListType> adaptorsElement =
+            new JAXBElement<AdaptorsListType>(new QName("Adaptors"), AdaptorsListType.class, adaptors);
         dn.getHostOrPathOrAdaptors().add(adaptorsElement);
 
         // Optional parameters
         if (storage != null) {
-            JAXBElement<StorageType> storageElement = new JAXBElement<StorageType>(new QName("Storage"),
-                    StorageType.class, storage);
+            JAXBElement<StorageType> storageElement =
+                new JAXBElement<StorageType>(new QName("Storage"), StorageType.class, storage);
             dn.getHostOrPathOrAdaptors().add(storageElement);
         }
         if (sharedDisks != null) {
             JAXBElement<AttachedDisksListType> sdsElement = new JAXBElement<AttachedDisksListType>(
-                    new QName("SharedDisks"), AttachedDisksListType.class, sharedDisks);
+                new QName("SharedDisks"), AttachedDisksListType.class, sharedDisks);
             dn.getHostOrPathOrAdaptors().add(sdsElement);
         }
 
@@ -2130,7 +2114,7 @@ public class ResourcesFile {
     }
 
     /**
-     * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode. 
+     * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode.
      *
      * @param name Compute node name
      * @param processors List of processors
@@ -2139,9 +2123,9 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors)
-            throws InvalidElementException {
+        throws InvalidElementException {
         return this.addComputeNode(name, processors, adaptors, null, null, null, (SoftwareListType) null,
-                (AttachedDisksListType) null, null);
+            (AttachedDisksListType) null, null);
     }
 
     /**
@@ -2154,7 +2138,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, List<AdaptorType> adaptors)
-            throws InvalidElementException {
+        throws InvalidElementException {
         AdaptorsListType adaptorsList = new AdaptorsListType();
         if (adaptors != null) {
             for (AdaptorType a : adaptors) {
@@ -2163,7 +2147,7 @@ public class ResourcesFile {
         }
 
         return this.addComputeNode(name, processors, adaptorsList, null, null, null, (SoftwareListType) null,
-                (AttachedDisksListType) null, null);
+            (AttachedDisksListType) null, null);
     }
 
     /**
@@ -2176,14 +2160,14 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, ProcessorType processor, AdaptorType adaptor)
-            throws InvalidElementException {
+        throws InvalidElementException {
         AdaptorsListType adaptorsList = new AdaptorsListType();
         adaptorsList.getAdaptor().add(adaptor);
         List<ProcessorType> processors = new ArrayList<ProcessorType>();
         processors.add(processor);
 
         return this.addComputeNode(name, processors, adaptorsList, null, null, null, (SoftwareListType) null,
-                (AttachedDisksListType) null, null);
+            (AttachedDisksListType) null, null);
     }
 
     /**
@@ -2202,8 +2186,8 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors,
-            MemoryType memory, StorageType storage, OSType os, List<String> applications,
-            AttachedDisksListType sharedDisks, PriceType price) throws InvalidElementException {
+        MemoryType memory, StorageType storage, OSType os, List<String> applications, AttachedDisksListType sharedDisks,
+        PriceType price) throws InvalidElementException {
 
         SoftwareListType software = new SoftwareListType();
         if (applications != null) {
@@ -2229,11 +2213,10 @@ public class ResourcesFile {
      * @param price Price description
      * @return Added compute node
      * @throws InvalidElementException Error invalid data
-     
      */
     public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors,
-            MemoryType memory, StorageType storage, OSType os, SoftwareListType software,
-            List<AttachedDiskType> sharedDisks, PriceType price) throws InvalidElementException {
+        MemoryType memory, StorageType storage, OSType os, SoftwareListType software,
+        List<AttachedDiskType> sharedDisks, PriceType price) throws InvalidElementException {
 
         AttachedDisksListType sharedDisksList = new AttachedDisksListType();
         if (sharedDisks != null) {
@@ -2261,8 +2244,8 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, List<AdaptorType> adaptors,
-            MemoryType memory, StorageType storage, OSType os, List<String> applications,
-            List<AttachedDiskType> sharedDisks, PriceType price) throws InvalidElementException {
+        MemoryType memory, StorageType storage, OSType os, List<String> applications,
+        List<AttachedDiskType> sharedDisks, PriceType price) throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
         if (adaptors != null) {
@@ -2287,7 +2270,7 @@ public class ResourcesFile {
         }
 
         return this.addComputeNode(name, processors, adaptorsList, memory, storage, os, software, sharedDisksList,
-                price);
+            price);
     }
 
     /**
@@ -2306,8 +2289,8 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors,
-            MemoryType memory, StorageType storage, OSType os, SoftwareListType software,
-            AttachedDisksListType sharedDisks, PriceType price) throws InvalidElementException {
+        MemoryType memory, StorageType storage, OSType os, SoftwareListType software, AttachedDisksListType sharedDisks,
+        PriceType price) throws InvalidElementException {
 
         ComputeNodeType cn = new ComputeNodeType();
 
@@ -2355,7 +2338,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, List<AdaptorType> adaptors,
-            float memorySize, float diskSize, String osName) throws InvalidElementException {
+        float memorySize, float diskSize, String osName) throws InvalidElementException {
 
         ComputeNodeType cn = new ComputeNodeType();
 
@@ -2416,13 +2399,13 @@ public class ResourcesFile {
      * @param osType Operating system type
      * @param osDistribution Operating system distribution
      * @param osVersion Operating system version
-     * @return Added compute node 
+     * @return Added compute node
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed,
-            String procType, float procMemSize, ProcessorPropertyType procProp, String adaptorName, int maxPort,
-            int minPort, String executor, String user, float memorySize, String memoryType, float storageSize,
-            String storageType, String osType, String osDistribution, String osVersion) throws InvalidElementException {
+        String procType, float procMemSize, ProcessorPropertyType procProp, String adaptorName, int maxPort,
+        int minPort, String executor, String user, float memorySize, String memoryType, float storageSize,
+        String storageType, String osType, String osDistribution, String osVersion) throws InvalidElementException {
 
         List<ProcessorType> processors = new ArrayList<>();
         ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
@@ -2453,7 +2436,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, String procName, int procCU, String adaptorName, int maxPort,
-            int minPort) throws InvalidElementException {
+        int minPort) throws InvalidElementException {
         List<ProcessorType> processors = new ArrayList<>();
         ProcessorType pr = createProcessor(procName, procCU);
         processors.add(pr);
@@ -2476,7 +2459,7 @@ public class ResourcesFile {
      * @param procSpeed Processor Speed
      * @param procProp Processor Property
      * @param adaptorName Adaptor Name
-     * @param batch  Flag to indicate is adaptor submission system supports batch
+     * @param batch Flag to indicate is adaptor submission system supports batch
      * @param queues List of available queues
      * @param interactive Flag to indicate is adaptor submission system supports interactive
      * @param brokerAdaptor GAT broker adaptor
@@ -2492,10 +2475,10 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed,
-            String procType, float procMemSize, ProcessorPropertyType procProp, String adaptorName, boolean batch,
-            List<String> queues, boolean interactive, String brokerAdaptor, String user, float memorySize,
-            String memoryType, float storageSize, String storageType, String osType, String osDistribution,
-            String osVersion) throws InvalidElementException {
+        String procType, float procMemSize, ProcessorPropertyType procProp, String adaptorName, boolean batch,
+        List<String> queues, boolean interactive, String brokerAdaptor, String user, float memorySize,
+        String memoryType, float storageSize, String storageType, String osType, String osDistribution,
+        String osVersion) throws InvalidElementException {
 
         List<ProcessorType> processors = new ArrayList<>();
         ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
@@ -2510,7 +2493,7 @@ public class ResourcesFile {
     }
 
     /**
-     * Add the given Service @s to the resources file. 
+     * Add the given Service @s to the resources file.
      *
      * @param s Service description
      * @return Added service
@@ -2535,7 +2518,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ServiceType addService(String wsdl, String name, String namespace, String port)
-            throws InvalidElementException {
+        throws InvalidElementException {
         return this.addService(wsdl, name, namespace, port, null);
     }
 
@@ -2551,7 +2534,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public ServiceType addService(String wsdl, String name, String namespace, String port, PriceType price)
-            throws InvalidElementException {
+        throws InvalidElementException {
         ServiceType s = new ServiceType();
         s.setWsdl(wsdl);
         s.setName(name);
@@ -2592,7 +2575,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public CloudProviderType addCloudProvider(String name, EndpointType endpoint, ImagesType images,
-            InstanceTypesType instances) throws InvalidElementException {
+        InstanceTypesType instances) throws InvalidElementException {
         CloudProviderType cp = new CloudProviderType();
 
         cp.setName(name);
@@ -2614,7 +2597,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public CloudProviderType addCloudProvider(String name, EndpointType endpoint, List<ImageType> images,
-            List<InstanceTypeType> instances) throws InvalidElementException {
+        List<InstanceTypeType> instances) throws InvalidElementException {
 
         ImagesType imagesList = new ImagesType();
         if (images != null) {
@@ -2644,7 +2627,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public CloudProviderType addCloudProvider(String name, EndpointType endpoint, ImagesType images,
-            List<InstanceTypeType> instances) throws InvalidElementException {
+        List<InstanceTypeType> instances) throws InvalidElementException {
 
         InstanceTypesType instancesList = new InstanceTypesType();
         if (instances != null) {
@@ -2664,10 +2647,10 @@ public class ResourcesFile {
      * @param images Cloud images list
      * @param instances Cloud instance list
      * @return Added Cloud provider
-     * @throws InvalidElementException Error invalid data 
+     * @throws InvalidElementException Error invalid data
      */
     public CloudProviderType addCloudProvider(String name, EndpointType endpoint, List<ImageType> images,
-            InstanceTypesType instances) throws InvalidElementException {
+        InstanceTypesType instances) throws InvalidElementException {
 
         ImagesType imagesList = new ImagesType();
         if (images != null) {
@@ -2692,15 +2675,15 @@ public class ResourcesFile {
      * @throws InvalidElementException Error invalid data
      */
     public CloudProviderType addCloudProvider(String name, String server, String connectorJar, String connectorClass,
-            List<ImageType> images, List<InstanceTypeType> instances) throws InvalidElementException {
+        List<ImageType> images, List<InstanceTypeType> instances) throws InvalidElementException {
 
         EndpointType endpoint = new EndpointType();
         JAXBElement<String> serverElement = new JAXBElement<String>(new QName("Server"), String.class, server);
         endpoint.getServerOrConnectorJarOrConnectorClass().add(serverElement);
-        JAXBElement<String> connectorClassElement = new JAXBElement<String>(new QName("ConnectorClass"), String.class,
-                connectorClass);
-        JAXBElement<String> connectorJarElement = new JAXBElement<String>(new QName("ConnectorJar"), String.class,
-                connectorJar);
+        JAXBElement<String> connectorClassElement =
+            new JAXBElement<String>(new QName("ConnectorClass"), String.class, connectorClass);
+        JAXBElement<String> connectorJarElement =
+            new JAXBElement<String>(new QName("ConnectorJar"), String.class, connectorJar);
         endpoint.getServerOrConnectorJarOrConnectorClass().add(connectorClassElement);
         endpoint.getServerOrConnectorJarOrConnectorClass().add(connectorJarElement);
 
@@ -2734,7 +2717,7 @@ public class ResourcesFile {
      * @return Created processor element
      */
     public static ProcessorType createProcessor(String name, int cu, String procArchitecture, float procSpeed,
-            String type, float internalMemory, ProcessorPropertyType procProperties) {
+        String type, float internalMemory, ProcessorPropertyType procProperties) {
 
         ProcessorType processor = new ProcessorType();
         processor.setName(name);
@@ -2742,8 +2725,8 @@ public class ResourcesFile {
         processor.getComputingUnitsOrArchitectureOrSpeed().add(cuElement);
 
         if (procArchitecture != null) {
-            JAXBElement<String> archElement = new JAXBElement<String>(new QName("Architecture"), String.class,
-                    procArchitecture);
+            JAXBElement<String> archElement =
+                new JAXBElement<String>(new QName("Architecture"), String.class, procArchitecture);
             processor.getComputingUnitsOrArchitectureOrSpeed().add(archElement);
         }
 
@@ -2759,13 +2742,13 @@ public class ResourcesFile {
             processor.getComputingUnitsOrArchitectureOrSpeed().add(typeElement);
         }
         if (internalMemory > 0) {
-            JAXBElement<Float> memElement = new JAXBElement<Float>(new QName("InternalMemorySize"), Float.class,
-                    internalMemory);
+            JAXBElement<Float> memElement =
+                new JAXBElement<Float>(new QName("InternalMemorySize"), Float.class, internalMemory);
             processor.getComputingUnitsOrArchitectureOrSpeed().add(memElement);
         }
         if (procProperties != null) {
             JAXBElement<ProcessorPropertyType> propElement = new JAXBElement<ProcessorPropertyType>(
-                    new QName("ProcessorProperty"), ProcessorPropertyType.class, procProperties);
+                new QName("ProcessorProperty"), ProcessorPropertyType.class, procProperties);
             processor.getComputingUnitsOrArchitectureOrSpeed().add(propElement);
         }
         return processor;
@@ -2794,7 +2777,7 @@ public class ResourcesFile {
      *
      * @param memorySize Memory size
      * @param type Memory type
-     * @return created memory 
+     * @return created memory
      */
     public static MemoryType createMemory(float memorySize, String type) {
         MemoryType mem = new MemoryType();
@@ -2832,14 +2815,14 @@ public class ResourcesFile {
     public static OSType createOperatingSystem(String osType, String osDistribution, String osVersion) {
         OSType os = new OSType();
         OSTypeType osTypeType = OSTypeType.fromValue(osType);
-        JAXBElement<OSTypeType> typeElement = new JAXBElement<OSTypeType>(new QName("Type"), OSTypeType.class,
-                osTypeType);
+        JAXBElement<OSTypeType> typeElement =
+            new JAXBElement<OSTypeType>(new QName("Type"), OSTypeType.class, osTypeType);
         os.getTypeOrDistributionOrVersion().add(typeElement);
 
         // Optional parameters
         if (osDistribution != null) {
-            JAXBElement<String> distElement = new JAXBElement<String>(new QName("Distribution"), String.class,
-                    osDistribution);
+            JAXBElement<String> distElement =
+                new JAXBElement<String>(new QName("Distribution"), String.class, osDistribution);
             os.getTypeOrDistributionOrVersion().add(distElement);
         }
         if (osVersion != null) {
@@ -2850,7 +2833,7 @@ public class ResourcesFile {
         return os;
     }
 
-    /** 
+    /**
      * Creates a Cloud image description.
      * 
      * @param name Image name
@@ -2858,7 +2841,7 @@ public class ResourcesFile {
      * @param batch Batch flag
      * @param queues List of queues
      * @param interactive Interactive flag
-     * @param brokerAdaptor Broker adaptor 
+     * @param brokerAdaptor Broker adaptor
      * @param user username
      * @param osType OS type
      * @param osDistribution OS distribution
@@ -2866,8 +2849,8 @@ public class ResourcesFile {
      * @return Created Cloud Image
      */
     public static ImageType createImage(String name, String adaptorName, boolean batch, List<String> queues,
-            boolean interactive, String brokerAdaptor, String user, String osType, String osDistribution,
-            String osVersion) {
+        boolean interactive, String brokerAdaptor, String user, String osType, String osDistribution,
+        String osVersion) {
 
         ImageType image = new ImageType();
         image.setName(name);
@@ -2880,15 +2863,15 @@ public class ResourcesFile {
         return image;
 
     }
-    
-    /** 
+
+    /**
      * Creates a Cloud image description.
      * 
      * @param name Image name
      * @param adaptorName Adaptor name
      * @param maxPort Maximum port number
      * @param minPort Minimum port number
-     * @param executor Executor 
+     * @param executor Executor
      * @param user username
      * @param osType OS type
      * @param osDistribution OS distribution
@@ -2896,7 +2879,7 @@ public class ResourcesFile {
      * @return Created Cloud Image
      */
     public static ImageType createImage(String name, String adaptorName, int maxPort, int minPort, String executor,
-            String user, String osType, String osDistribution, String osVersion) {
+        String user, String osType, String osDistribution, String osVersion) {
 
         ImageType image = new ImageType();
         image.setName(name);
@@ -2914,13 +2897,13 @@ public class ResourcesFile {
 
     }
 
-    /** 
+    /**
      * Creates a Cloud image description.
      * 
      * @param name Image name
      * @param adaptorName Adaptor name
      * @param maxPort Maximum port number
-     * @param minPort Minimum port number 
+     * @param minPort Minimum port number
      * @return Created Cloud Image
      */
     public static ImageType createImage(String name, String adaptorName, int maxPort, int minPort) {
@@ -2937,15 +2920,15 @@ public class ResourcesFile {
     }
 
     public static InstanceTypeType createInstance(String name, String procName, int procCU, float memorySize,
-            float storageSize) {
+        float storageSize) {
         return createInstance(name, procName, procCU, null, 0, null, 0, null, memorySize, null, storageSize, null);
     }
 
-    /** 
+    /**
      * Create cloud instance type.
      * 
      * @param name Instance type name
-     * @param procName Processor name 
+     * @param procName Processor name
      * @param procCU Processor computing units
      * @param procArch Processor architecture
      * @param procSpeed Processor Speed
@@ -2955,12 +2938,12 @@ public class ResourcesFile {
      * @param memorySize Memory size
      * @param memoryType Memory type
      * @param storageSize Storage size
-     * @param storageType Storage type 
+     * @param storageType Storage type
      * @return Created instance type description
      */
     public static InstanceTypeType createInstance(String name, String procName, int procCU, String procArch,
-            float procSpeed, String procType, float procMemSize, ProcessorPropertyType procProp, float memorySize,
-            String memoryType, float storageSize, String storageType) {
+        float procSpeed, String procType, float procMemSize, ProcessorPropertyType procProp, float memorySize,
+        String memoryType, float storageSize, String storageType) {
 
         InstanceTypeType instance = new InstanceTypeType();
         instance.setName(name);
@@ -2988,12 +2971,12 @@ public class ResourcesFile {
         JAXBElement<String> serverElement = new JAXBElement<String>(new QName("Server"), String.class, server);
         endPoint.getServerOrConnectorJarOrConnectorClass().add(serverElement);
 
-        JAXBElement<String> connectorClassElement = new JAXBElement<String>(new QName("ConnectorClass"), String.class,
-                connectorClass);
+        JAXBElement<String> connectorClassElement =
+            new JAXBElement<String>(new QName("ConnectorClass"), String.class, connectorClass);
         endPoint.getServerOrConnectorJarOrConnectorClass().add(connectorClassElement);
 
-        JAXBElement<String> connectorJarElement = new JAXBElement<String>(new QName("ConnectorJar"), String.class,
-                connectorJar);
+        JAXBElement<String> connectorJarElement =
+            new JAXBElement<String>(new QName("ConnectorJar"), String.class, connectorJar);
         endPoint.getServerOrConnectorJarOrConnectorClass().add(connectorJarElement);
 
         if (port != null) {
@@ -3006,23 +2989,23 @@ public class ResourcesFile {
     /**
      * Creates an instance of an Adaptor with the given information.
      *
-     * @param name Adaptor name 
+     * @param name Adaptor name
      * @param subsys Submission System
      * @param nioproperties NIO properties
-     * @param user username 
+     * @param user username
      * @return Created adaptor
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys,
-            ResourcesNIOAdaptorProperties nioproperties, String user) {
+        ResourcesNIOAdaptorProperties nioproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<>(new QName("SubmissionSystem"),
-                SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement =
+            new JAXBElement<>(new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
-        JAXBElement<ResourcesNIOAdaptorProperties> propertiesElement = new JAXBElement<>(new QName("Ports"),
-                ResourcesNIOAdaptorProperties.class, nioproperties);
+        JAXBElement<ResourcesNIOAdaptorProperties> propertiesElement =
+            new JAXBElement<>(new QName("Ports"), ResourcesNIOAdaptorProperties.class, nioproperties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -3044,16 +3027,16 @@ public class ResourcesFile {
      * @return Created adaptor
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties,
-            String user) {
+        String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement =
+            new JAXBElement<SubmissionSystemType>(new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
-        JAXBElement<String> propertiesElement = new JAXBElement<String>(new QName("BrokerAdaptor"), String.class,
-                gatproperties);
+        JAXBElement<String> propertiesElement =
+            new JAXBElement<String>(new QName("BrokerAdaptor"), String.class, gatproperties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -3068,23 +3051,23 @@ public class ResourcesFile {
     /**
      * Creates an instance of an Adaptor with the given information.
      *
-     * @param name Adaptor name 
+     * @param name Adaptor name
      * @param subsys Submission System
      * @param externalproperties External properties
      * @param user username
      * @return Created adaptor
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys,
-            ResourcesExternalAdaptorProperties externalproperties, String user) {
+        ResourcesExternalAdaptorProperties externalproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement =
+            new JAXBElement<SubmissionSystemType>(new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
-        JAXBElement<ResourcesExternalAdaptorProperties> propertiesElement = new JAXBElement<>(new QName("Properties"),
-                ResourcesExternalAdaptorProperties.class, externalproperties);
+        JAXBElement<ResourcesExternalAdaptorProperties> propertiesElement =
+            new JAXBElement<>(new QName("Properties"), ResourcesExternalAdaptorProperties.class, externalproperties);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -3106,12 +3089,12 @@ public class ResourcesFile {
      * @return Created Adaptor
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys,
-            List<ResourcesPropertyAdaptorType> externalProperties, String user) {
+        List<ResourcesPropertyAdaptorType> externalProperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
-        JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType>(
-                new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+        JAXBElement<SubmissionSystemType> subsysElement =
+            new JAXBElement<SubmissionSystemType>(new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
 
         ResourcesExternalAdaptorProperties externalpropertiesList = new ResourcesExternalAdaptorProperties();
@@ -3121,7 +3104,7 @@ public class ResourcesFile {
             }
         }
         JAXBElement<ResourcesExternalAdaptorProperties> propertiesElement = new JAXBElement<>(new QName("Properties"),
-                ResourcesExternalAdaptorProperties.class, externalpropertiesList);
+            ResourcesExternalAdaptorProperties.class, externalpropertiesList);
         adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
 
         // Optional parameters
@@ -3145,7 +3128,7 @@ public class ResourcesFile {
      * @return
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
-            ResourcesNIOAdaptorProperties nioproperties, String user) {
+        ResourcesNIOAdaptorProperties nioproperties, String user) {
 
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
@@ -3177,7 +3160,7 @@ public class ResourcesFile {
      * @return
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
-            String gatproperties, String user) {
+        String gatproperties, String user) {
 
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
@@ -3209,7 +3192,7 @@ public class ResourcesFile {
      * @return
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
-            ResourcesExternalAdaptorProperties externalProperties, String user) {
+        ResourcesExternalAdaptorProperties externalProperties, String user) {
 
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
@@ -3241,7 +3224,7 @@ public class ResourcesFile {
      * @return
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
-            List<ResourcesPropertyAdaptorType> externalProperties, String user) {
+        List<ResourcesPropertyAdaptorType> externalProperties, String user) {
 
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
@@ -3263,7 +3246,7 @@ public class ResourcesFile {
 
     /**
      * Adds the given image @image to the cloudProvider with name = @cloudProviderName.
-     *  
+     * 
      * @param cloudProviderName Cloud provider name
      * @param image Image description
      * @return True if image is inserted, false otherwise
@@ -3283,6 +3266,7 @@ public class ResourcesFile {
 
     /**
      * Adds the given instance @instance to the cloudProvider with name = @cloudProviderName.
+     * 
      * @param cloudProviderName Cloud Provider name
      * @param instance Instance Type description
      * @return True if instance is inserted, false otherwise
@@ -3301,7 +3285,7 @@ public class ResourcesFile {
     }
 
     /**
-     * Attach shared disk to a compute node. 
+     * Attach shared disk to a compute node.
      * 
      * @param diskName Shared Disk name
      * @param cnName Compute node name
@@ -3309,7 +3293,7 @@ public class ResourcesFile {
      * @throws InvalidElementException Error validating data
      */
     public void attachSharedDiskToComputeNode(String diskName, String cnName, String mountPoint)
-            throws InvalidElementException {
+        throws InvalidElementException {
         ComputeNodeType cn = getComputeNode(cnName);
         if (cn != null) {
 
@@ -3327,7 +3311,7 @@ public class ResourcesFile {
         }
     }
 
-    /** 
+    /**
      * Detached Shared disk to compute node.
      * 
      * @param diskName Shared disk name
@@ -3357,7 +3341,7 @@ public class ResourcesFile {
     }
 
     /* ******************* GETTERS: HELPERS FOR SECOND LEVEL ELEMENTS *********************/
-    
+
     /**
      * Returns the number of Compunting Units of a given processor @p.
      *
@@ -3378,7 +3362,7 @@ public class ResourcesFile {
     }
 
     /**
-     * Returns the architecture of a given processor @p. 
+     * Returns the architecture of a given processor @p.
      *
      * @param p Processor
      * @return
@@ -3471,7 +3455,7 @@ public class ResourcesFile {
     }
 
     /* ************* DELETERS: MAIN ELEMENTS ***************/
-    
+
     /**
      * Deletes the SharedDisk with name=@name Returns true if deletion is successful, false otherwise.
      *
@@ -3591,6 +3575,5 @@ public class ResourcesFile {
 
         return false;
     }
-
 
 }

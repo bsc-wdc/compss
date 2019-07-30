@@ -95,7 +95,7 @@ public class LoaderUtils {
      * @throws NotFoundException When the parameter types of a CtClass cannot be found.
      */
     public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods)
-            throws NotFoundException {
+        throws NotFoundException {
         LOGGER.info("Checking Method " + method.getName());
 
         for (java.lang.reflect.Method remoteMethod : remoteMethods) {
@@ -104,7 +104,7 @@ public class LoaderUtils {
                 // METHOD
                 Method remoteMethodAnnotation = remoteMethod.getAnnotation(Method.class);
                 if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                        remoteMethodAnnotation.name())) {
+                    remoteMethodAnnotation.name())) {
                     return remoteMethod;
                 }
             }
@@ -137,7 +137,7 @@ public class LoaderUtils {
                 // MultiNode
                 MultiNode remoteMethodAnnotation = remoteMethod.getAnnotation(MultiNode.class);
                 if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                        remoteMethodAnnotation.name())) {
+                    remoteMethodAnnotation.name())) {
                     return remoteMethod;
                 }
             }
@@ -165,7 +165,7 @@ public class LoaderUtils {
                 Methods methodsAnnotation = remoteMethod.getAnnotation(Methods.class);
                 for (Method remoteMethodAnnotation : methodsAnnotation.value()) {
                     if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                            remoteMethodAnnotation.name())) {
+                        remoteMethodAnnotation.name())) {
                         return remoteMethod;
                     }
                 }
@@ -208,7 +208,7 @@ public class LoaderUtils {
                 MultiMultiNode methodsAnnotation = remoteMethod.getAnnotation(MultiMultiNode.class);
                 for (MultiNode remoteMethodAnnotation : methodsAnnotation.value()) {
                     if (isSelectedMethod(method, remoteMethod, remoteMethodAnnotation.declaringClass(),
-                            remoteMethodAnnotation.name())) {
+                        remoteMethodAnnotation.name())) {
                         return remoteMethod;
                     }
                 }
@@ -232,7 +232,7 @@ public class LoaderUtils {
     }
 
     private static boolean isSelectedMethod(CtMethod method, java.lang.reflect.Method remote, String remoteMethodClass,
-            String remoteMethodName) throws NotFoundException {
+        String remoteMethodName) throws NotFoundException {
         // Patch remote method name if required
         if (remoteMethodName == null || remoteMethodName.isEmpty() || remoteMethodName.equals(Constants.UNASSIGNED)) {
             remoteMethodName = remote.getName();
@@ -270,7 +270,7 @@ public class LoaderUtils {
     }
 
     private static boolean isSelectedNonNativeMethod(CtMethod method, java.lang.reflect.Method remote, String signature)
-            throws NotFoundException {
+        throws NotFoundException {
 
         LOGGER.debug("  - Checking " + method.getName() + " against " + remote.getName());
 
@@ -306,7 +306,7 @@ public class LoaderUtils {
     }
 
     private static boolean isSelectedService(CtMethod method, java.lang.reflect.Method remote, Service serviceAnnot)
-            throws NotFoundException {
+        throws NotFoundException {
 
         // Check if methods have the same name
         String nameRemote = serviceAnnot.operation();
@@ -367,10 +367,10 @@ public class LoaderUtils {
         }
 
         namespace = namespace// .substring(0, namespace.indexOf(".xsd")) // remove .xsd at the end
-                .substring(startIndex) // remove http://www.
-                .replace('/', '.') // replace / by .
-                .replace('-', '.') // replace - by .
-                .replace(':', '.'); // replace : by .
+            .substring(startIndex) // remove http://www.
+            .replace('/', '.') // replace / by .
+            .replace('-', '.') // replace - by .
+            .replace(':', '.'); // replace : by .
 
         return "dummy." + namespace + '.' + service + '.' + port;
     }
@@ -429,7 +429,7 @@ public class LoaderUtils {
      */
     public static boolean isMainMethod(CtMethod m) throws NotFoundException {
         return ("main".equals(m.getName()) && m.getParameterTypes().length == 1
-                && m.getParameterTypes()[0].getName().equals(String[].class.getCanonicalName()));
+            && m.getParameterTypes()[0].getName().equals(String[].class.getCanonicalName()));
     }
 
     /**
@@ -486,7 +486,7 @@ public class LoaderUtils {
      * @return StringBuilder containing the complete executeTask call.
      */
     public static StringBuilder modifyString(StringBuilder executeTask, int numParams, String appNameParam,
-            String slaIdParam, String urNameParam, String primaryHostParam, String transferIdParam) {
+        String slaIdParam, String urNameParam, String primaryHostParam, String transferIdParam) {
 
         // Number of new params we add
         int newParams = 5;
@@ -538,7 +538,7 @@ public class LoaderUtils {
      * @throws InvocationTargetException If an error occurs while invoking the method into the given object.
      */
     public static Object runMethodOnObject(Object o, Class<?> methodClass, String methodName, Object[] values,
-            Class<?>[] types) throws InvocationTargetException {
+        Class<?>[] types) throws InvocationTargetException {
         // Use reflection to get the requested method
         java.lang.reflect.Method method = null;
         try {
@@ -548,7 +548,7 @@ public class LoaderUtils {
             return null;
         } catch (NoSuchMethodException nsme) {
             String errMsg = "Requested method " + methodName + " of " + methodClass + " not found\n"
-                    + "Types length is " + types.length + "\n";
+                + "Types length is " + types.length + "\n";
             for (Class<?> type : types) {
                 errMsg += "Type is " + type;
             }

@@ -6,9 +6,10 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for person complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for person complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="person">
@@ -26,18 +27,14 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "person", propOrder = {
-    "age",
+@XmlType(name = "person", propOrder = { "age",
     "dni",
     "name",
     "production",
     "surname",
-    "workingHours"
-})
+    "workingHours" })
 public class Person {
 
     protected int age;
@@ -47,9 +44,9 @@ public class Person {
     protected String surname;
     protected int workingHours;
 
+
     /**
      * Gets the value of the age property.
-     * 
      */
     public int getAge() {
         return age;
@@ -57,7 +54,6 @@ public class Person {
 
     /**
      * Sets the value of the age property.
-     * 
      */
     public void setAge(int value) {
         this.age = value;
@@ -66,10 +62,7 @@ public class Person {
     /**
      * Gets the value of the dni property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
      */
     public String getDni() {
         return dni;
@@ -78,10 +71,7 @@ public class Person {
     /**
      * Sets the value of the dni property.
      * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     * @param value allowed object is {@link String }
      */
     public void setDni(String value) {
         this.dni = value;
@@ -90,10 +80,7 @@ public class Person {
     /**
      * Gets the value of the name property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
      */
     public String getName() {
         return name;
@@ -102,10 +89,7 @@ public class Person {
     /**
      * Sets the value of the name property.
      * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     * @param value allowed object is {@link String }
      */
     public void setName(String value) {
         this.name = value;
@@ -113,7 +97,6 @@ public class Person {
 
     /**
      * Gets the value of the production property.
-     * 
      */
     public int getProduction() {
         return production;
@@ -121,7 +104,6 @@ public class Person {
 
     /**
      * Sets the value of the production property.
-     * 
      */
     public void setProduction(int value) {
         this.production = value;
@@ -130,10 +112,7 @@ public class Person {
     /**
      * Gets the value of the surname property.
      * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     * @return possible object is {@link String }
      */
     public String getSurname() {
         return surname;
@@ -142,10 +121,7 @@ public class Person {
     /**
      * Sets the value of the surname property.
      * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     * @param value allowed object is {@link String }
      */
     public void setSurname(String value) {
         this.surname = value;
@@ -153,7 +129,6 @@ public class Person {
 
     /**
      * Gets the value of the workingHours property.
-     * 
      */
     public int getWorkingHours() {
         return workingHours;
@@ -161,7 +136,6 @@ public class Person {
 
     /**
      * Sets the value of the workingHours property.
-     * 
      */
     public void setWorkingHours(int value) {
         this.workingHours = value;

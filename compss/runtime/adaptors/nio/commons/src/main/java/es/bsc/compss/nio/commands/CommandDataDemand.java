@@ -31,6 +31,7 @@ public class CommandDataDemand implements Command {
     private NIOData d;
     private int id;
 
+
     /**
      * Creates a new CommandDataDemand for externalization.
      */
@@ -41,7 +42,7 @@ public class CommandDataDemand implements Command {
     /**
      * Creates a new CommandDataDemand instance.
      *
-     * @param d          Data to request.
+     * @param d Data to request.
      * @param receiverID Receiver Id.
      */
     public CommandDataDemand(NIOData d, int receiverID) {

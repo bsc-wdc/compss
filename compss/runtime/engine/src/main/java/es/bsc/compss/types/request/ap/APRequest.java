@@ -54,6 +54,6 @@ public abstract class APRequest {
      * @throws COMPSsException Exception thrown by user
      */
     public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
-            throws ShutdownException, COMPSsException;
+        throws ShutdownException, COMPSsException;
 
 }

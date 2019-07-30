@@ -26,6 +26,7 @@ public class ReduceNodeRequest {
     private String workerName;
     private MethodResourceDescription resources;
 
+
     public ReduceNodeRequest() {
     }
 

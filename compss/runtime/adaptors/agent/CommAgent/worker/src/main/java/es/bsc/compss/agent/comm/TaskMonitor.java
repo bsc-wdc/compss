@@ -46,6 +46,7 @@ class TaskMonitor extends PrintMonitor {
 
     private boolean successful;
 
+
     public TaskMonitor(CommResource orchestrator, CommTask request) {
         this.orchestrator = orchestrator;
         this.successful = false;

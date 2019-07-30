@@ -39,7 +39,7 @@ public class Adaptor implements CommAdaptor {
 
     @Override
     public Configuration constructConfiguration(Map<String, Object> projectConf, Map<String, Object> resourcesConf)
-            throws ConstructConfigurationException {
+        throws ConstructConfigurationException {
 
         AgentConfiguration ac = new AgentConfiguration(this.getClass().getName());
 

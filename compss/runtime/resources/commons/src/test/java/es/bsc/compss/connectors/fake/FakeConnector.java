@@ -36,7 +36,7 @@ public class FakeConnector implements Connector, Cost {
 
 
     public FakeConnector(CloudProvider provider, String connectorJarPath, String connectorMainClass,
-            Map<String, String> connectorProperties) throws ConnectorException {
+        Map<String, String> connectorProperties) throws ConnectorException {
     }
 
     @Override

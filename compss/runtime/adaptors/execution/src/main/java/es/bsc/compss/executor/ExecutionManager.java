@@ -37,7 +37,7 @@ public class ExecutionManager {
 
 
     /**
-     * Instantiates a new Execution Manager. 
+     * Instantiates a new Execution Manager.
      *
      * @param context Invocation context
      * @param computingUnitsCPU Number of CPU Computing Units
@@ -49,7 +49,7 @@ public class ExecutionManager {
      * @param limitOfTasks Limit of number of simultaneous tasks
      */
     public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU,
-            String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
+        String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
 
         ResourceManager rm = null;
         try {
@@ -90,6 +90,7 @@ public class ExecutionManager {
 
     /**
      * Increase execution manager capabilities.
+     * 
      * @param cpuCount Number of CPU Computing Units
      * @param gpuCount Number of GPU Computing Units
      * @param fpgaCount Number of FPGA Computing Units
@@ -107,6 +108,7 @@ public class ExecutionManager {
 
     /**
      * Reduce execution manager capabilities.
+     * 
      * @param cpuCount Number of CPU Computing Units
      * @param gpuCount Number of GPU Computing Units
      * @param fpgaCount Number of FPGA Computing Units

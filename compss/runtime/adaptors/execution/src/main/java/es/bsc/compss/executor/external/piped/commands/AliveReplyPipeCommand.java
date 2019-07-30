@@ -23,7 +23,6 @@ import java.util.List;
 
 /**
  * Alive notification command send through a pipe.
- *
  */
 public class AliveReplyPipeCommand extends AliveReplyExternalCommand implements PipeCommand {
 
@@ -32,6 +31,7 @@ public class AliveReplyPipeCommand extends AliveReplyExternalCommand implements 
 
     /**
      * Alive notification constructor.
+     * 
      * @param command Command content
      */
     public AliveReplyPipeCommand(String[] command) {
@@ -39,7 +39,7 @@ public class AliveReplyPipeCommand extends AliveReplyExternalCommand implements 
             pids.add(Integer.parseInt(command[i]));
         }
     }
-    
+
     /**
      * Alive notification default constructor.
      */

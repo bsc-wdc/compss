@@ -41,7 +41,7 @@ public class ResourceCreationRequest {
      * @param requestID Request Id.
      */
     public ResourceCreationRequest(CloudMethodResourceDescription requestedResource, int[][] simultaneousTasks,
-            CloudProvider cp, String requestID) {
+        CloudProvider cp, String requestID) {
 
         this.requested = requestedResource;
         this.provider = cp;
@@ -113,13 +113,13 @@ public class ResourceCreationRequest {
     public void print(Logger resourcesLogger, boolean debug) {
         StringBuilder compositionString = new StringBuilder();
         for (java.util.Map.Entry<CloudInstanceTypeDescription, int[]> entry : this.getRequested().getTypeComposition()
-                .entrySet()) {
+            .entrySet()) {
             compositionString.append(" \t\tTYPE = [\n").append("\t\t\tNAME = ").append(entry.getKey().getName())
-                    .append("\t\t\tCOUNT= ").append(entry.getValue()[0]).append("\t\t]\n");
+                .append("\t\t\tCOUNT= ").append(entry.getValue()[0]).append("\t\t]\n");
         }
 
         resourcesLogger.info("ORDER_CREATION = [\n" + "\tTYPE_COMPOSITION = [" + compositionString.toString() + "]\n"
-                + "\tPROVIDER = " + this.getProvider() + "\n" + "]");
+            + "\tPROVIDER = " + this.getProvider() + "\n" + "]");
         if (debug) {
             StringBuilder sb = new StringBuilder();
             sb.append("EXPECTED_SIM_TASKS = [").append("\n");
@@ -129,7 +129,7 @@ public class ResourceCreationRequest {
                     sb.append("\t\t").append("COREID = ").append(i).append("\n");
                     sb.append("\t\t").append("IMPLID = ").append(j).append("\n");
                     sb.append("\t\t").append("SIM_TASKS = ").append(this.requestedSimultaneousTaskCount()[i][j])
-                            .append("\n");
+                        .append("\n");
                     sb.append("\t").append("]").append("\n");
                 }
             }

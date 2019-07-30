@@ -33,14 +33,14 @@ import java.io.File;
 public class PythonInvoker extends PipedInvoker {
 
     public PythonInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
+        InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
     }
 
     @Override
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
-            String sandBox, InvocationResources assignedResources) {
+        String sandBox, InvocationResources assignedResources) {
 
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
         return taskExecution;

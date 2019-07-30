@@ -6,9 +6,10 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for getOwner complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for getOwner complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
  * &lt;complexType name="getOwner">
@@ -20,12 +21,9 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "getOwner")
 public class GetOwner {
-
 
 }

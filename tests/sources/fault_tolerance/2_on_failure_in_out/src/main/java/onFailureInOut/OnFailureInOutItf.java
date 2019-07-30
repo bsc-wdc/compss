@@ -11,8 +11,9 @@ public interface OnFailureInOutItf {
 
     @Method(declaringClass = "onFailureInOut.OnFailureInOutImpl", onFailure = OnFailure.CANCEL_SUCCESSORS)
     void processParamRead(@Parameter(type = Type.FILE, direction = Direction.INOUT) String filename);
-    
+
     @Method(declaringClass = "onFailureInOut.OnFailureInOutImpl", onFailure = OnFailure.CANCEL_SUCCESSORS)
-    void processParamWrite(@Parameter(type = Type.FILE, direction = Direction.IN) String filename, @Parameter(type = Type.FILE, direction = Direction.OUT) String filename2);
+    void processParamWrite(@Parameter(type = Type.FILE, direction = Direction.IN) String filename,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String filename2);
 
 }

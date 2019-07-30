@@ -9,21 +9,15 @@ import es.bsc.compss.types.annotations.task.Method;
 public interface BasicTracingItf {
 
     @Method(declaringClass = "tracing.BasicTracingImpl")
-    void task1 (
-    ); 
-    
-    @Method(declaringClass = "tracing.BasicTracingImpl")
-    void task2 (
-    ); 
-    
-    @Method(declaringClass = "tracing.BasicTracingImpl")
-    void task3 (
-    ); 
+    void task1();
 
     @Method(declaringClass = "tracing.BasicTracingImpl")
-    Integer task4(
-        @Parameter(type = Type.FILE, direction = Direction.INOUT)
-        String file
-    ); 
-	
+    void task2();
+
+    @Method(declaringClass = "tracing.BasicTracingImpl")
+    void task3();
+
+    @Method(declaringClass = "tracing.BasicTracingImpl")
+    Integer task4(@Parameter(type = Type.FILE, direction = Direction.INOUT) String file);
+
 }

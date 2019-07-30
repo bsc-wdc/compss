@@ -25,17 +25,15 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 
 @XmlRootElement(name = "externalResource")
-@XmlSeeAlso({ExternalAdaptorProperties.class, ResourcesExternalAdaptorProperties.class})
+@XmlSeeAlso({ ExternalAdaptorProperties.class,
+    ResourcesExternalAdaptorProperties.class })
 public class ExternalAdaptorResource extends Resource<ExternalAdaptorProperties, ResourcesExternalAdaptorProperties> {
 
     public ExternalAdaptorResource() {
     }
 
-    public ExternalAdaptorResource(String name,
-            MethodResourceDescription description,
-            String adaptor,
-            ExternalAdaptorProperties projectConf,
-            ResourcesExternalAdaptorProperties resourcesConf) {
+    public ExternalAdaptorResource(String name, MethodResourceDescription description, String adaptor,
+        ExternalAdaptorProperties projectConf, ResourcesExternalAdaptorProperties resourcesConf) {
         super(name, description, adaptor, projectConf, resourcesConf);
     }
 

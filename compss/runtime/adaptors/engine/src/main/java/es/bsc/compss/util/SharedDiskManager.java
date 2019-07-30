@@ -51,6 +51,7 @@ public class SharedDiskManager {
      */
     private static final Map<String, Set<LogicalData>> SHARED_DISK_TO_SHARED_FILES = new TreeMap<>();
 
+
     /**
      * Adds a new resource to be managed.
      *
@@ -64,9 +65,9 @@ public class SharedDiskManager {
     /**
      * Links a shared disk with a resource.
      *
-     * @param diskName   shared disk identifier
+     * @param diskName shared disk identifier
      * @param mountpoint path where the shared disk is mounted
-     * @param host       containing resource
+     * @param host containing resource
      */
     public static synchronized void addSharedToMachine(String diskName, String mountpoint, Resource host) {
         Machine resource = MACHINE_TO_SHARED.get(host);
@@ -145,7 +146,7 @@ public class SharedDiskManager {
     /**
      * Returns the mountpoint of a shared disk in a resource.
      *
-     * @param host       resource
+     * @param host resource
      * @param sharedDisk shared disk name
      * @return mountpoint of the shared disk in the resource
      */
@@ -195,7 +196,7 @@ public class SharedDiskManager {
      * Adds a LogicalData to a diskName.
      *
      * @param diskName Disk name
-     * @param ld       Logical data
+     * @param ld Logical data
      */
     public static synchronized void addLogicalData(String diskName, LogicalData ld) {
         Set<LogicalData> lds = SHARED_DISK_TO_SHARED_FILES.get(diskName);
@@ -241,6 +242,7 @@ public class SharedDiskManager {
         private final List<String> allShared;
         private final HashMap<String, String> mountpoint2Name;
         private final HashMap<String, String> name2Mountpoint;
+
 
         public Machine() {
             allShared = new LinkedList<>();

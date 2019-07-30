@@ -224,6 +224,6 @@ public class LocalParameter implements InvocationParam {
     @Override
     public String toString() {
         return this.getType() + " " + this.getValue() + " " + (this.isPreserveSourceData() ? "PRESERVE " : "VOLATILE ")
-                + (this.isWriteFinalValue() ? "WRITE" : "DISMISS");
+            + (this.isWriteFinalValue() ? "WRITE" : "DISMISS");
     }
 }

@@ -28,6 +28,7 @@ import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.util.JedisClusterCRC16;
 import storage.utils.Serializer;
 
+
 public final class StorageItf {
 
     // Logger According to Loggers.STORAGE
@@ -44,7 +45,7 @@ public final class StorageItf {
     // See https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
     // The storage API will assume that, given a hostname, there is a Redis Server listening there
     private static final int REDIS_PORT = 6379;
-    private static final int REDIS_MAX_CLIENTS = 1<<19;
+    private static final int REDIS_MAX_CLIENTS = 1 << 19;
     // Number of Redis hash slots. This is fixed, and official. See redis.io tutorials
     private static final int REDIS_MAX_HASH_SLOTS = 16384;
     // Client connections
@@ -54,8 +55,8 @@ public final class StorageItf {
     // Given that JedisCluster and Jedis are classes that share no common ancestor, this is the cleanest way I can
     // come up with.
     private static JedisCluster redisClusterConnection;
-    private static JedisPool    redisConnection;
-    private static boolean      clusterMode = true;
+    private static JedisPool redisConnection;
+    private static boolean clusterMode = true;
 
     private static List<String> hosts = new ArrayList<>();
 
@@ -63,7 +64,7 @@ public final class StorageItf {
 
     // Given a hash slot, return a list with the hosts that contain at least one instance that includes
     // this slot in its slot interval
-    private static ArrayList< String >[] hostsBySlot = new ArrayList[REDIS_MAX_HASH_SLOTS];
+    private static ArrayList<String>[] hostsBySlot = new ArrayList[REDIS_MAX_HASH_SLOTS];
 
     static {
         String hostname = null;
@@ -78,6 +79,7 @@ public final class StorageItf {
         MASTER_HOSTNAME = hostname;
     }
 
+
     /**
      * Constructor
      */
@@ -86,8 +88,8 @@ public final class StorageItf {
     }
 
     /**
-     * Initializes the persistent storage
-     * Configuration file must contain all the worker hostnames, one by line
+     * Initializes the persistent storage Configuration file must contain all the worker hostnames, one by line
+     * 
      * @param storageConf Path to the storage configuration File
      * @throws StorageException
      */
@@ -104,16 +106,15 @@ public final class StorageItf {
         } catch (IOException e) {
             throw new StorageException("Could not open configuration file", e);
         }
-        assert(!hosts.isEmpty());
+        assert (!hosts.isEmpty());
         clusterMode = hosts.size() > 1;
-        if(clusterMode) {
+        if (clusterMode) {
             LOGGER.info("More than one host detected, enabling Client Cluster Mode");
             // TODO: Ask Jedis guys why JedisCluster needs a HostAndPort and why Jedis needs a String and an Integer
             redisClusterConnection = new JedisCluster(new HostAndPort(hosts.get(0), REDIS_PORT));
             // Precompute host hashmap
             preComputeHostHashMap();
-        }
-        else {
+        } else {
             LOGGER.info("Only one host detect, using standalone client...");
             JedisPoolConfig poolConfig = new JedisPoolConfig();
             poolConfig.setMaxTotal(REDIS_MAX_CLIENTS);
@@ -121,12 +122,15 @@ public final class StorageItf {
         }
     }
 
+
     // Temporary representation of a host
     static private class Host {
+
         // Host (name)
         String host;
         // Hash slot endpoints
         int l, r;
+
 
         Host(String clusterInfoLine) {
             String[] tokens = clusterInfoLine.split(" ");
@@ -149,19 +153,20 @@ public final class StorageItf {
 
     }
 
+
     private static void preComputeHostHashMap() {
-        String someHost = (String)redisClusterConnection.getClusterNodes().keySet().toArray()[0];
+        String someHost = (String) redisClusterConnection.getClusterNodes().keySet().toArray()[0];
         String clusterInfo = redisClusterConnection.getClusterNodes().get(someHost).getResource().clusterNodes();
         String[] clusterLines = clusterInfo.split("\n");
-        ArrayList< Host > clusterHosts = new ArrayList<>();
-        for(String line : clusterLines) {
+        ArrayList<Host> clusterHosts = new ArrayList<>();
+        for (String line : clusterLines) {
             Host h = new Host(line);
             clusterHosts.add(h);
         }
-        for(int i = 0; i < REDIS_MAX_HASH_SLOTS; ++i) {
-            ArrayList< String > validHosts = new ArrayList<>();
-            for(Host h : clusterHosts) {
-                if(h.l <= i && i <= h.r) {
+        for (int i = 0; i < REDIS_MAX_HASH_SLOTS; ++i) {
+            ArrayList<String> validHosts = new ArrayList<>();
+            for (Host h : clusterHosts) {
+                if (h.l <= i && i <= h.r) {
                     validHosts.add(h.host);
                 }
             }
@@ -170,35 +175,34 @@ public final class StorageItf {
     }
 
     /**
-     * Stops the persistent storage
-     * StorageItf
+     * Stops the persistent storage StorageItf
+     * 
      * @throws StorageException
      */
     public static void finish() throws StorageException {
-        if(clusterMode) {
+        if (clusterMode) {
             try {
                 redisClusterConnection.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else {
+        } else {
             redisConnection.close();
         }
     }
 
     /**
      * Returns all the valid locations of a given id
+     * 
      * @param id Object identifier
      * @return List of valid locations for given resource
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        if(id != null && clusterMode) {
+        if (id != null && clusterMode) {
             int slot = JedisClusterCRC16.getSlot(id);
             return hostsBySlot[slot];
-        }
-        else {
+        } else {
             return hosts;
         }
     }
@@ -215,10 +219,9 @@ public final class StorageItf {
     }
 
     private static void putInRedis(byte[] serializedObject, String id) throws StorageException {
-        String result = clusterMode ?
-                redisClusterConnection.set(id.getBytes(), serializedObject) :
-                redisConnection.getResource().set(id.getBytes(), serializedObject);
-        if(!result.equals("OK")) {
+        String result = clusterMode ? redisClusterConnection.set(id.getBytes(), serializedObject)
+            : redisConnection.getResource().set(id.getBytes(), serializedObject);
+        if (!result.equals("OK")) {
             throw new StorageException("Redis returned an error while trying to store object with id " + id);
         }
     }
@@ -231,12 +234,13 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException, IOException, ClassNotFoundException {
+    public static String newVersion(String id, boolean preserveSource, String hostName)
+        throws StorageException, IOException, ClassNotFoundException {
         byte[] obj = getBytesByID(id);
         String newId = UUID.randomUUID().toString();
         previousVersion.put(newId, id);
         putInRedis(obj, newId);
-        if(!preserveSource) {
+        if (!preserveSource) {
             consolidateVersion(newId);
         }
         return newId;
@@ -250,23 +254,21 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static Object getByID(String id) throws StorageException, IOException, ClassNotFoundException {
-        byte[] serializedObject = clusterMode ?
-                redisClusterConnection.get(id.getBytes()) :
-                redisConnection.getResource().get(id.getBytes());
-        if(serializedObject == null) {
-            throw  new StorageException("Object with id " + id + " is not in Redis!");
+        byte[] serializedObject =
+            clusterMode ? redisClusterConnection.get(id.getBytes()) : redisConnection.getResource().get(id.getBytes());
+        if (serializedObject == null) {
+            throw new StorageException("Object with id " + id + " is not in Redis!");
         }
         Object ret = Serializer.deserialize(serializedObject);
-        ((StorageObject)ret).setID(id);
+        ((StorageObject) ret).setID(id);
         return ret;
     }
 
     private static byte[] getBytesByID(String id) throws StorageException {
-        byte[] ret = clusterMode ?
-                redisClusterConnection.get(id.getBytes()) :
-                redisConnection.getResource().get(id.getBytes());
-        if(ret == null) {
-            throw  new StorageException("Object with id " + id + " is not in Redis!");
+        byte[] ret =
+            clusterMode ? redisClusterConnection.get(id.getBytes()) : redisConnection.getResource().get(id.getBytes());
+        if (ret == null) {
+            throw new StorageException("Object with id " + id + " is not in Redis!");
         }
         return ret;
     }
@@ -274,7 +276,7 @@ public final class StorageItf {
     /**
      * Executes the task into persistent storage
      * 
-     * @param id 
+     * @param id
      * @param descriptor
      * @param values
      * @param hostName
@@ -282,8 +284,8 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
-            throws StorageException {
+    public static String executeTask(String id, String descriptor, Object[] values, String hostName,
+        CallbackHandler callback) throws StorageException {
         throw new StorageException("Redis does not support this feature.");
     }
 
@@ -307,7 +309,7 @@ public final class StorageItf {
         LOGGER.info("Consolidating version for " + idFinal);
         // Skip final version
         idFinal = previousVersion.get(idFinal);
-        while(idFinal != null) {
+        while (idFinal != null) {
             LOGGER.info("Removing version " + idFinal);
             removeById(idFinal);
             String oldId = idFinal;
@@ -328,11 +330,10 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void makePersistent(Object o, String id) throws StorageException, IOException {
-        byte[]  serializedObject = Serializer.serialize(o);
-        String result = clusterMode ?
-                redisClusterConnection.set(id.getBytes(), serializedObject) :
-                redisConnection.getResource().set(id.getBytes(), serializedObject);
-        if(!result.equals("OK")) {
+        byte[] serializedObject = Serializer.serialize(o);
+        String result = clusterMode ? redisClusterConnection.set(id.getBytes(), serializedObject)
+            : redisConnection.getResource().set(id.getBytes(), serializedObject);
+        if (!result.equals("OK")) {
             throw new StorageException("Redis returned an error while trying to store object with id " + id);
         }
     }
@@ -343,17 +344,19 @@ public final class StorageItf {
      * @param id
      */
     public static void removeById(String id) {
-        if(clusterMode) {
+        if (clusterMode) {
             redisClusterConnection.del(id.getBytes());
-        }
-        else {
+        } else {
             redisConnection.getResource().del(id.getBytes());
         }
     }
 
+
     // ONLY FOR TESTING PURPOSES
-    static class MyStorageObject extends StorageObject implements  Serializable {
+    static class MyStorageObject extends StorageObject implements Serializable {
+
         private String innerString;
+
 
         public MyStorageObject(String myString) {
             innerString = myString;
@@ -368,38 +371,39 @@ public final class StorageItf {
         }
     }
 
+
     /**
      * ONLY FOR TESTING PURPOSES
+     * 
      * @param args
      */
     public static void main(String[] args) throws ClassNotFoundException {
         try {
             init("/home/sergiorg/git/framework/utils/storage/redisPSCO/scripts/sample_hosts");
-            if(clusterMode) {
+            if (clusterMode) {
                 // let's do getByID stuff
                 MyStorageObject myObject = new MyStorageObject("This is an object");
                 myObject.makePersistent();
-                Map< String, JedisPool > m = redisClusterConnection.getClusterNodes();
-                for(String s : m.keySet()) {
+                Map<String, JedisPool> m = redisClusterConnection.getClusterNodes();
+                for (String s : m.keySet()) {
                     JedisPool jp = m.get(s);
                     Jedis j = jp.getResource();
-                    //System.out.println(j.info());
-                    //System.out.println(j.clusterInfo());
-                    //System.out.println(j.clusterNodes());
+                    // System.out.println(j.info());
+                    // System.out.println(j.clusterInfo());
+                    // System.out.println(j.clusterNodes());
                     break;
                 }
-            }
-            else {
+            } else {
                 // let's do standalone stuff
                 MyStorageObject myObject = new MyStorageObject("This is an object");
                 StorageItf.makePersistent(myObject, "prueba");
                 Object retrieved = StorageItf.getByID("prueba");
-                System.out.println(((MyStorageObject)retrieved).getInnerString());
+                System.out.println(((MyStorageObject) retrieved).getInnerString());
                 myObject.updatePersistent();
                 StorageItf.removeById("prueba");
 
             }
-        } catch(StorageException | IOException e) {
+        } catch (StorageException | IOException e) {
             e.printStackTrace();
         }
     }

@@ -25,6 +25,7 @@ public class MasterDataRequest extends DataRequest {
 
     private final DataOperation fOp;
 
+
     /**
      * Creates a new MasterDataRequest instance.
      *

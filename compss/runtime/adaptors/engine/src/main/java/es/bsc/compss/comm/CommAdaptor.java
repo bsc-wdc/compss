@@ -45,8 +45,7 @@ public interface CommAdaptor {
      * @throws ConstructConfigurationException When cannot load the adaptor jar files.
      */
     public Configuration constructConfiguration(Map<String, Object> projectProperties,
-            Map<String, Object> resourcesProperties)
-            throws ConstructConfigurationException;
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException;
 
     /**
      * Initializes a worker through an adaptor.

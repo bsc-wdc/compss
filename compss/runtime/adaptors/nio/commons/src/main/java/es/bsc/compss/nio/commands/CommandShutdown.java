@@ -32,6 +32,7 @@ public class CommandShutdown implements Command {
     // List of files to send to the master before shutting down
     private LinkedList<NIOData> filesToSend;
 
+
     /**
      * Creates a new CommandShutdown for externalization.
      */

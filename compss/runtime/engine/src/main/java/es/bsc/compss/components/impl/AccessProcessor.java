@@ -96,8 +96,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object"
-            + " from storage (file or PSCO)";
+    private static final String ERROR_OBJECT_LOAD_FROM_STORAGE =
+        "ERROR: Cannot load object" + " from storage (file or PSCO)";
     private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
 
     // Other super-components
@@ -169,7 +169,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
                 if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.getAcessProcessorRequestEvent(request.getRequestType().name()).getId(),
-                            Tracer.getRuntimeEventsType());
+                        Tracer.getRuntimeEventsType());
                 }
                 request.process(this, this.taskAnalyser, this.dataInfoProvider, this.taskDispatcher);
                 if (Tracer.extraeEnabled()) {
@@ -212,11 +212,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return Task Id.
      */
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
-            boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
-            OnFailure onFailure, int timeOut) {
+        boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
+        OnFailure onFailure, int timeOut) {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
-                hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
+            hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
@@ -243,11 +243,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @return Task Id.
      */
     public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
-            boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
-            int timeOut) {
+        boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
+        int timeOut) {
 
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
-                parameters, monitor, onFailure, timeOut);
+            parameters, monitor, onFailure, timeOut);
 
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
@@ -514,14 +514,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
     public String mainAcessToBindingObject(BindingObject bo, int hashCode) {
         if (DEBUG) {
             LOGGER.debug(
-                    "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
+                "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
         // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
         // hashCode);
-        BindingObjectAccessParams oap = new BindingObjectAccessParams(AccessMode.R, this.dataInfoProvider, bo,
-                hashCode);
+        BindingObjectAccessParams oap =
+            new BindingObjectAccessParams(AccessMode.R, this.dataInfoProvider, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
         // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();

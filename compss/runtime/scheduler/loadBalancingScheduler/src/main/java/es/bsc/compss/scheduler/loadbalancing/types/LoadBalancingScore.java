@@ -63,7 +63,7 @@ public class LoadBalancingScore extends Score {
     @Override
     public String toString() {
         return "[LoadBalancingScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
-                + ", implementation:" + implementationScore + "]" + "]";
+            + ", implementation:" + implementationScore + "]" + "]";
     }
 
 }

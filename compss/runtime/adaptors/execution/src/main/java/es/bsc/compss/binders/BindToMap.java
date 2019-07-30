@@ -250,7 +250,7 @@ public class BindToMap implements ThreadBinder {
             // Raise exception
             if (usedSockets == null) {
                 throw new UnsufficientAvailableComputingUnitsException(
-                        "Not enough available computing units for task execution " + jobId);
+                    "Not enough available computing units for task execution " + jobId);
             }
 
             // Handle assignedCoreUnits
@@ -299,7 +299,7 @@ public class BindToMap implements ThreadBinder {
     }
 
     private void auxiliarConstructor(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds,
-            int totalAmountThreads) {
+        int totalAmountThreads) {
 
         this.idList = computingUnitsIds;
         // Initialize de binds ArrayList
@@ -349,6 +349,7 @@ public class BindToMap implements ThreadBinder {
 
     /**
      * Recursive method for binding computing units.
+     * 
      * @param jobId : job associated to the threads to locate
      * @param amount : amount of threads that needs to be allocated
      * @param index : lower socket allowed to hosts the threads

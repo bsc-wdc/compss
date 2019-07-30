@@ -80,7 +80,7 @@ public class FileInfo extends DataInfo {
                                 // Add a semaphore to notify if all readers to finish
                                 if (!firstVersion.addSemaphore(semWait)) {
                                     LOGGER.debug("[FileInfo] Readers for first version of " + this.getDataId()
-                                            + " finished. Nothing to do. Releasing semaphore.");
+                                        + " finished. Nothing to do. Releasing semaphore.");
                                     semWait.release();
                                 }
                                 ;
@@ -90,12 +90,12 @@ public class FileInfo extends DataInfo {
                     }
                 }
                 LOGGER.debug("[FileInfo] No location in " + this.getDataId()
-                        + " equal to original. Nothing to do. Releasing semaphore.");
+                    + " equal to original. Nothing to do. Releasing semaphore.");
                 semWait.release();
             }
         } else {
             LOGGER.debug("[FileInfo] First version of data " + this.getDataId()
-                    + " is null. Nothing to do. Releasing semaphore.");
+                + " is null. Nothing to do. Releasing semaphore.");
             semWait.release();
         }
         return nPermits;
@@ -111,18 +111,18 @@ public class FileInfo extends DataInfo {
                 for (DataLocation loc : ld.getLocations()) {
                     MultiURI uri = loc.getURIInHost(Comm.getAppHost());
                     if (uri != null
-                            && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())) {
+                        && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())) {
                         String newPath = Comm.getAppHost().getTempDirPath() + File.separator
-                                + firstVersion.getDataInstanceId().getRenaming();
+                            + firstVersion.getDataInstanceId().getRenaming();
                         LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);
                         loc.modifyPath(newPath);
                         try {
                             LOGGER.debug("[FileInfo] Moving " + uri.getPath() + " to " + newPath);
                             Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath(),
-                                    StandardCopyOption.REPLACE_EXISTING);
+                                StandardCopyOption.REPLACE_EXISTING);
                         } catch (IOException e) {
                             ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath + "Reason: "
-                                    + e.getMessage());
+                                + e.getMessage());
                         }
                     }
                 }

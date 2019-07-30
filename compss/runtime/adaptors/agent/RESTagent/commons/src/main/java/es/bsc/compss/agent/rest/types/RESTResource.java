@@ -37,17 +37,17 @@ public class RESTResource {
      * @return RESTResource Instance constructed with the values passed in as parameter.
      */
     public static final Resource<?, ?> createResource(String name, MethodResourceDescription description,
-            String adaptor, Object pConf, Object rConf) {
+        String adaptor, Object pConf, Object rConf) {
 
         switch (adaptor) {
             case "es.bsc.compss.nio.master.NIOAdaptor":
                 return new NIOAdaptorResource(name, description,
-                        (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) pConf,
-                        (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) rConf);
+                    (es.bsc.compss.types.project.jaxb.NIOAdaptorProperties) pConf,
+                    (es.bsc.compss.types.resources.jaxb.ResourcesNIOAdaptorProperties) rConf);
             default:
                 return new ExternalAdaptorResource(name, description, adaptor,
-                        (es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties) pConf,
-                        (es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties) rConf);
+                    (es.bsc.compss.types.project.jaxb.ExternalAdaptorProperties) pConf,
+                    (es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties) rConf);
         }
 
     }

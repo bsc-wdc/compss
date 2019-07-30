@@ -30,6 +30,7 @@ public class CommandResourcesIncrease implements Command {
 
     private MethodResourceDescription description;
 
+
     /**
      * Creates a new CommandResourcesIncrease for externalization.
      */

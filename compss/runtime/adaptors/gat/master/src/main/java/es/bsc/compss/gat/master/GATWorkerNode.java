@@ -57,7 +57,7 @@ import org.gridlab.gat.URI;
 public class GATWorkerNode extends COMPSsWorker {
 
     private static final String GAT_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
-            + File.separator + "system" + File.separator + "adaptors" + File.separator + "gat" + File.separator;
+        + File.separator + "system" + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String CLEANER_SCRIPT_NAME = "clean.sh";
     private static final String INIT_SCRIPT_NAME = "init.sh";
 
@@ -106,7 +106,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
         try {
             String initScriptPath = ProtocolType.ANY_URI.getSchema() + user + host + File.separator + installDir
-                    + GAT_SCRIPT_PATH + INIT_SCRIPT_NAME;
+                + GAT_SCRIPT_PATH + INIT_SCRIPT_NAME;
             traceScripts.add(new URI(initScriptPath));
         } catch (URISyntaxException e) {
             new InitNodeException("Error addind initScript");
@@ -121,7 +121,7 @@ public class GATWorkerNode extends COMPSsWorker {
         boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "init_" + host);
         if (!result) {
             throw new InitNodeException(
-                    "Error executing init script for initializing working dir " + workingDir + " in host " + getName());
+                "Error executing init script for initializing working dir " + workingDir + " in host " + getName());
         }
     }
 
@@ -236,10 +236,10 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
 
         return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(),
-                config.isUsingGlobus(), slaveWorkersNodeNames);
+            config.isUsingGlobus(), slaveWorkersNodeNames);
     }
 
     @Override
@@ -291,7 +291,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
         Copy c = new GATCopy(srcData, source, target, tgtData, reason, listener);
         GATAdaptor.enqueueCopy(c);
@@ -299,7 +299,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData,
-            Transferable reason, EventListener listener) {
+        Transferable reason, EventListener listener) {
 
         Copy c = new GATCopy(ld, source, target, tgtData, reason, listener);
         GATAdaptor.enqueueCopy(c);
@@ -379,7 +379,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
         try {
             traceScripts.add(new URI(ProtocolType.ANY_URI.getSchema() + user + host + File.separator + installDir
-                    + GAT_SCRIPT_PATH + CLEANER_SCRIPT_NAME));
+                + GAT_SCRIPT_PATH + CLEANER_SCRIPT_NAME));
         } catch (URISyntaxException e) {
             LOGGER.error("Error deleting working dir " + workingDir + " in host " + getName(), e);
             return;
@@ -392,8 +392,8 @@ public class GATWorkerNode extends COMPSsWorker {
         LOGGER.debug("Deleting working dir " + workingDir + "  in host " + getName());
         boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "clean_" + host);
         if (!result) {
-            LOGGER.error(
-                    "Error executing clean script for deleting working dir " + workingDir + " in host " + getName());
+            LOGGER
+                .error("Error executing clean script for deleting working dir " + workingDir + " in host " + getName());
         }
     }
 

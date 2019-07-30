@@ -111,7 +111,7 @@ public class TestCompatible {
                 String res = checkResourcesAssignedToImpl(entry.getKey(), resource);
                 if (res != null) {
                     String error = "Implementation: Core " + coreId + " Impl " + entry.getKey().getImplementationId()
-                            + " and Resource " + resource.getName() + ". ";
+                        + " and Resource " + resource.getName() + ". ";
                     error = error.concat("Implementation and resource not matching on: " + res);
                     System.out.println(error);
                     System.exit(-1);
@@ -122,7 +122,7 @@ public class TestCompatible {
 
     private static String checkResourcesAssignedToImpl(Implementation impl, Worker<?> resource) {
         if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(ResourceType.SERVICE))
-                || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(ResourceType.WORKER))) {
+            || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(ResourceType.WORKER))) {
             return "types";
         }
 
@@ -140,8 +140,8 @@ public class TestCompatible {
              * COMPUTING UNITS
              **********************************************************************************************************/
             if ((iDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
-                    && (wDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
-                    && (wDescription.getTotalCPUComputingUnits() < iDescription.getTotalCPUComputingUnits())) {
+                && (wDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
+                && (wDescription.getTotalCPUComputingUnits() < iDescription.getTotalCPUComputingUnits())) {
                 return "computingUnits";
             }
 
@@ -155,32 +155,32 @@ public class TestCompatible {
                 for (Processor wp : wDescription.getProcessors()) {
                     // Static checks
                     if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-                            && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-                            && !wp.getName().equals(ip.getName())) {
+                        && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+                        && !wp.getName().equals(ip.getName())) {
                         // System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
                         continue;
                     }
                     if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-                            && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-                            && wp.getSpeed() < ip.getSpeed()) {
+                        && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+                        && wp.getSpeed() < ip.getSpeed()) {
                         // System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
                         continue;
                     }
                     if (!ip.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
-                            && !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
-                            && !wp.getArchitecture().equals(ip.getArchitecture())) {
+                        && !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
+                        && !wp.getArchitecture().equals(ip.getArchitecture())) {
                         // System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
                         continue;
                     }
                     if ((!ip.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
-                            && (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
-                            && (!ip.getPropName().equals(wp.getPropName()))) {
+                        && (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
+                        && (!ip.getPropName().equals(wp.getPropName()))) {
                         // System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
                         continue;
                     }
                     if ((!ip.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
-                            && (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
-                            && (!ip.getPropValue().equals(wp.getPropValue()))) {
+                        && (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
+                        && (!ip.getPropValue().equals(wp.getPropValue()))) {
                         // System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
                         continue;
                     }
@@ -203,14 +203,14 @@ public class TestCompatible {
              * MEMORY
              ***********************************************************************************************************/
             if ((iDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                    && (wDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                    && (wDescription.getMemorySize() < iDescription.getMemorySize())) {
+                && (wDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+                && (wDescription.getMemorySize() < iDescription.getMemorySize())) {
                 return "memorySize";
             }
 
             if ((!iDescription.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!iDescription.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!wDescription.getMemoryType().equals(iDescription.getMemoryType()))) {
+                && (!iDescription.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                && (!wDescription.getMemoryType().equals(iDescription.getMemoryType()))) {
                 return "memoryType";
             }
 
@@ -219,14 +219,14 @@ public class TestCompatible {
              * STORAGE
              ***********************************************************************************************************/
             if ((iDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                    && (wDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                    && (wDescription.getStorageSize() < iDescription.getStorageSize())) {
+                && (wDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+                && (wDescription.getStorageSize() < iDescription.getStorageSize())) {
                 return "storageSize";
             }
 
             if ((!iDescription.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!iDescription.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!wDescription.getStorageType().equals(iDescription.getStorageType()))) {
+                && (!iDescription.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                && (!wDescription.getStorageType().equals(iDescription.getStorageType()))) {
                 return "storageType";
             }
 
@@ -235,21 +235,21 @@ public class TestCompatible {
              * OPERATING SYSTEM
              ***********************************************************************************************************/
             if ((!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!wDescription.getOperatingSystemType().equals(iDescription.getOperatingSystemType()))) {
+                && (!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                && (!wDescription.getOperatingSystemType().equals(iDescription.getOperatingSystemType()))) {
                 return "operatingSystemType";
             }
 
             if ((!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!wDescription.getOperatingSystemDistribution()
-                            .equals(iDescription.getOperatingSystemDistribution()))) {
+                && (!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
+                && (!wDescription.getOperatingSystemDistribution()
+                    .equals(iDescription.getOperatingSystemDistribution()))) {
                 return "operatingSystemDistribution";
             }
 
             if ((!iDescription.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!iDescription.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-                    && (!wDescription.getOperatingSystemVersion().equals(iDescription.getOperatingSystemVersion()))) {
+                && (!iDescription.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
+                && (!wDescription.getOperatingSystemVersion().equals(iDescription.getOperatingSystemVersion()))) {
                 return "operatingSystemVersion";
             }
 
@@ -258,7 +258,7 @@ public class TestCompatible {
              * APPLICATION SOFTWARE
              ***********************************************************************************************************/
             if (!(iDescription.getAppSoftware().isEmpty())
-                    && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
+                && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
                 return "appSoftware";
             }
 
@@ -267,7 +267,7 @@ public class TestCompatible {
              * HOST QUEUE
              ***********************************************************************************************************/
             if (!(iDescription.getHostQueues().isEmpty())
-                    && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
+                && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
                 return "hostQueues";
             }
 

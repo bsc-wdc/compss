@@ -80,6 +80,7 @@ public class ExecutorShutdownListener {
 
     /**
      * Notify that a listened operation has failed with exception e.
+     * 
      * @param e Failure exception
      */
     public void notifyFailure(Exception e) {

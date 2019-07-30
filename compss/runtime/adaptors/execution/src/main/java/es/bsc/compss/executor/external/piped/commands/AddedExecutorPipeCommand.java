@@ -30,8 +30,9 @@ public class AddedExecutorPipeCommand extends AddedExecutorExternalCommand imple
     private int pid;
 
 
-    /** 
+    /**
      * Executor added notification constructor.
+     * 
      * @param line String array with the in/out pipe names and the process identifier
      */
     public AddedExecutorPipeCommand(String[] line) {

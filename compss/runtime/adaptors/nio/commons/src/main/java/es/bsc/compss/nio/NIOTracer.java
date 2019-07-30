@@ -40,6 +40,7 @@ public class NIOTracer extends Tracer {
     // Id for the end of a transfer event
     public static final String TRANSFER_END = "0";
 
+
     /**
      * Initializes the tracing at the given level.
      *
@@ -70,7 +71,7 @@ public class NIOTracer extends Tracer {
 
         if (DEBUG) {
             LOGGER.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", "
-                    + NIOTracer.workingDir + ", " + NIOTracer.nodeName);
+                + NIOTracer.workingDir + ", " + NIOTracer.nodeName);
         }
     }
 
@@ -92,9 +93,9 @@ public class NIOTracer extends Tracer {
 
         if (DEBUG) {
             LOGGER.debug("NIO uri File: " + ProtocolType.ANY_URI.getSchema() + File.separator
-                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
+                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
             LOGGER.debug(ProtocolType.ANY_URI.getSchema() + File.separator
-                    + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
+                + System.getProperty(COMPSsConstants.APP_LOG_DIR) + TRACE_OUT_RELATIVE_PATH);
         }
     }
 
@@ -123,7 +124,7 @@ public class NIOTracer extends Tracer {
 
         if (DEBUG) {
             LOGGER.debug((dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = ["
-                    + data + " , " + transferID + "]");
+                + data + " , " + transferID + "]");
         }
     }
 
@@ -188,7 +189,7 @@ public class NIOTracer extends Tracer {
         // Generate package
         if (DEBUG) {
             LOGGER.debug("[NIOTracer] Executing command " + scriptDir + TRACE_SCRIPT_PATH + " " + mode + " "
-                    + workingDir + " " + nodeName + " " + hostID);
+                + workingDir + " " + nodeName + " " + hostID);
         }
 
         ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, mode, workingDir, nodeName, hostID);

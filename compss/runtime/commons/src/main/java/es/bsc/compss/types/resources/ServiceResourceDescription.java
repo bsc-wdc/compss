@@ -80,7 +80,7 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
         if (impl.getTaskType() == TaskType.SERVICE) {
             ServiceResourceDescription s = (ServiceResourceDescription) impl.getRequirements();
             return s.serviceName.compareTo(this.serviceName) == 0 && s.namespace.compareTo(this.namespace) == 0
-                    && s.port.compareTo(this.port) == 0 && s.connections < this.connections;
+                && s.port.compareTo(this.port) == 0 && s.connections < this.connections;
         }
         return false;
     }
@@ -141,7 +141,7 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     @Override
     public String toString() {
         return "[SERVICE " + "NAMESPACE=" + this.namespace + " " + "SERVICE_NAME=" + this.getServiceName() + " "
-                + "PORT=" + this.port + " " + "CONNECTIONS=" + this.connections + "]";
+            + "PORT=" + this.port + " " + "CONNECTIONS=" + this.connections + "]";
     }
 
     @Override

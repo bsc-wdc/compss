@@ -52,7 +52,7 @@ public class FakeInvocationParam implements InvocationParam {
      * @param writeFinalValue Write final value flag
      */
     public FakeInvocationParam(DataType type, String prefix, String name, StdIOStream stream, String originalName,
-            String dataMgmtId, boolean writeFinalValue) {
+        String dataMgmtId, boolean writeFinalValue) {
         this.type = type;
         this.prefix = prefix;
         this.name = name;

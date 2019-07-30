@@ -58,8 +58,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
      *             parameters by the implementation type.
      */
     @SuppressWarnings("unchecked")
-    public static final <T extends ResourceDescription> ImplementationDefinition<T> defineImplementation(
-            String implType, String implSignature, T implConstraints, String... implTypeArgs)
+    public static final <T extends ResourceDescription> ImplementationDefinition<T>
+        defineImplementation(String implType, String implSignature, T implConstraints, String... implTypeArgs)
             throws IllegalArgumentException {
 
         ImplementationDefinition<T> id = null;
@@ -74,7 +74,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
             String port = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
 
             id = (ImplementationDefinition<T>) new ServiceDefinition(implSignature, namespace, serviceName, operation,
-                    port);
+                port);
 
         } else {
             MethodType mt;
@@ -92,13 +92,13 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String methodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (declaringClass == null || declaringClass.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty declaringClass annotation for method " + implSignature);
+                            "Empty declaringClass annotation for method " + implSignature);
                     }
                     if (methodName == null || methodName.isEmpty()) {
                         throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new MethodDefinition(implSignature, declaringClass, methodName,
-                            (MethodResourceDescription) implConstraints);
+                        (MethodResourceDescription) implConstraints);
                     break;
 
                 case PYTHON_MPI:
@@ -112,15 +112,15 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String pythonMPIRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     if (pythonMPIdeclaringClass == null || pythonMPIdeclaringClass.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty declaringClass annotation for method " + implSignature);
+                            "Empty declaringClass annotation for method " + implSignature);
                     }
                     if (pythonMPImethodName == null || pythonMPImethodName.isEmpty()) {
                         throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
                     }
 
                     id = (ImplementationDefinition<T>) new PythonMPIDefinition(implSignature, pythonMPIdeclaringClass,
-                            pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner,
-                            (MethodResourceDescription) implConstraints);
+                        pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner,
+                        (MethodResourceDescription) implConstraints);
                     break;
 
                 case BINARY:
@@ -131,10 +131,10 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (binary == null || binary.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty binary annotation for BINARY method " + implSignature);
+                            "Empty binary annotation for BINARY method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, binary, binaryWorkingDir,
-                            (MethodResourceDescription) implConstraints);
+                        (MethodResourceDescription) implConstraints);
                     break;
 
                 case MPI:
@@ -146,13 +146,13 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     if (mpiRunner == null || mpiRunner.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty mpiRunner annotation for MPI method " + implSignature);
+                            "Empty mpiRunner annotation for MPI method " + implSignature);
                     }
                     if (mpiBinary == null || mpiBinary.isEmpty()) {
                         throw new IllegalArgumentException("Empty binary annotation for MPI method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new MPIDefinition(implSignature, mpiBinary, mpiWorkingDir,
-                            mpiRunner, (MethodResourceDescription) implConstraints);
+                        mpiRunner, (MethodResourceDescription) implConstraints);
                     break;
 
                 case COMPSs:
@@ -166,10 +166,10 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String compssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
                     if (appName == null || appName.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty appName annotation for COMPSs method " + implSignature);
+                            "Empty appName annotation for COMPSs method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new COMPSsDefinition(implSignature, runcompss, flags, appName,
-                            workerInMaster, compssWorkingDir, (MethodResourceDescription) implConstraints);
+                        workerInMaster, compssWorkingDir, (MethodResourceDescription) implConstraints);
                     break;
 
                 case DECAF:
@@ -183,14 +183,14 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String decafRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
                     if (decafRunner == null || decafRunner.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty mpiRunner annotation for DECAF method " + implSignature);
+                            "Empty mpiRunner annotation for DECAF method " + implSignature);
                     }
                     if (dfScript == null || dfScript.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty dfScript annotation for DECAF method " + implSignature);
+                            "Empty dfScript annotation for DECAF method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new DecafDefinition(implSignature, dfScript, dfExecutor, dfLib,
-                            decafWorkingDir, decafRunner, (MethodResourceDescription) implConstraints);
+                        decafWorkingDir, decafRunner, (MethodResourceDescription) implConstraints);
                     break;
 
                 case OMPSS:
@@ -203,7 +203,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Empty binary annotation for OmpSs method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new OmpSsDefinition(implSignature, ompssBinary, ompssWorkingDir,
-                            (MethodResourceDescription) implConstraints);
+                        (MethodResourceDescription) implConstraints);
                     break;
 
                 case OPENCL:
@@ -214,28 +214,28 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String openclWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (openclKernel == null || openclKernel.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty kernel annotation for OpenCL method " + implSignature);
+                            "Empty kernel annotation for OpenCL method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new OpenCLDefinition(implSignature, openclKernel,
-                            openclWorkingDir, (MethodResourceDescription) implConstraints);
+                        openclWorkingDir, (MethodResourceDescription) implConstraints);
                     break;
 
                 case MULTI_NODE:
                     if (implTypeArgs.length != MultiNodeImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException(
-                                "Incorrect parameters for type MultiNode on " + implSignature);
+                            "Incorrect parameters for type MultiNode on " + implSignature);
                     }
                     String multiNodeClass = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String multiNodeName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     if (multiNodeClass == null || multiNodeClass.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Empty declaringClass annotation for method " + implSignature);
+                            "Empty declaringClass annotation for method " + implSignature);
                     }
                     if (multiNodeName == null || multiNodeName.isEmpty()) {
                         throw new IllegalArgumentException("Empty methodName annotation for method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new MultiNodeDefinition(implSignature, multiNodeClass,
-                            multiNodeName, (MethodResourceDescription) implConstraints);
+                        multiNodeName, (MethodResourceDescription) implConstraints);
                     break;
             }
 

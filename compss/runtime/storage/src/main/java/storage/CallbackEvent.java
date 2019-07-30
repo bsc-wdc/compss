@@ -17,8 +17,7 @@
 package storage;
 
 /**
- * Implementation of CallBacks for Storage ITF calls.
- * TODO: complete javadoc
+ * Implementation of CallBacks for Storage ITF calls. TODO: complete javadoc
  */
 public class CallbackEvent {
 
@@ -50,8 +49,8 @@ public class CallbackEvent {
      * Instantiate a callback for task @executeTaskId, eventStatus @eventStatus and return object @returnObject.
      *
      * @param executeTaskId String
-     * @param eventStatus   EventType
-     * @param returnObject  Object
+     * @param eventStatus EventType
+     * @param returnObject Object
      */
     public CallbackEvent(String executeTaskId, EventType eventStatus, Object returnObject) {
         setRequestID(executeTaskId);

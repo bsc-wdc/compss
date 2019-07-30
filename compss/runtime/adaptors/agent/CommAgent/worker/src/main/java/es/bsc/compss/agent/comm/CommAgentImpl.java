@@ -50,6 +50,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
     // Adaptor
     private CommAgentAdaptor adaptor;
 
+
     public CommAgentImpl() {
         this.adaptor = null;
     }
@@ -181,11 +182,11 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         }
     }
 
-    private void startMain(Lang lang, String className, String methodName,
-            ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
-            String ceiName, MethodResourceDescription requirements, AppMonitor monitor) {
-        System.out.println("Es vol executar el main " + lang + " " + className + "." + methodName
-                + " parallelitzat amb " + ceiName);
+    private void startMain(Lang lang, String className, String methodName, ApplicationParameter[] params,
+        ApplicationParameter target, ApplicationParameter[] results, String ceiName,
+        MethodResourceDescription requirements, AppMonitor monitor) {
+        System.out.println(
+            "Es vol executar el main " + lang + " " + className + "." + methodName + " parallelitzat amb " + ceiName);
         System.out.println("Parameters: ");
         for (ApplicationParameter param : params) {
             System.out.println("\t* " + param);
@@ -198,14 +199,12 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         }
     }
 
-    private void startTask(Lang lang, String className, String methodName,
-            ApplicationParameter[] params, ApplicationParameter target, ApplicationParameter[] results,
-            MethodResourceDescription requirements, AppMonitor monitor) {
+    private void startTask(Lang lang, String className, String methodName, ApplicationParameter[] params,
+        ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
+        AppMonitor monitor) {
 
         try {
-            Agent.runTask(lang, className, methodName,
-                    params, target, results,
-                    requirements, monitor);
+            Agent.runTask(lang, className, methodName, params, target, results, requirements, monitor);
         } catch (AgentException ex) {
             ex.printStackTrace();
         }

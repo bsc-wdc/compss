@@ -116,9 +116,9 @@ public class Agent {
         for (Processor p : mrd.getProcessors()) {
             p.setName("LocalProcessor");
         }
-        ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation("METHOD",
-                LOADER_SIGNATURE + LOADER_CLASS_NAME, new MethodResourceDescription(""), LOADER_CLASS_NAME,
-                LOADER_METHOD_NAME);
+        ImplementationDefinition<?> implDef =
+            ImplementationDefinition.defineImplementation("METHOD", LOADER_SIGNATURE + LOADER_CLASS_NAME,
+                new MethodResourceDescription(""), LOADER_CLASS_NAME, LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
 
@@ -141,8 +141,8 @@ public class Agent {
      * @throws AgentException error parsing the CEI
      */
     public static long runMain(Lang lang, String ceiClass, String className, String methodName,
-            ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
-            AppMonitor monitor) throws AgentException {
+        ApplicationParameter[] arguments, ApplicationParameter target, ApplicationParameter[] results,
+        AppMonitor monitor) throws AgentException {
 
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
@@ -168,21 +168,55 @@ public class Agent {
             int totalParamsCount = taskParamsCount + loadParamsCount;
             Object[] params = new Object[6 * totalParamsCount];
 
-            Object[] loadParams = new Object[] { RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "",
+            Object[] loadParams = new Object[] { RUNTIME,
+                DataType.OBJECT_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
                 "runtime", // Runtime API
-                RUNTIME, DataType.OBJECT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "api", // Loader API
-                ceiClass, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "ceiClass", // CEI
-                appId, DataType.LONG_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "appId", // Nested tasks App ID
-                className, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "className", // Class name
-                methodName, DataType.STRING_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "methodName", // Method name
+                RUNTIME,
+                DataType.OBJECT_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
+                "api", // Loader API
+                ceiClass,
+                DataType.STRING_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
+                "ceiClass", // CEI
+                appId,
+                DataType.LONG_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
+                "appId", // Nested tasks App ID
+                className,
+                DataType.STRING_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
+                "className", // Class name
+                methodName,
+                DataType.STRING_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
+                "methodName", // Method name
                 /*
-                 * When passing a single parameter with array type to the loaded method, the Object... parameter of
-                 * the load method assumes that each element of the array is a different parameter ( any array
-                 * matches Object...). To avoid it, we add a phantom basic-type parameter that avoids any data
-                 * transfer and ensures that the array is detected as the second parameter -- Object... is resolved
-                 * as [ Integer, array].
+                 * When passing a single parameter with array type to the loaded method, the Object... parameter of the
+                 * load method assumes that each element of the array is a different parameter ( any array matches
+                 * Object...). To avoid it, we add a phantom basic-type parameter that avoids any data transfer and
+                 * ensures that the array is detected as the second parameter -- Object... is resolved as [ Integer,
+                 * array].
                  */
-                3, DataType.INT_T, Direction.IN, StdIOStream.UNSPECIFIED, "", "fakeParam", // Fake param
+                3,
+                DataType.INT_T,
+                Direction.IN,
+                StdIOStream.UNSPECIFIED,
+                "",
+                "fakeParam", // Fake param
             };
 
             System.arraycopy(loadParams, 0, params, 0, loadParams.length);
@@ -210,14 +244,14 @@ public class Agent {
             }
 
             RUNTIME.executeTask(mainAppId, // Task application ID
-                    monitor, // Corresponding task monitor
-                    lang, // language of the task
-                    true, LOADER_CLASS_NAME, LOADER_METHOD_NAME, LOADER_SIGNATURE + LOADER_CLASS_NAME, // Method to run
-                    OnFailure.RETRY, // On failure behavior
-                    0, // Time out of the task
-                    false, 1, false, false, // Scheduler hints
-                    false, null, totalParamsCount, // Parameters information
-                    params // Argument values
+                monitor, // Corresponding task monitor
+                lang, // language of the task
+                true, LOADER_CLASS_NAME, LOADER_METHOD_NAME, LOADER_SIGNATURE + LOADER_CLASS_NAME, // Method to run
+                OnFailure.RETRY, // On failure behavior
+                0, // Time out of the task
+                false, 1, false, false, // Scheduler hints
+                false, null, totalParamsCount, // Parameters information
+                params // Argument values
             );
         } catch (Exception e) {
             throw new AgentException(e);
@@ -240,8 +274,8 @@ public class Agent {
      * @throws AgentException could not retrieve the value of some parameter
      */
     public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] arguments,
-            ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
-            AppMonitor monitor) throws AgentException {
+        ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
+        AppMonitor monitor) throws AgentException {
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {
@@ -301,18 +335,18 @@ public class Agent {
             CoreElementDefinition ced = new CoreElementDefinition();
             ced.setCeSignature(ceSignature);
             ImplementationDefinition<?> implDef = ImplementationDefinition.defineImplementation("METHOD", implSignature,
-                    requirements, className, methodName);
+                requirements, className, methodName);
             ced.addImplementation(implDef);
             RUNTIME.registerCoreElement(ced);
 
             RUNTIME.executeTask(appId, // APP ID
-                    monitor, // Corresponding task monitor
-                    lang, className, methodName, // Method to call
-                    false, 1, false, false, // Scheduling information
-                    target != null, paramsCount, // Parameter information
-                    OnFailure.RETRY, // On failure behavior
-                    0, // Time out of the task
-                    params // Parameter values
+                monitor, // Corresponding task monitor
+                lang, className, methodName, // Method to call
+                false, 1, false, false, // Scheduling information
+                target != null, paramsCount, // Parameter information
+                OnFailure.RETRY, // On failure behavior
+                0, // Time out of the task
+                params // Parameter values
             );
 
         } catch (Exception e) {
@@ -322,7 +356,7 @@ public class Agent {
     }
 
     private static void addParameterToTaskArguments(ApplicationParameter param, int position, Object[] arguments)
-            throws AgentException, Exception {
+        throws AgentException, Exception {
 
         RemoteDataInformation remote = param.getRemoteData();
         if (param.getRemoteData() == null) {
@@ -406,7 +440,7 @@ public class Agent {
     }
 
     private static DynamicMethodWorker registerWorker(String workerName, MethodResourceDescription description,
-            String adaptor, Map<String, Object> projectConf, Map<String, Object> resourcesConf) throws AgentException {
+        String adaptor, Map<String, Object> projectConf, Map<String, Object> resourcesConf) throws AgentException {
         System.out.println("REGISTERING NEW WORKER with adaptor " + adaptor);
         if (description == null) {
             description = new MethodResourceDescription();
@@ -496,7 +530,7 @@ public class Agent {
      */
     @SuppressWarnings("unchecked")
     public static final void startInterface(AgentInterfaceConfig conf)
-            throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+        throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
 
         AgentInterface<AgentInterfaceConfig> itf = (AgentInterface<AgentInterfaceConfig>) conf.getAgentInterface();
         itf.start(conf);
@@ -504,7 +538,7 @@ public class Agent {
     }
 
     private static AgentInterfaceConfig getInterfaceConfig(String className, JSONObject arguments)
-            throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
+        throws ClassNotFoundException, InstantiationException, IllegalAccessException, AgentException {
 
         Class<?> agentClass = Class.forName(className);
         AgentInterface<?> itf = (AgentInterface<?>) agentClass.newInstance();

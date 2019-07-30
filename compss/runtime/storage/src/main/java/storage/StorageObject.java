@@ -17,8 +17,7 @@
 package storage;
 
 /**
- * Abstract implementation of an Storage Object.
- * TODO complete javadoc
+ * Abstract implementation of an Storage Object. TODO complete javadoc
  */
 public class StorageObject implements StubItf {
 

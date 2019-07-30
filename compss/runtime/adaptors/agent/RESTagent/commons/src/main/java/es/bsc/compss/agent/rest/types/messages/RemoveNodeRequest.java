@@ -24,6 +24,7 @@ public class RemoveNodeRequest {
 
     private String workerName;
 
+
     public RemoveNodeRequest() {
     }
 

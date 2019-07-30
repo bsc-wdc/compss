@@ -47,7 +47,7 @@ public class DummyAdaptor implements CommAdaptor {
 
     @Override
     public MethodConfiguration constructConfiguration(Map<String, Object> projectProperties,
-            Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
+        Map<String, Object> resourcesProperties) throws ConstructConfigurationException {
 
         MethodConfiguration config = new MethodConfiguration(ID);
         return config;

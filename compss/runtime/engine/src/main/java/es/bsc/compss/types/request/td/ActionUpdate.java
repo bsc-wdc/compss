@@ -31,10 +31,10 @@ public class ActionUpdate extends TDRequest {
      * Possible Updates applied to the action.
      */
     public static enum Update {
-    RUNNING, // The action has begin to run
-    ERROR, // There has been an error during the execution
-    COMPLETED, // The action execution has succeeded.
-    EXCEPTION  // The task has produced an exception
+        RUNNING, // The action has begin to run
+        ERROR, // There has been an error during the execution
+        COMPLETED, // The action execution has succeeded.
+        EXCEPTION // The task has produced an exception
     }
 
 
@@ -67,7 +67,7 @@ public class ActionUpdate extends TDRequest {
     public void setCOMPSsException(COMPSsException e) {
         this.exception = e;
     }
-    
+
     @Override
     public TDRequestType getType() {
         return TDRequestType.ACTION_UPDATE;

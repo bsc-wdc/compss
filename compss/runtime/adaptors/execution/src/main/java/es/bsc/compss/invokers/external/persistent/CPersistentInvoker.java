@@ -25,21 +25,22 @@ import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 
 import java.io.File;
 
+
 public class CPersistentInvoker extends PersistentInvoker {
 
     public CPersistentInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources) throws JobExecutionException {
+        InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
     }
 
     @Override
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
-            String sandBox, InvocationResources assignedResources) {
+        String sandBox, InvocationResources assignedResources) {
 
         ExecuteTaskExternalCommand command = new ExecuteTaskExternalCommand();
         command.appendAllArguments(
-                CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
+            CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources));
         return command;
     }
 

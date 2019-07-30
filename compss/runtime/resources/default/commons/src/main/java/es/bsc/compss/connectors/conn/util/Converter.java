@@ -71,7 +71,7 @@ public class Converter {
         Map<String, String> imageProp = cmrd.getImage().getProperties();
         // FIXME Using CPU Computing units, should check all units
         return new HardwareDescription(processors, cpuCU, gpuCU, fpgaCU, memSize, memType, storageSize, storageType,
-                timeUnit, priceUnit, imageName, instanceType, imageProp);
+            timeUnit, priceUnit, imageName, instanceType, imageProp);
     }
 
     /**
@@ -100,7 +100,7 @@ public class Converter {
      */
     public static VirtualResource getVirtualResource(Object id, CloudMethodResourceDescription cmrd) {
         return new VirtualResource((String) id, getHardwareDescription(cmrd), getSoftwareDescription(cmrd),
-                cmrd.getImage().getProperties());
+            cmrd.getImage().getProperties());
     }
 
     /**
@@ -111,7 +111,7 @@ public class Converter {
      */
     private static Processor getConnectorProcessor(es.bsc.compss.types.resources.components.Processor p) {
         return new Processor(p.getName(), p.getComputingUnits(), p.getType().toString(), p.getInternalMemory(),
-                p.getSpeed(), p.getArchitecture(), p.getPropName(), p.getPropValue());
+            p.getSpeed(), p.getArchitecture(), p.getPropName(), p.getPropValue());
     }
 
     /**
@@ -120,8 +120,8 @@ public class Converter {
      * @param processorList List of internal processors.
      * @return List of connector processors built from the given list of internal processors.
      */
-    private static List<Processor> getConnectorProcessors(
-            List<es.bsc.compss.types.resources.components.Processor> processorList) {
+    private static List<Processor>
+        getConnectorProcessors(List<es.bsc.compss.types.resources.components.Processor> processorList) {
 
         List<Processor> processors = new LinkedList<>();
         for (es.bsc.compss.types.resources.components.Processor p : processorList) {
@@ -138,7 +138,7 @@ public class Converter {
      */
     private static InstallationDescription getInstallationDescription(MethodConfiguration config) {
         return new InstallationDescription(config.getInstallDir(), config.getAppDir(), config.getClasspath(),
-                config.getPythonpath(), config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
+            config.getPythonpath(), config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
     }
 
     /*
@@ -153,7 +153,7 @@ public class Converter {
      * @return A CloudMethodResource description containing the VR information.
      */
     public static CloudMethodResourceDescription toCloudMethodResourceDescription(VirtualResource vr,
-            CloudMethodResourceDescription requested) {
+        CloudMethodResourceDescription requested) {
 
         CloudMethodResourceDescription cmrd = new CloudMethodResourceDescription();
         cmrd.setName(vr.getIp());
@@ -173,7 +173,7 @@ public class Converter {
     private static es.bsc.compss.types.resources.components.Processor getCOMPSsProcessor(Processor p) {
         // FIXME Assuming that all processors have type CPU and no mem
         return new es.bsc.compss.types.resources.components.Processor(p.getName(), p.getComputingUnits(), p.getSpeed(),
-                p.getArchitecture(), p.getType(), p.getInternalMemory(), p.getPropName(), p.getPropValue());
+            p.getArchitecture(), p.getType(), p.getInternalMemory(), p.getPropName(), p.getPropValue());
     }
 
     /**
@@ -182,8 +182,8 @@ public class Converter {
      * @param processorList A list of connector processors.
      * @return A list of equivalent internal processors.
      */
-    private static List<es.bsc.compss.types.resources.components.Processor> getCOMPSsProcessors(
-            List<Processor> processorList) {
+    private static List<es.bsc.compss.types.resources.components.Processor>
+        getCOMPSsProcessors(List<Processor> processorList) {
         List<es.bsc.compss.types.resources.components.Processor> processors = new LinkedList<>();
 
         for (Processor p : processorList) {
@@ -201,7 +201,7 @@ public class Converter {
      * @return CloudMethodResource description containing the given hardware and software descriptions.
      */
     private static CloudImageDescription getCloudImageDescription(HardwareDescription hd, SoftwareDescription sd,
-            CloudMethodResourceDescription requested) {
+        CloudMethodResourceDescription requested) {
 
         CloudImageDescription from = requested.getImage();
         CloudImageDescription cid = new CloudImageDescription(hd.getImageName(), hd.getImageProperties());
@@ -226,7 +226,7 @@ public class Converter {
      * @param requested Requested CloudMethodResource description.
      */
     private static void setHardwareInResourceDescription(CloudMethodResourceDescription cmrd, HardwareDescription hd,
-            CloudMethodResourceDescription requested) {
+        CloudMethodResourceDescription requested) {
 
         cmrd.setProcessors(getCOMPSsProcessors(hd.getProcessors()));
         cmrd.setMemorySize(hd.getMemorySize());
@@ -248,7 +248,7 @@ public class Converter {
      * @param requested Requested CloudMethodResource description.
      */
     private static void setSoftwareInResourceDescription(CloudMethodResourceDescription cmrd, SoftwareDescription sd,
-            CloudMethodResourceDescription requested) {
+        CloudMethodResourceDescription requested) {
 
         cmrd.setOperatingSystemType(sd.getOperatingSystemType());
         cmrd.setOperatingSystemDistribution(sd.getOperatingSystemDistribution());

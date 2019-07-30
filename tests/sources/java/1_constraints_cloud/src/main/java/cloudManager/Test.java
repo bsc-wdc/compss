@@ -66,7 +66,7 @@ public class Test {
                         String res = checkImplementationAssignedToCloudImage(mImpl.getRequirements(), cid_gci);
                         if (res != null) {
                             String error = "[ERROR] Implementation: Core = " + coreId + " Impl = "
-                                    + impl.getImplementationId() + ". ";
+                                + impl.getImplementationId() + ". ";
                             error = error.concat("Implementation and cloud image not matching on: " + res);
                             System.out.println(error);
                             System.exit(-1);
@@ -74,16 +74,16 @@ public class Test {
                     }
                     System.out.println("\t\t Checking obtained compatible cloud types");
                     for (CloudInstanceTypeDescription type : cp
-                            .getCompatibleTypes(new CloudMethodResourceDescription(mImpl.getRequirements()))) {
+                        .getCompatibleTypes(new CloudMethodResourceDescription(mImpl.getRequirements()))) {
                         if (type.getResourceDescription().canHostSimultaneously(mImpl.getRequirements()) < 1) {
                             continue;
                         }
                         System.out.println("\t\t\t Checking compatible Type: " + type.getName());
-                        String res = checkImplementationAssignedToType(mImpl.getRequirements(),
-                                type.getResourceDescription());
+                        String res =
+                            checkImplementationAssignedToType(mImpl.getRequirements(), type.getResourceDescription());
                         if (res != null) {
                             String error = "[ERROR] Implementation: Core = " + coreId + " Impl = "
-                                    + impl.getImplementationId() + ". ";
+                                + impl.getImplementationId() + ". ";
                             error = error.concat("Implementation and type not matching on: " + res);
                             System.out.println(error);
                             System.exit(-1);
@@ -98,27 +98,27 @@ public class Test {
     }
 
     private static String checkImplementationAssignedToCloudImage(MethodResourceDescription rd,
-            CloudImageDescription cid) {
+        CloudImageDescription cid) {
         // Check Operating System
         if ((!cid.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rd.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!cid.getOperatingSystemType().equals(rd.getOperatingSystemType()))) {
+            && (!rd.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!cid.getOperatingSystemType().equals(rd.getOperatingSystemType()))) {
             return "operatingSystemType";
         }
         if ((!cid.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rd.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!cid.getOperatingSystemDistribution().equals(rd.getOperatingSystemDistribution()))) {
+            && (!rd.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!cid.getOperatingSystemDistribution().equals(rd.getOperatingSystemDistribution()))) {
             return "operatingSystemDistribution";
         }
         if ((!cid.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rd.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!cid.getOperatingSystemVersion().equals(rd.getOperatingSystemVersion()))) {
+            && (!rd.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!cid.getOperatingSystemVersion().equals(rd.getOperatingSystemVersion()))) {
             return "operatingSystemVersion";
         }
 
         // Check Software Apps
         if ((!cid.getAppSoftware().isEmpty()) && (!rd.getAppSoftware().isEmpty())
-                && (!cid.getAppSoftware().containsAll(rd.getAppSoftware()))) {
+            && (!cid.getAppSoftware().containsAll(rd.getAppSoftware()))) {
             return "softwareApps";
         }
 
@@ -126,13 +126,13 @@ public class Test {
     }
 
     private static String checkImplementationAssignedToType(MethodResourceDescription rdImpl,
-            MethodResourceDescription rdType) {
+        MethodResourceDescription rdType) {
         /*
          * *********************************************** COMPUTING UNITS
          ***********************************************/
         if ((rdImpl.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
-                && (rdType.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
-                && (rdType.getTotalCPUComputingUnits() < rdImpl.getTotalCPUComputingUnits())) {
+            && (rdType.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
+            && (rdType.getTotalCPUComputingUnits() < rdImpl.getTotalCPUComputingUnits())) {
             return "computingUnits";
         }
 
@@ -145,32 +145,31 @@ public class Test {
             for (Processor wp : rdType.getProcessors()) {
                 // Static checks
                 if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-                        && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-                        && !wp.getName().equals(ip.getName())) {
+                    && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+                    && !wp.getName().equals(ip.getName())) {
                     // System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
                     continue;
                 }
                 if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-                        && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-                        && wp.getSpeed() < ip.getSpeed()) {
+                    && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT && wp.getSpeed() < ip.getSpeed()) {
                     // System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
                     continue;
                 }
                 if (!ip.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
-                        && !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
-                        && !wp.getArchitecture().equals(ip.getArchitecture())) {
+                    && !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
+                    && !wp.getArchitecture().equals(ip.getArchitecture())) {
                     // System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
                     continue;
                 }
                 if ((!ip.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
-                        && (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
-                        && (!ip.getPropName().equals(wp.getPropName()))) {
+                    && (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!ip.getPropName().equals(wp.getPropName()))) {
                     // System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
                     continue;
                 }
                 if ((!ip.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
-                        && (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
-                        && (!ip.getPropValue().equals(wp.getPropValue()))) {
+                    && (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!ip.getPropValue().equals(wp.getPropValue()))) {
                     // System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
                     continue;
                 }
@@ -192,14 +191,14 @@ public class Test {
          * *********************************************** MEMORY
          ***********************************************/
         if ((rdImpl.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                && (rdType.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                && (rdType.getMemorySize() < rdImpl.getMemorySize())) {
+            && (rdType.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+            && (rdType.getMemorySize() < rdImpl.getMemorySize())) {
             return "memorySize";
         }
 
         if ((!rdImpl.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdImpl.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getMemoryType().equals(rdImpl.getMemoryType()))) {
+            && (!rdImpl.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!rdType.getMemoryType().equals(rdImpl.getMemoryType()))) {
             return "memoryType";
         }
 
@@ -207,14 +206,14 @@ public class Test {
          * *********************************************** STORAGE
          ***********************************************/
         if ((rdImpl.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                && (rdType.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-                && (rdType.getStorageSize() < rdImpl.getStorageSize())) {
+            && (rdType.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+            && (rdType.getStorageSize() < rdImpl.getStorageSize())) {
             return "storageSize";
         }
 
         if ((!rdImpl.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdImpl.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getStorageType().equals(rdImpl.getStorageType()))) {
+            && (!rdImpl.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!rdType.getStorageType().equals(rdImpl.getStorageType()))) {
             return "storageType";
         }
 
@@ -222,20 +221,20 @@ public class Test {
          * *********************************************** OPERATING SYSTEM
          ***********************************************/
         if ((!rdImpl.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getOperatingSystemType().equals(rdImpl.getOperatingSystemType()))) {
+            && (!rdType.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!rdType.getOperatingSystemType().equals(rdImpl.getOperatingSystemType()))) {
             return "operatingSystemType";
         }
 
         if ((!rdImpl.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getOperatingSystemDistribution().equals(rdImpl.getOperatingSystemDistribution()))) {
+            && (!rdType.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!rdType.getOperatingSystemDistribution().equals(rdImpl.getOperatingSystemDistribution()))) {
             return "operatingSystemDistribution";
         }
 
         if ((!rdImpl.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-                && (!rdType.getOperatingSystemVersion().equals(rdImpl.getOperatingSystemVersion()))) {
+            && (!rdType.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
+            && (!rdType.getOperatingSystemVersion().equals(rdImpl.getOperatingSystemVersion()))) {
             return "operatingSystemVersion";
         }
 

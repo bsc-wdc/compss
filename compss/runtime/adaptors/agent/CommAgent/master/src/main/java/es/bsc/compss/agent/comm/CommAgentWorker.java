@@ -45,6 +45,7 @@ class CommAgentWorker extends NIOWorkerNode {
 
     private final CommResource remoteResource;
 
+
     public CommAgentWorker(String name, int port, CommAgentAdaptor adaptor) {
         super(null, adaptor);
         remoteResource = new CommResource(name, port);
@@ -103,7 +104,7 @@ class CommAgentWorker extends NIOWorkerNode {
 
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res,
-            List<String> slaveWorkersNodeNames, JobListener listener) {
+        List<String> slaveWorkersNodeNames, JobListener listener) {
         return new CommAgentJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
 

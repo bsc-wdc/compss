@@ -25,7 +25,7 @@ public class Tasks {
      * @param d double value to be printed on the file
      */
     public static void testBasicTypes(String file, boolean b, char c, String s, byte by, short sh, int i, long l,
-            float f, double d) {
+        float f, double d) {
         try {
             PrintStream ps = new PrintStream(file);
             ps.println("TEST BASIC TYPES");
@@ -93,7 +93,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateFileWithContent(String content, String newContent, String fileName)
-            throws Exception {
+        throws Exception {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             if ((line = br.readLine()) != null) {
@@ -157,7 +157,7 @@ public class Tasks {
      * @throws Exception could not open the file or content does not match
      */
     public static void checkAndUpdateObjectWithContent(String content, String newContent, StringWrapper sw)
-            throws Exception {
+        throws Exception {
 
         String line = sw.getValue();
 

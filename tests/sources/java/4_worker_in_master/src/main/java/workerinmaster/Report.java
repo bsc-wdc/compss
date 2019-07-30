@@ -12,6 +12,7 @@ public class Report implements Externalizable {
     private long startTime;
     private long endTime;
 
+
     public Report() {
         this.startTime = System.currentTimeMillis();
     }

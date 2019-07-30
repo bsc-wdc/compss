@@ -30,6 +30,7 @@ public class CommAgentURI extends NIOUri {
 
     private CommResource agent;
 
+
     public CommAgentURI() {
         super();
     }

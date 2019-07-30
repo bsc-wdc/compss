@@ -43,7 +43,7 @@ public class ObjectParameter extends DependencyParameter {
      * @param hashCode Parameter object hashcode.
      */
     public ObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
-            int hashCode) {
+        int hashCode) {
 
         super(DataType.OBJECT_T, direction, stream, prefix, name);
         this.value = value;
@@ -65,7 +65,7 @@ public class ObjectParameter extends DependencyParameter {
     @Override
     public String toString() {
         return "ObjectParameter with hash code " + this.hashCode + ", type " + getType() + ", direction "
-                + getDirection();
+            + getDirection();
     }
 
 }

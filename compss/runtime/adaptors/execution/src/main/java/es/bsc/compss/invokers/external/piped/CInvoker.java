@@ -34,17 +34,17 @@ import java.util.ArrayList;
 public class CInvoker extends PipedInvoker {
 
     public CInvoker(InvocationContext context, Invocation invocation, File taskSandboxWorkingDir,
-            InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
+        InvocationResources assignedResources, PipePair pipes) throws JobExecutionException {
         super(context, invocation, taskSandboxWorkingDir, assignedResources, pipes);
 
     }
 
     @Override
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
-            String sandBox, InvocationResources assignedResources) {
+        String sandBox, InvocationResources assignedResources) {
         ExecuteTaskPipeCommand taskExecution = new ExecuteTaskPipeCommand(invocation.getJobId());
-        ArrayList<String> cCommand = CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox,
-                assignedResources);
+        ArrayList<String> cCommand =
+            CExecutionCommandGenerator.getTaskExecutionCommand(context, invocation, sandBox, assignedResources);
         taskExecution.appendAllArguments(cCommand);
         return taskExecution;
     }

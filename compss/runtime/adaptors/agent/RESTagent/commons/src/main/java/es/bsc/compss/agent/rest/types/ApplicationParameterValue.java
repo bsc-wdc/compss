@@ -45,7 +45,9 @@ public abstract class ApplicationParameterValue {
         }
     }
 
+
     private int paramId;
+
 
     @XmlAttribute
     public int getParamId() {
@@ -69,6 +71,7 @@ public abstract class ApplicationParameterValue {
         private String componentClassname;
         private ApplicationParameterValue[] elements;
 
+
         public ArrayParameter() {
 
         }
@@ -76,7 +79,7 @@ public abstract class ApplicationParameterValue {
         @XmlElementWrapper(name = "values")
         @XmlElements({
             @XmlElement(name = "array", type = ApplicationParameterValue.ArrayParameter.class, required = false),
-            @XmlElement(name = "element", type = ApplicationParameterValue.ElementParameter.class, required = false),})
+            @XmlElement(name = "element", type = ApplicationParameterValue.ElementParameter.class, required = false), })
         public ApplicationParameterValue[] getElements() {
             return elements;
         }
@@ -132,12 +135,12 @@ public abstract class ApplicationParameterValue {
 
     }
 
-
     @XmlRootElement(name = "ElementParameter")
     public static class ElementParameter extends ApplicationParameterValue {
 
         private Object value;
         private String className;
+
 
         public ElementParameter() {
         }

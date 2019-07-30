@@ -66,7 +66,7 @@ public interface COMPSsRuntime {
      * @param implTypeArgs The implementation specific arguments.
      */
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-            String implType, String... implTypeArgs);
+        String implType, String... implTypeArgs);
 
     /**
      * New Method task for C Binding.
@@ -84,7 +84,7 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, String methodClass, String onFailure, int timeOut, String methodName,
-            boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
+        boolean isPrioritary, boolean hasTarget, Integer numReturns, int parameterCount, Object... parameters);
 
     /**
      * New Method task for Python Binding.
@@ -104,8 +104,8 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, String signature, String onFailure, int timeOut, boolean isPrioritary,
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
-            int parameterCount, Object... parameters);
+        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, Integer numReturns,
+        int parameterCount, Object... parameters);
 
     /**
      * New Method Task for Loader.
@@ -127,8 +127,8 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, Lang lang, String methodClass, String methodName,
-            boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
-            int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
+        boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget,
+        int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
 
     /**
      * New service task.
@@ -151,8 +151,8 @@ public interface COMPSsRuntime {
      * @return
      */
     public int executeTask(Long appId, TaskMonitor monitor, String namespace, String service, String port,
-            String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
-            boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
+        String operation, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+        boolean hasTarget, int parameterCount, OnFailure onFailure, int timeOut, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId.

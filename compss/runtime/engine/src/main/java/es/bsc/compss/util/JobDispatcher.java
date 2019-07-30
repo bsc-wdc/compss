@@ -88,7 +88,7 @@ public class JobDispatcher {
                     System.err.println(SUBMISSION_ERROR + job.getJobId());
                     ex.printStackTrace();
                     if (ex instanceof COMPSsException) {
-                        job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED, (COMPSsException)ex);
+                        job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED, (COMPSsException) ex);
                     } else {
                         job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED, null);
                     }

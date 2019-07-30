@@ -70,8 +70,7 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error creating command.
      */
     public static ArrayList<String> createCMDParametersFromValues(List<? extends InvocationParam> parameters,
-            InvocationParam target, StdIOStream streamValues, String pythonInterpreter)
-            throws InvokeExecutionException {
+        InvocationParam target, StdIOStream streamValues, String pythonInterpreter) throws InvokeExecutionException {
 
         ArrayList<String> binaryParams = new ArrayList<>();
         for (InvocationParam param : parameters) {
@@ -84,7 +83,7 @@ public class BinaryRunner {
     }
 
     private static ArrayList<String> processParam(InvocationParam param, StdIOStream streamValues,
-            String pythonInterpreter) throws InvokeExecutionException {
+        String pythonInterpreter) throws InvokeExecutionException {
 
         ArrayList<String> binaryParamFields = new ArrayList<>();
         switch (param.getStdIOStream()) {
@@ -114,10 +113,10 @@ public class BinaryRunner {
     }
 
     private static void addArrayParam(InvocationParam param, ArrayList<String> binaryParamFields)
-            throws InvokeExecutionException {
+        throws InvokeExecutionException {
         try {
             if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
                 binaryParamFields.add(param.getPrefix());
             }
             binaryParamFields.addAll(serializeArrayParam(param.getValue()));
@@ -128,11 +127,11 @@ public class BinaryRunner {
     }
 
     private static void addCollectionParam(InvocationParam param, ArrayList<String> binaryParamFields)
-            throws InvokeExecutionException {
+        throws InvokeExecutionException {
 
         try {
             if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                    && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
                 binaryParamFields.add(param.getPrefix());
             }
             binaryParamFields.addAll(serializeCollectionParam((Collection<?>) param.getValue()));
@@ -143,10 +142,10 @@ public class BinaryRunner {
     }
 
     private static void addDirectParam(InvocationParam param, ArrayList<String> binaryParamFields,
-            String pythonInterpreter) throws InvokeExecutionException {
+        String pythonInterpreter) throws InvokeExecutionException {
 
         if (param.getPrefix() != null && !param.getPrefix().isEmpty()
-                && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
+            && !param.getPrefix().equals(Constants.PREFIX_EMPTY)) {
 
             // Add parameters with prefix
             switch (param.getType()) {
@@ -181,7 +180,7 @@ public class BinaryRunner {
                     String baseDir = null;
                     try {
                         baseDir = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, serializedFile,
-                                "base_dir");
+                            "base_dir");
                     } catch (ExternalPropertyException epe) {
                         throw new InvokeExecutionException(ERROR_EXT_STREAM_BASE_DIR, epe);
                     }
@@ -228,7 +227,7 @@ public class BinaryRunner {
                     String baseDir = null;
                     try {
                         baseDir = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, serializedFile,
-                                "base_dir");
+                            "base_dir");
                     } catch (ExternalPropertyException epe) {
                         throw new InvokeExecutionException(ERROR_EXT_STREAM_BASE_DIR, epe);
                     }
@@ -256,7 +255,7 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error execution the binary.
      */
     public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-            PrintStream outLog, PrintStream errLog, String pythonPath) throws InvokeExecutionException {
+        PrintStream outLog, PrintStream errLog, String pythonPath) throws InvokeExecutionException {
 
         // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -324,7 +323,7 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error execution the binary.
      */
     public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-            PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {
+        PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {
 
         // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -380,7 +379,7 @@ public class BinaryRunner {
     }
 
     private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
-            PrintStream errLog) throws InvokeExecutionException {
+        PrintStream errLog) throws InvokeExecutionException {
 
         StreamGobbler errorGobbler = null;
         StreamGobbler outputGobbler = null;
@@ -388,8 +387,8 @@ public class BinaryRunner {
         outLog.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
         if (process != null) {
             if (fileOutPath == null) {
-                outputGobbler = new StreamGobbler(process.getInputStream(), outLog,
-                        LogManager.getLogger(Loggers.WORKER));
+                outputGobbler =
+                    new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER));
                 outputGobbler.start();
             } else {
                 try (FileInputStream outputStream = new FileInputStream(fileOutPath)) {
@@ -408,8 +407,8 @@ public class BinaryRunner {
         errLog.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
         if (process != null) {
             if (fileErrPath == null) {
-                errorGobbler = new StreamGobbler(process.getErrorStream(), errLog,
-                        LogManager.getLogger(Loggers.WORKER));
+                errorGobbler =
+                    new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER));
                 errorGobbler.start();
             } else {
                 try (FileInputStream errStream = new FileInputStream(fileErrPath)) {
@@ -449,7 +448,7 @@ public class BinaryRunner {
      * @throws StreamCloseException When an internal error occurs when closing the stream.
      */
     public static void closeStreams(List<? extends InvocationParam> parameters, String pythonInterpreter)
-            throws StreamCloseException {
+        throws StreamCloseException {
         for (InvocationParam p : parameters) {
             if (p.isWriteFinalValue()) {
                 switch (p.getType()) {

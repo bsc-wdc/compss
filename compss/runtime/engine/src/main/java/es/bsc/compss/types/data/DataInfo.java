@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 
+
 // Information about a datum and its versions
 public abstract class DataInfo {
 
@@ -47,6 +48,7 @@ public abstract class DataInfo {
     protected final LinkedList<Integer> canceledVersions;
 
     protected Boolean canceled;
+
 
     /**
      * Creates a new DataInfo instance with and registers a new LogicalData.
@@ -206,7 +208,7 @@ public abstract class DataInfo {
         this.deletionBlocks--;
         if (this.deletionBlocks == 0) {
             for (DataVersion version : this.pendingDeletions) {
-                if (version.markToDelete()) { 
+                if (version.markToDelete()) {
                     Comm.removeData(version.getDataInstanceId().getRenaming());
                     this.versions.remove(version.getDataInstanceId().getVersionId());
                 }

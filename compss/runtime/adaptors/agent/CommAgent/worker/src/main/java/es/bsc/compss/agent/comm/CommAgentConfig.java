@@ -26,6 +26,7 @@ public class CommAgentConfig extends AgentInterfaceConfig {
 
     private final int port;
 
+
     public CommAgentConfig(CommAgentImpl agentItf, int port) {
         super(agentItf);
         this.port = port;

@@ -25,6 +25,7 @@ public class AppMainMonitor extends AppMonitor {
 
     private final TaskProfile profile;
 
+
     public AppMainMonitor() {
         super();
         this.profile = new TaskProfile();
@@ -69,7 +70,7 @@ public class AppMainMonitor extends AppMonitor {
     public void onFailedExecution() {
         profile.finished();
     }
-    
+
     @Override
     public void onException() {
         profile.finished();

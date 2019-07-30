@@ -53,8 +53,8 @@ public abstract class Implementation implements Externalizable {
      * @param requirements Implementation requirements.
      */
     public Implementation(Integer coreId, Integer implementationId, String signature,
-            WorkerResourceDescription requirements) {
-        
+        WorkerResourceDescription requirements) {
+
         this.coreId = coreId;
         this.implementationId = implementationId;
         this.signature = signature;

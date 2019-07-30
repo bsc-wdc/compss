@@ -119,7 +119,7 @@ public class ExecuteTasksRequest extends TDRequest {
     }
 
     private <T extends WorkerResourceDescription> void submitTask(TaskScheduler ts, int numNodes,
-            ResourceScheduler<T> specificResource) {
+        ResourceScheduler<T> specificResource) {
 
         // A task can use one or more resources
         if (numNodes == 1) {
@@ -130,25 +130,25 @@ public class ExecuteTasksRequest extends TDRequest {
     }
 
     private <T extends WorkerResourceDescription> void submitSingleTask(TaskScheduler ts,
-            ResourceScheduler<T> specificResource) {
+        ResourceScheduler<T> specificResource) {
 
         LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as singleTask");
         ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource),
-                ts.getOrchestrator(), this.producer, this.task);
+            ts.getOrchestrator(), this.producer, this.task);
         ts.newAllocatableAction(action);
     }
 
     private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes,
-            ResourceScheduler<T> specificResource) {
+        ResourceScheduler<T> specificResource) {
 
         LOGGER.debug("Scheduling request for task " + this.task.getId() + " treated as multiNodeTask with " + numNodes
-                + " nodes");
+            + " nodes");
         // Can use one or more resources depending on the computingNodes
         MultiNodeGroup group = new MultiNodeGroup(numNodes);
         for (int i = 0; i < numNodes; ++i) {
-            MultiNodeExecutionAction action = new MultiNodeExecutionAction(
-                    ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), this.producer, this.task,
-                    group);
+            MultiNodeExecutionAction action =
+                new MultiNodeExecutionAction(ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(),
+                    this.producer, this.task, group);
             ts.newAllocatableAction(action);
         }
     }

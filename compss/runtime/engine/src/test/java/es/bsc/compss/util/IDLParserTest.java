@@ -43,8 +43,8 @@ public class IDLParserTest {
     private static final int CORE1_6_IMPLS_RESULT = 3;
     private static final int COMPUTING_UNITS_RESULT = 2;
     private static final int PROCESSOR_COUNT = 2;
-    private static final String TEST_2_SIGNATURE = "RemoteTrackOnce("
-            + "INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,"
+    private static final String TEST_2_SIGNATURE =
+        "RemoteTrackOnce(" + "INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,BINDING_OBJECT_T,"
             + "BINDING_OBJECT_T,BINDING_OBJECT_T,INT_T,INT_T,INT_T,INT_T,INT_T,INT_T,BINDING_OBJECT_T)NULL";
 
 

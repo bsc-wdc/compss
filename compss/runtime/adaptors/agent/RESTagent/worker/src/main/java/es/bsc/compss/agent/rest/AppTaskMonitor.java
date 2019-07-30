@@ -49,10 +49,11 @@ public class AppTaskMonitor extends AppMonitor {
     private final String[] paramLocations;
     private boolean successful;
 
+
     /**
      * Constructs a new AppTaskMonitor.
      *
-     * @param numParams    number of parameters of the task to monitor.
+     * @param numParams number of parameters of the task to monitor.
      * @param orchestrator orchestrator to notify any task status updates.
      */
     public AppTaskMonitor(int numParams, Orchestrator orchestrator) {
@@ -135,8 +136,8 @@ public class AppTaskMonitor extends AppMonitor {
             WebTarget target = CLIENT.target(masterId);
             WebTarget wt = target.path(operation);
             EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
-                    this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.paramTypes,
-                    this.paramLocations);
+                this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.paramTypes,
+                this.paramLocations);
 
             Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
             if (response.getStatusInfo().getStatusCode() != 200) {

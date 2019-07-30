@@ -39,7 +39,9 @@ public class InvocationParameterAction {
     private final Action action;
 
 
-    /** Invocation Parameter Action constructor.
+    /**
+     * Invocation Parameter Action constructor.
+     * 
      * @param role Role
      * @param paramIdx Parameters Identifier
      * @param action Action
@@ -64,7 +66,9 @@ public class InvocationParameterAction {
         return action;
     }
 
-    /** Obtain invocation parameter.
+    /**
+     * Obtain invocation parameter.
+     * 
      * @param inv Invocation
      * @return
      */

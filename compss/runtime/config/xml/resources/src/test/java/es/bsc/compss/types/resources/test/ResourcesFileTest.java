@@ -135,7 +135,7 @@ public class ResourcesFileTest {
 
     @Test
     public void creation_XMLfile_XSDschema()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -161,7 +161,7 @@ public class ResourcesFileTest {
 
     @Test
     public void creation_XMLstring_XSDschema()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Instantiate XSD Schema
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
@@ -187,7 +187,7 @@ public class ResourcesFileTest {
 
     @Test
     public void creation_XMLfile_XSDpath()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -212,7 +212,7 @@ public class ResourcesFileTest {
 
     @Test
     public void creation_XMLstring_XSDpath()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -240,7 +240,7 @@ public class ResourcesFileTest {
      ***************************************************************/
     @Test
     public void xmlToFile()
-            throws URISyntaxException, SAXException, JAXBException, ResourcesFileValidationException, IOException {
+        throws URISyntaxException, SAXException, JAXBException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -283,7 +283,7 @@ public class ResourcesFileTest {
      ***************************************************************/
     @Test
     public void fullXML()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -304,7 +304,7 @@ public class ResourcesFileTest {
 
     @Test
     public void gridXML()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -325,7 +325,7 @@ public class ResourcesFileTest {
 
     @Test
     public void servicesXML()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -346,7 +346,7 @@ public class ResourcesFileTest {
 
     @Test
     public void rocciXML()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -367,7 +367,7 @@ public class ResourcesFileTest {
 
     @Test
     public void jclouds_gceXML()
-            throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
+        throws URISyntaxException, JAXBException, SAXException, ResourcesFileValidationException, IOException {
         // Get XSD Schema path
         String xsdPath = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -401,30 +401,30 @@ public class ResourcesFileTest {
 
         sb.append("    ").append("    ").append("<Adaptors>").append("\n");
         sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.nio.master.NIOAdaptor\">")
-                .append("\n");
+            .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("<SubmissionSystem>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Interactive/>")
-                .append("\n");
+            .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("</SubmissionSystem>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("<Ports>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<MinPort>43001</MinPort>")
-                .append("\n");
+            .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<MaxPort>43002</MaxPort>")
-                .append("\n");
+            .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("</Ports>").append("\n");
         sb.append("    ").append("    ").append("    ").append("</Adaptor>").append("\n");
         sb.append("    ").append("    ").append("    ").append("<Adaptor Name=\"es.bsc.compss.gat.master.GATAdaptor\">")
-                .append("\n");
+            .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("<SubmissionSystem>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Batch>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("    ")
-                .append("<Queue>sequential</Queue>").append("\n");
+            .append("<Queue>sequential</Queue>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("</Batch>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("    ").append("<Interactive/>")
-                .append("\n");
+            .append("\n");
         sb.append("    ").append("    ").append("    ").append("    ").append("</SubmissionSystem>").append("\n");
         sb.append("    ").append("    ").append("    ").append("    ")
-                .append("<BrokerAdaptor>sshtrilead</BrokerAdaptor>").append("\n");
+            .append("<BrokerAdaptor>sshtrilead</BrokerAdaptor>").append("\n");
         sb.append("    ").append("    ").append("    ").append("</Adaptor>").append("\n");
         sb.append("    ").append("    ").append("</Adaptors>").append("\n");
         sb.append("    ").append("</ComputeNode>").append("\n");
@@ -436,7 +436,7 @@ public class ResourcesFileTest {
 
     @Test
     public void staticProcessorAdaptorComputeNodeCreationAndRead()
-            throws SAXException, JAXBException, ResourcesFileValidationException {
+        throws SAXException, JAXBException, ResourcesFileValidationException {
         int cu = 5;
         float speed = 2.6f;
         String nodeName = "blablahost";
@@ -476,7 +476,7 @@ public class ResourcesFileTest {
 
     @Test
     public void computeNodeCreationWithNIOAndRead()
-            throws SAXException, JAXBException, ResourcesFileValidationException {
+        throws SAXException, JAXBException, ResourcesFileValidationException {
         int cu = 5;
         float speed = 2.6f;
         String nodeName = "blablahost";
@@ -504,8 +504,8 @@ public class ResourcesFileTest {
         // Instantiate ResourcesFile
         ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
         resources.addComputeNode(nodeName, procName, cu, arch, speed, type, internalMemorySize,
-                ResourcesFile.createProcessorProperty(key, value), adaptorName, maxPort, minPort, executor, user,
-                memSize, null, storageSize, null, osType, null, null);
+            ResourcesFile.createProcessorProperty(key, value), adaptorName, maxPort, minPort, executor, user, memSize,
+            null, storageSize, null, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
         assertEquals(procName, procExtracted.getName());
@@ -522,21 +522,21 @@ public class ResourcesFileTest {
         assertEquals(osType, resources.getOperatingSystemType(cn));
 
         assertEquals(ResourcesNIOAdaptorProperties.class,
-                resources.getAdaptorProperties(cn, adaptorName).get("Ports").getClass());
+            resources.getAdaptorProperties(cn, adaptorName).get("Ports").getClass());
         assertEquals(minPort,
-                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
-                        .getMinPort());
+            ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
+                .getMinPort());
         assertEquals(maxPort,
-                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
-                        .getMaxPort());
+            ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
+                .getMaxPort());
         assertEquals(executor,
-                ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
-                        .getRemoteExecutionCommand());
+            ((ResourcesNIOAdaptorProperties) resources.getAdaptorProperties(cn, adaptorName).get("Ports"))
+                .getRemoteExecutionCommand());
     }
 
     @Test
     public void computeNodeCreationWithGATAndRead()
-            throws SAXException, JAXBException, ResourcesFileValidationException {
+        throws SAXException, JAXBException, ResourcesFileValidationException {
         int cu = 5;
         float speed = 2.6f;
         String nodeName = "blablahost";
@@ -564,8 +564,8 @@ public class ResourcesFileTest {
         // Instantiate ResourcesFile
         ResourcesFile resources = new ResourcesFile(xsdPath, LOGGER);
         resources.addComputeNode(nodeName, procName, cu, arch, speed, null, -1f,
-                ResourcesFile.createProcessorProperty(key, value), adaptorName, batch, queues, interactive, gatprop,
-                user, memSize, null, storageSize, null, osType, null, null);
+            ResourcesFile.createProcessorProperty(key, value), adaptorName, batch, queues, interactive, gatprop, user,
+            memSize, null, storageSize, null, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
         assertEquals(procName, procExtracted.getName());

@@ -58,8 +58,8 @@ public class TaskDescription {
      * @param parameters Number of parameters.
      */
     public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement, boolean isPrioritary,
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, int timeOut,
-            List<Parameter> parameters) {
+        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, int timeOut,
+        List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;

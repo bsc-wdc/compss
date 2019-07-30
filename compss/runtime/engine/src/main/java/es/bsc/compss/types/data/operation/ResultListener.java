@@ -80,10 +80,10 @@ public class ResultListener extends EventListener {
     public synchronized void notifyFailure(DataOperation fOp, Exception e) {
         if (DEBUG) {
             LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                    + ", file role is RESULT_FILE" + ", operation end state is FAILED", e);
+                + ", file role is RESULT_FILE" + ", operation end state is FAILED", e);
         } else {
             LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                    + ", file role is RESULT_FILE" + ", operation end state is FAILED");
+                + ", file role is RESULT_FILE" + ", operation end state is FAILED");
         }
         this.operation--;
         this.errors++;

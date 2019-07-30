@@ -40,7 +40,7 @@ public final class Loggers {
     public static final String RESOURCES = IT + ".Resources";
 
     public static final String AGENT = IT + ".Agent";
-    
+
     // Components
     public static final String ALL_COMP = IT + ".Components";
 

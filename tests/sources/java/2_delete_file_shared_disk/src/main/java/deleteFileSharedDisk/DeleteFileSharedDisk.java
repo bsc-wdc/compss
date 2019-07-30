@@ -3,6 +3,7 @@ package deleteFileSharedDisk;
 import java.io.File;
 import java.io.IOException;
 
+
 public class DeleteFileSharedDisk {
 
     private static final String FILE_NAME = "/tmp/sharedDisk/fileDelete.txt";
@@ -25,15 +26,15 @@ public class DeleteFileSharedDisk {
 
         File f = new File(FILE_NAME);
         f.delete();
-        
+
         System.out.println("The file has been deleted");
-        
+
     }
 
     private static void newFile(String fileName) throws IOException, InterruptedException {
         File file = new File(fileName);
-        
-        System.out.println("The file exists? "  + file.exists());
+
+        System.out.println("The file exists? " + file.exists());
         // Delete previous occurrences of the file
         if (file.exists()) {
             System.out.println("THE FILE EXISTS");

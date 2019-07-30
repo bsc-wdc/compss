@@ -31,8 +31,8 @@ public class COMPSsConstants {
      * Accepted Execution modes.
      */
     public static enum TaskExecution {
-    COMPSS, // Internal Execution
-    STORAGE // External execution
+        COMPSS, // Internal Execution
+        STORAGE // External execution
     }
 
     /**
@@ -177,17 +177,17 @@ public class COMPSsConstants {
 
     public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
 
-    public static final String DEFAULT_CONFIG_DIR = System.getenv(COMPSS_HOME) + File.separator + "Runtime"
-            + File.separator + "configuration";
+    public static final String DEFAULT_CONFIG_DIR =
+        System.getenv(COMPSS_HOME) + File.separator + "Runtime" + File.separator + "configuration";
 
     public static final String DEFAULT_RES_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator
-            + "resources" + File.separator + "resource_schema.xsd";
+        + "resources" + File.separator + "resource_schema.xsd";
 
     public static final String DEFAULT_PROJECT_SCHEMA = DEFAULT_CONFIG_DIR + File.separator + "xml" + File.separator
-            + "projects" + File.separator + "project_schema.xsd";
+        + "projects" + File.separator + "project_schema.xsd";
 
-    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib"
-            + File.separator + "adaptors";
+    public static final String DEFAULT_GAT_ADAPTOR_LOCATION =
+        System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
     public static final String DEFAULT_PERSISTENT_C = "false";
 
     public static final String DEFAULT_PYTHON_INTERPRETER = "python";

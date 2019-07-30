@@ -81,34 +81,34 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
     // Worker script path
     private static final String WORKER_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts"
-            + File.separator + "system" + File.separator + "adaptors" + File.separator + "gat" + File.separator;
+        + File.separator + "system" + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String WORKER_SCRIPT_NAME = "worker.sh";
 
     // Storage Conf
     private static final boolean IS_STORAGE_ENABLED = System.getProperty(COMPSsConstants.STORAGE_CONF) != null
-            && !System.getProperty(COMPSsConstants.STORAGE_CONF).equals("")
-            && !System.getProperty(COMPSsConstants.STORAGE_CONF).equals("null");
-    private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(COMPSsConstants.STORAGE_CONF)
-            : "null";
+        && !System.getProperty(COMPSsConstants.STORAGE_CONF).equals("")
+        && !System.getProperty(COMPSsConstants.STORAGE_CONF).equals("null");
+    private static final String STORAGE_CONF =
+        IS_STORAGE_ENABLED ? System.getProperty(COMPSsConstants.STORAGE_CONF) : "null";
 
     // Python interpreter
     private static final String PYTHON_INTERPRETER = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER) != null
-            ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER)
-            : COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
-    private static final String PYTHON_VERSION = System.getProperty(COMPSsConstants.PYTHON_VERSION) != null
-            ? System.getProperty(COMPSsConstants.PYTHON_VERSION)
+        ? System.getProperty(COMPSsConstants.PYTHON_INTERPRETER)
+        : COMPSsConstants.DEFAULT_PYTHON_INTERPRETER;
+    private static final String PYTHON_VERSION =
+        System.getProperty(COMPSsConstants.PYTHON_VERSION) != null ? System.getProperty(COMPSsConstants.PYTHON_VERSION)
             : COMPSsConstants.DEFAULT_PYTHON_VERSION;
-    private static final String PYTHON_VIRTUAL_ENVIRONMENT = System
-            .getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) != null
-                    ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT)
-                    : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
-    private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT = System
-            .getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
-                    ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
-                    : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
+    private static final String PYTHON_VIRTUAL_ENVIRONMENT =
+        System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT) != null
+            ? System.getProperty(COMPSsConstants.PYTHON_VIRTUAL_ENVIRONMENT)
+            : COMPSsConstants.DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT;
+    private static final String PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT =
+        System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT) != null
+            ? System.getProperty(COMPSsConstants.PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT)
+            : COMPSsConstants.DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT;
 
-    private static final String JOBS_DIR = System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs"
-            + java.io.File.separator;
+    private static final String JOBS_DIR =
+        System.getProperty(COMPSsConstants.APP_LOG_DIR) + "jobs" + java.io.File.separator;
 
     private static final String JOB_STATUS = "job.status";
     private static final String RES_ATTR = "machine.node";
@@ -144,7 +144,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
      * @param slaveWorkersNodeNames Slave resources for multi-node executions.
      */
     public GATJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener,
-            GATContext context, boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames) {
+        GATContext context, boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames) {
 
         super(taskId, taskParams, impl, res, listener);
         this.context = context;
@@ -184,7 +184,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         } catch (Exception e) {
             if (Tracer.extraeEnabled()) {
                 Tracer.freeSlot(((GATWorkerNode) worker.getNode()).getHost(),
-                        (Integer) jobDescr.getSoftwareDescription().getAttributes().get("slot"));
+                    (Integer) jobDescr.getSoftwareDescription().getAttributes().get("slot"));
             }
             throw e;
         }
@@ -453,8 +453,8 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         // Slave nodes and cus description
         lArgs.add(String.valueOf(slaveWorkersNodeNames.size()));
         lArgs.addAll(slaveWorkersNodeNames);
-        lArgs.add(
-                String.valueOf(((MethodResourceDescription) this.impl.getRequirements()).getTotalCPUComputingUnits()));
+        lArgs
+            .add(String.valueOf(((MethodResourceDescription) this.impl.getRequirements()).getTotalCPUComputingUnits()));
 
         // Parameters
         int numReturns = taskParams.getNumReturns();
@@ -478,14 +478,14 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
             sd.setArguments(arguments);
         } catch (NullPointerException e) {
             StringBuilder sb = new StringBuilder(
-                    "Null argument parameter of job " + this.jobId + " " + absImpl.getMethodDefinition() + "\n");
+                "Null argument parameter of job " + this.jobId + " " + absImpl.getMethodDefinition() + "\n");
             int i = 0;
             for (Parameter param : taskParams.getParameters()) {
                 sb.append("Parameter ").append(i).append("\n");
                 DataType type = param.getType();
                 sb.append("\t Type: ").append(param.getType()).append("\n");
                 if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.STREAM_T
-                        || type == DataType.BINDING_OBJECT_T) {
+                    || type == DataType.BINDING_OBJECT_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
@@ -536,14 +536,14 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
          */
         if (DEBUG) { // Set standard output file for job
             File outFile = GAT.createFile(context, ProtocolType.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job"
-                    + jobId + "_" + this.getHistory() + ".out");
+                + jobId + "_" + this.getHistory() + ".out");
             sd.setStdout(outFile);
         }
 
         if (DEBUG || usingGlobus) {
             // Set standard error file for job
             File errFile = GAT.createFile(context, ProtocolType.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job"
-                    + jobId + "_" + this.getHistory() + ".err");
+                + jobId + "_" + this.getHistory() + ".err");
             sd.setStderr(errFile);
         }
 

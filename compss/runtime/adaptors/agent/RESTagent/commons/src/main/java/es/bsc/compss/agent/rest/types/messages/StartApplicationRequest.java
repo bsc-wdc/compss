@@ -146,7 +146,7 @@ public class StartApplicationRequest implements Serializable {
     }
 
     private ApplicationParameterImpl addParameter(Object value, Direction direction, DataType type, StdIOStream stream,
-            String prefix, String name) {
+        String prefix, String name) {
 
         ApplicationParameterImpl p;
         p = new ApplicationParameterImpl(value, direction, type, stream, prefix, name);

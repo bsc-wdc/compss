@@ -29,6 +29,7 @@ public class CommandTracingID implements Command {
     private int id;
     private int tag;
 
+
     /**
      * Creates a new CommandTracingID for externalization.
      */
@@ -39,7 +40,7 @@ public class CommandTracingID implements Command {
     /**
      * Creates a new CommandTracingID instance.
      *
-     * @param id  Trancing Id.
+     * @param id Trancing Id.
      * @param tag Tracing tag.
      */
     public CommandTracingID(int id, int tag) {

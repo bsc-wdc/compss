@@ -131,7 +131,7 @@ public abstract class ResourceDescription implements Externalizable {
      * @return
      */
     public static ResourceDescription reduceCommonDynamics(ResourceDescription gapResource,
-            ResourceDescription constraints) {
+        ResourceDescription constraints) {
         ResourceDescription commons = gapResource.getDynamicCommons(constraints);
         gapResource.reduceDynamic(commons);
         constraints.reduceDynamic(commons);

@@ -1,10 +1,10 @@
 
 package workerinmaster;
 
-
 public class StringWrapper {
 
     private String value;
+
 
     public StringWrapper() {
     }

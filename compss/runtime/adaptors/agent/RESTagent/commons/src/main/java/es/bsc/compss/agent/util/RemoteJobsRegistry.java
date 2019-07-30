@@ -30,10 +30,11 @@ public class RemoteJobsRegistry {
 
     public static final HashMap<String, RemoteJobListener> REGISTERED_JOBS = new HashMap<>();
 
+
     /**
      * Registers a job running and its corresponding listener.
      *
-     * @param jobId    Id of the submitted job.
+     * @param jobId Id of the submitted job.
      * @param listener listener handling the job status updates.
      */
     public static synchronized void registerJobListener(String jobId, RemoteJobListener listener) {
@@ -43,13 +44,13 @@ public class RemoteJobsRegistry {
     /**
      * Notifies the end of a job execution.
      *
-     * @param jobId          Id of the ended job.
-     * @param endStatus      end status of the job.
-     * @param paramTypes     array containing the Data types of all the parameters involved in the operation.
+     * @param jobId Id of the ended job.
+     * @param endStatus end status of the job.
+     * @param paramTypes array containing the Data types of all the parameters involved in the operation.
      * @param paramLocations location where to find the parameter value on the node/id on the persistent storage system.
      */
     public static synchronized void notifyJobEnd(String jobId, JobEndStatus endStatus, DataType[] paramTypes,
-            String[] paramLocations) {
+        String[] paramLocations) {
 
         RemoteJobListener listener = REGISTERED_JOBS.remove(jobId);
         listener.finishedExecution(endStatus, paramTypes, paramLocations);

@@ -49,12 +49,12 @@ public abstract class AllocatableAction {
      * Available states for any allocatable action.
      */
     private enum State {
-    RUNNABLE, // Action can be run
-    WAITING, // Action is waiting
-    RUNNING, // Action is running
-    FINISHED, // Action has been successfully completed
-    FAILED, // Action has failed
-    CANCELED // Action has been canceled
+        RUNNABLE, // Action can be run
+        WAITING, // Action is waiting
+        RUNNING, // Action is running
+        FINISHED, // Action has been successfully completed
+        FAILED, // Action has failed
+        CANCELED // Action has been canceled
     }
 
 
@@ -161,7 +161,7 @@ public abstract class AllocatableAction {
         LOGGER.warn("Notify COMPSs exception of " + this + " to orchestrator " + this.orchestrator);
         this.orchestrator.actionException(this, e);
     }
-    
+
     /*
      * ***************************************************************************************************************
      * DATA DEPENDENCIES OPERATIONS
@@ -517,16 +517,16 @@ public abstract class AllocatableAction {
         boolean readyForExecution = taskIsReadyForExecution();
 
         if (selectedResource != null // has an assigned resource where to run
-                && state == State.RUNNABLE // has not been started yet
-                && !hasDataPredecessors() // has no data dependencies with other methods
-                && schedulingInfo.isExecutable() // scheduler does not block the execution
-                && readyForExecution // there are no tasks being executed in a commutative group
+            && state == State.RUNNABLE // has not been started yet
+            && !hasDataPredecessors() // has no data dependencies with other methods
+            && schedulingInfo.isExecutable() // scheduler does not block the execution
+            && readyForExecution // there are no tasks being executed in a commutative group
         ) {
             // Invalid scheduling -> Allocatable action should run in a specific resource but: resource is removed and
             // task is not to stop; or the assigned resour ce is not the required
             if ((this.selectedResource.isRemoved() && !isToStopResource())
-                    || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
-                            && this.selectedResource != this.schedulingInfo.getEnforcedTargetResource())) {
+                || (isSchedulingConstrained() && unrequiredResource() || isTargetResourceEnforced()
+                    && this.selectedResource != this.schedulingInfo.getEnforcedTargetResource())) {
                 // Allow other threads to access the action
                 this.lock.unlock();
                 // Notify invalid scheduling
@@ -564,8 +564,8 @@ public abstract class AllocatableAction {
             // Run action
             run();
         } else {
-            LOGGER.info(
-                    this + " execution paused due to lack of resources on worker " + this.selectedResource.getName());
+            LOGGER
+                .info(this + " execution paused due to lack of resources on worker " + this.selectedResource.getName());
             // Task waits on the resource queue
             // It can only be resumed because of a task completion or error.
             // execute won't be executed again since tryToLaunch is blocked
@@ -648,8 +648,8 @@ public abstract class AllocatableAction {
     @SuppressWarnings("unchecked")
     protected void reserveResources() {
         if (isToReserveResources()) {
-            Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.selectedResource
-                    .getResource();
+            Worker<WorkerResourceDescription> w =
+                (Worker<WorkerResourceDescription>) this.selectedResource.getResource();
             this.resourceConsumption = w.runTask(this.selectedImpl.getRequirements());
         }
     }
@@ -666,8 +666,8 @@ public abstract class AllocatableAction {
     @SuppressWarnings("unchecked")
     protected void releaseResources() {
         if (isToReleaseResources()) {
-            Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) this.selectedResource
-                    .getResource();
+            Worker<WorkerResourceDescription> w =
+                (Worker<WorkerResourceDescription>) this.selectedResource.getResource();
             w.endTask(this.resourceConsumption);
         }
     }
@@ -792,16 +792,16 @@ public abstract class AllocatableAction {
         // Action notification
         doError();
     }
-    
+
     /**
-     * Operations to perform when AA has raised a COMPSs exception. 
+     * Operations to perform when AA has raised a COMPSs exception.
      *
-     *@param e COMPSs Exception raised
+     * @param e COMPSs Exception raised
      */
     public final List<AllocatableAction> exception(COMPSsException e) {
         // Mark as finished
         this.state = State.FAILED;
-        
+
         if (this.getAssignedResource() != null) {
             // Release resources and run tasks blocked on the resource
             releaseResources();
@@ -810,16 +810,16 @@ public abstract class AllocatableAction {
         }
 
         cancelAction();
-        
+
         List<AllocatableAction> successors = new LinkedList<>();
         successors.addAll(this.dataSuccessors);
-        
+
         // Action notification
         doException(e);
-        
+
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
-        
+
         // Forward cancellation to successors
         for (AllocatableAction succ : successors) {
             cancel.addAll(succ.canceled());
@@ -827,7 +827,7 @@ public abstract class AllocatableAction {
 
         this.dataPredecessors.clear();
         this.dataSuccessors.clear();
-       
+
         return cancel;
     }
 
@@ -898,7 +898,7 @@ public abstract class AllocatableAction {
 
         List<AllocatableAction> successors = new LinkedList<>();
         successors.addAll(this.dataSuccessors);
-        
+
         // Triggering cancelation on Data Successors
         List<AllocatableAction> cancel = new LinkedList<>();
 
@@ -1014,8 +1014,8 @@ public abstract class AllocatableAction {
      * @param r resource that should run the action
      * @return list of the action implementations that can run on the resource.
      */
-    public abstract <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r);
+    public abstract <T extends WorkerResourceDescription> List<Implementation>
+        getCompatibleImplementations(ResourceScheduler<T> r);
 
     /**
      * Returns the action priority.
@@ -1040,7 +1040,7 @@ public abstract class AllocatableAction {
      * @return Complete score at the given target worker.
      */
     public abstract <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
-            Score actionScore);
+        Score actionScore);
 
     /**
      * Schedules the action considering the {@code actionScore}. Actions can be scheduled on full workers.
@@ -1061,7 +1061,7 @@ public abstract class AllocatableAction {
      * @throws UnassignedActionException When the action is not assigned to a target worker.
      */
     public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Score actionScore) throws BlockedActionException, UnassignedActionException;
+        Score actionScore) throws BlockedActionException, UnassignedActionException;
 
     /**
      * Schedules the implementation {@code impl} of the action to a given {@code targetWorker}.
@@ -1073,7 +1073,7 @@ public abstract class AllocatableAction {
      * @throws UnassignedActionException When the action is not assigned to a target worker.
      */
     public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker,
-            Implementation impl) throws BlockedActionException, UnassignedActionException;
+        Implementation impl) throws BlockedActionException, UnassignedActionException;
 
     @Override
     public String toString() {

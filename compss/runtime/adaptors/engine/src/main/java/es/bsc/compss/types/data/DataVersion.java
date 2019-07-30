@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+
 public class DataVersion {
 
     private final DataInstanceId dataInstanceId;
@@ -29,7 +30,8 @@ public class DataVersion {
     private boolean used; // The version has been read or written
     private boolean semUsed;
     private List<Semaphore> semReaders;
-    
+
+
     /**
      * Creates a new DataVersion instance.
      *
@@ -168,8 +170,8 @@ public class DataVersion {
      */
     private boolean checkDeletion() {
         if (this.toDelete // deletion requested
-                && this.writters == 0 // version has been generated
-                && this.readers == 0 // version has been read
+            && this.writters == 0 // version has been generated
+            && this.readers == 0 // version has been read
         ) {
 
             return true;

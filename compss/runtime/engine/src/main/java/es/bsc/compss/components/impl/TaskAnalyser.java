@@ -176,7 +176,7 @@ public class TaskAnalyser {
     }
 
     private boolean registerParameterAccessAndAddDependencies(Task currentTask, Parameter p, boolean isConstraining,
-            boolean hasForcedEdgeFromMain) {
+        boolean hasForcedEdgeFromMain) {
 
         // Conversion: direction -> access mode
         AccessMode am = AccessMode.R;
@@ -225,7 +225,7 @@ public class TaskAnalyser {
                 // Check if its Binding OBJ and register its access
                 bindingObjectparam.setType(DataType.BINDING_OBJECT_T);
                 daId = dip.registerBindingObjectAccess(am, bindingObjectparam.getBindingObject(),
-                        bindingObjectparam.getCode());
+                    bindingObjectparam.getCode());
                 break;
             case OBJECT_T:
                 ObjectParameter op = (ObjectParameter) p;
@@ -247,7 +247,7 @@ public class TaskAnalyser {
                 CollectionParameter cp = (CollectionParameter) p;
                 for (Parameter content : cp.getParameters()) {
                     hasForcedEdgeFromMain = registerParameterAccessAndAddDependencies(currentTask, content,
-                            isConstraining, hasForcedEdgeFromMain);
+                        isConstraining, hasForcedEdgeFromMain);
                 }
                 daId = dip.registerCollectionAccess(am, cp);
                 break;
@@ -272,7 +272,7 @@ public class TaskAnalyser {
                 if (com == null) {
                     firstRegistered = daId;
                     LOGGER.debug(
-                            "The FIRST registered daId in the commutative group " + comId.toString() + " is " + daId);
+                        "The FIRST registered daId in the commutative group " + comId.toString() + " is " + daId);
                 } else {
                     com.addVersionToList(daId);
                     daId = com.getRegisteredVersion();
@@ -284,8 +284,8 @@ public class TaskAnalyser {
             } else {
                 // Register regular access
                 dp.setDataAccessId(daId);
-                hasForcedEdgeFromMain = addDependencies(am, currentTask, isConstraining, dp, firstRegistered,
-                        hasForcedEdgeFromMain);
+                hasForcedEdgeFromMain =
+                    addDependencies(am, currentTask, isConstraining, dp, firstRegistered, hasForcedEdgeFromMain);
             }
         } else {
             // Basic types do not produce access dependencies
@@ -304,7 +304,7 @@ public class TaskAnalyser {
     }
 
     private boolean addDependencies(AccessMode am, Task currentTask, boolean isConstraining, DependencyParameter dp,
-            DataAccessId firstRegistered, boolean hasForcedEdgeFromMain) {
+        DataAccessId firstRegistered, boolean hasForcedEdgeFromMain) {
 
         // Add dependencies to the graph and register output values for future dependencies
         DataAccessId daId = dp.getDataAccessId();
@@ -414,7 +414,7 @@ public class TaskAnalyser {
     }
 
     private void addCommutativeDependencies(Task currentTask, DependencyParameter dp, DataAccessId firstRegistered,
-            int coreId) {
+        int coreId) {
 
         // Add dependencies to the graph and register output values for future dependencies
         DataAccessId daId = dp.getDataAccessId();
@@ -469,7 +469,7 @@ public class TaskAnalyser {
     public void processTask(Task currentTask) {
         TaskDescription params = currentTask.getTaskDescription();
         LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName()
-                + "), ID = " + currentTask.getId());
+            + "), ID = " + currentTask.getId());
 
         if (IS_DRAW_GRAPH) {
             addNewTask(currentTask);
@@ -519,7 +519,7 @@ public class TaskAnalyser {
         for (int paramIdx = 0; paramIdx < parameters.size(); paramIdx++) {
             boolean isConstraining = paramIdx == constrainingParam;
             hasForcedEdgeFromMain = registerParameterAccessAndAddDependencies(currentTask, parameters.get(paramIdx),
-                    isConstraining, hasForcedEdgeFromMain);
+                isConstraining, hasForcedEdgeFromMain);
         }
     }
 
@@ -533,8 +533,8 @@ public class TaskAnalyser {
         }
 
         if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.STREAM_T
-                || type == DataType.EXTERNAL_STREAM_T || type == DataType.EXTERNAL_PSCO_T
-                || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
+            || type == DataType.EXTERNAL_STREAM_T || type == DataType.EXTERNAL_PSCO_T
+            || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
 
             DependencyParameter dPar = (DependencyParameter) p;
             DataAccessId dAccId = dPar.getDataAccessId();
@@ -552,8 +552,7 @@ public class TaskAnalyser {
             }
 
             if (t.getOnFailure() == OnFailure.CANCEL_SUCCESSORS
-                    && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED)
-                    || canceledByException) {
+                && (t.getStatus() == TaskState.FAILED || t.getStatus() == TaskState.CANCELED) || canceledByException) {
                 this.dip.dataAccessHasBeenCanceled(dAccId);
             } else {
                 this.dip.dataHasBeenAccessed(dAccId);
@@ -822,8 +821,7 @@ public class TaskAnalyser {
                     }
                     // Release task if possible. Otherwise add to waiting
                     if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED
-                            || lastWriter.getStatus() == TaskState.CANCELED
-                            || lastWriter.getStatus() == TaskState.FAILED) {
+                        || lastWriter.getStatus() == TaskState.CANCELED || lastWriter.getStatus() == TaskState.FAILED) {
                         sem.release();
                     } else {
                         List<Semaphore> list = this.waitedTasks.get(lastWriter);
@@ -1209,7 +1207,7 @@ public class TaskAnalyser {
                 // Debug message
                 if (DEBUG) {
                     LOGGER.debug("Adding stream dependency between task " + lastWriter.getId() + " and task "
-                            + currentTask.getId());
+                        + currentTask.getId());
                 }
 
                 // Add dependency
@@ -1235,14 +1233,14 @@ public class TaskAnalyser {
         if (lastWriter != null && lastWriter != currentTask) {
             if (DEBUG) {
                 LOGGER.debug("Last writer for datum " + dataId + " is task " + lastWriter.getId());
-                LOGGER.debug(
-                        "Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
+                LOGGER
+                    .debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
 
             if (lastWriter instanceof Task
-                    && ((Task) lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()) != null) {
+                && ((Task) lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()) != null) {
                 currentTask
-                        .addDataDependency(((Task) lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()));
+                    .addDataDependency(((Task) lastWriter).getCommutativeGroup(dp.getDataAccessId().getDataId()));
             }
             // Add dependency
             currentTask.addDataDependency(lastWriter);
@@ -1270,7 +1268,7 @@ public class TaskAnalyser {
      * @param commutativeGroup Commutative group where to add the task.
      */
     private void checkDependencyForCommutative(Task currentTask, DependencyParameter dp,
-            CommutativeGroupTask commutativeGroup) {
+        CommutativeGroupTask commutativeGroup) {
 
         // Addition of a dependency to the task which generates commutative data
         AbstractTask t = commutativeGroup.getParentDataDependency();
@@ -1328,13 +1326,13 @@ public class TaskAnalyser {
                     if (lastWriter instanceof Task) {
                         if (lastWriter.getSuccessors().contains(currentTask.getCommutativeGroup(dataId))) {
                             addEdgeFromCommutativeToTask(currentTask, dataId, dataVersion,
-                                    ((CommutativeGroupTask) lastWriter), false);
+                                ((CommutativeGroupTask) lastWriter), false);
                         } else {
                             addDataEdgeFromTaskToTask((Task) lastWriter, currentTask, dataId, dataVersion);
                         }
                     } else if (!(lastWriter instanceof Task && !currentTask.hasCommutativeParams())) {
                         addEdgeFromCommutativeToTask(currentTask, dataId, dataVersion,
-                                ((CommutativeGroupTask) lastWriter), true);
+                            ((CommutativeGroupTask) lastWriter), true);
                     }
                 } else {
                     addDataEdgeFromMainToTask(currentTask, dataId, dataVersion);
@@ -1507,7 +1505,7 @@ public class TaskAnalyser {
                 addCommutativeGroupTaskToGraph(comId.toString());
                 ((CommutativeGroupTask) lastWriter).setGraphDrawn();
                 this.pendingToDrawCommutative
-                        .remove(((CommutativeGroupTask) lastWriter).getCommutativeIdentifier().toString());
+                    .remove(((CommutativeGroupTask) lastWriter).getCommutativeIdentifier().toString());
             }
         }
     }
@@ -1627,7 +1625,7 @@ public class TaskAnalyser {
             String src = String.valueOf(commGroupTask.getCommutativeTasks().get(0).getId());
             String groupId = commGroupTask.getCommutativeIdentifier().toString();
             this.gm.addEdgeToGraphFromCommutative(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion),
-                    groupId);
+                groupId);
         } else {
             // Add edge from task to sync
             String src = String.valueOf(task.getId());
@@ -1645,7 +1643,7 @@ public class TaskAnalyser {
      * @param comToTask Whether the edge should be printed as a group to task or viceversa.
      */
     private void addEdgeFromCommutativeToTask(Task dest, int dataId, int dataVersion, CommutativeGroupTask cgt,
-            boolean comToTask) {
+        boolean comToTask) {
         String src = String.valueOf(cgt.getCommutativeTasks().get(0).getId());
         String dst = String.valueOf(dest.getId());
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);

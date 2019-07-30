@@ -79,7 +79,7 @@ public class Tasks {
     }
 
     public static Integer readObjects(ObjectDistroStream<MyObject> ods, int sleepTime)
-            throws IOException, BackendException {
+        throws IOException, BackendException {
 
         // Process events until stream is closed
         Integer totalObjects = 0;
@@ -103,7 +103,7 @@ public class Tasks {
     }
 
     public static Integer readObjectsTimeout(ObjectDistroStream<MyObject> ods, long timeout, int sleepTime)
-            throws IOException, BackendException {
+        throws IOException, BackendException {
 
         // Process events until stream is closed
         Integer totalObjects = 0;
@@ -142,7 +142,7 @@ public class Tasks {
     }
 
     private static Integer pollWithTimeout(ObjectDistroStream<MyObject> ods, long timeout)
-            throws IOException, BackendException {
+        throws IOException, BackendException {
 
         // Poll new files
         List<MyObject> newObjects = ods.poll(timeout);

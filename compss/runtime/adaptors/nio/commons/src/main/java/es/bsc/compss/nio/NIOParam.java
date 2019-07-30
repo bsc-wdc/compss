@@ -70,7 +70,7 @@ public class NIOParam implements Externalizable, InvocationParam {
      * @param originalName The original parameter name.
      */
     public NIOParam(String dataMgmtId, DataType type, StdIOStream stream, String prefix, String name,
-            boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
+        boolean preserveSourceData, boolean writeFinalValue, Object value, NIOData data, String originalName) {
 
         this.dataMgmtId = dataMgmtId;
         this.type = type;

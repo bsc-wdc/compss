@@ -192,7 +192,8 @@ def pearson(data_x, data_y, mx, my):
     xxs = [_pow(x, 2) for x in xs]
     yys = [_pow(y, 2) for y in ys]
 
-    suma = merge_reduce(reduce_add, [mult_frag(a, b) for (a, b) in zip(xs, ys)])
+    suma = merge_reduce(reduce_add,
+                        [mult_frag(a, b) for (a, b) in zip(xs, ys)])
 
     sum_x = merge_reduce(reduce_add, map(_add, xxs))
     sum_y = merge_reduce(reduce_add, map(_add, yys))
@@ -248,7 +249,8 @@ if __name__ == "__main__":
     from numpy.random import randint
     from pylab import scatter, show, plot, savefig
     data = [[[1,2,3],[4,5,6]], [[1,2,3],[4,5,6]]]
-    # data = [[list(randint(100, size=1000)) for _ in range(10)] for _ in range(2)]
+    # data = [[list(randint(100, size=1000))
+               for _ in range(10)] for _ in range(2)]
     line = fit(data[0], data[1], 6)
     print([line(x) for x in arange(0.0,100.0,1.0)])
     datax = [item for sublist in data[0] for item in sublist]

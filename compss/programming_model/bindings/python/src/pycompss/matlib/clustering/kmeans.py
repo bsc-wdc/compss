@@ -236,8 +236,10 @@ def kmeans(data, k, num_frag=-1, max_iterations=10, epsilon=1e-4,
     size = int(len(data) / num_frag)
     while not has_converged(mu, old_mu, epsilon, n, max_iterations):
         old_mu = list(mu)
-        clusters = [cluster_points_partial(data[f], mu, f * size) for f in range(num_frag)]
-        partial_result = [partial_sum(data[f], clusters[f], f * size) for f in range(num_frag)]
+        clusters = [cluster_points_partial(data[f], mu, f * size)
+                    for f in range(num_frag)]
+        partial_result = [partial_sum(data[f], clusters[f], f * size)
+                          for f in range(num_frag)]
 
         mu = merge_reduce(reduce_centers_task, partial_result)
         mu = compss_wait_on(mu)

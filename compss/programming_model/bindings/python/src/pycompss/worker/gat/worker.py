@@ -34,7 +34,7 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.util.logger.helpers import init_logging_worker
 from pycompss.worker.commons.worker import execute_task
 
-from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler
+from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
 
 if IS_PYTHON3:
     long = int
@@ -122,8 +122,9 @@ def main():
 
     if streaming:
         # Start streaming
-        DistroStreamClientHandler.init_and_start(master_ip=stream_master_name,
-                                                 master_port=stream_master_port)
+        DistroStreamClientHandler.init_and_start(
+            master_ip=stream_master_name,
+            master_port=stream_master_port)
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))

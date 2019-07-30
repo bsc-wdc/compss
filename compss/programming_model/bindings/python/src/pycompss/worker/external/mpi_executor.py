@@ -81,7 +81,7 @@ def executor(process_name, command):
     logger_handlers = copy.copy(logger.handlers)
     logger_level = logger.getEffectiveLevel()
     logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
-    
+
     if __debug__:
         logger.debug("[PYTHON EXECUTOR] [%s] Starting process" %
                      str(process_name))
@@ -135,7 +135,7 @@ def process_task(current_line, process_name,
         # current_line[9] = <string>  = module
         # current_line[10]= <string>  = method
         # current_line[11]= <string>  = time out
-        # current_line[12]= <integer> = Number of slaves (worker nodes) == #nodes
+        # current_line[12]= <integer> = Number of slaves (worker nodes)==#nodes
         # <<list of slave nodes>>
         # current_line[12 + #nodes] = <integer> = computing units
         # current_line[13 + #nodes] = <boolean> = has target
@@ -210,14 +210,12 @@ def process_task(current_line, process_name,
                 # Task has finished without exceptions
                 # endTask jobId exitValue message
                 params = build_return_params_message(new_types, new_values)
-                message = END_TASK_TAG + " " + str(job_id) \
-                          + " " + str(exit_value) \
-                          + " " + str(params) + "\n"
+                message = END_TASK_TAG + " " + str(job_id)
+                message += " " + str(exit_value) + " " + str(params) + "\n"
             else:
                 # An exception has been raised in task
-                message = END_TASK_TAG + " " + \
-                          str(job_id) + " " + \
-                          str(exit_value) + "\n"
+                message = END_TASK_TAG + " " + str(job_id)
+                message += " " + str(exit_value) + "\n"
 
             if __debug__:
                 logger.debug("%s - END TASK MESSAGE: %s" % (str(process_name),
@@ -227,7 +225,9 @@ def process_task(current_line, process_name,
             # TaskResult ==> jobId exitValue D List<Object>
             #
             # Where List<Object> has D * 2 length:
-            # D = #parameters == #task_parameters + (has_target ? 1 : 0) + #returns
+            # D = #parameters == #task_parameters +
+            #                    (has_target ? 1 : 0) +
+            #                    #returns
             # And contains a pair of elements per parameter:
             #     - Parameter new type.
             #     - Parameter new value:

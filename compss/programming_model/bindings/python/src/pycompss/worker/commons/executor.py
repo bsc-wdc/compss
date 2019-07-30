@@ -26,8 +26,8 @@ def build_return_params_message(types, values):
     :param values: List of the parameter's values
     :return: Message as string
     """
-
-    assert len(types) == len(values), 'Inconsistent state: return type-value length mismatch for return message.'
+    err_msg = "return type-value length mismatch for return message."
+    assert len(types) == len(values), "Inconsistent state: " + err_msg
 
     pairs = list(zip(types, values))
     num_params = len(pairs)

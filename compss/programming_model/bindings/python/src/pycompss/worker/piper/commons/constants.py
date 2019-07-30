@@ -20,27 +20,50 @@
 """
 PyCOMPSs Persistent Worker Pipe Constants
 =========================================
-    This file contains a set of constants used when communication through pipes.
+    This file contains a set of constants used when communication through
+    pipes.
 """
 
 # ############### #
 #  Tag variables  #
 # ############### #
-EXECUTE_TASK_TAG = "EXECUTE_TASK"            # -- "task" taskId jobOut jobErr task_params
-END_TASK_TAG = "END_TASK"                    # -- "endTask" taskId endStatus
-CANCEL_TASK_TAG = "CANCEL_TASK"                 # -- "cancelTask" in_pipe out_pipe
-COMPSS_EXCEPTION_TAG = "COMPSS_EXCEPTION"    # -- "compssException" taskId exception_message
+"""
+---------------------
+TAGS EXPECTED FORMAT:
+---------------------
+- EXECUTE_TASK_TAG....... "task" taskId jobOut jobErr task_params
+- END_TASK_TAG........... "endTask" taskId endStatus
+- CANCEL_TASK_TAG........ "cancelTask" in_pipe out_pipe
+- COMPSS_EXCEPTION_TAG... "compssException" taskId exception_message
+- ERROR_TASK_TAG......... TBD
+- ERROR_TAG.............. "error" [MESSAGE EXPECTED]
+- PING_TAG............... "ping"
+- PONG_TAG............... "pong"
+- ADD_EXECUTOR_TAG....... "addExecutor" in_pipe out_pipe
+- ADDED_EXECUTOR_TAG..... "addedExecutor"
+- QUERY_EXECUTOR_ID_TAG.. "query" in_pipe out_pipe
+- REPLY_EXECUTOR_ID_TAG.. "reply" executor_id
+- REMOVE_EXECUTOR_TAG.... "removeExecutor" in_pipe out_pipe
+- REMOVED_EXECUTOR_TAG... "removedExecutor"
+- QUIT_TAG............... "quit"
+- REMOVE_TAG............. TBD
+- SERIALIZE_TAG.......... TBD
+"""
+EXECUTE_TASK_TAG = "EXECUTE_TASK"
+END_TASK_TAG = "END_TASK"
+CANCEL_TASK_TAG = "CANCEL_TASK"
+COMPSS_EXCEPTION_TAG = "COMPSS_EXCEPTION"
 ERROR_TASK_TAG = "ERROR_TASK"
-ERROR_TAG = "ERROR"                          # -- "error" [MESSAGE EXPECTED]
-PING_TAG = "PING"                            # -- "ping"
-PONG_TAG = "PONG"                            # -- "pong"
-ADD_EXECUTOR_TAG = "ADD_EXECUTOR"            # -- "addExecutor" in_pipe out_pipe
-ADDED_EXECUTOR_TAG = "ADDED_EXECUTOR"        # -- "addedExecutor"
-QUERY_EXECUTOR_ID_TAG = "QUERY_EXECUTOR_ID"  # -- "query" in_pipe out_pipe
-REPLY_EXECUTOR_ID_TAG = "REPLY_EXECUTOR_ID"  # -- "reply" executor_id
-REMOVE_EXECUTOR_TAG = "REMOVE_EXECUTOR"      # -- "removeExecutor" in_pipe out_pipe
-REMOVED_EXECUTOR_TAG = "REMOVED_EXECUTOR"    # -- "removedExecutor"
-QUIT_TAG = "QUIT"                            # -- "quit"
+ERROR_TAG = "ERROR"
+PING_TAG = "PING"
+PONG_TAG = "PONG"
+ADD_EXECUTOR_TAG = "ADD_EXECUTOR"
+ADDED_EXECUTOR_TAG = "ADDED_EXECUTOR"
+QUERY_EXECUTOR_ID_TAG = "QUERY_EXECUTOR_ID"
+REPLY_EXECUTOR_ID_TAG = "REPLY_EXECUTOR_ID"
+REMOVE_EXECUTOR_TAG = "REMOVE_EXECUTOR"
+REMOVED_EXECUTOR_TAG = "REMOVED_EXECUTOR"
+QUIT_TAG = "QUIT"
 REMOVE_TAG = "REMOVE"
 SERIALIZE_TAG = "SERIALIZE"
 

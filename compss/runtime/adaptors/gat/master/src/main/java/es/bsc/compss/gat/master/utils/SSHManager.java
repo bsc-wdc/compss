@@ -73,15 +73,16 @@ public class SSHManager {
             p = new Process[WORKERS.size() * 2];
 
             for (COMPSsWorker remote : WORKERS) {
-                String[] cmd = new String[] { 
-                    "ssh", remote.getUser() + "@" + remote.getName(),
-                    "ssh-keyscan -t rsa,dsa " + worker.getName() + " >> /home/" + remote.getUser() 
-                        + "/.ssh/known_hosts" 
-                };
+                String[] cmd = new String[] { "ssh",
+                    remote.getUser() + "@" + remote.getName(),
+                    "ssh-keyscan -t rsa,dsa " + worker.getName() + " >> /home/" + remote.getUser()
+                        + "/.ssh/known_hosts" };
                 p[i] = Runtime.getRuntime().exec(cmd);
                 i++;
-                cmd = new String[] { "ssh", remote.getUser() + "@" + remote.getName(), "ssh-keyscan -t rsa,dsa "
-                        + remote.getName() + " >> /home/" + worker.getUser() + "/.ssh/known_hosts" };
+                cmd = new String[] { "ssh",
+                    remote.getUser() + "@" + remote.getName(),
+                    "ssh-keyscan -t rsa,dsa " + remote.getName() + " >> /home/" + worker.getUser()
+                        + "/.ssh/known_hosts" };
                 p[i] = Runtime.getRuntime().exec(cmd);
                 i++;
             }
@@ -114,8 +115,8 @@ public class SSHManager {
 
             for (COMPSsWorker remote : WORKERS) {
                 String user = remote.getUser();
-                String[] cmd = new String[] {
-                    "ssh", user + "@" + remote.getName(),
+                String[] cmd = new String[] { "ssh",
+                    user + "@" + remote.getName(),
                     "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw " + worker.getName()
                         + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
                 p[i] = Runtime.getRuntime().exec(cmd);
@@ -144,8 +145,9 @@ public class SSHManager {
      */
     public static void removeKey(COMPSsWorker worker) throws IOException {
         String user = System.getProperty("user.name");
-        String[] cmd = new String[] { "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw "
-                + worker.getName() + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
+        String execCmd = "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw " + worker.getName()
+            + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known";
+        String[] cmd = new String[] { execCmd };
         Process p = Runtime.getRuntime().exec(cmd);
         try {
             p.waitFor();

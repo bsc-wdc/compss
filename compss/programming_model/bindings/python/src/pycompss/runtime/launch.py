@@ -220,6 +220,7 @@ def compss_main():
                 print('[ ERROR ]: In: %s', line)
         exit_code = 1
     except Exception as e:
+        # Any other exception occurred
         print("[ ERROR ]: An exception occurred: " + str(e))
         traceback.print_exc()
         exit_code = 1

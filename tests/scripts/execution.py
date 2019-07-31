@@ -6,6 +6,7 @@
 from __future__ import print_function
 
 # Imports
+import math
 import os
 from enum import Enum
 
@@ -130,8 +131,8 @@ def execute_tests(cmd_args, compss_cfg):
     results = []
     for test_dir in sorted(os.listdir(execution_sanbdox)):
         test_path = os.path.join(execution_sanbdox, test_dir)
-        ev = _execute_test(test_dir, test_path, compss_logs_root, cmd_args, compss_cfg)
-        results.append((test_dir, ev))
+        ev, exec_time = _execute_test(test_dir, test_path, compss_logs_root, cmd_args, compss_cfg)
+        results.append((test_dir, ev, exec_time))
 
         if cmd_args.fail_fast and ev == ExitValue.FAIL:
             print()
@@ -140,10 +141,10 @@ def execute_tests(cmd_args, compss_cfg):
             break
 
     # Process test results
-    headers = ["Test G. Number", "Test Family", "Test F. Number", "Test Name", "Test Exec. Folder", "Test Result"]
+    headers = ["Test\nG. Id", " Test \nFamily", " Test  \nFam. Id", "Test Name", "Test Exec.\n  Folder", " Test\nResult", "Execution\n Time (s)"]
     results_info = []
     global_ev = ExitValue.OK
-    for test_dir, ev in results:
+    for test_dir, ev, test_time in results:
         # Update global exit value
         global_ev = _merge_exit_values(global_ev, ev)
         # Colour the test exit value
@@ -152,7 +153,7 @@ def execute_tests(cmd_args, compss_cfg):
         test_global_num = int("".join(x for x in test_dir if x.isdigit()))
         test_name, _, family_dir, num_family = cmd_args.test_numbers["global"][test_global_num]
         # Append all information for rendering
-        results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, ev_color_str])
+        results_info.append([test_global_num, family_dir, num_family, test_name, test_dir, ev_color_str, test_time])
 
     # Print result summary table
     from tabulate import tabulate
@@ -187,6 +188,8 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
         + type: COMPSsConfiguration
     :return: An ExitValue object indicating the exit status of the test execution
         + type: ExitValue
+    :return: Time spent on the test execution
+        + type: Long
     :raise TestExecutionError: If an error is encountered when creating the necessary structures to launch the test
     """
     import time
@@ -194,7 +197,7 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
     skip_file = os.path.join(test_path, "skip")
     if os.path.isfile(skip_file):
         print("[INFO] Skipping test " + str(test_name))
-        return ExitValue.SKIP
+        return ExitValue.SKIP, 0
 
     # Else, execute test normally
     print("[INFO] Executing test " + str(test_name))
@@ -205,6 +208,7 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
     max_retries = cmd_args.retry
     retry = 1
     test_ev = ExitValue.FAIL
+    start_time = time.time()
     while test_ev == ExitValue.FAIL and retry <= max_retries:
         if __debug__:
             print("[DEBUG] Executing test " + str(test_name) + " Retry: " + str(retry) + "/" + str(max_retries))
@@ -222,10 +226,10 @@ def _execute_test(test_name, test_path, compss_logs_root, cmd_args, compss_cfg):
         time.sleep(2)
         # Increase retry counter
         retry = retry + 1
-
+    end_time = time.time()
     # Return test exit value
     print("[INFO] Executed test " + str(test_name) + " with ExitValue " + test_ev.name)
-    return test_ev
+    return test_ev, "%.3f" % (end_time - start_time)
 
 
 def _execute_test_cmd(test_path, test_logs_path, compss_logs_root, retry, compss_cfg):

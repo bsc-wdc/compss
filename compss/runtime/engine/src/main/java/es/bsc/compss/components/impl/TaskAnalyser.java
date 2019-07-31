@@ -858,11 +858,12 @@ public class TaskAnalyser {
                         break;
                     default:
                         // Reset the writers entry
-                        this.writers.put(dataId, null);
+                        wi.setDataWriter(null);
                         break;
                 }
             } else {
                 // Add a new reset entry
+                LOGGER.warn("Adding null writer info for data " + dataId);
                 this.writers.put(dataId, null);
             }
         }
@@ -1097,9 +1098,7 @@ public class TaskAnalyser {
      */
     public void deleteData(DataInfo dataInfo) {
         int dataId = dataInfo.getDataId();
-
-        LOGGER.debug("Deleting data with id " + dataId);
-
+        LOGGER.info("Deleting data " + dataId);
         WritersInfo wi = this.writers.remove(dataId);
         if (wi != null) {
             switch (wi.getDataType()) {
@@ -1107,20 +1106,28 @@ public class TaskAnalyser {
                 case EXTERNAL_STREAM_T:
                     // No data to delete
                     break;
-                default:
-                    AbstractTask task = wi.getDataWriter();
-                    if (task != null) {
-                        // Cannot delete data because task is still running
-                        return;
-                    } else {
-                        // Remove data
-                        LOGGER.debug("Removing " + dataInfo.getDataId() + " from written files");
-                        for (TreeSet<Integer> files : this.appIdToWrittenFiles.values()) {
-                            files.remove(dataInfo.getDataId());
+                case FILE_T:
+                    // Remove file data form the list of written files
+                    for (TreeSet<Integer> files : this.appIdToWrittenFiles.values()) {
+                        if (files.remove(dataId)) {
+                            LOGGER.info(" Removed data " + dataId + " from written files");
                         }
                     }
                     break;
+                case PSCO_T:
+                    // Remove PSCO data from the list of written PSCO
+                    for (TreeSet<Integer> pscos : this.appIdToSCOWrittenIds.values()) {
+                        if (pscos.remove(dataId)) {
+                            LOGGER.info(" Removed data " + dataId + " from written pscos");
+                        }
+                    }
+                    break;
+                default:
+                    // Nothing to do for other types
+                    break;
             }
+        } else {
+            LOGGER.warn("Writters info for data " + dataId + " not found.");
         }
     }
 
@@ -1400,6 +1407,7 @@ public class TaskAnalyser {
             default:
                 // Substitute the current entry by the new access
                 WritersInfo newWi = new WritersInfo(dp.getType(), currentTask);
+                LOGGER.info("Setting writer for data " + dataId);
                 this.writers.put(dataId, newWi);
                 break;
         }
@@ -1706,6 +1714,11 @@ public class TaskAnalyser {
             this.dataType = dataType;
             this.dataWriter = dataWriter;
             this.streamWriters = new ArrayList<>();
+        }
+
+        public void setDataWriter(Object object) {
+            // TODO Auto-generated method stub
+
         }
 
         public WritersInfo(DataType dataType, List<AbstractTask> streamWriters) {

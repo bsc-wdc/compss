@@ -222,16 +222,24 @@ public interface Resource extends Comparable<Resource> {
     public SimpleURI getCompleteRemotePath(DataType type, String name);
 
     /**
-     * Retrieves all the data from the Resource.
-     *
-     * @param saveUniqueData Flag to indicate to save unique data
+     * Collects all the data values available only on the resource.
      */
-    public void retrieveData(boolean saveUniqueData);
+    public void retrieveUniqueDataValues();
+
+    /**
+     * Retrieves all the files with tracing and debug information.
+     */
+    public void retrieveTracingAndDebugData();
 
     /**
      * Deletes the intermediate data.
      */
     public void deleteIntermediate();
+
+    /**
+     * Disables all the execution capabilities of the resource but maintains enabled the transfer of data.
+     */
+    public void disableExecution();
 
     /**
      * Stops the resource.

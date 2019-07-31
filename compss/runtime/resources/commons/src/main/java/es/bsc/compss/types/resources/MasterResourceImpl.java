@@ -93,6 +93,11 @@ public class MasterResourceImpl extends DynamicMethodWorker implements MasterRes
     }
 
     @Override
+    public void retrieveUniqueDataValues() {
+        // All data is kept within the master process. No need to bring to the node any data since it is already there.
+    }
+
+    @Override
     public int compareTo(Resource t) {
         if (t.getType() == ResourceType.MASTER) {
             return getName().compareTo(t.getName());

@@ -61,6 +61,16 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     }
 
     @Override
+    public void retrieveTracingAndDebugData() {
+        // This data cannot be obtained from a third party service.
+    }
+
+    @Override
+    public void disableExecution() {
+        // No need to do anything for a remote service since it is supossed to keep receiving requests from other apps.
+    }
+
+    @Override
     public Integer fitCount(Implementation impl) {
         return Integer.MAX_VALUE;
     }

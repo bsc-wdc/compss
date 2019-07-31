@@ -75,7 +75,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     /**
      * Creates a new ResourceImplementation instance.
-     * 
+     *
      * @param name Resource name.
      * @param conf Resource configuration.
      * @param sharedDisks Mounted shared disks.
@@ -90,7 +90,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     /**
      * Creates a new ResourceImplementation instance.
-     * 
+     *
      * @param node COMPSs node.
      * @param sharedDisks Mounter shared disks.
      */
@@ -104,7 +104,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
 
     /**
      * Clones the given ResourceImpl.
-     * 
+     *
      * @param clone ResourceImpl to clone.
      */
     public ResourceImpl(ResourceImpl clone) {
@@ -306,7 +306,14 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     }
 
     @Override
-    public void retrieveData(boolean saveUniqueData) {
+    public void retrieveUniqueDataValues() {
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
+        if (this.getNode().compareTo(masterNode) == 0) {
+            if (DEBUG) {
+                LOGGER.debug("The resource is part of the master process. No need to retrieve any data value.");
+            }
+            return;
+        }
         if (DEBUG) {
             LOGGER.debug("Retrieving data resource " + this.getName());
         }
@@ -314,7 +321,6 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         SafeCopyListener listener = new SafeCopyListener(sem);
         Set<LogicalData> lds = getAllDataFromHost();
         Map<String, String> disks = SharedDiskManager.terminate(this);
-        COMPSsNode masterNode = Comm.getAppHost().getNode();
         for (LogicalData ld : lds) {
             if (ld.getCopiesInProgress().size() > 0) {
                 ld.notifyToInProgressCopiesEnd(listener);
@@ -322,7 +328,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
             ld.lockHostRemoval();
             DataLocation lastLoc = ld.removeHostAndCheckLocationToSave(this, disks);
             ld.releaseHostRemoval();
-            if (lastLoc != null && saveUniqueData) {
+            if (lastLoc != null) {
                 listener.addOperation();
 
                 DataLocation safeLoc = null;
@@ -365,24 +371,23 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         if (DEBUG) {
             LOGGER.debug("Unique files saved for " + this.getName());
         }
+    }
 
-        if (this.getType() != ResourceType.SERVICE) {
-            shutdownExecutionManager();
-
-            if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
-                if (this.node.generatePackage()) {
-                    getTracingPackageToMaster();
-                    if (DEBUG) {
-                        LOGGER.debug("Tracing package obtained for " + this.getName());
-                    }
+    @Override
+    public void retrieveTracingAndDebugData() {
+        if (Tracer.extraeEnabled() || Tracer.scorepEnabled() || Tracer.mapEnabled()) {
+            if (this.node.generatePackage()) {
+                getTracingPackageToMaster();
+                if (DEBUG) {
+                    LOGGER.debug("Tracing package obtained for " + this.getName());
                 }
             }
+        }
 
-            if (DEBUG) {
-                if (this.node.generateWorkersDebugInfo()) {
-                    getWorkersDebugInfo();
-                    LOGGER.debug("Workers Debug files obtained for " + this.getName());
-                }
+        if (DEBUG) {
+            if (this.node.generateWorkersDebugInfo()) {
+                getWorkersDebugInfo();
+                LOGGER.debug("Workers Debug files obtained for " + this.getName());
             }
         }
     }
@@ -393,16 +398,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     }
 
     @Override
-    public void stop(ShutdownListener sl) {
-        this.deleteIntermediate();
-        sl.addOperation();
-        this.node.stop(sl);
-    }
-
-    /**
-     * Stops the Execution Manager of the resource.
-     */
-    private void shutdownExecutionManager() {
+    public void disableExecution() {
         if (DEBUG) {
             LOGGER.debug("Shutting down Execution Manager on Resource " + this.getName());
         }
@@ -424,6 +420,13 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         if (DEBUG) {
             LOGGER.debug("Execution manager of " + this.getName() + " stopped");
         }
+    }
+
+    @Override
+    public void stop(ShutdownListener sl) {
+        this.deleteIntermediate();
+        sl.addOperation();
+        this.node.stop(sl);
     }
 
     /**

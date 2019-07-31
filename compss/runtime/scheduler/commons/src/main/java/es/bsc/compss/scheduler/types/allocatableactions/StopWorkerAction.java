@@ -59,7 +59,7 @@ public class StopWorkerAction extends AllocatableAction {
      */
     /**
      * Creates a new StopWorkerAction instance.
-     * 
+     *
      * @param schedulingInformation Associated scheduling information.
      * @param worker Associated worker ResourceScheduler.
      * @param ts Associated TaskScheduler.
@@ -109,7 +109,9 @@ public class StopWorkerAction extends AllocatableAction {
             public void run() {
                 Worker<WorkerResourceDescription> wResource = (Worker<WorkerResourceDescription>) worker.getResource();
                 Thread.currentThread().setName(wResource.getName() + " stopper");
-                wResource.retrieveData(true);
+                wResource.retrieveUniqueDataValues();
+                wResource.disableExecution();
+                wResource.retrieveTracingAndDebugData();
                 Semaphore sem = new Semaphore(0);
                 ShutdownListener sl = new ShutdownListener(sem);
                 wResource.stop(sl);

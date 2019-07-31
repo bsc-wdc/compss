@@ -627,7 +627,12 @@ class task(object):
     @staticmethod
     def _getargspec(function):
         if IS_PYTHON3:
-            return inspect.getfullargspec(function)
+            full_argspec = inspect.getfullargspec(function)
+            as_args = full_argspec.args
+            as_varargs = full_argspec.varargs
+            as_keywords = full_argspec.kwonlyargs
+            as_defaults = full_argspec.kwonlydefaults
+            return  as_args, as_varargs, as_keywords, as_defaults
         else:
             return inspect.getargspec(function)
 

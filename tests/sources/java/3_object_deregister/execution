@@ -58,7 +58,9 @@
      #-Dcom.sun.management.jmxremote.authenticate=false,-Dcom.sun.management.jmxremote.ssl=false"\
      
   # Check timeout
-  if [[ "$?" = "124" ]]; then
+  res=$?
+  
+  if [[ "$res" = "124" ]]; then
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
      

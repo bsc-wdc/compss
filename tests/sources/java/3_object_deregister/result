@@ -8,7 +8,6 @@
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
   resources_log="${target_log_folder}/resources.log"
-
   #----------------------------------------------------------------------------------
   # Check output standard out status
   if [ -f "${output_file}" ]; then
@@ -30,7 +29,7 @@
     fi
   else
     # Empty error file, no exceptions could have been raised
-    :
+    echo "[LOG] Error file not found" | tee -a "${output_file}"
   fi
   # Check that the Runtime has not registered any fatal error
   if [ -f "${runtime_log}" ]; then
@@ -45,12 +44,11 @@
 
   #----------------------------------------------------------------------------------
   # Check whether we did our best removing references of the Dummy object
-  coincidences=$(grep -c -E "deleteData.*Deleting data with id" "${runtime_log}")
+  coincidences=$(grep -c -E "deleteData.*Deleting data" "${runtime_log}")
   num_tasks=10
   if [ "$coincidences" -ne "${num_tasks}" ]; then
 	echo "ERROR: THE OBJECTS WERE NOT DEREGISTERED PROPERLY." | tee -a "${output_file}"
     echo " - Coincidences: ${coincidences}" | tee -a "${output_file}"
 	exit 1
   fi
-
   exit 0

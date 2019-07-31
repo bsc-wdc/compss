@@ -48,11 +48,11 @@ EOF
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING JAVA APPLICATION CONCURRENT"
+  echo "*** RUNNING JAVA APPLICATION COMMUTATIVE"
   output_log="${target_log_folder}/commutative_annotation_0${retry_num}.outputlog"
   error_log="${target_log_folder}/commutative_anotation_0${retry_num}.errorlog"
   final_graph_expected="${base_app_dir}/final_graph.dot"
-  expectedTime=80s
+  expectedTime=60s
   
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \

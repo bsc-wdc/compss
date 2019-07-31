@@ -359,9 +359,22 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         worker.submitTask(job, obsoleteRenamings);
     }
 
+    protected static void cancelTask(NIOJob job) throws Exception {
+        LOGGER.debug("NIO cancelling running job " + job.getJobId());
+        Resource res = job.getResource();
+        NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
+
+        worker.cancelTask(job);
+    }
+
     @Override
     public void receivedNewTask(NIONode master, NIOTask t, List<String> obsoleteFiles) {
         // Can not run any task. Do nothing
+    }
+
+    @Override
+    public void cancelRunningTask(NIONode node, int jobId) {
+        // Can not stop running tasks.
     }
 
     @Override
@@ -661,7 +674,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         synchronized (RUNNING_JOBS) {
             for (Job<?> job : RUNNING_JOBS.values()) {
                 try {
-                    job.stop();
+                    job.cancelJob();
                 } catch (Exception e) {
                     LOGGER.error(TERM_ERR, e);
                 }

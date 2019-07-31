@@ -16,10 +16,15 @@
  */
 package es.bsc.compss.types;
 
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class TaskGroup implements AutoCloseable {
@@ -33,7 +38,12 @@ public class TaskGroup implements AutoCloseable {
 
     private COMPSsException exception;
 
-    private boolean implicitBarrier;
+    private LinkedList<Semaphore> barrierSemaphores;
+
+    private boolean closed;
+
+    // Component logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 
 
     /**
@@ -41,15 +51,16 @@ public class TaskGroup implements AutoCloseable {
      * 
      * @param groupName Name of the group.
      */
-    public TaskGroup(String groupName, boolean barrier) {
+    public TaskGroup(String groupName) {
         this.tasks = new LinkedList<Task>();
         this.graphDrawn = false;
         this.name = groupName;
-        this.implicitBarrier = barrier;
+        this.barrierSemaphores = new LinkedList<>();
+        this.closed = false;
     }
 
     /**
-     * Returns commutative tasks of group.
+     * Returns tasks of group.
      * 
      * @return
      */
@@ -58,7 +69,7 @@ public class TaskGroup implements AutoCloseable {
     }
 
     /**
-     * Returns commutative tasks of group.
+     * Returnstasks of group.
      * 
      * @return
      */
@@ -140,8 +151,44 @@ public class TaskGroup implements AutoCloseable {
 
     }
 
-    public boolean hasImplicitBarrier() {
-        return implicitBarrier;
+    /**
+     * Returns if the group has a barrier.
+     */
+    public boolean hasBarrier() {
+        return !barrierSemaphores.isEmpty();
+    }
+
+    /**
+     * Adds a barrier to the group.
+     * 
+     * @param sem Semaphore to be released when all task finish.
+     */
+    public void addBarrier(Semaphore sem) {
+        LOGGER.debug("Added barrier for group " + this.name);
+        barrierSemaphores.push(sem);
+    }
+
+    /**
+     * Releases all the semaphores of the barrier.
+     */
+    public void releaseBarrier() {
+        for (Semaphore s : barrierSemaphores) {
+            s.release();
+        }
+    }
+
+    /**
+     * Sets the closed flag to true.
+     */
+    public void setClosed() {
+        this.closed = true;
+    }
+
+    /**
+     * Returns if the task group is closed or not.
+     */
+    public boolean isClosed() {
+        return this.closed;
     }
 
 }

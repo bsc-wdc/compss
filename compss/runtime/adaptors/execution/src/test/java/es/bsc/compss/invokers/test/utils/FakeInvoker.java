@@ -93,4 +93,10 @@ public class FakeInvoker extends Invoker {
         public void methodReturn(List<Object> result);
 
     }
+
+
+    @Override
+    protected void cancelMethod() {
+
+    }
 }

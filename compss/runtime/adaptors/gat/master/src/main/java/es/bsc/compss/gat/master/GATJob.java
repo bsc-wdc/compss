@@ -197,7 +197,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         LOGGER.debug("GAT stopping all jobs");
         for (GATJob job : RUNNING_JOBS) {
             try {
-                job.stop();
+                job.cancelJob();
             } catch (Exception e) {
                 LOGGER.error(TERM_ERR, e);
             }
@@ -205,7 +205,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
     }
 
     @Override
-    public void stop() throws Exception {
+    public void cancelJob() throws Exception {
         LOGGER.debug("GAT stop job " + this.jobId);
         if (gatJob != null) {
             MetricDefinition md = gatJob.getMetricDefinitionByName(JOB_STATUS);

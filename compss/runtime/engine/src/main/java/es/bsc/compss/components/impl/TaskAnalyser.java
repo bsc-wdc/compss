@@ -677,9 +677,12 @@ public class TaskAnalyser {
         for (TaskGroup group : task.getTaskGroupList()) {
             group.removeTask(task);
             LOGGER.debug("Group " + group.getName() + " released a task");
-            if (!group.hasPendingTasks() && !group.hasImplicitBarrier()) {
-                this.taskGroups.remove(group.getName());
-                LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
+            if (!group.hasPendingTasks() && group.isClosed()) {
+                if (group.hasBarrier()) {
+                    group.releaseBarrier();
+                    this.taskGroups.remove(group.getName());
+                    LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
+                }
             }
         }
     }
@@ -979,8 +982,14 @@ public class TaskAnalyser {
                 request.getSemaphore().release();
             }
         } else {
-            this.appIdBarrierFlags.add(appId);
-            this.appIdToSemaphore.put(appId, request.getSemaphore());
+            if (tg != null && !tg.hasPendingTasks()) {
+                if (tg.hasException()) {
+                    request.setException(tg.getException());
+                }
+                request.getSemaphore().release();
+            } else {
+                tg.addBarrier(request.getSemaphore());
+            }
         }
     }
 
@@ -1023,7 +1032,7 @@ public class TaskAnalyser {
      * @param barrier Flag stating if the group has to perform a barrier.
      */
     public void setCurrentTaskGroup(String groupName, boolean barrier) {
-        TaskGroup tg = new TaskGroup(groupName, barrier);
+        TaskGroup tg = new TaskGroup(groupName);
         this.taskGroups.put(groupName, tg);
         this.currentTaskGroups.push(tg);
         if (IS_DRAW_GRAPH) {
@@ -1037,6 +1046,8 @@ public class TaskAnalyser {
      * Closes the last task group.
      */
     public void closeCurrentTaskGroup() {
+        TaskGroup tg = this.currentTaskGroups.pop();
+        tg.setClosed();
         this.currentTaskGroups.pop();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();

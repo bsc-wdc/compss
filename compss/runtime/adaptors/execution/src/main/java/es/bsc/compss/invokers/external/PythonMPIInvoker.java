@@ -170,4 +170,8 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
     }
 
+    @Override
+    public void cancelMethod() {
+
+    }
 }

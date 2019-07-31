@@ -217,7 +217,7 @@ public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void cancelJob() throws Exception {
     }
 
     private void stageout(DataType[] paramTypes, String[] paramLocations) {

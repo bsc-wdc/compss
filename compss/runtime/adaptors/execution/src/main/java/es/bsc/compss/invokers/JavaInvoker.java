@@ -24,6 +24,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
+import es.bsc.compss.worker.CanceledTask;
 
 import java.io.File;
 import java.lang.reflect.Array;
@@ -275,5 +276,11 @@ public class JavaInvoker extends Invoker {
                 np.setType(DataType.PSCO_T);
             }
         }
+    }
+
+    @Override
+    public void cancelMethod() {
+        CanceledTask t = new CanceledTask(this.invocation.getTaskId());
+        t.cancel();
     }
 }

@@ -403,4 +403,9 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }
+
+    @Override
+    protected void stopAction() throws Exception {
+
+    }
 }

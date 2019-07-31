@@ -25,6 +25,7 @@ PyCOMPSs Persistent Worker
 
 import sys
 import signal
+from os import kill
 from pycompss.worker.commons.worker_constants import *
 from pycompss.worker.piper.commons.pipe_constants import *
 from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
@@ -140,6 +141,11 @@ def compss_persistent_worker(config):
                                    " " + out_pipe +
                                    " " + in_pipe +
                                    " " + str(pid))
+
+            elif line[0] == CANCEL_TASK_TAG:
+                in_pipe = line[1]
+                pid = PROCESSES.get(in_pipe)
+                kill(int(pid), signal.SIGUSR1)
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)

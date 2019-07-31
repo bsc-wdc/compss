@@ -77,9 +77,12 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
     private int readers;
     private boolean closed = false;
 
+    private final PipedMirror mirror;
 
-    public PipePair(String basePipePath, String id) {
+
+    public PipePair(String basePipePath, String id, PipedMirror mirror) {
         this.pipePath = basePipePath + id;
+        this.mirror = mirror;
     }
 
     public final String getPipesLocation() {
@@ -92,6 +95,10 @@ public class PipePair implements ExternalExecutor<PipeCommand> {
 
     public final String getOutboundPipe() {
         return this.pipePath + ".outbound";
+    }
+
+    public PipedMirror getMirror() {
+        return mirror;
     }
 
     /**

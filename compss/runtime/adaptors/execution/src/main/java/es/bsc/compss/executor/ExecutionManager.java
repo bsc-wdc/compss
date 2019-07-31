@@ -123,4 +123,12 @@ public class ExecutionManager {
          * if (tracing_level == Tracer.BASIC_MODE) { Tracer.disablePThreads(); }
          */
     }
+
+    /**
+     * Cancel a running job.
+     */
+    public void cancelJob(int jobId) {
+        this.cpuExecutors.cancelJob(jobId);
+    }
+
 }

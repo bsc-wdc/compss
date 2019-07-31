@@ -536,7 +536,11 @@ public class TaskScheduler {
 
         // Process the action error (removes the assigned resource)
         try {
-            action.error();
+            if (action.isCancelling()) {
+                action.canceled();
+            } else {
+                action.error();
+            }
         } catch (FailedActionException fae) {
             // Action has completely failed
             failed = true;

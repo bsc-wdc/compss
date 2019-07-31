@@ -21,6 +21,7 @@ import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.util.JobQueue;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -62,6 +63,9 @@ public class ExecutionPlatform implements ExecutorContext {
     private final Semaphore stopSemaphore;
     private final Map<Class<?>, ExecutionPlatformMirror<?>> mirrors;
 
+    private LinkedList<Integer> toCancel;
+    private Map<Integer, Invoker> executingJobs;
+
 
     /**
      * Constructs a new thread pool but not the threads inside it.
@@ -98,7 +102,8 @@ public class ExecutionPlatform implements ExecutorContext {
         });
         this.finishedWorkerThreads = new LinkedList<>();
         addWorkerThreads(initialSize);
-
+        this.toCancel = new LinkedList<Integer>();
+        this.executingJobs = new HashMap<>();
     }
 
     /**
@@ -229,6 +234,36 @@ public class ExecutionPlatform implements ExecutorContext {
         }
         // For tracing
         Runtime.getRuntime().gc();
+    }
+
+    /**
+     * Cancels a running job or sets it to cancel if it is not running.
+     * 
+     * @param jobId Id of the job to cancel.
+     */
+    public void cancelJob(int jobId) {
+        if (!this.executingJobs.containsKey(jobId)) {
+            LOGGER.debug("Job " + jobId + " is to be cancelled");
+            this.toCancel.add(jobId);
+        } else {
+            LOGGER.debug("Cancelling running job " + jobId);
+            this.executingJobs.get(jobId).cancel();
+        }
+    }
+
+    @Override
+    public void registerRunningJob(int jobId, Invoker invoker) {
+        LOGGER.debug("Registering job " + jobId);
+        this.executingJobs.put(jobId, invoker);
+        if (toCancel.contains(jobId)) {
+            cancelJob(jobId);
+        }
+    }
+
+    @Override
+    public void unregisterRunningJob(int jobId) {
+        LOGGER.debug("Unregistering job " + jobId);
+        this.executingJobs.remove(jobId);
     }
 
     @Override

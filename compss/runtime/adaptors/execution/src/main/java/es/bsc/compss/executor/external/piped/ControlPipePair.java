@@ -49,8 +49,8 @@ public class ControlPipePair {
      * @param basePipePath Pipe path
      * @param id Pipe identifier
      */
-    public ControlPipePair(String basePipePath, String id) {
-        this.pipe = new PipePair(basePipePath, id);
+    public ControlPipePair(String basePipePath, String id, PipedMirror mirror) {
+        this.pipe = new PipePair(basePipePath, id, mirror);
         this.waitingCommands = new TreeMap<>();
         this.unusedCommands = new LinkedList<>();
     }

@@ -25,7 +25,7 @@
   #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING PYTHON APPLICATION BARRIER"
+  echo "*** RUNNING PYTHON APPLICATION TIME OUT"
 
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
@@ -34,7 +34,7 @@
     specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
-    expectedTime=180s
+    expectedTime=60s
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ]; then

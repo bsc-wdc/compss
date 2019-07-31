@@ -28,6 +28,7 @@ import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOUri;
+import es.bsc.compss.nio.commands.CommandCancelTask;
 import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
@@ -678,6 +679,22 @@ public class NIOWorkerNode extends COMPSsWorker {
         NIOTask t = job.prepareJob();
         CommandNewTask cmd = new CommandNewTask(t, obsolete);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
+        c.sendCommand(cmd);
+        c.finishConnection();
+    }
+
+    /**
+     * Cancels a running task in the worker.
+     *
+     * @param job Job to submit.
+     */
+    public void cancelTask(NIOJob job) throws UnstartedNodeException {
+        if (node == null) {
+            throw new UnstartedNodeException();
+        }
+        CommandCancelTask cmd = new CommandCancelTask(job.getJobId());
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        LOGGER.debug("Sending task cancellation command to worker");
         c.sendCommand(cmd);
         c.finishConnection();
     }

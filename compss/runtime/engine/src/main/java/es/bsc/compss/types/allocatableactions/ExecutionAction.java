@@ -62,6 +62,9 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
+import es.bsc.compss.worker.COMPSsWorker;
+import es.bsc.compss.worker.CanceledTask;
+import es.bsc.compss.worker.TimeOutTask;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -89,6 +92,7 @@ public class ExecutionAction extends AllocatableAction {
     private final LinkedList<Integer> jobs;
     private int transferErrors = 0;
     protected int executionErrors = 0;
+    private Job currentJob;
 
 
     /**
@@ -390,10 +394,27 @@ public class ExecutionAction extends AllocatableAction {
         List<String> slaveNames = new ArrayList<>(); // No salves
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, listener);
+        this.currentJob = job;
         job.setTransferGroupId(transferGroupId);
         job.setHistory(JobHistory.NEW);
 
         return job;
+    }
+
+    /**
+     * Code executed to cancel a running execution.
+     * 
+     * @throws Exception Unstarted node exception.
+     */
+    @Override
+    protected void stopAction() throws Exception {
+        // Submit stop petition
+        if (DEBUG) {
+            LOGGER.debug("Task " + this.getId() + " starts cancelling running job");
+        }
+        this.currentJob.cancelJob();
+        // Update info about the generated/updated data
+        doOutputTransfers(this.currentJob);
     }
 
     /**
@@ -427,26 +448,32 @@ public class ExecutionAction extends AllocatableAction {
      */
     public final void failedJob(Job<?> job, JobEndStatus endStatus) {
         this.profile.end();
+        if (this.isCancelling()) {
+            JOB_LOGGER.debug("Received a notification for cancelled job " + job.getJobId());
+            doOutputTransfers(job);
 
-        int jobId = job.getJobId();
-        JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
-
-        ++this.executionErrors;
-        if (this.transferErrors + this.executionErrors < SUBMISSION_CHANCES
-            && this.task.getOnFailure() == OnFailure.RETRY) {
-            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
-                + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
-            ErrorManager.warn("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
-                + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
-            job.setHistory(JobHistory.RESUBMITTED);
-            this.profile.start();
-            JobDispatcher.dispatch(job);
-        } else {
-            if (this.task.getOnFailure() == OnFailure.IGNORE) {
-                // Update info about the generated/updated data
-                doOutputTransfers(job);
-            }
             notifyError();
+        } else {
+            int jobId = job.getJobId();
+            JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
+
+            ++this.executionErrors;
+            if (this.transferErrors + this.executionErrors < SUBMISSION_CHANCES
+                && this.task.getOnFailure() == OnFailure.RETRY) {
+                JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
+                    + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
+                ErrorManager.warn("Job " + job.getJobId() + " for running task " + this.task.getId() + " on worker "
+                    + this.getAssignedResource().getName() + " has failed; resubmitting task to the same worker.");
+                job.setHistory(JobHistory.RESUBMITTED);
+                this.profile.start();
+                JobDispatcher.dispatch(job);
+            } else {
+                if (this.task.getOnFailure() == OnFailure.IGNORE) {
+                    // Update info about the generated/updated data
+                    doOutputTransfers(job);
+                }
+                notifyError();
+            }
         }
     }
 
@@ -720,13 +747,22 @@ public class ExecutionAction extends AllocatableAction {
         LinkedList<TaskGroup> taskGroups = this.task.getTaskGroupList();
         for (TaskGroup group : taskGroups) {
             group.setException((COMPSsException) e);
+            for (Task t : group.getTasks()) {
+                if (t.getId() != this.getTask().getId()) {
+                    for (AllocatableAction aa : t.getExecutions()) {
+                        if (aa != null && aa.isPending()) {
+                            addGroupMember(aa);
+                        }
+                    }
+                }
+            }
         }
 
         // Failed log message
         String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("COMPSs Exception raised : Task ").append(taskName)
-            .append(" has raised an exception. Successors will be cancelled.\n");
+            .append(" has raised an exception. Members of the group will be cancelled.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
 

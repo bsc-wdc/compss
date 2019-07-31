@@ -255,4 +255,9 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }
+
+    @Override
+    protected void stopAction() throws Exception {
+
+    }
 }

@@ -60,4 +60,8 @@ public class OpenCLInvoker extends Invoker {
         throw new JobExecutionException("Unsupported Method Type OPENCL with kernel" + this.kernel);
     }
 
+    @Override
+    public void cancelMethod() {
+
+    }
 }

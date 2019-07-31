@@ -336,6 +336,10 @@ public abstract class Invoker {
         }
     }
 
+    public void cancel() {
+        cancelMethod();
+    }
+
     private void setEnvironmentVariables() {
         // Setup properties
         System.setProperty(COMPSsWorker.COMPSS_TASK_ID, String.valueOf(this.invocation.getTaskId()));
@@ -370,6 +374,8 @@ public abstract class Invoker {
     }
 
     protected abstract void invokeMethod() throws JobExecutionException, COMPSsException;
+
+    protected abstract void cancelMethod();
 
     /**
      * Writes the given list of workers to a hostfile inside the given task sandbox.

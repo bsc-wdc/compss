@@ -132,4 +132,9 @@ public class OmpSsInvoker extends Invoker {
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
             this.context.getThreadErrStream());
     }
+
+    @Override
+    public void cancelMethod() {
+
+    }
 }

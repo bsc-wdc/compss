@@ -180,4 +180,9 @@ public class OptimizationAction extends AllocatableAction {
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }
+
+    @Override
+    protected void stopAction() throws Exception {
+
+    }
 }

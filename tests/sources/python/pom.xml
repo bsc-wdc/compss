@@ -44,6 +44,8 @@
         <!-- 0_no_returns -->
         <!-- 0_varargs_type -->
         <!-- 1_collections_in -->
+		<!-- 1_compss_exceptions -->
+		<!-- 1_decorator_binary -->
         <!-- 1_decorator_binary -->
         <!-- 1_decorator_compss -->
         <!-- 1_decorator_decaf -->
@@ -56,10 +58,12 @@
         <!-- 1_environment_vars -->
         <!-- 2_advanced -->
         <!-- 2_argparse -->
+		<!-- 2_cancel_running_tasks -->
         <!-- 2_inheritance -->
         <!-- 2_get_file -->
-	<!-- 2_kill_processes -->
-	<!-- 2_task_groups -->
+		<!-- 2_kill_processes -->
+		<!-- 2_task_groups -->
+		<!-- 2_time_out -->
         <!-- 3_module_basic -->
         <!-- 3_module_binary -->
         <!-- 3_module_binary_constrained -->

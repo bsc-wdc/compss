@@ -988,7 +988,7 @@ public class TaskAnalyser {
                 }
                 request.getSemaphore().release();
             } else {
-                tg.addBarrier(request.getSemaphore());
+                tg.addBarrier(request);
             }
         }
     }
@@ -1048,7 +1048,6 @@ public class TaskAnalyser {
     public void closeCurrentTaskGroup() {
         TaskGroup tg = this.currentTaskGroups.pop();
         tg.setClosed();
-        this.currentTaskGroups.pop();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
         }

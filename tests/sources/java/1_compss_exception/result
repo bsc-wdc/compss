@@ -66,6 +66,13 @@
     exit 1
   fi
   
+  # Check if the tasks have finished correctly
+  output1=$(cat "${runtime_log}" | grep "end status FINISHED" | wc -l)
+  if [ "${output1}" -ne 6 ]; then
+  	echo "ERROR: The number of correclty finished tasks is not correct. ${output1} (expected 6)"
+  	exit 1
+  fi
+  
   # Check if all successors have been canceled
   output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
   if [ "${output1}" -ne 4 ]; then
@@ -77,6 +84,13 @@
   output1=$(grep -c "COMPSs Exception raised :" "${runtime_log}")
   if [ "${output1}" -ne 2 ]; then
   	echo "ERROR: The number of COMPSsExceptions raised is not correct."
+  	exit 1
+  fi
+  
+  # Check the exception message
+  output1=$(cat "${runtime_log}" | grep "The thrown exception message is: Exception from write one" | wc -l)
+  if [ "${output1}" -ne 2 ]; then
+  	echo "ERROR: The thrown exception message is not correct."
   	exit 1
   fi
   

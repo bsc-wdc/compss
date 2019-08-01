@@ -61,7 +61,7 @@ public class COMPSsGroupLoader extends COMPSsGroup {
     public void close() throws Exception {
         this.api.closeTaskGroup(this.groupName);
         if (this.barrier == true) {
-            this.api.barrierGroup(appId, groupName);
+            this.api.barrierGroup(appId, this.groupName);
         }
     }
 }

@@ -10,7 +10,7 @@ PyCOMPSs Testbench Tasks
 # Imports
 import os
 import time
-from pycompss.api.api import TaskGroup
+from pycompss.api.api import compss_barrier_group, TaskGroup
 from pycompss.api.parameter import FILE_INOUT, FILE_IN, FILE_CONCURRENT
 from pycompss.api.task import task
 from pycompss.api.exceptions import COMPSsException
@@ -64,6 +64,20 @@ def test_cancellation(file_name):
     write_two(file_name)
 
 
+def test_cancellation_no_implicit_barrier(file_name):
+    # Creation of group
+    with TaskGroup('failedGroup2', False):
+        for i in range(NUM_TASKS):
+            throw_exception(file_name, i)
+    try:
+        # The barrier is not implicit and the exception is thrown
+        compss_barrier_group('failedGroup2')
+    except COMPSsException:
+        print("COMPSsException caught")
+        write_two(file_name)
+    write_two(file_name)
+
+
 def main():
     file_name1 = STORAGE_PATH + "taskGROUPS.txt"
     create_file(file_name1)
@@ -71,6 +85,8 @@ def main():
     print("[LOG] Test CANCEL RUNNING TASKS")
     test_cancellation(file_name1)
 
+    print("[LOG] Test CANCEL RUNNING TASKS WITHOUT IMPLICIT BARRIER")
+    test_cancellation_no_implicit_barrier(file_name1)
 
 if __name__ == '__main__':
     main()

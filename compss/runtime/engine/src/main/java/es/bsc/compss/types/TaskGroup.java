@@ -17,6 +17,7 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
@@ -42,6 +43,8 @@ public class TaskGroup implements AutoCloseable {
 
     private boolean closed;
 
+    private BarrierGroupRequest request;
+
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 
@@ -57,6 +60,7 @@ public class TaskGroup implements AutoCloseable {
         this.name = groupName;
         this.barrierSemaphores = new LinkedList<>();
         this.closed = false;
+        this.request = null;
     }
 
     /**
@@ -147,8 +151,11 @@ public class TaskGroup implements AutoCloseable {
      * A task of the group has raised a COMPSsException.
      */
     public void setException(COMPSsException e) {
+        LOGGER.debug("Exception set for group " + this.name);
         this.exception = e;
-
+        if (this.request != null) {
+            this.request.setException(e);
+        }
     }
 
     /**
@@ -161,11 +168,12 @@ public class TaskGroup implements AutoCloseable {
     /**
      * Adds a barrier to the group.
      * 
-     * @param sem Semaphore to be released when all task finish.
+     * @param request BarrierGroupRequest to be released when all task finish.
      */
-    public void addBarrier(Semaphore sem) {
+    public void addBarrier(BarrierGroupRequest request) {
         LOGGER.debug("Added barrier for group " + this.name);
-        barrierSemaphores.push(sem);
+        barrierSemaphores.push(request.getSemaphore());
+        this.request = request;
     }
 
     /**

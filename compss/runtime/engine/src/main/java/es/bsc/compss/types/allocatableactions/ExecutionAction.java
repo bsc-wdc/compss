@@ -761,8 +761,8 @@ public class ExecutionAction extends AllocatableAction {
         // Failed log message
         String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
-        sb.append("COMPSs Exception raised : Task ").append(taskName)
-            .append(" has raised an exception. Members of the group will be cancelled.\n");
+        sb.append("COMPSs Exception raised : Task ").append(taskName).append(" has raised an exception with message ")
+            .append(e.getMessage()).append(". Members of the group will be cancelled.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
 

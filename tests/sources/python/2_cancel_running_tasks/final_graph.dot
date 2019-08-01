@@ -38,7 +38,40 @@ Synchro0 -> Synchro1 [color=grey];
 7[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 Synchro1 -> 7 [label="d1v1"];
 8[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-7 -> 8 [label="d1v2"];  }
+7 -> 8 [label="d1v2"];
+subgraph clusterTasksfailedGroup2 {
+shape=rect;
+node[height=0.75];
+color="#A9A9A9"; 
+label="failedGroup2";
+
+9[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8 -> 9 [label="d1v3"];
+Synchro1 -> 9;
+10[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8 -> 10 [label="d1v3"];
+Synchro1 -> 10;
+11[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8 -> 11 [label="d1v3"];
+Synchro1 -> 11;
+12[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8 -> 12 [label="d1v3"];
+Synchro1 -> 12;
+13[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8 -> 13 [label="d1v3"];
+Synchro1 -> 13;
+14[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+8 -> 14 [label="d1v3"];
+Synchro1 -> 14;
+}
+
+Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro1 -> Synchro2 [color=grey];
+8 -> Synchro2 [color=grey];
+15[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro2 -> 15 [label="d1v3"];
+16[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+15 -> 16 [label="d1v4"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

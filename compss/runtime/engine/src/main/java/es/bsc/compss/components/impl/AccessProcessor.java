@@ -615,16 +615,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @throws COMPSsException Exception thrown by user
      */
     public void barrierGroup(Long appId, String groupName) throws COMPSsException {
-        TaskGroup tg = taskAnalyser.getTaskGroup(groupName);
         Semaphore sem = new Semaphore(0);
-        if (!requestQueue.offer(new BarrierGroupRequest(appId, groupName, sem))) {
+        BarrierGroupRequest request = new BarrierGroupRequest(appId, groupName, sem);
+        if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
         // Wait for response
         sem.acquireUninterruptibly();
 
-        if (tg != null && tg.hasException()) {
-            throw new COMPSsException("Group " + groupName + " raised a COMPSs Exception");
+        if (request.getException() != null) {
+            LOGGER.debug("The thrown exception message is: " + request.getException().getMessage());
+            throw new COMPSsException(
+                "Group " + groupName + " raised a COMPSs Exception ( " + request.getException().getMessage() + ")");
         }
 
         LOGGER.info("Group barrier: End of tasks of group " + groupName);

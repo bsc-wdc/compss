@@ -18,5 +18,8 @@
 
 class COMPSsException(Exception):
     """Raised by the user code"""
-    pass
+
+    def __init__(self, message):
+        self.message = message
+pass
 

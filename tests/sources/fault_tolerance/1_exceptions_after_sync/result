@@ -15,7 +15,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  if grep -q "ERROR" "${output_file}"; then
+  if grep -q "This message should not be printed - ERROR" "${output_file}"; then
     echo "An ERROR occurred running the test - INVALID RESULT." | tee -a "${output_file}"
     exit 2
   fi

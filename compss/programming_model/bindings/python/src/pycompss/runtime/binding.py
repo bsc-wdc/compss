@@ -33,9 +33,9 @@ from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serialization.serializer import *
 from pycompss.util.objects.sizer import total_sizeof
-from pycompss.util.storage.persistent import is_psco
-from pycompss.util.storage.persistent import get_id
-from pycompss.util.storage.persistent import get_by_id
+from pycompss.util.storages.persistent import is_psco
+from pycompss.util.storages.persistent import get_id
+from pycompss.util.storages.persistent import get_by_id
 from pycompss.util.objects.properties import is_basic_iterable
 
 import types

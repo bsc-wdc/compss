@@ -34,9 +34,9 @@ from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
 from pycompss.util.serialization.serializer import SerializerException
-from pycompss.util.storage.persistent import storage_task_context
-from pycompss.util.storage.persistent import is_psco
-from pycompss.util.storage.persistent import get_by_id
+from pycompss.util.storages.persistent import storage_task_context
+from pycompss.util.storages.persistent import is_psco
+from pycompss.util.storages.persistent import get_by_id
 import pycompss.api.parameter as parameter
 
 

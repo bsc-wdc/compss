@@ -34,7 +34,7 @@ from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
-from pycompss.util.storage.persistent import is_psco
+from pycompss.util.storages.persistent import is_psco
 
 if __debug__:
     import logging

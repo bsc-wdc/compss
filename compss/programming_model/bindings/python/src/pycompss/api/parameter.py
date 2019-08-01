@@ -53,7 +53,7 @@ from pycompss.runtime.commons import IS_PYTHON3
 # Numbers match both C and Java enums
 from pycompss.api.data_type import data_type
 from pycompss.util.objects.properties import is_basic_iterable
-from pycompss.util.storage.persistent import has_id, get_id
+from pycompss.util.storages.persistent import has_id, get_id
 
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 

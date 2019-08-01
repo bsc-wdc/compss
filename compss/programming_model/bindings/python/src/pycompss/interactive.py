@@ -44,8 +44,8 @@ from pycompss.util.environment.configuration import create_init_config_file
 from pycompss.util.environment.configuration import setup_logger
 
 # Storage imports
-from pycompss.util.storage.persistent import init_storage
-from pycompss.util.storage.persistent import stop_storage
+from pycompss.util.storages.persistent import init_storage
+from pycompss.util.storages.persistent import stop_storage
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming

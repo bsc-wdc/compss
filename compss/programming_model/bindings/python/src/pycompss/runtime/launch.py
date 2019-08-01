@@ -51,8 +51,8 @@ from pycompss.util.warnings.modules import show_optional_module_warnings
 from pycompss.api.exceptions import COMPSsException
 
 # Storage imports
-from pycompss.util.storage.persistent import init_storage
-from pycompss.util.storage.persistent import stop_storage
+from pycompss.util.storages.persistent import init_storage
+from pycompss.util.storages.persistent import stop_storage
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming

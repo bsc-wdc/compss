@@ -324,6 +324,6 @@ java \
 -Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
 -Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler \
--Dcompss.agent.configpath="${COMPSS_HOME}/Runtime/configuration/agents/all.json" \
+${DATACLAY_CONFIG_OPT} \
 es.bsc.compss.agent.Agent
 

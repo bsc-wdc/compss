@@ -90,7 +90,7 @@ public class ExecutionAction extends AllocatableAction {
     private final LinkedList<Integer> jobs;
     private int transferErrors = 0;
     protected int executionErrors = 0;
-    private Job currentJob;
+    private Job<?> currentJob;
 
 
     /**

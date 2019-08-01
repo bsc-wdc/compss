@@ -81,8 +81,8 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    public <T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(
-            ResourceScheduler<T> r) {
+    public <
+        T extends WorkerResourceDescription> List<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
 
         List<Implementation> ret = new LinkedList<>();
         for (Implementation impl : this.impls) {
@@ -124,7 +124,7 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
-            Score actionScore) {
+        Score actionScore) {
 
         return null;
     }
@@ -136,7 +136,7 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         FakeImplementation impl = (FakeImplementation) impls.get(0);
         assignImplementation(impl);
@@ -146,7 +146,7 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     public <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
-            throws BlockedActionException, UnassignedActionException {
+        throws BlockedActionException, UnassignedActionException {
 
         assignImplementation(impl);
         assignResource(targetWorker);
@@ -232,6 +232,11 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     protected void doException(COMPSsException e) {
+        // Nothing to do
+    }
+
+    @Override
+    protected void stopAction() throws Exception {
         // Nothing to do
     }
 

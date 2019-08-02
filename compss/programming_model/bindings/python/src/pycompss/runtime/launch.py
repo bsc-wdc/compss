@@ -48,6 +48,7 @@ from pycompss.util.launcher import setup_logger
 from pycompss.util.logs import init_logging
 from pycompss.util.serializer import SerializerException
 from pycompss.util.optional_modules import show_optional_module_warnings
+from pycompss.api.exceptions import COMPSsException
 
 # Storage imports
 from pycompss.util.persistent_storage import init_storage
@@ -159,6 +160,7 @@ def compss_main():
     # opts = convert_to_dict(jvm_opts)
     # storage_conf = opts.get('-Dcompss.storage.conf')
 
+    exit_code = 0
     try:
         if __debug__:
             logger.debug('--- START ---')
@@ -183,7 +185,7 @@ def compss_main():
 
         # MAIN EXECUTION
         if IS_PYTHON3:
-            exec (compile(open(app_path).read(), app_path, 'exec'), globals())
+            exec(compile(open(app_path).read(), app_path, 'exec'), globals())
         else:
             execfile(app_path, globals())  # MAIN EXECUTION
 
@@ -203,9 +205,12 @@ def compss_main():
         if __debug__:
             logger.debug('--- END ---')
     except SystemExit as e:
-        if e.code != 0:  # Seems this is not happening
+        if e.code != 0:
             print('[ ERROR ]: User program ended with exitcode %s.' % e.code)
-            print('\t\tShutting down runtime...')
+            print('           Shutting down runtime...')
+            exit_code = e.code
+        else:
+            exit_code = 0
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         print("[ ERROR ]: Serialization exception")
@@ -214,10 +219,22 @@ def compss_main():
         for line in lines:
             if app_path in line:
                 print('[ ERROR ]: In: %s', line)
+        exit_code = 1
+    except COMPSsException as e:
+        # Any other exception occurred
+        print("[ ERROR ]: A COMPSs exception occurred: " + str(e))
+        traceback.print_exc()
+        exit_code = 1  # COMPSs exception is not considered an error
+    except Exception as e:
+        # Any other exception occurred
+        print("[ ERROR ]: An exception occurred: " + str(e))
+        traceback.print_exc()
+        exit_code = 1
     finally:
         compss_stop()
         sys.stdout.flush()
         sys.stderr.flush()
+        sys.exit(exit_code)
     # --- Execution finished ---
 
 

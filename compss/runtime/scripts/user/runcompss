@@ -312,6 +312,7 @@ display_error() {
 # Displays runtime/application errors
 error_msg() {
   local error_msg=$1
+  local error_code=$2
 
   # Display error
   echo
@@ -319,7 +320,7 @@ error_msg() {
   echo
 
   # Exit
-  exit 1
+  exit ${error_code}
 }
 
 # Checks if a command exists
@@ -1052,7 +1053,7 @@ execute_runtime() {
       # Restore classpath
       export CLASSPATH=${backup_classpath}
     else
-      error_msg "${STREAM_BACKEND_ERROR}"
+      error_msg "${STREAM_BACKEND_ERROR}" 1
     fi
     echo "[  INFO] Streaming Backend ready"
   fi
@@ -1231,7 +1232,7 @@ exec_java() {
       unset LD_PRELOAD  # no tracing check because if not set does nothing
   fi
   if [ $endCode -ne 0 ]; then
-    error_msg "${RUNTIME_ERROR}"
+    error_msg "${RUNTIME_ERROR}" ${endCode}
   fi
 }
 
@@ -1275,7 +1276,7 @@ exec_c() {
       unset LD_PRELOAD  # no tracing check because if not set does nothing
   fi
   if [ $endCode -ne 0 ]; then
-    error_msg "${RUNTIME_ERROR}"
+    error_msg "${RUNTIME_ERROR}" ${endCode}
   fi
 }
 
@@ -1285,7 +1286,7 @@ exec_python() {
   cp=$cp:$storageApi
 
   if ! command_exists $python_interpreter ; then
-    error_msg "ERROR: Python interpreter $python_interpreter does not exist."
+    error_msg "ERROR: Python interpreter $python_interpreter does not exist." 1
   fi
 
   # Check if installed and export needed variables if needed
@@ -1293,7 +1294,7 @@ exec_python() {
     PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python/$python_version
     export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
   else
-    error_msg "PyCOMPSs for Python $python_version not installed."
+    error_msg "PyCOMPSs for Python $python_version not installed." 1
   fi
 
   # Look for the JVM Library
@@ -1322,14 +1323,13 @@ exec_python() {
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
 
-  # shellcheck disable=SC2086
   $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${log_level} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD
   fi
   if [ $endCode -ne 0 ]; then
-    error_msg "${RUNTIME_ERROR}"
+    error_msg "${RUNTIME_ERROR}" ${endCode}
   fi
 }
 

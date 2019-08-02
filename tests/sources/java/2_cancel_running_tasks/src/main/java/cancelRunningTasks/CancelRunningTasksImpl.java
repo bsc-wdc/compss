@@ -13,22 +13,31 @@ import es.bsc.compss.worker.COMPSsWorker;
 
 public class CancelRunningTasksImpl {
 
-    public static void throwException(String fileName, Integer i) throws Exception {
-        for (int j = 0; j <= i; j++) {
+    public static void throwException(String fileName) throws Exception {
+        System.out.println("Exception is going to be thrown");
+        throw new COMPSsException("Second task threw an exception");
+    }
+
+    public static void longTask(String fileName) throws Exception {
+        for (int j = 0; j <= 10; j++) {
             Thread.sleep(j * 1000);
             System.out.println(j);
-            // The exception is thrown from an specific task
-            if (i == 1 && j == 1) {
-                System.out.println("Exception is going to be thrown");
-                throw new COMPSsException("Second task threw an exception");
-            }
             COMPSsWorker.cancellationPoint();
         }
+    }
+
+    public static void executedTask(String fileName) {
         System.out.println("Filename: " + fileName);
         writeFile(fileName, String.valueOf(1));
         System.out.println("1 written");
-        String contents = readFile(fileName);
-        System.out.println(contents);
+    }
+
+    public static void cancelledTask(String fileName) throws Exception {
+        for (int j = 0; j <= 3; j++) {
+            Thread.sleep(j * 1000);
+            System.out.println(j);
+            COMPSsWorker.cancellationPoint();
+        }
     }
 
     public static void writeFile(String fileName, String i) {

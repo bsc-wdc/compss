@@ -22,6 +22,8 @@ public class CancelRunningTasks {
         System.out.println("[LOG] Test task group exceptions cancellation");
         testCancelation();
 
+        COMPSs.barrier();
+
         System.out.println("[LOG] Test task group exceptions cancellation without barrier");
         testCancelationNoImplicitBarrier();
     }
@@ -29,14 +31,16 @@ public class CancelRunningTasks {
     private static void testCancelation() throws InterruptedException {
         try (COMPSsGroup a = new COMPSsGroup("FailedGroup", true)) {
             System.out.println("Executing task group that throws COMPSsException ");
-            for (int j = 0; j < M; j++) {
-                // The exception is thrown by the second task of the group
-                CancelRunningTasksImpl.throwException(FILE_NAME, j);
-            }
-            // COMPSs.getFile(FILE_NAME);
-            for (int j = 0; j < M; j++) {
-                CancelRunningTasksImpl.throwException(FILE_NAME, j + 4);
-            }
+            // Long tasks that will be cancelled while being executed
+            CancelRunningTasksImpl.longTask(FILE_NAME);
+            CancelRunningTasksImpl.longTask(FILE_NAME);
+            // Short task correctly executed
+            CancelRunningTasksImpl.executedTask(FILE_NAME);
+            // The exception is thrown by the second task of the group
+            CancelRunningTasksImpl.throwException(FILE_NAME);
+            // These two tasks are cancelled before being executed
+            CancelRunningTasksImpl.cancelledTask(FILE_NAME);
+            CancelRunningTasksImpl.cancelledTask(FILE_NAME);
         } catch (COMPSsException e) {
             // CancelRunningTasksImpl.writeTwo(FILE_NAME);
             System.out.println("Exception caught!!");
@@ -52,26 +56,26 @@ public class CancelRunningTasks {
     private static void testCancelationNoImplicitBarrier() throws InterruptedException {
         try (COMPSsGroup a = new COMPSsGroup("FailedGroup2", false)) {
             System.out.println("Executing task group that throws COMPSsException ");
-            for (int j = 0; j < M; j++) {
-                // The exception is thrown by the second task of the group
-                CancelRunningTasksImpl.throwException(FILE_NAME, j);
-            }
-            // COMPSs.getFile(FILE_NAME);
-            for (int j = 0; j < M; j++) {
-                CancelRunningTasksImpl.throwException(FILE_NAME, j + 4);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            // Long tasks that will be cancelled while being executed
+            CancelRunningTasksImpl.longTask(FILE_NAME);
+            CancelRunningTasksImpl.longTask(FILE_NAME);
+            // Short task correctly executed
+            CancelRunningTasksImpl.executedTask(FILE_NAME);
+            // The exception is thrown by the second task of the group
+            CancelRunningTasksImpl.throwException(FILE_NAME);
+            // These two tasks are cancelled before being executed
+            CancelRunningTasksImpl.cancelledTask(FILE_NAME);
+            CancelRunningTasksImpl.cancelledTask(FILE_NAME);
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
         try {
             COMPSs.barrierGroup("FailedGroup2");
         } catch (COMPSsException e) {
-            // CancelRunningTasksImpl.writeTwo(FILE_NAME);
             System.out.println("Exception caught!!");
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-
         for (int j = 0; j < N; j++) {
             CancelRunningTasksImpl.writeTwo(FILE_NAME);
         }

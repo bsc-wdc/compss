@@ -46,7 +46,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  writers=8
+  writers=4
   FILES=14
 
   # Checks if the file has been written as many times as expected
@@ -83,7 +83,7 @@
   
   # Check if all successors have been canceled
   output1=$(cat "${runtime_log}" | grep "Task canceled:" | wc -l)
-  if [ "${output1}" -ne 12 ]; then
+  if [ "${output1}" -ne 8 ]; then
   	echo "ERROR: The number of canceled tasks is not correct. ${output1} (expected 12)"
   	exit 1
   fi

@@ -11,19 +11,34 @@ PyCOMPSs Testbench Tasks
 import os
 import time
 from pycompss.api.api import compss_barrier_group, TaskGroup
-from pycompss.api.parameter import FILE_INOUT, FILE_IN, FILE_CONCURRENT
+from pycompss.api.parameter import FILE_INOUT, FILE_IN, FILE_OUT
 from pycompss.api.task import task
 from pycompss.api.exceptions import COMPSsException
 
 NUM_TASKS = 6
 STORAGE_PATH = "/tmp/sharedDisk/"
 
+@task(file_path=FILE_INOUT)
+def throw_exception(file_path):
+    raise COMPSsException("Exception raised from the third task")
+
+
 @task(file_path=FILE_IN)
-def throw_exception(file_path, i):
-    for j in range(i):
-        time.sleep(1)
-        if (j == 1 and i == 2):
-            raise COMPSsException("Exception raised from the third task")
+def long_task(file_name):
+    time.sleep(4)
+
+
+@task(file_path=FILE_OUT)
+def executed_task(file_name):
+    # Write value
+    with open(file_name, 'a') as fos:
+        new_value = str(2)
+        fos.write(new_value)
+
+
+@task(file_path=FILE_IN)
+def cancelled_task(file_path):
+    time.sleep(2)
     # Write value
     with open(file_path, 'a') as fos:
         new_value = str(1)
@@ -32,7 +47,6 @@ def throw_exception(file_path, i):
     with open(file_path, 'r') as fis:
         contents = fis.read()
         print(contents)
-
 
 @task(file_path=FILE_INOUT)
 def write_two(file_path):
@@ -56,8 +70,12 @@ def test_cancellation(file_name):
     try:
         # Creation of group
         with TaskGroup('failedGroup'):
-            for i in range(NUM_TASKS):
-                throw_exception(file_name,i)
+            long_task(file_name)
+            long_task(file_name)
+            executed_task(file_name)
+            throw_exception(file_name)
+            cancelled_task(file_name)
+            cancelled_task(file_name)
     except COMPSsException:
         print("COMPSsException caught")
         write_two(file_name)
@@ -67,8 +85,12 @@ def test_cancellation(file_name):
 def test_cancellation_no_implicit_barrier(file_name):
     # Creation of group
     with TaskGroup('failedGroup2', False):
-        for i in range(NUM_TASKS):
-            throw_exception(file_name, i)
+        long_task(file_name)
+        long_task(file_name)
+        executed_task(file_name)
+        throw_exception(file_name)
+        cancelled_task(file_name)
+        cancelled_task(file_name)
     try:
         # The barrier is not implicit and the exception is thrown
         compss_barrier_group('failedGroup2')

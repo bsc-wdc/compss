@@ -52,7 +52,7 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  FILES=13
+  FILES=12
   resultN=4
 
   # Checks if the file has been written as many times as expected
@@ -75,14 +75,14 @@
 
   # Check if all tasks have finished
   output1=$(cat "${runtime_log}" | grep "with end status FINISHED" | wc -l)
-  if [ "${output1}" -ne 10 ]; then
+  if [ "${output1}" -ne 8 ]; then
   	echo "ERROR: The number of canceled tasks is not correct."
   	exit 1
   fi
 
   # Check if all members of group have been canceled
   output1=$(cat "${runtime_log}" | grep "with end status CANCELED" | wc -l)
-  if [ "${output1}" -ne 6 ]; then
+  if [ "${output1}" -ne 8 ]; then
   	echo "ERROR: The number of canceled tasks is not correct."
   	exit 1
   fi

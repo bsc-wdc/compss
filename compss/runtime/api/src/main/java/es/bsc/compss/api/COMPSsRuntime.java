@@ -273,6 +273,11 @@ public interface COMPSsRuntime {
      */
     public boolean deleteBindingObject(String bindingObjectName);
 
+    /**
+     * Cancels all tasks of the application.
+     */
+    public void cancelAllTasks(Long appId);
+
     /*
      * *****************************************************************************************************************
      * TOOLS ACCESS FOR BINDINGS

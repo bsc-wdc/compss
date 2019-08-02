@@ -733,6 +733,26 @@ public class TaskScheduler {
         // Resource capabilities had already been taken into account when assigning the actions. No need to change the
         // assignation.
     }
+    
+    /**
+     * Cancels all running actions.
+     * 
+     */
+    public void cancelAllRunningActions() {
+        for (ResourceScheduler<? extends WorkerResourceDescription> ui : workers.values()) {
+            if (ui == null) {
+                continue;
+            }
+            AllocatableAction[] runningActions = ui.getHostedActions();
+            for (AllocatableAction running : runningActions) {
+                running.canceled();
+            }
+            PriorityQueue<AllocatableAction> blockedOnResource = ui.getBlockedActions();
+            for (AllocatableAction action : blockedOnResource) {
+                action.canceled();
+            }
+        }
+    }
 
     /*
      * *********************************************************************************************************

@@ -45,5 +45,6 @@ public enum APRequestType {
     DELETE_FILE, // Deletes the given file
     FINISH_ACCESS_FILE, // Marks as finished the access to a file
     DEBUG, // Enables the debug
-    DEREGISTER_OBJECT // Unregisters a given object
+    DEREGISTER_OBJECT, // Unregisters a given object
+    CANCEL_ALL_TASKS // Cancels all application tasks
 }

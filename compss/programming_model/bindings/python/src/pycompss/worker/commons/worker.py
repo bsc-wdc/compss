@@ -261,7 +261,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
     except COMPSsException as compss_exception:
         logger.exception("COMPSS EXCEPTION IN %s" % process_name)
         return_message = "No message"
-        if compss_exception.message != "":
+        if (compss_exception.message != None):
             return_message = compss_exception.message
         return task_returns(2,
                             new_types,

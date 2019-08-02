@@ -50,6 +50,7 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
+import es.bsc.compss.types.request.ap.CancelAllTasksRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
@@ -119,6 +120,8 @@ public class TaskAnalyser {
     private TreeMap<String, TaskGroup> taskGroups;
     // Stack of current task groups
     private Stack<TaskGroup> currentTaskGroups;
+    // List of cancelled applications
+    private LinkedList<Long> cancelledAplication;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -148,6 +151,7 @@ public class TaskAnalyser {
         this.taskGroups = new TreeMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
+        this.cancelledAplication = new LinkedList<>();
 
         LOGGER.info("Initialization finished");
     }
@@ -971,7 +975,7 @@ public class TaskAnalyser {
             this.gm.commitGraph();
         }
 
-        if ((count == null || count == 0)) {
+        if (count == null || count == 0) {
             if (tg != null && !tg.hasPendingTasks()) {
                 if (tg.hasException()) {
                     request.setException(tg.getException());
@@ -1803,5 +1807,4 @@ public class TaskAnalyser {
         }
 
     }
-
 }

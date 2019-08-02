@@ -24,6 +24,7 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.CoreElementDefinition;
 import es.bsc.compss.types.Task;
+import es.bsc.compss.types.request.ap.CancelAllTasksRequest;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.types.request.td.ActionUpdate;
 import es.bsc.compss.types.request.td.CERegistration;
@@ -399,6 +400,15 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
         }
         return scheduler;
+    }
+
+    /**
+     * Cancels all tasks of a given application.
+     * 
+     * @param request Cancel all tasks request.
+     */
+    public void cancelAllRunningTasks(CancelAllTasksRequest request) {
+        scheduler.cancelAllRunningActions();
     }
 
 }

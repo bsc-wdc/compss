@@ -46,6 +46,7 @@ import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
+import es.bsc.compss.types.request.ap.CancelAllTasksRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
@@ -630,6 +631,16 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
 
         LOGGER.debug("Group barrier: End of tasks of group " + groupName);
+    }
+
+    /**
+     * Cancellation of all tasks of an application.
+     */
+    public void cancelAllTasks(Long appId) {
+        Semaphore sem = new Semaphore(0);
+        if (!this.requestQueue.offer(new CancelAllTasksRequest(appId))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
+        }
     }
 
     /**

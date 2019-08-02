@@ -459,12 +459,21 @@ public abstract class AllocatableAction {
     }
 
     /**
-     * Returns whether the AllocatableAction is cancelled or not.
+     * Returns whether the AllocatableAction is being cancelled or not.
      *
      * @return {@literal true} if the AllocatableAction is cancelled, {@literal false} otherwise.
      */
     public final boolean isCancelling() {
         return this.state == State.CANCELLING;
+    }
+
+    /**
+     * Returns whether the AllocatableAction has been cancelled.
+     *
+     * @return {@literal true} if the AllocatableAction is cancelled, {@literal false} otherwise.
+     */
+    public final boolean isCancelled() {
+        return this.state == State.CANCELED;
     }
 
     /**
@@ -934,6 +943,12 @@ public abstract class AllocatableAction {
                 e.printStackTrace();
             }
         } else {
+            if (this.state == State.CANCELLING) {
+                // Release resources and run tasks blocked on the resource
+                releaseResources();
+                this.selectedResource.unhostAction(this);
+                this.selectedResource.tryToLaunchBlockedActions();
+            }
             // Mark as canceled
             this.state = State.CANCELED;
 

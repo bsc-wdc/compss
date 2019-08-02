@@ -629,7 +629,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 "Group " + groupName + " raised a COMPSs Exception ( " + request.getException().getMessage() + ")");
         }
 
-        LOGGER.info("Group barrier: End of tasks of group " + groupName);
+        LOGGER.debug("Group barrier: End of tasks of group " + groupName);
     }
 
     /**

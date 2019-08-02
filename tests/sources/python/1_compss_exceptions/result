@@ -15,7 +15,7 @@
   if [ -f "${output_file}" ]; then
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 "${output_file}")
-
+     
   else
      echo "[ERROR] Output file not found" | tee -a "${output_file}"
      exit 1
@@ -46,7 +46,9 @@
   errors=$(cat "${output_file}" "${error_file}" | grep "ERROR" | cat)
   fails=$(cat "${output_file}" "${error_file}" | grep "FAIL" | cat)
   if [ "${errors}" != "" ] || [ "${fails}" != "" ]; then
-      echo "ERROR: UNIT TEST RAISED AN ERROR." | tee -a "${output_file}"
+      echo "FOUND EXPECTED ERROR." | tee -a "${output_file}"
+  else
+      echo "ERROR: UNIT TEST DID NOT SHOW A ERROR OR FAIL MESSAGE." | tee -a "${output_file}"
       exit 1
   fi
 

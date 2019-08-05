@@ -27,7 +27,7 @@ Synchro0 -> 8;
 8 -> 9 [label="d5v2"];
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1;
-3 -> Synchro1[ label="d1v7" ][ ltail="clusterCommutative1_3" ];
+3 -> Synchro1 [label="d1v7"][ ltail="clusterCommutative1_3" ];
 11[shape=circle, style=filled fillcolor="#eb0000" fontcolor="#ffffff"];
 Synchro1 -> 11;
 12[shape=circle, style=filled fillcolor="#ff00ff" fontcolor="#000000"];
@@ -45,7 +45,7 @@ Synchro1 -> 16 [label="d11v1"];
 15 -> 17 [label="d10v2"];
 Synchro1 -> 17 [label="d11v1"];
 18[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-16 -> 18[ label="d11v3" ][ ltail="clusterCommutative11_5" ];
+16 -> 18 [label="d11v3"][ ltail="clusterCommutative11_5" ];
 subgraph clusterCommutative11_5 {
 shape=rect;
 node[height=0.75];
@@ -63,8 +63,8 @@ Synchro1 -> Synchro2;
 18 -> Synchro2 [label="d12v3"];
 Synchro2 -> 20 [label="d11v4"];
 Synchro2 -> 21 [label="d11v4"];
-Synchro2 -> 23 [label="d11v4"];
-20 -> 24[ label="d11v7" ][ ltail="clusterCommutative11_1" ];
+Synchro2 -> 22 [label="d11v4"];
+20 -> 24 [label="d11v7"][ ltail="clusterCommutative11_1" ];
 subgraph clusterCommutative11_1 {
 shape=rect;
 node[height=0.75];
@@ -74,13 +74,13 @@ label="CGT11_1";
 
 20[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 21[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-23[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+22[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 }
 
 Synchro2 -> 24 [label="d6v2"];
-20 -> 25[ label="d11v7" ][ ltail="clusterCommutative11_1" ];
+20 -> 25 [label="d11v7"][ ltail="clusterCommutative11_1" ];
 Synchro2 -> 25 [label="d6v2"];
-20 -> 26[ label="d11v7" ][ ltail="clusterCommutative11_1" ];
+20 -> 26 [label="d11v7"][ ltail="clusterCommutative11_1" ];
 Synchro2 -> 26 [label="d6v2"];
 subgraph clusterCommutative6_0 {
 shape=rect;
@@ -94,12 +94,12 @@ label="CGT6_0";
 26[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 }
 
-24 -> 28[ label="d6v5" ][ ltail="clusterCommutative6_0" ];
-24 -> 29[ label="d6v5" ][ ltail="clusterCommutative6_0" ];
-24 -> 30[ label="d6v5" ][ ltail="clusterCommutative6_0" ];
+24 -> 27 [label="d6v5"][ ltail="clusterCommutative6_0" ];
+24 -> 28 [label="d6v5"][ ltail="clusterCommutative6_0" ];
+24 -> 29 [label="d6v5"][ ltail="clusterCommutative6_0" ];
 Synchro3[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro2 -> Synchro3;
-28 -> Synchro3[ label="d6v9" ][ ltail="clusterCommutative6_1" ];
+27 -> Synchro3 [label="d6v9"][ ltail="clusterCommutative6_1" ];
 32[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
 Synchro3 -> 32 [label="d13v1"];
 33[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
@@ -111,7 +111,7 @@ Synchro3 -> 32 [label="d13v1"];
 34 -> 37 [label="d13v4"];
 Synchro4[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro3 -> Synchro4;
-35 -> Synchro4[ label="d13v8" ][ ltail="clusterCommutative13_8" ];
+35 -> Synchro4 [label="d13v8"][ ltail="clusterCommutative13_8" ];
 subgraph clusterCommutative13_8 {
 shape=rect;
 node[height=0.75];
@@ -144,9 +144,9 @@ color="#A9A9A9";
 rank=same;
 label="CGT6_1";
 
+27[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 28[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 29[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-30[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 }
 
 Synchro5[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
@@ -155,7 +155,7 @@ Synchro5 -> 39 [label="d14v1"];
 Synchro5 -> 40 [label="d14v1"];
 Synchro5 -> 41 [label="d14v1"];
 42[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
-39 -> 42[ label="d14v4" ][ ltail="clusterCommutative14_8" ];
+39 -> 42 [label="d14v4"][ ltail="clusterCommutative14_8" ];
 subgraph clusterCommutative14_8 {
 shape=rect;
 node[height=0.75];

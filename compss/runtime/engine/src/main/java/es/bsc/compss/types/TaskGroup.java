@@ -45,6 +45,10 @@ public class TaskGroup implements AutoCloseable {
 
     private BarrierGroupRequest request;
 
+    private boolean barrierDrawn;
+
+    private int lastTaskId; // For being the source of the edge with the barrier.
+
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 
@@ -61,6 +65,8 @@ public class TaskGroup implements AutoCloseable {
         this.barrierSemaphores = new LinkedList<>();
         this.closed = false;
         this.request = null;
+        this.barrierDrawn = false;
+        this.lastTaskId = 0;
     }
 
     /**
@@ -73,7 +79,7 @@ public class TaskGroup implements AutoCloseable {
     }
 
     /**
-     * Returnstasks of group.
+     * Returns the name of group.
      * 
      * @return
      */
@@ -88,6 +94,16 @@ public class TaskGroup implements AutoCloseable {
      */
     public void addTask(Task task) {
         tasks.add(task);
+        this.lastTaskId = task.getId();
+    }
+
+    /**
+     * Returns the ID of the last inserted task.
+     * 
+     * @return id Id of the task.
+     */
+    public int getLastTaskId() {
+        return this.lastTaskId;
     }
 
     /**
@@ -104,6 +120,22 @@ public class TaskGroup implements AutoCloseable {
      */
     public boolean getGraphDrawn() {
         return this.graphDrawn;
+    }
+
+    /**
+     * Sets the barrier of the group as drawn.
+     */
+    public void setBarrierDrawn() {
+        this.barrierDrawn = true;
+    }
+
+    /**
+     * Returns if the barrier of the group has been added to the graph.
+     *
+     * @return
+     */
+    public boolean getBarrierDrawn() {
+        return this.barrierDrawn;
     }
 
     /**

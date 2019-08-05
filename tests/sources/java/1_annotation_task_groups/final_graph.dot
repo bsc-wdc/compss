@@ -29,7 +29,7 @@ Synchro0 -> 1 [label="d1v1"];
 
 Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1 [color=grey];
-3 -> Synchro1 [color=grey];
+3 -> Synchro1 [color=grey][ ltail="clusterTasksgroup0" ];
 subgraph clusterTasksgroup1 {
 shape=rect;
 node[height=0.75];
@@ -46,7 +46,7 @@ Synchro1 -> 4 [label="d1v4"];
 
 Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro1 -> Synchro2 [color=grey];
-6 -> Synchro2 [color=grey];
+6 -> Synchro2 [color=grey][ ltail="clusterTasksgroup1" ];
 subgraph clusterTasksgroup2 {
 shape=rect;
 node[height=0.75];
@@ -63,7 +63,7 @@ Synchro2 -> 7 [label="d1v7"];
 
 Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro2 -> Synchro3 [color=grey];
-9 -> Synchro3 [color=grey];
+9 -> Synchro3 [color=grey][ ltail="clusterTasksgroup2" ];
 subgraph clusterTasksgroup3 {
 shape=rect;
 node[height=0.75];
@@ -80,11 +80,12 @@ Synchro3 -> 10 [label="d1v10"];
 
 Synchro4[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro3 -> Synchro4 [color=grey];
-12 -> Synchro4 [color=grey];
+12 -> Synchro4 [color=grey][ ltail="clusterTasksgroup3" ];
 }
 
 Synchro5[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro4 -> Synchro5 [color=grey];
+12 -> Synchro5 [color=grey][ ltail="clusterTasksBigGroup" ];
 subgraph clusterTasksSmallGroup {
 shape=rect;
 node[height=0.75];
@@ -103,7 +104,7 @@ Synchro5 -> 13 [label="d1v13"];
 
 Synchro6[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro5 -> Synchro6 [color=grey];
-16 -> Synchro6 [color=grey];
+16 -> Synchro6 [color=grey][ ltail="clusterTasksSmallGroup" ];
 subgraph clusterTasksBigGroup2 {
 shape=rect;
 node[height=0.75];
@@ -170,13 +171,16 @@ label="group7";
 
 Synchro7[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro6 -> Synchro7 [color=grey];
-28 -> Synchro7 [color=grey];
+19 -> Synchro7 [color=grey][ ltail="clusterTasksgroup4" ];
 Synchro8[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro7 -> Synchro8 [color=grey];
+22 -> Synchro8 [color=grey][ ltail="clusterTasksgroup5" ];
 Synchro9[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro8 -> Synchro9 [color=grey];
+25 -> Synchro9 [color=grey][ ltail="clusterTasksgroup6" ];
 Synchro10[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro9 -> Synchro10 [color=grey];
+28 -> Synchro10 [color=grey][ ltail="clusterTasksgroup7" ];
 subgraph clusterTasksSmallGroup2 {
 shape=rect;
 node[height=0.75];
@@ -195,7 +199,7 @@ Synchro10 -> 29 [label="d1v29"];
 
 Synchro11[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro10 -> Synchro11 [color=grey];
-32 -> Synchro11 [color=grey];
+32 -> Synchro11 [color=grey][ ltail="clusterTasksSmallGroup2" ];
 32 -> Synchro11 [label="d1v33"];  }
   subgraph legend {
     rank=sink;

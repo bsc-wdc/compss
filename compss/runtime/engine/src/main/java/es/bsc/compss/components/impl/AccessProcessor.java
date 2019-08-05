@@ -46,7 +46,7 @@ import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
-import es.bsc.compss.types.request.ap.CancelAllTasksRequest;
+import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
@@ -638,7 +638,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     public void cancelAllTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new CancelAllTasksRequest(appId))) {
+        if (!this.requestQueue.offer(new CancelApplicationTasksRequest(appId))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
         }
     }
@@ -732,8 +732,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * 
      * @param groupName Name of the task group
      */
-    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier) {
-        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier);
+    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
+        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier, appId);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new task group");
         }
@@ -742,8 +742,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Closes the current task group.
      */
-    public void closeCurrentTaskGroup() {
-        CloseTaskGroupRequest request = new CloseTaskGroupRequest();
+    public void closeCurrentTaskGroup(Long appId) {
+        CloseTaskGroupRequest request = new CloseTaskGroupRequest(appId);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "closure of task group");
         }

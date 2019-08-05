@@ -50,7 +50,7 @@ import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.parameter.StreamParameter;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
-import es.bsc.compss.types.request.ap.CancelAllTasksRequest;
+import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.EndOfAppRequest;
 import es.bsc.compss.types.request.ap.WaitForConcurrentRequest;
 import es.bsc.compss.types.request.ap.WaitForTaskRequest;
@@ -117,11 +117,9 @@ public class TaskAnalyser {
     // list of tasks from group
     private TreeMap<String, LinkedList<Task>> pendingToDrawCommutative;
     // Task groups. Map: group name -> commutative group tasks
-    private TreeMap<String, TaskGroup> taskGroups;
+    private HashMap<Long, TreeMap<String, TaskGroup>> taskGroups;
     // Stack of current task groups
-    private Stack<TaskGroup> currentTaskGroups;
-    // List of cancelled applications
-    private LinkedList<Long> cancelledAplication;
+    private HashMap<Long, Stack<TaskGroup>> currentTaskGroups;
 
     // Graph drawing
     private static final boolean IS_DRAW_GRAPH = GraphGenerator.isEnabled();
@@ -147,11 +145,10 @@ public class TaskAnalyser {
         this.concurrentAccessMap = new TreeMap<>();
         this.commutativeGroup = new TreeMap<>();
         this.pendingToDrawCommutative = new TreeMap<>();
-        this.currentTaskGroups = new Stack<>();
-        this.taskGroups = new TreeMap<>();
+        this.currentTaskGroups = new HashMap<>();
+        this.taskGroups = new HashMap<>();
         this.synchronizationId = 0;
         this.taskDetectedAfterSync = false;
-        this.cancelledAplication = new LinkedList<>();
 
         LOGGER.info("Initialization finished");
     }
@@ -509,13 +506,12 @@ public class TaskAnalyser {
         }
 
         // Set task group
-        if (!this.currentTaskGroups.empty()) {
-            Iterator<TaskGroup> currentGroups = this.currentTaskGroups.iterator();
-            while (currentGroups.hasNext()) {
-                TaskGroup nextGroup = currentGroups.next();
-                currentTask.setTaskGroup(nextGroup);
-                nextGroup.addTask(currentTask);
-            }
+        LOGGER.debug("MARTA: Current appId is " + currentTask.getAppId());
+        Iterator<TaskGroup> currentGroups = this.currentTaskGroups.get(currentTask.getAppId()).iterator();
+        while (currentGroups.hasNext()) {
+            TaskGroup nextGroup = currentGroups.next();
+            currentTask.setTaskGroup(nextGroup);
+            nextGroup.addTask(currentTask);
         }
 
         List<Parameter> parameters = params.getParameters();
@@ -684,7 +680,8 @@ public class TaskAnalyser {
             if (!group.hasPendingTasks() && group.isClosed() && group.hasBarrier()) {
                 group.releaseBarrier();
                 if (group.getBarrierDrawn()) {
-                    this.taskGroups.remove(group.getName());
+                    this.taskGroups.get(task.getAppId()).remove(group.getName());
+                    LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
                 }
                 LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
             }
@@ -965,7 +962,7 @@ public class TaskAnalyser {
     public void barrierGroup(BarrierGroupRequest request) {
         String groupName = request.getGroupName();
         Long appId = request.getAppId();
-        TaskGroup tg = this.taskGroups.get(groupName);
+        TaskGroup tg = this.taskGroups.get(request.getAppId()).get(groupName);
         Integer count = this.appIdToTaskCount.get(appId);
         // Addition of missing commutative groups to graph
         if (IS_DRAW_GRAPH) {
@@ -1035,10 +1032,23 @@ public class TaskAnalyser {
      * @param groupName Name of the group to set
      * @param barrier Flag stating if the group has to perform a barrier.
      */
-    public void setCurrentTaskGroup(String groupName, boolean barrier) {
+    public void setCurrentTaskGroup(String groupName, boolean barrier, Long appId) {
+        if (!this.currentTaskGroups.containsKey(appId)) {
+            Stack<TaskGroup> currentTaskGroups = new Stack<>();
+            TaskGroup appTaskGroup = new TaskGroup("App" + appId);
+            currentTaskGroups.push(appTaskGroup);
+            this.currentTaskGroups.put(appId, currentTaskGroups);
+        }
         TaskGroup tg = new TaskGroup(groupName);
-        this.taskGroups.put(groupName, tg);
-        this.currentTaskGroups.push(tg);
+        this.currentTaskGroups.get(appId).push(tg);
+        if (!this.taskGroups.containsKey(appId)) {
+            TreeMap<String, TaskGroup> taskGroups = new TreeMap<>();
+            TaskGroup appTaskGroup = new TaskGroup("App" + appId);
+            taskGroups.put("App" + appId, appTaskGroup);
+            this.taskGroups.put(appId, taskGroups);
+        }
+        this.taskGroups.get(appId).put(groupName, tg);
+
         if (IS_DRAW_GRAPH) {
             this.gm.addTaskGroupToGraph(tg.getName());
             tg.setGraphDrawn();
@@ -1049,12 +1059,23 @@ public class TaskAnalyser {
     /**
      * Closes the last task group.
      */
-    public void closeCurrentTaskGroup() {
-        TaskGroup tg = this.currentTaskGroups.pop();
+    public void closeCurrentTaskGroup(Long appId) {
+        TaskGroup tg = this.currentTaskGroups.get(appId).pop();
         tg.setClosed();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
         }
+    }
+
+    /**
+     * Cancels tasks of a given application.
+     * 
+     * @param request Cancel application tasks request.
+     */
+    public void cancelApplicationTasks(CancelApplicationTasksRequest request) {
+        Long appId = request.getAppId();
+        TaskGroup tg = this.taskGroups.get(appId).get("App" + appId);
+        tg.cancelTasks();
     }
 
     /**
@@ -1195,10 +1216,6 @@ public class TaskAnalyser {
                 drawEdges(currentTask, dp, null);
             }
         }
-    }
-
-    public TaskGroup getTaskGroup(String name) {
-        return this.taskGroups.get(name);
     }
 
     private void addStreamDependency(Task currentTask, DependencyParameter dp, WritersInfo wi) {

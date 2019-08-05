@@ -24,12 +24,16 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 
 public class CloseTaskGroupRequest extends APRequest {
 
-    public CloseTaskGroupRequest() {
+    private Long appId;
+
+
+    public CloseTaskGroupRequest(Long appId) {
+        this.appId = appId;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.closeCurrentTaskGroup();
+        ta.closeCurrentTaskGroup(this.appId);
     }
 
     @Override

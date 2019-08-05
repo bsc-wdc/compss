@@ -945,13 +945,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public void openTaskGroup(String groupName, boolean implicitBarrier) {
-        ap.setCurrentTaskGroup(groupName, implicitBarrier);
+    public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
+        ap.setCurrentTaskGroup(groupName, implicitBarrier, appId);
     }
 
     @Override
-    public void closeTaskGroup(String groupName) {
-        ap.closeCurrentTaskGroup();
+    public void closeTaskGroup(String groupName, Long appId) {
+        ap.closeCurrentTaskGroup(appId);
     }
 
     /*

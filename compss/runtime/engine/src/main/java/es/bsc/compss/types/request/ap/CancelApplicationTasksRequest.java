@@ -8,7 +8,7 @@ import es.bsc.compss.types.request.exceptions.ShutdownException;
 import es.bsc.compss.worker.COMPSsException;
 
 
-public class CancelAllTasksRequest extends APRequest {
+public class CancelApplicationTasksRequest extends APRequest {
 
     private Long appId;
 
@@ -18,7 +18,7 @@ public class CancelAllTasksRequest extends APRequest {
      * 
      * @param appId Application Id.
      */
-    public CancelAllTasksRequest(Long appId) {
+    public CancelApplicationTasksRequest(Long appId) {
         this.appId = appId;
     }
 
@@ -30,7 +30,7 @@ public class CancelAllTasksRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException, COMPSsException {
-        td.cancelAllRunningTasks(this);
+        ta.cancelApplicationTasks(this);
     }
 
     public Long getAppId() {

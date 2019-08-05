@@ -110,7 +110,8 @@ start_runtime(PyObject *self, PyObject *args) {
 static PyObject *
 stop_runtime(PyObject *self, PyObject *args) {
     debug("####C#### STOP\n");
-    GS_Off();
+    int code = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    GS_Off(code);
     Py_RETURN_NONE;
 }
 

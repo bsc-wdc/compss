@@ -28,7 +28,13 @@ void compss_on(void) {
 }
 
 void compss_off(void) {
-    GS_Off();
+    GS_Off(0);
+    compss_clean();
+    delete(cache);
+}
+
+void compss_off(int code) {
+    GS_Off(code);
     compss_clean();
     delete(cache);
 }

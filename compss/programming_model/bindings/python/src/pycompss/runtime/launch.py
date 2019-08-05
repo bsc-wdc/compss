@@ -221,11 +221,10 @@ def compss_main():
     except SystemExit as e:
         if e.code != 0:
             print('[ ERROR ]: User program ended with exitcode %s.' % e.code)
-            print('           Shutting down runtime...')
+            print('\t\tShutting down runtime...')
             exit_code = e.code
-        else:
-            exit_code = 0
     except SerializerException:
+        exit_code = 1
         # If an object that can not be serialized has been used as a parameter.
         print("[ ERROR ]: Serialization exception")
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -245,7 +244,7 @@ def compss_main():
         traceback.print_exc()
         exit_code = 1
     finally:
-        compss_stop()
+        compss_stop(exit_code)
         sys.stdout.flush()
         sys.stderr.flush()
         sys.exit(exit_code)

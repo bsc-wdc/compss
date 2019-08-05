@@ -830,7 +830,7 @@ void GS_On() {
     check_and_treat_exception(m_env,"Error creating appId object");
 }
 
-void GS_Off() {
+void GS_Off(int exit_code) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Off\n");
 
     jmethodID midStopIT = NULL;
@@ -851,12 +851,14 @@ void GS_Off() {
         m_env->ExceptionDescribe();
         exit(1);
     }
-    debug_printf("[BINDING-COMMONS]  -  @Off - Waiting to end tasks\n");
-    m_env->CallVoidMethod(jobjIT, midNoMoreTasksIT, appId, "TRUE");
-    if (m_env->ExceptionOccurred()) {
-        debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling noMoreTasks.\n");
-        m_env->ExceptionDescribe();
-        exit(1);
+    if (exit_code == 0){
+        debug_printf("[BINDING-COMMONS]  -  @Off - Waiting to end tasks\n");
+        m_env->CallVoidMethod(jobjIT, midNoMoreTasksIT, appId, "TRUE");
+        if (m_env->ExceptionOccurred()) {
+            debug_printf("[BINDING-COMMONS]  -  @GS_ExecuteTask  -  Error: Exception received when calling noMoreTasks.\n");
+            m_env->ExceptionDescribe();
+            exit(1);
+        }
     }
     debug_printf("[BINDING-COMMONS]  -  @Off - Stopping runtime\n");
     m_env->CallVoidMethod(jobjIT, midStopIT, "TRUE"); //Calling the method and passing IT Object as parameter
@@ -1038,7 +1040,7 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
         debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Error: Exception received when calling registerCE.\n");
         m_env->ExceptionDescribe();
         release_lock();
-        GS_Off();
+        GS_Off(1);
         exit(1);
     }
     if (isAttached==1) {
@@ -1139,7 +1141,7 @@ void GS_Delete_File(char *file_name) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  Error: Exception received when calling deleteFile.\n");
         m_env->ExceptionDescribe();
         release_lock();
-        GS_Off();
+        GS_Off(1);
         exit(1);
     }
     //*buf = (int*)&res;
@@ -1253,7 +1255,7 @@ void GS_BarrierNew(long _appId, int noMoreTasks) {
 
     if (local_env->ExceptionOccurred()) {
         local_env->ExceptionDescribe();
-
+        GS_Off(1);
         exit(1);
     }
 
@@ -1314,6 +1316,7 @@ void GS_CloseTaskGroup(char *group_name){
 
     if (local_env->ExceptionOccurred()) {
         local_env->ExceptionDescribe();
+        GS_Off(1);
         exit(1);
     }
     if (isAttached==1) {
@@ -1328,6 +1331,8 @@ void GS_EmitEvent(int type, long id) {
 
     if ( (type < 0 ) or (id < 0) ) {
         debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Error: event type and ID must be positive integers, but found: type: %u, ID: %lu\n", type, id);
+        release_lock();
+        GS_Off(1);
         exit(1);
     } else {
         debug_printf ("[BINDING-COMMONS]  -  @GS_EmitEvent  -  Type: %u, ID: %lu\n", type, id);
@@ -1335,6 +1340,7 @@ void GS_EmitEvent(int type, long id) {
         if (m_env->ExceptionOccurred()) {
             m_env->ExceptionDescribe();
             release_lock();
+            GS_Off(1);
             exit(1);
         }
     }

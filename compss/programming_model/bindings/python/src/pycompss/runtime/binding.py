@@ -253,7 +253,7 @@ def start_runtime():
         logger.info("COMPSs started")
 
 
-def stop_runtime():
+def stop_runtime(code=0):
     """
     Stops the runtime by calling the external python library that calls
     the bindings-common.
@@ -267,7 +267,7 @@ def stop_runtime():
 
     if __debug__:
         logger.info("Stopping COMPSs...")
-    compss.stop_runtime()
+    compss.stop_runtime(code)
 
     if __debug__:
         logger.info("Cleaning temps...")

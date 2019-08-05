@@ -27,7 +27,7 @@ void GS_On(AbstractCache *);
 
 // COMPSs Runtime state
 extern "C" void GS_On(void);
-extern "C" void GS_Off(void);
+extern "C" void GS_Off(int code);
 
 // Task methods
 extern "C" void GS_RegisterCE(char *CESignature,

@@ -44,6 +44,9 @@ public class OpenTaskGroupRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+        if (!ta.applicationHasGroups(this.appId)) {
+            ta.setCurrentTaskGroup("App" + this.appId, true, this.appId);
+        }
         ta.setCurrentTaskGroup(this.groupName, barrier, this.appId);
     }
 

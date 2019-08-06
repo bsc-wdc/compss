@@ -276,7 +276,7 @@ public interface COMPSsRuntime {
     /**
      * Cancels all tasks of the application.
      */
-    public void cancelAllTasks(Long appId);
+    public void cancelApplicationTasks(Long appId);
 
     /*
      * *****************************************************************************************************************

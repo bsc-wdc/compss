@@ -506,7 +506,9 @@ public class TaskAnalyser {
         }
 
         // Set task group
-        LOGGER.debug("MARTA: Current appId is " + currentTask.getAppId());
+        if (!applicationHasGroups(currentTask.getAppId())) {
+            setCurrentTaskGroup("App" + currentTask.getAppId(), true, currentTask.getAppId());
+        }
         Iterator<TaskGroup> currentGroups = this.currentTaskGroups.get(currentTask.getAppId()).iterator();
         while (currentGroups.hasNext()) {
             TaskGroup nextGroup = currentGroups.next();
@@ -648,7 +650,7 @@ public class TaskAnalyser {
             if (DEBUG) {
                 LOGGER.debug("Checking result file transfers for task " + taskId);
             }
-            if (this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId)) {
+            if ((this.appIdToSemaphore.get(appId) != null && !this.appIdBarrierFlags.contains(appId))) {
                 checkResultFileTransfer(task);
             }
 
@@ -1031,20 +1033,18 @@ public class TaskAnalyser {
      * 
      * @param groupName Name of the group to set
      * @param barrier Flag stating if the group has to perform a barrier.
+     * @param appId Application Id.
      */
     public void setCurrentTaskGroup(String groupName, boolean barrier, Long appId) {
+        LOGGER.debug("Adding group " + groupName + " to the current groups stack.");
         if (!this.currentTaskGroups.containsKey(appId)) {
             Stack<TaskGroup> currentTaskGroups = new Stack<>();
-            TaskGroup appTaskGroup = new TaskGroup("App" + appId);
-            currentTaskGroups.push(appTaskGroup);
             this.currentTaskGroups.put(appId, currentTaskGroups);
         }
         TaskGroup tg = new TaskGroup(groupName);
         this.currentTaskGroups.get(appId).push(tg);
         if (!this.taskGroups.containsKey(appId)) {
             TreeMap<String, TaskGroup> taskGroups = new TreeMap<>();
-            TaskGroup appTaskGroup = new TaskGroup("App" + appId);
-            taskGroups.put("App" + appId, appTaskGroup);
             this.taskGroups.put(appId, taskGroups);
         }
         this.taskGroups.get(appId).put(groupName, tg);
@@ -1054,6 +1054,15 @@ public class TaskAnalyser {
             tg.setGraphDrawn();
             LOGGER.debug("Group " + groupName + " added to graph");
         }
+    }
+
+    /**
+     * Returns if a given application has groups registered.
+     * 
+     * @param appId Application Id.
+     */
+    public boolean applicationHasGroups(Long appId) {
+        return this.currentTaskGroups.containsKey(appId);
     }
 
     /**
@@ -1073,9 +1082,14 @@ public class TaskAnalyser {
      * @param request Cancel application tasks request.
      */
     public void cancelApplicationTasks(CancelApplicationTasksRequest request) {
+        LOGGER.debug("Cancelling tasks of application " + request.getAppId());
+        Semaphore sem = request.getSemaphore();
         Long appId = request.getAppId();
-        TaskGroup tg = this.taskGroups.get(appId).get("App" + appId);
+        String groupName = "App" + appId;
+        TaskGroup tg = this.taskGroups.get(appId).get(groupName);
         tg.cancelTasks();
+        this.taskGroups.remove(appId);
+        sem.release();
     }
 
     /**

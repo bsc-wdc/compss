@@ -43,6 +43,7 @@ jmethodID midExecute;               /* ID of the executeTask method in the es.bs
 jmethodID midExecuteNew;            /* ID of the executeTask method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midRegisterCE;            /* ID of the RegisterCE method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midEmitEvent;             /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+jmethodID midCancelApplicationTasks; /* ID of the CancelApplicationTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
 jmethodID midOpenFile;              /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCloseFile;             /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -226,14 +227,14 @@ void init_master_jni_types() {
     }
 
     // openTaskGroup method
-    midOpenTaskGroup = m_env->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;Z)V");
+    midOpenTaskGroup = m_env->GetMethodID(clsITimpl, "openTaskGroup", "(Ljava/lang/String;ZLjava/lang/Long;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
     }
 
     // closeTaskGroup method
-    midCloseTaskGroup = m_env->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;)V");
+    midCloseTaskGroup = m_env->GetMethodID(clsITimpl, "closeTaskGroup", "(Ljava/lang/String;Ljava/lang/Long;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -241,6 +242,13 @@ void init_master_jni_types() {
 
     // EmitEvent method
     midEmitEvent = m_env->GetMethodID(clsITimpl, "emitEvent", "(IJ)V");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    // CancelApplicationTasks method
+    midCancelApplicationTasks = m_env->GetMethodID(clsITimpl, "cancelApplicationTasks", "(Ljava/lang/Long;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -875,6 +883,30 @@ void GS_Off(int exit_code) {
     pthread_mutex_destroy(&mtx);
 }
 
+void GS_Cancel_Application_Tasks(long _appId) {
+    debug_printf ("[BINDING-COMMONS]  -  @GS_Cancel_Application_Tasks\n");
+
+    get_lock();
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
+    release_lock();
+
+    local_env->CallVoidMethod(jobjIT, midCancelApplicationTasks, appId);
+
+    if (local_env->ExceptionOccurred()) {
+        debug_printf("[BINDING-COMMONS]  -  @GS_CancelApplicationTasks  -  Error: Exception received when calling cancelApplicationTasks.\n");
+        local_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    if (isAttached == 1) {
+        m_jvm->DetachCurrentThread();
+
+    }
+    debug_printf ("[BINDING-COMMONS]  -  @GS_Cancel_Application_Tasks  -  Tasks cancelled\n");
+
+}
+
 void GS_Get_AppDir(char **buf) {
     debug_printf ("[BINDING-COMMONS]  -  @GS_Get_AppDir - Getting application directory.\n");
 
@@ -1285,7 +1317,7 @@ void GS_BarrierGroup(long _appId, char *group_name, char **exception_message) {
 
 
 
-void GS_OpenTaskGroup(char *group_name, int implicitBarrier){
+void GS_OpenTaskGroup(char *group_name, int implicitBarrier, long _appId){
     jstring jstr = NULL;
     get_lock();
     JNIEnv* local_env = m_env;
@@ -1293,7 +1325,7 @@ void GS_OpenTaskGroup(char *group_name, int implicitBarrier){
     bool _implicitBarrier = false;
     if (implicitBarrier != 0) _implicitBarrier = true;
     release_lock();
-    local_env->CallVoidMethod(jobjIT, midOpenTaskGroup, local_env->NewStringUTF(group_name), _implicitBarrier   );
+    local_env->CallVoidMethod(jobjIT, midOpenTaskGroup, local_env->NewStringUTF(group_name), _implicitBarrier, appId);
 
     if (local_env->ExceptionOccurred()) {
         local_env->ExceptionDescribe();
@@ -1306,13 +1338,13 @@ void GS_OpenTaskGroup(char *group_name, int implicitBarrier){
     debug_printf("[BINDING-COMMONS]  -  @GS_OpenTaskGroup  -  implicit barrier: %s\n", _implicitBarrier ? "true":"false");
 }
 
-void GS_CloseTaskGroup(char *group_name){
+void GS_CloseTaskGroup(char *group_name, long _appId){
     jstring jstr = NULL;
     get_lock();
     JNIEnv* local_env = m_env;
     int isAttached = check_and_attach(m_jvm, local_env);
     release_lock();
-    local_env->CallVoidMethod(jobjIT, midCloseTaskGroup, local_env->NewStringUTF(group_name));
+    local_env->CallVoidMethod(jobjIT, midCloseTaskGroup, local_env->NewStringUTF(group_name), appId);
 
     if (local_env->ExceptionOccurred()) {
         local_env->ExceptionDescribe();

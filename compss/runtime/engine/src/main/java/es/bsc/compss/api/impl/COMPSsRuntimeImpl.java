@@ -1368,8 +1368,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public void cancelAllTasks(Long appId) {
-        ap.cancelAllTasks(appId);
+    public void cancelApplicationTasks(Long appId) {
+        ap.cancelApplicationTasks(appId);
     }
 
     /*

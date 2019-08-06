@@ -636,11 +636,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Cancellation of all tasks of an application.
      */
-    public void cancelAllTasks(Long appId) {
+    public void cancelApplicationTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
-        if (!this.requestQueue.offer(new CancelApplicationTasksRequest(appId))) {
+        if (!this.requestQueue.offer(new CancelApplicationTasksRequest(appId, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
         }
+        // Wait for response
+        sem.acquireUninterruptibly();
+
+        LOGGER.info("Tasks cancelled for application with id " + appId);
     }
 
     /**

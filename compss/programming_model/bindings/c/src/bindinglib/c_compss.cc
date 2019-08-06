@@ -39,6 +39,12 @@ void compss_off(int code) {
     delete(cache);
 }
 
+void compss_cancel_application_tasks() {
+    //long l_app_id = (long)app_id;
+    long int l_app_id = 0;
+    GS_Cancel_Application_Tasks(l_app_id);
+}
+
 void compss_clean() {
     std::map<void *, Entry>::iterator it;
     for (std::map<void *,Entry>::iterator it=objectMap.begin(); it!=objectMap.end(); ++it) {
@@ -134,11 +140,13 @@ void compss_barrier_group(char *groupname) {
 }
 
 void compss_open_task_group(char *groupname, int implicitBarrier) {
-    GS_OpenTaskGroup(groupname, implicitBarrier);
+    long int l_app_id = 0;
+    GS_OpenTaskGroup(groupname, implicitBarrier, l_app_id);
 }
 
 void compss_close_task_group(char *groupname) {
-    GS_CloseTaskGroup(groupname);
+    long int l_app_id = 0;
+    GS_CloseTaskGroup(groupname, l_app_id);
 }
 
 

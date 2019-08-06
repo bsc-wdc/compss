@@ -241,5 +241,6 @@ public class TaskGroup implements AutoCloseable {
                 aa.canceled();
             }
         }
+        LOGGER.debug("All the application tasks have been cancelled.");
     }
 }

@@ -116,6 +116,18 @@ stop_runtime(PyObject *self, PyObject *args) {
 }
 
 /*
+  Cancel all application tasks
+*/
+static PyObject*
+cancel_application_tasks(PyObject *self, PyObject *args){
+    debug("####C#### CANCEL APPLICATION TASKS\n");
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("####C#### COMPSs cancel application tasks for AppId: %ld \n", (app_id));
+    GS_Cancel_Application_Tasks(app_id);
+    Py_RETURN_NONE;
+}
+
+/*
   Auxiliary function that allows us to translate a PyStringObject
   (which is also a PyObject) to a char*
   As we can see, the functions body varies depending on the Python version,
@@ -478,7 +490,8 @@ open_task_group(PyObject *self, PyObject *args) {
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     debug("####C#### COMPSs task group: %s created\n", (group_name));
     bool implicit_barrier = PyObject_IsTrue(PyTuple_GetItem(args, 1));
-    GS_OpenTaskGroup(group_name, implicit_barrier);
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 2)));
+    GS_OpenTaskGroup(group_name, implicit_barrier, app_id);
     Py_RETURN_NONE;
 }
 
@@ -489,8 +502,9 @@ static PyObject*
 close_task_group(PyObject *self, PyObject *args) {
     debug("####C#### CLOSING TASK GROUP\n");
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
     debug("####C#### COMPSs task group: %s closed\n", (group_name));
-    GS_CloseTaskGroup(group_name);
+    GS_CloseTaskGroup(group_name, app_id);
     Py_RETURN_NONE;
 }
 
@@ -552,6 +566,7 @@ static PyMethodDef CompssMethods[] = {
     { "error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
     { "start_runtime", start_runtime, METH_VARARGS, "Start the COMPSs runtime." },
     { "stop_runtime", stop_runtime, METH_VARARGS, "Stop the COMPSs runtime." },
+    { "cancel_application_tasks", cancel_application_tasks, METH_VARARGS, "Cancel all tasks of an application." },
     { "process_task", process_task, METH_VARARGS, "Process a task call from the application." },
     { "open_file", open_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },

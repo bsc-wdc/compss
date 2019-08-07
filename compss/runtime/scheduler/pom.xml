@@ -34,6 +34,8 @@
     <modules>
         <module>commons</module>
         <!-- <module>fullGraphScheduler</module> -->
+        <module>newReadyScheduler</module>
+        <module>newFifoDataScheduler</module>
         <module>multiobjectiveScheduler</module>
         <module>readyScheduler</module>
         <module>dataLocalityScheduler</module>

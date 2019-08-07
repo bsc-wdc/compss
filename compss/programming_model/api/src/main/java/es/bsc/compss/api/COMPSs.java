@@ -38,7 +38,8 @@ public class COMPSs {
     /**
      * Barrier with noMoreTasks flag to avoid file transfers.
      * 
-     * @param noMoreTasks Whether there are more tasks to be created or not.
+     * @param noMoreTasks
+     *            Whether there are more tasks to be created or not.
      */
     public static void barrier(boolean noMoreTasks) {
         // This is only a handler, it is never executed
@@ -48,7 +49,8 @@ public class COMPSs {
     /**
      * Barrier for a group of tasks.
      * 
-     * @param groupName Name of the group to perform the barrier.
+     * @param groupName
+     *            Name of the group to perform the barrier.
      */
     public static void barrierGroup(String groupName) throws COMPSsException {
         // This is only a handler, it is never executed
@@ -58,7 +60,8 @@ public class COMPSs {
     /**
      * Unregister the given object from the Runtime.
      * 
-     * @param o Object to unregister.
+     * @param o
+     *            Object to unregister.
      */
     public static void deregisterObject(Object o) {
         // This is only a handler, it is never executed
@@ -68,7 +71,8 @@ public class COMPSs {
     /**
      * Returns the file specified by the given abstract pathname.
      * 
-     * @param fileName File path.
+     * @param fileName
+     *            File path.
      */
     public static void getFile(String fileName) {
         // This is only a handler, it is never executed

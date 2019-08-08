@@ -24,7 +24,7 @@ Synchro0 -> 6 [label="d6v1"];
 5 -> 8 [label="d5v2"];
 Synchro0 -> 8 [label="d6v1"];
 9[shape=circle, style=filled fillcolor="#ff00ae" fontcolor="#000000"];
-6 -> 9[ label="d6v3" ][ ltail="clusterCommutative6_2" ];
+6 -> 9 [label="d6v3"][ ltail="clusterCommutative6_2" ];
 subgraph clusterCommutative6_2 {
 shape=rect;
 node[height=0.75];
@@ -39,7 +39,7 @@ label="CGT6_2";
 9 -> 10 [label="d6v4"];
 9 -> 12 [label="d6v4"];
 9 -> 13 [label="d6v4"];
-10 -> 14[ label="d6v7" ][ ltail="clusterCommutative6_4" ];
+10 -> 14 [label="d6v7"][ ltail="clusterCommutative6_4" ];
 subgraph clusterCommutative6_4 {
 shape=rect;
 node[height=0.75];
@@ -53,9 +53,9 @@ label="CGT6_4";
 }
 
 1 -> 14 [label="d1v2"];
-10 -> 16[ label="d6v7" ][ ltail="clusterCommutative6_4" ];
+10 -> 16 [label="d6v7"][ ltail="clusterCommutative6_4" ];
 1 -> 16 [label="d1v2"];
-10 -> 17[ label="d6v7" ][ ltail="clusterCommutative6_4" ];
+10 -> 17 [label="d6v7"][ ltail="clusterCommutative6_4" ];
 1 -> 17 [label="d1v2"];
 subgraph clusterCommutative1_5 {
 shape=rect;
@@ -69,11 +69,11 @@ label="CGT1_5";
 17[shape=circle, style=filled fillcolor="#00ff00" fontcolor="#000000"];
 }
 
-14 -> 18[ label="d1v5" ][ ltail="clusterCommutative1_5" ];
-14 -> 20[ label="d1v5" ][ ltail="clusterCommutative1_5" ];
-14 -> 21[ label="d1v5" ][ ltail="clusterCommutative1_5" ];
+14 -> 18 [label="d1v5"][ ltail="clusterCommutative1_5" ];
+14 -> 20 [label="d1v5"][ ltail="clusterCommutative1_5" ];
+14 -> 21 [label="d1v5"][ ltail="clusterCommutative1_5" ];
 22[shape=circle, style=filled fillcolor="#ffff00" fontcolor="#000000"];
-18 -> 22[ label="d1v8" ][ ltail="clusterCommutative1_4" ];
+18 -> 22 [label="d1v8"][ ltail="clusterCommutative1_4" ];
 subgraph clusterCommutative1_4 {
 shape=rect;
 node[height=0.75];
@@ -89,8 +89,8 @@ label="CGT1_4";
 Synchro0 -> 22;
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1;
-10 -> Synchro1[ label="d6v7" ][ ltail="clusterCommutative6_4" ];
-18 -> Synchro1[ label="d1v8" ][ ltail="clusterCommutative1_4" ];
+10 -> Synchro1 [label="d6v7"][ ltail="clusterCommutative6_4" ];
+18 -> Synchro1 [label="d1v8"][ ltail="clusterCommutative1_4" ];
 Synchro1 -> 23 [label="d8v1"];
 Synchro1 -> 25 [label="d8v1"];
 Synchro1 -> 26 [label="d8v1"];
@@ -100,7 +100,7 @@ Synchro1 -> 29 [label="d8v1"];
 Synchro1 -> 30 [label="d8v1"];
 Synchro2[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro1 -> Synchro2;
-23 -> Synchro2[ label="d8v9" ][ ltail="clusterCommutative8_7" ];
+23 -> Synchro2 [label="d8v9"][ ltail="clusterCommutative8_7" ];
 31[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];
 Synchro2 -> 31 [label="d9v1"];
 32[shape=circle, style=filled fillcolor="#00a200" fontcolor="#ffffff"];

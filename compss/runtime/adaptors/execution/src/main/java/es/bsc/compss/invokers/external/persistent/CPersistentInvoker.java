@@ -44,4 +44,8 @@ public class CPersistentInvoker extends PersistentInvoker {
         return command;
     }
 
+    @Override
+    public void cancelMethod() {
+
+    }
 }

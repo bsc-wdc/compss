@@ -267,7 +267,7 @@ public abstract class Job<T extends COMPSsWorker> {
      *
      * @throws Exception Error when stopping a job
      */
-    public abstract void stop() throws Exception;
+    public abstract void cancelJob() throws Exception;
 
     /**
      * Returns the hostname.

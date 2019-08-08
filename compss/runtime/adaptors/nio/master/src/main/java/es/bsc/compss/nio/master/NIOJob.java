@@ -75,6 +75,13 @@ public class NIOJob extends Job<NIOWorkerNode> {
         NIOAdaptor.submitTask(this);
     }
 
+    @Override
+    public void cancelJob() throws Exception {
+        // Prepare the job
+        LOGGER.info("Stopping NIOJob with ID " + jobId);
+        NIOAdaptor.cancelTask(this);
+    }
+
     /**
      * Creates a new Task with the associated job parameters.
      *
@@ -142,11 +149,6 @@ public class NIOJob extends Job<NIOWorkerNode> {
                 listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
             }
         }
-    }
-
-    @Override
-    public void stop() throws Exception {
-        // Do nothing
     }
 
     @Override

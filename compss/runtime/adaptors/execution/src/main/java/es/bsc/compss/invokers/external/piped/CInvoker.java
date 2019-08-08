@@ -54,4 +54,8 @@ public class CInvoker extends PipedInvoker {
         return new CMirror(context, numThreads);
     }
 
+    @Override
+    public void cancelMethod() {
+        super.cancelMethod();
+    }
 }

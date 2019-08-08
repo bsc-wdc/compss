@@ -38,8 +38,7 @@ public class TimeOutTask extends TimerTask {
     @Override
     public void run() {
         LOGGER.info("Task " + taskId + " timed out");
-        COMPSsWorker.setCancelled(taskId);
-
+        COMPSsWorker.setCancelled(taskId, 2);
     }
 
 }

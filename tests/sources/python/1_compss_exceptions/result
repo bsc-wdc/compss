@@ -89,6 +89,13 @@
   	exit 1
   fi
 
+  # Check the exception message
+  output1=$(cat "${runtime_log}" | grep "The thrown exception message is: Exception has been raised!!" | wc -l)
+  if [ "${output1}" -ne 3 ]; then
+  	echo "ERROR: The thrown exception message is not correct."
+  	exit 1
+  fi
+
   #----------------------------------------------------------------------------------
   # Check dot file
   final_graph_got=${target_log_folder}/monitor/complete_graph.dot

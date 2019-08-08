@@ -20,6 +20,7 @@ package es.bsc.compss.executor;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.types.execution.exceptions.UnsufficientAvailableComputingUnitsException;
 import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.Collection;
@@ -41,5 +42,9 @@ public interface ExecutorContext {
     public void releaseResources(int jobId);
 
     public Collection<ExecutionPlatformMirror<?>> getMirrors();
+
+    public void registerRunningJob(int jobId, Invoker invoker);
+
+    public void unregisterRunningJob(int jobId);
 
 }

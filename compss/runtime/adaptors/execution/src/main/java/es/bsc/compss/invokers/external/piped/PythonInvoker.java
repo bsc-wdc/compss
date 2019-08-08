@@ -51,4 +51,9 @@ public class PythonInvoker extends PipedInvoker {
         return new PythonMirror(context, threads);
     }
 
+    @Override
+    public void cancelMethod() {
+        super.cancelMethod();
+    }
+
 }

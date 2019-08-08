@@ -22,6 +22,7 @@ import es.bsc.compss.executor.ExecutorContext;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.types.Execution;
 import es.bsc.compss.executor.types.InvocationResources;
+import es.bsc.compss.invokers.Invoker;
 import es.bsc.compss.invokers.test.utils.ExecutionFlowVerifier;
 import es.bsc.compss.invokers.test.utils.FakeInvocation;
 import es.bsc.compss.invokers.test.utils.FakeInvocationContext;
@@ -126,6 +127,16 @@ public class ExecutorTest {
         @Override
         public Collection<ExecutionPlatformMirror<?>> getMirrors() {
             return this.mirrors.values();
+        }
+
+        @Override
+        public void registerRunningJob(int jobId, Invoker invoker) {
+
+        }
+
+        @Override
+        public void unregisterRunningJob(int jobId) {
+
         }
     }
 }

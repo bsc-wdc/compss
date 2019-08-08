@@ -28,6 +28,7 @@ PyCOMPSs Persistent Worker Pipe Constants
 # ############### #
 EXECUTE_TASK_TAG = "EXECUTE_TASK"            # -- "task" taskId jobOut jobErr task_params
 END_TASK_TAG = "END_TASK"                    # -- "endTask" taskId endStatus
+CANCEL_TASK_TAG = "CANCEL_TASK"                 # -- "cancelTask" in_pipe out_pipe
 COMPSS_EXCEPTION_TAG = "COMPSS_EXCEPTION"    # -- "compssException" taskId exception_message
 ERROR_TASK_TAG = "ERROR_TASK"
 ERROR_TAG = "ERROR"                          # -- "error" [MESSAGE EXPECTED]

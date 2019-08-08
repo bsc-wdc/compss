@@ -25,18 +25,12 @@ TASK_SLEEP_TIME_SLOW = 4
 def wait_fast(file_path):
     # Task sleeps less than time out
     time.sleep(TASK_SLEEP_TIME_FAST)
-    # Write value
-    with open(file_path, 'r') as fis:
-        contents = int(fis.readline())
 
 
-@task(file_path=FILE_IN, time_out=2, on_failure='IGNORE')
+@task(file_path=FILE_IN, time_out=2)
 def wait_slow(file_path):
     # Time out is less than sleeping time
     time.sleep(TASK_SLEEP_TIME_SLOW)
-    # Write value
-    with open(file_path, 'r') as fis:
-        contents = int(fis.readline())
 
 
 def create_file(file_name):

@@ -32,7 +32,7 @@
   # Compute result status
   FILES=3
   resultN=2
-  FAILED=1
+  FAILED=4
 
   # Checks if the failed task has been executed through the creation of a job for each
   if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
@@ -46,7 +46,7 @@
   fi
 
   # Check if the tasks have failed
-  output1=$(grep -c "Task failure:" "${runtime_log}")
+  output1=$(grep -c "with state FAILED" "${runtime_log}")
   if [ "${output1}" -ne "${FAILED}" ]; then
   	echo "ERROR: The number of failed tasks is not correct."
   	exit 1

@@ -199,4 +199,8 @@ public class DecafInvoker extends Invoker {
             this.context.getThreadErrStream());
     }
 
+    @Override
+    public void cancelMethod() {
+
+    }
 }

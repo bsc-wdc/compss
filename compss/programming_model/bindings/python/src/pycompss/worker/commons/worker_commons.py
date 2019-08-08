@@ -235,6 +235,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
         # Force users that use decorators on top of @task to return the task
         # results first. This is tested with the timeit decorator in test 19.
         signal.signal(signal.SIGALRM, task_timed_out)
+        signal.signal(signal.SIGUSR1, task_cancel)
         signal.alarm(time_out)
         if persistent_storage:
             with storage_task_context(logger, values,
@@ -249,11 +250,11 @@ def task_execution(logger, process_name, module, method_name, time_out,
     except TimeOutError:
         logger.exception("TIMEOUT ERROR IN %s - Time Out Exception" % process_name)
         logger.exception("Task has taken too much time to process")
-        return task_returns(3, types, values, None, True, "", logger)
+        return task_returns(1, types, values, None, True, "", logger)
     except COMPSsException as compss_exception:
         logger.exception("COMPSS EXCEPTION IN %s" % process_name)
         return_message = "No message"
-        if hasattr(compss_exception, 'message'):
+        if (compss_exception.message != ""):
             return_message = compss_exception.message
         return task_returns(2, new_types, new_values, None, False, return_message, logger)
     except AttributeError:
@@ -343,6 +344,14 @@ def task_timed_out(signum, frame):
     :raise: TimeOutError exception
     """
     raise TimeOutError
+
+
+class CancelError(Exception):
+    pass
+
+
+def task_cancel(signum, frame):
+    raise CancelError
 
 
 def execute_task(process_name, storage_conf, params, tracing, logger,
@@ -580,12 +589,6 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
 
             if exit_code != 0:
                 return exit_code, new_types, new_values, timed_out, exception_message
-
-    # Check if task time out
-    if timed_out:
-        if __debug__:
-            logger.debug("The task timed out")
-        return 1, new_types, new_values, ""
 
     # EVERYTHING OK
     if __debug__:

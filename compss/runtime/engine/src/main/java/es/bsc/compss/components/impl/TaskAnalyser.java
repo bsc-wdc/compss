@@ -677,8 +677,11 @@ public class TaskAnalyser {
         for (TaskGroup group : task.getTaskGroupList()) {
             group.removeTask(task);
             LOGGER.debug("Group " + group.getName() + " released a task");
-            if (!group.hasPendingTasks() && !group.hasImplicitBarrier()) {
-                this.taskGroups.remove(group.getName());
+            if (!group.hasPendingTasks() && group.isClosed() && group.hasBarrier()) {
+                group.releaseBarrier();
+                if (group.getBarrierDrawn()) {
+                    this.taskGroups.remove(group.getName());
+                }
                 LOGGER.debug("All tasks of group " + group.getName() + " have finished execution");
             }
         }
@@ -963,7 +966,7 @@ public class TaskAnalyser {
         // Addition of missing commutative groups to graph
         if (IS_DRAW_GRAPH) {
             addMissingCommutativeTasksToGraph();
-            addNewBarrier();
+            addNewGroupBarrier(tg);
             // We can draw the graph on a barrier while we wait for tasks
             this.gm.commitGraph();
         }
@@ -979,8 +982,14 @@ public class TaskAnalyser {
                 request.getSemaphore().release();
             }
         } else {
-            this.appIdBarrierFlags.add(appId);
-            this.appIdToSemaphore.put(appId, request.getSemaphore());
+            if (tg != null && !tg.hasPendingTasks()) {
+                if (tg.hasException()) {
+                    request.setException(tg.getException());
+                }
+                request.getSemaphore().release();
+            } else {
+                tg.addBarrier(request);
+            }
         }
     }
 
@@ -1023,7 +1032,7 @@ public class TaskAnalyser {
      * @param barrier Flag stating if the group has to perform a barrier.
      */
     public void setCurrentTaskGroup(String groupName, boolean barrier) {
-        TaskGroup tg = new TaskGroup(groupName, barrier);
+        TaskGroup tg = new TaskGroup(groupName);
         this.taskGroups.put(groupName, tg);
         this.currentTaskGroups.push(tg);
         if (IS_DRAW_GRAPH) {
@@ -1037,7 +1046,8 @@ public class TaskAnalyser {
      * Closes the last task group.
      */
     public void closeCurrentTaskGroup() {
-        this.currentTaskGroups.pop();
+        TaskGroup tg = this.currentTaskGroups.pop();
+        tg.setClosed();
         if (IS_DRAW_GRAPH) {
             this.gm.closeGroupInGraph();
         }
@@ -1632,8 +1642,8 @@ public class TaskAnalyser {
             CommutativeGroupTask commGroupTask = (CommutativeGroupTask) task;
             String src = String.valueOf(commGroupTask.getCommutativeTasks().get(0).getId());
             String groupId = commGroupTask.getCommutativeIdentifier().toString();
-            this.gm.addEdgeToGraphFromCommutative(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion),
-                groupId);
+            this.gm.addEdgeToGraphFromGroup(src, dest, String.valueOf(dataId) + "v" + String.valueOf(dataVersion),
+                groupId, "clusterCommutative", edgeType);
         } else {
             // Add edge from task to sync
             String src = String.valueOf(task.getId());
@@ -1657,9 +1667,9 @@ public class TaskAnalyser {
         String dep = String.valueOf(dataId) + "v" + String.valueOf(dataVersion);
         String comId = cgt.getCommutativeIdentifier().toString();
         if (comToTask) {
-            this.gm.addEdgeToGraphFromCommutative(src, dst, dep, comId);
+            this.gm.addEdgeToGraphFromGroup(src, dst, dep, comId, "clusterCommutative", EdgeType.DATA_DEPENDENCY);
         } else {
-            this.gm.addEdgeToGraphFromCommutative(dst, src, dep, comId);
+            this.gm.addEdgeToGraphFromGroup(dst, src, dep, comId, "clusterCommutative", EdgeType.DATA_DEPENDENCY);
         }
     }
 
@@ -1700,6 +1710,34 @@ public class TaskAnalyser {
                 this.gm.addEdgeToGraph(taskId, newSyncStr, EdgeType.USER_DEPENDENCY, "");
             }
         }
+    }
+
+    /**
+     * We have explicitly called the barrier group API call. STEPS: Add a new synchronization node. Add an edge from
+     * last synchronization point to barrier. Add edges from group tasks to barrier.
+     * 
+     * @param groupName Name of the group.
+     */
+    private void addNewGroupBarrier(TaskGroup tg) {
+        // Add barrier node
+        int oldSync = this.synchronizationId;
+        String oldSyncStr = "Synchro" + oldSync;
+
+        // Add barrier node and edge from last sync
+        this.synchronizationId++;
+        String newSyncStr = "Synchro" + this.synchronizationId;
+        this.gm.addBarrierToGraph(this.synchronizationId);
+        this.gm.addEdgeToGraph(oldSyncStr, newSyncStr, EdgeType.USER_DEPENDENCY, "");
+
+        // Reset task detection
+        this.taskDetectedAfterSync = false;
+
+        String src = String.valueOf(tg.getLastTaskId());
+        tg.setBarrierDrawn();
+        if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
+            this.taskGroups.remove(tg.getName());
+        }
+        this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", tg.getName(), "clusterTasks", EdgeType.USER_DEPENDENCY);
     }
 
 

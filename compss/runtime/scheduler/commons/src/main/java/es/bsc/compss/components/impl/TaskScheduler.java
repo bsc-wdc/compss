@@ -502,7 +502,7 @@ public class TaskScheduler {
 
         // We update the worker load
         workerLoadUpdate(resource);
-
+        
         // Schedule data free actions
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
@@ -536,7 +536,11 @@ public class TaskScheduler {
 
         // Process the action error (removes the assigned resource)
         try {
-            action.error();
+            if (action.isCancelling()) {
+                action.canceled();
+            } else {
+                action.error();
+            }
         } catch (FailedActionException fae) {
             // Action has completely failed
             failed = true;
@@ -585,7 +589,7 @@ public class TaskScheduler {
 
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
 
-        if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS) {
+        if (action.getOnFailure() != OnFailure.CANCEL_SUCCESSORS && !action.isCancelled()) {
             handleDependencyFreeActions(dataFreeActions, resourceFree, blockedCandidates, resource);
             for (AllocatableAction aa : blockedCandidates) {
                 if (!aa.hasDataPredecessors() && !aa.hasStreamProducers()) {

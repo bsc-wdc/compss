@@ -354,20 +354,34 @@ public class GraphGenerator {
      * @param tgt Node to which the task is dependent.
      * @param label Data Id and version of the dependency.
      * @param identifier Commutative group identifier.
+     * @param clusterType Commutative group or task group identifier.
+     * @param edgeType Edge type.
      */
-    public void addEdgeToGraphFromCommutative(String src, String tgt, String label, String identifier) {
-        // Build message
-        StringBuilder sb = new StringBuilder();
-        sb.append(src).append(" -> ").append(tgt);
-        if (!label.isEmpty()) {
-            sb.append("[ label=\"d").append(label).append("\" ]");
-        }
-        sb.append("[ ltail=\"clusterCommutative").append(identifier).append("\" ];");
-
-        // Print message
+    public void addEdgeToGraphFromGroup(String src, String tgt, String label, String identifier, String clusterType,
+        EdgeType edgeType) {
         try {
+            // Build the edge properties tag
+            StringBuilder edgeProperties = new StringBuilder();
+            String edgeTypeProps = edgeType.getProperties();
+            if (!edgeTypeProps.isEmpty() || !label.isEmpty()) {
+                edgeProperties.append(" [");
+                if (!edgeTypeProps.isEmpty()) {
+                    edgeProperties.append(edgeTypeProps);
+                    if (!label.isEmpty()) {
+                        edgeProperties.append(", ");
+                    }
+                }
+                if (!label.isEmpty()) {
+                    edgeProperties.append("label=\"d").append(label).append("\"");
+                }
+                edgeProperties.append("]");
+            }
+            edgeProperties.append("[ ltail=\"").append(clusterType).append(identifier).append("\" ]");
+            edgeProperties.append(";");
+
+            // Print message
             full_graph.newLine();
-            full_graph.write(sb.toString());
+            full_graph.write(src + " -> " + tgt + edgeProperties.toString());
         } catch (IOException e) {
             LOGGER.error(ERROR_ADDING_EDGE, e);
         }

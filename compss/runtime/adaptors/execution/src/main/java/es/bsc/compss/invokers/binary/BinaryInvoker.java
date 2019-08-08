@@ -133,4 +133,8 @@ public class BinaryInvoker extends Invoker {
             this.context.getThreadErrStream());
     }
 
+    @Override
+    public void cancelMethod() {
+
+    }
 }

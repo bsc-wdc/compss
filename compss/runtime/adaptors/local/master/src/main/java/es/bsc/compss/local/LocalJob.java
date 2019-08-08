@@ -111,7 +111,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void cancelJob() throws Exception {
     }
 
     @Override

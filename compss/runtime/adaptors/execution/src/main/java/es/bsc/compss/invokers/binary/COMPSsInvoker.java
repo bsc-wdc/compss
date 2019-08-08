@@ -324,4 +324,9 @@ public class COMPSsInvoker extends Invoker {
         // Wait and return exit value
         return process.waitFor();
     }
+
+    @Override
+    public void cancelMethod() {
+
+    }
 }

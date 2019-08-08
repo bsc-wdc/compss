@@ -22,6 +22,7 @@ import es.bsc.compss.executor.external.ExternalExecutorException;
 import es.bsc.compss.executor.external.commands.ExternalCommand.CommandType;
 import es.bsc.compss.executor.external.piped.commands.AddExecutorPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.AddedExecutorPipeCommand;
+import es.bsc.compss.executor.external.piped.commands.CancelJobCommand;
 import es.bsc.compss.executor.external.piped.commands.ChannelCreatedPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.CreateChannelPipeCommand;
 import es.bsc.compss.executor.external.piped.commands.ExecutorPIDQueryPipeCommand;
@@ -178,7 +179,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         StringBuilder cmd = new StringBuilder();
 
         // Control pipes
-        pipeBuilderPipe = new ControlPipePair(basePipePath, "control");
+        pipeBuilderPipe = new ControlPipePair(basePipePath, "control", this);
         cmd.append(pipeBuilderPipe.getOutboundPipe()).append(TOKEN_SEP);
         cmd.append(pipeBuilderPipe.getInboundPipe()).append(TOKEN_SEP);
 
@@ -187,7 +188,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         StringBuilder readPipes = new StringBuilder();
         for (int i = 0; i < size; ++i) {
             String pipeName = "compute" + i;
-            PipePair computePipe = new PipePair(basePipePath, pipeName);
+            PipePair computePipe = new PipePair(basePipePath, pipeName, this);
             this.pipePool.put(pipeName, computePipe);
             writePipes.append(computePipe.getOutboundPipe()).append(TOKEN_SEP);
             readPipes.append(computePipe.getInboundPipe()).append(TOKEN_SEP);
@@ -222,7 +223,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     public abstract String getPipeBuilderContext();
 
     private void startWorker(InvocationContext context) {
-        pipeWorkerPipe = new ControlPipePair(basePipePath, "control_worker");
+        pipeWorkerPipe = new ControlPipePair(basePipePath, "control_worker", this);
         String cmd = getLaunchWorkerCommand(context, pipeWorkerPipe);
         if (pipeBuilderPipe.sendCommand(new StartWorkerPipeCommand(cmd, pipeWorkerPipe))) {
             WorkerStartedPipeCommand startedCMD = new WorkerStartedPipeCommand();
@@ -343,7 +344,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         synchronized (this.pipePool) {
             pp = this.pipePool.get(executorId);
             if (pp == null) {
-                pp = new PipePair(this.basePipePath, executorId);
+                pp = new PipePair(this.basePipePath, executorId, this);
                 createExecutor = true;
                 this.pipePool.put(executorId, pp);
             }
@@ -433,5 +434,11 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
         pp.delete();
         LOGGER.debug("EXECUTOR " + executorId + " shut down!");
+    }
+
+    @Override
+    public void cancelJob(PipePair pipe) {
+        // Making sure that it is off through the Worker
+        pipeWorkerPipe.sendCommand(new CancelJobCommand(pipe));
     }
 }

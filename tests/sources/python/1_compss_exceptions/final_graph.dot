@@ -23,7 +23,7 @@ Synchro0 -> 1 [label="d1v1"];
 
 Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1 [color=grey];
-3 -> Synchro1 [color=grey];
+3 -> Synchro1 [color=grey][ ltail="clusterTasksexceptionGroup1" ];
 4[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 Synchro1 -> 4 [label="d1v2"];
 5[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
@@ -44,7 +44,7 @@ label="exceptionGroup2";
 
 Synchro2[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro1 -> Synchro2 [color=grey];
-8 -> Synchro2 [color=grey];
+8 -> Synchro2 [color=grey][ ltail="clusterTasksexceptionGroup2" ];
 9[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 Synchro2 -> 9 [label="d1v5"];
 10[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
@@ -65,7 +65,7 @@ label="exceptionGroup3";
 
 Synchro3[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro2 -> Synchro3 [color=grey];
-13 -> Synchro3 [color=grey];  }
+13 -> Synchro3 [color=grey][ ltail="clusterTasksexceptionGroup3" ];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

@@ -265,4 +265,9 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     public boolean checkIfCanceled(AllocatableAction aa) {
         return false;
     }
+
+    @Override
+    protected void stopAction() throws Exception {
+
+    }
 }

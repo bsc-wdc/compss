@@ -254,6 +254,7 @@ public class Executor implements Runnable {
                     invoker = new OpenCLInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
             }
+            platform.registerRunningJob(invocation.getJobId(), invoker);
             invoker.processTask();
         } catch (Exception jee) {
             out.println("[EXECUTOR] executeTask - Error in task execution");
@@ -266,6 +267,7 @@ public class Executor implements Runnable {
             if (invocation.isDebugEnabled()) {
                 out.println("[EXECUTOR] executeTask - End task execution");
             }
+            platform.unregisterRunningJob(invocation.getJobId());
             context.unregisterOutputs();
         }
     }
@@ -692,7 +694,7 @@ public class Executor implements Runnable {
                 String filepath = (String) param.getValue();
                 File f = new File(filepath);
                 // If using C binding we ignore potential errors
-                if (f.exists()) {
+                if (!f.exists()) {
                     out.println("[EXECUTOR] executeTask - Creating a new blank file");
                     try {
                         f.createNewFile();

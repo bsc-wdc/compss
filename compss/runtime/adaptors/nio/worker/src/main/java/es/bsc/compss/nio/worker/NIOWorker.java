@@ -541,6 +541,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         c.finishConnection();
     }
 
+    @Override
+    public void cancelRunningTask(NIONode node, int jobId) {
+        this.executionManager.cancelJob(jobId);
+    }
+
     /**
      * Remove obsolete objects.
      *

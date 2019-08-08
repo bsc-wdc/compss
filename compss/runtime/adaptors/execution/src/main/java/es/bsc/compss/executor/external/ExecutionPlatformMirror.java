@@ -16,6 +16,9 @@
  */
 package es.bsc.compss.executor.external;
 
+import es.bsc.compss.executor.external.piped.PipePair;
+
+
 public interface ExecutionPlatformMirror<T> {
 
     public T registerExecutor(String id);
@@ -23,5 +26,7 @@ public interface ExecutionPlatformMirror<T> {
     public void unregisterExecutor(String id);
 
     public void stop();
+
+    public void cancelJob(PipePair pipe);
 
 }

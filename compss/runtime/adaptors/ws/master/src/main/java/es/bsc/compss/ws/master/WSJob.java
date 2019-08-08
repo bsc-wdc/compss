@@ -124,7 +124,7 @@ public class WSJob extends Job<ServiceInstance> {
     }
 
     @Override
-    public void stop() {
+    public void cancelJob() {
 
     }
 

@@ -17,6 +17,7 @@
 package es.bsc.compss.executor.external.persistent;
 
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
+import es.bsc.compss.executor.external.piped.PipePair;
 import es.bsc.compss.invokers.external.persistent.PersistentInvoker;
 import es.bsc.compss.types.execution.InvocationContext;
 import java.io.PrintStream;
@@ -38,6 +39,11 @@ public class PersistentMirror implements ExecutionPlatformMirror<Void> {
 
     @Override
     public void stop() {
+
+    }
+
+    @Override
+    public void cancelJob(PipePair pipe) {
 
     }
 

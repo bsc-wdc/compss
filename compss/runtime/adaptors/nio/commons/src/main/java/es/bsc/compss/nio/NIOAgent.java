@@ -872,4 +872,5 @@ public abstract class NIOAgent {
 
     public abstract void performedResourceUpdate(Connection c);
 
+    public abstract void cancelRunningTask(NIONode node, int jobId);
 }

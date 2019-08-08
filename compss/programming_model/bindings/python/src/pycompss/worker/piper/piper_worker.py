@@ -24,6 +24,7 @@ PyCOMPSs Persistent Worker
 """
 
 import os
+from os import kill
 import sys
 import signal
 import logging
@@ -242,6 +243,12 @@ def compss_persistent_worker(config):
                                    out_pipe + " " +
                                    in_pipe + " " +
                                    str(pid))
+
+            elif line[0] == CANCEL_TASK_TAG:
+                in_pipe = line[1]
+                proc = PROCESSES.get(in_pipe)
+                pid = proc.pid
+                kill(pid, signal.SIGUSR1)
 
             elif line[0] == REMOVE_EXECUTOR_TAG:
 

@@ -946,25 +946,33 @@ public abstract class AllocatableAction {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else if (this.state != State.CANCELLED) {
-            // Mark as canceled
-            this.state = State.CANCELLED;
-
-            cancelAction();
-
-            List<AllocatableAction> successors = new LinkedList<>();
-            successors.addAll(this.dataSuccessors);
-
-            // Action notification
-            doCanceled();
-
-            // Forward cancellation to successors
-            for (AllocatableAction succ : successors) {
-                cancel.addAll(succ.canceled());
+        } else {
+            if (this.state == State.CANCELLING) {
+                // Release resources and run tasks blocked on the resource
+                releaseResources();
+                this.selectedResource.unhostAction(this);
+                this.selectedResource.tryToLaunchBlockedActions();
             }
+            if (this.state != State.CANCELLED) {
+                // Mark as canceled
+                this.state = State.CANCELLED;
 
-            this.dataPredecessors.clear();
-            this.dataSuccessors.clear();
+                cancelAction();
+
+                List<AllocatableAction> successors = new LinkedList<>();
+                successors.addAll(this.dataSuccessors);
+
+                // Action notification
+                doCanceled();
+
+                // Forward cancellation to successors
+                for (AllocatableAction succ : successors) {
+                    cancel.addAll(succ.canceled());
+                }
+
+                this.dataPredecessors.clear();
+                this.dataSuccessors.clear();
+            }
         }
 
         return cancel;

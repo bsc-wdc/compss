@@ -1041,7 +1041,7 @@ public class TaskAnalyser {
             Stack<TaskGroup> currentTaskGroups = new Stack<>();
             this.currentTaskGroups.put(appId, currentTaskGroups);
         }
-        TaskGroup tg = new TaskGroup(groupName);
+        TaskGroup tg = new TaskGroup(groupName, appId);
         this.currentTaskGroups.get(appId).push(tg);
         if (!this.taskGroups.containsKey(appId)) {
             TreeMap<String, TaskGroup> taskGroups = new TreeMap<>();
@@ -1050,9 +1050,11 @@ public class TaskAnalyser {
         this.taskGroups.get(appId).put(groupName, tg);
 
         if (IS_DRAW_GRAPH) {
-            this.gm.addTaskGroupToGraph(tg.getName());
+            if (!tg.isAppGroup(appId)) {
+                this.gm.addTaskGroupToGraph(tg.getName());
+                LOGGER.debug("Group " + groupName + " added to graph");
+            }
             tg.setGraphDrawn();
-            LOGGER.debug("Group " + groupName + " added to graph");
         }
     }
 
@@ -1086,9 +1088,11 @@ public class TaskAnalyser {
         Semaphore sem = request.getSemaphore();
         Long appId = request.getAppId();
         String groupName = "App" + appId;
-        TaskGroup tg = this.taskGroups.get(appId).get(groupName);
-        tg.cancelTasks();
-        this.taskGroups.remove(appId);
+        if (this.taskGroups.containsKey(appId) && this.taskGroups.get(appId).containsKey(groupName)) {
+            TaskGroup tg = this.taskGroups.get(appId).get(groupName);
+            tg.cancelTasks();
+            this.taskGroups.remove(appId);
+        }
         sem.release();
     }
 
@@ -1770,7 +1774,7 @@ public class TaskAnalyser {
         String src = String.valueOf(tg.getLastTaskId());
         tg.setBarrierDrawn();
         if (!tg.hasPendingTasks() && tg.isClosed() && tg.hasBarrier()) {
-            this.taskGroups.remove(tg.getName());
+            this.taskGroups.get(tg.getAppId()).remove(tg.getName());
         }
         this.gm.addEdgeToGraphFromGroup(src, newSyncStr, "", tg.getName(), "clusterTasks", EdgeType.USER_DEPENDENCY);
     }

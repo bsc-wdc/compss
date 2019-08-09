@@ -50,6 +50,8 @@ public class TaskGroup implements AutoCloseable {
 
     private int lastTaskId; // For being the source of the edge with the barrier.
 
+    private long appId;
+
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 
@@ -59,8 +61,9 @@ public class TaskGroup implements AutoCloseable {
      * 
      * @param groupName Name of the group.
      */
-    public TaskGroup(String groupName) {
+    public TaskGroup(String groupName, Long appId) {
         this.tasks = new LinkedList<Task>();
+        this.appId = appId;
         this.graphDrawn = false;
         this.name = groupName;
         this.barrierSemaphores = new LinkedList<>();
@@ -86,6 +89,15 @@ public class TaskGroup implements AutoCloseable {
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * Gets the group AppId.
+     * 
+     * @return
+     */
+    public long getAppId() {
+        return appId;
     }
 
     /**
@@ -243,4 +255,15 @@ public class TaskGroup implements AutoCloseable {
         }
         LOGGER.debug("All the application tasks have been cancelled.");
     }
+
+    /**
+     * Returns if it is the main application group.
+     * 
+     * @param appId Application Id.
+     * @return
+     */
+    public boolean isAppGroup(Long appId) {
+        return this.name.equals("App" + appId);
+    }
+
 }

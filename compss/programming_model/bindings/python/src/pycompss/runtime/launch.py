@@ -237,7 +237,7 @@ def compss_main():
         # Any other exception occurred
         print("[ ERROR ]: A COMPSs exception occurred: " + str(e))
         traceback.print_exc()
-        exit_code = 1  # COMPSs exception is not considered an error
+        exit_code = 0  # COMPSs exception is not considered an error
     except Exception as e:
         # Any other exception occurred
         print("[ ERROR ]: An exception occurred: " + str(e))

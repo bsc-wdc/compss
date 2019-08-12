@@ -52,7 +52,7 @@ public abstract class ReadyResourceScheduler<T extends WorkerResourceDescription
 
     @Override
     public abstract Score generateImplementationScore(AllocatableAction action, TaskDescription params,
-            Implementation impl, Score resourceScore);
+        Implementation impl, Score resourceScore);
 
     @Override
     public abstract String toString();

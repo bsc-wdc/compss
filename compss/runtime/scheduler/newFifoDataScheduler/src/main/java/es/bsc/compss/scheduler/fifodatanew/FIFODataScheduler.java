@@ -53,7 +53,7 @@ public class FIFODataScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> FIFODataResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-            JSONObject resJSON, JSONObject implJSON) {
+        JSONObject resJSON, JSONObject implJSON) {
         // LOGGER.debug("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
         return new FIFODataResourceScheduler<>(w, resJSON, implJSON);
     }
@@ -73,10 +73,10 @@ public class FIFODataScheduler extends ReadyScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void purgeFreeActions(List<AllocatableAction> dataFreeActions,
-            List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
-            ResourceScheduler<T> resource) {
+        List<AllocatableAction> resourceFreeActions, List<AllocatableAction> blockedCandidates,
+        ResourceScheduler<T> resource) {
 
-        LOGGER.debug("[DataScheduler] Treating dependency free actions");
+        LOGGER.debug("[FIFOData Scheduler] Treating dependency free actions");
 
         PriorityQueue<ObjectValue<AllocatableAction>> executableActions = new PriorityQueue<>();
         for (AllocatableAction action : dataFreeActions) {
@@ -86,21 +86,37 @@ public class FIFODataScheduler extends ReadyScheduler {
             executableActions.add(obj);
         }
         dataFreeActions.clear();
-        while (!executableActions.isEmpty()) {
+        while (!executableActions.isEmpty() && !this.availableWorkers.isEmpty()) {
             ObjectValue<AllocatableAction> obj = executableActions.poll();
             AllocatableAction freeAction = obj.getObject();
             try {
-                scheduleAction(freeAction, resource, obj.getScore());
+                List<ResourceScheduler<?>> uselessWorkers =
+                    freeAction.tryToSchedule(obj.getScore(), this.availableWorkers);
+                for (ResourceScheduler<?> worker : uselessWorkers) {
+                    this.availableWorkers.remove(worker);
+                }
+                ResourceScheduler<? extends WorkerResourceDescription> assignedResource =
+                    freeAction.getAssignedResource();
                 tryToLaunch(freeAction);
+                if (!assignedResource.canRunSomething()) {
+                    this.availableWorkers.remove(assignedResource);
+                }
             } catch (BlockedActionException e) {
-                blockedCandidates.add(freeAction);
+                removeFromReady(freeAction);
+                addToBlocked(freeAction);
             } catch (UnassignedActionException e) {
                 dataFreeActions.add(freeAction);
             }
         }
 
-        List<AllocatableAction> unassignedReadyActions = this.unassignedReadyActions.removeAllActions();
-        dataFreeActions.addAll(unassignedReadyActions);
+        while (!executableActions.isEmpty()) {
+            ObjectValue<AllocatableAction> obj = executableActions.poll();
+            AllocatableAction freeAction = obj.getObject();
+            dataFreeActions.add(freeAction);
+        }
+
+        super.purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
+
     }
 
 }

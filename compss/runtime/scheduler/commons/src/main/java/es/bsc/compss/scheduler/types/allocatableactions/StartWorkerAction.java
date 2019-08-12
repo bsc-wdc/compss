@@ -37,6 +37,7 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 
 public class StartWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction {
@@ -268,6 +269,17 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void stopAction() throws Exception {
+    }
 
+    @Override
+    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
+        Set<ResourceScheduler<? extends WorkerResourceDescription>> availableResources)
+        throws BlockedActionException, UnassignedActionException {
+        this.schedule(actionScore);
+        List<ResourceScheduler<?>> uselessWorkers = new LinkedList<ResourceScheduler<?>>();
+        if (!this.worker.canRunSomething()) {
+            uselessWorkers.add(this.worker);
+        }
+        return uselessWorkers;
     }
 }

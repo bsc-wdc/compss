@@ -404,6 +404,21 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     /**
+     * Returns whether the current worker can run something or not.
+     * 
+     * @return {@literal true} if the current worker can run something, {@literal false} otherwise.
+     */
+    public boolean canRunSomething() {
+        int coreCount = CoreManager.getCoreCount();
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            if (!getRunnableImplementations(coreId).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns whether the current worker can run the core element with id {@code coreId} or not.
      * 
      * @param coreId Core Id.

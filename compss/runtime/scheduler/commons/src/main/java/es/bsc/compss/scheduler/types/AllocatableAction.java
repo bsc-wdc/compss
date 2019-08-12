@@ -33,6 +33,7 @@ import es.bsc.compss.worker.COMPSsException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -814,6 +815,9 @@ public abstract class AllocatableAction {
     }
 
     protected abstract void treatDependencyFreeAction(List<AllocatableAction> freeTasks);
+
+    public abstract List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
+        Set<ResourceScheduler<?>> availableWorkers) throws BlockedActionException, UnassignedActionException;
 
     /**
      * Operations to perform when AA has raised an error. Calls specific operation doError.

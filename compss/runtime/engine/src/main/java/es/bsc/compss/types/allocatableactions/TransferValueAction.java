@@ -48,6 +48,7 @@ import es.bsc.compss.worker.COMPSsException;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -407,5 +408,11 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     @Override
     protected void stopAction() throws Exception {
 
+    }
+
+    @Override
+    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers)
+        throws BlockedActionException, UnassignedActionException {
+        return null;
     }
 }

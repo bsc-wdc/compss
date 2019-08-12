@@ -86,7 +86,6 @@ label="CGT1_4";
 21[shape=circle, style=filled fillcolor="#b30000" fontcolor="#ffffff"];
 }
 
-Synchro0 -> 22;
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1;
 10 -> Synchro1 [label="d6v7"][ ltail="clusterCommutative6_4" ];

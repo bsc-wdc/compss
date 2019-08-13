@@ -67,6 +67,7 @@ import es.bsc.compss.worker.CanceledTask;
 import es.bsc.compss.worker.TimeOutTask;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -860,6 +861,50 @@ public class ExecutionAction extends AllocatableAction {
         Score computedScore = targetWorker.generateResourceScore(this, this.task.getTaskDescription(), actionScore);
         // LOGGER.debug("Scheduling Score " + computedScore);
         return computedScore;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final List<ResourceScheduler<?>> tryToSchedule(Score actionScore,
+        Set<ResourceScheduler<?>> availableResources) throws BlockedActionException, UnassignedActionException {
+        // COMPUTE RESOURCE CANDIDATES
+        List<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
+        List<ResourceScheduler<? extends WorkerResourceDescription>> uselessWorkers = new LinkedList<>();
+        if (this.isTargetResourceEnforced()) {
+            // The scheduling is forced to a given resource
+            candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
+        } else if (this.isSchedulingConstrained()) {
+            // The scheduling is constrained by dependencies
+            for (AllocatableAction a : this.getConstrainingPredecessors()) {
+                candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
+            }
+        } else {
+            // Free scheduling
+            List<ResourceScheduler<? extends WorkerResourceDescription>> compatibleCandidates = getCompatibleWorkers();
+            if (compatibleCandidates.size() == 0) {
+                throw new BlockedActionException();
+            }
+            /*
+             * for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : compatibleCandidates) { if
+             * (currentWorker.getResource().canRunSomething()) { if (availableResources.contains(currentWorker)) {
+             * candidates.add(currentWorker); } } else { uselessWorkers.add(currentWorker); } }
+             */
+            for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : availableResources) {
+                if (currentWorker.getResource().canRunSomething()) {
+                    if (compatibleCandidates.contains(currentWorker)) {
+                        candidates.add(currentWorker);
+                    }
+                } else {
+                    uselessWorkers.add(currentWorker);
+                }
+            }
+            if (candidates.size() == 0) {
+                throw new UnassignedActionException();
+            }
+        }
+        Collections.shuffle(candidates);
+        this.schedule(actionScore, candidates);
+        return uselessWorkers;
     }
 
     @SuppressWarnings("unchecked")

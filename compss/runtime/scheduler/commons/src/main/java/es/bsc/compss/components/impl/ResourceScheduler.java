@@ -384,6 +384,24 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     }
 
     /**
+     * Returns true if this resource has available slots to run some task. False otherwise.
+     *
+     * @return
+     */
+    public final boolean canRunSomething() {
+        return this.myWorker.canRunSomething();
+    }
+
+    /**
+     * Returns true if this resource has available slots to run some task. False otherwise.
+     *
+     * @return
+     */
+    public final boolean hasAvailableSlots() {
+        return this.myWorker.hasAvailableSlots();
+    }
+
+    /**
      * Returns all the hosted actions.
      *
      * @return All the hosted actions.

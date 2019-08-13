@@ -95,7 +95,8 @@ public class TaskScheduler {
 
     // Profiles from resources that have already been turned off
     private Profile[][] offVMsProfiles;
-
+    
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     /**
      * Constructs a new Task Scheduler.
@@ -329,7 +330,7 @@ public class TaskScheduler {
      *
      * @param action AllocatableAction.
      */
-    private void addToReady(AllocatableAction action) {
+    protected void addToReady(AllocatableAction action) {
         LOGGER.debug("[TaskScheduler] Add action " + action + " to ready count");
         Integer coreId = action.getCoreId();
         if (coreId != null) {
@@ -345,7 +346,7 @@ public class TaskScheduler {
      *
      * @param action AllocatableAction.
      */
-    private void removeFromReady(AllocatableAction action) {
+    protected void removeFromReady(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Remove action " + action + " from ready count");
         if (action.getImplementations() != null) {
             if (action.getImplementations().length > 0) {
@@ -365,7 +366,7 @@ public class TaskScheduler {
      *
      * @param action Blocked AllocatableAction.
      */
-    private void addToBlocked(AllocatableAction action) {
+    protected void addToBlocked(AllocatableAction action) {
         LOGGER.warn("[TaskScheduler] Blocked Action: " + action);
         this.blockedActions.addAction(action);
     }
@@ -382,7 +383,7 @@ public class TaskScheduler {
      *
      * @param action Action to be scheduled.
      */
-    public final void newAllocatableAction(AllocatableAction action) {
+    public void newAllocatableAction(AllocatableAction action) {
         LOGGER.info("[TaskScheduler] Registering new AllocatableAction " + action);
         if (!action.hasDataPredecessors() && !action.hasStreamProducers()) {
             addToReady(action);

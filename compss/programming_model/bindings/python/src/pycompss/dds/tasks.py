@@ -28,6 +28,14 @@ FILE_NAME_LENGTH = 5
 
 @task(returns=1)
 def map_partition(func, partition, *collection):
+    """ Map the given function to the partition.
+
+    :param func: a functions that returns only one argument which is an iterable
+    :param partition: the partition itself or a partition generator object
+    :param collection: if the partition is a collection of future objects, it
+            must be sent as *args...
+    :return: the transformed partition
+    """
 
     partition = partition or list(collection)
     if isinstance(partition, IPartitionGenerator):
@@ -42,11 +50,13 @@ def map_partition(func, partition, *collection):
 def distribute_partition(col, func, partitioner_func, partition, *collection):
     """ Distribute (key, value) structured elements of the partition on
     'buckets'.
-    :param partition:
-    :param partitioner_func: a function to find element's corresponding bucket
-    :param col: empty 'buckets'.
-    :param func: function from DDS object to be applied to the parition before
+    :param col: empty 'buckets', must be repleced with COLLECTION_OUT..
+    :param func: function from DDS object to be applied to the partition before
                  the distribution.
+    :param partitioner_func: a function to find element's corresponding bucket
+    :param partition: the partition itself or a partition generator object
+    :param collection: if the partition is a collection of future objects, it
+            must be sent as *args...
     :return: fill the empty 'buckets' with the elements of the partition.
     """
     partition = partition or list(collection)
@@ -124,7 +134,15 @@ def task_collect_samples(partition, num_of_samples, key_func):
 
 @task()
 def map_and_save_text_file(func, index, path, partition, *collection):
-
+    """ Same as 'map_partition' function with the only difference that this one
+    saves the result as a text file.
+    :param func:
+    :param index: important to keep the order of the partitions
+    :param path: directory to save the partition
+    :param partition:
+    :param collection:
+    :return: no return value skips the serialization phase
+    """
     partition = partition or list(collection)
 
     if isinstance(partition, IPartitionGenerator):
@@ -139,7 +157,14 @@ def map_and_save_text_file(func, index, path, partition, *collection):
 
 @task()
 def map_and_save_pickle(func, index, path, partition, *collection):
-
+    """ Same as 'map_partition' function with the only difference that this one
+    saves the result as a pickle file.
+    :param func:
+    :param index: important to keep the order of the partitions
+    :param path: directory to save the partition
+    :param partition:
+    :param collection:
+    """
     partition = partition or list(collection)
 
     if isinstance(partition, IPartitionGenerator):

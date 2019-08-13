@@ -46,15 +46,14 @@ class DDS(object):
         self.partitions = list()
         self.func = None
 
-        # Todo: Rename this variable
-        # Partition As A Future Object
+        # Partition As A Collection
         # True if partitions are not Future Objects but list of Future Objects
-        self.paafo = False
+        self.paac = False
 
-    def load(self, iterator, num_of_parts=10, paafo=False):
+    def load(self, iterator, num_of_parts=10, paac=False):
         """ Load and distribute the iterator on partitions.
         """
-        self.paafo = paafo
+        self.paac = paac
         if num_of_parts == -1:
             self.partitions = iterator
             return self
@@ -437,7 +436,7 @@ class DDS(object):
         """
         processed = list()
         if self.func:
-            if self.paafo:
+            if self.paac:
                 for col in self.partitions:
                     processed.append(map_partition(self.func, None, *col))
             else:
@@ -474,7 +473,7 @@ class DDS(object):
         :param path:
         :return:
         """
-        if self.paafo:
+        if self.paac:
             for i, _p in enumerate(self.partitions):
                 map_and_save_text_file(self.func, i, path, None, *_p)
         else:
@@ -489,7 +488,7 @@ class DDS(object):
         :param path:
         :return:
         """
-        if self.paafo:
+        if self.paac:
             for i, _p in enumerate(self.partitions):
                 map_and_save_pickle(self.func, i, path, None, *_p)
         else:
@@ -553,7 +552,7 @@ class DDS(object):
 
         grouped = defaultdict(list)
 
-        if self.paafo:
+        if self.paac:
             for collection in self.partitions:
                 col = [[] for _ in range(nop)]
                 distribute_partition(col, self.func, partitioner_func, None,
@@ -737,7 +736,7 @@ class ChildDDS(DDS):
         :param func:
         """
         super(ChildDDS, self).__init__()
-        self.paafo = parent.paafo
+        self.paac = parent.paac
 
         if not isinstance(parent, ChildDDS):
             self.func = func

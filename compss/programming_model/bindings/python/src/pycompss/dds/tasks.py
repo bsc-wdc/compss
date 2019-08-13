@@ -174,7 +174,14 @@ def map_and_save_text_file(func, index, path, partition, *collection):
 
 
 @task()
-def save_pickle_file(partition, index, path):
+def map_and_save_pickle(func, index, path, partition, *collection):
+
+    partition = partition or list(collection)
+
+    if isinstance(partition, IPartitionGenerator):
+        partition = partition.retrieve_data()
+
+    partition = func(partition) if func else partition
 
     file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
     pickle.dump(list(partition), open(file_name, "wb"))

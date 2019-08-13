@@ -529,10 +529,10 @@ class DDS(object):
         """
         return self.map(lambda x: x[1])
 
-    def partition_by(self, partition_func=default_hash, num_of_partitions=-1):
+    def partition_by(self, partitioner_func=default_hash, num_of_partitions=-1):
         """
         Create partitions by a Partition Func.
-        :param partition_func: A Function distribute data on partitions based on
+        :param partitioner_func: A Function distribute data on partitions based on
                 For example, hash function.
         :param num_of_partitions: number of partitions to be created
         :return:
@@ -553,17 +553,19 @@ class DDS(object):
 
         grouped = defaultdict(list)
 
-        for partition in self.partitions:
-            col = [[] for _ in range(nop)]
-            if self.paafo:
-                distribute_collection(
-                    partition_func, col, self.func, *partition)
-            else:
-                distribute_partition(
-                    partition, partition_func, col, self.func)
-
-            for _i in range(nop):
-                grouped[_i].append(col[_i])
+        if self.paafo:
+            for collection in self.partitions:
+                col = [[] for _ in range(nop)]
+                distribute_partition(col, self.func, partitioner_func, None,
+                                     *collection)
+                for _i in range(nop):
+                    grouped[_i].append(col[_i])
+        else:
+            for _part in self.partitions:
+                col = [[] for _ in range(nop)]
+                distribute_partition(col, self.func, partitioner_func, _part)
+                for _i in range(nop):
+                    grouped[_i].append(col[_i])
 
         future_partitions = list()
         for key in sorted(grouped.keys()):
@@ -680,7 +682,6 @@ class DDS(object):
 
         # Collect everything to take samples
         col_parts = self.collect(future_objects=True)
-
         samples = list()
         for _part in col_parts:
             samples.append(task_collect_samples(_part, 20, key_func))

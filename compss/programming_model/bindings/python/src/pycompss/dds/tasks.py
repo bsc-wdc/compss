@@ -26,6 +26,7 @@ marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 FILE_NAME_LENGTH = 5
 
 
+@task(returns=1)
 def map_partition(func, partition, *collection):
 
     partition = partition or list(collection)
@@ -38,44 +39,26 @@ def map_partition(func, partition, *collection):
 
 
 @task(col=COLLECTION_INOUT)
-def distribute_partition(partition, partition_func, col, func=None):
+def distribute_partition(col, func, partitioner_func, partition, *collection):
     """ Distribute (key, value) structured elements of the partition on
     'buckets'.
     :param partition:
-    :param partition_func: a function to find element's corresponding bucket
+    :param partitioner_func: a function to find element's corresponding bucket
     :param col: empty 'buckets'.
     :param func: function from DDS object to be applied to the parition before
                  the distribution.
     :return: fill the empty 'buckets' with the elements of the partition.
     """
+    partition = partition or list(collection)
+
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
 
-    if func:
-        partition = func(partition)
-    nop = len(col)
-    for k, v in partition:
-        col[partition_func(k) % nop].append((k, v))
-
-
-@task(col=COLLECTION_INOUT)
-def distribute_collection(partition_func, col, func=None, *args):
-    """ Distribute (key, value) structured elements of the partition on
-    'buckets'.
-    :param args: partition as a list of Future Objects
-    :param partition_func: a function to find element's corresponding bucket
-    :param col: empty 'buckets'.
-    :param func: function from DDS object to be applied to the parition before
-                 the distribution.
-    :return: fill the empty 'buckets' with the elements of the partition.
-    """
-    partition = list(args)
-    if func:
-        partition = func(partition)
+    partition = func(partition) if func else partition
 
     nop = len(col)
     for k, v in partition:
-        col[partition_func(k) % nop].append((k, v))
+        col[partitioner_func(k) % nop].append((k, v))
 
 
 @task(first=INOUT)

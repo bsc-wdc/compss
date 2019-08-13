@@ -471,10 +471,12 @@ class DDS(object):
         :param path:
         :return:
         """
-        processed = self.collect(future_objects=True)
-        for i, _p in enumerate(processed):
-            save_text_file(_p, i, path)
-
+        if self.paafo:
+            for i, _p in enumerate(self.partitions):
+                map_and_save_text_file(self.func, i, path, None, *_p)
+        else:
+            for i, _p in enumerate(self.partitions):
+                map_and_save_text_file(self.func, i, path, _p)
         return None
 
     def save_as_pickle(self, path):

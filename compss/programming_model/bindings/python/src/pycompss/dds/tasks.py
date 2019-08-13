@@ -159,7 +159,14 @@ def task_collect_samples(partition, num_of_samples, key_func):
 
 
 @task()
-def save_text_file(partition, index, path):
+def map_and_save_text_file(func, index, path, partition, *collection):
+
+    partition = partition or list(collection)
+
+    if isinstance(partition, IPartitionGenerator):
+        partition = partition.retrieve_data()
+
+    partition = func(partition) if func else partition
 
     file_name = os.path.join(path, str(index).zfill(FILE_NAME_LENGTH))
     with open(file_name, "w") as _:

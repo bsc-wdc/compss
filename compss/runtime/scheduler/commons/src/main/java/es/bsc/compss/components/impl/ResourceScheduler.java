@@ -391,7 +391,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     public final boolean canRunSomething() {
         return this.myWorker.canRunSomething();
     }
-    
+
     /**
      * Returns true if this resource has available slots to run some task. False otherwise.
      *

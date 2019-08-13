@@ -233,7 +233,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     @Override
     protected void stopAction() throws Exception {
     }
-    
+
     @Override
     public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers)
         throws BlockedActionException, UnassignedActionException {

@@ -26,33 +26,14 @@ marker = "COMPSS_DEFAULT_VALUE_TO_BE_USED_AS_A_MARKER"
 FILE_NAME_LENGTH = 5
 
 
-def map_partition(f, partition, col=False):
-    return _map_collection(f, *partition) if col \
-        else _map_partition(f, partition)
+def map_partition(func, partition, *collection):
 
-
-@task(returns=1)
-def _map_partition(f, partition):
-    """
-    Apply a function to a partition in a new task. The function should take an
-    iterable as the parameter and return a list.
-    :param f: A function that takes an iterable as a parameter
-    :param partition: partition generator
-    :return: future object of the list containing results
-    """
+    partition = partition or list(collection)
     if isinstance(partition, IPartitionGenerator):
         partition = partition.retrieve_data()
 
-    res = f(partition)
+    res = func(partition)
     del partition
-    return res
-
-
-@task(returns=1)
-def _map_collection(f, *partition):
-    """
-    """
-    res = f(list(partition))
     return res
 
 

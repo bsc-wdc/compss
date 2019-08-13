@@ -435,11 +435,14 @@ class DDS(object):
         >>> DDS().load(range(10), 2).collect()
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-
         processed = list()
         if self.func:
-            for _p in self.partitions:
-                processed.append(map_partition(self.func, _p, col=self.paafo))
+            if self.paafo:
+                for col in self.partitions:
+                    processed.append(map_partition(self.func, None, *col))
+            else:
+                for _p in self.partitions:
+                    processed.append(map_partition(self.func, _p))
             # Reset the function!
             self.func = None
         else:

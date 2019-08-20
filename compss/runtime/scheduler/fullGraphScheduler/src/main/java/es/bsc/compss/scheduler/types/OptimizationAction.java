@@ -30,6 +30,7 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.worker.COMPSsException;
 
 import java.util.List;
+import java.util.Set;
 
 
 public class OptimizationAction extends AllocatableAction {
@@ -189,6 +190,13 @@ public class OptimizationAction extends AllocatableAction {
     @Override
     protected void stopAction() throws Exception {
         // Nothing to do
+    }
+
+    @Override
+    public List<ResourceScheduler<?>> tryToSchedule(Score actionScore, Set<ResourceScheduler<?>> availableWorkers)
+        throws BlockedActionException, UnassignedActionException {
+
+        return null;
     }
 
 }

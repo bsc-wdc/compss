@@ -46,15 +46,14 @@ class DDS(object):
         self.partitions = list()
         self.func = None
 
-        # Todo: Rename this variable
-        # Partition As A Future Object
+        # Partition As A Collection
         # True if partitions are not Future Objects but list of Future Objects
-        self.paafo = False
+        self.paac = False
 
-    def load(self, iterator, num_of_parts=10, paafo=False):
+    def load(self, iterator, num_of_parts=10, paac=False):
         """ Load and distribute the iterator on partitions.
         """
-        self.paafo = paafo
+        self.paac = paac
         if num_of_parts == -1:
             self.partitions = iterator
             return self
@@ -435,11 +434,14 @@ class DDS(object):
         >>> DDS().load(range(10), 2).collect()
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-
         processed = list()
         if self.func:
-            for _p in self.partitions:
-                processed.append(map_partition(self.func, _p, col=self.paafo))
+            if self.paac:
+                for col in self.partitions:
+                    processed.append(map_partition(self.func, None, *col))
+            else:
+                for _p in self.partitions:
+                    processed.append(map_partition(self.func, _p))
             # Reset the function!
             self.func = None
         else:
@@ -471,10 +473,12 @@ class DDS(object):
         :param path:
         :return:
         """
-        processed = self.collect(future_objects=True)
-        for i, _p in enumerate(processed):
-            save_text_file(_p, i, path)
-
+        if self.paac:
+            for i, _p in enumerate(self.partitions):
+                map_and_save_text_file(self.func, i, path, None, *_p)
+        else:
+            for i, _p in enumerate(self.partitions):
+                map_and_save_text_file(self.func, i, path, _p)
         return None
 
     def save_as_pickle(self, path):
@@ -484,10 +488,12 @@ class DDS(object):
         :param path:
         :return:
         """
-        processed = self.collect(future_objects=True)
-        for i, _p in enumerate(processed):
-            save_pickle_file(_p, i, path)
-
+        if self.paac:
+            for i, _p in enumerate(self.partitions):
+                map_and_save_pickle(self.func, i, path, None, *_p)
+        else:
+            for i, _p in enumerate(self.partitions):
+                map_and_save_pickle(self.func, i, path, _p)
         return None
 
     """
@@ -522,10 +528,10 @@ class DDS(object):
         """
         return self.map(lambda x: x[1])
 
-    def partition_by(self, partition_func=default_hash, num_of_partitions=-1):
+    def partition_by(self, partitioner_func=default_hash, num_of_partitions=-1):
         """
         Create partitions by a Partition Func.
-        :param partition_func: A Function distribute data on partitions based on
+        :param partitioner_func: A Function distribute data on partitions based on
                 For example, hash function.
         :param num_of_partitions: number of partitions to be created
         :return:
@@ -546,17 +552,19 @@ class DDS(object):
 
         grouped = defaultdict(list)
 
-        for partition in self.partitions:
-            col = [[] for _ in range(nop)]
-            if self.paafo:
-                distribute_collection(
-                    partition_func, col, self.func, *partition)
-            else:
-                distribute_partition(
-                    partition, partition_func, col, self.func)
-
-            for _i in range(nop):
-                grouped[_i].append(col[_i])
+        if self.paac:
+            for collection in self.partitions:
+                col = [[] for _ in range(nop)]
+                distribute_partition(col, self.func, partitioner_func, None,
+                                     *collection)
+                for _i in range(nop):
+                    grouped[_i].append(col[_i])
+        else:
+            for _part in self.partitions:
+                col = [[] for _ in range(nop)]
+                distribute_partition(col, self.func, partitioner_func, _part)
+                for _i in range(nop):
+                    grouped[_i].append(col[_i])
 
         future_partitions = list()
         for key in sorted(grouped.keys()):
@@ -673,7 +681,6 @@ class DDS(object):
 
         # Collect everything to take samples
         col_parts = self.collect(future_objects=True)
-
         samples = list()
         for _part in col_parts:
             samples.append(task_collect_samples(_part, 20, key_func))
@@ -729,7 +736,7 @@ class ChildDDS(DDS):
         :param func:
         """
         super(ChildDDS, self).__init__()
-        self.paafo = parent.paafo
+        self.paac = parent.paac
 
         if not isinstance(parent, ChildDDS):
             self.func = func

@@ -19,21 +19,21 @@ package storage;
 public interface StubItf {
 
     /**
-     * Returns the Id of the persistent object
+     * Returns the Id of the persistent object.
      * 
-     * @return
+     * @return The Id of the persistent object.
      */
     public abstract String getID();
 
     /**
-     * Makes persistent the current object
+     * Makes persistent the current object.
      * 
-     * @param id
+     * @param id Persistent object Id.
      */
     public abstract void makePersistent(String id);
 
     /**
-     * Removes persistent object
+     * Removes persistent object.
      */
     public abstract void deletePersistent();
 

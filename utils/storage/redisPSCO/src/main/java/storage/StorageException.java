@@ -24,18 +24,37 @@ public class StorageException extends Exception implements Serializable {
     private static final long serialVersionUID = 1L;
 
 
+    /**
+     * Creates an empty storage exception.
+     */
     public StorageException() {
-
+        super();
     }
 
+    /**
+     * Creates a storage exception with the given message and nested exception.
+     * 
+     * @param message Exception message.
+     * @param cause Nested exception.
+     */
     public StorageException(String message, Exception cause) {
         super(message, cause);
     }
 
+    /**
+     * Creates a storage exception with the given message.
+     * 
+     * @param message Exception message.
+     */
     public StorageException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a storage exception with the nested exception.
+     * 
+     * @param cause Nested exception.
+     */
     public StorageException(Exception cause) {
         super(cause);
     }

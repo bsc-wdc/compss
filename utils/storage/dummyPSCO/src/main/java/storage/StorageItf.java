@@ -33,14 +33,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.Descriptor;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import storage.utils.Serializer;
 
 
@@ -95,17 +96,17 @@ public final class StorageItf {
 
 
     /**
-     * Constructor
+     * Constructor.
      */
     public StorageItf() {
         // Nothing to do since everything is static
     }
 
     /**
-     * Initializes the persistent storage Configuration file must contain all the worker hostnames, one by line
+     * Initializes the persistent storage Configuration file must contain all the worker hostnames, one by line.
      *
-     * @param storageConf
-     * @throws StorageException
+     * @param storageConf Storage configuration.
+     * @throws StorageException When the storage cannot be successfully initialized.
      */
     public static void init(String storageConf) throws StorageException {
         LOGGER.info("[LOG] Storage Initialization");
@@ -155,9 +156,9 @@ public final class StorageItf {
     }
 
     /**
-     * Stops the persistent storage
+     * Stops the persistent storage.
      * 
-     * @throws StorageException
+     * @throws StorageException When the storage cannot be stopped.
      */
     public static void finish() throws StorageException {
         LOGGER.info("[LOG] Storage Finish");
@@ -179,11 +180,11 @@ public final class StorageItf {
     }
 
     /**
-     * Returns all the valid locations of a given id
+     * Returns all the valid locations of a given id.
      * 
-     * @param id
-     * @return
-     * @throws StorageException
+     * @param id Data Id.
+     * @return Registered locations of the given data.
+     * @throws StorageException When the storage raises an internal exception.
      */
     public static List<String> getLocations(String id) throws StorageException {
         LOGGER.info("[LOG] Get locations of " + id);
@@ -203,11 +204,11 @@ public final class StorageItf {
     }
 
     /**
-     * Creates a new replica of PSCO id @id in host @hostname
+     * Creates a new replica of PSCO id {@code id} in host {@code hostname}.
      * 
-     * @param id
-     * @param hostName
-     * @throws StorageException
+     * @param id Data id.
+     * @param hostName Hostname.
+     * @throws StorageException When the data id or the hostname are not found.
      */
     public static void newReplica(String id, String hostName) throws StorageException {
         LOGGER.info("NEW REPLICA: " + id + " on host " + hostName);
@@ -243,12 +244,12 @@ public final class StorageItf {
     }
 
     /**
-     * Create a new version of the PSCO id @id in the host @hostname Returns the id of the new version
+     * Create a new version of the PSCO id {@code id} in the host {@code hostname}. Returns the id of the new version.
      * 
-     * @param id
-     * @param hostName
-     * @return
-     * @throws StorageException
+     * @param id Data Id.
+     * @param hostName Hostname.
+     * @return The Id of the new data version.
+     * @throws StorageException When an internal error occurs.
      */
     public static String newVersion(String id, boolean preserveSource, String hostName) throws StorageException {
         LOGGER.info("NEW VERSION: " + id + " on host " + hostName);
@@ -285,11 +286,11 @@ public final class StorageItf {
     }
 
     /**
-     * Returns the object with id @id This function retrieves the object from any location
+     * Returns the object with id {@code id}. This function retrieves the object from any location.
      * 
-     * @param id
-     * @return
-     * @throws StorageException
+     * @param id Data id to retrieve.
+     * @return The associated data.
+     * @throws StorageException When an internal error occurs.
      */
     public static Object getByID(String id) throws StorageException {
         // Retrieves the Object from any worker location
@@ -314,15 +315,15 @@ public final class StorageItf {
     }
 
     /**
-     * Executes the task into persistent storage
+     * Executes the task into persistent storage.
      * 
-     * @param id
-     * @param descriptor
-     * @param values
-     * @param hostName
-     * @param callback
-     * @return
-     * @throws StorageException
+     * @param id Task id.
+     * @param descriptor Task description.
+     * @param values Task parameter values.
+     * @param hostName Hostname where to execute the task.
+     * @param callback Callback handler.
+     * @return id of the executor.
+     * @throws StorageException When an internal error occurs.
      */
     public static String executeTask(String id, String descriptor, Object[] values, String hostName,
         CallbackHandler callback) throws StorageException {
@@ -408,10 +409,10 @@ public final class StorageItf {
     }
 
     /**
-     * Retrieves the result of persistent storage execution
+     * Retrieves the result of persistent storage execution.
      * 
-     * @param event
-     * @return
+     * @param event Event to retrieve the result from.
+     * @return Result of the persistent storage execution.
      */
     public static Object getResult(CallbackEvent event) throws StorageException {
         LOGGER.info("Get result");
@@ -423,10 +424,10 @@ public final class StorageItf {
     }
 
     /**
-     * Consolidates all intermediate versions to the final id
+     * Consolidates all intermediate versions to the final id.
      * 
-     * @param idFinal
-     * @throws StorageException
+     * @param idFinal Final Id.
+     * @throws StorageException When an internal error occurs.
      */
     public static void consolidateVersion(String idFinal) throws StorageException {
         LOGGER.info("Consolidating version for " + idFinal);
@@ -439,11 +440,11 @@ public final class StorageItf {
      * SPECIFIC IMPLEMENTATION METHODS
      *****************************************************************************************************************/
     /**
-     * Stores the object @o in the persistent storage with id @id
+     * Stores the object {@code o} in the persistent storage with id {@code id}.
      * 
-     * @param o
-     * @param id
-     * @throws StorageException
+     * @param o Object to store.
+     * @param id Object Id.
+     * @throws StorageException When an internal error occurs.
      */
     public static void makePersistent(Object o, String id) throws StorageException {
         // Create ID file
@@ -467,9 +468,9 @@ public final class StorageItf {
     }
 
     /**
-     * Removes all the occurrences of a given @id
+     * Removes all the occurrences of a given data with id {@code id}.
      * 
-     * @param id
+     * @param id Data Id to remove.
      */
     public static void removeById(String id) {
         // Retrieves the Object from any worker location

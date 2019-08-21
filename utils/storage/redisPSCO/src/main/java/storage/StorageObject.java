@@ -16,62 +16,84 @@
  */
 package storage;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import redis.clients.jedis.Jedis;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class StorageObject implements StubItf {
 
     // Logger: According to Loggers.STORAGE
-    private static final Logger logger = LogManager.getLogger("es.bsc.compss.Storage");
+    private static final Logger LOGGER = LogManager.getLogger("es.bsc.compss.Storage");
 
     private String host;
-
-    private String id = null;
+    private String id;
 
 
     /**
-     * Constructor
+     * Constructor.
      */
     public StorageObject() {
+        this.id = null;
     }
 
     /**
-     * Constructor by alias
+     * Constructor by alias.
      * 
-     * @param alias
+     * @param alias Persistent object alias.
      */
     public StorageObject(String alias) {
+        this.id = null;
     }
 
-    /**
-     * Returns the persistent object ID
-     * 
-     * @return
-     */
     @Override
     public String getID() {
         return this.id;
     }
 
     /**
-     * Persist the object
+     * Returns the associated host.
      * 
-     * @param id
+     * @return The associated host.
      */
+    public String getHost() {
+        return this.host;
+    }
+
+    /**
+     * Sets a new Id.
+     * 
+     * @param id New Id.
+     * @throws IOException When an internal error occurs.
+     * @throws StorageException When an storage error occurs.
+     */
+    protected void setID(String id) throws IOException, StorageException {
+        // TODO: Is this the intended behaviour?
+        this.id = id;
+    }
+
+    /**
+     * Sets a new associated host.
+     * 
+     * @param host New associated host.
+     */
+    public void setHost(String host) {
+        this.host = host;
+    }
+
     @Override
-    public void makePersistent(String id) throws IOException, StorageException {
+    public void makePersistent(String id) throws StorageException {
         // The object is already persisted
-        if (this.id != null)
+        if (this.id != null) {
             return;
+        }
+
         // There was no given identifier, lets compute a random one
-        setHost();
+        setLocalhostAsHost();
         if (id == null) {
             id = UUID.randomUUID().toString();
         }
@@ -80,45 +102,27 @@ public class StorageObject implements StubItf {
         StorageItf.makePersistent(this, id);
     }
 
-    private void setHost() {
-        String hostname = null;
-        try {
-            InetAddress localHost = InetAddress.getLocalHost();
-            hostname = localHost.getCanonicalHostName();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        this.host = hostname;
-    }
-
     /**
-     * Persist the object. The identifier will be a pseudo-randomly generated UUID
+     * Persist the object. The identifier will be a pseudo-randomly generated UUID.
+     * 
+     * @throws IOException When an internal error occurs.
+     * @throws StorageException When an storage error occurs.
      */
     public void makePersistent() throws IOException, StorageException {
         this.makePersistent(null);
     }
 
-    /**
-     * Deletes the persistent object occurrences
-     */
     @Override
     public void deletePersistent() {
         // The object is not persisted, do nothing
-        if (this.id == null)
+        if (this.id == null) {
             return;
+        }
+
         // Call the storage API
         StorageItf.removeById(this.id);
         // Set the id to null
         this.id = null;
-    }
-
-    /**
-     * Sets the ID
-     */
-    // TODO: Is this the intended behaviour?
-    protected void setID(String id) throws IOException, StorageException {
-        this.id = id;
     }
 
     /**
@@ -130,16 +134,21 @@ public class StorageObject implements StubItf {
         this.deletePersistent();
         try {
             this.makePersistent(pId);
-        } catch (IOException | StorageException e) {
-            e.printStackTrace();
+        } catch (StorageException se) {
+            LOGGER.error(se);
         }
     }
 
-    public String getHost() {
-        return host;
+    private void setLocalhostAsHost() {
+        String hostname = null;
+        try {
+            InetAddress localHost = InetAddress.getLocalHost();
+            hostname = localHost.getCanonicalHostName();
+        } catch (UnknownHostException une) {
+            LOGGER.error(une);
+            System.exit(1);
+        }
+        this.host = hostname;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
 }

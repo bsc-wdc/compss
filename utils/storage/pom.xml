@@ -68,7 +68,7 @@
                         <id>validate</id>
                         <phase>validate</phase>
                         <configuration>
-                            <configLocation>checkstyle/checkstyle_warn.xml</configLocation>
+                            <configLocation>checkstyle/checkstyle.xml</configLocation>
                             <suppressionsLocation>checkstyle/suppressed_files.xml</suppressionsLocation>
                             <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
                             <encoding>UTF-8</encoding>

@@ -185,8 +185,8 @@ def compss_main():
 
         # MAIN EXECUTION
         if IS_PYTHON3:
-            with open(app_path) as f:
-                exec(compile(f.read(), app_path, 'exec'), globals())
+            with open(APP_PATH) as f:
+                exec(compile(f.read(), APP_PATH, 'exec'), globals())
         else:
             execfile(APP_PATH, globals())  # MAIN EXECUTION
 

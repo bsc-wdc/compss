@@ -78,6 +78,7 @@ def compss_delete_object(obj):
 
     return True
 
+
 def compss_wait_on_file(file_name):
     """
     Delete a file -> Calls runtime.
@@ -121,6 +122,7 @@ def compss_wait_on(*args):
     ret = ret[0] if len(ret) == 1 else ret
     return ret
 
+
 def compss_open_task_group(group_name):
     """
     Dummy open task group.
@@ -139,4 +141,3 @@ def compss_close_task_group(group_name):
         :return: None
         """
     pass
-

@@ -57,6 +57,8 @@ import compss
 
 # Types conversion dictionary from python to COMPSs
 if IS_PYTHON3:
+    listType = list
+    dictType = dict
     _python_to_compss = {int: TYPE.INT,  # int # long
                          float: TYPE.DOUBLE,  # float
                          bool: TYPE.BOOLEAN,  # bool
@@ -79,6 +81,8 @@ if IS_PYTHON3:
                          object: TYPE.OBJECT
                          }
 else:
+    listType = types.ListType
+    dictType = types.DictType
     _python_to_compss = {types.IntType: TYPE.INT,  # int
                          types.LongType: TYPE.LONG,  # long
                          types.FloatType: TYPE.DOUBLE,  # float
@@ -383,6 +387,7 @@ def barrier(no_more_tasks=False):
     # Call the Runtime barrier (appId 0, not needed for the signature)
     compss.barrier(0, no_more_tasks)
 
+
 def barrier_group(group_name):
     """
     Calls the external python library (that calls the bindings-common)
@@ -396,6 +401,7 @@ def barrier_group(group_name):
     # Call the Runtime group barrier
     return compss.barrier_group(0,group_name)
 
+
 def open_task_group(group_name, implicit_barrier):
     """
     Calls the external python library (that calls the bindings-common)
@@ -407,6 +413,7 @@ def open_task_group(group_name, implicit_barrier):
     """
 
     compss.open_task_group(group_name, implicit_barrier)
+
 
 def close_task_group(group_name):
     """
@@ -555,6 +562,68 @@ def register_ce(core_element):
                                  impl_type_args)
     if __debug__:
         logger.debug("CE with signature %s registered." % ce_signature)
+
+
+def wait_on(*args, **kwargs):
+    """
+    Waits on a set of objects defined in args with the options defined in
+    kwargs.
+
+    :param args: Objects to wait on.
+    :param kwargs: Options: Write enable? [True | False] Default = True
+    :return: Real value of the objects requested
+    """
+    ret = list(map(_compss_wait_on, args, [kwargs.get("mode", "rw")] * len(args)))
+    ret = ret[0] if len(ret) == 1 else ret
+    # Check if there are empty elements return elements that need to be removed.
+    if isinstance(ret, listType):
+        # Look backwards the list removing the first EmptyReturn elements.
+        for elem in reversed(ret):
+            if isinstance(elem, EmptyReturn):
+                ret.remove(elem)
+    return ret
+
+
+def _compss_wait_on(obj, mode):
+    """
+    Waits on an object.
+
+    :param obj: Object to wait on.
+    :param to_write: Write enable?. Options = [True, False]. Default = True
+    :return: An object of 'file' type.
+    """
+    compss_mode = get_compss_mode(mode)
+
+    # Private function used below (recursively)
+    def wait_on_iterable(iter_obj):
+        """
+        Wait on an iterable object.
+        Currently supports lists and dictionaries (syncs the values).
+        :param iter_obj: iterable object
+        :return: synchronized object
+        """
+        # check if the object is in our pending_to_synchronize dictionary
+        from pycompss.runtime.binding import get_object_id
+        obj_id = get_object_id(iter_obj)
+        if obj_id in pending_to_synchronize:
+            return synchronize(iter_obj, compss_mode)
+        else:
+            if type(iter_obj) == list:
+                return [wait_on_iterable(x) for x in iter_obj]
+            elif type(iter_obj) == dict:
+                return {k: wait_on_iterable(v) for k, v in iter_obj.items()}
+            else:
+                return synchronize(iter_obj, compss_mode)
+
+    if isinstance(obj, Future) or not (isinstance(obj, listType) or isinstance(obj, dictType)):
+        return synchronize(obj, compss_mode)
+    else:
+        if len(obj) == 0:  # FUTURE OBJECT
+            return synchronize(obj, compss_mode)
+        else:
+            # Will be a iterable object
+            res = wait_on_iterable(obj)
+            return res
 
 
 def synchronize(obj, mode):

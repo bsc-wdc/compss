@@ -55,25 +55,17 @@ if context.in_pycompss():
     from pycompss.runtime.binding import open_task_group
     from pycompss.runtime.binding import close_task_group
     from pycompss.runtime.binding import wait_on
-    from pycompss.runtime.binding import synchronize
     from pycompss.runtime.binding import get_compss_mode
-    from pycompss.runtime.binding import pending_to_synchronize
-    from pycompss.runtime.binding import Future
-    from pycompss.runtime.binding import EmptyReturn
     from pycompss.runtime.commons import IS_PYTHON3
     from pycompss.api.exceptions import COMPSsException
-
-    from contextlib import contextmanager
 
     if IS_PYTHON3:
         listType = list
         dictType = dict
     else:
         import types
-
         listType = types.ListType
         dictType = types.DictType
-
 
     def compss_start():
         """
@@ -83,7 +75,6 @@ if context.in_pycompss():
         """
         start_runtime()
 
-
     def compss_stop():
         """
         Stops the runtime.
@@ -92,21 +83,18 @@ if context.in_pycompss():
         """
         stop_runtime()
 
-
     def compss_open(file_name, mode='r'):
         """
         Open a file -> Calls runtime.
 
         :param file_name: File name.
-        :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default = r
+        :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r
         :return: An object of 'file' type.
         :raise IOError: If the file can not be opened.
         """
-
         compss_mode = get_compss_mode(mode)
         compss_name = open_file(file_name, compss_mode)
         return open(compss_name, mode)
-
 
     def compss_delete_file(file_name):
         """
@@ -115,9 +103,7 @@ if context.in_pycompss():
         :param file_name: File name.
         :return: True if success. False otherwise.
         """
-
         return delete_file(file_name)
-
 
     def compss_wait_on_file(file_name):
         """
@@ -126,7 +112,6 @@ if context.in_pycompss():
         :param file_name: File name.
         :return: True if success. False otherwise.
         """
-
         return get_file(file_name)
 
     def compss_delete_object(obj):
@@ -136,9 +121,7 @@ if context.in_pycompss():
         :param obj: Object to delete.
         :return: True if success. False otherwise.
         """
-
         return delete_object(obj)
-
 
     def compss_barrier(no_more_tasks=False):
         """
@@ -147,7 +130,6 @@ if context.in_pycompss():
 
         :param no_more_tasks: No more tasks boolean
         """
-
         barrier(no_more_tasks)
 
     def compss_barrier_group(group_name):
@@ -158,9 +140,9 @@ if context.in_pycompss():
         :param group_name: Name of the group to wait
         """
 
-        exceptionMessage = barrier_group(group_name)
-        if (exceptionMessage != None):
-            raise COMPSsException(exceptionMessage)
+        exception_message = barrier_group(group_name)
+        if exception_message is not None:
+            raise COMPSsException(exception_message)
 
     def compss_wait_on(*args, **kwargs):
         """
@@ -183,10 +165,8 @@ if context.in_pycompss():
         def __exit__(self, type, value, traceback):
             # Group closing
             close_task_group(self.group_name)
-            if (self.implicit_barrier):
+            if self.implicit_barrier:
                 compss_barrier_group(self.group_name)
-
-
 
 else:
     # ################################################################# #
@@ -194,59 +174,58 @@ else:
     # ################################################################# #
 
     # Hidden imports
-    from pycompss.api.dummy.api import compss_start as __dummy_compss_start__
-    from pycompss.api.dummy.api import compss_stop as __dummy_compss_stop__
-    from pycompss.api.dummy.api import compss_open as __dummy_compss_open__
-    from pycompss.api.dummy.api import compss_delete_file as __dummy_compss_delete_file__
-    from pycompss.api.dummy.api import compss_wait_on_file as __dummy_compss_wait_on_file__
-    from pycompss.api.dummy.api import compss_delete_object as __dummy_compss_delete_object__
-    from pycompss.api.dummy.api import compss_barrier as __dummy_compss_barrier__
-    from pycompss.api.dummy.api import compss_barrier_group as __dummy_compss_barrier_group__
-    from pycompss.api.dummy.api import compss_wait_on as __dummy_compss_wait_on__
-    from pycompss.api.dummy.api import compss_open_task_group as __dummy_compss_open_task_group__
-    from pycompss.api.dummy.api import compss_close_task_group as __dummy_compss_close_task_group__
-
+    from pycompss.api.dummy.api import compss_start as \
+        __dummy_compss_start__
+    from pycompss.api.dummy.api import compss_stop as \
+        __dummy_compss_stop__
+    from pycompss.api.dummy.api import compss_open as \
+        __dummy_compss_open__
+    from pycompss.api.dummy.api import compss_delete_file as \
+        __dummy_compss_delete_file__
+    from pycompss.api.dummy.api import compss_wait_on_file as \
+        __dummy_compss_wait_on_file__
+    from pycompss.api.dummy.api import compss_delete_object as \
+        __dummy_compss_delete_object__
+    from pycompss.api.dummy.api import compss_barrier as \
+        __dummy_compss_barrier__
+    from pycompss.api.dummy.api import compss_barrier_group as \
+        __dummy_compss_barrier_group__
+    from pycompss.api.dummy.api import compss_wait_on as \
+        __dummy_compss_wait_on__
+    from pycompss.api.dummy.api import compss_open_task_group as \
+        __dummy_compss_open_task_group__
+    from pycompss.api.dummy.api import compss_close_task_group as \
+        __dummy_compss_close_task_group__
 
     def compss_start():
         __dummy_compss_start__()
 
-
     def compss_stop():
         __dummy_compss_stop__()
-
 
     def compss_open(file_name, mode='r'):
         return __dummy_compss_open__(file_name, mode)
 
-
     def compss_delete_file(file_name):
         return __dummy_compss_delete_file__(file_name)
-
 
     def compss_wait_on_file(file_name):
         return __dummy_compss_wait_on_file__(file_name)
 
-
     def compss_delete_object(obj):
         return __dummy_compss_delete_object__(obj)
-
 
     def compss_barrier(no_more_tasks=False):
         __dummy_compss_barrier__(no_more_tasks)
 
-
     def compss_barrier_group(group_name):
         __dummy_compss_barrier_group__(group_name)
-
 
     def compss_wait_on(*args):
         return __dummy_compss_wait_on__(*args)
 
-
     def compss_open_task_group(group_name, implicit_barrier):
         return __dummy_compss_open_task_group__(group_name, implicit_barrier)
 
-
     def compss_close_task_group(group_name):
         return __dummy_compss_close_task_group__(group_name)
-

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package cbm2.objects;
+package es.bsc.compss.cbm3.files;
 
 import es.bsc.compss.types.annotations.Parameter;
 import es.bsc.compss.types.annotations.parameter.Direction;
@@ -22,16 +22,17 @@ import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Method;
 
 
-public interface Cbm2Itf {
+public interface Cbm3Itf {
 
-    @Method(declaringClass = "cbm2.objects.Cbm2Impl")
-    DummyPayload runTaskIn // B = f(A,B)
-    (@Parameter(type = Type.INT, direction = Direction.IN) int sleepTime,
-        @Parameter(type = Type.OBJECT, direction = Direction.IN) DummyPayload dummyIn);
+    @Method(declaringClass = "es.bsc.compss.cbm3.files.Cbm3Impl")
+    void runTaskIn(@Parameter(type = Type.INT, direction = Direction.IN) int sleepTime,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String fileinLeft,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String fileinRight,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String fileoutLeft);
 
-    @Method(declaringClass = "cbm2.objects.Cbm2Impl")
-    void runTaskInOut // f(A,B), where B is inout
-    (@Parameter(type = Type.INT, direction = Direction.IN) int sleepTime,
-        @Parameter(type = Type.OBJECT, direction = Direction.INOUT) DummyPayload dummy);
+    @Method(declaringClass = "es.bsc.compss.cbm3.files.Cbm3Impl")
+    void runTaskInOut(@Parameter(type = Type.INT, direction = Direction.IN) int sleepTime,
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileinoutLeft,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String fileinRight);
 
 }

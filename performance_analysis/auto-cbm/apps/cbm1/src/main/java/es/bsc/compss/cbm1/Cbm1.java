@@ -14,15 +14,20 @@
  *  limitations under the License.
  *
  */
-package cbm1;
+package es.bsc.compss.cbm1;
 
 public class Cbm1 {
 
     private static void usage() {
-        System.out.println(":::: Usage: runcompss cbm1.Cbm1 num_Tasks:::: ");
+        System.out.println("Usage: runcompss cbm1.Cbm1 num_Tasks");
         System.out.println("Exiting cbm1...!");
     }
 
+    /**
+     * Application's main.
+     * 
+     * @param args Command line args (check usage).
+     */
     public static void main(String[] args) {
         if (args.length < 1) {
             usage();

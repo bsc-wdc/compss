@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package cbm2.files;
+package es.bsc.compss.cbm2.files;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,10 +28,15 @@ public class Cbm2 {
 
     private static void usage() {
         System.out.println(
-            ":::: Usage: runcompss cbm2.files.Cbm2 (num_Tasks) (deepness) (task_Sleep_Time) (txSizeInBytes) (INOUT | IN):::: ");
+            "Usage: runcompss cbm2.files.Cbm2 (num_Tasks) (deepness) (task_Sleep_Time) (txSizeInBytes) (INOUT | IN)");
         System.out.println("Exiting cbm2...!");
     }
 
+    /**
+     * Application's main.
+     * 
+     * @param args Command line args (check usage).
+     */
     public static void main(String[] args) {
         if (args.length < 5 || (!args[4].equals("INOUT") && !args[4].equals("IN"))) {
             usage();
@@ -56,7 +61,7 @@ public class Cbm2 {
         System.out.println(":::::::::::");
         System.out.println("Starting cbm2 with files...");
 
-        double compssTime = System.nanoTime();
+        final double compssTime = System.nanoTime();
 
         // CREATE A FILE FOR EACH TASK
         System.out.println("Creating pool of files...");
@@ -66,7 +71,7 @@ public class Cbm2 {
                 String filePath = "dummyFile_Task" + String.valueOf(i);
                 filePaths[i] = filePath;
                 FileOutputStream fos = new FileOutputStream(filePath);
-                byte dummyLoad[] = new byte[txSizeInBytes];
+                byte[] dummyLoad = new byte[txSizeInBytes];
                 new Random().nextBytes(dummyLoad);
                 fos.write(dummyLoad);
                 fos.close();
@@ -80,13 +85,14 @@ public class Cbm2 {
         System.out.println("Pool of files created.");
         System.out.println("Time for files to be created: " + ((System.nanoTime() - compssTime) / 1000000) + " ms");
         System.out.println("Starting to measure time from now on...");
-        compssTime = System.nanoTime();
+        final double compssTime2 = System.nanoTime();
         for (int d = 1; d <= deepness; ++d) {
             for (int i = 0; i < numTasks; ++i) {
-                if (inout)
+                if (inout) {
                     Cbm2Impl.runTaskInOut(taskSleepTime, filePaths[i]);
-                else
+                } else {
                     Cbm2Impl.runTaskIn(taskSleepTime, filePaths[i], filePaths[i]);
+                }
             }
         }
         //
@@ -118,13 +124,13 @@ public class Cbm2 {
         //
 
         // Final output
-        compssTime = (System.nanoTime() - compssTime) / 1000000; // Get total time
+        final double compssTime3 = (System.nanoTime() - compssTime2) / 1000000; // Get total time
         System.out.println("Finished cbm2!!!");
         System.out.println(":::::::::::");
         System.out.println("");
         System.out.println(":::::::::::");
         System.out.println("Results:");
-        System.out.println("Time: " + compssTime + " ms    ({{" + compssTime + "}})");
+        System.out.println("Time: " + compssTime3 + " ms    ({{" + compssTime3 + "}})");
         System.out.println(":::::::::::");
     }
 }

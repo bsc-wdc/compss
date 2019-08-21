@@ -14,43 +14,68 @@
  *  limitations under the License.
  *
  */
-package cbm3.objects;
+package es.bsc.compss.cbm2.objects;
 
 import java.io.Serializable;
 import java.util.Random;
 
 
-//This is a class that contains an array of bytes
-//Just made it to be sure COMPSs can pass it by reference n stuff
+/**
+ * This is a class that contains an array of bytes just made it to be sure COMPSs can pass it by reference n stuff.
+ */
 public class DummyPayload implements Serializable {
 
     /**
-     * Serial ID for objects outside the runtime
+     * SerialId for objects outside the runtime.
      */
     private static final long serialVersionUID = 3L;
 
-    public int size;
+    private int size;
     private byte[] payload;
 
 
+    /**
+     * Creates a new DummyPayload instance.
+     */
     public DummyPayload() {
-        size = 1;
-        payload = new byte[1];
+        this.size = 1;
+        this.payload = new byte[1];
     }
 
+    /**
+     * Creates a new DummyPayload instance with the given in size.
+     * 
+     * @param sizeInBytes In size.
+     */
     public DummyPayload(int sizeInBytes) {
         regen(sizeInBytes);
     }
 
-    public void regen(int sizeInBytes) {
-        size = sizeInBytes;
-        payload = new byte[sizeInBytes];
-        new Random().nextBytes(payload); // fill with random bytes
+    /**
+     * Returns the size of the payload.
+     * 
+     * @return The size of the payload.
+     */
+    public int getSize() {
+        return this.size;
     }
 
+    /**
+     * Generates a new size.
+     * 
+     * @param sizeInBytes New size.
+     */
+    public void regen(int sizeInBytes) {
+        this.size = sizeInBytes;
+        this.payload = new byte[sizeInBytes];
+        new Random().nextBytes(this.payload); // fill with random bytes
+    }
+
+    /**
+     * Foo function for synchronization.
+     */
     public void foo() {
-        // To sync
-        payload[0] = 5;
+        // For sync
     }
 
 }

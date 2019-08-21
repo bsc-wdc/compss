@@ -14,25 +14,17 @@
  *  limitations under the License.
  *
  */
-package cbm1;
+package es.bsc.compss.cbm1;
 
-import java.util.Random;
+import es.bsc.compss.types.annotations.Parameter;
+import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.Type;
+import es.bsc.compss.types.annotations.task.Method;
 
 
-public class Cbm1Impl {
+public interface Cbm1Itf {
 
-    public static void computeSleep() {
-        double x = new Random().nextDouble();
-        // for(int j = 0; j < 100; ++j)
-        {
-            for (int i = 0; i < 100/* 00000 */; ++i) {
-                x = Math.atan(Math.sqrt(Math.pow(x, 10)));
-            }
-        }
-    }
+    @Method(declaringClass = "es.bsc.compss.cbm1.Cbm1Impl")
+    String runTaskI(@Parameter(type = Type.INT, direction = Direction.IN) int a);
 
-    public static String runTaskI(int a) {
-        computeSleep();
-        return new String("Wololo");
-    }
 }

@@ -14,11 +14,7 @@
  *  limitations under the License.
  *
  */
-package cbm3.objects;
-
-import java.lang.management.ManagementFactory;
-import java.util.Random;
-
+package es.bsc.compss.cbm3.objects;
 
 public class Cbm3 {
 
@@ -29,6 +25,11 @@ public class Cbm3 {
         System.out.println("Exiting cbm3...!");
     }
 
+    /**
+     * Application's main.
+     * 
+     * @param args Command line args (check usage).
+     */
     public static void main(String[] args) {
         // Get args ////////////////////////////////////////
         if (args.length < 4 || (!args[3].equals("INOUT") && !args[3].equals("IN"))) {
@@ -60,8 +61,9 @@ public class Cbm3 {
 
         int numTasks = (int) Math.pow(2, deepness - 1);
         DummyPayload[] dummyPool = new DummyPayload[numTasks];
-        for (int i = 0; i < numTasks; ++i)
+        for (int i = 0; i < numTasks; ++i) {
             dummyPool[i] = new DummyPayload(txSizeInBytes);
+        }
 
         System.out.println("Pool of objects created (" + dummyPool.length + " created)");
         //////////////////////////////////////////////////////////
@@ -74,15 +76,16 @@ public class Cbm3 {
         for (int d = 0; d <= deepness; ++d) {
             for (int i = 0; i + step < numTasks; i += step * 2) {
                 DummyPayload obj = dummyPool[i];
-                if (inout)
-                    runTaskInOut(taskSleepTime, dummyPool[i], dummyPool[i + step]);
-                else {
-                    obj = runTaskIn(taskSleepTime, obj, dummyPool[i + step]);
+                if (inout) {
+                    Cbm3Impl.runTaskInOut(taskSleepTime, dummyPool[i], dummyPool[i + step]);
+                } else {
+                    obj = Cbm3Impl.runTaskIn(taskSleepTime, obj, dummyPool[i + step]);
                     dummyPool[i] = obj;
                 }
             }
             step *= 2;
         }
+
         /////////////////////////////////////////////////////
         System.out.println("Tasks created in " + ((System.nanoTime() - compssTime) / 1000000) + " ms");
         System.out.println("Waiting to sync...");
@@ -94,25 +97,4 @@ public class Cbm3 {
         System.out.println(":::::::::::");
     }
 
-    public static void computeSleep(int time) {
-        long t = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
-        while ((ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - t)
-            / 1000000 < time) {
-            double x = new Random().nextDouble();
-            for (int i = 0; i < 1000; ++i) {
-                x = Math.atan(Math.sqrt(Math.pow(x, 10)));
-            }
-        }
-    }
-
-    public static DummyPayload runTaskIn(int sleepTime, DummyPayload objinLeft, DummyPayload objinRight) {
-        computeSleep(sleepTime);
-        objinRight.regen(objinRight.size);
-        return objinLeft;
-    }
-
-    public static void runTaskInOut(int sleepTime, DummyPayload objinoutLeft, DummyPayload objinRight) {
-        computeSleep(sleepTime);
-        objinoutLeft.regen(objinoutLeft.size);
-    }
 }

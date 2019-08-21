@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package cbm2.objects;
+package es.bsc.compss.cbm2.files;
 
 import java.lang.management.ManagementFactory;
 import java.util.Random;
@@ -22,7 +22,28 @@ import java.util.Random;
 
 public class Cbm2Impl {
 
-    public static void computeSleep(int time) {
+    /**
+     * Dummy task with inout.
+     * 
+     * @param sleepTime Sleep time.
+     * @param dummyFilePath Dummy file path.
+     */
+    public static void runTaskInOut(int sleepTime, String dummyFilePath) {
+        computeSleep(sleepTime);
+    }
+
+    /**
+     * Dummy task with in.
+     * 
+     * @param sleepTime Sleep task.
+     * @param dummyFilePath Dummy file path.
+     * @param dummyFilePathOut Dummy file out path.
+     */
+    public static void runTaskIn(int sleepTime, String dummyFilePath, String dummyFilePathOut) {
+        computeSleep(sleepTime);
+    }
+
+    private static void computeSleep(int time) {
         long t = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
         while ((ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - t)
             / 1000000 < time) {
@@ -31,15 +52,5 @@ public class Cbm2Impl {
                 x = Math.atan(Math.sqrt(Math.pow(x, 10)));
             }
         }
-    }
-
-    public static void runTaskInOut(int sleepTime, DummyPayload dummyInOut) {
-        computeSleep(sleepTime);
-        // dummyInOut.regen(dummyInOut.size);
-    }
-
-    public static DummyPayload runTaskIn(int sleepTime, DummyPayload dummyIn) {
-        computeSleep(sleepTime);
-        return new DummyPayload(dummyIn.size);
     }
 }

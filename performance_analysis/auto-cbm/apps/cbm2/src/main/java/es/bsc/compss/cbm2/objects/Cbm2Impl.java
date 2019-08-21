@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package cbm2.files;
+package es.bsc.compss.cbm2.objects;
 
 import java.lang.management.ManagementFactory;
 import java.util.Random;
@@ -22,7 +22,30 @@ import java.util.Random;
 
 public class Cbm2Impl {
 
-    public static void computeSleep(int time) {
+    /**
+     * Task with inout.
+     * 
+     * @param sleepTime Sleep time.
+     * @param dummyInOut Inout object.
+     */
+    public static void runTaskInOut(int sleepTime, DummyPayload dummyInOut) {
+        computeSleep(sleepTime);
+        // dummyInOut.regen(dummyInOut.size);
+    }
+
+    /**
+     * Task with in.
+     * 
+     * @param sleepTime Sleep time.
+     * @param dummyIn In object.
+     * @return Updated object.
+     */
+    public static DummyPayload runTaskIn(int sleepTime, DummyPayload dummyIn) {
+        computeSleep(sleepTime);
+        return new DummyPayload(dummyIn.getSize());
+    }
+
+    private static void computeSleep(int time) {
         long t = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
         while ((ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - t)
             / 1000000 < time) {
@@ -31,19 +54,5 @@ public class Cbm2Impl {
                 x = Math.atan(Math.sqrt(Math.pow(x, 10)));
             }
         }
-    }
-
-    public static void runTaskInOut(int sleepTime, String dummyFilePath) {
-        /*
-         * try //Para que sea equivalente a runTaskIn { //No podemos copiar un archivo a si mismo(no hace nada), lo
-         * copiamos a un tmp Files.copy(Paths.get(dummyFilePath), Paths.get("dummyFile_tmp"),
-         * StandardCopyOption.REPLACE_EXISTING); } catch (IOException e1) { e1.printStackTrace(); }
-         */
-
-        computeSleep(sleepTime);
-    }
-
-    public static void runTaskIn(int sleepTime, String dummyFilePath, String dummyFilePathOut) {
-        computeSleep(sleepTime);
     }
 }

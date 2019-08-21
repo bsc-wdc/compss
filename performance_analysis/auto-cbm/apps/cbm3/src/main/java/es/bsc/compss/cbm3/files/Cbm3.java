@@ -14,17 +14,13 @@
  *  limitations under the License.
  *
  */
-package cbm3.files;
+package es.bsc.compss.cbm3.files;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Random;
 
 
@@ -37,8 +33,13 @@ public class Cbm3 {
         System.out.println("Exiting cbm3...!");
     }
 
+    /**
+     * Application's main.
+     * 
+     * @param args Command line args (check usage).
+     */
     public static void main(String[] args) {
-        // Get args ////////////////////////////////////////
+        // Get args
         if (args.length < 4 || (!args[3].equals("INOUT") && !args[3].equals("IN"))) {
             usage();
             return;
@@ -73,7 +74,7 @@ public class Cbm3 {
                 String filePath = "dummyFile_Task" + String.valueOf(i);
                 dummyFilePaths[i] = filePath;
                 FileOutputStream fos = new FileOutputStream(filePath);
-                byte dummyLoad[] = new byte[txSizeInBytes];
+                byte[] dummyLoad = new byte[txSizeInBytes];
                 new Random().nextBytes(dummyLoad);
                 fos.write(dummyLoad);
                 fos.close();
@@ -91,10 +92,11 @@ public class Cbm3 {
         int step = 1;
         for (int d = 0; d <= deepness; ++d) {
             for (int i = 0; i + step < numTasks; i += step * 2) {
-                if (inout)
-                    runTaskInOut(taskSleepTime, dummyFilePaths[i], dummyFilePaths[i + step]);
-                else
-                    runTaskIn(taskSleepTime, dummyFilePaths[i], dummyFilePaths[i + step], dummyFilePaths[i]);
+                if (inout) {
+                    Cbm3Impl.runTaskInOut(taskSleepTime, dummyFilePaths[i], dummyFilePaths[i + step]);
+                } else {
+                    Cbm3Impl.runTaskIn(taskSleepTime, dummyFilePaths[i], dummyFilePaths[i + step], dummyFilePaths[i]);
+                }
             }
             step *= 2;
         }
@@ -123,37 +125,6 @@ public class Cbm3 {
         System.out.println("cbm3 Finished!");
         System.out.println("Time: {{" + ((System.nanoTime() - compssTime) / 1000000) + "}}");
         System.out.println(":::::::::::");
-    }
-
-    public static void computeSleep(int time) {
-        long t = ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId());
-        while ((ManagementFactory.getThreadMXBean().getThreadCpuTime(Thread.currentThread().getId()) - t)
-            / 1000000 < time) {
-            double x = new Random().nextDouble();
-            for (int i = 0; i < 1000; ++i) {
-                x = Math.atan(Math.sqrt(Math.pow(x, 10)));
-            }
-        }
-    }
-
-    public static void runTaskIn(int sleepTime, String fileinLeft, String fileinRight, String fileout) {
-        try // NECESSARI, PER CREAR fileout
-        {
-            Files.copy(Paths.get(fileinLeft), Paths.get(fileout), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-        computeSleep(sleepTime);
-    }
-
-    public static void runTaskInOut(int sleepTime, String fileinoutLeft, String fileinLeft) {
-        try // PER PODER COMPARAR AMB runTaskIn, aixi tenim una tasca equivalent
-        {
-            Files.copy(Paths.get(fileinLeft), Paths.get(fileinoutLeft), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-        computeSleep(sleepTime);
     }
 
 }

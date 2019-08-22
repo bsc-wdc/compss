@@ -884,11 +884,6 @@ public class ExecutionAction extends AllocatableAction {
             if (compatibleCandidates.size() == 0) {
                 throw new BlockedActionException();
             }
-            /*
-             * for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : compatibleCandidates) { if
-             * (currentWorker.getResource().canRunSomething()) { if (availableResources.contains(currentWorker)) {
-             * candidates.add(currentWorker); } } else { uselessWorkers.add(currentWorker); } }
-             */
             for (ResourceScheduler<? extends WorkerResourceDescription> currentWorker : availableResources) {
                 if (currentWorker.getResource().canRunSomething()) {
                     if (compatibleCandidates.contains(currentWorker)) {

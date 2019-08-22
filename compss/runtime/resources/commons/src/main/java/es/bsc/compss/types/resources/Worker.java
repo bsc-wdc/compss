@@ -408,7 +408,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * 
      * @return {@literal true} if the current worker can run something, {@literal false} otherwise.
      */
-    public boolean canRunSomething() {
+    public final boolean canRunSomething() {
         int coreCount = CoreManager.getCoreCount();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             if (!getRunnableImplementations(coreId).isEmpty()) {

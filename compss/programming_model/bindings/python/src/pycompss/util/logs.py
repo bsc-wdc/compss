@@ -44,6 +44,7 @@ def init_logging(log_config_file, log_path):
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
+        f.close()
         if "error_file_handler" in conf["handlers"]:
             errors_file = conf["handlers"]["error_file_handler"].get("filename")
             conf["handlers"]["error_file_handler"]["filename"] = log_path + errors_file
@@ -66,6 +67,7 @@ def init_logging_worker(log_config_file):
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
+        f.close()
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)

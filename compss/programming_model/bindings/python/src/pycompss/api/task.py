@@ -26,6 +26,7 @@ from __future__ import print_function
 import os
 import sys
 import threading
+import inspect
 from functools import wraps
 
 import pycompss.api.parameter as parameter
@@ -623,6 +624,18 @@ class task(object):
             logger.debug("[@TASK] %s" % str(f))
         binding.register_ce(current_core_element)
 
+    @staticmethod
+    def _getargspec(function):
+        if IS_PYTHON3:
+            full_argspec = inspect.getfullargspec(function)
+            as_args = full_argspec.args
+            as_varargs = full_argspec.varargs
+            as_keywords = full_argspec.kwonlyargs
+            as_defaults = full_argspec.kwonlydefaults
+            return  as_args, as_varargs, as_keywords, as_defaults
+        else:
+            return inspect.getargspec(function)
+
     def inspect_user_function_arguments(self):
         """
         Inspect the arguments of the user function and store them.
@@ -633,14 +646,13 @@ class task(object):
         the user has specified for them in the decorator
         :return: None, it just adds attributes
         """
-        import inspect
         try:
             self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
-                inspect.getargspec(self.user_function)
+                self._getargspec(self.user_function)
         except TypeError:
             # This is a numba jit declared task
             self.param_args, self.param_varargs, self.param_kwargs, self.param_defaults = \
-                inspect.getargspec(self.user_function.py_func)
+                self._getargspec(self.user_function.py_func)
         # It will be easier to deal with functions if we pretend that all have the
         # signature f(positionals, *variadic, **named). This is why we are substituting
         # Nones with default stuff

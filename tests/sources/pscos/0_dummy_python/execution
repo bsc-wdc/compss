@@ -65,7 +65,6 @@ EOF
         python_mpi_worker="--python_mpi_worker=true"
     fi
 
-
     # shellcheck disable=SC2086
     timeout --signal=2 $expectedTime "${COMPSs_exec}" \
       --project="${base_app_dir}"/project.xml \
@@ -78,7 +77,7 @@ EOF
       \
       --lang=python \
       --python_interpreter="${python_interpreter}" \
-      --pythonpath="${base_app_dir}"/src \
+      --pythonpath="${base_app_dir}":"${base_app_dir}"/src \
       --specific_log_dir="${specific_log_dir}" \
       ${python_mpi_worker} \
       \

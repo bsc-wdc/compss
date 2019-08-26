@@ -24,8 +24,8 @@ Storage dummy connector
 import os
 import uuid
 from uuid import UUID
-from pycompss.util.serializer import serialize_to_file
-from pycompss.util.serializer import deserialize_from_file
+from pycompss.util.serialization.serializer import serialize_to_file
+from pycompss.util.serialization.serializer import deserialize_from_file
 
 import socket
 storage_path = '/tmp/PSCO/' + str(socket.gethostname()) + '/'

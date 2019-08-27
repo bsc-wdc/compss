@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -89,7 +90,7 @@ class Implement(object):
                 # from pycompss.api.dummy.implement import implement as dummy_implement
                 # d_i = dummy_implement(self.args, self.kwargs)
                 # return d_i.__call__(func)
-                raise Exception("The implement decorator only works within PyCOMPSs framework.")
+                raise Exception(not_in_pycompss("implement"))
 
             if context.in_master():
                 # master code

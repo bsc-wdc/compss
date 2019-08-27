@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -126,7 +127,7 @@ class Mpi(object):
                 # from pycompss.api.dummy.mpi import mpi as dummy_mpi
                 # d_m = dummy_mpi(self.args, self.kwargs)
                 # return d_m.__call__(func)
-                raise Exception("The mpi decorator only works within PyCOMPSs framework.")
+                raise Exception(not_in_pycompss("mpi"))
 
             if context.in_master():
                 # master code

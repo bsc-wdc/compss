@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -121,7 +122,7 @@ class MultiNode(object):
                 # from pycompss.api.dummy.compss import COMPSs as dummy_compss
                 # d_m = dummy_compss(self.args, self.kwargs)
                 # return d_m.__call__(func)
-                raise Exception("The multiNode decorator only works within PyCOMPSs framework.")
+                raise Exception(not_in_pycompss("multinode"))
 
             if context.in_master():
                 # master code

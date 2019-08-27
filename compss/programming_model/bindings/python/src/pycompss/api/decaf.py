@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -116,7 +117,7 @@ class Decaf(object):
                 # from pycompss.api.dummy.decaf import decaf as dummy_decaf
                 # d_d = dummy_decaf(self.args, self.kwargs)
                 # return d_d.__call__(func)
-                raise Exception("The decaf decorator only works within PyCOMPSs framework.")
+                raise Exception(not_in_pycompss("decaf"))
 
             if context.in_master():
                 # master code

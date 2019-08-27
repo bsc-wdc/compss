@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -81,10 +82,10 @@ class Opencl(object):
         """
 
         if not self.scope:
-            # from pycompss.api.dummy.opencl import import opencl as dummy_opencl
+            # from pycompss.api.dummy.opencl import opencl as dummy_opencl
             # d_ocl = dummy_opencl(self.args, self.kwargs)
             # return d_ocl.__call__(func)
-            raise Exception("The opencl decorator only works within PyCOMPSs framework.")
+            raise Exception(not_in_pycompss("opencl"))
 
         if context.in_master():
             # master code

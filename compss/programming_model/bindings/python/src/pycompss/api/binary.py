@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -90,7 +91,7 @@ class Binary(object):
                 # from pycompss.api.dummy.binary import binary as dummy_binary
                 # d_b = dummy_binary(self.args, self.kwargs)
                 # return d_b.__call__(func)
-                raise Exception("The binary decorator only works within PyCOMPSs framework.")
+                raise Exception(not_in_pycompss("binary"))
 
             if context.in_master():
                 # master code

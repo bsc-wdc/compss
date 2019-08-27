@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -110,7 +111,7 @@ class Ompss(object):
                 # from pycompss.api.dummy.ompss import ompss as dummy_ompss
                 # d_o = dummy_ompss(self.args, self.kwargs)
                 # return d_o.__call__(func)
-                raise Exception("The ompss decorator only works within PyCOMPSs framework.")
+                raise Exception(not_in_pycompss("ompss"))
 
             if context.in_master():
                 # master code

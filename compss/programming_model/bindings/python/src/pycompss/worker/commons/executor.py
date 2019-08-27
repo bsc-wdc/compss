@@ -17,29 +17,22 @@
 
 # -*- coding: utf-8 -*-
 
-"""
-PyCOMPSs Functions: Elapsed time decorator
-==========================================
-    This file defines the time it decorator to be used over the task decorator.
-"""
 
-from decorator import decorator
-import time
-
-
-@decorator  # Mandatory in order to preserver the argspec
-def timeit(func, *a, **k):
+def build_return_params_message(types, values):
     """
-    Elapsed time decorator.
+    Build the return message with the parameters output.
 
-    :param func: Function to be measured (can be a decorated function, usually
-                 with @task decorator).
-    :param a: args
-    :param k: kwargs
-    :return: a list with [the function result, The elapsed time]
+    :param types: List of the parameter's types
+    :param values: List of the parameter's values
+    :return: Message as string
     """
+    err_msg = "return type-value length mismatch for return message."
+    assert len(types) == len(values), "Inconsistent state: " + err_msg
 
-    ts = time.time()
-    result = func(*a, **k)
-    te = time.time()
-    return [result, (te - ts)]
+    pairs = list(zip(types, values))
+    num_params = len(pairs)
+    params = ''
+    for pair in pairs:
+        params = params + str(pair[0]) + ' ' + str(pair[1]) + ' '
+    message = str(num_params) + ' ' + params
+    return message

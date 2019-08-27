@@ -30,18 +30,19 @@ import signal
 import logging
 from multiprocessing import Process
 from multiprocessing import Queue
-from pycompss.util.logs import init_logging_worker
-from pycompss.worker.commons.worker_constants import *
-from pycompss.worker.piper.commons.pipe_constants import *
-from pycompss.worker.piper.commons.pipe_executor import Pipe
-from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
-from pycompss.worker.piper.commons.pipe_executor import executor
+from pycompss.util.logger.helpers import init_logging_worker
+from pycompss.worker.commons.constants import *
+from pycompss.worker.piper.commons.constants import *
+from pycompss.worker.piper.commons.executor import Pipe
+from pycompss.worker.piper.commons.executor import ExecutorConf
+from pycompss.worker.piper.commons.executor import executor
 import pycompss.util.context as context
 
 # Persistent worker global variables
 PROCESSES = {}  # IN_PIPE -> PROCESS
 TRACING = False
 WORKER_CONF = None
+HEADER = "[PYTHON WORKER] "
 
 
 class PiperWorkerConfiguration(object):
@@ -93,17 +94,17 @@ class PiperWorkerConfiguration(object):
 
         :param logger: logger to output the configuration
         """
-        logger.debug("[PYTHON WORKER] -----------------------------")
-        logger.debug("[PYTHON WORKER] Persistent worker parameters:")
-        logger.debug("[PYTHON WORKER] -----------------------------")
-        logger.debug("[PYTHON WORKER] Debug          : " + str(self.debug))
-        logger.debug("[PYTHON WORKER] Tracing        : " + str(self.tracing))
-        logger.debug("[PYTHON WORKER] Tasks per node : " + str(self.tasks_x_node))
-        logger.debug("[PYTHON WORKER] Pipe Pairs     : ")
+        logger.debug(HEADER + "-----------------------------")
+        logger.debug(HEADER + "Persistent worker parameters:")
+        logger.debug(HEADER + "-----------------------------")
+        logger.debug(HEADER + "Debug          : " + str(self.debug))
+        logger.debug(HEADER + "Tracing        : " + str(self.tracing))
+        logger.debug(HEADER + "Tasks per node : " + str(self.tasks_x_node))
+        logger.debug(HEADER + "Pipe Pairs     : ")
         for pipe in self.pipes:
-            logger.debug("[PYTHON WORKER]                  * " + str(pipe))
-        logger.debug("[PYTHON WORKER] Storage conf.  : " + str(self.storage_conf))
-        logger.debug("[PYTHON WORKER] -----------------------------")
+            logger.debug(HEADER + "                 * " + str(pipe))
+        logger.debug(HEADER + "Storage conf.  : " + str(self.storage_conf))
+        logger.debug(HEADER + "-----------------------------")
 
 
 def shutdown_handler(signal, frame):
@@ -181,12 +182,12 @@ def compss_persistent_worker(config):
     logger, storage_loggers = load_loggers(config.debug, persistent_storage)
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] piper_worker.py wake up")
+        logger.debug(HEADER + "piper_worker.py wake up")
         config.print_on_logger(logger)
 
     if persistent_storage:
         # Initialize storage
-        logger.debug("[PYTHON WORKER] Starting persitent storage")
+        logger.debug(HEADER + "Starting persitent storage")
         from storage.api import initWorker as initStorageAtWorker
         initStorageAtWorker(config_file_path=config.storage_conf)
 
@@ -194,7 +195,7 @@ def compss_persistent_worker(config):
     queues = []
     for i in range(0, config.tasks_x_node):
         if __debug__:
-            logger.debug("[PYTHON WORKER] Launching process " + str(i))
+            logger.debug(HEADER + "Launching process " + str(i))
         process_name = 'Process-' + str(i)
         queue = Queue()
         queues.append(queue)
@@ -259,7 +260,7 @@ def compss_persistent_worker(config):
 
                 if proc:
                     if proc.is_alive():
-                        logger.warn("[PYTHON WORKER] Forcing terminate on : " +
+                        logger.warn(HEADER + "Forcing terminate on : " +
                                     proc.name)
                         proc.terminate()
                     proc.join()
@@ -280,7 +281,7 @@ def compss_persistent_worker(config):
     # Check if there is any exception message from the threads
     for i in range(0, config.tasks_x_node):
         if not queues[i].empty:
-            logger.error("[PYTHON WORKER] Exception in threads queue: " +
+            logger.error(HEADER + "Exception in threads queue: " +
                          str(queues[i].get()))
 
     for queue in queues:
@@ -289,12 +290,12 @@ def compss_persistent_worker(config):
 
     if persistent_storage:
         # Finish storage
-        logger.debug("[PYTHON WORKER] Stopping persistent storage")
+        logger.debug(HEADER + "Stopping persistent storage")
         from storage.api import finishWorker as finishStorageAtWorker
         finishStorageAtWorker()
 
     if __debug__:
-        logger.debug("[PYTHON WORKER] Finished")
+        logger.debug(HEADER + "Finished")
 
     if TRACING:
         pyextrae.eventandcounters(TASK_EVENTS, 0)

@@ -17,7 +17,7 @@ def updateFile(obj):
     if obj.getID() is not None:
         import socket
         storage_path = '/tmp/PSCO/' + str(socket.gethostname()) + '/'
-        from pycompss.util.serializer import serialize_to_file
+        from pycompss.util.serialization.serializer import serialize_to_file
         serialize_to_file(obj, storage_path + obj.getID() + ".PSCO")
 
 

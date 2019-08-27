@@ -26,10 +26,10 @@ PyCOMPSs Persistent Worker
 import sys
 import signal
 from os import kill
-from pycompss.worker.commons.worker_constants import *
-from pycompss.worker.piper.commons.pipe_constants import *
-from pycompss.worker.piper.commons.pipe_executor import ExecutorConf
-from pycompss.worker.piper.commons.pipe_executor import executor
+from pycompss.worker.commons.constants import *
+from pycompss.worker.piper.commons.constants import *
+from pycompss.worker.piper.commons.executor import ExecutorConf
+from pycompss.worker.piper.commons.executor import executor
 from pycompss.worker.piper.piper_worker import load_loggers
 from pycompss.worker.piper.piper_worker import PiperWorkerConfiguration
 from mpi4py import MPI

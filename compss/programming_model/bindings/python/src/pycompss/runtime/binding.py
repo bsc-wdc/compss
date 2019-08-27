@@ -31,10 +31,12 @@ from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
-from pycompss.util.serializer import *
-from pycompss.util.sizer import total_sizeof
-from pycompss.util.persistent_storage import is_psco, get_id, get_by_id
-from pycompss.util.object_properties import is_basic_iterable
+from pycompss.util.serialization.serializer import *
+from pycompss.util.objects.sizer import total_sizeof
+from pycompss.util.storages.persistent import is_psco
+from pycompss.util.storages.persistent import get_id
+from pycompss.util.storages.persistent import get_by_id
+from pycompss.util.objects.properties import is_basic_iterable
 
 import types
 import os

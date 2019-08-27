@@ -22,7 +22,6 @@ class GeneratorIndicator(object):
     """
     GeneratorIndicator Class
     """
-
     pass
 
 
@@ -34,7 +33,6 @@ def pickle_generator(f_gen, f, serializer):
     :param f: Destination file for pickling generator.
     :param serializer: Serializer to use
     """
-
     # Convert generator to list and pickle (less efficient but more reliable)
     # The tuple will be useful to determine when to call unplickle generator.
     # Using a key is weak, but otherwise, How can we difference a list from a
@@ -51,25 +49,15 @@ def convert_to_generator(l):
     :param l: List to be converted.
     :return: the generator from the list.
     """
-
     gen = __list2gen__(l)
     return gen
 
 
-# never used
-def unpickle_generator(f, serializer):
-    """
-    Unpickle a generator from a file.
-
-    :param f: source file of pickled generator.
-    :param serializer: Serializer
-    :return: the generator from file.
-    """
-
-    snapshot = serializer.load(f)
-    gen = __list2gen__(snapshot)
-    return gen
-
-
 def __list2gen__(x):
+    """
+    Converts a list into a generator
+
+    :param x: Input list
+    :return: Generator from list x
+    """
     return (n for n in x)

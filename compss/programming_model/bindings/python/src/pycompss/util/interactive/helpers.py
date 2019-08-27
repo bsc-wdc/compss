@@ -18,28 +18,32 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Binding - Interactive Mode Helpers
+PyCOMPSs Util - Interactive Mode Helpers
 ===========================================
-Provides auxiliary methods for the interactive mode.
+    Provides auxiliary methods for the interactive mode.
 """
 
 import os
+import inspect
 
-# Debug mode
-# Changed to true from interactive.py if specified by the user when starting the runtime
-# Enables the explicit prints
+# Debug mode: Changed to true from interactive.py if specified by the user
+# when starting the runtime. Enables the explicit prints.
 DEBUG = False
 
 
-SEPARATORS = {'globals_separator': "### GLOBALS ###",      # for user defined lines in the entire/global scope
-              'classes_separator': '### CLASSES ###',      # for user defined classes
-              'functions_separator': "### FUNCTIONS ###",  # for user defined functions (that are not decorated)
-              'tasks_separator': "### TASKS ###"}          # for user defined tasks
+SEPARATORS = {  # for user defined lines in the entire/global scope
+              'globals_separator': "### GLOBALS ###",
+                # for user defined classes
+              'classes_separator': '### CLASSES ###',
+                # for user defined functions (that are not decorated)
+              'functions_separator': "### FUNCTIONS ###",
+                # for user defined tasks
+              'tasks_separator': "### TASKS ###"}
 
 
-# ###################################################################
-# ################# MAIN FUNCTION ###################################
-# ###################################################################
+# ################################################################# #
+# ################# MAIN FUNCTION ################################# #
+# ################################################################# #
 
 
 def update_tasks_code_file(f, file_path):
@@ -56,7 +60,6 @@ def update_tasks_code_file(f, file_path):
     :param file_path: file where the code is stored
     :return: None
     """
-
     if not os.path.exists(file_path):
         _create_tasks_code_file(file_path)
 
@@ -69,10 +72,13 @@ def update_tasks_code_file(f, file_path):
     classes_code = _get_classes()         # {'name': str(line\nline\n...)}
     functions_code = _get_functions()     # {'name': str(line\nline\n...)}
     task_code = _get_task_code(f)         # {'name': str(line\nline\n...)}
-    old_code = _get_old_code(file_path)   # Next line defines the structure of old_code
-    # {'imports':[import\n, import\n, ...], 'tasks':{'name':str(line\nline\n...), 'name':str(line\nline\n...), ...}}
+    old_code = _get_old_code(file_path)   # old_code structure:
+    # {'imports':[import\n, import\n, ...],
+    #  'tasks':{'name':str(line\nline\n...),
+    #  'name':str(line\nline\n...), ...}}
 
-    # Look for new/modified pieces of code. Compares the existing code with the new additions.
+    # Look for new/modified pieces of code and compares the existing code with
+    # the new additions.
     new_imports = _update_imports(imports, old_code['imports'])
     new_globals = _update_globals(global_code, old_code['globals'])
     new_classes = _update_classes(classes_code, old_code['classes'])
@@ -80,7 +86,12 @@ def update_tasks_code_file(f, file_path):
     new_tasks = _update_tasks(task_code, old_code['tasks'])
 
     # Update the file where the code is stored.
-    _update_code_file(new_imports, new_globals, new_classes, new_functions, new_tasks, file_path)
+    _update_code_file(new_imports,
+                      new_globals,
+                      new_classes,
+                      new_functions,
+                      new_tasks,
+                      file_path)
 
 
 # ###################################################################
@@ -96,7 +107,6 @@ def _create_tasks_code_file(file_path):
     :param file_path: File location and name
     :return: None
     """
-
     user_code_file = open(file_path, 'a')
     user_code_file.write('\n')
     user_code_file.write(SEPARATORS['globals_separator'] + "\n")
@@ -114,7 +124,8 @@ def _get_raw_code():
     """
     Retrieve the raw code from interactive session.
 
-    :return: the list of the blocks defined by the user that are currently loaded in globals
+    :return: the list of the blocks defined by the user that are currently
+             loaded in globals
     """
     import IPython
     ipython = IPython.get_ipython()
@@ -128,7 +139,6 @@ def _get_ipython_imports():
 
     :return: A list of imports: [import\n, import\n, ...]
     """
-
     raw_code = _get_raw_code()
     imports = []
     for i in raw_code:
@@ -151,8 +161,9 @@ def _get_ipython_globals():
 
     WARNING2: We will consider only global variables that must be seen by the
               workers if the variable name is defined in capital letters.
-              Please, take caution with the modification on the global variables
-              since they can lead to raise conditions in the user code execution.
+              Please, take caution with the modification on the global
+              variables since they can lead to raise conditions in the user
+              code execution.
 
     :return: A list of lines: [var\n, var\n, ...]
     """
@@ -173,20 +184,24 @@ def _get_ipython_globals():
         for l in lines:
             # if the line starts without spaces and is a variable assignation
             glob_name = ''
-            if not (l.startswith(' ') or l.startswith('\t')) and _is_variable_assignation(l):
+            if not (l.startswith(' ') or l.startswith('\t')) and \
+                    _is_variable_assignation(l):
                 line_parts = l.split()
                 glob_name = line_parts[0]
                 if not glob_name.isupper():
-                    # It is an assignation where the variable name is not in caps
+                    # It is an assignation where the variable name is not in
+                    # capital letters
                     found_one = False
                 elif any(call in line_parts[2:] for call in api_calls):
-                    # It is an assignation that does not contain a master api call
+                    # It is an assignation that does not contain a master api
+                    # call
                     found_one = False
                 else:
                     glob_lines[glob_name] = l.strip()
                     found_one = True
                 continue
-            # if the next line/s start with space or tab belong also to the global variable
+            # if the next line/s start with space or tab belong also to the
+            # global variable
             if found_one and (l.startswith(' ') or l.startswith('\t')):
                 # It is a multiple lines global variable definition
                 glob_lines[glob_name] += l.strip()
@@ -197,14 +212,15 @@ def _get_ipython_globals():
 
 def _is_variable_assignation(line):
     """
-    This function is used to check if a line of code represents a variable assignation:
-    * if contains a '=' (assignation) and does not start with import, nor @, nor def, nor class.
+    This function is used to check if a line of code represents a variable
+    assignation:
+    * if contains a '=' (assignation) and does not start with import, nor @,
+      nor def, nor class.
     * then it is ==> is a global variable assignation.
 
     :param line: Line to parse
     :return: <Boolean>
     """
-
     if '=' in line:
         parts = line.split()
         if not (line.startswith("from") or
@@ -227,7 +243,8 @@ def _get_classes():
     """
     Finds the user defined classes in the code.
 
-    :return: A dictionary with the user classes code: {'name': str(line\nline\n...)}
+    :return: A dictionary with the user classes code:
+             {'name': str(line\nline\n...)}
     """
 
     raw_code = _get_raw_code()
@@ -255,7 +272,7 @@ def _get_classes():
                 classes[class_name].append(line + '\n')
             else:
                 class_found = False
-    # Plain classes content (from {key: [line, line,...]} to {key: line\nline}).
+    # Plain classes content (from {key: [line, line,...]} to {key: line\nline})
     for k, v in list(classes.items()):
         # Collapse all lines into a single one
         classes[k] = ''.join(v).strip()
@@ -266,9 +283,9 @@ def _get_functions():
     """
     Finds the user defined functions in the code.
 
-    :return: A dictionary with the user functions code: {'name': str(line\nline\n...)}
+    :return: A dictionary with the user functions code:
+             {'name': str(line\nline\n...)}
     """
-
     raw_code = _get_raw_code()
     functions = {}
     for block in raw_code:
@@ -291,8 +308,8 @@ def _get_functions():
             if is_function:
                 func_name = ''
                 if line.startswith("def"):
-                    # Function header: find name and include it in the functions dict
-                    # split and remove empty spaces
+                    # Function header: find name and include it in the
+                    # functions dict. Split and remove empty spaces
                     header = [name for name in line.split(" ") if name]
                     # the name may be followed by the parameters parenthesis
                     func_name = header[1].split("(")[0].strip()
@@ -307,9 +324,10 @@ def _get_functions():
                     functions[func_name].append(line + '\n')
                 else:
                     function_found = False
-    # Plain functions content (from {key: [line, line,...]} to {key: line\nline}).
+    # Plain functions content:
+    # from {key: [line, line,...]} to {key: line\nline}
     for k, v in list(functions.items()):
-        functions[k] = ''.join(v).strip()  # Collapse all lines into a single one
+        functions[k] = ''.join(v).strip()  # Collapse all lines into one
     return functions
 
 
@@ -318,10 +336,9 @@ def _get_task_code(f):
     Finds the task code.
 
     :param f: Task function
-    :return: A dictionary with the task code: {'name': str(line\nline\n...)}
+    :return: A dictionary with the task code:
+             {'name': str(line\nline\n...)}
     """
-
-    import inspect
     task_code = inspect.getsource(f)
     if task_code.startswith((' ', '\t')):
         return {}
@@ -344,7 +361,6 @@ def _clean(lines_list):
     :param lines_list: List of strings
     :return: The list without '\n' strings.
     """
-
     result = []
     if len(lines_list) == 1 and lines_list[0].strip() == '':
         # If the lines_list only contains a single line jump remove it
@@ -364,7 +380,6 @@ def _get_old_code(file_path):
     :param file_path: The file where the code is located.
     :return: A dictionary with the imports and existing tasks.
     """
-
     # Read the entire file
     code_file = open(file_path, 'r')
     contents = code_file.readlines()
@@ -438,7 +453,8 @@ def _get_old_code(file_path):
     collapsed = ''.join(file_classes).strip()
     # Then split by "class" and filter the empty results, then iterate
     # concatenating "class" to all results.
-    cls = [('class ' + l) for l in [name for name in collapsed.split('class ') if name]]
+    cls = [('class ' + l) for l in
+           [name for name in collapsed.split('class ') if name]]
     # Add classes to dictionary by class name:
     for c in cls:
         class_code = c.strip()
@@ -474,7 +490,8 @@ def _get_old_code(file_path):
     tsks = [('@' + l) for l in [deco for deco in collapsed.split('@') if deco]]
     # Take into account that other decorators my be over @task, so it is
     # necessary to collapse the function stack
-    prefixes = ("@implement", "@constraint", "@decaf", "@mpi", "@ompss", "@binary", "@opencl")
+    prefixes = ("@implement", "@constraint", "@decaf", "@mpi",
+                "@ompss", "@binary", "@opencl")
     tasks_list = []
     tsk = ""
     for t in tsks:
@@ -492,7 +509,11 @@ def _get_old_code(file_path):
         task_name = task_header.replace('(', ' (').split(' ')[1].strip()
         tasks[task_name] = task_code
 
-    old = {'imports': file_imports, 'globals': file_globals, 'classes': classes, 'functions': functions, 'tasks': tasks}
+    old = {'imports': file_imports,
+           'globals': file_globals,
+           'classes': classes,
+           'functions': functions,
+           'tasks': tasks}
     return old
 
 
@@ -509,7 +530,6 @@ def _update_imports(new_imports, old_imports):
     :param old_imports: All old imports  <Dictionary>
     :return: A list of imports as strings.
     """
-
     not_in_imports = []
     for i in new_imports:
         already = False
@@ -532,14 +552,14 @@ def _update_globals(new_globals, old_globals):
     :param old_globals: All old globals <Dictionary>
     :return: A list of globals as strings.
     """
-
     if len(old_globals) == 0:
         return new_globals
     else:
         for gName in list(new_globals.keys()):
-            if DEBUG and gName in old_globals and (not new_globals[gName] == old_globals[gName]):
+            if DEBUG and gName in old_globals and \
+                    (not new_globals[gName] == old_globals[gName]):
                 print("WARNING! Global variable " + gName +
-                      " has been redefined with changes (the previous will be deprecated).")
+                      " has been redefined (the previous will be deprecated).")
             old_globals[gName] = new_globals[gName]
         return old_globals
 
@@ -552,16 +572,17 @@ def _update_classes(new_classes, old_classes):
 
     :param new_classes: dictionary containing all classes (last version)
     :param old_classes: dictionary containing the existing classes.
-    :return: dictionary with the merging result (keeping all classes and updating the old ones).
+    :return: dictionary with the merging result (keeping all classes and
+             updating the old ones).
     """
-
     if len(old_classes) == 0:
         return new_classes
     else:
         for cName in list(new_classes.keys()):
-            if DEBUG and cName in old_classes and (not new_classes[cName] == old_classes[cName]):
+            if DEBUG and cName in old_classes and \
+                    (not new_classes[cName] == old_classes[cName]):
                 print("WARNING! Class " + cName +
-                      " has been redefined with changes (the previous will be deprecated).")
+                      " has been redefined (the previous will be deprecated).")
             old_classes[cName] = new_classes[cName]
         return old_classes
 
@@ -574,16 +595,18 @@ def _update_functions(new_functions, old_functions):
 
     :param new_functions: dictionary containing all functions (last version)
     :param old_functions: dictionary containing the existing functions.
-    :return: dictionary with the merging result (keeping all functions and updating the old ones).
+    :return: dictionary with the merging result (keeping all functions and
+             updating the old ones).
     """
 
     if len(old_functions) == 0:
         return new_functions
     else:
         for fName in list(new_functions.keys()):
-            if DEBUG and fName in old_functions and (not new_functions[fName] == old_functions[fName]):
+            if DEBUG and fName in old_functions and\
+                    (not new_functions[fName] == old_functions[fName]):
                 print("WARNING! Function " + fName +
-                      " has been redefined with changes (the previous will be deprecated).")
+                      " has been redefined (the previous will be deprecated).")
             old_functions[fName] = new_functions[fName]
         return old_functions
 
@@ -598,15 +621,17 @@ def _update_tasks(new_tasks, old_tasks):
     :param old_tasks: existing tasks
     :return: dictionary with the merging result.
     """
-
     if not new_tasks:
-        # when new_tasks is empty, means that the update was triggered by a class
-        # task. No need to update as a tasks since the class has already been updated
+        # when new_tasks is empty, means that the update was triggered by a
+        # class task. No need to update as a tasks since the class has already
+        # been updated
         pass
     else:
         task_name = list(new_tasks.keys())[0]
-        if DEBUG and task_name in old_tasks and (not new_tasks[task_name] == old_tasks[task_name]):
-            print("WARNING! Task " + task_name + " has been redefined (the previous will be deprecated).")
+        if DEBUG and task_name in old_tasks and\
+                (not new_tasks[task_name] == old_tasks[task_name]):
+            print("WARNING! Task " + task_name +
+                  " has been redefined (the previous will be deprecated).")
         old_tasks[task_name] = new_tasks[task_name]
     return old_tasks
 
@@ -615,8 +640,8 @@ def _update_tasks(new_tasks, old_tasks):
 # FILE UPDATE FUNCTIONS #
 # #######################
 
-def _update_code_file(new_imports, new_globals, new_classes, new_functions, new_tasks,
-                      file_path):
+def _update_code_file(new_imports, new_globals, new_classes, new_functions,
+                      new_tasks, file_path):
     """
     Writes the results to the code file used by the workers.
 
@@ -628,7 +653,6 @@ def _update_code_file(new_imports, new_globals, new_classes, new_functions, new_
     :param file_path: File to update.
     :return: None
     """
-
     code_file = open(file_path, 'w')
     # Write imports
     for i in new_imports:

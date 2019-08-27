@@ -27,7 +27,7 @@ PyCOMPSs API - LocalTask
 """
 
 from pycompss.api.api import compss_wait_on
-from pycompss.util.replace import replace
+from pycompss.util.objects.replace import replace
 import pycompss.util.context as context
 
 import gc

@@ -38,28 +38,28 @@ import pycompss.runtime.binding as binding
 from pycompss.runtime.binding import get_log_path
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import RUNNING_IN_SUPERCOMPUTER
-from pycompss.util.launcher import prepare_environment
-from pycompss.util.launcher import prepare_loglevel_graph_for_monitoring
-from pycompss.util.launcher import updated_variables_in_sc
-from pycompss.util.launcher import prepare_tracing_environment
-from pycompss.util.launcher import check_infrastructure_variables
-from pycompss.util.launcher import create_init_config_file
-from pycompss.util.launcher import setup_logger
-from pycompss.util.logs import init_logging
-from pycompss.util.serializer import SerializerException
-from pycompss.util.optional_modules import show_optional_module_warnings
+from pycompss.util.environment.configuration import prepare_environment
+from pycompss.util.environment.configuration import prepare_loglevel_graph_for_monitoring
+from pycompss.util.environment.configuration import updated_variables_in_sc
+from pycompss.util.environment.configuration import prepare_tracing_environment
+from pycompss.util.environment.configuration import check_infrastructure_variables
+from pycompss.util.environment.configuration import create_init_config_file
+from pycompss.util.environment.configuration import setup_logger
+from pycompss.util.logger.helpers import init_logging
+from pycompss.util.serialization.serializer import SerializerException
+from pycompss.util.warnings.modules import show_optional_module_warnings
 from pycompss.api.exceptions import COMPSsException
 
 # Storage imports
-from pycompss.util.persistent_storage import init_storage
-from pycompss.util.persistent_storage import stop_storage
+from pycompss.util.storages.persistent import init_storage
+from pycompss.util.storages.persistent import stop_storage
 
 # Streaming imports
 from pycompss.streams.environment import init_streaming
 from pycompss.streams.environment import stop_streaming
 
 # Global variable also used within decorators
-app_path = None
+APP_PATH = None
 
 if IS_PYTHON3:
     _py_version = 3
@@ -113,7 +113,7 @@ def compss_main():
 
     :return: None
     """
-    global app_path
+    global APP_PATH
 
     # Let the Python binding know we are at master
     context.set_pycompss_context(context.MASTER)
@@ -141,7 +141,7 @@ def compss_main():
     storage_conf = args.storage_configuration
 
     # Get application execution path
-    app_path = args.app_path
+    APP_PATH = args.app_path
 
     binding_log_path = get_log_path()
     log_path = os.path.join(os.getenv('COMPSS_HOME'), 'Bindings', 'python', str(_py_version), 'log')
@@ -156,7 +156,7 @@ def compss_main():
 
     # Get JVM options
     # jvm_opts = os.environ['JVM_OPTIONS_FILE']
-    # from pycompss.util.jvm_parser import convert_to_dict
+    # from pycompss.util.jvm.parser import convert_to_dict
     # opts = convert_to_dict(jvm_opts)
     # storage_conf = opts.get('-Dcompss.storage.conf')
 
@@ -185,10 +185,10 @@ def compss_main():
 
         # MAIN EXECUTION
         if IS_PYTHON3:
-            with open(app_path) as f:
-                exec(compile(f.read(), app_path, 'exec'), globals())
+            with open(APP_PATH) as f:
+                exec(compile(f.read(), APP_PATH, 'exec'), globals())
         else:
-            execfile(app_path, globals())  # MAIN EXECUTION
+            execfile(APP_PATH, globals())  # MAIN EXECUTION
 
         # Stop streaming
         if __debug__:
@@ -218,7 +218,7 @@ def compss_main():
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         for line in lines:
-            if app_path in line:
+            if APP_PATH in line:
                 print('[ ERROR ]: In: %s', line)
         exit_code = 1
     except COMPSsException as e:

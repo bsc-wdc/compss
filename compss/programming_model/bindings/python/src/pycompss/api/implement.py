@@ -106,7 +106,7 @@ class Implement(object):
                     # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
 
                     # Get the real module name from our launch.py variable
-                    path = getattr(mod, "app_path")
+                    path = getattr(mod, "APP_PATH")
 
                     dirs = path.split(os.path.sep)
                     file_name = os.path.splitext(os.path.basename(path))[0]

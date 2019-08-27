@@ -17,22 +17,14 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs API - COMMONS - ERROR MESSAGES
+=======================================
+    This file defines the public PyCOMPSs error messages displayed
+    by the api.
+"""
 
-def build_return_params_message(types, values):
-    """
-    Build the return message with the parameters output.
 
-    :param types: List of the parameter's types
-    :param values: List of the parameter's values
-    :return: Message as string
-    """
-
-    assert len(types) == len(values), 'Inconsistent state: return type-value length mismatch for return message.'
-
-    pairs = list(zip(types, values))
-    num_params = len(pairs)
-    params = ''
-    for pair in pairs:
-        params = params + str(pair[0]) + ' ' + str(pair[1]) + ' '
-    message = str(num_params) + ' ' + params
-    return message
+def not_in_pycompss(decorator_name):
+    return "The " + decorator_name + \
+           " decorator only works within PyCOMPSs framework."

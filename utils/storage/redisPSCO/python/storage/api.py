@@ -23,7 +23,9 @@ import uuid
 import redis
 import rediscluster
 import logging
-from pycompss.util.serializer import serialize_to_string, deserialize_from_string, deserialize_from_handler
+from pycompss.util.serialization.serializer import serialize_to_string
+from pycompss.util.serialization.serializer import deserialize_from_string
+from pycompss.util.serialization.serializer import deserialize_from_handler
 __name__ = "redispycompss"
 
 '''Constants

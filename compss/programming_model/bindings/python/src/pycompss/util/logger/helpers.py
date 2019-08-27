@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - logs
+PyCOMPSs Util - logs
 =====================
     This file contains all logging methods.
 """
@@ -40,17 +40,18 @@ def init_logging(log_config_file, log_path):
     :param log_path: Json log files path.
     :return: None
     """
-
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())
         f.close()
         if "error_file_handler" in conf["handlers"]:
-            errors_file = conf["handlers"]["error_file_handler"].get("filename")
-            conf["handlers"]["error_file_handler"]["filename"] = log_path + errors_file
+            handler = "error_file_handler"
+            errors_file = conf["handlers"][handler].get("filename")
+            conf["handlers"][handler]["filename"] = log_path + errors_file
         if "error_file_handler" in conf["handlers"]:
-            debug_file = conf["handlers"]["debug_file_handler"].get("filename")
-            conf["handlers"]["debug_file_handler"]["filename"] = log_path + debug_file
+            handler = "debug_file_handler"
+            debug_file = conf["handlers"][handler].get("filename")
+            conf["handlers"][handler]["filename"] = log_path + debug_file
         CONFIG_FUNC(conf)
     else:
         logging.basicConfig(level=logging.INFO)
@@ -63,7 +64,6 @@ def init_logging_worker(log_config_file):
     :param log_config_file: Log file name.
     :return: None
     """
-
     if os.path.exists(log_config_file):
         f = open(log_config_file, 'rt')
         conf = json.loads(f.read())

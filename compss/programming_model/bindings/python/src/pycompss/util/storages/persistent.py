@@ -31,34 +31,42 @@ try:
     from storage.api import getByID
     from storage.api import TaskContext
     print("INFO: Storage API successfully imported.")
-except ImportError:
+except ImportError as e:
     # print("INFO: No storage API defined.")
     # Defined methods throwing exceptions.
 
     def init(config_file_path=None):
-        raise Exception('Unexpected call to init from storage.')
+        raise Exception('Unexpected call to init from storage. Reason: %s' %
+                        e)
 
     def finish():
-        raise Exception('Unexpected call to finish from storage.')
+        raise Exception('Unexpected call to finish from storage. Reason: %s' %
+                        e)
 
     def getByID(id):
-        raise Exception('Unexpected call to getByID.')
+        raise Exception('Unexpected call to getByID. Reason: %s' % e)
 
     class TaskContext(object):
         def __init__(self, logger, values, config_file_path=None):
             self.logger = logger
-            self.logger.error('Unexpected call to dummy storage task context.')
-            raise Exception('Unexpected call to dummy storage task context.')
+            err_msg = 'Unexpected call to dummy storage task context. ' \
+                      'Reason: %s' % e
+            self.logger.error(err_msg)
+            self.values = values
+            self.config_file_path = config_file_path
+            raise Exception(err_msg)
 
         def __enter__(self):
             # Ready to start the task
-            self.logger.error('Unexpected call to dummy storage task context __enter__.')
-            raise Exception('Unexpected call to dummy storage task context __enter__.')
+            err_msg = 'Unexpected call to dummy storage task context __enter__'
+            self.logger.error(err_msg)
+            raise Exception(err_msg)
 
         def __exit__(self, type, value, traceback):
             # Task finished
-            self.logger.error('Unexpected call to dummy storage task context __exit__.')
-            raise Exception('Unexpected call to dummy storage task context __exit__.')
+            err_msg = 'Unexpected call to dummy storage task context __exit__'
+            self.logger.error(err_msg)
+            raise Exception(err_msg)
 
 storage_task_context = TaskContext  # Renamed for importing it from the worker
 
@@ -70,10 +78,10 @@ def is_psco(obj):
     :param obj: Object to check
     :return: <Boolean>
     """
-
     # Check from storage object requires a dummy storage object class
     # from storage.storage_object import storage_object
-    # return issubclass(obj.__class__, storage_object) and get_id(obj) not in [None, 'None']
+    # return issubclass(obj.__class__, storage_object) and
+    #        get_id(obj) not in [None, 'None']
     return has_id(obj) and get_id(obj) not in [None, 'None']
 
 
@@ -84,7 +92,6 @@ def has_id(obj):
     :param obj: Object to check
     :return: <Boolean>
     """
-
     if 'getID' in dir(obj):
         return True
     else:
@@ -98,7 +105,6 @@ def get_id(psco):
     :param psco: Persistent object
     :return: <String> Id
     """
-
     return psco.getID()
 
 
@@ -109,14 +115,14 @@ def get_by_id(id):
     :param id: Persistent object identifier
     :return: The object that corresponds to the id
     """
-
     return getByID(id)
 
 
 def init_storage(storage_conf, logger):
     """
-    Initializes the persistent storage with the given storage configuration file.
-    The storage will be initialized if storage_conf is not None nor 'null'
+    Initializes the persistent storage with the given storage_conf file.
+    The storage will be initialized if storage_conf is not None nor 'null'.
+
     :param storage_conf: Storage configuration file.
     :param logger: Logger where to log the messages.
     :return: True if initialized. False on the contrary.
@@ -132,7 +138,8 @@ def init_storage(storage_conf, logger):
 
 def stop_storage():
     """
-    Stops the persistent storage
+    Stops the persistent storage.
+
     :return: None
     """
     finish()

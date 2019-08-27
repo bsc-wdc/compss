@@ -18,7 +18,7 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs Utils - Context
+PyCOMPSs Util - Context
 ===================
     This file contains the methods to detect the origin of the call stack.
     Useful to detect if we are in the master or in the worker.
@@ -28,15 +28,16 @@ import inspect
 
 MASTER = 'MASTER'
 WORKER = 'WORKER'
-OUTOFSCOPE = 'OUTOFSCOPE'
+OUT_OF_SCOPE = 'OUT_OF_SCOPE'
 
-_WHO = OUTOFSCOPE
-_WHERE = OUTOFSCOPE
+_WHO = OUT_OF_SCOPE
+_WHERE = OUT_OF_SCOPE
 
 
 def in_master():
     """
     Determine if the execution is being performed in the master node
+
     :return:  <Boolean> - True if in master. False on the contrary.
     """
     return _WHERE == MASTER
@@ -45,6 +46,7 @@ def in_master():
 def in_worker():
     """
     Determine if the execution is being performed in a worker node.
+
     :return:  <Boolean> - True if in worker. False on the contrary.
     """
     return _WHERE == WORKER
@@ -53,18 +55,22 @@ def in_worker():
 def in_pycompss():
     """
     Determine if the execution is being performed within the PyCOMPSs scope.
+
     :return:  <Boolean> - True if under scope. False on the contrary.
     """
-    return _WHERE != OUTOFSCOPE
+    return _WHERE != OUT_OF_SCOPE
 
 
 def set_pycompss_context(where):
     """
-    Set the Python Binding context (MASTER or WORKER or OUTOFSCOPE)
-    :param where: New context (MASTER or WORKER or OUTOFSCOPE)
+    Set the Python Binding context (MASTER or WORKER or OUT_OF_SCOPE)
+
+    :param where: New context (MASTER or WORKER or OUT_OF_SCOPE)
     :return: None
     """
-    assert where in [MASTER, WORKER, OUTOFSCOPE], 'PyCOMPSs context must be %s, %s or %s' % (MASTER, WORKER, OUTOFSCOPE)
+    assert where in [MASTER, WORKER, OUT_OF_SCOPE], \
+        'PyCOMPSs context must be %s, %s or %s' % \
+        (MASTER, WORKER, OUT_OF_SCOPE)
     global _WHERE
     _WHERE = where
     global _WHO
@@ -77,6 +83,7 @@ def get_pycompss_context():
     """
     Returns PyCOMPSs context name.
     * For debugging purposes.
+
     :return: PyCOMPSs context name
     """
     return _WHERE
@@ -86,6 +93,7 @@ def get_who_contextualized():
     """
     Returns PyCOMPSs contextualization caller.
     * For debugging purposes.
+
     :return: PyCOMPSs contextualization caller name
     """
     return _WHO

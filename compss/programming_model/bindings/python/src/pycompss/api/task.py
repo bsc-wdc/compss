@@ -34,6 +34,7 @@ from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
+from pycompss.util.storages.persistent import is_psco
 
 if __debug__:
     import logging
@@ -216,7 +217,7 @@ class task(object):
             # 2) An integer N. This means 'this task returns N objects'
             # 3) A basic iterable (tuple, list...). This means 'this task returns an iterable
             #    with the indicated elements inside
-            from pycompss.util.object_properties import is_basic_iterable
+            from pycompss.util.objects.properties import is_basic_iterable
             # We are returning multiple objects until otherwise proven
             # It is important to know because this will determine if we will return
             # a single object or [a single object] in some cases
@@ -321,10 +322,10 @@ class task(object):
             # 1.- The runtime is running.
             # 2.- The module where the function is defined was run as __main__,
             # We need to find out the real module name
-            # Get the real module name from our launch.py app_path global variable
+            # Get the real module name from our launch.py APP_PATH global variable
             # It is guaranteed that this variable will always exist because this code is only executed
             # when we know we are in the master
-            path = getattr(mod, 'app_path')
+            path = getattr(mod, 'APP_PATH')
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Do any necessary pre processing action before executing any code
@@ -336,7 +337,7 @@ class task(object):
                 # that consists of putting all user code that may be executed
                 # in the worker on a file.
                 # This file has to be visible for all workers.
-                from pycompss.util.interactive_helpers import update_tasks_code_file
+                from pycompss.util.interactive.helpers import update_tasks_code_file
                 update_tasks_code_file(self.user_function, path)
         else:
             pass
@@ -353,7 +354,7 @@ class task(object):
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
-        from pycompss.util.object_properties import get_wrapped_source
+        from pycompss.util.objects.properties import get_wrapped_source
         import ast
         source_code = get_wrapped_source(f).strip()
 
@@ -506,7 +507,7 @@ class task(object):
         func = f
         while not got_func_code:
             try:
-                from pycompss.util.object_properties import get_wrapped_sourcelines
+                from pycompss.util.objects.properties import get_wrapped_sourcelines
                 func_code = get_wrapped_sourcelines(func)
                 got_func_code = True
             except IOError:
@@ -692,14 +693,14 @@ class task(object):
         if self.module_name == '__main__' or self.module_name == 'pycompss.runtime.launch':
             # The module where the function is defined was run as __main__,
             # We need to find out the real module name
-            # Get the real module name from our launch.py app_path global variable
+            # Get the real module name from our launch.py APP_PATH global variable
             # It is guaranteed that this variable will always exist because this code is only executed
             # when we know we are in the master
-            path = getattr(mod, 'app_path')
+            path = getattr(mod, 'APP_PATH')
             # Get the file name
             file_name = os.path.splitext(os.path.basename(path))[0]
             # Get the module
-            from pycompss.util.object_properties import get_module_name
+            from pycompss.util.objects.properties import get_module_name
             self.module_name = get_module_name(path, file_name)
 
     def compute_function_type(self):
@@ -1014,13 +1015,13 @@ class task(object):
             if arg.type == parameter.TYPE.FILE:
                 if self.is_parameter_object(arg.name):
                     # The object is stored in some file, load and deserialize it
-                    from pycompss.util.serializer import deserialize_from_file
+                    from pycompss.util.serialization.serializer import deserialize_from_file
                     arg.content = deserialize_from_file(arg.file_name.split(':')[-1])
                 else:
                     # The object is a FILE, just forward the path of the file as a string parameter
                     arg.content = arg.file_name.split(':')[-1]
             elif arg.type == parameter.TYPE.EXTERNAL_STREAM:
-                from pycompss.util.serializer import deserialize_from_file
+                from pycompss.util.serialization.serializer import deserialize_from_file
                 arg.content = deserialize_from_file(arg.file_name)
             elif arg.type == parameter.TYPE.COLLECTION:
                 arg.content = []
@@ -1040,11 +1041,11 @@ class task(object):
                         sub_name = "%s.%s" % (name_prefix, arg.name)
                     else:
                         sub_name = "@%s" % sub_name
-                    from pycompss.worker.commons.worker_commons import build_task_parameter
+                    from pycompss.worker.commons.worker import build_task_parameter
                     sub_arg, _ = build_task_parameter(int(content_type), None, "", sub_name, content_file)
                     # Recursively call the retrieve method, fill the content field in our new taskParameter object
                     retrieve_content(sub_arg, sub_name)
-                    from pycompss.util.serializer import deserialize_from_file
+                    from pycompss.util.serialization.serializer import deserialize_from_file
                     arg.content.append(sub_arg.content)
                     arg.collection_content.append(sub_arg)
 
@@ -1215,7 +1216,6 @@ class task(object):
            python_MPI = True
            
         # Deal with INOUTs
-        from pycompss.util.persistent_storage import is_psco
         for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name, self.get_default_direction(original_name))
@@ -1223,8 +1223,8 @@ class task(object):
             arg.type == parameter.TYPE.EXTERNAL_PSCO or is_psco(arg.content)):
                 # If it si INOUT and not PSCO, serialize to file
                 # We can not use here param.type != parameter.TYPE.EXTERNAL_PSCO since param.type has the old type
-                from pycompss.util.serializer import serialize_to_file
-                from pycompss.util.serializer import serialize_to_file_multienv
+                from pycompss.util.serialization.serializer import serialize_to_file
+                from pycompss.util.serialization.serializer import serialize_to_file_multienv
                 if arg.type == parameter.TYPE.COLLECTION:
                     def get_collection_objects(content, arg):
                         if arg.type == parameter.TYPE.COLLECTION:
@@ -1260,8 +1260,8 @@ class task(object):
                 # Note that there is no "command line optimization" in the returns, as we always pass them as files
                 # This is due to the asymmetry in worker-master communications and because it also makes it easier
                 # for us to deal with returns in that format
-                from pycompss.util.serializer import serialize_to_file
-                from pycompss.util.serializer import serialize_to_file_multienv                
+                from pycompss.util.serialization.serializer import serialize_to_file
+                from pycompss.util.serialization.serializer import serialize_to_file_multienv                
                 
                 if python_MPI:
                    serialize_to_file_multienv(obj, get_file_name(param.file_name), True)

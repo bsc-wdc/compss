@@ -31,23 +31,26 @@ try:
     from storage.api import getByID
     from storage.api import TaskContext
     print("INFO: Storage API successfully imported.")
-except ImportError:
+except ImportError as e:
     # print("INFO: No storage API defined.")
     # Defined methods throwing exceptions.
 
     def init(config_file_path=None):
-        raise Exception('Unexpected call to init from storage.')
+        raise Exception('Unexpected call to init from storage. Reason: %s' %
+                        e)
 
     def finish():
-        raise Exception('Unexpected call to finish from storage.')
+        raise Exception('Unexpected call to finish from storage. Reason: %s' %
+                        e)
 
     def getByID(id):
-        raise Exception('Unexpected call to getByID.')
+        raise Exception('Unexpected call to getByID. Reason: %s' % e)
 
     class TaskContext(object):
         def __init__(self, logger, values, config_file_path=None):
             self.logger = logger
-            err_msg = 'Unexpected call to dummy storage task context.'
+            err_msg = 'Unexpected call to dummy storage task context. ' \
+                      'Reason: %s' % e
             self.logger.error(err_msg)
             self.values = values
             self.config_file_path = config_file_path

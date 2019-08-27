@@ -19,8 +19,9 @@
 
 
 """
-
-Information about available resources and functions in PyCOMPSs
+PyCOMPSs API - Information
+==========================
+   Information about available resources and functions in PyCOMPSs
 """
 
 available_decorators = (

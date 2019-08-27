@@ -41,6 +41,7 @@ public class CommTask extends NIOTask {
 
 
     public CommTask() {
+        // Only for externalisation
     }
 
     /**
@@ -67,9 +68,11 @@ public class CommTask extends NIOTask {
     public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei, boolean hasTarget,
         int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
         List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
-        int transferGroupId, int timeOut, CommResource orchestrator) {
+        int transferGroupId, long timeOut, CommResource orchestrator) {
+
         super(lang, workerDebug, impl, hasTarget, numReturns, params, numParams, reqs, slaveWorkersNodeNames, taskId,
             taskType, jobId, hist, transferGroupId, timeOut);
+
         this.cei = cei;
         this.orchestrator = orchestrator;
     }
@@ -94,26 +97,29 @@ public class CommTask extends NIOTask {
      */
     public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei,
         LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
-        List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId, int timeOut,
+        List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId, long timeOut,
         CommResource orchestrator) {
+
         super(lang, workerDebug, impl, arguments, target, results, slaveWorkersNodeNames, taskId, jobId, hist,
             transferGroupId, timeOut);
+
         this.cei = cei;
         this.orchestrator = orchestrator;
     }
 
     public String getCei() {
-        return cei;
+        return this.cei;
     }
 
     public CommResource getOrchestrator() {
-        return orchestrator;
+        return this.orchestrator;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
-        orchestrator = (CommResource) in.readObject();
+
+        this.orchestrator = (CommResource) in.readObject();
         boolean ceiDefined = in.readBoolean();
         if (ceiDefined) {
             cei = in.readUTF();
@@ -123,11 +129,12 @@ public class CommTask extends NIOTask {
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
-        out.writeObject(orchestrator);
-        boolean ceiDefined = cei != null && !cei.isEmpty();
+
+        out.writeObject(this.orchestrator);
+        boolean ceiDefined = this.cei != null && !this.cei.isEmpty();
         out.writeBoolean(ceiDefined);
         if (ceiDefined) {
-            out.writeUTF(cei);
+            out.writeUTF(this.cei);
         }
     }
 

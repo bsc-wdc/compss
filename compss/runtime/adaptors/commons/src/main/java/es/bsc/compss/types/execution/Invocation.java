@@ -50,6 +50,6 @@ public interface Invocation {
 
     public List<String> getSlaveNodesNames();
 
-    public int getTimeOut();
+    public long getTimeOut();
 
 }

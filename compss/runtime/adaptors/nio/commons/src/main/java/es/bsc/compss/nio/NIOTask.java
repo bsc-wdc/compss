@@ -52,7 +52,7 @@ public class NIOTask implements Externalizable, Invocation {
     private JobHistory history;
     private int transferGroupId;
     private int numReturns;
-    private int timeOut;
+    private long timeOut;
 
 
     /**
@@ -83,7 +83,7 @@ public class NIOTask implements Externalizable, Invocation {
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns,
         LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
-        int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId, int timeOut) {
+        int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId, long timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -136,17 +136,17 @@ public class NIOTask implements Externalizable, Invocation {
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, LinkedList<NIOParam> arguments,
         NIOParam target, LinkedList<NIOParam> results, List<String> slaveWorkersNodeNames, int taskId, int jobId,
-        JobHistory hist, int transferGroupId, int timeOut) {
+        JobHistory hist, int transferGroupId, long timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
-        this.arguments = new LinkedList<>();
-        this.results = new LinkedList<>();
 
         this.arguments = arguments;
         this.target = target;
         this.results = results;
+
+        this.timeOut = timeOut;
 
         this.reqs = impl.getRequirements();
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
@@ -291,7 +291,7 @@ public class NIOTask implements Externalizable, Invocation {
     }
 
     @Override
-    public int getTimeOut() {
+    public long getTimeOut() {
         return this.timeOut;
     }
 
@@ -313,7 +313,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.history = (JobHistory) in.readObject();
 
         this.transferGroupId = in.readInt();
-        this.timeOut = in.readInt();
+        this.timeOut = in.readLong();
     }
 
     @Override
@@ -332,7 +332,7 @@ public class NIOTask implements Externalizable, Invocation {
         out.writeInt(this.jobId);
         out.writeObject(this.history);
         out.writeInt(this.transferGroupId);
-        out.writeInt(this.timeOut);
+        out.writeLong(this.timeOut);
     }
 
     @Override

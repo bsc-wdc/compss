@@ -16,15 +16,30 @@
  */
 package es.bsc.compss.types.request.ap;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.DataInfoProvider;
 import es.bsc.compss.components.impl.TaskAnalyser;
 import es.bsc.compss.components.impl.TaskDispatcher;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class TaskAnalysisRequest extends APRequest {
+
+    private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
+    private static final boolean IS_TIMER_COMPSS_ENABLED;
+
+    static {
+        // Load timer property
+        String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
+        IS_TIMER_COMPSS_ENABLED = (isTimerCOMPSsEnabledProperty == null || isTimerCOMPSsEnabledProperty.isEmpty()
+            || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
+    }
 
     private final Task task;
 
@@ -49,8 +64,21 @@ public class TaskAnalysisRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.processTask(this.task);
+        // Process task
+        if (IS_TIMER_COMPSS_ENABLED) {
+            long startTime = System.nanoTime();
+            ta.processTask(this.task);
+            long endTime = System.nanoTime();
+            float elapsedTime = (endTime - startTime) / (float) 1_000_000;
+            TIMER_LOGGER.info("[TIMER] TA Process of task " + this.task.getId() + ": " + elapsedTime + " ms");
+        } else {
+            ta.processTask(this.task);
+        }
+
+        // Send request to schedule task
         td.executeTask(ap, this.task);
+
+        // Notify task monitor
         TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onAccessesProcessed();
     }

@@ -137,6 +137,12 @@
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
+    <!-- RUNTIME TIMERS -->
+    <!-- es.bsc.compss.Timers: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Timers" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
     <!-- CONNECTORS -->
     <!-- es.bsc.compss.Connectors: DEFAULT = ERROR -->
     <Logger name="es.bsc.compss.Connectors" additivity="FALSE" level="ERROR">

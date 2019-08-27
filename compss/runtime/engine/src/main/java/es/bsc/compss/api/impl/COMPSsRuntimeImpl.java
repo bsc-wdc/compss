@@ -127,6 +127,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.API);
+
+    // External Task monitor
     private static final TaskMonitor DO_NOTHING_MONITOR = new DoNothingTaskMonitor();
 
     static {

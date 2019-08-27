@@ -17,6 +17,7 @@
 
 package es.bsc.compss.executor;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.executor.external.ExecutionPlatformMirror;
 import es.bsc.compss.executor.external.persistent.PersistentMirror;
@@ -77,13 +78,29 @@ import org.apache.logging.log4j.Logger;
 
 public class Executor implements Runnable {
 
+    // Loggers
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     private static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
+    private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
 
+    // Error messages
     private static final String ERROR_OUT_FILES =
         "ERROR: One or more OUT files have not" + " been created by task with Method Definition [";
     private static final String WARN_ATOMIC_MOVE =
         "WARN: AtomicMoveNotSupportedException." + " File cannot be atomically moved. Trying to move without atomic";
+
+    // JVM Flag for timers
+    public static final boolean IS_TIMER_COMPSS_ENABLED;
+
+    // Conversion
+    private static final int NANO_TO_MS = 1_000_000;
+
+    static {
+        // Load timer property
+        String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
+        IS_TIMER_COMPSS_ENABLED = (isTimerCOMPSsEnabledProperty == null || isTimerCOMPSsEnabledProperty.isEmpty()
+            || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
+    }
 
     // Attached component NIOWorker
     private final InvocationContext context;
@@ -175,12 +192,8 @@ public class Executor implements Runnable {
                 LOGGER.debug("Dequeuing job " + invocation.getJobId());
             }
 
-            Exception e = executeTask(invocation);
-
-            boolean success = true;
-            if (e != null) {
-                success = false;
-            }
+            Exception e = execute(invocation);
+            boolean success = (e == null);
 
             if (WORKER_DEBUG) {
                 LOGGER.debug("Job " + invocation.getJobId() + " finished (success: " + success + ")");
@@ -190,16 +203,16 @@ public class Executor implements Runnable {
             if (rootCause instanceof COMPSsException) {
                 e = (COMPSsException) rootCause;
             }
+
             if (e instanceof COMPSsException) {
                 execution.notifyEnd((COMPSsException) e, success);
-
             } else {
                 execution.notifyEnd(null, success);
             }
         }
     }
 
-    private Exception executeTask(Invocation invocation) {
+    private Exception execute(Invocation invocation) {
         if (invocation.getMethodImplementation().getMethodType() == MethodType.METHOD
             && invocation.getLang() != Lang.JAVA && invocation.getLang() != Lang.PYTHON
             && invocation.getLang() != Lang.C) {
@@ -209,15 +222,195 @@ public class Executor implements Runnable {
             System.err.println("Incorrect language " + invocation.getLang() + " in job " + invocation.getJobId());
             return null;
         }
-        return execute(invocation);
+
+        return executeTaskWrapper(invocation);
+    }
+
+    private Exception executeTaskWrapper(Invocation invocation) {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
+        }
+
+        long timeTotalStart = 0L;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            timeTotalStart = System.nanoTime();
+        }
+
+        int jobId = invocation.getJobId();
+        TaskWorkingDir twd = null;
+
+        try {
+            // Set the Task working directory
+            LOGGER.debug("Creating task sandbox for Job " + jobId);
+            long timeSandboxStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeSandboxStart = System.nanoTime();
+            }
+            twd = createTaskSandbox(invocation);
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeSandboxEnd = System.nanoTime();
+                final float timeSandboxElapsed = (timeSandboxEnd - timeSandboxStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER.debug("[TIMER] Create sandbox for job " + jobId + ": " + timeSandboxElapsed + " ms");
+            }
+
+            // Bind files to task sandbox working dir
+            LOGGER.debug("Binding renamed files to sandboxed original names for Job " + jobId);
+            long timeBindOriginalFilesStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeBindOriginalFilesStart = System.nanoTime();
+            }
+            bindOriginalFilenamesToRenames(invocation, twd.getWorkingDir());
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeBindOriginalFilesEnd = System.nanoTime();
+                final float timeBindOriginalFilesElapsed =
+                    (timeBindOriginalFilesEnd - timeBindOriginalFilesStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER.debug(
+                    "[TIMER] Bind original files for job " + jobId + ": " + timeBindOriginalFilesElapsed + " ms");
+            }
+
+            // Bind computing units
+            LOGGER.debug("Asssigning resources for Job " + jobId);
+            long timeAssignResourcesStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeAssignResourcesStart = System.nanoTime();
+            }
+            final InvocationResources assignedResources =
+                this.platform.acquireResources(jobId, invocation.getRequirements());
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeAssignResourcesEnd = System.nanoTime();
+                final float timeAssignResourcesElapsed =
+                    (timeAssignResourcesEnd - timeAssignResourcesStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER
+                    .debug("[TIMER] Assign resources for job " + jobId + ": " + timeAssignResourcesElapsed + " ms");
+            }
+
+            // Execute task
+            LOGGER.debug("Executing task invocation for Job " + jobId);
+            long timeExecTaskStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeExecTaskStart = System.nanoTime();
+            }
+            TimeOutTask timerTask = null;
+            long timeout = invocation.getTimeOut();
+            if (timeout > 0) {
+                timerTask = new TimeOutTask(invocation.getTaskId());
+                this.timer.schedule(timerTask, timeout);
+            }
+            executeTask(assignedResources, invocation, twd.getWorkingDir());
+            if (timerTask != null) {
+                timerTask.cancel();
+            }
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeExecTaskEnd = System.nanoTime();
+                final float timeExecTaskElapsed = (timeExecTaskEnd - timeExecTaskStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER.info("[TIMER] Execute job " + jobId + ": " + timeExecTaskElapsed + " ms");
+            }
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            // Writing in the task .err/.out
+            this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
+            e.printStackTrace(this.context.getThreadErrStream());
+            return e;
+        } finally {
+            // Unbind files from task sandbox working dir
+            LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
+            long timeUnbindOriginalFilesStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeUnbindOriginalFilesStart = System.nanoTime();
+            }
+            try {
+                unbindOriginalFileNamesToRenames(invocation);
+            } catch (IOException | JobExecutionException e) {
+                LOGGER.error(e.getMessage(), e);
+                // Writing in the task .err/.out
+                this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
+                e.printStackTrace(this.context.getThreadErrStream());
+                return e;
+            }
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeUnbindOriginalFilesEnd = System.nanoTime();
+                final float timeUnbindOriginalFilesElapsed =
+                    (timeUnbindOriginalFilesEnd - timeUnbindOriginalFilesStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER.debug(
+                    "[TIMER] Unbind original files for job " + jobId + ": " + timeUnbindOriginalFilesElapsed + " ms");
+            }
+
+            // Check job output files
+            LOGGER.debug("Checking generated files for Job " + jobId);
+            long timeCheckOutputFilesStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeCheckOutputFilesStart = System.nanoTime();
+            }
+            try {
+                checkJobFiles(invocation);
+            } catch (JobExecutionException e) {
+                LOGGER.error(e.getMessage(), e);
+                // Writing in the task .err/.out
+                this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
+                e.printStackTrace(this.context.getThreadErrStream());
+                return e;
+            }
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeCheckOutputFilesEnd = System.nanoTime();
+                final float timeCheckOutputFilesElapsed =
+                    (timeCheckOutputFilesEnd - timeCheckOutputFilesStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER
+                    .debug("[TIMER] Check output files for job " + jobId + ": " + timeCheckOutputFilesElapsed + " ms");
+            }
+
+            // Always release the binded computing units
+            LOGGER.debug("Release binded resources for Job " + jobId);
+            long timeUnassignResourcesStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeUnassignResourcesStart = System.nanoTime();
+            }
+            this.platform.releaseResources(jobId);
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeUnassignResourcesEnd = System.nanoTime();
+                final float timeUnassignResourcesElapsed =
+                    (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER
+                    .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
+            }
+
+            // Always clean the task sandbox working dir
+            LOGGER.debug("Cleaning task sandbox for Job " + jobId);
+            long timeCleanSandboxStart = 0L;
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeCleanSandboxStart = System.nanoTime();
+            }
+            cleanTaskSandbox(twd);
+            if (IS_TIMER_COMPSS_ENABLED) {
+                final long timeCleanSandboxEnd = System.nanoTime();
+                final float timeCleanSandboxElapsed =
+                    (timeCleanSandboxEnd - timeCleanSandboxStart) / (float) NANO_TO_MS;
+                TIMER_LOGGER.debug("[TIMER] Clean sandbox for job " + jobId + ": " + timeCleanSandboxElapsed + " ms");
+            }
+
+            // Always end task tracing
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
+            }
+        }
+
+        // Write timer if needed
+        if (IS_TIMER_COMPSS_ENABLED) {
+            final long timeTotalEnd = System.nanoTime();
+            final float timeTotalElapsed = (timeTotalEnd - timeTotalStart) / (float) NANO_TO_MS;
+            TIMER_LOGGER.info("[TIMER] Total time for job " + jobId + ": " + timeTotalElapsed + " ms");
+        }
+
+        // Any exception thrown, successful execution
+        return null;
     }
 
     private void executeTask(InvocationResources assignedResources, Invocation invocation, File taskSandboxWorkingDir)
         throws Exception {
+
         /* Register outputs **************************************** */
-        String streamsPath = context.getStandardStreamsPath(invocation);
-        context.registerOutputs(streamsPath);
-        PrintStream out = context.getThreadOutStream();
+        String streamsPath = this.context.getStandardStreamsPath(invocation);
+        this.context.registerOutputs(streamsPath);
+        PrintStream out = this.context.getThreadOutStream();
 
         /* TRY TO PROCESS THE TASK ******************************** */
         if (invocation.isDebugEnabled()) {
@@ -230,35 +423,35 @@ public class Executor implements Runnable {
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case BINARY:
-                    invoker = new BinaryInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new BinaryInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case PYTHON_MPI:
-                    invoker = new PythonMPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new PythonMPIInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case MPI:
-                    invoker = new MPIInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new MPIInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case COMPSs:
-                    invoker = new COMPSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new COMPSsInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case DECAF:
-                    invoker = new DecafInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new DecafInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case MULTI_NODE:
                     invoker = selectNativeMethodInvoker(invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case OMPSS:
-                    invoker = new OmpSsInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new OmpSsInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
                 case OPENCL:
-                    invoker = new OpenCLInvoker(context, invocation, taskSandboxWorkingDir, assignedResources);
+                    invoker = new OpenCLInvoker(this.context, invocation, taskSandboxWorkingDir, assignedResources);
                     break;
             }
-            platform.registerRunningJob(invocation.getJobId(), invoker);
+            this.platform.registerRunningJob(invocation.getJobId(), invoker);
             invoker.processTask();
         } catch (Exception jee) {
             out.println("[EXECUTOR] executeTask - Error in task execution");
-            PrintStream err = context.getThreadErrStream();
+            PrintStream err = this.context.getThreadErrStream();
             err.println("[EXECUTOR] executeTask - Error in task execution");
             createEmptyFile(invocation);
             jee.printStackTrace(err);
@@ -267,96 +460,8 @@ public class Executor implements Runnable {
             if (invocation.isDebugEnabled()) {
                 out.println("[EXECUTOR] executeTask - End task execution");
             }
-            platform.unregisterRunningJob(invocation.getJobId());
-            context.unregisterOutputs();
-        }
-    }
-
-    private Exception execute(Invocation invocation) {
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
-        }
-
-        TaskWorkingDir twd = null;
-
-        try {
-            long startTime = System.currentTimeMillis();
-            // Set the Task working directory
-            twd = createTaskSandbox(invocation);
-            long createDuration = System.currentTimeMillis() - startTime;
-
-            // Bind files to task sandbox working dir
-            LOGGER.debug("Binding renamed files to sandboxed original names for Job " + invocation.getJobId());
-            long startSL = System.currentTimeMillis();
-            bindOriginalFilenamesToRenames(invocation, twd.getWorkingDir());
-            long slDuration = System.currentTimeMillis() - startSL;
-
-            // Bind Computing units
-            long startCUB = System.currentTimeMillis();
-            InvocationResources assignedResources =
-                platform.acquireResources(invocation.getJobId(), invocation.getRequirements());
-            long cubDuration = System.currentTimeMillis() - startCUB;
-
-            long execDuration = 0;
-
-            try {
-                // Execute task
-                LOGGER.debug("Executing Task of Job " + invocation.getJobId());
-                long startExec = System.currentTimeMillis();
-                Long time = (long) invocation.getTimeOut();
-                TimeOutTask timerTask = null;
-                if (time > 0) {
-                    timerTask = new TimeOutTask(invocation.getTaskId());
-                    timer.schedule(timerTask, time);
-                }
-                executeTask(assignedResources, invocation, twd.getWorkingDir());
-                execDuration = System.currentTimeMillis() - startExec;
-                if (timerTask != null) {
-                    timerTask.cancel();
-                }
-            } catch (Exception e) {
-                LOGGER.error(e.getMessage(), e);
-                // Writing in the task .err/.out
-                context.getThreadOutStream().println("Exception executing task " + e.getMessage());
-                e.printStackTrace(context.getThreadErrStream());
-                //
-                // createEmptyFile(invocation);
-                return e;
-            } finally {
-                // Unbind files from task sandbox working dir
-                LOGGER.debug("Removing renamed files to sandboxed original names for Job " + invocation.getJobId());
-                long startOrig = System.currentTimeMillis();
-                unbindOriginalFileNamesToRenames(invocation);
-                long origFileDuration = System.currentTimeMillis() - startOrig;
-
-                // Check job output files
-                LOGGER.debug("Checking generated files for Job " + invocation.getJobId());
-                long startCheckResults = System.currentTimeMillis();
-                checkJobFiles(invocation);
-                long checkResultsDuration = System.currentTimeMillis() - startCheckResults;
-
-                LOGGER.info("[Profile] createSandBox: " + createDuration + " createSimLinks: " + slDuration
-                    + " bindCU: " + cubDuration + " execution" + execDuration + " restoreSimLinks: " + origFileDuration
-                    + " checkResults: " + checkResultsDuration);
-
-            }
-            return null;
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            // Writing in the task .err/.out
-            context.getThreadOutStream().println("Exception executing task " + e.getMessage());
-            e.printStackTrace(context.getThreadErrStream());
-            return e;
-        } finally {
-            // Always clean the task sandbox working dir
-            cleanTaskSandbox(twd);
-            // Always release the binded computing units
-            platform.releaseResources(invocation.getJobId());
-
-            // Always end task tracing
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
-            }
+            this.platform.unregisterRunningJob(invocation.getJobId());
+            this.context.unregisterOutputs();
         }
     }
 

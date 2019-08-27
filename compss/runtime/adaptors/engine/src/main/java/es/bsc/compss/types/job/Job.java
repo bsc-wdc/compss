@@ -291,7 +291,7 @@ public abstract class Job<T extends COMPSsWorker> {
      *
      * @return time out of the task
      */
-    public int getTimeOut() {
+    public long getTimeOut() {
         return this.taskParams.getTimeOut();
     }
 

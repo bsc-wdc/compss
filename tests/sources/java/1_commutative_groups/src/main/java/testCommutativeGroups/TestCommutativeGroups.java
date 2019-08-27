@@ -129,20 +129,6 @@ public class TestCommutativeGroups {
         }
     }
 
-    private static void checkFinalResults() {
-        int result = 0;
-        // Wait on on file6
-        int resultF1 = TestCommutativeGroupsImpl.readFile(FILE_NAME1);
-        System.out.println("The result of file 1 is " + resultF1);
-
-        // Wait on on file6
-        int resultF2 = TestCommutativeGroupsImpl.readFile(FILE_NAME2);
-        System.out.println("The result of file 2 is " + resultF2);
-
-        result = resultF1 + resultF2;
-        System.out.println("The final result is " + result);
-    }
-
     private static void testPSCOCommutativeINOUT() throws Exception {
         // Initialize test file
         newFile(FILE_NAME7, true);

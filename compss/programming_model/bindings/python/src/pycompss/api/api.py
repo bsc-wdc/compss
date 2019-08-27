@@ -29,11 +29,14 @@ PyCOMPSs API
         - wait on file
         - delete object
         - barrier
+        - barrier group
         - wait_on
+        - TaskGroup (class)
     functions.
     Also includes the redirection to the dummy API.
 
-    CAUTION: If the context has not been defined, it will load the dummy API.
+    CAUTION: If the context has not been defined, it will load the dummy API
+             automatically.
 """
 
 import pycompss.util.context as context

@@ -24,7 +24,7 @@ PyCOMPSs Dummy API - Binary
 """
 
 
-class binary(object):
+class Binary(object):
     """
     Dummy Binary class (decorator style)
     """
@@ -38,3 +38,6 @@ class binary(object):
             return f(*args, **kwargs)
 
         return wrapped_f
+
+
+binary = Binary

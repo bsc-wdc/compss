@@ -29,3 +29,6 @@ def local(input_function):
         return input_function(*args, **kwargs)
 
     return wrapped_function
+
+
+Local = local

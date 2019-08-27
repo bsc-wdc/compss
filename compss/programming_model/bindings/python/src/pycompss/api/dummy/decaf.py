@@ -24,7 +24,7 @@ PyCOMPSs Dummy API - Decaf
 """
 
 
-class decaf(object):
+class Decaf(object):
     """
     Dummy decaf class (decorator style)
     """
@@ -38,3 +38,6 @@ class decaf(object):
             return f(*args, **kwargs)
 
         return wrapped_f
+
+
+decaf = Decaf

@@ -24,7 +24,7 @@ PyCOMPSs Dummy API - Implement
 """
 
 
-class implement(object):
+class Implement(object):
     """
     Dummy implement class (decorator style)
     """
@@ -38,3 +38,6 @@ class implement(object):
             return f(*args, **kwargs)
 
         return wrapped_f
+
+
+implement = Implement

@@ -30,6 +30,8 @@ import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.error_msgs import cast_env_to_int_error
+from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -64,7 +66,6 @@ class COMPSs(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.registered = False
@@ -80,13 +81,15 @@ class COMPSs(object):
                             list(kwargs.keys()),
                             "@compss")
 
-            # Get the computing nodes: This parameter will have to go down until
-            # execution when invoked.
-            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
+            # Get the computing nodes: This parameter will have to go down
+            # until execution when invoked.
+            if 'computing_nodes' not in self.kwargs and \
+                    'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
                 if 'computingNodes' in self.kwargs:
-                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
+                    self.kwargs['computing_nodes'] = \
+                        self.kwargs.pop('computingNodes')
                 computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do
@@ -99,19 +102,26 @@ class COMPSs(object):
                         if env_var.startswith('{'):
                             env_var = env_var[1:-1]  # remove brackets
                         try:
-                            self.kwargs['computing_nodes'] = int(os.environ[env_var])
+                            self.kwargs['computing_nodes'] = \
+                                int(os.environ[env_var])
                         except ValueError:
-                            raise Exception("ERROR: ComputingNodes value cannot be cast from ENV variable to int")
+                            raise Exception(
+                                cast_env_to_int_error('ComputingNodes'))
                     else:
                         # ComputingNodes is in string form, cast it
                         try:
-                            self.kwargs['computing_nodes'] = int(computing_nodes)
+                            self.kwargs['computing_nodes'] = \
+                                int(computing_nodes)
                         except ValueError:
-                            raise Exception("ERROR: ComputingNodes value cannot be cast from string to int")
+                            raise Exception(
+                                cast_string_to_int_error('ComputingNodes'))
                 else:
-                    raise Exception("ERROR: Wrong Computing Nodes value at COMPSs decorator.")
+                    raise Exception("ERROR: Wrong Computing Nodes value at" +
+                                    " @COMPSs decorator.")
             if __debug__:
-                logger.debug("This COMPSs task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
+                logger.debug("This COMPSs task will have " +
+                             str(self.kwargs['computing_nodes']) +
+                             " computing nodes.")
         else:
             pass
 
@@ -122,7 +132,6 @@ class COMPSs(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         @wraps(func)
         def compss_f(*args, **kwargs):
             if not self.scope:
@@ -136,9 +145,10 @@ class COMPSs(object):
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
-                if self.module == '__main__' or self.module == 'pycompss.runtime.launch':
-                    # The module where the function is defined was run as __main__,
-                    # we need to find out the real module name.
+                if self.module == '__main__' or \
+                        self.module == 'pycompss.runtime.launch':
+                    # The module where the function is defined was run as
+                    # __main__, so we need to find out the real module name.
 
                     # Get the real module name from our launch.py variable
                     path = getattr(mod, "APP_PATH")
@@ -161,11 +171,12 @@ class COMPSs(object):
                 # Include the registering info related to @compss
 
                 # Retrieve the base core_element established at @task decorator
-                from pycompss.api.task import current_core_element as core_element
+                from pycompss.api.task import current_core_element as cce
                 if not self.registered:
                     self.registered = True
-                    # Update the core element information with the compss information
-                    core_element.set_impl_type("COMPSs")
+                    # Update the core element information with the @compss
+                    # decorator information
+                    cce.set_impl_type("COMPSs")
 
                     if 'runcompss' in self.kwargs:
                         runcompss = self.kwargs['runcompss']
@@ -197,9 +208,13 @@ class COMPSs(object):
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
 
                     impl_signature = 'COMPSs.' + app_name
-                    core_element.set_impl_signature(impl_signature)
-                    impl_args = [runcompss, flags, app_name, worker_in_master, working_dir]
-                    core_element.set_impl_type_args(impl_args)
+                    cce.set_impl_signature(impl_signature)
+                    impl_args = [runcompss,
+                                 flags,
+                                 app_name,
+                                 worker_in_master,
+                                 working_dir]
+                    cce.set_impl_type_args(impl_args)
             else:
                 # worker code
                 pass
@@ -240,8 +255,8 @@ class COMPSs(object):
         return compss_f
 
 
-# ############################################################################# #
-# ###################### COMPSs DECORATOR ALTERNATIVE NAME ####################### #
-# ############################################################################# #
+# ########################################################################### #
+# #################### COMPSs DECORATOR ALTERNATIVE NAME #################### #
+# ########################################################################### #
 
 compss = COMPSs

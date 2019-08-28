@@ -26,11 +26,11 @@ PyCOMPSs API - LocalTask
     It also handles INOUTs
 """
 
+import gc
+
 from pycompss.api.api import compss_wait_on
 from pycompss.util.objects.replace import replace
 import pycompss.util.context as context
-
-import gc
 
 
 def local(input_function):
@@ -40,18 +40,16 @@ def local(input_function):
     :param input_function: Input function
     :return: Wrapped function
     """
-
     if not context.in_pycompss():
-
         # Return dummy local decorator
+
         def wrapped_function(*args, **kwargs):
             return input_function(*args, **kwargs)
 
         return wrapped_function
-
     else:
-
-        from pycompss.runtime.binding import get_object_id, pending_to_synchronize
+        from pycompss.runtime.binding import get_object_id
+        from pycompss.runtime.binding import pending_to_synchronize
 
         def must_sync(obj):
             return get_object_id(obj) in pending_to_synchronize
@@ -77,8 +75,8 @@ def local(input_function):
         return wrapped_function
 
 
-# ############################################################################# #
-# ##################### LOCAL DECORATOR ALTERNATIVE NAME ###################### #
-# ############################################################################# #
+# ########################################################################### #
+# #################### LOCAL DECORATOR ALTERNATIVE NAME ##################### #
+# ########################################################################### #
 
 Local = local

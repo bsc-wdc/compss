@@ -57,7 +57,6 @@ class Binary(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.scope = context.in_pycompss()
@@ -84,7 +83,6 @@ class Binary(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         @wraps(func)
         def binary_f(*args, **kwargs):
             if not self.scope:
@@ -100,12 +98,13 @@ class Binary(object):
 
                 if (self.module == '__main__' or
                         self.module == 'pycompss.runtime.launch'):
-                    # The module where the function is defined was run as __main__,
-                    # we need to find out the real module name.
+                    # The module where the function is defined was run as
+                    # __main__, so we need to find out the real module name.
 
-                    # path=mod.__file__
-                    # dirs=mod.__file__.split(os.sep)
-                    # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
+                    # path = mod.__file__
+                    # dirs = mod.__file__.split(os.sep)
+                    # file_name = os.path.splitext(
+                    #                 os.path.basename(mod.__file__))[0]
 
                     # Get the real module name from our launch.py variable
                     path = getattr(mod, "APP_PATH")
@@ -130,10 +129,12 @@ class Binary(object):
                 if not self.registered:
                     # Set as registered
                     self.registered = True
-                    # Retrieve the base core_element established at @task decorator
-                    from pycompss.api.task import current_core_element as core_element
-                    # Update the core element information with the binary argument information
-                    core_element.set_impl_type("BINARY")
+                    # Retrieve the base core_element established at @task
+                    # decorator
+                    from pycompss.api.task import current_core_element as cce
+                    # Update the core element information with the binary
+                    # argument information
+                    cce.set_impl_type("BINARY")
                     _binary = self.kwargs['binary']
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
@@ -142,9 +143,9 @@ class Binary(object):
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'BINARY.' + _binary
-                    core_element.set_impl_signature(impl_signature)
+                    cce.set_impl_signature(impl_signature)
                     impl_args = [_binary, working_dir]
-                    core_element.set_impl_type_args(impl_args)
+                    cce.set_impl_type_args(impl_args)
             else:
                 # worker code
                 pass
@@ -180,8 +181,8 @@ class Binary(object):
         return binary_f
 
 
-# ############################################################################# #
-# #################### BINARY DECORATOR ALTERNATIVE NAME ###################### #
-# ############################################################################# #
+# ########################################################################### #
+# ################### BINARY DECORATOR ALTERNATIVE NAME ##################### #
+# ########################################################################### #
 
 binary = Binary

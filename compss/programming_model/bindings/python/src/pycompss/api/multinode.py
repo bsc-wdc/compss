@@ -30,6 +30,8 @@ import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.error_msgs import cast_env_to_int_error
+from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -56,7 +58,6 @@ class MultiNode(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.registered = False
@@ -72,13 +73,15 @@ class MultiNode(object):
                             list(kwargs.keys()),
                             "@multinode")
 
-            # Get the computing nodes: This parameter will have to go down until
-            # execution when invoked.
-            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
+            # Get the computing nodes: This parameter will have to go down
+            # until execution when invoked.
+            if 'computing_nodes' not in self.kwargs and \
+                    'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
                 if 'computingNodes' in self.kwargs:
-                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
+                    self.kwargs['computing_nodes'] = \
+                        self.kwargs.pop('computingNodes')
                 computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do
@@ -91,20 +94,27 @@ class MultiNode(object):
                         if env_var.startswith('{'):
                             env_var = env_var[1:-1]  # remove brackets
                         try:
-                            self.kwargs['computing_nodes'] = int(os.environ[env_var])
+                            self.kwargs['computing_nodes'] = \
+                                int(os.environ[env_var])
                         except ValueError:
-                            raise Exception("ERROR: ComputingNodes value cannot be cast from ENV variable to int")
+                            raise Exception(
+                                cast_env_to_int_error('ComputingNodes'))
                     else:
                         # ComputingNodes is in string form, cast it
                         try:
-                            self.kwargs['computing_nodes'] = int(computing_nodes)
+                            self.kwargs['computing_nodes'] = \
+                                int(computing_nodes)
                         except ValueError:
-                            raise Exception("ERROR: ComputingNodes value cannot be cast from string to int")
+                            raise Exception(
+                                cast_string_to_int_error('ComputingNodes'))
                 else:
-                    raise Exception("ERROR: Wrong Computing Nodes value at MultiNode decorator.")
+                    raise Exception("ERROR: Wrong Computing Nodes value at" +
+                                    " @MultiNode decorator.")
             if __debug__:
                 logger.debug(
-                    "This MultiNode task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
+                    "This MultiNode task will have " +
+                    str(self.kwargs['computing_nodes']) +
+                    " computing nodes.")
         else:
             pass
 
@@ -115,23 +125,23 @@ class MultiNode(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         @wraps(func)
         def multinode_f(*args, **kwargs):
             if not self.scope:
                 # from pycompss.api.dummy.compss import COMPSs as dummy_compss
                 # d_m = dummy_compss(self.args, self.kwargs)
                 # return d_m.__call__(func)
-                raise Exception(not_in_pycompss("multinode"))
+                raise Exception(not_in_pycompss("MultiNode"))
 
             if context.in_master():
                 # master code
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
-                if self.module == '__main__' or self.module == 'pycompss.runtime.launch':
-                    # The module where the function is defined was run as __main__,
-                    # we need to find out the real module name.
+                if self.module == '__main__' or \
+                        self.module == 'pycompss.runtime.launch':
+                    # The module where the function is defined was run as
+                    # __main__, so we need to find out the real module name.
 
                     # Get the real module name from our launch.py variable
                     path = getattr(mod, "APP_PATH")
@@ -154,12 +164,14 @@ class MultiNode(object):
                 # Include the registering info related to @compss
 
                 # Retrieve the base core_element established at @task decorator
-                from pycompss.api.task import current_core_element as core_element
+                from pycompss.api.task import current_core_element as cce
                 if not self.registered:
                     self.registered = True
-                    # Update the core element information with the MultiNode information
-                    core_element.set_impl_type("MULTI_NODE")
-                    # Signature and implementation args are set by the @task decorator
+                    # Update the core element information with the
+                    # @MultiNode information
+                    cce.set_impl_type("MULTI_NODE")
+                    # Signature and implementation args are set by the
+                    # @task decorator
             else:
                 # worker code
                 pass
@@ -197,8 +209,8 @@ class MultiNode(object):
         return multinode_f
 
 
-# ############################################################################# #
-# ################### MultiNode DECORATOR ALTERNATIVE NAME #################### #
-# ############################################################################# #
+# ########################################################################### #
+# ################## MultiNode DECORATOR ALTERNATIVE NAME ################### #
+# ########################################################################### #
 
 multinode = MultiNode

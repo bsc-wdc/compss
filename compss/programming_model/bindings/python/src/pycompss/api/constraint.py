@@ -50,15 +50,15 @@ class Constraint(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.registered = False
         self.scope = context.in_pycompss()
         if self.scope and __debug__:
             logger.debug("Init @constraint decorator...")
-        # Since we only pass the constraint key to the runtime as the user defines it,
-        # let the runtime do the name check (throw a warning if unsupported)
+        # Since we only pass the constraint key to the runtime as the user
+        # defines it, let the runtime do the name check (throw a warning if
+        # unsupported)
 
     def __call__(self, func):
         """
@@ -67,11 +67,10 @@ class Constraint(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         @wraps(func)
         def constrained_f(*args, **kwargs):
             if not self.scope:
-                from pycompss.api.dummy.constraint import constraint as dummy_constraint
+                from pycompss.api.dummy.constraint import constraint as dummy_constraint  # noqa
                 d_c = dummy_constraint(self.args, self.kwargs)
                 return d_c.__call__(func)(*args, **kwargs)
 
@@ -82,12 +81,13 @@ class Constraint(object):
 
                 if (self.module == '__main__' or
                         self.module == 'pycompss.runtime.launch'):
-                    # The module where the function is defined was run as __main__,
-                    # we need to find out the real module name.
+                    # The module where the function is defined was run as
+                    # __main__, so we need to find out the real module name.
 
-                    # path=mod.__file__
-                    # dirs=mod.__file__.split(os.sep)
-                    # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
+                    # path = mod.__file__
+                    # dirs = mod.__file__.split(os.sep)
+                    # file_name = os.path.splitext(
+                    #                 os.path.basename(mod.__file__))[0]
 
                     # Get the real module name from our launch.py variable
                     path = getattr(mod, "APP_PATH")
@@ -111,10 +111,11 @@ class Constraint(object):
                 # Include the registering info related to @constraint
                 if not self.registered:
                     self.registered = True
-                    # Retrieve the base core_element established at @task decorator
-                    from pycompss.api.task import current_core_element as core_element
+                    # Retrieve the base core_element established at @task
+                    # decorator
+                    from pycompss.api.task import current_core_element as cce
                     # Update the core element information with the constraints
-                    core_element.set_impl_constraints(self.kwargs)
+                    cce.set_impl_constraints(self.kwargs)
             else:
                 # worker code
                 pass
@@ -147,8 +148,8 @@ class Constraint(object):
         return constrained_f
 
 
-# ############################################################################# #
-# ################### CONSTRAINT DECORATOR ALTERNATIVE NAME ################### #
-# ############################################################################# #
+# ########################################################################### #
+# ################### CONSTRAINT DECORATOR ALTERNATIVE NAME ################# #
+# ########################################################################### #
 
 constraint = Constraint

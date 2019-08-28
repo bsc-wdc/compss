@@ -30,6 +30,7 @@ import os
 from functools import wraps
 import pycompss.util.context as context
 from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.error_msgs import wrong_value
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -65,7 +66,6 @@ class Decaf(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.registered = False
@@ -83,23 +83,28 @@ class Decaf(object):
 
             # Get the computing nodes: This parameter will have to go down
             # until execution when invoked.
-            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
+            if 'computing_nodes' not in self.kwargs and \
+                    'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
                 if 'computingNodes' in self.kwargs:
-                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
+                    self.kwargs['computing_nodes'] = \
+                        self.kwargs.pop('computingNodes')
                 computing_nodes = kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     self.kwargs['computing_nodes'] = kwargs['computing_nodes']
-                elif isinstance(computing_nodes, str) and computing_nodes.strip().startswith('$'):
+                elif isinstance(computing_nodes, str) and \
+                        computing_nodes.strip().startswith('$'):
                     env_var = computing_nodes.strip()[1:]  # Remove $
                     if env_var.startswith('{'):
                         env_var = env_var[1:-1]  # remove brackets
                     self.kwargs['computing_nodes'] = int(os.environ[env_var])
                 else:
-                    raise Exception("Wrong Computing Nodes value at DECAF decorator.")
+                    raise Exception(wrong_value("Computing Nodes", "decaf"))
             if __debug__:
-                logger.debug("This DECAF task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
+                logger.debug("This DECAF task will have " +
+                             str(self.kwargs['computing_nodes']) +
+                             " computing nodes.")
         else:
             pass
 
@@ -110,7 +115,6 @@ class Decaf(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         @wraps(func)
         def decaf_f(*args, **kwargs):
             if not self.scope:
@@ -126,12 +130,13 @@ class Decaf(object):
 
                 if (self.module == '__main__' or
                         self.module == 'pycompss.runtime.launch'):
-                    # The module where the function is defined was run as __main__,
-                    # we need to find out the real module name.
+                    # The module where the function is defined was run as
+                    # __main__, so we need to find out the real module name.
 
-                    # path=mod.__file__
-                    # dirs=mod.__file__.split(os.sep)
-                    # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
+                    # pat = mod.__file__
+                    # dirs = mod.__file__.split(os.sep)
+                    # file_name = os.path.splitext(
+                    #                 os.path.basename(mod.__file__))[0]
 
                     # Get the real module name from our launch.py variable
                     path = getattr(mod, "APP_PATH")
@@ -156,10 +161,11 @@ class Decaf(object):
 
                 # Retrieve the base core_element established at @task decorator
                 if not self.registered:
-                    from pycompss.api.task import current_core_element as core_element
+                    from pycompss.api.task import current_core_element as cce
                     self.registered = True
-                    # Update the core element information with the mpi information
-                    core_element.set_impl_type("DECAF")
+                    # Update the core element information with the @decaf
+                    # information
+                    cce.set_impl_type("DECAF")
 
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
@@ -192,9 +198,13 @@ class Decaf(object):
                     else:
                         df_lib = '[unassigned]'  # Empty or '[unassigned]'
                     impl_signature = 'DECAF.' + df_script
-                    core_element.set_impl_signature(impl_signature)
-                    impl_args = [df_script, df_executor, df_lib, working_dir, runner]
-                    core_element.set_impl_type_args(impl_args)
+                    cce.set_impl_signature(impl_signature)
+                    impl_args = [df_script,
+                                 df_executor,
+                                 df_lib,
+                                 working_dir,
+                                 runner]
+                    cce.set_impl_type_args(impl_args)
             else:
                 # worker code
                 pass
@@ -203,7 +213,8 @@ class Decaf(object):
             if __debug__:
                 logger.debug("Executing decaf_f wrapper.")
 
-            # Set the computing_nodes variable in kwargs for its usage in @task decorator
+            # Set the computing_nodes variable in kwargs for its usage in
+            # @task decorator
             kwargs['computing_nodes'] = self.kwargs['computing_nodes']
 
             if len(args) > 0:
@@ -234,8 +245,8 @@ class Decaf(object):
         return decaf_f
 
 
-# ############################################################################# #
-# ##################### DECAF DECORATOR ALTERNATIVE NAME ###################### #
-# ############################################################################# #
+# ########################################################################### #
+# #################### DECAF DECORATOR ALTERNATIVE NAME ##################### #
+# ########################################################################### #
 
 decaf = Decaf

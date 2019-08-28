@@ -58,7 +58,6 @@ class Implement(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.registered = False
@@ -77,17 +76,17 @@ class Implement(object):
 
     def __call__(self, func):
         """
-        Parse and set the implementation parameters within the task core element.
+        Parse and set the implementation parameters within the task core
+        element.
 
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         @wraps(func)
         def implement_f(*args, **kwargs):
             # This is executed only when called.
             if not self.scope:
-                # from pycompss.api.dummy.implement import implement as dummy_implement
+                # from pycompss.api.dummy.implement import implement as dummy_implement  # noqa
                 # d_i = dummy_implement(self.args, self.kwargs)
                 # return d_i.__call__(func)
                 raise Exception(not_in_pycompss("implement"))
@@ -99,12 +98,13 @@ class Implement(object):
 
                 if (self.module == '__main__' or
                         self.module == 'pycompss.runtime.launch'):
-                    # The module where the function is defined was run as __main__,
-                    # we need to find out the real module name.
+                    # The module where the function is defined was run as
+                    # __main__, so we need to find out the real module name.
 
-                    # path=mod.__file__
-                    # dirs=mod.__file__.split(os.sep)
-                    # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
+                    # path = mod.__file__
+                    # dirs = mod.__file__.split(os.sep)
+                    # file_name = os.path.splitext(
+                    #                 os.path.basename(mod.__file__))[0]
 
                     # Get the real module name from our launch.py variable
                     path = getattr(mod, "APP_PATH")
@@ -130,20 +130,21 @@ class Implement(object):
                 # Retrieve the base core_element established at @task decorator
                 if not self.registered:
                     self.registered = True
-                    from pycompss.api.task import current_core_element as core_element
-                    # Update the core element information with the mpi information
+                    from pycompss.api.task import current_core_element as cce
+                    # Update the core element information with the @implement
+                    # information
                     if 'sourceClass' in self.kwargs:
                         another_class = self.kwargs['sourceClass']
                     else:
                         another_class = self.kwargs['source_class']
                     another_method = self.kwargs['method']
                     ce_signature = another_class + '.' + another_method
-                    core_element.set_ce_signature(ce_signature)
-                    # This is not needed since the arguments are already set by the
-                    # task decorator.
+                    cce.set_ce_signature(ce_signature)
+                    # This is not needed since the arguments are already set
+                    # by the task decorator.
                     # implArgs = [another_class, another_method]
-                    # core_element.set_implTypeArgs(implArgs)
-                    core_element.set_impl_type("METHOD")
+                    # cce.set_implTypeArgs(implArgs)
+                    cce.set_impl_type("METHOD")
             else:
                 # worker code
                 pass
@@ -182,8 +183,8 @@ class Implement(object):
         return implement_f
 
 
-# ############################################################################# #
-# ################### IMPLEMENT DECORATOR ALTERNATIVE NAME #################### #
-# ############################################################################# #
+# ########################################################################### #
+# ################## IMPLEMENT DECORATOR ALTERNATIVE NAME ################### #
+# ########################################################################### #
 
 implement = Implement

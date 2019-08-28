@@ -17,7 +17,6 @@
 
 # -*- coding: utf-8 -*-
 
-
 """
 PyCOMPSs API - Information
 ==========================
@@ -25,18 +24,25 @@ PyCOMPSs API - Information
 """
 
 available_decorators = (
-    'implement',
+    'binary',
+    'compss',
     'constraint',
     'decaf',
+    'implement',
+    'local',
     'mpi',
+    'multinode',
     'ompss',
-    'binary',
     'opencl',
-    'task')
+    'parallel',
+    'task'
+)
 
 non_worker_decorators = (
+    'binary',
+    'compss',
     'decaf',
     'mpi',
     'ompss',
-    'binary',
-    'opencl')
+    'opencl'
+)

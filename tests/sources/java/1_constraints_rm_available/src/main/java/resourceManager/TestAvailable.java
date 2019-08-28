@@ -197,8 +197,8 @@ public class TestAvailable {
         consumed1 = worker.runTask(ce3Impls.get(0).getRequirements());
         consumed2 = worker.runTask(ce3Impls.get(0).getRequirements());
 
-        //System.out.println("CONSUMED: " + consumed1);
-        //System.out.println("CONSUMED: " + consumed2);
+        // System.out.println("CONSUMED: " + consumed1);
+        // System.out.println("CONSUMED: " + consumed2);
         // System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for STORAGEBW reserve is not working");

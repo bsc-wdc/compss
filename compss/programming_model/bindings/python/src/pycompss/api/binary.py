@@ -19,7 +19,7 @@
 
 """
 PyCOMPSs API - BINARY
-==================
+=====================
     This file contains the class constraint, needed for the binary task
     definition through the decorator.
 """

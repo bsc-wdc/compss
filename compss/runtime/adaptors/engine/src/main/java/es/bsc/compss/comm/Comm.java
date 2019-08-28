@@ -156,7 +156,7 @@ public class Comm {
             // Server
             String compssMaster = appHost.getName();
             String dsMaster;
-            if (STREAMING_MASTER_NAME == null || STREAMING_MASTER_NAME == compssMaster) {
+            if (STREAMING_MASTER_NAME == null || STREAMING_MASTER_NAME.equals(compssMaster)) {
                 // Streaming master name not defined or is the same than the COMPSs master
                 // Start server on COMPSs Master
                 dsMaster = compssMaster;
@@ -324,7 +324,8 @@ public class Comm {
             }
 
             // Stop stream server if this runtime is the owner
-            if (STREAMING_MASTER_NAME == null || STREAMING_MASTER_NAME == appHost.getName()) {
+            String compssMaster = appHost.getName();
+            if (STREAMING_MASTER_NAME == null || STREAMING_MASTER_NAME.equals(compssMaster)) {
                 LOGGER.debug("Stopping Streaming Server...");
                 DistroStreamServer.setStop();
             } else {

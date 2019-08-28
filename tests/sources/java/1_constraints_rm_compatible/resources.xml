@@ -18,6 +18,7 @@
         <Storage>
         	<Size>120.0</Size>
         	<Type>NVRAM</Type>
+        	<Bandwidth>200</Bandwidth>        	
         </Storage>
         <OperatingSystem>
         	<Type>MacOS</Type>
@@ -72,6 +73,7 @@
         <Storage>
         	<Size>240.0</Size>
         	<Type>SSD</Type>
+        	<Bandwidth>100</Bandwidth>        	
         </Storage>
         <OperatingSystem>
         	<Type>Linux</Type>
@@ -138,6 +140,7 @@
         <Storage>
         	<Size>300.0</Size>
         	<Type>SSD</Type>
+        	<Bandwidth>200</Bandwidth>
         </Storage>
         <OperatingSystem>
         	<Type>Linux</Type>
@@ -201,6 +204,7 @@
         <Storage>
         	<Size>500.0</Size>
         	<Type>HDD</Type>
+        	<Bandwidth>100</Bandwidth>
         </Storage>
         <OperatingSystem>
         	<Type>Windows</Type>
@@ -246,6 +250,7 @@
         <Storage>
         	<Size>300.0</Size>
         	<Type>SSD</Type>
+        	<Bandwidth>100</Bandwidth>
         </Storage>
         <OperatingSystem>
         	<Type>Windows</Type>

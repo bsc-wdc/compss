@@ -595,7 +595,7 @@ public class ProjectFile {
      * @return size
      */
     public float getStorageSize(StorageType strNode) {
-        List<Serializable> storageProps = strNode.getSizeOrType();
+        List<Serializable> storageProps = strNode.getSizeOrTypeOrBandwidth();
         if (storageProps != null) {
             for (Serializable prop : storageProps) {
                 if (prop instanceof Float) {
@@ -613,7 +613,7 @@ public class ProjectFile {
      * @return size
      */
     public String getStorageType(StorageType strNode) {
-        List<Serializable> storageProps = strNode.getSizeOrType();
+        List<Serializable> storageProps = strNode.getSizeOrTypeOrBandwidth();
         if (storageProps != null) {
             for (Serializable prop : storageProps) {
                 if (prop instanceof String) {
@@ -622,6 +622,24 @@ public class ProjectFile {
             }
         }
         return null;
+    }
+
+    /**
+     * Get the bandwidth of a given storage @strNode.
+     * 
+     * @param strNode Storage Object
+     * @return bandwidth
+     */
+    public int getStorageBW(StorageType strNode) {
+        List<Serializable> storageProps = strNode.getSizeOrTypeOrBandwidth();
+        if (storageProps != null) {
+            for (Serializable prop : storageProps) {
+                if (prop instanceof Integer) {
+                    return (Integer) prop;
+                }
+            }
+        }
+        return -1;
     }
 
     /**

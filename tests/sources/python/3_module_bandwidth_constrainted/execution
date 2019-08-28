@@ -12,7 +12,7 @@
 
   # Global variables
   exit_value=1
-  app_name="environment_variables.py"
+  app_name="module_bandwidth_constraint.py"
 
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
@@ -23,38 +23,50 @@
   mkdir -p /tmp/COMPSsWorker01/
 
   #----------------------------------------------------------------------------------
-  # Set environment variables
-  export computingUnits="2"
-  export processorName="MainProcessor"
-  export processorSpeed="2.4"
-  export processorArchitecture="amd64"
-  export processorPropertyName="ThreadAffinity"
-  export processorPropertyValue="Big"
-  export memorySize="8.0"
-  export memoryType="Volatile"
-  export storageSize="240.0"
-  export storageType="SSD"
-  export storageBW="50"
-  export operatingSystemType="Linux"
-  export operatingSystemDistribution="OpenSUSE"
-  export operatingSystemVersion="13.2"
-  export appSoftware="JAVA, PYTHON, COMPSS"
-  export hostQueues="sequential, debug, bsc"
-  export wallClockLimit="10"
-
-  #----------------------------------------------------------------------------------
   # Run application
   echo
-  echo "*** RUNNING PYTHON APPLICATION ENVIRONMENT VARIABLES"
+  echo "*** RUNNING PYTHON APPLICATION MODULE CONSTRAINT"
 
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"
     error_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.errorlog"
+    output_log_seq="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.seq_outputlog"
+    error_log_seq="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.seq_errorlog"
     specific_log_dir="${COMPSs_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     exec_target_log_folder="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}"
     mkdir -p "${exec_target_log_folder}"
-    expectedTime=80s
+    expectedTime=60s
+
+    # Check that the pycompss module is available in the environment
+    python -c "import pycompss"
+    errCode=$?
+    if [ $errCode -ne  0 ] ; then
+      echo "[ERROR] THE pycompss MODULE IS NOT AVAILABLE IN THE SYSTEM." | tee -a "${output_log}"
+      echo "CHECK THAT PYTHONPATH CONTAINS THE APPROPIATE MODULE PATH." | tee -a "${output_log}"
+      exit $errCode
+    fi
+
+    # Sequential execution
+    timeout --signal=2 "$expectedTime" \
+      python "${base_app_dir}/src/${app_name}" > >(tee "${output_log_seq}") 2> >(tee "${error_log_seq}" >&2)
+    seq_exit_value=$?
+
+    # Check segmentation fault
+    if [ "${seq_exit_value}" -eq 139 ]; then
+      echo "[ERROR] Something really wrong happened during the sequential execution: segmentation fault" | tee -a "${output_log}"
+      exit 139
+    fi
+    # Check timeout
+    if [ "${seq_exit_value}" -eq 124 ]; then
+      echo "[WARNING] Python Application timed out" | tee -a "${output_log}"
+      exit 124
+    fi
+    # Check errors
+    if [ "${seq_exit_value}" -ne 0 ]; then
+      echo "[ERROR] Sequential execution failed" | tee -a "${output_log}"
+      exit ${seq_exit_value}
+    fi
 
     python_mpi_worker=""
     if [ "$python_interpreter" == 'python2_mpi' ]; then
@@ -66,8 +78,9 @@
         python_mpi_worker="--python_mpi_worker=true"
     fi
 
+    # COMPSs execution
     # shellcheck disable=SC2086
-    timeout --signal=2 $expectedTime "${COMPSs_exec}" \
+    timeout --signal=2 $expectedTime ${python_interpreter} -m pycompss \
       --project="${base_app_dir}"/project.xml \
       --resources="${base_app_dir}"/resources.xml \
       \
@@ -97,7 +110,7 @@
       cp -rf "${specific_log_dir}"/* "${exec_target_log_folder}"
 
       # Check result
-      "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}" "${comm}"
+      "${base_app_dir}"/result "${output_log}" "${error_log}" "${exec_target_log_folder}"  "${output_log_seq}"
       exit_value=$?
     fi
 

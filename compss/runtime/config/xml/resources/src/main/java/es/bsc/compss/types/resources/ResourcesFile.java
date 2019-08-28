@@ -839,7 +839,7 @@ public class ResourcesFile {
      * @return
      */
     private float getStorageSize(StorageType storage) {
-        List<Serializable> storageProps = storage.getSizeOrType();
+        List<Serializable> storageProps = storage.getSizeOrTypeOrBandwidth();
         if (storageProps != null) {
             for (Serializable prop : storageProps) {
                 if (prop instanceof Float) {
@@ -917,7 +917,7 @@ public class ResourcesFile {
      * @return
      */
     private String getStorageType(StorageType storage) {
-        List<Serializable> storageProps = storage.getSizeOrType();
+        List<Serializable> storageProps = storage.getSizeOrTypeOrBandwidth();
         if (storageProps != null) {
             for (Serializable prop : storageProps) {
                 if (prop instanceof String) {
@@ -927,6 +927,84 @@ public class ResourcesFile {
         }
 
         return null;
+    }
+
+    /**
+     * Returns the storage bandwidth of a given DataNode.
+     *
+     * @param d Data node object
+     * @return
+     */
+    public int getStorageBW(DataNodeType d) {
+        List<JAXBElement<?>> elements = d.getHostOrPathOrAdaptors();
+        if (elements != null) {
+            for (JAXBElement<?> elem : elements) {
+                if (elem.getName().equals(new QName("Storage"))) {
+                    StorageType storage = ((StorageType) elem.getValue());
+                    return getStorageBW(storage);
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Returns the storage bandwidth of a given ComputeNode.
+     *
+     * @param c Compute node description object
+     * @return storage size
+     */
+    public int getStorageBW(ComputeNodeType c) {
+        List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof StorageType) {
+                    StorageType storage = ((StorageType) obj);
+                    return getStorageBW(storage);
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Returns the storage bandwidth of a given InstanceType.
+     *
+     * @param instance Instance type description
+     * @return
+     */
+    public int getStorageBW(InstanceTypeType instance) {
+        List<Object> objList = instance.getProcessorOrMemoryOrStorage();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof StorageType) {
+                    StorageType storage = ((StorageType) obj);
+                    return getStorageBW(storage);
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Get storage bandwidth.
+     * 
+     * @param storage Storage description
+     * @return
+     */
+    private int getStorageBW(StorageType storage) {
+        List<Serializable> storageProps = storage.getSizeOrTypeOrBandwidth();
+        if (storageProps != null) {
+            for (Serializable prop : storageProps) {
+                if (prop instanceof Integer) {
+                    return (int) prop;
+                }
+            }
+        }
+        return -1;
     }
 
     /**
@@ -2363,7 +2441,7 @@ public class ResourcesFile {
             cn.getProcessorOrAdaptorsOrMemory().add(memory);
         }
         if (diskSize > 0) {
-            StorageType storage = createStorage(diskSize, null);
+            StorageType storage = createStorage(diskSize, null, -1);
             cn.getProcessorOrAdaptorsOrMemory().add(storage);
         }
         if (osName != null) {
@@ -2396,6 +2474,7 @@ public class ResourcesFile {
      * @param memoryType Memory type
      * @param storageSize Storage size
      * @param storageType Storage type
+     * @param storageBW Storage Bandwidth
      * @param osType Operating system type
      * @param osDistribution Operating system distribution
      * @param osVersion Operating system version
@@ -2405,7 +2484,8 @@ public class ResourcesFile {
     public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed,
         String procType, float procMemSize, ProcessorPropertyType procProp, String adaptorName, int maxPort,
         int minPort, String executor, String user, float memorySize, String memoryType, float storageSize,
-        String storageType, String osType, String osDistribution, String osVersion) throws InvalidElementException {
+        String storageType, int storageBW, String osType, String osDistribution, String osVersion)
+        throws InvalidElementException {
 
         List<ProcessorType> processors = new ArrayList<>();
         ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
@@ -2418,7 +2498,7 @@ public class ResourcesFile {
         AdaptorType adaptor = ResourcesFile.createAdaptor(adaptorName, false, null, true, nioProp, user);
         adaptors.add(adaptor);
         MemoryType mem = createMemory(memorySize, memoryType);
-        StorageType storage = createStorage(storageSize, storageType);
+        StorageType storage = createStorage(storageSize, storageType, storageBW);
         OSType os = createOperatingSystem(osType, osDistribution, osVersion);
         return this.addComputeNode(name, processors, adaptors, mem, storage, os, null, null, null);
     }
@@ -2468,6 +2548,7 @@ public class ResourcesFile {
      * @param memoryType Memory type
      * @param storageSize Storage size
      * @param storageType Storage type
+     * @param storageBW Storage Bandwidth
      * @param osType Operating system type
      * @param osDistribution Operating system distribution
      * @param osVersion Operating system version
@@ -2477,14 +2558,14 @@ public class ResourcesFile {
     public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed,
         String procType, float procMemSize, ProcessorPropertyType procProp, String adaptorName, boolean batch,
         List<String> queues, boolean interactive, String brokerAdaptor, String user, float memorySize,
-        String memoryType, float storageSize, String storageType, String osType, String osDistribution,
+        String memoryType, float storageSize, String storageType, int storageBW, String osType, String osDistribution,
         String osVersion) throws InvalidElementException {
 
         List<ProcessorType> processors = new ArrayList<>();
         ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
         processors.add(pr);
         MemoryType mem = createMemory(memorySize, memoryType);
-        StorageType storage = createStorage(storageSize, storageType);
+        StorageType storage = createStorage(storageSize, storageType, storageBW);
         OSType os = createOperatingSystem(osType, osDistribution, osVersion);
         List<AdaptorType> adaptors = new ArrayList<>();
         AdaptorType adaptor = ResourcesFile.createAdaptor(adaptorName, batch, queues, interactive, brokerAdaptor, user);
@@ -2793,13 +2874,17 @@ public class ResourcesFile {
      *
      * @param storageSize Storage size
      * @param type Storage type
+     * @param storageBW storage bandwidth
      * @return created storage
      */
-    public static StorageType createStorage(float storageSize, String type) {
+    public static StorageType createStorage(float storageSize, String type, int storageBW) {
         StorageType storage = new StorageType();
-        storage.getSizeOrType().add(new Float(storageSize));
+        storage.getSizeOrTypeOrBandwidth().add(new Float(storageSize));
         if (type != null) {
-            storage.getSizeOrType().add(type);
+            storage.getSizeOrTypeOrBandwidth().add(type);
+        }
+        if (storageBW != -1) {
+            storage.getSizeOrTypeOrBandwidth().add(storageBW);
         }
         return storage;
     }
@@ -2921,7 +3006,7 @@ public class ResourcesFile {
 
     public static InstanceTypeType createInstance(String name, String procName, int procCU, float memorySize,
         float storageSize) {
-        return createInstance(name, procName, procCU, null, 0, null, 0, null, memorySize, null, storageSize, null);
+        return createInstance(name, procName, procCU, null, 0, null, 0, null, memorySize, null, storageSize, null, -1);
     }
 
     /**
@@ -2939,11 +3024,12 @@ public class ResourcesFile {
      * @param memoryType Memory type
      * @param storageSize Storage size
      * @param storageType Storage type
+     * @param storageBW Storage Bandwidth
      * @return Created instance type description
      */
     public static InstanceTypeType createInstance(String name, String procName, int procCU, String procArch,
         float procSpeed, String procType, float procMemSize, ProcessorPropertyType procProp, float memorySize,
-        String memoryType, float storageSize, String storageType) {
+        String memoryType, float storageSize, String storageType, int storageBW) {
 
         InstanceTypeType instance = new InstanceTypeType();
         instance.setName(name);
@@ -2951,7 +3037,7 @@ public class ResourcesFile {
         instance.getProcessorOrMemoryOrStorage().add(pr);
         MemoryType mem = createMemory(memorySize, memoryType);
         instance.getProcessorOrMemoryOrStorage().add(mem);
-        StorageType storage = createStorage(storageSize, storageType);
+        StorageType storage = createStorage(storageSize, storageType, storageBW);
         instance.getProcessorOrMemoryOrStorage().add(storage);
         return instance;
     }

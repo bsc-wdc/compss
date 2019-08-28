@@ -411,6 +411,27 @@ public class Test {
             return "storageType";
         }
 
+        if (general == null || general.storageBW().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.storageBW().equals(Constants.UNASSIGNED)) {
+                // Default value
+                ret = (registered.getStorageBW() == MethodResourceDescription.UNASSIGNED_INT);
+            } else {
+                // Specific constraint value
+                ret = (registered.getStorageBW() == Integer.valueOf(specific.storageBW()));
+            }
+        } else {
+            if (specific == null || specific.storageBW().equals(Constants.UNASSIGNED)) {
+                // General constraint value
+                ret = (registered.getStorageBW() == Integer.valueOf(general.storageBW()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getStorageBW() == Integer.valueOf(specific.storageBW()));
+            }
+        }
+        if (!ret) {
+            return "storageBW";
+        }
+
         /*
          * ***************************************** Operating System
          *****************************************/

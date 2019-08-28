@@ -4,13 +4,11 @@
         <Processor Name="MainProcessor">
             <ComputingUnits>4</ComputingUnits>
         </Processor>
-        <Memory>
-        	<Size>4.0</Size>
-        </Memory>
         <Storage>
-           <Size>10</Size>
-           <Bandwidth>200</Bandwidth>
-        </Storage>
+        	<Size>120.0</Size>
+        	<Type>SSD</Type>
+        	<Bandwidth>200</Bandwidth>        	
+        </Storage>        
         <Adaptors>
             <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
                 <SubmissionSystem>
@@ -32,5 +30,4 @@
             </Adaptor>
         </Adaptors>
     </ComputeNode>
-
 </ResourcesList>

@@ -22,6 +22,7 @@ from pycompss.api.constraint import constraint
             memory_type="${memoryType}",
             storage_size="${storageSize}",
             storage_type="${storageType}",
+            storageBW="${storageBW}",
             operating_system_type="${operatingSystemType}",
             operating_system_distribution="${operatingSystemDistribution}",
             operating_system_version="${operatingSystemVersion}",

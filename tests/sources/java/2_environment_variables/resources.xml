@@ -8,7 +8,11 @@
             <Application>JAVA</Application>
             <Application>PYTHON</Application>
             <Application>COMPSS</Application>
-        </Software>       
+        </Software>
+        <Storage>
+			<Size>500</Size>
+			<Bandwidth>200</Bandwidth>
+		</Storage>       
 		<Adaptors>
 			<Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
 				<SubmissionSystem>

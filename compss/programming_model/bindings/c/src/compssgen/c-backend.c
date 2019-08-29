@@ -1196,7 +1196,7 @@ static void add_object_or_array_arg_master_treatment(FILE *outFile, argument *ar
             fprintf(outFile, "\t\t %s = new %s[%s];\n",arg->name, arg->classname, arg->elements);
         }
     } else {
-        fprintf(outFile, "\t\t printf(\"ERROR: %s is null.\");\n\t\t fflush(NULL);\n\t\t GS_Off();\n\t\t exit(1);", arg->name);
+        fprintf(outFile, "\t\t printf(\"ERROR: %s is null.\");\n\t\t fflush(NULL);\n\t\t GS_Off(1);\n\t\t exit(1);", arg->name);
     }
     fprintf(outFile, "\t }\n");
     fprintf(outFile, "\t // Add object treatment for argument %s;\n", arg->name);

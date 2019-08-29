@@ -235,7 +235,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
         # Force users that use decorators on top of @task to return the task
         # results first. This is tested with the timeit decorator in test 19.
         signal.signal(signal.SIGALRM, task_timed_out)
-        signal.signal(signal.SIGUSR1, task_cancel)
+        signal.signal(signal.SIGUSR2, task_cancel)
         signal.alarm(time_out)
         if persistent_storage:
             with storage_task_context(logger, values,

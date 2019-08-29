@@ -60,7 +60,9 @@ public class SchedulingInformation {
     public static <T extends WorkerResourceDescription> void changesOnWorker(ResourceScheduler<T> ui) {
         // Remove the previous description of the worker
         for (List<ResourceScheduler<? extends WorkerResourceDescription>> coreToWorker : CORE_TO_WORKERS) {
-            coreToWorker.remove(ui);
+            if (coreToWorker != null) {
+                coreToWorker.remove(ui);
+            }
         }
 
         // Update registered coreElements

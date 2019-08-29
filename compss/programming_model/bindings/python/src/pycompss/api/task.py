@@ -19,7 +19,8 @@
 
 """
 PyCOMPSs API - Task
-This file contains the class task, needed for the task definition.
+===================
+    This file contains the class task, needed for the task definition.
 """
 
 from __future__ import print_function
@@ -211,74 +212,6 @@ class Task(object):
         # time or have a different signature
         self.signature = None
         self.registered = False
-
-    def add_return_parameters(self):
-        """
-        Modify the return parameters accordingly to the return statement
-
-        :return: Nothing, it just creates and modifies self.returns
-        """
-        from collections import OrderedDict
-        self.returns = OrderedDict()
-        # Note that returns is by default False
-        if self.decorator_arguments['returns']:
-            # A return statement can be the following:
-            # 1) A type. This means 'this task returns an object of this type'
-            # 2) An integer N. This means 'this task returns N objects'
-            # 3) A basic iterable (tuple, list...). This means 'this task
-            #    returns an iterable with the indicated elements inside
-            from pycompss.util.objects.properties import is_basic_iterable
-            # We are returning multiple objects until otherwise proven
-            # It is important to know because this will determine if we will
-            # return a single object or [a single object] in some cases
-            self.multi_return = True
-            if isinstance(self.decorator_arguments['returns'], str):
-                # Check if the returns statement contains an string with an
-                # integer or a global variable.
-                # In such case, build a list of objects of value length and
-                # set it in ret_type.
-                # Global variable or string wrapping integer value
-                try:
-                    # Return is hidden by an int as a string.
-                    # i.e., returns="var_int"
-                    num_rets = int(self.decorator_arguments['returns'])
-                except ValueError:
-                    # Return is hidden by a global variable. i.e., LT_ARGS
-                    try:
-                        num_rets = self.user_function.__globals__.get(
-                            self.decorator_arguments['returns'])
-                    except AttributeError:
-                        # This is a numba jit declared task
-                        num_rets = self.user_function.py_func.__globals__.get(
-                            self.decorator_arguments['returns'])
-                # Construct hidden multireturn
-                if num_rets > 1:
-                    to_return = [tuple([]) for _ in range(num_rets)]
-                else:
-                    to_return = tuple([])
-            elif is_basic_iterable(self.decorator_arguments['returns']):
-                # The task returns a basic iterable with some types
-                # already defined
-                to_return = self.decorator_arguments['returns']
-            elif isinstance(self.decorator_arguments['returns'], int):
-                # The task returns a list of N objects, defined by the int N
-                to_return = tuple([() for _ in
-                                   range(self.decorator_arguments['returns'])])
-            else:
-                # The task returns a single object of a single type
-                # This is also the only case when no multiple objects are
-                # returned but only one
-                self.multi_return = False
-                to_return = [self.decorator_arguments['returns']]
-            # At this point we have a list of returns
-            for (i, elem) in enumerate(to_return):
-                ret_type = parameter.get_compss_type(elem)
-                self.returns[parameter.get_return_name(i)] = \
-                    parameter.Parameter(p_type=ret_type,
-                                        p_object=elem,
-                                        p_direction=parameter.OUT)
-                # Hopefully, an exception have been thrown if some invalid
-                # stuff has been put in the returns field
 
     def __call__(self, user_function):
         """
@@ -822,6 +755,74 @@ class Task(object):
         self.compute_module_name()
         # Get the function type (function, instance method, class method)
         self.compute_function_type()
+
+    def add_return_parameters(self):
+        """
+        Modify the return parameters accordingly to the return statement
+
+        :return: Nothing, it just creates and modifies self.returns
+        """
+        from collections import OrderedDict
+        self.returns = OrderedDict()
+        # Note that returns is by default False
+        if self.decorator_arguments['returns']:
+            # A return statement can be the following:
+            # 1) A type. This means 'this task returns an object of this type'
+            # 2) An integer N. This means 'this task returns N objects'
+            # 3) A basic iterable (tuple, list...). This means 'this task
+            #    returns an iterable with the indicated elements inside
+            from pycompss.util.objects.properties import is_basic_iterable
+            # We are returning multiple objects until otherwise proven
+            # It is important to know because this will determine if we will
+            # return a single object or [a single object] in some cases
+            self.multi_return = True
+            if isinstance(self.decorator_arguments['returns'], str):
+                # Check if the returns statement contains an string with an
+                # integer or a global variable.
+                # In such case, build a list of objects of value length and
+                # set it in ret_type.
+                # Global variable or string wrapping integer value
+                try:
+                    # Return is hidden by an int as a string.
+                    # i.e., returns="var_int"
+                    num_rets = int(self.decorator_arguments['returns'])
+                except ValueError:
+                    # Return is hidden by a global variable. i.e., LT_ARGS
+                    try:
+                        num_rets = self.user_function.__globals__.get(
+                            self.decorator_arguments['returns'])
+                    except AttributeError:
+                        # This is a numba jit declared task
+                        num_rets = self.user_function.py_func.__globals__.get(
+                            self.decorator_arguments['returns'])
+                # Construct hidden multireturn
+                if num_rets > 1:
+                    to_return = [tuple([]) for _ in range(num_rets)]
+                else:
+                    to_return = tuple([])
+            elif is_basic_iterable(self.decorator_arguments['returns']):
+                # The task returns a basic iterable with some types
+                # already defined
+                to_return = self.decorator_arguments['returns']
+            elif isinstance(self.decorator_arguments['returns'], int):
+                # The task returns a list of N objects, defined by the int N
+                to_return = tuple([() for _ in
+                                   range(self.decorator_arguments['returns'])])
+            else:
+                # The task returns a single object of a single type
+                # This is also the only case when no multiple objects are
+                # returned but only one
+                self.multi_return = False
+                to_return = [self.decorator_arguments['returns']]
+            # At this point we have a list of returns
+            for (i, elem) in enumerate(to_return):
+                ret_type = parameter.get_compss_type(elem)
+                self.returns[parameter.get_return_name(i)] = \
+                    parameter.Parameter(p_type=ret_type,
+                                        p_object=elem,
+                                        p_direction=parameter.OUT)
+                # Hopefully, an exception have been thrown if some invalid
+                # stuff has been put in the returns field
 
     def master_call(self, *args, **kwargs):
         """

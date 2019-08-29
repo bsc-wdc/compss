@@ -31,10 +31,13 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -63,7 +66,7 @@ public class ExecutionPlatform implements ExecutorContext {
     private final Semaphore stopSemaphore;
     private final Map<Class<?>, ExecutionPlatformMirror<?>> mirrors;
 
-    private LinkedList<Integer> toCancel;
+    private Set<Integer> toCancel;
     private Map<Integer, Invoker> executingJobs;
 
 
@@ -102,8 +105,8 @@ public class ExecutionPlatform implements ExecutorContext {
         });
         this.finishedWorkerThreads = new LinkedList<>();
         addWorkerThreads(initialSize);
-        this.toCancel = new LinkedList<Integer>();
-        this.executingJobs = new HashMap<>();
+        this.toCancel = new HashSet<Integer>();
+        this.executingJobs = new ConcurrentHashMap<>();
     }
 
     /**
@@ -242,7 +245,8 @@ public class ExecutionPlatform implements ExecutorContext {
      * @param jobId Id of the job to cancel.
      */
     public void cancelJob(int jobId) {
-        if (!this.executingJobs.containsKey(jobId)) {
+        Invoker invoker = this.executingJobs.get(jobId);
+        if (invoker == null) {
             LOGGER.debug("Job " + jobId + " is to be cancelled");
             this.toCancel.add(jobId);
         } else {
@@ -264,6 +268,7 @@ public class ExecutionPlatform implements ExecutorContext {
     public void unregisterRunningJob(int jobId) {
         LOGGER.debug("Unregistering job " + jobId);
         this.executingJobs.remove(jobId);
+        toCancel.remove(jobId);
     }
 
     @Override

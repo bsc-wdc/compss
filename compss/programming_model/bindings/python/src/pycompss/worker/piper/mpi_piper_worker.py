@@ -65,6 +65,18 @@ def shutdown_handler(signal, frame):
     else:
         print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
+def user_signal_handler(signal, frame):
+    """
+    User signal handler (do not remove the parameters).
+
+    :param signal: shutdown signal
+    :param frame: Frame
+    :return: None
+    """
+    if is_worker():
+        print("[PYTHON WORKER] Default user signal handler")
+    else:
+        print("[PYTHON EXECUTOR %s] Default user signal handler" % RANK)
 
 ######################
 # Main method
@@ -82,6 +94,8 @@ def compss_persistent_worker(config):
 
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
+    # Catch SIGUSER2 to solve strange behaviour with mpi4py
+    signal.signal(signal.SIGUSR2, user_signal_handler)
 
     # Set the binding in worker mode
     import pycompss.util.context as context
@@ -145,7 +159,8 @@ def compss_persistent_worker(config):
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
                 pid = PROCESSES.get(in_pipe)
-                kill(int(pid), signal.SIGUSR1)
+                logger.debug("[PYTHON WORKER] Signaling process with PID " + pid + " to cancel a task")
+                kill(int(pid), signal.SIGUSR2)
 
             elif line[0] == PING_TAG:
                 control_pipe.write(PONG_TAG)
@@ -188,6 +203,8 @@ def compss_persistent_executor(config):
 
     # Catch SIGTERM sent by bindings_piper
     signal.signal(signal.SIGTERM, shutdown_handler)
+    # Catch SIGUSER2 to solve strange behaviour with mpi4py
+    signal.signal(signal.SIGUSR2, user_signal_handler)
 
     # Set the binding in worker mode
     import pycompss.util.context as context

@@ -19,6 +19,7 @@ package es.bsc.compss.scheduler.types;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.util.CoreManager;
+import es.bsc.compss.util.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -62,6 +63,8 @@ public class SchedulingInformation {
         for (List<ResourceScheduler<? extends WorkerResourceDescription>> coreToWorker : CORE_TO_WORKERS) {
             if (coreToWorker != null) {
                 coreToWorker.remove(ui);
+            } else {
+                ErrorManager.warn("Worker for CE is null.");
             }
         }
 
@@ -71,7 +74,13 @@ public class SchedulingInformation {
         // Add the new description of the worker
         List<Integer> executableCores = ui.getExecutableCores();
         for (int coreId : executableCores) {
-            CORE_TO_WORKERS.get(coreId).add(ui);
+            List<ResourceScheduler<? extends WorkerResourceDescription>> workersList = CORE_TO_WORKERS.get(coreId);
+            if (workersList == null) {
+                ErrorManager.warn("CE with id " + coreId + " does not exists in the Core to workers list. Creating a new one");
+                workersList = new LinkedList<>();
+                CORE_TO_WORKERS.add(coreId, workersList);
+            }
+            workersList.add(ui);
         }
     }
 

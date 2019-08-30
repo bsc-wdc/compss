@@ -76,7 +76,8 @@ public class SchedulingInformation {
         for (int coreId : executableCores) {
             List<ResourceScheduler<? extends WorkerResourceDescription>> workersList = CORE_TO_WORKERS.get(coreId);
             if (workersList == null) {
-                ErrorManager.warn("CE with id " + coreId + " does not exists in the Core to workers list. Creating a new one");
+                ErrorManager
+                    .warn("CE with id " + coreId + " does not exists in the Core to workers list. Creating a new one");
                 workersList = new LinkedList<>();
                 CORE_TO_WORKERS.add(coreId, workersList);
             }

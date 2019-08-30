@@ -51,7 +51,7 @@
   #----------------------------------------------------------------------------------
 
   # Compute result status
-  FILES=8
+  FILES=4
 
   # Checks if the failed task has been executed through the creation of a job for each
   if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
@@ -66,14 +66,14 @@
 
   # Check if all tasks have finished
   output1=$(cat "${runtime_log}" | grep "with end status FINISHED" | wc -l)
-  if [ "${output1}" -ne 6 ]; then
-  	echo "ERROR: The number of canceled tasks is not correct."
+  if [ "${output1}" -ne 2 ]; then
+  	echo "ERROR: The number of finished tasks is not correct."
   	exit 1
   fi
 
   # Check if all members of group have been canceled
-  output1=$(cat "${runtime_log}" | grep "with end status CANCELED" | wc -l)
-  if [ "${output1}" -ne 42 ]; then
+  output2=$(cat "${runtime_log}" | grep "with end status CANCELED" | wc -l)
+  if [ "${output2}" -ne 46 ]; then
   	echo "ERROR: The number of canceled tasks is not correct."
   	exit 1
   fi

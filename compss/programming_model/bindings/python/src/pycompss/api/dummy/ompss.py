@@ -24,7 +24,7 @@ PyCOMPSs Dummy API - OmpSs
 """
 
 
-class ompss(object):
+class OmpSs(object):
     """
     Dummy constraint class (decorator style)
     """
@@ -38,3 +38,6 @@ class ompss(object):
             return f(*args, **kwargs)
 
         return wrapped_f
+
+
+ompss = OmpSs

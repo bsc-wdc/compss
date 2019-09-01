@@ -16,3 +16,33 @@
 #
 
 # -*- coding: utf-8 -*-
+
+"""
+PyCOMPSs API - Information
+==========================
+   Information about available resources and functions in PyCOMPSs
+"""
+
+available_decorators = (
+    'binary',
+    'compss',
+    'constraint',
+    'decaf',
+    'implement',
+    'local',
+    'mpi',
+    'multinode',
+    'ompss',
+    'opencl',
+    'parallel',
+    'task'
+)
+
+non_worker_decorators = (
+    'binary',
+    'compss',
+    'decaf',
+    'mpi',
+    'ompss',
+    'opencl'
+)

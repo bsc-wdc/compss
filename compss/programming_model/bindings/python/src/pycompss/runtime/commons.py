@@ -17,6 +17,12 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+PyCOMPSs Binding - Commons
+==========================
+    This file contains the common definitions of the Python binding.
+"""
+
 import sys
 import os
 

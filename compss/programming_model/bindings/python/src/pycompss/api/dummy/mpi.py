@@ -24,7 +24,7 @@ PyCOMPSs Dummy API - MPI
 """
 
 
-class mpi(object):
+class MPI(object):
     """
     Dummy MPI class (decorator style)
     """
@@ -38,3 +38,6 @@ class mpi(object):
             return f(*args, **kwargs)
 
         return wrapped_f
+
+
+mpi = MPI

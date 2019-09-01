@@ -24,7 +24,7 @@ PyCOMPSs Dummy API - Constraint
 """
 
 
-class constraint(object):
+class Constraint(object):
     """
     Dummy constraint class (decorator style)
     """
@@ -38,3 +38,6 @@ class constraint(object):
             return f(*args, **kwargs)
 
         return wrapped_f
+
+
+constraint = Constraint

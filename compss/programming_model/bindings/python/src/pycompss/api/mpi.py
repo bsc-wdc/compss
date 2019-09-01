@@ -29,6 +29,9 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
+from pycompss.api.commons.error_msgs import cast_env_to_int_error
+from pycompss.api.commons.error_msgs import cast_string_to_int_error
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -44,7 +47,7 @@ DEPRECATED_ARGUMENTS = {'computingNodes',
                         'workingDir'}
 
 
-class Mpi(object):
+class MPI(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -60,7 +63,6 @@ class Mpi(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.registered = False
@@ -77,13 +79,15 @@ class Mpi(object):
                             list(kwargs.keys()),
                             "@mpi")
 
-            # Get the computing nodes: This parameter will have to go down until
-            # execution when invoked.
-            if 'computing_nodes' not in self.kwargs and 'computingNodes' not in self.kwargs:
+            # Get the computing nodes: This parameter will have to go down
+            # until execution when invoked.
+            if 'computing_nodes' not in self.kwargs and \
+                    'computingNodes' not in self.kwargs:
                 self.kwargs['computing_nodes'] = 1
             else:
                 if 'computingNodes' in self.kwargs:
-                    self.kwargs['computing_nodes'] = self.kwargs.pop('computingNodes')
+                    self.kwargs['computing_nodes'] = \
+                        self.kwargs.pop('computingNodes')
                 computing_nodes = self.kwargs['computing_nodes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do
@@ -96,19 +100,26 @@ class Mpi(object):
                         if env_var.startswith('{'):
                             env_var = env_var[1:-1]  # remove brackets
                         try:
-                            self.kwargs['computing_nodes'] = int(os.environ[env_var])
+                            self.kwargs['computing_nodes'] = \
+                                int(os.environ[env_var])
                         except ValueError:
-                            raise Exception("ERROR: ComputingNodes value cannot be cast from ENV variable to int")
+                            raise Exception(
+                                cast_env_to_int_error('ComputingNodes'))
                     else:
                         # ComputingNodes is in string form, cast it
                         try:
-                            self.kwargs['computing_nodes'] = int(computing_nodes)
+                            self.kwargs['computing_nodes'] = \
+                                int(computing_nodes)
                         except ValueError:
-                            raise Exception("ERROR: ComputingNodes value cannot be cast from string to int")
+                            raise Exception(
+                                cast_string_to_int_error('ComputingNodes'))
                 else:
-                    raise Exception("ERROR: Wrong Computing Nodes value at MultiNode decorator.")
+                    raise Exception("ERROR: Wrong Computing Nodes value at" +
+                                    " @mpi decorator.")
             if __debug__:
-                logger.debug("This MPI task will have " + str(self.kwargs['computing_nodes']) + " computing nodes.")
+                logger.debug("This MPI task will have " +
+                             str(self.kwargs['computing_nodes']) +
+                             " computing nodes.")
         else:
             pass
 
@@ -119,14 +130,13 @@ class Mpi(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         @wraps(func)
         def mpi_f(*args, **kwargs):
             if not self.scope:
                 # from pycompss.api.dummy.mpi import mpi as dummy_mpi
                 # d_m = dummy_mpi(self.args, self.kwargs)
                 # return d_m.__call__(func)
-                raise Exception("The mpi decorator only works within PyCOMPSs framework.")
+                raise Exception(not_in_pycompss("mpi"))
 
             if context.in_master():
                 # master code
@@ -135,12 +145,13 @@ class Mpi(object):
 
                 if (self.module == '__main__' or
                         self.module == 'pycompss.runtime.launch'):
-                    # The module where the function is defined was run as __main__,
-                    # we need to find out the real module name.
+                    # The module where the function is defined was run as
+                    # __main__, so we need to find out the real module name.
 
-                    # path=mod.__file__
-                    # dirs=mod.__file__.split(os.sep)
-                    # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
+                    # path = mod.__file__
+                    # dirs = mod.__file__.split(os.sep)
+                    # file_name = os.path.splitext(
+                    #                 os.path.basename(mod.__file__))[0]
 
                     # Get the real module name from our launch.py variable
                     path = getattr(mod, "APP_PATH")
@@ -164,32 +175,33 @@ class Mpi(object):
                 # Include the registering info related to @mpi
 
                 # Retrieve the base core_element established at @task decorator
-                from pycompss.api.task import current_core_element as core_element
+                from pycompss.api.task import current_core_element as cce
                 if not self.registered:
                     self.registered = True
-                    # Update the core element information with the mpi information
+                    # Update the core element information with the @mpi
+                    # information
                     if "binary" in self.kwargs:
                         binary = self.kwargs['binary']
-                        core_element.set_impl_type("MPI")
+                        cce.set_impl_type("MPI")
                     else:
-                       binary = "[unassigned]"
-                       core_element.set_impl_type("PYTHON_MPI")
-                       self.task_type = "PYTHON_MPI"
-                       
+                        binary = "[unassigned]"
+                        cce.set_impl_type("PYTHON_MPI")
+                        self.task_type = "PYTHON_MPI"
+
                     if 'working_dir' in self.kwargs:
                         working_dir = self.kwargs['working_dir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     runner = self.kwargs['runner']
-                    
-                    if binary == "[unassigned]":                       
-                       impl_signature = "MPI."
+
+                    if binary == "[unassigned]":
+                        impl_signature = "MPI."
                     else:
-                       impl_signature = 'MPI.' + binary
-                    
-                    core_element.set_impl_signature(impl_signature)
+                        impl_signature = 'MPI.' + binary
+
+                    cce.set_impl_signature(impl_signature)
                     impl_args = [binary, working_dir, runner]
-                    core_element.set_impl_type_args(impl_args)
+                    cce.set_impl_type_args(impl_args)
             else:
                 # worker code
                 pass
@@ -216,9 +228,9 @@ class Mpi(object):
             # Call the method
             import pycompss.api.task as t
             if self.task_type == "PYTHON_MPI":
-               t.prepend_strings = True
+                t.prepend_strings = True
             else:
-               t.prepend_strings = False
+                t.prepend_strings = False
             ret = func(*args, **kwargs)
             t.prepend_strings = True
 
@@ -233,8 +245,8 @@ class Mpi(object):
         return mpi_f
 
 
-# ############################################################################# #
-# ###################### MPI DECORATOR ALTERNATIVE NAME ####################### #
-# ############################################################################# #
+# ########################################################################### #
+# ##################### MPI DECORATOR ALTERNATIVE NAME ###################### #
+# ########################################################################### #
 
-mpi = Mpi
+mpi = MPI

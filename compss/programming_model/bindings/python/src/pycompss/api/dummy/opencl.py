@@ -24,7 +24,7 @@ PyCOMPSs Dummy API - OpenCL
 """
 
 
-class opencl(object):
+class OpenCL(object):
     """
     Dummy OpenCL class (decorator style)
     """
@@ -38,3 +38,6 @@ class opencl(object):
             return f(*args, **kwargs)
 
         return wrapped_f
+
+
+opencl = OpenCL

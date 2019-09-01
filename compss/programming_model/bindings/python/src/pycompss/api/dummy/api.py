@@ -31,7 +31,6 @@ def compss_start():
 
     :return: None
     """
-
     pass
 
 
@@ -41,7 +40,6 @@ def compss_stop():
 
     :return: None
     """
-
     pass
 
 
@@ -50,10 +48,10 @@ def compss_open(file_name, mode='r'):
     Dummy compss_open.
 
     :param file_name: The file name to open
+    :param mode: Open mode. Options = [w, r+ or a , r or empty]. Default=r
     :return: An object of 'file' type.
     :raise IOError: If the file can not be opened.
     """
-
     return open(file_name, mode)
 
 
@@ -64,7 +62,6 @@ def compss_delete_file(file_name):
     :param file_name: File name.
     :return: Always True.
     """
-
     return True
 
 
@@ -75,8 +72,8 @@ def compss_delete_object(obj):
     :param obj: Object.
     :return: Always True.
     """
-
     return True
+
 
 def compss_wait_on_file(file_name):
     """
@@ -85,7 +82,6 @@ def compss_wait_on_file(file_name):
     :param file_name: File name.
     :return: True if success. False otherwise.
     """
-
     return True
 
 
@@ -116,10 +112,10 @@ def compss_wait_on(*args):
     :param args: Objects to wait on
     :return: The same objects defined as parameter
     """
-
     ret = list(map(lambda o: o, args))
     ret = ret[0] if len(ret) == 1 else ret
     return ret
+
 
 def compss_open_task_group(group_name):
     """
@@ -133,10 +129,9 @@ def compss_open_task_group(group_name):
 
 def compss_close_task_group(group_name):
     """
-        Dummy close task group.
+    Dummy close task group.
 
-        :param group_name: Name of the group to close
-        :return: None
-        """
+    :param group_name: Name of the group to close
+    :return: None
+    """
     pass
-

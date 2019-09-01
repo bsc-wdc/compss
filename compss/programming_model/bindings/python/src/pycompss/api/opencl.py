@@ -29,6 +29,7 @@ import logging
 import os
 from functools import wraps
 import pycompss.util.context as context
+from pycompss.api.commons.error_msgs import not_in_pycompss
 from pycompss.util.arguments import check_arguments
 
 if __debug__:
@@ -40,7 +41,7 @@ SUPPORTED_ARGUMENTS = {'kernel',
 DEPRECATED_ARGUMENTS = {'workingDir'}
 
 
-class Opencl(object):
+class OpenCL(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -56,7 +57,6 @@ class Opencl(object):
         :param args: Arguments
         :param kwargs: Keyword arguments
         """
-
         self.args = args
         self.kwargs = kwargs
         self.registered = False
@@ -79,12 +79,11 @@ class Opencl(object):
         :param func: Function to decorate
         :return: Decorated function.
         """
-
         if not self.scope:
-            # from pycompss.api.dummy.opencl import import opencl as dummy_opencl
+            # from pycompss.api.dummy.opencl import opencl as dummy_opencl
             # d_ocl = dummy_opencl(self.args, self.kwargs)
             # return d_ocl.__call__(func)
-            raise Exception("The opencl decorator only works within PyCOMPSs framework.")
+            raise Exception(not_in_pycompss("opencl"))
 
         if context.in_master():
             # master code
@@ -96,9 +95,10 @@ class Opencl(object):
                 # The module where the function is defined was run as __main__,
                 # we need to find out the real module name.
 
-                # path=mod.__file__
-                # dirs=mod.__file__.split(os.sep)
-                # file_name=os.path.splitext(os.path.basename(mod.__file__))[0]
+                # path = mod.__file__
+                # dirs = mod.__file__.split(os.sep)
+                # file_name = os.path.splitext(
+                #                 os.path.basename(mod.__file__))[0]
 
                 # Get the real module name from our launch.py variable
                 path = getattr(mod, "APP_PATH")
@@ -122,11 +122,11 @@ class Opencl(object):
             # Include the registering info related to @opencl
 
             # Retrieve the base core_element established at @task decorator
-            from pycompss.api.task import current_core_element as core_element
+            from pycompss.api.task import current_core_element as cce
             if not self.registered:
                 self.registered = True
                 # Update the core element information with the mpi information
-                core_element.set_impl_type("OPENCL")
+                cce.set_impl_type("OPENCL")
                 kernel = self.kwargs['kernel']
                 if 'working_dir' in self.kwargs:
                     working_dir = self.kwargs['working_dir']
@@ -135,10 +135,10 @@ class Opencl(object):
                 else:
                     working_dir = '[unassigned]'  # Empty or '[unassigned]'
                 impl_signature = 'OPENCL.' + kernel
-                core_element.set_impl_signature(impl_signature)
+                cce.set_impl_signature(impl_signature)
                 impl_args = [kernel, working_dir]
-                core_element.set_impl_type_args(impl_args)
-                func.__to_register__ = core_element
+                cce.set_impl_type_args(impl_args)
+                func.__to_register__ = cce
         else:
             # worker code
             pass
@@ -177,8 +177,8 @@ class Opencl(object):
         return opencl_f
 
 
-# ############################################################################# #
-# #################### OPENCL DECORATOR ALTERNATIVE NAME ###################### #
-# ############################################################################# #
+# ########################################################################### #
+# ################### OPENCL DECORATOR ALTERNATIVE NAME ##################### #
+# ########################################################################### #
 
-opencl = Opencl
+opencl = OpenCL

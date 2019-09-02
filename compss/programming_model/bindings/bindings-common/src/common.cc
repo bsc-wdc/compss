@@ -163,6 +163,10 @@ void destroy_vm(JavaVM * jvm) {
 }
 
 int check_and_attach(JavaVM * jvm, JNIEnv *&env) {
+    if (jvm == NULL){
+		debug_printf("[BINDING_COMMONS]  -  @check_an_attach - No JVM attached.\n");
+		exit(1);
+	}
     int res = jvm->GetEnv((void **)&env, (int)JNI_VERSION_1_8);
     if (res == JNI_EDETACHED) {
         if (jvm->AttachCurrentThread((void **) &env, NULL) != 0) {

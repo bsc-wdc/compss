@@ -78,13 +78,13 @@ if context.in_pycompss():
         """
         start_runtime()
 
-    def compss_stop():
+    def compss_stop(code=0):
         """
         Stops the runtime.
 
         :return: None
         """
-        stop_runtime()
+        stop_runtime(code)
 
     def compss_open(file_name, mode='r'):
         """

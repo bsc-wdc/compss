@@ -253,7 +253,7 @@ def start_runtime():
         logger.info("COMPSs started")
 
 
-def stop_runtime():
+def stop_runtime(code=0):
     """
     Stops the runtime by calling the external python library that calls
     the bindings-common.
@@ -262,12 +262,20 @@ def stop_runtime():
     :return: None
     """
     if __debug__:
+        logger.info("Stopping runtime...")
+
+    if (code != 0):
+        if __debug__:
+            logger.info("Canceling all application tasks...")
+        compss.cancel_application_tasks(0)
+
+    if __debug__:
         logger.info("Cleaning objects...")
     _clean_objects()
 
     if __debug__:
         logger.info("Stopping COMPSs...")
-    compss.stop_runtime()
+    compss.stop_runtime(code)
 
     if __debug__:
         logger.info("Cleaning temps...")
@@ -403,7 +411,7 @@ def open_task_group(group_name, implicit_barrier):
     :param implicit_barrier: <Boolean> Implicit barrier
     :return: None
     """
-    compss.open_task_group(group_name, implicit_barrier)
+    compss.open_task_group(group_name, implicit_barrier, 0)
 
 
 def close_task_group(group_name):
@@ -414,7 +422,7 @@ def close_task_group(group_name):
     :param group_name: Group name
     :return: None
     """
-    compss.close_task_group(group_name)
+    compss.close_task_group(group_name, 0)
 
 
 def get_log_path():

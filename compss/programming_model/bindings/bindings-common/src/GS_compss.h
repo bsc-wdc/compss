@@ -27,7 +27,8 @@ void GS_On(AbstractCache *);
 
 // COMPSs Runtime state
 extern "C" void GS_On(void);
-extern "C" void GS_Off(void);
+extern "C" void GS_Off(int code);
+extern "C" void GS_Cancel_Application_Tasks(long appId);
 
 // Task methods
 extern "C" void GS_RegisterCE(char *CESignature,
@@ -72,8 +73,8 @@ extern "C" void GS_Get_File(long appId, char *file_name);
 extern "C" void GS_Barrier(long appId);
 extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
 extern "C" void GS_BarrierGroup(long _appId, char *group_name, char **exception_message);
-extern "C" void GS_OpenTaskGroup(char *group_name, int implicitBarrier);
-extern "C" void GS_CloseTaskGroup(char *group_name);
+extern "C" void GS_OpenTaskGroup(char *group_name, int implicitBarrier, long appId);
+extern "C" void GS_CloseTaskGroup(char *group_name, long appId);
 
 // Misc functions
 extern "C" void GS_Get_AppDir(char **buf);

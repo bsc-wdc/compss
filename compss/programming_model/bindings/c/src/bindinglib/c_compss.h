@@ -59,6 +59,8 @@ int compss_register(void *ref, datatype type, direction dir, char *classname, ch
 void compss_clean();
 void compss_on(void);
 void compss_off(void);
+void compss_off(int code);
+void compss_cancel_applicatin_tasks();
 
 void compss_ifstream(char * filename, ifstream& ifs);
 void compss_ofstream(char * filename, ofstream& ofs);

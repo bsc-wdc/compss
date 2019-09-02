@@ -55,7 +55,7 @@ public abstract class AllocatableAction {
         RUNNING, // Action is running
         FINISHED, // Action has been successfully completed
         FAILED, // Action has failed
-        CANCELED, // Action has been canceled
+        CANCELLED, // Action has been canceled
         CANCELLING
     }
 
@@ -474,7 +474,7 @@ public abstract class AllocatableAction {
      * @return {@literal true} if the AllocatableAction is cancelled, {@literal false} otherwise.
      */
     public final boolean isCancelled() {
-        return this.state == State.CANCELED;
+        return this.state == State.CANCELLED;
     }
 
     /**
@@ -953,24 +953,26 @@ public abstract class AllocatableAction {
                 this.selectedResource.unhostAction(this);
                 this.selectedResource.tryToLaunchBlockedActions();
             }
-            // Mark as canceled
-            this.state = State.CANCELED;
+            if (this.state != State.CANCELLED) {
+                // Mark as canceled
+                this.state = State.CANCELLED;
 
-            cancelAction();
+                cancelAction();
 
-            List<AllocatableAction> successors = new LinkedList<>();
-            successors.addAll(this.dataSuccessors);
+                List<AllocatableAction> successors = new LinkedList<>();
+                successors.addAll(this.dataSuccessors);
 
-            // Action notification
-            doCanceled();
+                // Action notification
+                doCanceled();
 
-            // Forward cancellation to successors
-            for (AllocatableAction succ : successors) {
-                cancel.addAll(succ.canceled());
+                // Forward cancellation to successors
+                for (AllocatableAction succ : successors) {
+                    cancel.addAll(succ.canceled());
+                }
+
+                this.dataPredecessors.clear();
+                this.dataSuccessors.clear();
             }
-
-            this.dataPredecessors.clear();
-            this.dataSuccessors.clear();
         }
 
         return cancel;

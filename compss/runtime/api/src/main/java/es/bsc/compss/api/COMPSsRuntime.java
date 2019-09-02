@@ -201,14 +201,14 @@ public interface COMPSsRuntime {
      * @param groupName Group name.
      * @param implicitBarrier {@literal true}, if the task group requires a barrier
      */
-    public void openTaskGroup(String groupName, boolean implicitBarrier);
+    public void openTaskGroup(String groupName, boolean implicitBarrier, Long appId);
 
     /**
      * Closes an existing task group.
      *
      * @param groupName Group name.
      */
-    public void closeTaskGroup(String groupName);
+    public void closeTaskGroup(String groupName, Long appId);
 
     /*
      * *****************************************************************************************************************
@@ -272,6 +272,11 @@ public interface COMPSsRuntime {
      * @return true if the {@code bindingObjectName} has been deleted, false otherwise.
      */
     public boolean deleteBindingObject(String bindingObjectName);
+
+    /**
+     * Cancels all tasks of the application.
+     */
+    public void cancelApplicationTasks(Long appId);
 
     /*
      * *****************************************************************************************************************

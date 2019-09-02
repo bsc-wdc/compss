@@ -38,8 +38,9 @@ public class COMPSsGroupLoader extends COMPSsGroup {
         super(groupName, implicitBarrier);
 
         this.api = api;
-        this.api.openTaskGroup(this.groupName, implicitBarrier);
         this.appId = appId;
+        this.api.openTaskGroup(this.groupName, implicitBarrier, this.appId);
+
     }
 
     /**
@@ -53,13 +54,14 @@ public class COMPSsGroupLoader extends COMPSsGroup {
         super(groupName);
 
         this.api = api;
-        this.api.openTaskGroup(this.groupName, true);
         this.appId = appId;
+        this.api.openTaskGroup(this.groupName, true, this.appId);
+
     }
 
     @Override
     public void close() throws Exception {
-        this.api.closeTaskGroup(this.groupName);
+        this.api.closeTaskGroup(this.groupName, this.appId);
         if (this.barrier == true) {
             this.api.barrierGroup(appId, this.groupName);
         }

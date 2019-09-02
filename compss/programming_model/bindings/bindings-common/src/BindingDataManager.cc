@@ -44,8 +44,6 @@ void removeGlobalRef(JNIEnv *env, void* pointer){
 		if (hasGlobalRef(pointer)){
 			jobject jobj = globalRefs[pointer];
 			env->DeleteGlobalRef(jobj);
-		}else{
-
 		}
 	}
 }
@@ -91,7 +89,7 @@ void *sync_object_from_runtime(char* name, int type, int elements) {
         if (get_res != 0) {
             printf("[BindingDataManager] - ERROR - Getting object %s from cache.\n", runtime_filename);
             fflush(NULL);
-            GS_Off();
+            GS_Off(get_res);
             exit(get_res);
         }
         debug_printf("[BindingDataManager]  -  Object %s has ref. %p\n",  runtime_filename, cp.pointer);
@@ -104,7 +102,7 @@ void *sync_object_from_runtime(char* name, int type, int elements) {
     } else {
         printf("[BindingDataManager] - ERROR - Cache is null when synchronizing object.\n");
         fflush(NULL);
-        GS_Off();
+        GS_Off(1);
         exit(1);
     }
 }

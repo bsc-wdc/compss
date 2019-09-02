@@ -17,6 +17,7 @@
 package es.bsc.compss.types;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.worker.COMPSsException;
 
@@ -49,6 +50,8 @@ public class TaskGroup implements AutoCloseable {
 
     private int lastTaskId; // For being the source of the edge with the barrier.
 
+    private long appId;
+
     // Component logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TP_COMP);
 
@@ -58,8 +61,9 @@ public class TaskGroup implements AutoCloseable {
      * 
      * @param groupName Name of the group.
      */
-    public TaskGroup(String groupName) {
+    public TaskGroup(String groupName, Long appId) {
         this.tasks = new LinkedList<Task>();
+        this.appId = appId;
         this.graphDrawn = false;
         this.name = groupName;
         this.barrierSemaphores = new LinkedList<>();
@@ -85,6 +89,15 @@ public class TaskGroup implements AutoCloseable {
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * Gets the group AppId.
+     * 
+     * @return
+     */
+    public long getAppId() {
+        return appId;
     }
 
     /**
@@ -229,6 +242,28 @@ public class TaskGroup implements AutoCloseable {
      */
     public boolean isClosed() {
         return this.closed;
+    }
+
+    /**
+     * Cancels group tasks.
+     */
+    public void cancelTasks() {
+        for (Task t : this.tasks) {
+            for (AllocatableAction aa : t.getExecutions()) {
+                aa.canceled();
+            }
+        }
+        LOGGER.debug("All the application tasks have been cancelled.");
+    }
+
+    /**
+     * Returns if it is the main application group.
+     * 
+     * @param appId Application Id.
+     * @return
+     */
+    public boolean isAppGroup(Long appId) {
+        return this.name.equals("App" + appId);
     }
 
 }

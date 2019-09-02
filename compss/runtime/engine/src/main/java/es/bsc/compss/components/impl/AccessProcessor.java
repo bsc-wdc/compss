@@ -46,6 +46,7 @@ import es.bsc.compss.types.request.ap.APRequest;
 import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
+import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
@@ -633,6 +634,20 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
+     * Cancellation of all tasks of an application.
+     */
+    public void cancelApplicationTasks(Long appId) {
+        Semaphore sem = new Semaphore(0);
+        if (!this.requestQueue.offer(new CancelApplicationTasksRequest(appId, sem))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
+        }
+        // Wait for response
+        sem.acquireUninterruptibly();
+
+        LOGGER.info("Tasks cancelled for application with id " + appId);
+    }
+
+    /**
      * Synchronism for an specific data.
      *
      * @param dataId Data Id.
@@ -721,8 +736,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * 
      * @param groupName Name of the task group
      */
-    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier) {
-        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier);
+    public void setCurrentTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
+        OpenTaskGroupRequest request = new OpenTaskGroupRequest(groupName, implicitBarrier, appId);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new task group");
         }
@@ -731,8 +746,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Closes the current task group.
      */
-    public void closeCurrentTaskGroup() {
-        CloseTaskGroupRequest request = new CloseTaskGroupRequest();
+    public void closeCurrentTaskGroup(Long appId) {
+        CloseTaskGroupRequest request = new CloseTaskGroupRequest(appId);
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "closure of task group");
         }

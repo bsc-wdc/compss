@@ -26,16 +26,28 @@ public class OpenTaskGroupRequest extends APRequest {
 
     private String groupName;
     private boolean barrier;
+    private Long appId;
 
 
-    public OpenTaskGroupRequest(String groupName, boolean implicitBarrier) {
+    /**
+     * Request to open a task group.
+     * 
+     * @param groupName Name of the group.
+     * @param implicitBarrier Barrier for all tasks before closure.
+     * @param appId Application id.
+     */
+    public OpenTaskGroupRequest(String groupName, boolean implicitBarrier, Long appId) {
         this.barrier = implicitBarrier;
         this.groupName = groupName;
+        this.appId = appId;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        ta.setCurrentTaskGroup(this.groupName, barrier);
+        if (!ta.applicationHasGroups(this.appId)) {
+            ta.setCurrentTaskGroup("App" + this.appId, true, this.appId);
+        }
+        ta.setCurrentTaskGroup(this.groupName, barrier, this.appId);
     }
 
     @Override

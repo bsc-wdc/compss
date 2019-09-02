@@ -62,9 +62,6 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.JobDispatcher;
 import es.bsc.compss.worker.COMPSsException;
-import es.bsc.compss.worker.COMPSsWorker;
-import es.bsc.compss.worker.CanceledTask;
-import es.bsc.compss.worker.TimeOutTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -747,12 +744,14 @@ public class ExecutionAction extends AllocatableAction {
     protected void doException(COMPSsException e) {
         LinkedList<TaskGroup> taskGroups = this.task.getTaskGroupList();
         for (TaskGroup group : taskGroups) {
-            group.setException((COMPSsException) e);
-            for (Task t : group.getTasks()) {
-                if (t.getId() != this.getTask().getId()) {
-                    for (AllocatableAction aa : t.getExecutions()) {
-                        if (aa != null && aa.isPending()) {
-                            addGroupMember(aa);
+            if (!group.getName().equals("App" + this.task.getAppId())) {
+                group.setException((COMPSsException) e);
+                for (Task t : group.getTasks()) {
+                    if (t.getId() != this.getTask().getId()) {
+                        for (AllocatableAction aa : t.getExecutions()) {
+                            if (aa != null && aa.isPending()) {
+                                addGroupMember(aa);
+                            }
                         }
                     }
                 }
@@ -763,7 +762,7 @@ public class ExecutionAction extends AllocatableAction {
         String taskName = this.task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("COMPSs Exception raised : Task ").append(taskName).append(" has raised an exception with message ")
-            .append(e.getMessage()).append(". Members of the group will be cancelled.\n");
+            .append(e.getMessage()).append(". Members of the containing groups will be cancelled.\n");
         sb.append("\n");
         ErrorManager.warn(sb.toString());
 

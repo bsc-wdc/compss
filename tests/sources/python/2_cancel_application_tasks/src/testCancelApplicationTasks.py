@@ -25,7 +25,7 @@ def long_task(file_path):
     with open(file_path, 'a') as fos:
         new_value = str(2)
         fos.write(new_value)
-    time.sleep(10)
+    time.sleep(15)
 
 
 def create_file(file_name):
@@ -41,7 +41,7 @@ def create_file(file_name):
 def test_cancellation(file_name):
     for i in range (50):
         long_task(file_name)
-    time.sleep(15)
+    time.sleep(20)
 
     compss_stop(1)
     exit(1)

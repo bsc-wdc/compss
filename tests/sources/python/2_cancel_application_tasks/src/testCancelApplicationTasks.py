@@ -41,7 +41,7 @@ def create_file(file_name):
 def test_cancellation(file_name):
     for i in range (50):
         long_task(file_name)
-    time.sleep(20)
+    time.sleep(26)
 
     compss_stop(1)
     exit(1)

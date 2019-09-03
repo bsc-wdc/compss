@@ -1074,6 +1074,26 @@ class Task(object):
         # return True
         return True
 
+    def is_parameter_file_collection (self, name):
+        """
+        Given the name of a parameter, determine if it is an file collection or not
+
+        :param name: Name of the parameter
+        :return: True if the parameter is a file collection
+        """
+        original_name = parameter.get_original_name(name)
+        # Get the args parameter object
+        if parameter.is_vararg(original_name):
+            return self.get_varargs_direction().is_file_collection
+        # Is this parameter annotated in the decorator?
+        if original_name in self.decorator_arguments:
+            return self.decorator_arguments[original_name].is_file_collection
+        # The parameter is not annotated in the decorator, so (by default)
+        # return False
+        return False
+
+
+
     def reveal_objects(self, args):
         """
         This function takes the arguments passed from the persistent worker
@@ -1131,16 +1151,20 @@ class Task(object):
                         sub_name = "%s.%s" % (name_prefix, arg.name)
                     else:
                         sub_name = "@%s" % sub_name
-                    sub_arg, _ = build_task_parameter(int(content_type),
-                                                      None,
-                                                      "",
-                                                      sub_name,
-                                                      content_file)
-                    # Recursively call the retrieve method, fill the content
-                    # field in our new taskParameter object
-                    retrieve_content(sub_arg, sub_name)
-                    arg.content.append(sub_arg.content)
-                    arg.collection_content.append(sub_arg)
+                    if not self.is_parameter_file_collection(arg.name):
+                        sub_arg, _ = build_task_parameter(int(content_type),
+                                                          None,
+                                                          "",
+                                                          sub_name,
+                                                          content_file)
+                        # Recursively call the retrieve method, fill the content
+                        # field in our new taskParameter object
+                        retrieve_content(sub_arg, sub_name)
+                        arg.content.append(sub_arg.content)
+                        arg.collection_content.append(sub_arg)
+                    else:
+                        arg.content.append(content_file)
+                        arg.collection_content.append(content_file)
 
             elif not storage_supports_pipelining() and \
                     arg.type == parameter.TYPE.EXTERNAL_PSCO:
@@ -1351,20 +1375,21 @@ class Task(object):
                 #     param.type != parameter.TYPE.EXTERNAL_PSCO
                 # since param.type has the old type
                 if arg.type == parameter.TYPE.COLLECTION:
-                    def get_collection_objects(content, arg):
-                        if arg.type == parameter.TYPE.COLLECTION:
-                            for (new_content, elem) in zip(arg.content, arg.collection_content):  # noqa
-                                for sub_elem in get_collection_objects(new_content, elem):  # noqa
-                                    yield sub_elem
-                        else:
-                            yield (content, arg)
+                    if not self.is_parameter_file_collection(arg.name):
+                        def get_collection_objects(content, arg):
+                            if arg.type == parameter.TYPE.COLLECTION:
+                                for (new_content, elem) in zip(arg.content, arg.collection_content):  # noqa
+                                    for sub_elem in get_collection_objects(new_content, elem):  # noqa
+                                        yield sub_elem
+                            else:
+                                yield (content, arg)
 
-                    for (content, elem) in get_collection_objects(arg.content, arg):  # noqa
-                        f_name = get_file_name(elem.file_name)
-                        if python_mpi:
-                            serialize_to_file_multienv(content, f_name, False)
-                        else:
-                            serialize_to_file(content, f_name)
+                        for (content, elem) in get_collection_objects(arg.content, arg):  # noqa
+                            f_name = get_file_name(elem.file_name)
+                            if python_mpi:
+                                serialize_to_file_multienv(content, f_name, False)
+                            else:
+                                serialize_to_file(content, f_name)
                 else:
                     f_name = get_file_name(arg.file_name)
                     if python_mpi:

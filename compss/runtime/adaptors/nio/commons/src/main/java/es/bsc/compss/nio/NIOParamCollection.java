@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.nio;
 
+import es.bsc.compss.types.execution.InvocationParamCollection;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -29,7 +31,7 @@ import java.util.List;
  * 
  * @see NIOParam
  */
-public class NIOParamCollection extends NIOParam {
+public class NIOParamCollection extends NIOParam implements InvocationParamCollection<NIOParam> {
 
     private List<NIOParam> collectionParameters;
 

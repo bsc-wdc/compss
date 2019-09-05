@@ -241,6 +241,7 @@ public abstract class ExternalInvoker extends Invoker {
                 break;
             case COLLECTION_T:
                 InvocationParamCollection<InvocationParam> icp = (InvocationParamCollection<InvocationParam>) np;
+                writeCollection(icp);
                 String pathToWrite = (String) np.getValue();
                 try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
                     for (InvocationParam subParam : icp.getCollectionParameters()) {
@@ -256,6 +257,27 @@ public abstract class ExternalInvoker extends Invoker {
                 paramArgs.add(np.getValue().toString());
         }
         return paramArgs;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void writeCollection(InvocationParamCollection<InvocationParam> icp) {
+        String pathToWrite = (String) icp.getValue();
+        if (new File(pathToWrite).exists()) {
+            LOGGER.debug("Collection file " + pathToWrite + " already written");
+        } else {
+            try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
+                for (InvocationParam subParam : icp.getCollectionParameters()) {
+                    writer.println(subParam.getType().ordinal() + " " + subParam.getValue());
+                    if (subParam.getType() == DataType.COLLECTION_T) {
+                        writeCollection((InvocationParamCollection<InvocationParam>) subParam);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error writting collection to file");
+                e.printStackTrace();
+            }
+        }
+
     }
 
     private static boolean isRuntimeRenamed(String filename) {

@@ -106,7 +106,8 @@ class Parameter(object):
                  p_object=None,
                  file_name=None,
                  is_future=False,
-                 depth=1):
+                 depth=1,
+                 is_file_collection=False):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -115,6 +116,7 @@ class Parameter(object):
         self.file_name = file_name  # placeholder for object's serialized file
         self.is_future = is_future
         self.depth = depth          # Recursive depth for collections
+        self.is_file_collection = is_file_collection
 
     def __repr__(self):
         return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
@@ -306,6 +308,25 @@ _param_conversion_dict_ = {
     'STREAM_OUT': {
         'p_type': TYPE.EXTERNAL_STREAM,
         'p_direction': DIRECTION.OUT
+    },
+    'COLLECTION_FILE': {
+        'p_type': TYPE.COLLECTION,
+        'is_file_collection': True
+    },
+    'COLLECTION_FILE_IN': {
+        'p_type': TYPE.COLLECTION,
+        'p_direction': DIRECTION.IN,
+        'is_file_collection': True
+    },
+    'COLLECTION_FILE_INOUT': {
+        'p_type': TYPE.COLLECTION,
+        'p_direction': DIRECTION.INOUT,
+        'is_file_collection': True
+    },
+    'COLLECTION_FILE_OUT': {
+        'p_type': TYPE.COLLECTION,
+        'p_direction': DIRECTION.OUT,
+        'is_file_collection': True
     }
 }
 
@@ -647,6 +668,10 @@ FILE_COMMUTATIVE_STDOUT = _Param('FILE_COMMUTATIVE_STDOUT')
 COLLECTION = _Param('COLLECTION')
 COLLECTION_IN = _Param('COLLECTION_IN')
 COLLECTION_INOUT = _Param('COLLECTION_INOUT')
+COLLECTION_FILE = _Param('COLLECTION_FILE')
+COLLECTION_FILE_IN = _Param('COLLECTION_FILE_IN')
+COLLECTION_FILE_INOUT = _Param('COLLECTION_FILE_INOUT')
+COLLECTION_FILE_OUT = _Param('COLLECTION_FILE_OUT')
 
 # Aliases for streams
 STREAM_IN = _Param("STREAM_IN")

@@ -298,8 +298,6 @@ public class DataManagerImpl implements DataManager {
 
     private void fetchCollection(InvocationParam param, int index, FetchDataListener listener) {
         try {
-            String pathToWrite = (String) param.getValue();
-            PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");
             NIOParamCollection npc = (NIOParamCollection) param;
             List<NIOParam> elements = npc.getCollectionParameters();
             WORKER_LOGGER.info("Checking NIOParamCollection (received " + elements.size() + " params)");
@@ -309,10 +307,8 @@ public class DataManagerImpl implements DataManager {
             for (NIOParam subNioParam : npc.getCollectionParameters()) {
                 cfol.addOperation();
                 fetchParam(subNioParam, subIndex, cfol);
-                writer.println(subNioParam.getType().ordinal() + " " + subNioParam.getValue());
                 subIndex++;
             }
-            writer.close();
             cfol.enable();
         } catch (Exception e) {
             listener.errorFetchingValue(param.getDataMgmtId(), e);

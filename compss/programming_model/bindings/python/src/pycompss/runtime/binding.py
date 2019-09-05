@@ -1277,19 +1277,31 @@ def _serialize_object_into_file(name, p):
         # Just make contents available as serialized files (or objects)
         # We will build the value field later
         # (which will be used to reconstruct the collection in the worker)
-        from pycompss.api.parameter import get_compss_type
-        new_object = [
-            _serialize_object_into_file(
-                name,
+        if p.is_file_collection:
+            new_object = [
                 Parameter(
-                    p_type=get_compss_type(x, p.depth - 1),
+                    p_type=TYPE.FILE,
                     p_direction=p.direction,
                     p_object=x,
+                    file_name=x,
                     depth=p.depth - 1
                 )
-            )
-            for x in p.object
-        ]
+                for x in p.object
+            ]
+        else:
+            from pycompss.api.parameter import get_compss_type
+            new_object = [
+                _serialize_object_into_file(
+                    name,
+                    Parameter(
+                        p_type=get_compss_type(x, p.depth - 1),
+                        p_direction=p.direction,
+                        p_object=x,
+                        depth=p.depth - 1
+                    )
+                )
+                for x in p.object
+            ]
         p.object = new_object
         # Give this object an identifier inside the binding
         get_object_id(p.object, True, False)

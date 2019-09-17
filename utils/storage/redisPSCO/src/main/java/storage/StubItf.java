@@ -16,28 +16,24 @@
  */
 package storage;
 
-import java.io.IOException;
-
-
 public interface StubItf {
 
     /**
-     * Returns the Id of the persistent object
-     *
-     * @return
+     * Returns the Id of the persistent object.
+     * 
+     * @return The Id of the persistent object.
      */
     public abstract String getID();
 
     /**
-     * Makes persistent the current object
-     *
-     * @param id
+     * Makes persistent the current object.
+     * 
+     * @param id Persistent object Id.
      */
-    // TODO: Add StorageException in the header of ALL interfaces (it does not make sense to catch it)
-    public abstract void makePersistent(String id) throws IOException, StorageException;
+    public abstract void makePersistent(String id) throws StorageException;
 
     /**
-     * Removes persistent object
+     * Removes persistent object.
      */
     public abstract void deletePersistent();
 

@@ -135,6 +135,9 @@ public class COMPSsConstants {
     public static final String STREAMING_MASTER_NAME = "compss.streaming.masterName";
     public static final String STREAMING_MASTER_PORT = "compss.streaming.masterPort";
 
+    // Timer properties
+    public static final String TIMER_COMPSS_NAME = "compss.timers";
+
     // Persistent worker c property
     public static final String WORKER_PERSISTENT_C = "compss.worker.persistent.c";
 

@@ -11,7 +11,6 @@ Synchro0[label="main", shape=octagon, style=filled fillcolor="#8B0000" fontcolor
 Synchro0 -> 1 [label="d1v1"];
 2[shape=doublecircle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 1 -> 2 [label="d1v2"];
-Synchro0 -> 2;
 3[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 3 [label="d2v2"];
 4[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];

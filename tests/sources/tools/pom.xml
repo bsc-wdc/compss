@@ -41,6 +41,7 @@
         <!-- 1_tracing_hook_eval_python -->
         <!-- 1_tracing_userevents_hook_python -->
         <!-- 1_tracing_userevents_nohook_python -->
+        <module>2_timers</module>
 
 		<!-- Add new modules below -->
 	</modules>

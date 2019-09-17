@@ -18,10 +18,18 @@ package storage;
 
 public abstract class CallbackHandler {
 
+    /**
+     * Creates a new callback handler.
+     */
     public CallbackHandler() {
         // Nothing to do
     }
 
+    /**
+     * Adds a new event listener to the given event.
+     * 
+     * @param e Event to add the listener.
+     */
     protected void eventListener(CallbackEvent e) {
         // Nothing to do
     }

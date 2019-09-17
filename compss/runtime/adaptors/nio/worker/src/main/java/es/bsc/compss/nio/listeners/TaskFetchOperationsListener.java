@@ -27,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 
 public class TaskFetchOperationsListener extends MultiOperationFetchListener {
 
-    private static final Logger WORKER_LOGGER = LogManager.getLogger(Loggers.WORKER);
+    private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
 
     private final NIOTask task;
     private final NIOWorker nw;
@@ -56,11 +56,16 @@ public class TaskFetchOperationsListener extends MultiOperationFetchListener {
 
     @Override
     public void doCompleted() {
-        Long stTime = this.nw.getTimes(this.task.getJobId());
-        if (stTime != null) {
-            long duration = System.currentTimeMillis() - stTime;
-            WORKER_LOGGER.info(" [Profile] Transfer: " + duration);
+        // Get transfer times if needed
+        if (NIOWorker.IS_TIMER_COMPSS_ENABLED) {
+            final long transferStartTime = this.nw.getTransferStartTime(this.task.getJobId());
+            final long transferEndTime = System.nanoTime();
+            final float transferElapsedTime = (transferEndTime - transferStartTime) / (float) 1_000_000;
+            TIMER_LOGGER
+                .info("[TIMER] Transfers for task " + this.task.getJobId() + ": " + transferElapsedTime + " ms");
         }
+
+        // Execute task
         this.nw.executeTask(this.task);
     }
 

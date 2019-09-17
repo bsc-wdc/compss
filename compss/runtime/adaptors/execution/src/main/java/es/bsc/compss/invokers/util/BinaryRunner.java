@@ -26,7 +26,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.compss.util.StreamGobbler;
 import es.bsc.compss.util.Tracer;
-import es.bsc.distrostreamlib.DistroStream;
+import es.bsc.distrostreamlib.api.DistroStream;
 import es.bsc.distrostreamlib.api.files.FileDistroStream;
 import es.bsc.distrostreamlib.api.objects.ObjectDistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;

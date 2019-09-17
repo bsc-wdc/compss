@@ -21,7 +21,7 @@ import es.bsc.compss.types.exceptions.NonInstantiableException;
 
 public final class Loggers {
 
-    // Integrated Toolkit
+    // COMPSs
     public static final String IT = "es.bsc.compss";
 
     // Loader
@@ -78,6 +78,9 @@ public final class Loggers {
 
     // Storage
     public static final String STORAGE = IT + ".Storage";
+
+    // Timers
+    public static final String TIMER = IT + ".Timers";
 
 
     private Loggers() {

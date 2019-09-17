@@ -16,9 +16,11 @@
  */
 package es.bsc.compss.types.request.td;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.components.impl.ResourceScheduler;
 import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.components.impl.TaskScheduler;
+import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.Task;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.allocatableactions.ExecutionAction;
@@ -29,11 +31,24 @@ import es.bsc.compss.types.resources.WorkerResourceDescription;
 
 import java.util.Collection;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * The ExecuteTasksRequest class represents the request to execute a task.
  */
 public class ExecuteTasksRequest extends TDRequest {
+
+    private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
+    private static final boolean IS_TIMER_COMPSS_ENABLED;
+
+    static {
+        // Load timer property
+        String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
+        IS_TIMER_COMPSS_ENABLED = (isTimerCOMPSsEnabledProperty == null || isTimerCOMPSsEnabledProperty.isEmpty()
+            || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
+    }
 
     private final TaskProducer producer;
     private final Task task;
@@ -61,6 +76,18 @@ public class ExecuteTasksRequest extends TDRequest {
 
     @Override
     public void process(TaskScheduler ts) throws ShutdownException {
+        if (IS_TIMER_COMPSS_ENABLED) {
+            long startTime = System.nanoTime();
+            processTask(ts);
+            long endTime = System.nanoTime();
+            float elapsedTime = (endTime - startTime) / (float) 1_000_000;
+            TIMER_LOGGER.info("[TIMER] TD Schedule of task " + this.task.getId() + ": " + elapsedTime + " ms");
+        } else {
+            processTask(ts);
+        }
+    }
+
+    private void processTask(TaskScheduler ts) throws ShutdownException {
         int coreId = this.task.getTaskDescription().getCoreElement().getCoreId();
         if (DEBUG) {
             LOGGER.debug("Treating Scheduling request for task " + this.task.getId() + "(core " + coreId + ")");

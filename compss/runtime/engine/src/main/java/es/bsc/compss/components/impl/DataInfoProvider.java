@@ -56,7 +56,7 @@ import es.bsc.compss.util.ExternalStreamHandler;
 import es.bsc.compss.util.Serializer;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
-import es.bsc.distrostreamlib.DistroStream;
+import es.bsc.distrostreamlib.api.DistroStream;
 import es.bsc.distrostreamlib.client.DistroStreamClient;
 import es.bsc.distrostreamlib.requests.AddStreamWriterRequest;
 

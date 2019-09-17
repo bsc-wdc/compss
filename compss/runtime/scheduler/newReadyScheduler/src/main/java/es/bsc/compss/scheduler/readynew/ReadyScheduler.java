@@ -206,6 +206,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
             unassignedReadyActions.entrySet().iterator();
         TreeSet<ObjectValue<AllocatableAction>> actionList =
             (TreeSet<ObjectValue<AllocatableAction>>) iter.next().getValue();
+        @SuppressWarnings("unchecked")
         ResourceScheduler<?> resource =
             ((Map.Entry<ResourceScheduler<?>, TreeSet<ObjectValue<AllocatableAction>>>) iter).getKey();
         Future<?> resourceToken = this.resourceTokens.get(resource);

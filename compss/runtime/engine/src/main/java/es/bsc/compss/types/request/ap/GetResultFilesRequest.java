@@ -24,7 +24,7 @@ import es.bsc.compss.types.data.ResultFile;
 import es.bsc.compss.types.data.operation.ResultListener;
 
 import java.util.LinkedList;
-import java.util.TreeSet;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 
@@ -78,7 +78,7 @@ public class GetResultFilesRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ResultListener listener = new ResultListener(sem);
-        TreeSet<Integer> writtenDataIds = ta.getAndRemoveWrittenFiles(this.appId);
+        Set<Integer> writtenDataIds = ta.getAndRemoveWrittenFiles(this.appId);
         if (writtenDataIds != null) {
             for (int dataId : writtenDataIds) {
                 ResultFile rf;

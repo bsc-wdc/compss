@@ -24,7 +24,7 @@ public class COMPSsWorker {
 
     public static final String COMPSS_TASK_ID = "COMPSS_TASK_ID";
 
-    private static final Map<Integer, Integer> TASKS_TO_CANCEL = new HashMap<>();
+    private static final Map<Integer, CancelReason> TASKS_TO_CANCEL = new HashMap<>();
 
 
     /**
@@ -35,13 +35,20 @@ public class COMPSsWorker {
     public static final void cancellationPoint() throws Exception {
         String taskIdStr = System.getProperty(COMPSS_TASK_ID);
         if (taskIdStr != null) {
-            Integer exceptionType = TASKS_TO_CANCEL.get(Integer.parseInt(taskIdStr));
-            if (exceptionType != null) {
-                if (exceptionType == 2) {
-                    throw new Exception("Task " + taskIdStr + " timed out.");
-                } else {
-                    System.out.println("The task has been cancelled because a COMPSs Exception occured.");
-                    throw new Exception("Task " + taskIdStr + " has been canceled.");
+            CancelReason exceptionReason = TASKS_TO_CANCEL.get(Integer.parseInt(taskIdStr));
+            if (exceptionReason != null) {
+                // Treat exception
+                switch (exceptionReason) {
+                    case COMPSS_EXCEPTION:
+                        // Print on the job console
+                        System.out.println("Task " + taskIdStr + " cancelled because a COMPSs Exception occured.");
+                        // Throw exception
+                        throw new Exception("Task " + taskIdStr + " has been canceled.");
+                    case TIMEOUT:
+                        // Print on the job console
+                        System.out.println("Task " + taskIdStr + " has timed out.");
+                        // Throw exception
+                        throw new Exception("Task " + taskIdStr + " timed out.");
                 }
             }
         }
@@ -52,8 +59,7 @@ public class COMPSsWorker {
      * 
      * @param taskId Task Id.
      */
-    protected static final void setCancelled(int taskId, int exceptionType) {
-        // Type will be 1 for a COMPSsException and 2 for a time out.
-        TASKS_TO_CANCEL.put(taskId, exceptionType);
+    protected static final void setCancelled(int taskId, CancelReason reason) {
+        TASKS_TO_CANCEL.put(taskId, reason);
     }
 }

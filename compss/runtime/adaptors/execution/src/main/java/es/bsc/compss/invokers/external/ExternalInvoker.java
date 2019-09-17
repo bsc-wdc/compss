@@ -36,9 +36,7 @@ import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

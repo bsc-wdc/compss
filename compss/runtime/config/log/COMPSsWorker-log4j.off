@@ -63,6 +63,12 @@
       <AppenderRef ref="Console"/>
     </Logger>
 
+    <!-- RUNTIME TIMERS -->
+    <!-- es.bsc.compss.Timers: DEFAULT = OFF -->
+    <Logger name="es.bsc.compss.Timers" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
     <!-- STORAGE -->
     <!-- es.bsc.compss.Storage: DEFAULT = OFF -->
     <Logger name="es.bsc.compss.Storage" additivity="FALSE" level="warn">

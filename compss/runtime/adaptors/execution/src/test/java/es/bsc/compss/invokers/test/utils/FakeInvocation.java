@@ -76,8 +76,8 @@ public class FakeInvocation implements Invocation {
     }
 
     @Override
-    public int getTimeOut() {
-        return 0;
+    public long getTimeOut() {
+        return 0L;
     }
 
     @Override

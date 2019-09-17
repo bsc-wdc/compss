@@ -1,0 +1,79 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  init_counter=$(grep "Initial counter value" "${output_file}" | cut -c 26-)
+  final_counter_got=$(grep "Final counter value" "${output_file}" | cut -c 24-)
+  final_counter_expected=$((init_counter+1))
+  # Report result status
+  if [ "$final_counter_got" != "$final_counter_expected" ]; then
+    echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+    echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a "${output_file}"
+    echo "GOT:      $final_counter_got" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  # Grep timers
+  num_timers=$(grep "\\[TIMER\\]" "${output_file}" | wc -l)
+  expected_num_timers=2
+  if [ "${num_timers}" -ne "${expected_num_timers}" ]; then
+    echo "ERROR: INVALID NUMBER OF MASTER TIMERS"
+    echo "EXPECTED: ${expected_num_timers}"
+    echo "GOT: ${num_timers}"
+    exit 1
+  fi
+
+  num_worker_timers=$(grep "\\[TIMER\\]" "${target_log_folder}/workers/worker_COMPSsWorker01.out" | wc -l)
+  expected_num_worker_timers=12
+  if [ "${num_worker_timers}" -ne "${expected_num_worker_timers}" ]; then
+    echo "ERROR: INVALID NUMBER OF WORKER TIMERS"
+    echo "EXPECTED: ${expected_num_worker_timers}"
+    echo "GOT: ${num_worker_timers}"
+    exit 1
+  fi
+
+  
+  # All ok
+  exit 0

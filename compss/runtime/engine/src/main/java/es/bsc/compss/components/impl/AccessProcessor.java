@@ -25,7 +25,6 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.AbstractTask;
 import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.Task;
-import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataInstanceId;
@@ -214,7 +213,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     public int newTask(Long appId, TaskMonitor monitor, Lang lang, String signature, boolean isPrioritary, int numNodes,
         boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters,
-        OnFailure onFailure, int timeOut) {
+        OnFailure onFailure, long timeOut) {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
             hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
@@ -245,7 +244,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      */
     public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
         boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
-        int timeOut) {
+        long timeOut) {
 
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
             parameters, monitor, onFailure, timeOut);

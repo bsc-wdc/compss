@@ -81,7 +81,7 @@ public class Task extends AbstractTask {
      */
     public Task(Long appId, Lang lang, String signature, boolean isPrioritary, int numNodes, boolean isReplicated,
         boolean isDistributed, boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor,
-        OnFailure onFailure, int timeOut) {
+        OnFailure onFailure, long timeOut) {
 
         super(appId);
         CoreElement core = CoreManager.getCore(signature);
@@ -111,7 +111,7 @@ public class Task extends AbstractTask {
      */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary,
         boolean hasTarget, int numReturns, List<Parameter> parameters, TaskMonitor monitor, OnFailure onFailure,
-        int timeOut) {
+        long timeOut) {
 
         super(appId);
         String signature =

@@ -22,6 +22,13 @@ import es.bsc.compss.worker.COMPSsException;
 
 public interface ExecutionListener {
 
+    /**
+     * Notifies the end of the given invocation with the given status.
+     * 
+     * @param invocation Task invocation.
+     * @param success Whether the task was successful or not.
+     * @param e COMPSsException for task groups.
+     */
     public void notifyEnd(Invocation invocation, boolean success, COMPSsException e);
 
 }

@@ -150,9 +150,9 @@ public class ExecutionPlatform implements ExecutorContext {
         for (ExecutionPlatformMirror<?> mirror : this.mirrors.values()) {
             mirror.stop();
         }
-        mirrors.clear();
+        this.mirrors.clear();
 
-        started = false;
+        this.started = false;
         LOGGER.info("Stopped execution platform " + this.platformName);
     }
 
@@ -163,14 +163,14 @@ public class ExecutionPlatform implements ExecutorContext {
      */
     public final synchronized void addWorkerThreads(int numWorkerThreads) {
         Semaphore startSem;
-        if (started) {
+        if (this.started) {
             startSem = new Semaphore(numWorkerThreads);
         } else {
             startSem = this.startSemaphore;
         }
         for (int i = 0; i < numWorkerThreads; i++) {
-            int id = nextThreadId++;
-            Executor executor = new Executor(context, this, "compute" + id) {
+            int id = this.nextThreadId++;
+            Executor executor = new Executor(this.context, this, "compute" + id) {
 
                 @Override
                 public void run() {
@@ -183,14 +183,13 @@ public class ExecutionPlatform implements ExecutorContext {
                 }
             };
             Thread t = new Thread(executor);
-            t.setName(platformName + " compute thread # " + id);
-            workerThreads.add(t);
-            if (started) {
-
+            t.setName(this.platformName + " compute thread # " + id);
+            this.workerThreads.add(t);
+            if (this.started) {
                 t.start();
             }
         }
-        if (started) {
+        if (this.started) {
             startSem.acquireUninterruptibly(numWorkerThreads);
         }
     }
@@ -259,7 +258,7 @@ public class ExecutionPlatform implements ExecutorContext {
     public void registerRunningJob(int jobId, Invoker invoker) {
         LOGGER.debug("Registering job " + jobId);
         this.executingJobs.put(jobId, invoker);
-        if (toCancel.contains(jobId)) {
+        if (this.toCancel.contains(jobId)) {
             cancelJob(jobId);
         }
     }

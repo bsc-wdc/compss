@@ -39,7 +39,7 @@ public class TaskDescription {
     private final List<Parameter> parameters;
     private final boolean hasTarget;
     private final int numReturns;
-    private final int timeOut;
+    private final long timeOut;
 
 
     /**
@@ -58,7 +58,7 @@ public class TaskDescription {
      * @param parameters Number of parameters.
      */
     public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement, boolean isPrioritary,
-        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, int timeOut,
+        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, long timeOut,
         List<Parameter> parameters) {
 
         this.type = type;
@@ -201,8 +201,8 @@ public class TaskDescription {
      *
      * @return The time out.
      */
-    public int getTimeOut() {
-        return timeOut;
+    public long getTimeOut() {
+        return this.timeOut;
     }
 
     @Override

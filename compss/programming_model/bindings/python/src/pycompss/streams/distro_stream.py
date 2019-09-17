@@ -58,52 +58,41 @@ def str2bool(val):
 #
 # Interface definition
 #
+
 class DistroStream(object):
     """
     Interface for File and Object Distributed Streams.
 
     Attributes:
-        - alias: Stream Alias.
-            + type: string
-        - id: Stream Id.
-            + type: string containing UUID
-        - stream_type: Internal stream type.
-            + type: StreamType
-        - access_mode: Stream consumer access mode.
-            + type: ConsumerMode
-
     """
 
-    def __init__(self, alias=None, stream_type=None, access_mode=AT_MOST_ONCE, internal_stream_info=None):
+    def __init__(self):
         """
         Creates a new DistroStream instance.
-
-        :param alias: Stream alias.
-            + type: string
-        :param stream_type: Internal stream type.
-            + type: StreamType
-        :param access_mode: Stream access mode.
-            + type: ConsumerMode
-        :param internal_stream_info: Implementation specific information.
-            + type: List<T>
-        :raise RegistrationException: When client cannot register the stream into the server.
         """
-        logger.debug("Registering new stream...")
+        pass
 
-        self.alias = alias
-        self.stream_type = stream_type
-        self.access_mode = access_mode
+    @abstractmethod
+    def get_stream_id(self):
+        """
+        Returns the internal stream id.
 
-        # Retrieve registration id
-        req = RegisterStreamRequest(self.alias, self.stream_type, self.access_mode, internal_stream_info)
-        DistroStreamClientHandler.request(req)
+        :return: The internal stream id
+            + type: string
+        """
+        pass
 
-        req.wait_processed()
-        error = req.get_error_code()
-        if error != 0:
-            raise RegistrationException(error, req.get_error_msg())
-        self.id = req.get_response_msg()
+    @abstractmethod
+    def get_stream_alias(self):
+        """
+        Returns the internal stream alias.
 
+        :return: The internal stream alias
+            + type: string
+        """
+        pass
+
+    @abstractmethod
     def get_stream_type(self):
         """
         Returns the internal stream type.
@@ -111,52 +100,7 @@ class DistroStream(object):
         :return: The internal stream type
             + type: StreamType
         """
-        return self.stream_type
-
-    def close(self):
-        """
-        Closes the current stream.
-
-        :return: None
-        """
-        if __debug__:
-            logger.debug("Closing stream " + str(self.id))
-
-        # Ask for stream closure
-        req = CloseStreamRequest(self.id)
-        DistroStreamClientHandler.request(req)
-
-        req.wait_processed()
-        error = req.get_error_code()
-        if error != 0:
-            logger.error("ERROR: Cannot close stream")
-            logger.error(" - Internal Error Code: " + str(error))
-            logger.error(" - Internal Error Msg: " + str(req.get_error_msg()))
-
-        # No need to process the answer message, checking the error is enough.
-
-    def is_closed(self):
-        """
-        Returns whether the stream is closed or not.
-
-        :return: True if the stream is closed, False otherwise.
-            + type: boolean
-        """
-        if __debug__:
-            logger.debug("Checking if stream " + str(self.id) + " is closed")
-
-        # Ask for stream status
-        req = StreamStatusRequest(self.id)
-        DistroStreamClientHandler.request(req)
-
-        req.wait_processed()
-        error = req.get_error_code()
-        if error != 0:
-            logger.error("ERROR: Cannot retrieve stream status")
-            logger.error(" - Internal Error Code: " + str(error))
-            logger.error(" - Internal Error Msg: " + str(req.get_error_msg()))
-
-        return str2bool(req.get_response_msg())
+        pass
 
     @abstractmethod
     def publish(self, message):
@@ -190,11 +134,138 @@ class DistroStream(object):
         """
         pass
 
+    @abstractmethod
+    def close(self):
+        """
+        Closes the current stream.
+
+        :return: None
+        """
+        pass
+
+    @abstractmethod
+    def is_closed(self):
+        """
+        Returns whether the stream is closed or not.
+
+        :return: True if the stream is closed, False otherwise.
+            + type: boolean
+        """
+        pass
+
+
+#
+# Common Implementation
+#
+
+class DistroStreamImpl(DistroStream):
+    """
+    Implementation of the common methods of the DistroStream Interface.
+
+    Attributes:
+        - alias: Stream Alias.
+            + type: string
+        - id: Stream Id.
+            + type: string containing UUID
+        - stream_type: Internal stream type.
+            + type: StreamType
+        - access_mode: Stream consumer access mode.
+            + type: ConsumerMode
+    """
+
+    def __init__(self, alias=None, stream_type=None, access_mode=AT_MOST_ONCE, internal_stream_info=None):
+        """
+        Creates a new DistroStream instance.
+
+        :param alias: Stream alias.
+            + type: string
+        :param stream_type: Internal stream type.
+            + type: StreamType
+        :param access_mode: Stream access mode.
+            + type: ConsumerMode
+        :param internal_stream_info: Implementation specific information.
+            + type: List<T>
+        :raise RegistrationException: When client cannot register the stream into the server.
+        """
+        super(DistroStreamImpl, self).__init__()
+
+        logger.debug("Registering new stream...")
+
+        self.alias = alias
+        self.stream_type = stream_type
+        self.access_mode = access_mode
+
+        # Retrieve registration id
+        req = RegisterStreamRequest(self.alias, self.stream_type, self.access_mode, internal_stream_info)
+        DistroStreamClientHandler.request(req)
+
+        req.wait_processed()
+        error = req.get_error_code()
+        if error != 0:
+            raise RegistrationException(error, req.get_error_msg())
+        self.id = req.get_response_msg()
+
+    def get_stream_id(self):
+        return self.id
+
+    def get_stream_alias(self):
+        return self.alias
+
+    def get_stream_type(self):
+        return self.stream_type
+
+    @abstractmethod
+    def publish(self, message):
+        pass
+
+    @abstractmethod
+    def publish_list(self, messages):
+        pass
+
+    @abstractmethod
+    def poll(self, timeout=None):
+        pass
+
+    def close(self):
+        if __debug__:
+            logger.debug("Closing stream " + str(self.id))
+
+        # Ask for stream closure
+        req = CloseStreamRequest(self.id)
+        DistroStreamClientHandler.request(req)
+
+        req.wait_processed()
+        error = req.get_error_code()
+        if error != 0:
+            logger.error("ERROR: Cannot close stream")
+            logger.error(" - Internal Error Code: " + str(error))
+            logger.error(" - Internal Error Msg: " + str(req.get_error_msg()))
+
+        # No need to process the answer message, checking the error is enough.
+
+    def is_closed(self):
+        if __debug__:
+            logger.debug("Checking if stream " + str(self.id) + " is closed")
+
+        # Ask for stream status
+        req = StreamStatusRequest(self.id)
+        DistroStreamClientHandler.request(req)
+
+        req.wait_processed()
+        error = req.get_error_code()
+        if error != 0:
+            logger.error("ERROR: Cannot retrieve stream status")
+            logger.error(" - Internal Error Code: " + str(error))
+            logger.error(" - Internal Error Msg: " + str(req.get_error_msg()))
+
+        return str2bool(req.get_response_msg())
+
 
 #
 # FileDistroStream definition
 #
-class FileDistroStream(DistroStream):
+
+class FileDistroStream(DistroStreamImpl):
     """
     File Distributed Stream implementation.
 
@@ -256,7 +327,8 @@ class FileDistroStream(DistroStream):
 #
 # ObjectDistroStream definition
 #
-class ObjectDistroStream(DistroStream):
+
+class ObjectDistroStream(DistroStreamImpl):
     """
     Object Distributed Stream implementation.
 

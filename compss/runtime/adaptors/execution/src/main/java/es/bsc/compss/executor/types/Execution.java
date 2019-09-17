@@ -32,17 +32,18 @@ public class Execution {
     }
 
     public Invocation getInvocation() {
-        return invocation;
+        return this.invocation;
     }
 
     /**
      * Execution end notification.
      * 
-     * @param success Flags to indicate if execution was successful
+     * @param e COMPSsException to handle task groups.
+     * @param success Flags to indicate if execution was successful.
      */
     public void notifyEnd(COMPSsException e, boolean success) {
-        if (listener != null) {
-            listener.notifyEnd(invocation, success, e);
+        if (this.listener != null) {
+            this.listener.notifyEnd(this.invocation, success, e);
         }
     }
 

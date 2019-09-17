@@ -29,34 +29,26 @@ public class StorageObject implements StubItf {
 
 
     /**
-     * Constructor
+     * Constructor.
      */
     public StorageObject() {
+        // Nothing to do
     }
 
     /**
-     * Constructor by alias
+     * Constructor by alias.
      * 
-     * @param alias
+     * @param alias Persistent object alias.
      */
     public StorageObject(String alias) {
+        // Nothing to do.
     }
 
-    /**
-     * Returns the persistent object ID
-     * 
-     * @return
-     */
     @Override
     public String getID() {
         return this.id;
     }
 
-    /**
-     * Persist the object
-     * 
-     * @param id
-     */
     @Override
     public void makePersistent(String id) {
         try {
@@ -67,9 +59,6 @@ public class StorageObject implements StubItf {
         }
     }
 
-    /**
-     * Deletes the persistent object occurrences
-     */
     @Override
     public void deletePersistent() {
         StorageItf.removeById(this.id);
@@ -77,7 +66,7 @@ public class StorageObject implements StubItf {
     }
 
     /**
-     * Sets the ID (only used by this implementation)
+     * Sets the Id (only used by this implementation).
      */
     protected void setID(String id) {
         this.id = id;

@@ -17,6 +17,7 @@
 package es.bsc.compss.worker;
 
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.worker.COMPSsWorker;
 
 import java.util.TimerTask;
 
@@ -26,9 +27,9 @@ import org.apache.logging.log4j.Logger;
 
 public class TimeOutTask extends TimerTask {
 
-    protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_INVOKER);
 
-    int taskId;
+    private final int taskId;
 
 
     public TimeOutTask(int taskId) {
@@ -37,8 +38,8 @@ public class TimeOutTask extends TimerTask {
 
     @Override
     public void run() {
-        LOGGER.info("Task " + taskId + " timed out");
-        COMPSsWorker.setCancelled(taskId, 2);
+        LOGGER.info("Task " + this.taskId + " timed out");
+        COMPSsWorker.setCancelled(this.taskId, CancelReason.TIMEOUT);
     }
 
 }

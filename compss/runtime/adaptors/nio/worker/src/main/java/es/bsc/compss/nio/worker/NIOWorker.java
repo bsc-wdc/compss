@@ -30,7 +30,6 @@ import es.bsc.compss.data.FetchDataListener;
 import es.bsc.compss.data.MultiOperationFetchListener;
 import es.bsc.compss.executor.ExecutionManager;
 import es.bsc.compss.executor.types.Execution;
-import es.bsc.compss.executor.types.ExecutionListener;
 import es.bsc.compss.executor.utils.ThreadedPrintStream;
 import es.bsc.compss.invokers.types.CParams;
 import es.bsc.compss.invokers.types.JavaParams;
@@ -51,6 +50,7 @@ import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.datarequest.WorkerDataRequest;
 import es.bsc.compss.nio.exceptions.DataNotAvailableException;
 import es.bsc.compss.nio.listeners.FetchDataOperationListener;
+import es.bsc.compss.nio.listeners.TaskExecutionListener;
 import es.bsc.compss.nio.listeners.TaskFetchOperationsListener;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.worker.components.DataManagerImpl;
@@ -85,6 +85,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
     private static final Logger WORKER_LOGGER = LogManager.getLogger(Loggers.WORKER);
     private static final boolean WORKER_LOGGER_DEBUG = WORKER_LOGGER.isDebugEnabled();
 
+    private static final Logger TIMER_LOGGER = LogManager.getLogger(Loggers.TIMER);
+
     // Error messages
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
     private static final String DATA_MANAGER_ERROR = "Error starting DataManager";
@@ -92,6 +94,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     // JVM Flag for WorkingDir removal
     private static final boolean REMOVE_WD;
+
+    // JVM Flag for timers
+    public static final boolean IS_TIMER_COMPSS_ENABLED;
 
     // Processes to capture out/err of each job
     private static final ThreadedPrintStream OUT;
@@ -113,7 +118,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     private final LanguageParams[] langParams;
 
-    private final Map<Integer, Long> times;
+    // Transfer times
+    private final Map<Integer, Long> transferStartTimes;
 
     // Internal components
     private final ExecutionManager executionManager;
@@ -124,6 +130,11 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String removeWDFlag = System.getProperty(COMPSsConstants.WORKER_REMOVE_WD);
         boolean removeWDFlagDefined = removeWDFlag != null && !removeWDFlag.isEmpty();
         REMOVE_WD = removeWDFlagDefined ? Boolean.valueOf(removeWDFlag) : true;
+
+        // Load timer property
+        String isTimerCOMPSsEnabledProperty = System.getProperty(COMPSsConstants.TIMER_COMPSS_NAME);
+        IS_TIMER_COMPSS_ENABLED = (isTimerCOMPSsEnabledProperty == null || isTimerCOMPSsEnabledProperty.isEmpty()
+            || isTimerCOMPSsEnabledProperty.equals("null")) ? false : Boolean.valueOf(isTimerCOMPSsEnabledProperty);
 
         // Set processes to capturer out/error
         OUT = new ThreadedPrintStream(SUFFIX_OUT, System.out);
@@ -206,7 +217,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         this.langParams[Lang.PYTHON.ordinal()] = pyParams;
         this.langParams[Lang.C.ordinal()] = cParams;
 
-        this.times = new HashMap<>();
+        this.transferStartTimes = new HashMap<>();
 
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
@@ -282,13 +293,22 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             NIOTracer.emitEvent(TraceEvent.WORKER_RECEIVED_NEW_TASK.getId(),
                 TraceEvent.WORKER_RECEIVED_NEW_TASK.getType());
         }
-        final long obsolSt = System.currentTimeMillis();
-        // Remove obsolete
+
+        // Remove obsoletes
+        long obsoletesTimeStart = 0L;
+        long obsoletesTimeEnd = 0L;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            obsoletesTimeStart = System.nanoTime();
+        }
         if (obsoleteFiles != null) {
             removeObsolete(obsoleteFiles);
         }
-        final long obsolEnd = System.currentTimeMillis();
-        final long obsolDuration = obsolEnd - obsolSt;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            obsoletesTimeEnd = System.nanoTime();
+            final float obsoletesTimeElapsed = (obsoletesTimeEnd - obsoletesTimeStart) / (float) 1_000_000;
+            TIMER_LOGGER
+                .info("[TIMER] Erasing obsoletes for task " + task.getJobId() + ": " + obsoletesTimeElapsed + " ms");
+        }
 
         // Demand files
         WORKER_LOGGER.info("Checking parameters");
@@ -325,11 +345,17 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (NIOTracer.extraeEnabled()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
         }
-        final long paramsEnd = System.currentTimeMillis();
-        final long paramsDuration = paramsEnd - obsolEnd;
-        WORKER_LOGGER.info("[Profile] Obsolete Processing: " + obsolDuration + " Processing " + paramsDuration);
-        WORKER_LOGGER.info("[Profile] Pending parameters: " + listener.getMissingOperations());
-        this.times.put(task.getJobId(), paramsEnd);
+
+        if (IS_TIMER_COMPSS_ENABLED) {
+            final long paramsTimeEnd = System.nanoTime();
+            final float paramsTimeElapsed = (paramsTimeEnd - obsoletesTimeEnd) / (float) 1_000_000;
+            TIMER_LOGGER
+                .info("[TIMER] Process parameters for task " + task.getJobId() + ": " + paramsTimeElapsed + " ms");
+
+            // Add start transfer time
+            this.transferStartTimes.put(task.getJobId(), paramsTimeEnd);
+        }
+
         listener.enable();
 
         if (NIOTracer.extraeEnabled()) {
@@ -357,21 +383,21 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         /*
          * if (NIOTracer.extraeEnabled()) { NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTransfersType()); }
          */
-
     }
 
     @Override
     public void askForTransfer(InvocationParam param, int index, FetchDataListener listener) {
-        DataRequest dr =
-            new WorkerDataRequest(listener, param.getType(), ((NIOParam) param).getData(), (String) param.getValue());
+        NIOData data = ((NIOParam) param).getData();
+        String target = (String) param.getValue();
+        DataRequest dr = new WorkerDataRequest(listener, param.getType(), data, target);
         addTransferRequest(dr);
     }
 
     @Override
     public boolean isTransferingData(InvocationParam param) {
-        List<DataRequest> requests = getDataRequests(((NIOParam) param).getData().getDataMgmtId());
-        return (requests != null) && (!requests.isEmpty());
-
+        NIOParam nioParam = ((NIOParam) param);
+        List<DataRequest> requests = getDataRequests(nioParam.getData().getDataMgmtId());
+        return requests != null && !requests.isEmpty();
     }
 
     @Override
@@ -518,13 +544,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         // Execute the job
-        Execution e = new Execution(task, new ExecutionListener() {
-
-            @Override
-            public void notifyEnd(Invocation invocation, boolean success, COMPSsException exception) {
-                sendTaskDone(invocation, success, exception);
-            }
-        });
+        TaskExecutionListener tel = new TaskExecutionListener(this);
+        Execution e = new Execution(task, tel);
         this.executionManager.enqueue(e);
 
         // Notify the master that the data has been transfered
@@ -536,7 +557,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         CommandDataReceived cdr = new CommandDataReceived(task.getTransferGroupId());
-        Connection c = TM.startConnection(masterNode);
+        Connection c = TM.startConnection(this.masterNode);
         c.sendCommand(cdr);
         c.finishConnection();
     }
@@ -744,8 +765,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         return this.persistentC;
     }
 
-    public long getTimes(Integer jobId) {
-        return this.times.get(jobId);
+    public long getTransferStartTime(Integer jobId) {
+        return this.transferStartTimes.get(jobId);
     }
 
     // EXECUTION CONFIGURATION

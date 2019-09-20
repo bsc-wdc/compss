@@ -113,7 +113,8 @@ class Parameter(object):
                  file_name=None,
                  is_future=False,
                  depth=1,
-                 is_file_collection=False):
+                 is_file_collection=False,
+                 content_type=None):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -123,16 +124,19 @@ class Parameter(object):
         self.is_future = is_future
         self.depth = depth          # Recursive depth for collections
         self.is_file_collection = is_file_collection
+        self.content_type = content_type
 
     def __repr__(self):
         return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
                '          object=%s\n' \
+               '          content_type=%s\n' \
                '          file_name=%s\n' \
                '          is_future=%s)' % (str(self.type),
                                             str(self.direction),
                                             str(self.stream),
                                             str(self.prefix),
                                             str(self.object),
+                                            str(self.content_type),
                                             str(self.file_name),
                                             str(self.is_future))
 

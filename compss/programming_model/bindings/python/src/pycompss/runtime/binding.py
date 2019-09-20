@@ -29,6 +29,7 @@ from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
+from pycompss.api.parameter import get_compss_type
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serialization.serializer import *
@@ -1070,6 +1071,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
     elif param.type == TYPE.COLLECTION or \
             (collection_depth > 0 and
              is_basic_iterable(param.obj)):
+        # TODO: Update comments
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator
@@ -1090,6 +1092,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
                 param.depth - 1
             )
             value += ' %s %s' % (x_type, x_value)
+            if param.direction == DIRECTION.OUT:
+                value += ' {}'.format(str(type(x.object).__name__))
     else:
         # Keep the original value and type
         value = param.object
@@ -1288,7 +1292,7 @@ def _serialize_object_into_file(name, p):
                 )
                 for x in p.object
             ]
-        else:
+        elif p.direction != DIRECTION.OUT:
             from pycompss.api.parameter import get_compss_type
             new_object = [
                 _serialize_object_into_file(
@@ -1302,10 +1306,61 @@ def _serialize_object_into_file(name, p):
                 )
                 for x in p.object
             ]
+        else:
+            # COLLECTION OUT!
+            from pycompss.api.parameter import get_compss_type
+            new_object = _retrieve_col_out_objects(p)
+
         p.object = new_object
         # Give this object an identifier inside the binding
         get_object_id(p.object, True, False)
     return p
+
+
+def _retrieve_col_out_objects(p_col_out):
+    """
+
+    :param p_col_out: Parameter object
+    :return:
+    """
+    new_objects = list()
+    for item in p_col_out.object:
+        obj = Parameter(
+            p_type=get_compss_type(item, p_col_out.depth - 1),
+            p_direction=p_col_out.direction,
+            p_object=item,
+            depth=p_col_out.depth-1,
+            content_type=type(item)
+        )
+
+        if obj.type in [TYPE.OBJECT, TYPE.EXTERNAL_STREAM] or obj.is_future:
+            val_type = type(obj.object)
+            if isinstance(val_type, list):
+                if any(isinstance(v, Future) for v in obj.object):
+                    mode = get_compss_mode('in')
+                    obj.object = list(map(synchronize, obj.object,
+                                          [mode] * len(obj.object)))
+        obj_id = get_object_id(obj.object, True)
+        file_name = objid_to_filename.get(obj_id)
+
+        if file_name is None:
+            # This is the first time a task accesses this object
+            pending_to_synchronize[obj_id] = obj.object
+            file_name = temp_dir + _temp_obj_prefix + str(obj_id)
+            objid_to_filename[obj_id] = file_name
+            logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
+
+        elif obj_id in _objs_written_by_mp:
+            # Main program generated the last version
+            compss_file = _objs_written_by_mp.pop(obj_id)
+        else:
+            compss_file = None
+            pass
+        # Set file name in Parameter object
+        obj.file_name = file_name or compss_file
+        new_objects.append(obj)
+
+    return new_objects
 
 
 def _manage_persistent_object(p):

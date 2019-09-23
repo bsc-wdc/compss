@@ -55,6 +55,7 @@ import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
@@ -230,6 +231,8 @@ public class Executor implements Runnable {
 
     private Exception executeTaskWrapper(Invocation invocation) {
         if (Tracer.extraeEnabled()) {
+            int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits();
+            Tracer.emitEvent(nCPUs, TraceEvent.CPU_COUNT.getType());
             Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
         }
 
@@ -398,6 +401,7 @@ public class Executor implements Runnable {
 
             // Always end task tracing
             if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.CPU_COUNT.getType());
                 Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
             }
         }

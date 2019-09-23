@@ -82,6 +82,7 @@ public abstract class Tracer {
     protected static final int DATA_TRANSFERS = 8_000_004;
     protected static final int STORAGE_TYPE = 8_000_005;
     protected static final int READY_COUNTS = 8_000_006;
+    protected static final int NUMBER_OF_CPUS = 8_000_007;
     protected static final int SYNC_TYPE = 8_000_666;
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
 

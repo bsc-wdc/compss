@@ -93,7 +93,8 @@ public enum TraceEvent {
     DELETE_PERSISTENT(11, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
     WORKER_RUNNING(102, Tracer.INSIDE_TASKS_TYPE, "Worker running"), // Worker running
 
-    READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count");// Ready count
+    READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count"),
+    CPU_COUNT(1, Tracer.NUMBER_OF_CPUS, "Number of CPUs");// Ready count
 
     private final int id;
     private final int type;

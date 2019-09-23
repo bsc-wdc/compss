@@ -121,7 +121,7 @@
 
   # Copy the queue.cfg as default.cfg if it is defined
   if [ -n "${queues_cfg}" ]; then
-    cp "${targetDir}"/Runtime/scripts/queues/cfgs/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/cfgs/default.cfg
+    cp "${targetDir}"/Runtime/scripts/queues/supercomputers/"${queues_cfg}" "${targetDir}"/Runtime/scripts/queues/supercomputers/default.cfg
   fi
 
   # End

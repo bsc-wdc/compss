@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2019      Cray UK Ltd., a Hewlett Packard Enterprise company
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -76,10 +77,16 @@ except ImportError:
         import cPickle as numpy
     NUMPY_AVAILABLE = False
 
+from pycompss.util.sharedmemory import shma
+SHMA_AVAILABLE = shma.SHAREDARRAY_AVAILABLE
+if not SHMA_AVAILABLE:
+    shma = numpy # Alias shma with numpy
+
 lib2idx = {
     pickle: 0,
     numpy: 1,
-    dill: 2
+    dill: 2,
+    shma: 3
 }
 
 idx2lib = dict([(v, k) for (k, v) in lib2idx.items()])
@@ -100,7 +107,7 @@ def get_serializer_priority(obj=()):
     :return: <List> The serializers sorted by priority in descending order
     """
     if object_belongs_to_module(obj, 'numpy'):
-        return [numpy, pickle, dill]
+        return [shma, numpy, pickle, dill]
     return [pickle, dill]
 
 
@@ -150,6 +157,14 @@ def serialize_to_handler(obj, handler):
                         (isinstance(obj, numpy.ndarray) or
                          isinstance(obj, numpy.matrix)):
                     serializer.save(handler, obj, allow_pickle=False)
+                elif serializer is shma and \
+                        SHMA_AVAILABLE and \
+                        (isinstance(obj, numpy.ndarray) or
+                         isinstance(obj, numpy.matrix)):
+                    shma.serialize_to_shm(obj, handler)
+                    # The file is already open and the magic number indicating
+                    # the serialize method is already set. No further action is
+                    # required.
                 else:
                     serializer.dump(obj,
                                     handler,
@@ -276,7 +291,9 @@ def deserialize_from_handler(handler):
         raise SerializerException(error_message)
 
     try:
-        if serializer is numpy and NUMPY_AVAILABLE:
+        if serializer is shma and SHMA_AVAILABLE:
+            ret = shma.deserialize_from_shm(handler)
+        elif serializer is numpy and NUMPY_AVAILABLE:
             ret = serializer.load(handler, allow_pickle=False)
         else:
             ret = serializer.load(handler)

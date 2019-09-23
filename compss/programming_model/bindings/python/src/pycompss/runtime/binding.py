@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2019      Cray UK Ltd., a Hewlett Packard Enterprise company
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -33,6 +34,7 @@ from pycompss.api.parameter import get_compss_type
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serialization.serializer import *
+from pycompss.util.sharedmemory.shma import delete_shma, clear_shma
 from pycompss.util.objects.sizer import total_sizeof
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.storages.persistent import get_id
@@ -359,6 +361,8 @@ def delete_object(obj):
     try:
         file_name = objid_to_filename[obj_id]
         compss.delete_file(file_name, False)
+        # Try delete the array if it is a shared memory based array
+        delete_shma(file_name)
     except KeyError:
         pass
     try:
@@ -1429,6 +1433,7 @@ def _clean_objects():
         * _addr2id2obj dict
         * objid_to_filename dict
         * _objs_written_by_mp dict
+        * util.sharedmemory.shma.shma_objects dict
 
     :return: None
     """
@@ -1438,6 +1443,7 @@ def _clean_objects():
     _addr2id2obj.clear()
     objid_to_filename.clear()
     _objs_written_by_mp.clear()
+    clear_shma(True)
 
 
 def _clean_temps():

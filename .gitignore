@@ -13,6 +13,9 @@ pom.xml.versionsBackup
 .project
 .cproject
 
+# Ignore vim files
+.lvimrc
+
 # Ignore IntelliJ files
 .idea/
 *.iml

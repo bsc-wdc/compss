@@ -14,3 +14,6 @@
 [submodule "kafka"]
 	path = dependencies/kafka
 	url = https://github.com/apache/kafka.git
+[submodule "shared-array"]
+	path = dependencies/shared-array
+	url = https://gitlab.com/cerl/third-party-contributions/shared-array.git

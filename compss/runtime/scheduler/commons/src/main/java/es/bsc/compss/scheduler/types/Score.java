@@ -18,11 +18,13 @@ package es.bsc.compss.scheduler.types;
 
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.accessid.RAccessId;
 import es.bsc.compss.types.data.accessid.RWAccessId;
+import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Resource;
@@ -186,35 +188,50 @@ public class Score implements Comparable<Score> {
             // Obtain the scores for the host: number of task parameters that
             // are located in the host
             for (Parameter p : params.getParameters()) {
-                if (p instanceof DependencyParameter && p.getDirection() != Direction.OUT) {
-                    DependencyParameter dp = (DependencyParameter) p;
-                    DataInstanceId dId = null;
-                    switch (dp.getDirection()) {
-                        case IN:
-                        case CONCURRENT:
-                            RAccessId raId = (RAccessId) dp.getDataAccessId();
-                            dId = raId.getReadDataInstance();
-                            break;
-                        case COMMUTATIVE:
-                        case INOUT:
-                            RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
-                            dId = rwaId.getReadDataInstance();
-                            break;
-                        case OUT:
-                            // Cannot happen because of previous if
-                            break;
+                if (p.getType() != DataType.COLLECTION_T) {
+                    resourceScore = resourceScore + calculateParameterScore(p, w);
+                } else {
+                    CollectionParameter cp = (CollectionParameter) p;
+                    for (Parameter par : cp.getParameters()) {
+                        resourceScore = resourceScore + calculateParameterScore(par, w);
                     }
 
-                    // Get hosts for resource score
-                    if (dId != null) {
-                        LogicalData dataLD = Comm.getData(dId.getRenaming());
-                        if (dataLD != null) {
-                            Set<Resource> hosts = dataLD.getAllHosts();
-                            for (Resource host : hosts) {
-                                if (host == w) {
-                                    resourceScore++;
-                                }
-                            }
+                }
+            }
+        }
+        return resourceScore;
+    }
+
+    private static long calculateParameterScore(Parameter p, Worker<?> w) {
+        long resourceScore = 0;
+
+        if (p instanceof DependencyParameter && p.getDirection() != Direction.OUT) {
+            DependencyParameter dp = (DependencyParameter) p;
+            DataInstanceId dId = null;
+            switch (dp.getDirection()) {
+                case IN:
+                case CONCURRENT:
+                    RAccessId raId = (RAccessId) dp.getDataAccessId();
+                    dId = raId.getReadDataInstance();
+                    break;
+                case COMMUTATIVE:
+                case INOUT:
+                    RWAccessId rwaId = (RWAccessId) dp.getDataAccessId();
+                    dId = rwaId.getReadDataInstance();
+                    break;
+                case OUT:
+                    // Cannot happen because of previous if
+                    break;
+            }
+
+            // Get hosts for resource score
+            if (dId != null) {
+                LogicalData dataLD = Comm.getData(dId.getRenaming());
+                if (dataLD != null) {
+                    Set<Resource> hosts = dataLD.getAllHosts();
+                    for (Resource host : hosts) {
+                        if (host == w) {
+                            resourceScore++;
                         }
                     }
                 }

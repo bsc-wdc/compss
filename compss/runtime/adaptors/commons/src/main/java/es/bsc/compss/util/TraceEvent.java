@@ -55,6 +55,7 @@ public enum TraceEvent {
     TASKSTATE(35, Tracer.RUNTIME_EVENTS, "Access Processor: Taskstate"), // Task state
     DELETE_FILE(36, Tracer.RUNTIME_EVENTS, "Access Processor: Delete file"), // Delete file
     FINISH_ACCESS_FILE(37, Tracer.RUNTIME_EVENTS, "Access Processor: Finish acess to file"), // Finish access to file
+    CANCEL_ALL_TASKS(56, Tracer.RUNTIME_EVENTS, "Acces Processor: Cancel all tasks"),
 
     // Storage Events
     STORAGE_GETBYID(38, Tracer.STORAGE_TYPE, "getByID"), // Get By Id

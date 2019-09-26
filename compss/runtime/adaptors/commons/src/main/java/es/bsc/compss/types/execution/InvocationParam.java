@@ -35,6 +35,8 @@ public interface InvocationParam {
 
     public String getName();
 
+    public String getContentType();
+
     public StdIOStream getStdIOStream();
 
     public String getOriginalName();

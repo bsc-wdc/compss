@@ -48,7 +48,7 @@ public class FileParameter extends DependencyParameter {
     public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, DataLocation location,
         String originalName) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name);
+        super(DataType.FILE_T, direction, stream, prefix, name, null);
         this.location = location;
         this.originalName = originalName;
 

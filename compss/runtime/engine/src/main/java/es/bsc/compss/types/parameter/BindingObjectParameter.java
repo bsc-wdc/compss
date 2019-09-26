@@ -44,10 +44,10 @@ public class BindingObjectParameter extends DependencyParameter {
      * @param bo Parameter binding object.
      * @param hashCode Parameter object hashcode.
      */
-    public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name, BindingObject bo,
-        int hashCode) {
+    public BindingObjectParameter(Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType, BindingObject bo, int hashCode) {
 
-        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name);
+        super(DataType.BINDING_OBJECT_T, direction, stream, prefix, name, contentType);
         this.bo = bo;
         this.hashCode = hashCode;
     }

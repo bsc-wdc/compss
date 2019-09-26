@@ -22,6 +22,7 @@ DEFAULT_PYCOMPSS=true
 DEFAULT_TRACING=true
 DEFAULT_AUTOPARALLEL=true
 DEFAULT_KAFKA=true
+DEFAULT_SHMA=true
 DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 DEFAULT_MVN_TESTS=""
@@ -34,6 +35,7 @@ NO_PYCOMPSS="Warning: No pycompss specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_AUTOPARALLEL="Warning: No autoparallel specified. Loading default value"
 NO_KAFKA="Warning: No Kafka module specified. Loading default value"
+NO_SHMA="Warning: No Shared Array module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
 
 
@@ -80,6 +82,10 @@ show_opts() {
     --kafka, -k                 Enable Kafka module installation
     --no-kafka, -K              Disable Kafka module installation
                                 Default: ${DEFAULT_KAFKA}
+
+    --shared-array, -s          Enable Shared Array module installation
+    --no-shared-array, -S       Disable Shared Array module installation
+                                Default: ${DEFAULT_SHMA}
 
     --nothing, -N               Disable all previous options
                                 Default: unused
@@ -131,7 +137,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTaAkKN-: flag; do
+  while getopts hvmMbBpPtTaAkKsSN-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -193,6 +199,14 @@ get_args() {
         # Custom Kafka value
         kafka=false
         ;;
+      s)
+        # Custom Shared Array value
+        shma=true
+        ;;
+      S)
+        # Custom Shared Array value
+        shma=false
+        ;;
       N)
         # Disables all flags
         tracing=false
@@ -201,6 +215,7 @@ get_args() {
         pycompss=false
         autoparallel=false
         kafka=false
+        shma=false
         ;;
       -)
 	# Check more complex arguments
@@ -269,6 +284,14 @@ get_args() {
             # Custom Kafka value
             kafka=false
             ;;
+          shared-array)
+            # Custom Shared Array value
+            shma=true
+            ;;
+          no-shared-array)
+            # Custom Shared Array value
+            shma=false
+            ;;
           nothing)
             # Disables all flags
             tracing=false
@@ -277,6 +300,7 @@ get_args() {
             pycompss=false
             autoparallel=false
             kafka=false
+            shma=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution
@@ -340,6 +364,11 @@ check_args() {
     kafka=${DEFAULT_KAFKA}
   fi
 
+  if [ -z "${shma}" ]; then
+    display_warning "${NO_SHMA}"
+    shma=${DEFAULT_SHMA}
+  fi
+
   if [ -z "${user_exec}" ]; then
     if [ -z "${SUDO_USER}" ]; then
       # Cannot retrieve sudo user from env
@@ -374,6 +403,7 @@ warn_and_log_parameters() {
   echo "- Tracing        = ${tracing}"
   echo "- AutoParallel   = ${autoparallel}"
   echo "- Stream Backend = ${kafka}"
+  echo "- Shared Array   = ${shma}"
   echo "- SCRIPT_DIR     = ${SCRIPT_DIR}"
   echo "- SOURCES DIR    = ${SOURCES_DIR}"
   echo "- TMP_DIR        = ${TMP_DIR}"
@@ -550,6 +580,27 @@ install_compss() {
     fi
     cd "${SCRIPT_DIR}"
   fi
+  # Shared Array
+  export SHAREDARRAY_HOME="${TMP_DIR}"/dependencies/shared-array
+  cd "${SHAREDARRAY_HOME}"
+  shma_test_file="${SHAREDARRAY_HOME}"/shma_test_required.py
+  cat >"${shma_test_file}" <<EOF
+#!/usr/bin/python
+import sys
+try:
+    import SharedArray
+    sys.exit(0 if hasattr(SharedArray, 'create_copy') else 1)
+except ImportError:
+    sys.exit(2)
+EOF
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "Failed to create Shared Array test script. Abort."
+    exit $ev
+  fi
+  chmod +x "${shma_test_file}"
+  unset shma_test_file
+  cd "${SCRIPT_DIR}"
 
   # CONFIG
   echo "--- Copy configuration"

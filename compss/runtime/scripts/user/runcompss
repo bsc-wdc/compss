@@ -385,6 +385,14 @@ check_env() {
     export KAFKA_HOME=${KAFKA_HOME}
   fi
 
+  # Python dependencies environment
+
+  # SharedArray environment
+  if [ -z "${SHAREDARRAY_HOME}" ]; then
+    SHAREDARRAY_HOME=${COMPSS_HOME}/Dependencies/SharedArray
+    export SHAREDARRAY_HOME=${SHAREDARRAY_HOME}
+  fi
+
   # JAVA HOME
   if [[ -z "$JAVA_HOME" ]]; then
     JAVA=java
@@ -993,6 +1001,12 @@ check_args() {
     # Deal with storage implementation
     if [ -n "$storageImpl" ]; then
       pythonpath=$pythonpath:${COMPSS_HOME}/Tools/storage/$storageImpl/python
+    fi
+
+    # Deal with the external/third party python component
+    shared_array_libs=(`find -O3 ${SHAREDARRAY_HOME} -maxdepth 1 -type f -executable ! -empty -name SharedArray*.so 2>/dev/null`)
+    if [ ${#shared_array_libs[@]} -gt 0 ]; then
+      pythonpath=$pythonpath:"${SHAREDARRAY_HOME}"
     fi
 
     # Adds all given Pythonpaths to the global variable

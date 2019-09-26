@@ -192,6 +192,30 @@
   # Streaming dependencies
   cp -r "${TMP_DIR}"/dependencies/kafka "${targetDir}"/Dependencies/
 
+  # Shared Array python module with create_copy capabilities
+  echo "---- Install Shared Array ----"
+  SHAREDARRAY_HOME="${TMP_DIR}"/dependencies/shared-array
+  cd "${SHAREDARRAY_HOME}" || exit 1
+  export SHAREDARRAY_HOME
+  shma_test_file="${SHAREDARRAY_HOME}"/shma_test_required.py
+  cat >"${shma_test_file}" <<EOF
+#!/usr/bin/python
+import sys
+try:
+    import SharedArray
+    sys.exit(0 if hasattr(SharedArray, 'create_copy') else 1)
+except ImportError:
+    sys.exit(2)
+EOF
+  ev=$?
+  if [ $ev -ne 0 ]; then
+    echo "Failed to create Shared Array test script. Abort."
+    exit $ev
+  fi
+  chmod +x "${shma_test_file}" || exit $?
+  unset shma_test_file
+  cd "${SCRIPT_DIR}" || exit 1
+
   # Restore original path
   export PATH=${originalPath}
 

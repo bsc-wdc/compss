@@ -39,7 +39,7 @@
     local python_complete_version
     local python_collapsed_version
 
-    PYCOMPSS_HOME="${targetDir}/$1"
+    PYCOMPSS_HOME="${targetDir}/${python_version}"
     export PYTHONPATH=$PYCOMPSS_HOME:$OLD_PYTHONPATH
     #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-armhf
 
@@ -64,12 +64,71 @@
         exit $exitCode
       fi
 
+      # Check whether the dependency module is required
+      shma_test_script="${SHAREDARRAY_HOME}"/shma_test_required.py
+      ${python_command} "${shma_test_script}"
+      exitCode=$?
+      if [ $exitCode -ne 0 ]; then
+        need_shma=1
+        # Shared Array is either not installed or not the right version.
+        # We need to install the dependency.
+        shmaTargetDir="$( dirname $( dirname "${targetDir}" ) )"/Dependencies/SharedArray
+        export PYTHONPATH="${shmaTargetDir}":$PYTHONPATH
+        ${python_command} "${SHAREDARRAY_HOME}"/setup.py    \
+          build_ext   -b "${SHAREDARRAY_HOME}"/build  \
+          install_lib -b "${SHAREDARRAY_HOME}"/build  \
+                      --install-dir="${shmaTargetDir}"
+        exitCode=$?
+        if [ $exitCode -ne 0 ]; then
+          echo "ERROR: Failed to install Shared Array required dependency."
+          exit $exitCode
+        fi
+        cat > "${shmaTargetDir}"/__init__.py <<EOF
+#!/usr/bin/python
+#
+#  Copyright 2019      Cray UK Ltd., a Hewlett Packard Enterprise company
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+# -*- coding: utf-8 -*-
+EOF
+        exitCode=$?
+        if [ $exitCode -ne 0 ]; then
+          echo "ERROR: Failed to create __init__.py file required for Shared Array module."
+          exit $exitCode
+        fi
+      else
+        need_shma=0
+        echo "Already installed for current python version. Skip."
+      fi
+
       # Do the installation
       ${python_command} "${SCRIPT_DIR}"/setup.py install --install-lib="${PYCOMPSS_HOME}" -O2
       exitCode=$?
       if [ $exitCode -ne 0 ]; then
         echo "ERROR: Cannot install PyCOMPSs for Python ${python_version}"
         exit $exitCode
+      fi
+
+      # Link to the dependencies so we find them in the pythonpath at runtime.
+      if [ $need_shma -gt 0 ]; then
+        ln -sfn "${shmaTargetDir}" "${PYCOMPSS_HOME}"
+        exitCode=$?
+        if [ $exitCode -ne 0 ]; then
+          echo "ERROR: Failed to create link to Shared Array dependency installation directory."
+          exit $exitCode
+        fi
       fi
 
       # Unify installed versions

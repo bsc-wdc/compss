@@ -629,18 +629,21 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 "Group " + groupName + " raised a COMPSs Exception ( " + request.getException().getMessage() + ")");
         }
 
-        LOGGER.debug("Group barrier: End of tasks of group " + groupName);
+        LOGGER.info("Group barrier: End of tasks of group " + groupName);
     }
 
     /**
      * Cancellation of all tasks of an application.
      */
     public void cancelApplicationTasks(Long appId) {
+        LOGGER.info("Cancelled all remaining tasks for application with id " + appId);
+
         Semaphore sem = new Semaphore(0);
         if (!this.requestQueue.offer(new CancelApplicationTasksRequest(appId, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
         }
         // Wait for response
+        LOGGER.debug("Waiting for finishing tasks cancellation " + appId);
         sem.acquireUninterruptibly();
 
         LOGGER.info("Tasks cancelled for application with id " + appId);

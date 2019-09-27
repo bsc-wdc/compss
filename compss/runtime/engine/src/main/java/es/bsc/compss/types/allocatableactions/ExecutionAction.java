@@ -91,6 +91,7 @@ public class ExecutionAction extends AllocatableAction {
     private int transferErrors = 0;
     protected int executionErrors = 0;
     private Job<?> currentJob;
+    boolean cancelledBeforeSubmit = false;
 
 
     /**
@@ -371,16 +372,19 @@ public class ExecutionAction extends AllocatableAction {
 
         JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = submitJob(transferGroupId, listener);
+        if (!cancelledBeforeSubmit) {
+            // Register job
+            this.jobs.add(job.getJobId());
+            JOB_LOGGER.info((this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
+                + " (Task: " + task.getId() + ")");
+            JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
+            JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
 
-        // Register job
-        this.jobs.add(job.getJobId());
-        JOB_LOGGER.info((this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
-            + " (Task: " + task.getId() + ")");
-        JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
-        JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
-
-        this.profile.start();
-        JobDispatcher.dispatch(job);
+            this.profile.start();
+            JobDispatcher.dispatch(job);
+        } else {
+            JOB_LOGGER.info("Job" + job.getJobId() + " cancelled before submission.");
+        }
     }
 
     protected Job<?> submitJob(int transferGroupId, JobStatusListener listener) {
@@ -410,9 +414,13 @@ public class ExecutionAction extends AllocatableAction {
         if (DEBUG) {
             LOGGER.debug("Task " + this.getId() + " starts cancelling running job");
         }
-        this.currentJob.cancelJob();
-        // Update info about the generated/updated data
-        doOutputTransfers(this.currentJob);
+        if (currentJob != null) {
+            this.currentJob.cancelJob();
+            // Update info about the generated/updated data
+            doOutputTransfers(this.currentJob);
+        } else {
+            cancelledBeforeSubmit = true;
+        }
     }
 
     /**

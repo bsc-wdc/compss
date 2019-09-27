@@ -89,6 +89,7 @@ public class MirrorMonitor {
                 controlPipe.delete();
                 controlPipe = null;
                 mainProcess = null;
+                break;
             }
             if (Thread.interrupted()) {
                 break;

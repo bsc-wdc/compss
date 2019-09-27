@@ -153,6 +153,7 @@
 
   # OpenMPI
   if [ "${extrae_with_openmpi}" == "true" ]; then
+    openmpi_replaced_modules=($( module -t list openmpi"${openmpi_version}" 2>&1))
     module load openmpi"${openmpi_version}"
     ./install "${targetDir}"/Dependencies/extrae-openmpi true
     ev=$?
@@ -161,12 +162,16 @@
       exit $ev
     fi
     module unload openmpi
+    if [ ${#openmpi_replaced_modules[@]} -gt 0 ]; then
+      module load ${openmpi_replaced_modules[@]}
+    fi
+    unset openmpi_replaced_modules
   fi
 
   # IMPI
   if [ "${extrae_with_impi}" == "true" ]; then
-    module load intel
-    module load impi"${impi_version}"
+    impi_replaced_modules=($( module -t list intel impi"${impi_version}" 2>&1))
+    module load intel impi"${impi_version}"
     ./install "${targetDir}"/Dependencies/extrae-impi true
     ev=$?
     if [ $ev -ne 0 ]; then
@@ -174,6 +179,10 @@
       exit $ev
     fi
     module unload impi
+    if [ ${#impi_replaced_modules[@]} -gt 0 ]; then
+      module load ${impi_replaced_modules[@]}
+    fi
+    unset impi_replaced_modules
   fi
   cd "${SCRIPT_DIR}" || exit 1
 
@@ -301,6 +310,7 @@
   cd "${TMP_DIR}"/compss/programming_model/bindings/python || exit 1
   if [ -n "$py2_modules" ]; then
     echo "    - For python 2"
+    py2_replaced_modules=($( module -t list ${py2_modules} 2>&1))
     if [ "$py2_modules" != "ignore" ]; then
       #shellcheck disable=SC2086
       module load ${py2_modules}
@@ -314,7 +324,11 @@
     if [ "$py2_modules" != "ignore" ]; then
       #shellcheck disable=SC2086
       module unload ${py2_modules}
+      if [ ${#py2_replaced_modules[@]} -gt 0 ]; then
+        module load ${py2_replaced_modules[@]}
+      fi
     fi
+    unset py2_replaced_modules
   fi
   if [ -n "$py3_modules" ]; then
     echo "    - For python 3"

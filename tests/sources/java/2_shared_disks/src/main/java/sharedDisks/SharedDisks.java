@@ -9,7 +9,7 @@ public class SharedDisks {
     public static void main(String[] args) {
         // Set parameters
         String fileNameInput = "/tmp/sharedDisk/input_file_test";
-        String fileNameOutput = "output_file_test";
+        String fileNameOutput = "/tmp/sharedDisk/output_file_test";
 
         // INPUT TEST
         System.out.println("[LOG] Input file test");
@@ -42,8 +42,9 @@ public class SharedDisks {
         // OUTPUT TEST
         System.out.println("[LOG] Output file test");
         SharedDisksImpl.outputTaskWriter(fileNameOutput);
-        SharedDisksImpl.outputTaskReader(fileNameOutput);
-
+        for (int i = 0; i < 10; i++) {
+            SharedDisksImpl.outputTaskReader(fileNameOutput);
+        }
         System.out.println("[LOG] All tasks created.");
         System.out.println("[LOG] No more jobs for main. Waiting all tasks to finish.");
     }

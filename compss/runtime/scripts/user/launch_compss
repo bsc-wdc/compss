@@ -13,7 +13,7 @@ DEFAULT_APPDIR=$(pwd)
 DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_DEBUG=off
-DEFAULT_LOG_LEVEL_ARG=debug
+DEFAULT_DEBUG_ARG=debug
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
@@ -227,7 +227,9 @@ infer_language() {
   fileName=$(basename "$fullApp")
   extension=${fileName##*.}
   if [ "$extension" == "py" ] || [ "$extension" == "pyc" ]; then
-    echo "[  INFO] Inferred PYTHON language"
+    if [ "${log_level}" != "off" ]; then
+       echo "[ INFO] Inferred PYTHON language"
+    fi
     lang=python
   else
     # Try to infer language by file command
@@ -235,14 +237,20 @@ infer_language() {
     isPythonCompiled=$(file "$fullAppPath" | grep "python" | cat)
     isC=$(file "$fullAppPath" | grep "executable" | cat)
     if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
-      echo "[  INFO] Inferred PYTHON language"
+      if [ "${log_level}" != "off" ]; then
+	 echo "[  INFO] Inferred PYTHON language"
+      fi
       lang=python
     elif [ -n "$isC" ]; then
-      echo "[  INFO] Inferred C/C++ language"
+      if [ "${log_level}" != "off" ]; then    
+         echo "[  INFO] Inferred C/C++ language"
+      fi
       lang=c
     else
       # Lang cannot be infered or it's the default JAVA
-      echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
+      if [ "${log_level}" != "off" ]; then
+         echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
+      fi
       lang=${DEFAULT_LANGUAGE}
     fi
   fi
@@ -428,7 +436,9 @@ xml_project_add_worker_in_master() {
     fi
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
-      echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+      if [ "${log_level}" == "debug" ]; then
+         echo "[LAUNCH_COMPSS] Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+      fi
       # shellcheck disable=SC2086
       ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
     fi
@@ -454,7 +464,9 @@ xml_project_add_workers() {
     fi
     # Create working dirs
     if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
-      echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+      if [ "${log_level}" == "debug" ]; then
+         echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
+      fi
       # shellcheck disable=SC2086
       ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
     fi
@@ -658,29 +670,33 @@ create_xml_resources() {
 # Create XML files
 ###############################################
 create_xml_files() {
-  echo "[XML] Begin generation of project and resources files"
-
+  if [ "${log_level}" != "off" ]; then
+     echo "[LAUNCH_COMPSS] XML - Begin generation of project and resources files"
+     # Log Master Node
+     echo "[LAUNCH_COMPSS] Master will run in ${master_node}"
+     # Log List of Workers
+     echo "[LAUNCH_COMPSS] List of workers: ${worker_nodes}"
+  fi
   local sec
   sec=$(date +%s)
-
-  # Log Master Node
-  echo "Master will run in ${master_node}"
-  # Log List of Workers
-  echo "List of workers: ${worker_nodes}"
 
   # Generate project file
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
   source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
   PROJECT_FILE=${worker_working_dir}/project_$sec.xml
-  echo "[XML] Generating project at ${PROJECT_FILE}"
+  if [ "${log_level}" != "off" ]; then
+     echo "[LAUNCH_COMPSS] XML - Generating project at ${PROJECT_FILE}"
+  fi
   export PROJECT_FILE
   create_xml_project
 
   # Generate resources file
   if [ -n "$resources" ]; then
     # Custom user resources.xml file
-    echo "[XML] Using user-defined resources.xml file at ${resources}"
+    if [ "${log_level}" != "off" ]; then
+        echo "[LAUNCH_COMPSS] XML - Using user-defined resources.xml file at ${resources}"
+    fi
     RESOURCES_FILE=${resources}
   else
     # Generate file
@@ -688,15 +704,19 @@ create_xml_files() {
     # shellcheck disable=SC1091
     source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
     RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
-    echo "[XML] Generating resources at ${RESOURCES_FILE}"
+    if [ "${log_level}" != "off" ]; then
+        echo "[LAUNCH_COMPSS] XML - Generating resources at ${RESOURCES_FILE}"
+    fi
     export RESOURCES_FILE
     create_xml_resources
   fi
 
   # LOG AND FINISH
-  echo "[XML] Generation of project and resources files finished"
-  echo "[XML] Project.xml:   ${PROJECT_FILE}"
-  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+  if [ "${log_level}" != "off" ]; then
+     echo "[LAUNCH_COMPSS] XML - Generation of project and resources files finished"
+     echo "[LAUNCH_COMPSS] XML - Project.xml:   ${PROJECT_FILE}"
+     echo "[LAUNCH_COMPSS] XML - Resources.xml: ${RESOURCES_FILE}"
+  fi
 }
 
 ###############################################
@@ -705,22 +725,24 @@ create_xml_files() {
 init_het_xml_files() {
   local suffix=$1
 
-  # Log Master Node
-  echo "Master will run in ${master_node}"
-  # Log List of Workers
-  echo "List of workers: ${worker_nodes}"
+  if [ "${log_level}" != "off" ]; then
+      # Log Master Node
+      echo "[LAUNCH_COMPSS] Master will run in ${master_node}"
+      # Log List of Workers
+      echo "[LAUNCH_COMPSS] List of workers: ${worker_nodes}"
 
-  # LOG
-  echo "[XML] Generating project and resources files"
-
+      # LOG
+      echo "[LAUNCH_COMPSS] HT-XML - Generating project and resources files"
+  fi
   # GENERATE PROJECT FILE
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
   source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
-  echo "[XML] Project.xml:   ${PROJECT_FILE}"
-
+  if [ "${log_level}" != "off" ]; then
+    echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
+  fi
   # Setup project variables and scripts
   xml_project_setup
   # Add header (from generate_project.sh)
@@ -741,8 +763,9 @@ init_het_xml_files() {
   source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
-  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
-
+  if [ "${log_level}" != "off" ]; then
+    echo "[LAUNCH_COMPSS] HT-XML Resources.xml: ${RESOURCES_FILE}"
+  fi
   # Setup resources variables and scripts
   xml_resources_setup
   # Add header (from generate_resources.sh)
@@ -763,19 +786,20 @@ init_het_xml_files() {
 ###############################################
 add_het_xml_files() {
   local suffix=$1
-
-  # LOG
-  echo "[XML] Continue generating project and resources files"
-  echo "[XML] List of workers: ${worker_nodes}"
-
+  if [ "${log_level}" != "off" ]; then 
+    # LOG
+    echo "[LAUNCH_COMPSS] HT-XML - Continue generating project and resources files"
+    echo "[LAUNCH_COMPSS] HT-XML - List of workers: ${worker_nodes}"
+  fi
   # GENERATE PROJECT FILE
   # shellcheck source=../system/xmls/generate_project.sh
   # shellcheck disable=SC1091
   source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
-  echo "[XML] Project.xml:   ${PROJECT_FILE}"
-
+  if [ "${log_level}" != "off" ]; then
+    echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
+  fi
   # Setup project variables and scripts
   xml_project_setup
   # Add workers
@@ -787,8 +811,9 @@ add_het_xml_files() {
   source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
-  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
-
+  if [ "${log_level}" != "off" ]; then
+    echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
+  fi
   # Setup resources variables and scripts
   xml_resources_setup
   # Add workers
@@ -800,11 +825,12 @@ add_het_xml_files() {
 ###############################################
 fini_het_xml_files() {
   local suffix=$1
-
-  # LOG
-  echo "[XML] Finishing generation of project and resources files"
-  echo "[XML] Project.xml:   ${PROJECT_FILE}"
-  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+  if [ "${log_level}" != "off" ]; then
+     # LOG
+     echo "[LAUNCH_COMPSS] HT-XML - Finishing generation of project and resources files"
+     echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
+     echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
+  fi
 
   # GENERATE PROJECT FILE
   # shellcheck source=../system/xmls/generate_project.sh
@@ -812,7 +838,9 @@ fini_het_xml_files() {
   source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
   PROJECT_FILE=${PWD}/project_$suffix.xml
   export PROJECT_FILE
-  echo "[XML] Project.xml:   ${PROJECT_FILE}"
+  if [ "${log_level}" != "off" ]; then
+     echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
+  fi
 
   # Setup project variables and scripts
   xml_project_setup
@@ -825,7 +853,9 @@ fini_het_xml_files() {
   source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
   RESOURCES_FILE=${PWD}/resources_$suffix.xml
   export RESOURCES_FILE
-  echo "[XML] Resources.xml: ${RESOURCES_FILE}"
+  if [ "${log_level}" != "off" ]; then
+     echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
+  fi
 
   # Setup resources variables and scripts
   xml_resources_setup
@@ -833,7 +863,10 @@ fini_het_xml_files() {
   add_footer
 
   # LOG
-  echo "Generation of project and resources files finished"
+  if [ "${log_level}" != "off" ]; then
+     # LOG
+     echo "[LAUNCH_COMPSS] HT-XML -Generation of project and resources files finished"
+  fi
 }
 
 
@@ -863,7 +896,7 @@ get_args() {
         display_version 0
         ;;
       d)
-        log_level=${DEFAULT_LOG_LEVEL_ARG}
+        log_level=${DEFAULT_DEBUG_ARG}
         #Keep it for runcompss (to add them to master)
         args_pass="$args_pass -$flag"
         ;;
@@ -987,7 +1020,7 @@ get_args() {
           args_pass="$args_pass --$OPTARG"
           ;;
         debug)
-          log_level=${DEFAULT_LOG_LEVEL_ARG}
+          log_level=${DEFAULT_DEBUG_ARG}
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
@@ -1614,14 +1647,16 @@ write_log_usage() {
 # Launches the application
 ###############################################
 launch() {
-  echo "------ Launching application ------"
+  echo "------ Launching COMPSs application ------"
 
   # Launch workers separately if they are persistent
   if [ "${comm/NIO}" != "${comm}" ]; then
     # Start workers' processes
     local hostid=1
     if [ ! -z "${initial_hostid}" ]; then
-      echo "Host id set to ${initial_hostid}"
+      if [ "${log_level}" != "off" ]; then
+         echo "[LAUNCH_COMPSS] Host id set to ${initial_hostid}"
+      fi
       hostid=${initial_hostid}
     fi
     if [ ! -z "${master_node}" ]; then
@@ -1650,7 +1685,9 @@ launch() {
         fi
 
         WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
-        echo "CMD Worker $hostid launcher: $WCMD"
+        if [ "${log_level}" != "off" ]; then
+	    echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: $WCMD"
+        fi
         $WCMD&
         hostid=$((hostid+1))
       fi
@@ -1678,7 +1715,9 @@ launch() {
         fi
 
         WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
-        echo "CMD Worker $hostid launcher: $WCMD"
+        if [ "${log_level}" != "off" ]; then
+	    echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: $WCMD"
+        fi
         $WCMD&
         hostid=$((hostid+1))
       done
@@ -1696,9 +1735,10 @@ launch() {
         sleep_time="80s"
       fi
     fi
-
-    echo "Number of workers: $num_workers"
-    echo "Waiting ${sleep_time} ..."
+    if [ "${log_level}" != "off" ]; then 
+        echo "[LAUNCH_COMPSS] Number of spawned workers: $num_workers"
+        echo "[LAUNCH_COMPSS] Waiting ${sleep_time} ..."
+    fi
     sleep ${sleep_time}
   fi
 
@@ -1708,7 +1748,9 @@ launch() {
     if [ "${jupyter_notebook}" = false ]; then
       master_cmd "${master_node}${network}"
       MCMD="${MCMD} ${args_pass}"
-      echo "CMD Master: $MCMD"
+      if [ "${log_level}" != "off" ]; then
+          echo "[LAUNCH_COMPSS] Executing Master with command: $MCMD"
+      fi
       $MCMD
       ev=$?
       if [ $ev -ne 0 ]; then
@@ -1749,10 +1791,14 @@ launch() {
 ###############################################
 prolog() {
   # Execute user prolog actions
-  echo "---- Executing Prolog actions ----"
+  if [ "${log_level}" != "off" ]; then
+      echo "---- Executing Prolog actions ----"
+  fi
   for action in "${prologActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
-    echo "- Prolog: $realAction"
+    if [ "${log_level}" != "off" ]; then
+       echo "- Prolog: $realAction"
+    fi
     $realAction
     local actionExitValue=$?
     if [ $actionExitValue -ne 0 ]; then
@@ -1766,10 +1812,14 @@ prolog() {
 ###############################################
 epilog() {
   # Execute user epilog actions
-  echo "---- Executing Epilog actions ----"
+  if [ "${log_level}" != "off" ]; then
+      echo "---- Executing Epilog actions ----"
+  fi
   for action in "${epilogActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
-    echo "- Epilog: $realAction"
+    if [ "${log_level}" != "off" ]; then
+       echo "- Epilog: $realAction"
+    fi
     $realAction
     local actionExitValue=$?
     if [ $actionExitValue -ne 0 ]; then
@@ -1783,7 +1833,7 @@ epilog() {
 ###############################################
 wait_for_completion() {
   # Wait for Master and Workers to finish
-  echo "Waiting for application completion"
+  echo "[LAUNCH_COMPSS] Waiting for application completion"
   wait
 }
 
@@ -1797,18 +1847,23 @@ cleanup() {
     echo "[WARN] Flag removeWD set to false. Not cleaning XML files"
   else
     # Cleanup
-    echo "Cleanup Worker TMP files"
+    if [ "${log_level}" != "off" ]; then
+       echo "[LAUNCH_COMPSS] Cleanup Worker TMP files"
+    fi
     for node in ${worker_nodes}; do
       local sandboxWD=${worker_working_dir}/${uuid}
       if [ ! -z "${NODE_NAME_QUEUE}" ]; then
         node=$(${NODE_NAME_QUEUE} ${node})
       fi
-      echo "- Removing ${sandboxWD}"
+      if [ "${log_level}" != "off" ]; then
+          echo "[LAUNCH_COMPSS] Removing ${sandboxWD}"
+      fi
       # shellcheck disable=SC2086
       ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
     done
-
-    echo "Cleanup TMP files"
+    if [ "${log_level}" != "off" ]; then
+        echo "[LAUNCH_COMPSS] Cleanup TMP files"
+    fi
     if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" = "all" ] || [ "${xmls_phase}" = "fini" ]; then
     	rm -f "${PROJECT_FILE}"
     	rm -f "${RESOURCES_FILE}"
@@ -1844,8 +1899,9 @@ cleanup() {
   set_variables
 
   # Log variables
-  log_variables
-
+  if [ "${log_level}" == "debug" ]; then
+     log_variables
+  fi
   # Write log usage
   write_log_usage
 

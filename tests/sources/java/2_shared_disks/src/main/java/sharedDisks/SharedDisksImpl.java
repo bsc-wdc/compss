@@ -54,10 +54,14 @@ public class SharedDisksImpl {
                 value = fis.read();
             }
             fis.close();
+            Thread.sleep(10_000);
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 

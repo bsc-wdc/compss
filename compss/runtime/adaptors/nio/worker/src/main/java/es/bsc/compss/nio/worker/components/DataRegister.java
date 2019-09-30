@@ -24,8 +24,10 @@ import es.bsc.compss.util.TraceEvent;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,14 +46,14 @@ public class DataRegister {
     private Object value;
     private String storageId;
 
-    private final List<String> files;
+    private final Set<String> files;
 
 
     /**
      * Create a new DataRegister instance.
      */
     public DataRegister() {
-        this.files = new LinkedList<>();
+        this.files = new HashSet<>();
     }
 
     /**
@@ -95,7 +97,7 @@ public class DataRegister {
      * 
      * @return The file locations of the data.
      */
-    public List<String> getFileLocations() {
+    public Set<String> getFileLocations() {
         return files;
     }
 

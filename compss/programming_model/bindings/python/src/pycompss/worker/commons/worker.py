@@ -287,7 +287,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
                             False,
                             "",
                             logger)
-    except Exception:
+    except BaseException:
         # Catch any other user/decorators exception.
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
@@ -357,7 +357,7 @@ def task_returns(exit_code, new_types, new_values, target_direction,
             return_message)
 
 
-class TimeOutError(Exception):
+class TimeOutError(BaseException):
     """
     Time out error exception
     """
@@ -375,7 +375,7 @@ def task_timed_out(signum, frame):
     raise TimeOutError
 
 
-class CancelError(Exception):
+class CancelError(BaseException):
     pass
 
 

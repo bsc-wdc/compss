@@ -291,25 +291,36 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     }
 
     private void stopPiper() {
+        boolean errorOnPipe = false;
         LOGGER.info("Stopping piper process");
         if (pipeBuilderPipe.sendCommand(new QuitPipeCommand())) {
             try {
                 pipeBuilderPipe.waitForCommand(new QuitPipeCommand());
             } catch (ClosedPipeException cpe) {
-                ErrorManager.fatal(ERROR_W_PIPE);
+                ErrorManager.fatal(ERROR_W_PIPE, cpe);
+                errorOnPipe = true;
             }
         } else {
             ErrorManager.fatal(ERROR_W_PIPE);
+            errorOnPipe = true;
         }
 
         try {
-            LOGGER.info("Waiting for finishing piper process");
-            int exitCode = pipeBuilderProcess.waitFor();
+            if (errorOnPipe) {
+                if (pipeBuilderProcess.isAlive()) {
+                    LOGGER.info("Error passing QUIT message. Killing piper process");
+                    pipeBuilderProcess.destroy();
+                }
+            } else {
+                LOGGER.info("Waiting for finishing piper process");
+                int exitCode = pipeBuilderProcess.waitFor();
+                if (exitCode != 0) {
+                    ErrorManager.error("ExternalExecutor piper ended with " + exitCode + " status");
+                }
+            }
             pipeBuildeOutGobbler.join();
             pipeBuildeErrGobbler.join();
-            if (exitCode != 0) {
-                ErrorManager.error("ExternalExecutor piper ended with " + exitCode + " status");
-            }
+
         } catch (InterruptedException e) {
             // No need to handle such exception
         } finally {

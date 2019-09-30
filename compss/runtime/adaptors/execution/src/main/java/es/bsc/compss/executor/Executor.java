@@ -238,7 +238,9 @@ public class Executor implements Runnable {
 
         int jobId = invocation.getJobId();
         TaskWorkingDir twd = null;
-
+        // Flag to check if exception was unbinding files
+        boolean failureUnbindingFiles = false;
+        long timeUnbindOriginalFilesStart = 0L;
         try {
             // Set the Task working directory
             LOGGER.debug("Creating task sandbox for Job " + jobId);
@@ -305,28 +307,33 @@ public class Executor implements Runnable {
                 final float timeExecTaskElapsed = (timeExecTaskEnd - timeExecTaskStart) / (float) NANO_TO_MS;
                 TIMER_LOGGER.info("[TIMER] Execute job " + jobId + ": " + timeExecTaskElapsed + " ms");
             }
+            failureUnbindingFiles = true;
+            // Unbind files from task sandbox working dir
+            LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
+            if (IS_TIMER_COMPSS_ENABLED) {
+                timeUnbindOriginalFilesStart = System.nanoTime();
+            }
+            unbindOriginalFileNamesToRenames(invocation, false);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             // Writing in the task .err/.out
             this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
             e.printStackTrace(this.context.getThreadErrStream());
+            if (!failureUnbindingFiles) {
+                LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
+                if (IS_TIMER_COMPSS_ENABLED) {
+                    timeUnbindOriginalFilesStart = System.nanoTime();
+                }
+                try {
+                    unbindOriginalFileNamesToRenames(invocation, true);
+                } catch (IOException | JobExecutionException ex) {
+                    LOGGER.warn("Another exception after unbinding files: " + ex.getMessage(), ex);
+                    this.context.getThreadOutStream().println("Another exception unbinding files: " + ex.getMessage());
+                    ex.printStackTrace(this.context.getThreadErrStream());
+                }
+            }
             return e;
         } finally {
-            // Unbind files from task sandbox working dir
-            LOGGER.debug("Removing renamed files to sandboxed original names for Job " + jobId);
-            long timeUnbindOriginalFilesStart = 0L;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                timeUnbindOriginalFilesStart = System.nanoTime();
-            }
-            try {
-                unbindOriginalFileNamesToRenames(invocation);
-            } catch (IOException | JobExecutionException e) {
-                LOGGER.error(e.getMessage(), e);
-                // Writing in the task .err/.out
-                this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
-                e.printStackTrace(this.context.getThreadErrStream());
-                return e;
-            }
             if (IS_TIMER_COMPSS_ENABLED) {
                 final long timeUnbindOriginalFilesEnd = System.nanoTime();
                 final float timeUnbindOriginalFilesElapsed =
@@ -650,7 +657,8 @@ public class Executor implements Runnable {
      * @throws IOException Exception with file operations
      * @throws JobExecutionException Exception unbinding original names to renamed names
      */
-    private void unbindOriginalFileNamesToRenames(Invocation invocation) throws IOException, JobExecutionException {
+    private void unbindOriginalFileNamesToRenames(Invocation invocation, boolean alreadyFailed)
+        throws IOException, JobExecutionException {
         String message = null;
         boolean failure = false;
         for (InvocationParam param : invocation.getParams()) {
@@ -689,7 +697,7 @@ public class Executor implements Runnable {
                 failure = true;
             }
         }
-        if (failure) {
+        if (failure && !alreadyFailed) {
             throw new JobExecutionException(message);
         }
     }
@@ -735,14 +743,14 @@ public class Executor implements Runnable {
                         }
                     } else {
                         // Error output file does not exist
-                        String msg = "ERROR: Output file " + inSandboxFile.toPath() + " does not exist";
+                        String msg = "WARN: Output file " + inSandboxFile.toPath() + " does not exist";
                         // Unexpected case (except for C binding when not serializing outputs)
                         if (lang != Lang.C) {
                             LOGGER.debug(
                                 "Generating empty renamed file (" + renamedFilePath + ") for on_failure management");
                             renamedFile.createNewFile();
-                            LOGGER.error(msg);
-                            System.err.println(msg);
+                            // LOGGER.error(msg);
+                            // System.err.println(msg);
                             throw new JobExecutionException(msg);
                         }
                     }

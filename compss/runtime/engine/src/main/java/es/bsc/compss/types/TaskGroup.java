@@ -248,6 +248,7 @@ public class TaskGroup implements AutoCloseable {
      * Cancels group tasks.
      */
     public void cancelTasks() {
+        LOGGER.debug("Cancelling " + this.tasks.size() + " tasks.");
         for (Task t : this.tasks) {
             for (AllocatableAction aa : t.getExecutions()) {
                 aa.canceled();

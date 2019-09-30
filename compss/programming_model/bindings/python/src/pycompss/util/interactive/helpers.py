@@ -294,6 +294,7 @@ def _get_functions():
         is_task = False
         is_function = False
         function_found = False
+        func_name = ''
         for line in lines:
             if line.startswith('@task'):
                 # The following function detected will be a task --> ignore
@@ -306,7 +307,6 @@ def _get_functions():
                 is_function = True
                 is_task = False
             if is_function:
-                func_name = ''
                 if line.startswith("def"):
                     # Function header: find name and include it in the
                     # functions dict. Split and remove empty spaces

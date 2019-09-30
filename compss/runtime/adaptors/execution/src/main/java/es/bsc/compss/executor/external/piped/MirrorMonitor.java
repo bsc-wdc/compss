@@ -41,6 +41,7 @@ public class MirrorMonitor {
     private Process mainProcess;
     private ControlPipePair controlPipe;
     private boolean keepAlive = false;
+    private boolean stopped = false;
     private Map<String, PipeWorkerInfo> workers = new TreeMap<>();
     private Map<String, PipeExecutorInfo> executors = new TreeMap<>();
     private final List<String> unremovedElements = new LinkedList<>();
@@ -60,6 +61,7 @@ public class MirrorMonitor {
                     e.printStackTrace();
                 }
                 synchronized (MirrorMonitor.this) {
+                    stopped = true;
                     MirrorMonitor.this.notify();
                 }
             }
@@ -213,10 +215,13 @@ public class MirrorMonitor {
         synchronized (this) {
             keepAlive = false;
             monitorThread.interrupt();
-            try {
-                this.wait();
-            } catch (InterruptedException ie) {
-                // Do nothing
+            if (!stopped) {
+                try {
+                    LOGGER.debug("Waiting monitor to stop...");
+                    this.wait();
+                } catch (InterruptedException ie) {
+                    // Do nothing
+                }
             }
         }
     }

@@ -277,20 +277,9 @@ public class ExecutionAction extends AllocatableAction {
         DataAccessId access = param.getDataAccessId();
 
         if (access instanceof WAccessId) {
-            // Write access, fill information for the worker to generate the output data
-            String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
-
-            // Workaround for return objects in bindings converted to PSCOs inside tasks
-            DataType type = param.getType();
-            if (type.equals(DataType.EXTERNAL_PSCO_T)) {
-                ExternalPSCOParameter epp = (ExternalPSCOParameter) param;
-                tgtName = epp.getId();
-            }
-            if (DEBUG) {
-                JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
-            }
-            JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
-            param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName).getPath());
+            String dataTarget =
+                getOutputDataTarget(w, ((WAccessId) access).getWrittenDataInstance().getRenaming(), param);
+            param.setDataTarget(dataTarget);
         } else {
             if (access instanceof RAccessId) {
                 // Read Access, transfer object
@@ -307,6 +296,23 @@ public class ExecutionAction extends AllocatableAction {
                 w.getData(srcName, tgtName, (LogicalData) null, param, listener);
             }
         }
+    }
+
+    private String getOutputDataTarget(Worker<? extends WorkerResourceDescription> w, String tgtName,
+        DependencyParameter param) {
+
+        // Workaround for return objects in bindings converted to PSCOs inside tasks
+        DataType type = param.getType();
+        if (type.equals(DataType.EXTERNAL_PSCO_T)) {
+            ExternalPSCOParameter epp = (ExternalPSCOParameter) param;
+            tgtName = epp.getId();
+        }
+        if (DEBUG) {
+            JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
+        }
+        JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
+        return w.getCompleteRemotePath(param.getType(), tgtName).getPath();
+
     }
 
     private void transferStreamParameter(DependencyParameter param, JobTransfersListener listener) {
@@ -606,7 +612,8 @@ public class ExecutionAction extends AllocatableAction {
         // Request transfer
         DataLocation outLoc = null;
         try {
-            SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
+            String dataTarget = getOutputDataTarget(w, dataName, dp);
+            SimpleURI targetURI = new SimpleURI(targetProtocol + dataTarget);
             outLoc = DataLocation.createLocation(w, targetURI);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);

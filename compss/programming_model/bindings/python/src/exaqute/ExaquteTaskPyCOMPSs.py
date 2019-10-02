@@ -34,11 +34,11 @@ def get_value_from_remote(obj):  # Gather
 
 
 def delete_object(obj):  # Release
-    delete_object(obj)
+    compss_delete_object(obj)
 
 
 def delete_file(file_path):
-    delete_file(file_path)
+    compss_delete_file(file_path)
 
 
 def compute(obj):  # Submit task

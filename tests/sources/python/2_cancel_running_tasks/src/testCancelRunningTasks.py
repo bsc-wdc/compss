@@ -20,13 +20,13 @@ STORAGE_PATH = "/tmp/sharedDisk/"
 
 @task(file_path=FILE_INOUT)
 def throw_exception(file_path):
-    time.sleep(3)
+    time.sleep(10)
     raise COMPSsException("Exception raised from the third task")
 
 
 @task(file_name=FILE_IN)
 def long_task(file_name):
-    time.sleep(15)
+    time.sleep(30)
 
 
 @task(file_name=FILE_IN)

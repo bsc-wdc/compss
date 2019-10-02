@@ -76,7 +76,7 @@
   # Check if all tasks have finished
   output1=$(cat "${runtime_log}" | grep "with end status FINISHED" | wc -l)
   if [ "${output1}" -ne 8 ]; then
-  	echo "ERROR: The number of canceled tasks is not correct."
+  	echo "ERROR: The number of finished tasks is not correct."
   	exit 1
   fi
 

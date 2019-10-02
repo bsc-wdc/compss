@@ -859,7 +859,7 @@ void GS_Off(int exit_code) {
         m_env->ExceptionDescribe();
         exit(1);
     }
-    if (exit_code == 0){
+    //if (exit_code == 0){
         debug_printf("[BINDING-COMMONS]  -  @Off - Waiting to end tasks\n");
         m_env->CallVoidMethod(jobjIT, midNoMoreTasksIT, appId, "TRUE");
         if (m_env->ExceptionOccurred()) {
@@ -867,7 +867,7 @@ void GS_Off(int exit_code) {
             m_env->ExceptionDescribe();
             exit(1);
         }
-    }
+    //}
     debug_printf("[BINDING-COMMONS]  -  @Off - Stopping runtime\n");
     m_env->CallVoidMethod(jobjIT, midStopIT, "TRUE"); //Calling the method and passing IT Object as parameter
     if (m_env->ExceptionOccurred()) {

@@ -1097,8 +1097,6 @@ class Task(object):
         # return False
         return False
 
-
-
     def reveal_objects(self, args):
         """
         This function takes the arguments passed from the persistent worker
@@ -1143,25 +1141,26 @@ class Task(object):
                 # sure you have checked this parameter is a collection before
                 # consulting it
                 arg.collection_content = []
-
                 col_f_name = arg.file_name.split(':')[-1]
                 if not os.path.exists(col_f_name):
                     col_f_name = "../" + col_f_name
 
                 for (i, line) in enumerate(open(col_f_name, 'r')):
-                    content_type, content_file = line.strip().split(' ')
+                    data_type, content_file,  content_type = line.strip().split()
                     # Same naming convention as in COMPSsRuntimeImpl.java
                     sub_name = "%s.%d" % (arg.name, i)
                     if name_prefix:
                         sub_name = "%s.%s" % (name_prefix, arg.name)
                     else:
                         sub_name = "@%s" % sub_name
+
                     if not self.is_parameter_file_collection(arg.name):
-                        sub_arg, _ = build_task_parameter(int(content_type),
+                        sub_arg, _ = build_task_parameter(int(data_type),
                                                           None,
                                                           "",
                                                           sub_name,
-                                                          content_file)
+                                                          content_file,
+                                                          arg.content_type)
                         # Recursively call the retrieve method, fill the content
                         # field in our new taskParameter object
                         retrieve_content(sub_arg, sub_name)
@@ -1170,6 +1169,7 @@ class Task(object):
                     else:
                         arg.content.append(content_file)
                         arg.collection_content.append(content_file)
+
 
             elif not storage_supports_pipelining() and \
                     arg.type == parameter.TYPE.EXTERNAL_PSCO:

@@ -40,7 +40,7 @@ from pycompss.util.storages.persistent import get_by_id
 import pycompss.api.parameter as parameter
 
 
-def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
+def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
                          args=None, pos=None):
     """
     Build task parameter object from the given parameters.
@@ -50,6 +50,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
     :param p_prefix: Parameter prefix
     :param p_name: Parameter name
     :param p_value: Parameter value
+    :param p_c_type: Parameter Python Type
     :param args: Arguments (Default: None)
     :param pos: Position (Default: None)
     :return: Parameter object
@@ -59,13 +60,16 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
         # Maybe the file is a object, we dont care about this here
         # We will decide whether to deserialize or to forward the value
         # when processing parameters in the task decorator
-        return TaskParameter(
+        _param = TaskParameter(
             p_type=p_type,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            file_name=p_value
-        ), 0
+            file_name=p_value,
+            content_type=p_c_type
+        )
+        _offset = 0 if p_type == parameter.TYPE.FILE else 0
+        return _param, _offset
     elif p_type == parameter.TYPE.EXTERNAL_PSCO:
         # Next position contains R/W but we do not need it. Currently skipped.
         return TaskParameter(
@@ -73,7 +77,8 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            key=p_value
+            key=p_value,
+            content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.EXTERNAL_STREAM:
         # Next position contains R/W but we do not need it. Currently skipped.
@@ -82,7 +87,8 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            file_name=p_value
+            file_name=p_value,
+            content_type=p_c_type
         ), 1
     elif p_type == parameter.TYPE.STRING:
         if args is not None:
@@ -130,7 +136,8 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            content=aux
+            content=aux,
+            content_type=p_c_type
         ), num_substrings
     else:
         # Basic numeric types. These are passed as command line arguments
@@ -154,7 +161,8 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value,
             stream=p_stream,
             prefix=p_prefix,
             name=p_name,
-            content=val
+            content=val,
+            content_type=p_c_type
         ), 0
 
 
@@ -175,7 +183,8 @@ def get_input_params(num_params, logger, args):
         p_stream = int(args[pos + 1])
         p_prefix = args[pos + 2]
         p_name = args[pos + 3]
-        p_value = args[pos + 4]
+        p_c_type = args[pos + 4]
+        p_value = args[pos + 5]
 
         if __debug__:
             logger.debug("Parameter : %s" % str(i))
@@ -184,11 +193,12 @@ def get_input_params(num_params, logger, args):
             logger.debug("\t * Prefix : %s" % str(p_prefix))
             logger.debug("\t * Name : %s" % str(p_name))
             logger.debug("\t * Value: %r" % p_value)
+            logger.debug("\t * Content Type: %r" % p_c_type)
 
         task_param, offset = build_task_parameter(p_type, p_stream, p_prefix,
-                                                  p_name, p_value, args, pos)
+                                                  p_name, p_value, p_c_type, args, pos)
         ret.append(task_param)
-        pos += offset + 5
+        pos += offset + 6
 
     return ret
 
@@ -452,6 +462,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
     # Get all parameter values
     if __debug__:
         logger.debug("Processing parameters:")
+        logger.debug(args)
     values = get_input_params(num_params, logger, args)
     types = [x.type for x in values]
 

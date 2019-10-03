@@ -54,7 +54,7 @@ struct parameter {
     int size;
     std::string name;
 
-    parameter(PyObject *v, int t, int d, int s, std::string p, int sz, std::string n) {
+    parameter(PyObject *v, int t, int d, int s, std::string p, int sz, std::string n, std::string ct) {
         value = v;
         type = t;
         direction = d;
@@ -62,6 +62,7 @@ struct parameter {
         prefix = p;
         size = sz;
         name = n;
+        c_type = ct;
     }
 
     parameter() { }
@@ -278,10 +279,11 @@ process_task(PyObject *self, PyObject *args) {
     PyObject *compss_directions;
     PyObject *compss_streams;
     PyObject *compss_prefixes;
+    PyObject *content_types;
     //             See comment from above for the meaning of this "magic" string
-    if(!PyArg_ParseTuple(args, "lssiiiiiiiOOOOOO", &app_id, &signature, &on_failure, &time_out, &priority,
+    if(!PyArg_ParseTuple(args, "lssiiiiiiiOOOOOOO", &app_id, &signature, &on_failure, &time_out, &priority,
                          &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
-                         &compss_directions, &compss_streams, &compss_prefixes)) {
+                         &compss_directions, &compss_streams, &compss_prefixes, &content_types)) {
         // Return NULL after ParseTuple automatically translates to "wrong
         // arguments were passed, we expected an integer instead"-like errors
         return NULL;
@@ -310,8 +312,11 @@ process_task(PyObject *self, PyObject *args) {
         PyObject *stream     = PyList_GetItem(compss_streams, i);
         PyObject *prefix     = PyList_GetItem(compss_prefixes, i);
         PyObject *name       = PyList_GetItem(names, i);
+        PyObject *c_type     = PyList_GetItem(content_types, i);
         std::string received_prefix = _pystring_to_string(prefix);
         std::string received_name = _pystring_to_string(name);
+        std::string received_c_type = _pystring_to_string(c_type);
+
         params[i] = parameter(
             value,
             int(PyInt_AsLong(type)),
@@ -319,7 +324,8 @@ process_task(PyObject *self, PyObject *args) {
             int(PyInt_AsLong(stream)),
             received_prefix,
             _get_type_size(int(PyInt_AsLong(type))),
-            received_name
+            received_name,
+            received_c_type
         );
         debug("----> Value is at %p\n", &params[i].value);
         debug("----> Type is %d\n", params[i].type);
@@ -328,6 +334,7 @@ process_task(PyObject *self, PyObject *args) {
         debug("----> Prefix is %s\n", params[i].prefix.c_str());
         debug("----> Size is %d\n", params[i].size);
         debug("----> Name is %s\n", params[i].name.c_str());
+        debug("----> Content Type is %s\n", params[i].c_type.c_str());
     }
     debug("####C#### Adapting C++ data to BC-JNI format...\n");
     /*
@@ -336,13 +343,15 @@ process_task(PyObject *self, PyObject *args) {
       are out of our control (will be scope-cleaned, or point to PyObject
       contents)
     */
-    int num_fields = 6;
+    int num_fields = 7;
     std::vector< void* > unrolled_parameters(num_fields * num_pars, NULL);
     std::vector< char* > prefix_charp(num_pars);
     std::vector< char* > name_charp(num_pars);
+    std::vector< char* > c_type_charp(num_pars);
     for(int i = 0; i < num_pars; ++i) {
         prefix_charp[i] = (char*)params[i].prefix.c_str();
         name_charp[i]   = (char*)params[i].name.c_str();
+        c_type_charp[i]   = (char*)params[i].c_type.c_str();
         debug("####C#### Processing parameter %d\n", i);
         unrolled_parameters[num_fields * i + 0] = _get_void_pointer_to_content(params[i].value, params[i].type, params[i].size);
         unrolled_parameters[num_fields * i + 1] = (void*)&params[i].type;
@@ -350,6 +359,7 @@ process_task(PyObject *self, PyObject *args) {
         unrolled_parameters[num_fields * i + 3] = (void*)&params[i].stream;
         unrolled_parameters[num_fields * i + 4] = (void*)&prefix_charp[i];
         unrolled_parameters[num_fields * i + 5] = (void*)&name_charp[i];
+        unrolled_parameters[num_fields * i + 6] = (void*)&c_type_charp[i];
     }
 
     debug("####C#### Calling GS_ExecuteTaskNew...\n");

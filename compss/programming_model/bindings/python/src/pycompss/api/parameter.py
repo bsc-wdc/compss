@@ -65,7 +65,7 @@ except ImportError:
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 TYPE = DataType
-
+UNDEFINED_CONTENT_TYPE = "#UNDEFINED#"
 
 # Numbers match both C and Java enums
 class DIRECTION(object):
@@ -114,7 +114,7 @@ class Parameter(object):
                  is_future=False,
                  depth=1,
                  is_file_collection=False,
-                 content_type=None):
+                 content_type=UNDEFINED_CONTENT_TYPE):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -124,6 +124,10 @@ class Parameter(object):
         self.is_future = is_future
         self.depth = depth          # Recursive depth for collections
         self.is_file_collection = is_file_collection
+
+        # TODO: Remove this 'if'
+        if not content_type:
+            content_type = UNDEFINED_CONTENT_TYPE
         self.content_type = content_type
 
     def __repr__(self):
@@ -156,7 +160,8 @@ class TaskParameter(object):
                  key=None,
                  content=None,
                  stream=None,
-                 prefix=None):
+                 prefix=None,
+                 content_type=UNDEFINED_CONTENT_TYPE):
         self.name = name
         self.type = p_type
         self.file_name = file_name
@@ -164,6 +169,10 @@ class TaskParameter(object):
         self.content = content
         self.stream = stream
         self.prefix = prefix
+        # TODO: Remove this 'if'
+        if not content_type:
+            content_type = UNDEFINED_CONTENT_TYPE
+        self.content_type = content_type
 
     def __repr__(self):
         return '\nParameter %s' % self.name + '\n' + \
@@ -173,6 +182,7 @@ class TaskParameter(object):
                '\tContent %s' % str(self.content) + '\n' + \
                '\tStream %s' % str(self.stream) + '\n' + \
                '\tPrefix %s' % str(self.prefix) + '\n' + \
+               '\tContent Type %s' % str(self.content_type) + '\n' + \
                '-' * 20 + '\n'
 
 

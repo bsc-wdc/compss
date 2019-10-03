@@ -737,11 +737,12 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
     _serialize_objects(f_parameters)
 
     # Build values and COMPSs types and directions
-    vtds = _build_values_types_directions(ftype,
+    vtdsc = _build_values_types_directions(ftype,
                                           f_parameters,
                                           f_returns,
                                           f.__code_strings__)
-    values, names, compss_types, compss_directions, compss_streams, compss_prefixes = vtds  # noqa
+    values, names, compss_types, compss_directions, compss_streams, \
+      compss_prefixes, content_types = vtdsc  # noqa
 
     # Get priority
     has_priority = task_kwargs['priority']
@@ -761,6 +762,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
             streams_str = ' '.join(str(s) for s in compss_streams)
             prefixes_str = ' '.join(str(p) for p in compss_prefixes)
             names_str = ' '.join(x for x in names)
+            ct_str = ' '.join(str(x) for x in content_types)
             logger.debug("Processing task:")
             logger.debug("\t- App id: " + str(app_id))
             logger.debug("\t- Path: " + path)
@@ -779,11 +781,12 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
             logger.debug("\t- COMPSs directions: " + direct_str)
             logger.debug("\t- COMPSs streams: " + streams_str)
             logger.debug("\t- COMPSs prefixes: " + prefixes_str)
+            logger.debug("\t- Content Types: " + ct_str)
 
     # Check that there is the same amount of values as their types, as well
     # as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) ==
-            len(compss_streams) == len(compss_prefixes))
+            len(compss_streams) == len(compss_prefixes) == len(content_types))
 
     # Submit task to the runtime (call to the C extension):
     # Parameters:
@@ -825,7 +828,8 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
                         compss_types,
                         compss_directions,
                         compss_streams,
-                        compss_prefixes)
+                        compss_prefixes,
+                        content_types)
 
     # Return the future object/s corresponding to the task
     # This object will substitute the user expected return from the task and
@@ -992,6 +996,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     compss_directions = []
     compss_streams = []
     compss_prefixes = []
+    content_types = list()
+
     # Build the range of elements
     ra = list(f_parameters.keys())
     if ftype == FunctionType.INSTANCE_METHOD or \
@@ -1001,7 +1007,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from function parameters
     for i in ra:
-        val, typ, direc, st, pre = _extract_parameter(f_parameters[i],
+        val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[i],
                                                       code_strings)
         values.append(val)
         compss_types.append(typ)
@@ -1009,11 +1015,12 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(st)
         compss_prefixes.append(pre)
         names.append(arg_names.pop(0))
+        content_types.append(ct)
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from self (if exist)
     if ftype == FunctionType.INSTANCE_METHOD:
         # self is always an object
-        val, typ, direc, st, pre = _extract_parameter(f_parameters[slf],
+        val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[slf],
                                                       code_strings)
         values.append(val)
         compss_types.append(typ)
@@ -1021,6 +1028,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(st)
         compss_prefixes.append(pre)
         names.append(slf_name)
+        content_types.append(ct)
+
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from function returns
     for r in f_returns:
@@ -1031,7 +1040,10 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(p.stream)
         compss_prefixes.append(p.prefix)
         names.append(result_names.pop(0))
-    return values, names, compss_types, compss_directions, compss_streams, compss_prefixes  # noqa
+        content_types.append(p.content_type)
+
+    return values, names, compss_types, compss_directions, compss_streams,\
+        compss_prefixes, content_types
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
@@ -1040,8 +1052,10 @@ def _extract_parameter(param, code_strings, collection_depth=0):
 
     :param param: Parameter object
     :param code_strings: <Boolean> Encode strings
-    :return: value, type, direction stream and prefix of the given parameter
+    :return: value, type, direction stream prefix and content_type of the given
+    parameter
     """
+    con_type = parameter.UNDEFINED_CONTENT_TYPE
     if param.type == TYPE.STRING and not param.is_future and code_strings:
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
@@ -1052,6 +1066,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
             param.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+        con_type = str(type(param.object).__name__)
 
     if param.type == TYPE.FILE or param.is_future:
         # If the parameter is a file or is future, the content is in a file
@@ -1063,6 +1078,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # we register it as file
         value = param.file_name
         typ = TYPE.FILE
+        con_type = str(type(param.object).__name__)
     elif param.type == TYPE.EXTERNAL_STREAM:
         # If the parameter type is stream, its value is stored in a file but
         # we keep the type
@@ -1083,17 +1099,19 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     type1 Id1
         #     ...
         #     typeN IdN
-        value = '%s %d' % (get_object_id(param.object), len(param.object))
+        con_type = str(type(param.object).__name__)
+        value = "{} {} {}".format(get_object_id(param.object),
+                                   len(param.object), con_type)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
-            x_value, x_type, _, _, _ = _extract_parameter(
+            x_value, x_type, _, _, _, x_con_type = _extract_parameter(
                 x,
                 code_strings,
                 param.depth - 1
             )
-            value += ' %s %s' % (x_type, x_value)
-            if param.direction == DIRECTION.OUT:
-                value += ' {}'.format(str(type(x.object).__name__))
+            value += ' %s %s %s' % (x_type, x_value, x_con_type)
+            # if param.direction == DIRECTION.OUT:
+            #     value += ' {}'.format(str(type(x.object).__name__))
     else:
         # Keep the original value and type
         value = param.object
@@ -1105,7 +1123,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
     # Get stream and prefix
     stream = param.stream
     prefix = param.prefix
-    return value, typ, direction, stream, prefix
+    return value, typ, direction, stream, prefix, con_type
 
 
 def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
@@ -1301,7 +1319,8 @@ def _serialize_object_into_file(name, p):
                         p_type=get_compss_type(x, p.depth - 1),
                         p_direction=p.direction,
                         p_object=x,
-                        depth=p.depth - 1
+                        depth=p.depth - 1,
+                        content_type=str(type(x).__name__)
                     )
                 )
                 for x in p.object
@@ -1330,7 +1349,7 @@ def _retrieve_col_out_objects(p_col_out):
             p_direction=p_col_out.direction,
             p_object=item,
             depth=p_col_out.depth-1,
-            content_type=type(item)
+            content_type=str(type(item).__name__)
         )
 
         if obj.type in [TYPE.OBJECT, TYPE.EXTERNAL_STREAM] or obj.is_future:

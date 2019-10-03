@@ -45,10 +45,10 @@ public class FileParameter extends DependencyParameter {
      * @param location File location.
      * @param originalName Original file name.
      */
-    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, DataLocation location,
-        String originalName) {
+    public FileParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
+        DataLocation location, String originalName) {
 
-        super(DataType.FILE_T, direction, stream, prefix, name, null);
+        super(DataType.FILE_T, direction, stream, prefix, name, contentType);
         this.location = location;
         this.originalName = originalName;
 
@@ -65,7 +65,8 @@ public class FileParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection();
+        return "FileParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection()
+            + ", CONTENT TYPE" + getContentType();
     }
 
 }

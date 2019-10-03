@@ -45,7 +45,7 @@ public class StreamParameter extends DependencyParameter {
     public StreamParameter(Direction direction, StdIOStream stream, String prefix, String name, Object value,
         int hashCode) {
 
-        super(DataType.STREAM_T, direction, stream, prefix, name, null);
+        super(DataType.STREAM_T, direction, stream, prefix, name, "null");
         this.value = value;
         this.hashCode = hashCode;
     }

@@ -106,7 +106,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private static boolean initialized = false;
 
     // Number of fields per parameter
-    private static final int NUM_FIELDS_PER_PARAM = 6;
+    private static final int NUM_FIELDS_PER_PARAM = 7;
 
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
@@ -1262,7 +1262,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     String fileName = (String) content;
                     String originalName = new File(fileName).getName();
                     DataLocation location = createLocation((String) content);
-                    pars.add(new FileParameter(direction, stream, prefix, name, location, originalName));
+                    pars.add(new FileParameter(direction, stream, prefix, name, pyType, location, originalName));
                 } catch (Exception e) {
                     LOGGER.error(ERROR_FILE_NAME, e);
                     ErrorManager.fatal(ERROR_FILE_NAME, e);
@@ -1371,7 +1371,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, null));
+                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, "null"));
                 break;
         }
         return 1;

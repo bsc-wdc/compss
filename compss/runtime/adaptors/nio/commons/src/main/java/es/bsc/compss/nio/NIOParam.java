@@ -79,7 +79,11 @@ public class NIOParam implements Externalizable, InvocationParam {
         this.stream = stream;
         this.prefix = prefix;
         this.name = name;
-        this.contentType = contentType;
+        if (contentType == null) {
+            this.contentType = "null";
+        } else {
+            this.contentType = contentType;
+        }
         this.value = value;
         this.preserveSourceData = preserveSourceData;
         this.writeFinalValue = writeFinalValue;
@@ -217,6 +221,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         this.stream = (StdIOStream) in.readObject();
         this.prefix = in.readUTF();
         this.name = in.readUTF();
+        this.contentType = in.readUTF();
         this.preserveSourceData = in.readBoolean();
         this.writeFinalValue = in.readBoolean();
         this.originalName = (String) in.readObject();
@@ -235,6 +240,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         out.writeObject(this.stream);
         out.writeUTF(this.prefix);
         out.writeUTF(this.name);
+        out.writeUTF(this.contentType);
         out.writeBoolean(this.preserveSourceData);
         out.writeBoolean(this.writeFinalValue);
         out.writeObject(this.originalName);
@@ -255,6 +261,7 @@ public class NIOParam implements Externalizable, InvocationParam {
         sb.append("[IOSTREAM = ").append(this.stream).append("]");
         sb.append("[PREFIX = ").append(this.prefix).append("]");
         sb.append("[NAME = ").append(this.name).append("]");
+        sb.append("[CONTENT TYPE = ").append(this.contentType).append("]");
         sb.append("[PRESERVE SOURCE DATA = ").append(this.preserveSourceData).append("]");
         sb.append("[WRITE FINAL VALUE = ").append(this.writeFinalValue).append("]");
         sb.append("[ORIGINAL NAME = ").append(this.originalName).append("]");

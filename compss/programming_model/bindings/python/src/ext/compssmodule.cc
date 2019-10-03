@@ -53,6 +53,7 @@ struct parameter {
     std::string prefix;
     int size;
     std::string name;
+    std::string c_type;
 
     parameter(PyObject *v, int t, int d, int s, std::string p, int sz, std::string n, std::string ct) {
         value = v;

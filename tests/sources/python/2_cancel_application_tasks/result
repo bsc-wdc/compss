@@ -73,7 +73,7 @@
 
   # Check if all members of group have been canceled
   output2=$(cat "${runtime_log}" | grep "with end status CANCELED" | wc -l)
-  if [ "${output2}" -ne 46 ]; then
+  if [ "${output2}" -ne 48 ]; then
   	echo "ERROR: The number of canceled tasks is not correct."
   	exit 1
   fi

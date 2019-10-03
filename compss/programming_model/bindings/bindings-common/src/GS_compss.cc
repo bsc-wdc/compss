@@ -27,7 +27,7 @@
 #include "BindingDataManager.h"
 
 using namespace std;
-const int NUM_FIELDS = 6;
+const int NUM_FIELDS = 7;
 
 JNIEnv *m_env;
 jobject jobjIT;
@@ -408,7 +408,9 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
         pd = NUM_FIELDS * i + 2,
         ps = NUM_FIELDS * i + 3,
         pp = NUM_FIELDS * i + 4,
-        pn = NUM_FIELDS * i + 5;
+        pn = NUM_FIELDS * i + 5,
+        pc = NUM_FIELDS * i + 6;
+
 
     void *parVal        =           params[pv];
     int parType         = *(int*)   params[pt];
@@ -416,6 +418,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     int parIOStream     = *(int*)   params[ps];
     void *parPrefix     =           params[pp];
     void *parName       =           params[pn];
+    void *parConType    =           params[pc];
 
     jclass clsParType = NULL; /* es.bsc.compss.types.annotations.parameter.DataType class */
     clsParType = m_env->FindClass("es/bsc/compss/types/annotations/parameter/DataType");
@@ -720,6 +723,10 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     debug_printf ("[BINDING-COMMONS]  -  @process_param  -  NAME: %s\n", *(char**)parName);
     jstring jobjParName = m_env->NewStringUTF(*(char**)parName);
     m_env->SetObjectArrayElement(jobjOBJArr, pn, jobjParName);
+
+    debug_printf ("[BINDING-COMMONS]  -  @process_param  -  CONTENT TYPE: %s\n", *(char**)parConType);
+    jstring jobConType = m_env->NewStringUTF(*(char**)parConType);
+    m_env->SetObjectArrayElement(jobjOBJArr, pc, jobConType);
 }
 
 
@@ -1063,6 +1070,7 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
         jstring tmp = m_env->NewStringUTF(ImplTypeArgs[i]);
         m_env->SetObjectArrayElement(implArgs, i, tmp);
     }
+    //debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -    Calling Runtime Function Register Core Element \n");
     m_env->CallVoidMethod(jobjIT, midRegisterCE, m_env->NewStringUTF(CESignature),
                           m_env->NewStringUTF(ImplSignature),
                           m_env->NewStringUTF(ImplConstraints),

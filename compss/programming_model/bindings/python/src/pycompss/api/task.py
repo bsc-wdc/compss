@@ -624,8 +624,8 @@ class Task(object):
             full_argspec = inspect.getfullargspec(function)
             as_args = full_argspec.args
             as_varargs = full_argspec.varargs
-            as_keywords = full_argspec.kwonlyargs
-            as_defaults = full_argspec.kwonlydefaults
+            as_keywords = full_argspec.varkw
+            as_defaults = full_argspec.defaults
             return as_args, as_varargs, as_keywords, as_defaults
         else:
             return inspect.getargspec(function)

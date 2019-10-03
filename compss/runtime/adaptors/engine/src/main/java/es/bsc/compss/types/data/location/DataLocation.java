@@ -120,6 +120,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
             case BINDING_URI:
                 // Binding Object
                 // The Object name is stored as path in the URI
+                LOGGER.debug("Creating Binding URI from path");
                 BindingObject bo = BindingObject.generate(uri.getPath());
                 LOGGER.debug("Creating new BindingObjectLocation: " + protocol.getSchema() + host.getName() + "@" + bo);
                 loc = new BindingObjectLocation(host, bo);

@@ -29,6 +29,7 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.AbstractTask;
+import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.Task;
@@ -52,6 +53,7 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
+import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
@@ -306,6 +308,12 @@ public class ExecutionAction extends AllocatableAction {
         if (type.equals(DataType.EXTERNAL_PSCO_T)) {
             ExternalPSCOParameter epp = (ExternalPSCOParameter) param;
             tgtName = epp.getId();
+        } else if (type.equals(DataType.BINDING_OBJECT_T)) {
+            BindingObject bo = ((BindingObjectParameter) param).getBindingObject();
+            if (!tgtName.contains("#")) {
+
+                tgtName = tgtName + "#" + bo.getType() + "#" + bo.getElements();
+            }
         }
         if (DEBUG) {
             JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));

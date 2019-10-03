@@ -446,7 +446,7 @@ public abstract class NIOAgent {
             if (BindingDataManager.isInBinding(bo.getName())) {
                 int res = BindingDataManager.storeInFile(bo.getName(), bo.getId());
                 if (res == 0) {
-                    sendFile(c, new File(bo.getId()).getAbsolutePath(), d);
+                    sendFile(c, f.getAbsolutePath(), d);
                 } else {
                     ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
                         + " because error serializing binding object.");
@@ -454,7 +454,7 @@ public abstract class NIOAgent {
                 }
             } else {
                 if (f.exists()) {
-                    sendFile(c, bo.getId(), d);
+                    sendFile(c, f.getAbsolutePath(), d);
                 } else {
                     ErrorManager.warn("Can't send binding data '" + bo.getId() + "' via connection " + c.hashCode()
                         + " because file doesn't exists.");
@@ -465,7 +465,7 @@ public abstract class NIOAgent {
         } else {
             File f = new File(path);
             if (f.exists()) {
-                sendFile(c, path, d);
+                sendFile(c, f.getAbsolutePath(), d);
             } else {
                 ErrorManager.warn("Can't send binding data '" + path + "' via connection " + c.hashCode()
                     + " because incorrect path (doesn't contain #).");

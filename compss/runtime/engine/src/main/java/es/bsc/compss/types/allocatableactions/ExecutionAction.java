@@ -29,7 +29,6 @@ import es.bsc.compss.scheduler.types.AllocatableAction;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.scheduler.types.Score;
 import es.bsc.compss.types.AbstractTask;
-import es.bsc.compss.types.BindingObject;
 import es.bsc.compss.types.CommutativeGroupTask;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.Task;
@@ -53,10 +52,8 @@ import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
-import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -280,7 +277,7 @@ public class ExecutionAction extends AllocatableAction {
 
         if (access instanceof WAccessId) {
             String dataTarget =
-                getOutputDataTarget(w, ((WAccessId) access).getWrittenDataInstance().getRenaming(), param);
+                w.getOutputDataTargetPath(((WAccessId) access).getWrittenDataInstance().getRenaming(), param);
             param.setDataTarget(dataTarget);
         } else {
             if (access instanceof RAccessId) {
@@ -298,29 +295,6 @@ public class ExecutionAction extends AllocatableAction {
                 w.getData(srcName, tgtName, (LogicalData) null, param, listener);
             }
         }
-    }
-
-    private String getOutputDataTarget(Worker<? extends WorkerResourceDescription> w, String tgtName,
-        DependencyParameter param) {
-
-        // Workaround for return objects in bindings converted to PSCOs inside tasks
-        DataType type = param.getType();
-        if (type.equals(DataType.EXTERNAL_PSCO_T)) {
-            ExternalPSCOParameter epp = (ExternalPSCOParameter) param;
-            tgtName = epp.getId();
-        } else if (type.equals(DataType.BINDING_OBJECT_T)) {
-            BindingObject bo = ((BindingObjectParameter) param).getBindingObject();
-            if (!tgtName.contains("#")) {
-
-                tgtName = tgtName + "#" + bo.getType() + "#" + bo.getElements();
-            }
-        }
-        if (DEBUG) {
-            JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
-        }
-        JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
-        return w.getCompleteRemotePath(param.getType(), tgtName).getPath();
-
     }
 
     private void transferStreamParameter(DependencyParameter param, JobTransfersListener listener) {
@@ -620,7 +594,22 @@ public class ExecutionAction extends AllocatableAction {
         // Request transfer
         DataLocation outLoc = null;
         try {
-            String dataTarget = getOutputDataTarget(w, dataName, dp);
+            String dataTarget;
+            if (dp.getType().equals(DataType.PSCO_T)) {
+                /*
+                 * For some reason for PSCO, we can no reconstruct the output data target, but it is not important
+                 * because error in OUT/INOUT data for isReplicated do not affect PSCO_T data
+                 */
+                dataTarget = dp.getDataTarget();
+            } else {
+                /*
+                 * Change to reconstruct output data target path to support OUT and INOUT in isReplicated tasks
+                 */
+                dataTarget = w.getOutputDataTargetPath(dataName, dp);
+            }
+            if (DEBUG) {
+                JOB_LOGGER.debug("Proposed URI for storing output param: " + targetProtocol + dataTarget);
+            }
             SimpleURI targetURI = new SimpleURI(targetProtocol + dataTarget);
             outLoc = DataLocation.createLocation(w, targetURI);
         } catch (Exception e) {

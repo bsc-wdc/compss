@@ -100,6 +100,10 @@ public class DependencyParameter extends Parameter implements Transferable {
         this.dataTarget = target;
     }
 
+    public String generateDataTargetName(String tgtName) {
+        return tgtName;
+    }
+
     @Override
     public String toString() {
         return "DependencyParameter";

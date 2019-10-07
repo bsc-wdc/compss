@@ -263,7 +263,7 @@ public class DataManagerImpl implements DataManager {
             }
         }
 
-        WORKER_LOGGER.debug("New data register created for " + originalRename);
+        WORKER_LOGGER.debug("Checking locations for " + originalRename);
         synchronized (originalRegister) {
             for (InvocationParamURI loc : param.getSources()) {
                 switch (loc.getProtocol()) {

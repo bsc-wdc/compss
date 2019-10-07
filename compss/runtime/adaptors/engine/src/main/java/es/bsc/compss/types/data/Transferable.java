@@ -62,4 +62,5 @@ public interface Transferable {
      * @return {@literal true} if source is to be preserved, {@literal false} otherwise.
      */
     public boolean isSourcePreserved();
+
 }

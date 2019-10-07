@@ -21,6 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
+import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
@@ -51,9 +52,10 @@ public class NIOParamFactory {
      * something transferable.
      * 
      * @param param Parameter.
+     * @param node NIO Worker node
      * @return NIOParam representing this Parameter.
      */
-    public static NIOParam fromParameter(Parameter param) {
+    public static NIOParam fromParameter(Parameter param, NIOWorkerNode node) {
         NIOParam np;
         switch (param.getType()) {
             case FILE_T:
@@ -63,11 +65,11 @@ public class NIOParamFactory {
             case EXTERNAL_STREAM_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
-                np = buildNioDependencyParam(param);
+                np = buildNioDependencyParam(param, node);
                 break;
             case COLLECTION_T:
-                NIOParam collNioParam = buildNioDependencyParam(param);
-                np = buildNioCollectionParam(param, collNioParam);
+                NIOParam collNioParam = buildNioDependencyParam(param, node);
+                np = buildNioCollectionParam(param, collNioParam, node);
                 break;
             default:
                 np = buildNioBasicParam(param);
@@ -77,7 +79,7 @@ public class NIOParamFactory {
         return np;
     }
 
-    private static NIOParam buildNioDependencyParam(Parameter param) {
+    private static NIOParam buildNioDependencyParam(Parameter param, NIOWorkerNode node) {
         DependencyParameter dPar = (DependencyParameter) param;
         Object value = dPar.getDataTarget();
         boolean preserveSourceData = dPar.isSourcePreserved();
@@ -92,6 +94,7 @@ public class NIOParamFactory {
             RWAccessId rwaId = (RWAccessId) dAccId;
             renaming = rwaId.getReadDataInstance().getRenaming();
             dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
+            value = node.getOutputDataTarget(dataMgmtId, dPar);
         } else if (dAccId instanceof RAccessId) {
             // Read only mode
             RAccessId raId = (RAccessId) dAccId;
@@ -100,6 +103,7 @@ public class NIOParamFactory {
         } else {
             WAccessId waId = (WAccessId) dAccId;
             dataMgmtId = waId.getWrittenDataInstance().getRenaming();
+            value = node.getOutputDataTarget(dataMgmtId, dPar);
         }
         if (renaming != null) {
             String pscoId = Comm.getData(renaming).getPscoId();
@@ -121,7 +125,7 @@ public class NIOParamFactory {
         return np;
     }
 
-    private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam) {
+    private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam, NIOWorkerNode node) {
         if (DEBUG) {
             LOGGER.debug("Detected COLLECTION_T parameter");
         }
@@ -130,7 +134,7 @@ public class NIOParamFactory {
 
         CollectionParameter collParam = (CollectionParameter) param;
         for (Parameter subParam : collParam.getParameters()) {
-            npc.addParameter(NIOParamFactory.fromParameter(subParam));
+            npc.addParameter(NIOParamFactory.fromParameter(subParam, node));
         }
 
         if (DEBUG) {

@@ -68,4 +68,9 @@ public class ExternalPSCOParameter extends DependencyParameter {
         return "ExternalObjectParameter with Id " + this.pscoId + " and HashCode " + this.hashCode;
     }
 
+    @Override
+    public String generateDataTargetName(String tgtName) {
+        return getId();
+    }
+
 }

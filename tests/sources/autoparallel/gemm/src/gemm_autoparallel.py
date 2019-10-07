@@ -49,8 +49,7 @@ def create_entry():
 # MAIN FUNCTION
 ############################################
 
-# @parallel()
-@parallel(pluto_extra_flags=["--tile"], taskify_loop_level=3)
+@parallel(tile=True)
 def matmul(a, b, c, m_size, alpha, beta):
     # Debug
     if __debug__:

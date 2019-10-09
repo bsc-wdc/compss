@@ -76,11 +76,11 @@ show_opts() {
     --autoparallel, -a          Enable autoparallel module installation
     --no-autoparallel, -A       Disable autoparallel module installation
                                 Default: ${DEFAULT_AUTOPARALLEL}
-   
+
     --kafka, -k                 Enable Kafka module installation
     --no-kafka, -K              Disable Kafka module installation
                                 Default: ${DEFAULT_KAFKA}
-    
+
     --nothing, -N               Disable all previous options
                                 Default: unused
 
@@ -94,7 +94,7 @@ show_opts() {
 * Parameters:
     targetDir                   COMPSs installation directory
                                 Default: ${DEFAULT_TARGET_DIR}
-                                            
+
 EOT
 }
 
@@ -131,7 +131,7 @@ display_error() {
 
 get_args() {
   # Parse COMPSs Options
-  while getopts hvmMbBpPtTaAkKN-: flag; do 
+  while getopts hvmMbBpPtTaAkKN-: flag; do
     # Treat the argument
     case "$flag" in
       h)
@@ -380,8 +380,8 @@ warn_and_log_parameters() {
   sleep 5
 }
 
-# INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR. 
-# REQUIRES 2 PARAMETERS: 
+# INSTALLS ALL THE NECESSARY JARS FOR AN ADAPTOR.
+# REQUIRES 2 PARAMETERS:
 #  $1 THE PATH TO THE COMPILED ADAPTOR ROOT FOLDER
 #  $2 PATH WHERE TO INSTALL THE ADAPTOR
 install_adaptor() {
@@ -399,13 +399,20 @@ install_adaptor() {
       mkdir "$2/${adaptor_name}"/worker
       cp "$1"/worker/*.jar "$2"/"${adaptor_name}"/worker
     fi
-    if [ -f "$1"/worker/properties ]; then 
+    if [ -f "$1"/worker/properties ]; then
       cp "$1"/worker/properties "$2"/"${adaptor_name}"/worker
     fi
     if [ -d "$1"/scripts/ ]; then
       mkdir -p "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
       cp -r "$1"/scripts/* "${targetDir}"/Runtime/scripts/system/adaptors/"${adaptor_name}"
     fi
+}
+
+# PRIVATE FUNCTION TO CHECK IF A COMMAND IS AVAILABLE
+# Currently to check if python2 and/or python3 exist, to decide wether
+# to install one, the other, or both.
+command_exists () {
+    type "$1" &> /dev/null ;
 }
 
 install_compss() {
@@ -493,7 +500,7 @@ install_compss() {
   # GAT
   cp -r "${TMP_DIR}/dependencies/JAVA_GAT" ${targetDir}/Dependencies/
   # Paraver CFGs
-  cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/  
+  cp -r "${TMP_DIR}/files/paraver" ${targetDir}/Dependencies/
   # Extrae
   if [ "$tracing" == "true" ]; then
     cd "${TMP_DIR}"/dependencies/extrae
@@ -544,7 +551,7 @@ install_compss() {
     cd "${SCRIPT_DIR}"
   fi
 
-  # CONFIG 
+  # CONFIG
   echo "--- Copy configuration"
   find "${TMP_DIR}"/compss/runtime/config -name src -type d -prune -exec rm -r "{}" \;
   find "${TMP_DIR}"/compss/runtime/config -name target -type d -prune -exec rm -r "{}" \;
@@ -655,8 +662,27 @@ install_compss() {
     if [ "${pycompss}" == "true" ]; then
       echo "- Deploying python-binding files"
       cd "${TMP_DIR}/compss/programming_model/bindings/python"
-      ./install "${targetDir}/Bindings/python" true true
-      ev=$?
+      if command_exists "python2" ; then
+        if command_exists "python3" ; then
+          # Install python binding for both python2 and python3
+          ./install "${targetDir}/Bindings/python" true true
+          ev=$?
+        else
+          # Install python binding only for python2
+          ./install "${targetDir}/Bindings/python" true false python2
+          ev=$?
+        fi
+      else
+        if command_exists "python3" ; then
+          # Install python binding only for python3
+          ./install "${targetDir}/Bindings/python" true false python3
+          ev=$?
+        else
+          # Error no python 2 nor 3
+          echo "ERROR: Could not find python2 nor python3 commands."
+          ev=1
+        fi
+      fi
       if [ $ev -ne 0 ]; then
         echo "ERROR: Failed to install Python-binding"
         exit 1

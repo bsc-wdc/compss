@@ -28,6 +28,7 @@ from modules.test_tasks import multireturn, power, merge
 from modules.test_tasks import function_moduleObject, Foo
 from modules.test_tasks import create_block, update_block
 from modules.test_tasks import empty_string, char_to_int
+from modules.test_tasks import numpy_obj_creator
 
 
 def test_empty_function():
@@ -716,6 +717,18 @@ def test_character():
         print("- Test character: ERROR")
         assert result == ord(mychar)
 
+def test_numpy_type_assurance():
+    # This test will fail if numpy save is used with other numpy types
+    # rather than ndarray and matrix
+    import numbers
+    value = numpy_obj_creator()
+    value = compss_wait_on(value)
+    if isinstance(value, numbers.Number):
+        print("- Test numpy type assurance: OK")
+    else:
+        print("- Test numpy type assurance: ERROR")
+        assert isinstance(value, numbers.Number)
+
 def main_program():
     test_empty_function()
     test_function_primitives()
@@ -762,6 +775,8 @@ def main_program():
 
     test_empty_string()
     test_character()
+
+    test_numpy_type_assurance()
 
 if __name__ == "__main__":
     main_program()

@@ -276,6 +276,17 @@ public class Agent {
     public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] arguments,
         ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
         AppMonitor monitor) throws AgentException {
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("New request to run as a " + lang + " task " + className + "." + methodName);
+        System.out.println("Parameters: ");
+        for (ApplicationParameter param : arguments) {
+            System.out.println("\t* " + param);
+        }
+
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {

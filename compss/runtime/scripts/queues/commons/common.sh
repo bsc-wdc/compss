@@ -125,6 +125,8 @@ EOT
                                             Maximum nodes per switch: ${MAX_NODES_SWITCH}
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes.
                                             Default: ${DEFAULT_NUM_SWITCHES}
+    --agents                                Deploys the runtime as agents instead of the classic Master-Worker deployment.
+                                            Default: Disabled                                            
   Heterogeneous submission arguments:
     --type_cfg=<file_location>              Location of the file with the descriptions of node type requests
                                             File should follow the following format:
@@ -142,7 +144,7 @@ EOT
                                             (Node type descriptions are provided in the --type_cfg flag)
   Launch configuration:
 EOT
-  "${SCRIPT_DIR}"/../../user/launch_compss --opts
+  "${SCRIPT_DIR}"/../../user/launch_compss${AGENT_SUFFIX} --opts
 
   exit "$exitValue"
 }
@@ -190,6 +192,11 @@ log_args() {
   echo "SC Configuration:          ${sc_cfg}"
   echo "JobName:                   ${job_name}"
   echo "Queue:                     ${queue}"
+  if [ -z "${AGENT_SUFFIX}" ]; then
+    echo "Deployment:                Master-Worker"
+  else
+    echo "Deployment:                Agents"
+  fi
   echo "Reservation:               ${reservation}"
   echo "Num Nodes:                 ${num_nodes}"
   echo "Num Switches:              ${num_switches}"
@@ -306,6 +313,9 @@ get_args() {
           num_switches=*)
             num_switches=${OPTARG//num_switches=/}
             ;;
+          agents)
+            AGENT_SUFFIX="_agents"
+            ;;            
           cpus_per_node=*)
             cpus_per_node=${OPTARG//cpus_per_node=/}
             args_pass="$args_pass --$OPTARG"
@@ -793,7 +803,7 @@ if [ -f \$${variables_to_be_sourced} ]; then
     rm \$${variables_to_be_sourced}
 fi
 
-${SCRIPT_DIR}/../../user/launch_compss --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --storage_conf=\${storage_conf} ${args_pass}
+${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --storage_conf=\${storage_conf} ${args_pass}
 
 ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 
@@ -802,7 +812,7 @@ EOT
     # ONLY ADD EXECUTE COMMAND
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
-${SCRIPT_DIR}/../../user/launch_compss --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} ${args_pass}
+${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} ${args_pass}
 EOT
   fi
 }

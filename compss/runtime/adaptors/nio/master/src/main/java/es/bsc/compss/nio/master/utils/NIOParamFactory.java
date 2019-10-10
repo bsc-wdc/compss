@@ -82,7 +82,6 @@ public class NIOParamFactory {
     private static NIOParam buildNioDependencyParam(Parameter param, NIOWorkerNode node) {
         DependencyParameter dPar = (DependencyParameter) param;
         Object value = dPar.getDataTarget();
-        boolean preserveSourceData = dPar.isSourcePreserved();
 
         // Check if the parameter has a valid PSCO and change its type
         // OUT objects are restricted by the API
@@ -94,7 +93,6 @@ public class NIOParamFactory {
             RWAccessId rwaId = (RWAccessId) dAccId;
             renaming = rwaId.getReadDataInstance().getRenaming();
             dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-            value = node.getOutputDataTarget(dataMgmtId, dPar);
         } else if (dAccId instanceof RAccessId) {
             // Read only mode
             RAccessId raId = (RAccessId) dAccId;
@@ -103,7 +101,6 @@ public class NIOParamFactory {
         } else {
             WAccessId waId = (WAccessId) dAccId;
             dataMgmtId = waId.getWrittenDataInstance().getRenaming();
-            value = node.getOutputDataTarget(dataMgmtId, dPar);
         }
         if (renaming != null) {
             String pscoId = Comm.getData(renaming).getPscoId();
@@ -118,10 +115,20 @@ public class NIOParamFactory {
             }
         }
 
+        /*
+         * Fix for the is replicated tasks with inout/out parameters. We have to generate output data target according
+         * to the node
+         */
+        if ((dAccId instanceof RWAccessId) || (dAccId instanceof WAccessId)) {
+            if (!param.getType().equals(DataType.PSCO_T)) {
+                value = node.getOutputDataTarget(dataMgmtId, dPar);
+            }
+        }
+
         // Create the NIO Param
         boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
         NIOParam np = new NIOParam(dataMgmtId, param.getType(), param.getStream(), param.getPrefix(), param.getName(),
-            preserveSourceData, writeFinalValue, value, (NIOData) dPar.getDataSource(), dPar.getOriginalName());
+            dPar.isSourcePreserved(), writeFinalValue, value, (NIOData) dPar.getDataSource(), dPar.getOriginalName());
         return np;
     }
 

@@ -196,10 +196,14 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      */
     public String getOutputDataTarget(String tgtName, DependencyParameter param) {
         DataType type = param.getType();
+        tgtName = param.generateDataTargetName(tgtName);
         if (type.equals(DataType.PSCO_T)) {
-            return param.getDataTarget();
+            // For PSCO_T and EXTERNAL_PSCO_T we do not have to add the node path
+            if (DEBUG) {
+                LOGGER.debug("Generated data target for param: " + tgtName);
+            }
+            return tgtName;
         } else {
-            tgtName = param.generateDataTargetName(tgtName);
             if (DEBUG) {
                 LOGGER.debug("Generated data target for param: " + this.getCompletePath(type, tgtName).getPath());
             }

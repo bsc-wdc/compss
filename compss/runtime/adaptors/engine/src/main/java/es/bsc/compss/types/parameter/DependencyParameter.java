@@ -100,8 +100,18 @@ public class DependencyParameter extends Parameter implements Transferable {
         this.dataTarget = target;
     }
 
+    /**
+     * Return the corresponding data target value for this type of dependency parameter.
+     * 
+     * @param tgtName Proposed target name
+     * @return data target name
+     */
     public String generateDataTargetName(String tgtName) {
-        return tgtName;
+        if (getType().equals(DataType.PSCO_T) || getType().equals(DataType.EXTERNAL_PSCO_T)) {
+            return getDataTarget();
+        } else {
+            return tgtName;
+        }
     }
 
     @Override

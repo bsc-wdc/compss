@@ -553,7 +553,7 @@ public class ExecutionAction extends AllocatableAction {
                     break;
                 case INOUT:
                     dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                    Comm.removeDataKeepingValue("tmp" + dId);                    
+                    Comm.removeDataKeepingValue("tmp" + dId);
                     break;
             }
 

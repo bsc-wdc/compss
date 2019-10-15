@@ -113,7 +113,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             Worker<A> w = (Worker<A>) worker;
             scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription()));
         }
-        
+
         keepGoing = true;
 
         if (Tracer.basicModeEnabled()) {
@@ -123,7 +123,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         if (Tracer.basicModeEnabled()) {
             Tracer.disablePThreads();
         }
-        
+
         LOGGER.info("Initialization finished");
     }
 

@@ -108,6 +108,12 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
         scheduler.setOrchestrator(this);
 
+        // Insert workers
+        for (Worker<?> worker : ResourceManager.getStaticResources()) {
+            Worker<A> w = (Worker<A>) worker;
+            scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription()));
+        }
+        
         keepGoing = true;
 
         if (Tracer.basicModeEnabled()) {
@@ -117,12 +123,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         if (Tracer.basicModeEnabled()) {
             Tracer.disablePThreads();
         }
-
-        // Insert workers
-        for (Worker<?> worker : ResourceManager.getStaticResources()) {
-            Worker<A> w = (Worker<A>) worker;
-            scheduler.updateWorker(w, new PerformedIncrease<A>(w.getDescription()));
-        }
+        
         LOGGER.info("Initialization finished");
     }
 

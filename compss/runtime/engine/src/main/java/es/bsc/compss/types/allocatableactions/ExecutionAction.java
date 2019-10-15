@@ -54,6 +54,7 @@ import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -276,9 +277,21 @@ public class ExecutionAction extends AllocatableAction {
         DataAccessId access = param.getDataAccessId();
 
         if (access instanceof WAccessId) {
+            /*
+             * String tgtName = ((WAccessId) access).getWrittenDataInstance().getRenaming();
+             * 
+             * // Workaround for return objects in bindings converted to PSCOs inside tasks DataType type =
+             * param.getType(); if (type.equals(DataType.EXTERNAL_PSCO_T)) { ExternalPSCOParameter epp =
+             * (ExternalPSCOParameter) param; tgtName = epp.getId(); } if (DEBUG) {
+             * JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName)); }
+             * JOB_LOGGER.debug("Setting data target job transfer: " + w.getCompleteRemotePath(type, tgtName));
+             * param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName).getPath());
+             */
+
             String dataTarget =
                 w.getOutputDataTargetPath(((WAccessId) access).getWrittenDataInstance().getRenaming(), param);
             param.setDataTarget(dataTarget);
+
         } else {
             if (access instanceof RAccessId) {
                 // Read Access, transfer object
@@ -595,7 +608,7 @@ public class ExecutionAction extends AllocatableAction {
         DataLocation outLoc = null;
         try {
             String dataTarget;
-            if (dp.getType().equals(DataType.PSCO_T)) {
+            if (dp.getType().equals(DataType.PSCO_T) || dp.getType().equals(DataType.EXTERNAL_PSCO_T)) {
                 /*
                  * For some reason for PSCO, we can no reconstruct the output data target, but it is not important
                  * because error in OUT/INOUT data for isReplicated do not affect PSCO_T data
@@ -610,6 +623,7 @@ public class ExecutionAction extends AllocatableAction {
             if (DEBUG) {
                 JOB_LOGGER.debug("Proposed URI for storing output param: " + targetProtocol + dataTarget);
             }
+            // SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
             SimpleURI targetURI = new SimpleURI(targetProtocol + dataTarget);
             outLoc = DataLocation.createLocation(w, targetURI);
         } catch (Exception e) {

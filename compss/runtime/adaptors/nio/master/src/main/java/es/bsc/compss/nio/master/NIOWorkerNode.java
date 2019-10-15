@@ -538,7 +538,13 @@ public class NIOWorkerNode extends COMPSsWorker {
                     path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
                 }
             } else {
-                path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
+                if (c.getTargetLoc() != null) {
+                    path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
+                } else {
+                    c.end(OperationEndState.OP_FAILED,
+                        new Exception(" Target location for copy " + c.getName() + " is null."));
+                    return;
+                }
             }
             c.setProposedSource(getNIODatafromLogicalData(ld));
             LOGGER.debug("Setting final target in deferred copy " + path);

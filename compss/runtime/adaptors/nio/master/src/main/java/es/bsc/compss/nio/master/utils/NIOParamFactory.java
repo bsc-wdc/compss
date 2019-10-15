@@ -120,7 +120,7 @@ public class NIOParamFactory {
          * to the node
          */
         if ((dAccId instanceof RWAccessId) || (dAccId instanceof WAccessId)) {
-            if (!param.getType().equals(DataType.PSCO_T)) {
+            if (!param.getType().equals(DataType.PSCO_T) && !param.getType().equals(DataType.EXTERNAL_PSCO_T)) {
                 value = node.getOutputDataTarget(dataMgmtId, dPar);
             }
         }

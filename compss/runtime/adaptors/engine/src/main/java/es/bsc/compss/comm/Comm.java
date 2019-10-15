@@ -604,6 +604,16 @@ public class Comm {
     }
 
     /**
+     * Removes the data with id {@code renaming} but mantains the data values on files/remote sources .
+     *
+     * @param renaming Data Id.
+     */
+    public static synchronized void removeDataKeepingValue(String renaming) {
+        LOGGER.debug("Removing data " + renaming);
+        LogicalData ld = DATA.remove(renaming);
+    }
+
+    /**
      * Removes the data with id {@code renaming}.
      *
      * @param renaming Data Id.

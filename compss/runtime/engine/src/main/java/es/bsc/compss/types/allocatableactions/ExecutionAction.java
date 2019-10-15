@@ -305,7 +305,8 @@ public class ExecutionAction extends AllocatableAction {
 
                 String srcName = ((RWAccessId) access).getReadDataInstance().getRenaming();
                 String tgtName = ((RWAccessId) access).getWrittenDataInstance().getRenaming();
-                w.getData(srcName, tgtName, (LogicalData) null, param, listener);
+                LogicalData tmpData = Comm.registerData("tmp" + tgtName);
+                w.getData(srcName, tgtName, tmpData, param, listener);
             }
         }
     }
@@ -552,6 +553,7 @@ public class ExecutionAction extends AllocatableAction {
                     break;
                 case INOUT:
                     dId = ((RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
+                    Comm.removeDataKeepingValue("tmp" + dId);                    
                     break;
             }
 

@@ -56,6 +56,12 @@ from pycompss.util.objects.properties import is_basic_iterable
 from pycompss.util.storages.persistent import has_id
 from pycompss.util.storages.persistent import get_id
 
+# Try to import numpy
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 TYPE = DataType
@@ -576,6 +582,15 @@ def get_compss_type(value, depth=0):
     :param depth: Collections depth.
     :return: The Type of the value
     """
+    # If it is a numpy object, we manage it as all objects to avoid to
+    # infer its type wrong. For instance isinstance(np.float64 object, float)
+    # returns true
+    if np and \
+            (isinstance(value, np.ndarray) or
+             isinstance(value, np.matrix) or
+             isinstance(value, np.generic)):
+        return TYPE.OBJECT
+
     if isinstance(value, bool):
         return TYPE.BOOLEAN
     elif isinstance(value, str):

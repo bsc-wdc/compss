@@ -397,3 +397,13 @@ def empty_string(s):
 @task(returns=int)
 def char_to_int(mychar):
     return ord(mychar)
+
+
+@task(returns=1)
+def numpy_obj_creator():
+    import numbers
+    import numpy as np
+    value = np.random.rand(10).max()
+    assert isinstance(value, numbers.Number) == True
+    print(type(value))  # <type 'numpy.float64'>
+    return value

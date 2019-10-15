@@ -145,7 +145,10 @@ def serialize_to_handler(obj, handler):
         else:
             try:
                 # If it is a numpy object then use its saving mechanism
-                if serializer is numpy and NUMPY_AVAILABLE:
+                if serializer is numpy and \
+                        NUMPY_AVAILABLE and \
+                        (isinstance(obj, numpy.ndarray) or
+                         isinstance(obj, numpy.matrix)):
                     serializer.save(handler, obj, allow_pickle=False)
                 else:
                     serializer.dump(obj,

@@ -40,7 +40,7 @@ public class CommAgentURI extends NIOUri {
         super(host, path, schema);
         this.agent = agent;
     }
-    
+
     /**
      * Constructs a new CommAgentURI out of a NIOUri.
      *

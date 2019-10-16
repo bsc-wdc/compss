@@ -104,7 +104,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
             }
         }
     }
-    
+
     @Override
     public void stop() {
         // Nothing to do

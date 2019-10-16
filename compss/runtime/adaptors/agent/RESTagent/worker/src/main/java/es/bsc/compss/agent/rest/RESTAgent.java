@@ -41,6 +41,7 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 
 import java.util.List;
 
@@ -132,6 +133,18 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     @Path("test/")
     public Response test() {
         System.out.println("test invoked");
+        return Response.ok().build();
+    }
+
+    /**
+     * Prints through the agent's standard output stream the resources currently available.
+     *
+     * @return REST response confirming the execution of the print command
+     */
+    @GET
+    @Path("printResources/")
+    public Response getResources() {
+        System.out.println(ResourceManager.getCurrentState(""));
         return Response.ok().build();
     }
 

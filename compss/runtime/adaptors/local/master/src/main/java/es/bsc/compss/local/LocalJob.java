@@ -63,36 +63,22 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         super(taskId, task, impl, res, listener);
 
         // Construct parameters
-        boolean hasTarget = this.taskParams.hasTargetObject();
-        int numReturns = this.taskParams.getNumReturns();
+        final boolean hasTarget = this.taskParams.hasTargetObject();
+        final int numReturns = this.taskParams.getNumReturns();
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
         List<Parameter> params = task.getParameters();
         int paramsCount = params.size();
-        if (super.getLang().equals(Lang.PYTHON)) {
-            // Python parameters are in a different order
-            if (hasTarget) {
-                Parameter p = params.get(params.size() - 1);
-                this.target = new LocalParameter(p);
-                paramsCount--;
-            }
-            for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-                Parameter p = params.get(params.size() - (hasTarget ? 1 : 0) - numReturns + rIdx);
-                this.results.addFirst(new LocalParameter(p));
-            }
-            paramsCount -= numReturns;
-        } else {
-            // Java or C/C++
-            for (int rIdx = 0; rIdx < numReturns; rIdx++) {
-                Parameter p = params.get(params.size() - numReturns + rIdx);
-                this.results.addFirst(new LocalParameter(p));
-            }
-            paramsCount -= numReturns;
-            if (hasTarget) {
-                Parameter p = params.get(params.size() - numReturns - 1);
-                this.target = new LocalParameter(p);
-                paramsCount--;
-            }
+
+        for (int rIdx = 0; rIdx < numReturns; rIdx++) {
+            Parameter p = params.get(params.size() - numReturns + rIdx);
+            this.results.addFirst(new LocalParameter(p));
+        }
+        paramsCount -= numReturns;
+        if (hasTarget) {
+            Parameter p = params.get(params.size() - numReturns - 1);
+            this.target = new LocalParameter(p);
+            paramsCount--;
         }
 
         for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {

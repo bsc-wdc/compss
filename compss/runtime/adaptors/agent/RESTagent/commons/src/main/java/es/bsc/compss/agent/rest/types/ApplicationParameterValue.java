@@ -103,6 +103,7 @@ public abstract class ApplicationParameterValue {
             elements = new ApplicationParameterValue[numElements];
             for (int elementId = 0; elementId < numElements; elementId++) {
                 elements[elementId] = ApplicationParameterValue.createParameterValue(Array.get(o, elementId));
+                elements[elementId].paramId = elementId;
             }
         }
 

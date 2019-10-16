@@ -9,12 +9,20 @@ public class Concurrent {
 
     public static void main(String[] args) {
         // Check and get parameters
-        if (args.length != 1) {
+        if (args.length != 2) {
             System.out.println("[ERROR] Bad number of parameters");
-            System.out.println("    Usage: applicationConcurrent.Concurrent <counterValue>");
+            System.out.println("    Usage: applicationConcurrent.Concurrent <counterValue> <initialSleep>");
             System.exit(-1);
         }
         int initialValue = Integer.parseInt(args[0]);
+        int initialSleep = Integer.parseInt(args[1]);
+
+        try {
+            Thread.sleep(initialSleep);
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+
         String counterName = "counter" + String.valueOf(initialValue);
 
         // Write value

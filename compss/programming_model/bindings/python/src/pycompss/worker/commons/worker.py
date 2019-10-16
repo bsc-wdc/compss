@@ -557,7 +557,14 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                     file_name = self_elem.file_name.split(':')[-1]
                     if __debug__:
                         logger.debug("Deserialize self from file.")
-                    obj = deserialize_from_file(file_name)
+                    try:    
+                        obj = deserialize_from_file(file_name)
+                    except Exception:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                        logger.exception("EXCEPTION DESERIALIZING SELF IN %s" % process_name)
+                        logger.exception(''.join(line for line in lines))
+                        return 1, [], [], False, None
                     if __debug__:
                         logger.debug('Deserialized self object is: %s' %
                                      self_elem.content)
@@ -610,7 +617,14 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                     if __debug__:
                         logger.debug("Serializing self to file: %s" %
                                      file_name)
-                    serialize_to_file(obj, file_name)
+                    try:    
+                        serialize_to_file(obj, file_name)
+                    except:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                        logger.exception("EXCEPTION SERIALIZING SELF IN %s" % process_name)
+                        logger.exception(''.join(line for line in lines))
+                        return 1, new_types, new_values, timed_out, except_msg
                     if __debug__:
                         logger.debug("Obj: %r" % obj)
         else:

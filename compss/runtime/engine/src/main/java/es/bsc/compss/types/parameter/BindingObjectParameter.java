@@ -89,4 +89,12 @@ public class BindingObjectParameter extends DependencyParameter {
         return this.bo;
     }
 
+    @Override
+    public String generateDataTargetName(String tgtName) {
+        if (!tgtName.contains("#")) {
+            tgtName = tgtName + "#" + bo.getType() + "#" + bo.getElements();
+        }
+        return tgtName;
+    }
+
 }

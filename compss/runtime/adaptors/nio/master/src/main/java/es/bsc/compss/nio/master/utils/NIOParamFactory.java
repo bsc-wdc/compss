@@ -21,6 +21,7 @@ import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.NIOData;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOParamCollection;
+import es.bsc.compss.nio.master.NIOWorkerNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.accessid.RAccessId;
@@ -51,9 +52,10 @@ public class NIOParamFactory {
      * something transferable.
      * 
      * @param param Parameter.
+     * @param node NIO Worker node
      * @return NIOParam representing this Parameter.
      */
-    public static NIOParam fromParameter(Parameter param) {
+    public static NIOParam fromParameter(Parameter param, NIOWorkerNode node) {
         NIOParam np;
         switch (param.getType()) {
             case FILE_T:
@@ -63,11 +65,11 @@ public class NIOParamFactory {
             case EXTERNAL_STREAM_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
-                np = buildNioDependencyParam(param);
+                np = buildNioDependencyParam(param, node);
                 break;
             case COLLECTION_T:
-                NIOParam collNioParam = buildNioDependencyParam(param);
-                np = buildNioCollectionParam(param, collNioParam);
+                NIOParam collNioParam = buildNioDependencyParam(param, node);
+                np = buildNioCollectionParam(param, collNioParam, node);
                 break;
             default:
                 np = buildNioBasicParam(param);
@@ -77,10 +79,9 @@ public class NIOParamFactory {
         return np;
     }
 
-    private static NIOParam buildNioDependencyParam(Parameter param) {
+    private static NIOParam buildNioDependencyParam(Parameter param, NIOWorkerNode node) {
         DependencyParameter dPar = (DependencyParameter) param;
         Object value = dPar.getDataTarget();
-        boolean preserveSourceData = dPar.isSourcePreserved();
 
         // Check if the parameter has a valid PSCO and change its type
         // OUT objects are restricted by the API
@@ -114,14 +115,24 @@ public class NIOParamFactory {
             }
         }
 
+        /*
+         * Fix for the is replicated tasks with inout/out parameters. We have to generate output data target according
+         * to the node
+         */
+        if ((dAccId instanceof RWAccessId) || (dAccId instanceof WAccessId)) {
+            if (!param.getType().equals(DataType.PSCO_T) && !param.getType().equals(DataType.EXTERNAL_PSCO_T)) {
+                value = node.getOutputDataTarget(dataMgmtId, dPar);
+            }
+        }
+
         // Create the NIO Param
         boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
         NIOParam np = new NIOParam(dataMgmtId, param.getType(), param.getStream(), param.getPrefix(), param.getName(),
-            preserveSourceData, writeFinalValue, value, (NIOData) dPar.getDataSource(), dPar.getOriginalName());
+            dPar.isSourcePreserved(), writeFinalValue, value, (NIOData) dPar.getDataSource(), dPar.getOriginalName());
         return np;
     }
 
-    private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam) {
+    private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam, NIOWorkerNode node) {
         if (DEBUG) {
             LOGGER.debug("Detected COLLECTION_T parameter");
         }
@@ -130,7 +141,7 @@ public class NIOParamFactory {
 
         CollectionParameter collParam = (CollectionParameter) param;
         for (Parameter subParam : collParam.getParameters()) {
-            npc.addParameter(NIOParamFactory.fromParameter(subParam));
+            npc.addParameter(NIOParamFactory.fromParameter(subParam, node));
         }
 
         if (DEBUG) {

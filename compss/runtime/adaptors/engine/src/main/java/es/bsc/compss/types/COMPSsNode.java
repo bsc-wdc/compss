@@ -28,10 +28,12 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.resources.ExecutorShutdownListener;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.types.resources.ShutdownListener;
+import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -184,6 +186,30 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @return Complete URI of the given data inside the current resource.
      */
     public abstract SimpleURI getCompletePath(DataType type, String name);
+
+    /**
+     * Returns the expected data target path in the node.
+     * 
+     * @param tgtName expected data target name
+     * @param param Dependency parameter
+     * @return data target path
+     */
+    public String getOutputDataTarget(String tgtName, DependencyParameter param) {
+        DataType type = param.getType();
+        tgtName = param.generateDataTargetName(tgtName);
+        if (type.equals(DataType.PSCO_T) || type.equals(DataType.EXTERNAL_PSCO_T)) {
+            // For PSCO_T and EXTERNAL_PSCO_T we do not have to add the node path
+            if (DEBUG) {
+                LOGGER.debug("Generated data target for param: " + tgtName);
+            }
+            return tgtName;
+        } else {
+            if (DEBUG) {
+                LOGGER.debug("Generated data target for param: " + this.getCompletePath(type, tgtName).getPath());
+            }
+        }
+        return this.getCompletePath(param.getType(), tgtName).getPath();
+    }
 
     /**
      * Deletes the temporary folder of a node.

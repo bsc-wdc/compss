@@ -128,7 +128,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     private LinkedList<NIOParam> addParams() {
         LinkedList<NIOParam> params = new LinkedList<>();
         for (Parameter param : this.taskParams.getParameters()) {
-            params.add(NIOParamFactory.fromParameter(param));
+            params.add(NIOParamFactory.fromParameter(param, this.getResourceNode()));
         }
         return params;
     }

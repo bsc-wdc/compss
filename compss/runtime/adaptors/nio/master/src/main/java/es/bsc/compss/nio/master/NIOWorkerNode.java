@@ -538,7 +538,13 @@ public class NIOWorkerNode extends COMPSsWorker {
                     path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
                 }
             } else {
-                path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
+                if (c.getTargetLoc() != null) {
+                    path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
+                } else {
+                    c.end(OperationEndState.OP_FAILED,
+                        new Exception(" Target location for copy " + c.getName() + " is null."));
+                    return;
+                }
             }
             c.setProposedSource(getNIODatafromLogicalData(ld));
             LOGGER.debug("Setting final target in deferred copy " + path);
@@ -552,7 +558,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
-        NIOParam param = NIOParamFactory.fromParameter((Parameter) reason);
+        NIOParam param = NIOParamFactory.fromParameter((Parameter) reason, this);
         CommandDataFetch cmd = new CommandDataFetch(param, listener.getId());
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);

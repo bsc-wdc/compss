@@ -128,12 +128,14 @@ def makePersistent(obj, *args):
         # Write ID file
         file_name = str(uid) + '.ID'
         file_path = storage_path + file_name
+        print("MAKE PERSISTENT: Creating ID file " + file_path)
         with open (file_path, 'w') as f:
             f.write(obj.id)
 
         # Write PSCO file
         file_name = str(uid) + '.PSCO'
         file_path = storage_path + file_name
+        print("MAKE PERSISTENT: Serializing object to file " + file_path)
         serialize_to_file(obj, file_path)
     else:
         # The obj is already persistent
@@ -164,6 +166,7 @@ def removeById(obj):
         file_name = str(obj.id) + '.ID'
         file_path = storage_path + file_name
         try:
+            print("Removing ID file: " + file_path)
             os.remove(file_path)
         except:
             print("PSCO: " + file_path + " Does not exist!")
@@ -172,6 +175,7 @@ def removeById(obj):
         file_name = str(obj.id) + '.PSCO'
         file_path = storage_path + file_name
         try:
+            print("Removing Object file: " + file_path)
             os.remove(file_path)
             obj.id = None
         except:

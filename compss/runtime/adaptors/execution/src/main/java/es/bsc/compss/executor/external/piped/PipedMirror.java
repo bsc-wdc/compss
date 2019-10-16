@@ -297,11 +297,11 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             try {
                 pipeBuilderPipe.waitForCommand(new QuitPipeCommand());
             } catch (ClosedPipeException cpe) {
-                ErrorManager.fatal(ERROR_W_PIPE, cpe);
+                LOGGER.error(ERROR_W_PIPE, cpe);
                 errorOnPipe = true;
             }
         } else {
-            ErrorManager.fatal(ERROR_W_PIPE);
+            LOGGER.error(ERROR_W_PIPE);
             errorOnPipe = true;
         }
 
@@ -439,7 +439,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             try {
                 pipeWorkerPipe.waitForCommand(new RemovedExecutorPipeCommand(pp));
             } catch (ClosedPipeException cpe) {
-                ErrorManager.fatal(ERROR_W_PIPE);
+                LOGGER.error(ERROR_W_PIPE, cpe);
             }
         } // else : Worker is dead and executor probably too since it is not responding. Ignore
 

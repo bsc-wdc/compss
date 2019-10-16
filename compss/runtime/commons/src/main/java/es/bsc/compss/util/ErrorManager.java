@@ -64,7 +64,7 @@ public final class ErrorManager {
                     LOGGER.error(PREFIX_ERRMGR + "Error detected. Shutting down COMPSs");
                     handler.fatalError();
                 }
-
+                System.err.println("Shutting down the running process");
                 System.exit(1);
             }
         }

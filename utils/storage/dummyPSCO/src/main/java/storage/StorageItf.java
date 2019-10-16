@@ -279,7 +279,7 @@ public final class StorageItf {
                 throw new StorageException(ERROR_NEW_VERSION + id + " to " + targetPath, e);
             }
         } else {
-            throw new StorageException(ERROR_NO_PSCO + id);
+            throw new StorageException(ERROR_NO_PSCO + id + "File not exists: " + source.getAbsolutePath());
         }
 
         return newId;

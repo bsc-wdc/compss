@@ -39,6 +39,7 @@ import es.bsc.compss.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
@@ -303,6 +304,10 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     @Override
     public SimpleURI getCompleteRemotePath(DataType type, String name) {
         return this.node.getCompletePath(type, name);
+    }
+
+    public String getOutputDataTargetPath(String tgtName, DependencyParameter param) {
+        return this.node.getOutputDataTarget(tgtName, param);
     }
 
     @Override

@@ -20,6 +20,7 @@ package es.bsc.compss.agent.comm;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.nio.NIOUri;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.data.location.ProtocolType;
 
 
@@ -38,6 +39,21 @@ public class CommAgentURI extends NIOUri {
     public CommAgentURI(CommResource agent, NIONode host, String path, ProtocolType schema) {
         super(host, path, schema);
         this.agent = agent;
+    }
+    
+    /**
+     * Constructs a new CommAgentURI out of a NIOUri.
+     *
+     * @param uri NIOUri to convert to CommAgentURI
+     */
+    public CommAgentURI(NIOUri uri) {
+        super(uri.getHost(), uri.getPath(), uri.getProtocol());
+        NIONode host = uri.getHost();
+        String hostName = host.getIp();
+        if (hostName == null) {
+            hostName = COMPSsNode.getMasterName();
+        }
+        this.agent = new CommResource(hostName, host.getPort());
     }
 
     public CommResource getAgent() {

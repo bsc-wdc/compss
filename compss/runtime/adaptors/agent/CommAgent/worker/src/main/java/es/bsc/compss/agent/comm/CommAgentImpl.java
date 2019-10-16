@@ -83,14 +83,28 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         System.setProperty(COMPSsConstants.MASTER_PORT, Integer.toString(port));
         adaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.ID);
         if (adaptor == null) {
-            adaptor = new CommAgentAdaptor(this);
-            LOGGER.info("Starting CommAgent on port " + port);
-            adaptor.init();
-            Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
-            Comm.registerAdaptor(CommAgentAdaptor.class.getCanonicalName(), adaptor);
+            CommAgentAdaptor nioAdaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.ID);
+            CommAgentAdaptor commAgentAdaptor;
+            commAgentAdaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.class.getCanonicalName());
+            if (nioAdaptor == null && commAgentAdaptor == null) {
+                adaptor = new CommAgentAdaptor(this);
+                LOGGER.info("Starting CommAgent on port " + port);
+                adaptor.init();
+                Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
+                Comm.registerAdaptor(CommAgentAdaptor.class.getCanonicalName(), adaptor);
+            } else {
+                if (nioAdaptor == null) {
+                    adaptor = commAgentAdaptor;
+                    Comm.registerAdaptor(CommAgentAdaptor.class.getCanonicalName(), adaptor);
+                } else {
+                    // commAgentAdaptor == null
+                    adaptor = nioAdaptor;
+                    Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
+                }
+            }
         }
     }
-
+    
     @Override
     public void stop() {
         // Nothing to do

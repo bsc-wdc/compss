@@ -2,6 +2,7 @@
 
 #COMPSs Options
 DEFAULT_DEBUG="off"
+DEFAULT_COMM="es.bsc.compss.agent.comm.CommAgentAdaptor"
 
 #DataClay Options
 DC_CLASSPATH="$(for i in /opt/COMPSs/storage/lib/*.jar ; do echo -n ${i}: ; done)/opt/COMPSs/storage/dataclay.jar"
@@ -24,8 +25,17 @@ Mandatory options:
 
 COMPSs options:  
   -rp, --rest_port          port on which the agent sets up a REST interface. (<=0: Disabled)
-  -cp, --comm_port         port on which the agent sets up a Comm interface. (<=0: Disabled)
-  -d, --debug               enables debug.
+  -cp, --comm_port          port on which the agent sets up a Comm interface. (<=0: Disabled)
+  --comm=<ClassName>        Class that implements the adaptor for communications
+                            Supported adaptors: es.bsc.compss.nio.master.NIOAdaptor | es.bsc.compss.gat.master.GATAdaptor |es.bsc.compss.agent.comm.CommAgentAdaptor | es.bsc.compss.agent.rest.master.Adaptor
+                            Default: es.bsc.compss.agent.comm.CommAgentAdaptor
+
+  -d, --debug               enables debug. (Default: disabled)
+  -log, --log_dir           log directory. (Default: /tmp/${app_uuid})
+  -project                  path of the project file 
+                            (Default: ${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml)
+  -resources                path of the resources file 
+                            (Default: ${COMPSS_HOME}/Runtime/configuration/xml/resources/examples/local/resources.xml)
 
 DataClay options:
   -DC, --no-dataclay        Disable DataClay  
@@ -49,6 +59,8 @@ parse_options() {
 
   while true; do
     case "$1" in
+
+# MANDATORY OPTIONS
       -h    | --hostname )
         if [ "$#" -lt 2 ]; then
           echo "Illegal number of params"
@@ -67,6 +79,7 @@ parse_options() {
         APPLICATION_PATH=$2;
         shift 2;;
 
+# AGENT OPTIONS
       -rp     | --rest_port ) 
         if [ "$#" -lt 2 ]; then
           echo "Illegal number of params"
@@ -85,6 +98,15 @@ parse_options() {
         export COMM_AGENT_PORT=$2;
         shift 2;;
 
+      --comm )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
+        COMM=$2;
+        shift 2;;
+
       -d    | --debug )
         if [ "$#" -lt 2 ]; then
           echo "Illegal number of params"
@@ -94,6 +116,34 @@ parse_options() {
         DEBUG=$2;
         shift 2;;
 
+      -log | --log_dir )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
+        LOG_DIR=$2;
+        shift 2;;
+
+      --resources )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
+        RESOURCES_FILE=$2;
+        shift 2;;
+
+      --project )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
+        PROJECT_FILE=$2;
+        shift 2;;
+      
+# DATACLAY OPTIONS
       -DC | --no-dataclay )
         DC_ENABLED=false
         shift 1;;
@@ -164,7 +214,7 @@ parse_options() {
   done
 
   if [[ -z "${AGENT_HOSTNAME}" ]]; then
-    echo "ERROR! MF2C_HOSTNAME not set"
+    echo "ERROR! HOSTNAME not set"
     usage
     exit
   fi
@@ -174,11 +224,28 @@ parse_options() {
       exit
   fi
 
+  if [[ -z "${COMM}" ]]; then
+    comm=${DEFAULT_COMM}
+  fi
+  if  [[ "${comm}" == "es.bsc.compss.agent.comm.CommAgentAdaptor" ]]; then
+    if [[ -z "${COMM_AGENT_PORT}" ]]; then
+	echo "When using the Comm Agent adaptor, COMM port needs to be specified (-cp/--comm_port)"
+        exit
+    fi
+    comm="${comm} -Dcompss.masterPort=${COMM_AGENT_PORT}"
+  fi
+
   if [[ -z "${AGENT_PORT}" ]]; then
     AGENT_PORT="${DEFAULT_AGENT_PORT}"
   fi
   if [[ -z "${DEBUG}" ]]; then
     DEBUG="${DEFAULT_DEBUG}"
+  fi
+  if [[ -z "${RESOURCES_FILE}" ]]; then
+    RESOURCES_FILE="${COMPSS_HOME}/Runtime/configuration/xml/resources/examples/local/resources.xml"
+  fi
+  if [[ -z "${PROJECT_FILE}" ]]; then
+    PROJECT_FILE="${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml"
   fi
   if [ "$DC_ENABLED" = true ] ; then
     if [[ -z "${DC_LOGICMODULE_HOST}" ]]; then
@@ -203,6 +270,8 @@ parse_options() {
   echo  "AGENT_HOSTNAME: ${AGENT_HOSTNAME}"
   echo  "REST_AGENT_PORT: ${REST_AGENT_PORT}"
   echo  "COMM_AGENT_PORT: ${COMM_AGENT_PORT}"
+  echo  "RESOURCES FILE: ${RESOURCES_FILE}"
+  echo  "PROJECT FILE: ${PROJECT_FILE}"
   echo  "DEBUG: ${DEBUG}"
   if [ "$DC_ENABLED" = true ] ; then
     echo  "DC_LOGICMODULE_HOST: ${DC_LOGICMODULE_HOST}"
@@ -258,7 +327,9 @@ generate_dataclay_stubs() {
   ${DC_TOOL} dataclay.tool.GetStubs ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE} "${CURRENT_DIR}/stubs"
 }
 
-parse_options "$@"
+
+
+
 
 # Obtain COMPSs installation root
 if [ -z "${COMPSS_HOME}" ]; then
@@ -267,6 +338,7 @@ fi
 export COMPSS_HOME=${COMPSS_HOME}
 echo "Using COMPSs installation on ${COMPSS_HOME}"
 
+parse_options "$@"
 
 uuid=$(uuidgen)
 if [ -z "$uuid" ]; then
@@ -278,6 +350,10 @@ rm -rf "${CURRENT_DIR}"
 mkdir -p "${CURRENT_DIR}"
 cd "${CURRENT_DIR}"
 
+
+if [ -z "${LOG_DIR}" ]; then
+  LOG_DIR="/tmp/${uuid}"
+fi
 
 
 # Loading all necessary jars on classpath
@@ -302,7 +378,14 @@ if [ "$DC_ENABLED" = true ] ; then
   fi
 fi
 
-echo "Launching COMPSs agent on Worker ${AGENT_HOSTNAME} and port ${AGENT_PORT} with debug level ${DEBUG}"
+if [ ! -z "${COMM_AGENT_PORT}" ]; then
+  comm_port_msg="(comm: ${COMM_AGENT_PORT})"
+fi
+if [ ! -z "${REST_AGENT_PORT}" ]; then
+  rest_port_msg="(rest: ${REST_AGENT_PORT})"
+fi
+echo "Launching COMPSs agent on Worker ${AGENT_HOSTNAME} and ports ${comm_port_msg} ${rest_port_msg} with debug level ${DEBUG}"
+
 if [ "$DC_ENABLED" = true ] ; then
   echo "User authenticates to Dataclay with username ${DC_USERNAME} and password ${DC_PASSWORD}"
   echo "DataClay will use the ${DC_DATASET} dataset and the namespace ${DC_NAMESPACE}"
@@ -312,18 +395,38 @@ echo "------------------------"
 echo "HOSTNAME: ${AGENT_HOSTNAME}"
 echo "------------------------"
 
-java \
+
+echo java \
 -cp "${CLASSPATH}" \
 -Dcompss.masterName="${AGENT_HOSTNAME}" \
 -Dcompss.uuid="${uuid}" \
--Dcompss.appLogDir="/tmp/${uuid}" \
+-Dcompss.appLogDir="${LOG_DIR}" \
+-Dcompss.comm=${comm} \
 -Dcompss.agent.configpath="${COMPSS_HOME}/Runtime/configuration/agents/all.json" \
--Dcompss.project.file="${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml" \
--Dcompss.resources.file="${COMPSS_HOME}/Runtime/configuration/xml/resources/examples/local/resources.xml" \
+-Dcompss.project.file="${PROJECT_FILE}" \
+-Dcompss.resources.file="${RESOURCES_FILE}" \
 -Dcompss.project.schema="${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd" \
 -Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
 -Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler \
 ${DATACLAY_CONFIG_OPT} \
 es.bsc.compss.agent.Agent
+
+
+java \
+-cp "${CLASSPATH}" \
+-Dcompss.masterName="${AGENT_HOSTNAME}" \
+-Dcompss.uuid="${uuid}" \
+-Dcompss.appLogDir="${LOG_DIR}" \
+-Dcompss.comm=${comm} \
+-Dcompss.agent.configpath="${COMPSS_HOME}/Runtime/configuration/agents/all.json" \
+-Dcompss.project.file="${PROJECT_FILE}" \
+-Dcompss.resources.file="${RESOURCES_FILE}" \
+-Dcompss.project.schema="${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd" \
+-Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
+-Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
+-Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler \
+${DATACLAY_CONFIG_OPT} \
+es.bsc.compss.agent.Agent
+
 

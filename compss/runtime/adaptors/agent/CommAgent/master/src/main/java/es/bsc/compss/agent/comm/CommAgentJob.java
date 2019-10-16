@@ -187,8 +187,14 @@ class CommAgentJob extends NIOJob {
         if (sourceData != null) {
             RemoteDataInformation remoteData = new RemoteDataInformation(renaming);
             for (NIOUri uri : sourceData.getSources()) {
-                CommAgentURI caURI = (CommAgentURI) uri;
-                remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
+                if (uri instanceof CommAgentURI) {
+                    CommAgentURI caURI = (CommAgentURI) uri;
+                    remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
+                } else {
+                    CommAgentURI caURI = new CommAgentURI(uri);
+                    remoteData.addSource(new RemoteDataLocation(caURI.getAgent(), uri.getPath()));
+                }
+
             }
 
             commParam.setRemoteData(remoteData);

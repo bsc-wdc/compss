@@ -16,9 +16,9 @@
  */
 package es.bsc.compss.local;
 
-import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
@@ -82,7 +82,13 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         }
 
         for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
-            this.arguments.add(new LocalParameter(params.get(paramIdx)));
+            Parameter p = params.get(paramIdx);
+            if (p.getType() == DataType.COLLECTION_T) {
+                this.arguments.add(new LocalParameterCollection(p));
+            } else {
+                this.arguments.add(new LocalParameter(p));
+            }
+            // this.arguments.add(new LocalParameter(params.get(paramIdx)));
         }
 
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;

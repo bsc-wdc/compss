@@ -81,26 +81,23 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
     public void start(final CommAgentConfig conf) throws AgentException {
         final int port = conf.getPort();
         System.setProperty(COMPSsConstants.MASTER_PORT, Integer.toString(port));
-        adaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.ID);
-        if (adaptor == null) {
-            CommAgentAdaptor nioAdaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.ID);
-            CommAgentAdaptor commAgentAdaptor;
-            commAgentAdaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.class.getCanonicalName());
-            if (nioAdaptor == null && commAgentAdaptor == null) {
-                adaptor = new CommAgentAdaptor(this);
-                LOGGER.info("Starting CommAgent on port " + port);
-                adaptor.init();
-                Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
+        CommAgentAdaptor nioAdaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.ID);
+        CommAgentAdaptor commAgentAdaptor;
+        commAgentAdaptor = (CommAgentAdaptor) Comm.getAdaptors().get(CommAgentAdaptor.class.getCanonicalName());
+        if (nioAdaptor == null && commAgentAdaptor == null) {
+            adaptor = new CommAgentAdaptor(this);
+            LOGGER.info("Starting CommAgent on port " + port);
+            adaptor.init();
+            Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
+            Comm.registerAdaptor(CommAgentAdaptor.class.getCanonicalName(), adaptor);
+        } else {
+            if (nioAdaptor == null) {
+                adaptor = commAgentAdaptor;
                 Comm.registerAdaptor(CommAgentAdaptor.class.getCanonicalName(), adaptor);
             } else {
-                if (nioAdaptor == null) {
-                    adaptor = commAgentAdaptor;
-                    Comm.registerAdaptor(CommAgentAdaptor.class.getCanonicalName(), adaptor);
-                } else {
-                    // commAgentAdaptor == null
-                    adaptor = nioAdaptor;
-                    Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
-                }
+                // commAgentAdaptor == null
+                adaptor = nioAdaptor;
+                Comm.registerAdaptor(CommAgentAdaptor.ID, adaptor);
             }
         }
     }

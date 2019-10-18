@@ -16,6 +16,7 @@ from modules.utils import verify_line
 from pycompss.api.api import compss_open
 from pycompss.api.api import compss_delete_file
 from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_wait_on
 
 from pycompss.api.task import task
 from pycompss.api.parameter import FILE_OUT
@@ -128,15 +129,16 @@ class TestBasicTypes(unittest.TestCase):
         assert np.array_equal(result, c_arg)
         print("\t OK")
 
-    def test_collection_in(self):
+    def test_collection_inout(self):
         """
         Tries COLLECTION_INOUT parameter passing.
         """
         print("Running collection inout task")
         c_arg = np.zeros(4)
-        result = test_collection_inout(c_arg)
-        result = compss_wait_on(result)
-        for elem in c_arg:
+        test_collection_inout(c_arg)
+        c_arg = compss_wait_on(c_arg)
+        expected = np.zeros(4)
+        for elem in expected:
             elem += 1.0
-        assert np.array_equal(result, c_arg)
+        assert np.array_equal(c_arg, expected)
         print("\t OK")

@@ -313,7 +313,7 @@ def delete_file(file_name):
     """
     if __debug__:
         logger.debug("Deleting file %s" % file_name)
-    result = compss.delete_file(file_name) == 'true'
+    result = compss.delete_file(file_name, True) == 'true'
     if __debug__:
         if result:
             logger.debug("File %s successfully deleted." % file_name)
@@ -355,7 +355,7 @@ def delete_object(obj):
         pass
     try:
         file_name = objid_to_filename[obj_id]
-        compss.delete_file(file_name)
+        compss.delete_file(file_name, False)
     except KeyError:
         pass
     try:
@@ -683,7 +683,7 @@ def synchronize(obj, mode):
         _objs_written_by_mp[new_obj_id] = objid_to_filename[new_obj_id]
 
     if mode != 'r':
-        compss.delete_file(objid_to_filename[obj_id])
+        compss.delete_file(objid_to_filename[obj_id], False)
         objid_to_filename.pop(obj_id)
         pending_to_synchronize.pop(obj_id)
         pop_object_id(obj)
@@ -1386,7 +1386,7 @@ def _clean_objects():
     :return: None
     """
     for filename in objid_to_filename.values():
-        compss.delete_file(filename)
+        compss.delete_file(filename, False)
     pending_to_synchronize.clear()
     _addr2id2obj.clear()
     objid_to_filename.clear()

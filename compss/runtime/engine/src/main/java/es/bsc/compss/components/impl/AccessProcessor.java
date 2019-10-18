@@ -822,27 +822,27 @@ public class AccessProcessor implements Runnable, TaskProducer {
      *
      * @param loc Location to delete.
      */
-    public void markForDeletion(DataLocation loc) {
+    public void markForDeletion(DataLocation loc, boolean waitForData) {
         LOGGER.debug("Marking data " + loc + " for deletion");
         Semaphore sem = new Semaphore(0);
         Semaphore semWait = new Semaphore(0);
+        if (waitForData) {
+            WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc, sem, semWait);
+            // Wait for data to be ready for deletion
+            if (!this.requestQueue.offer(request)) {
+                ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
+            }
 
-        WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc, sem, semWait);
-        // Wait for data to be ready for deletion
-        if (!this.requestQueue.offer(request)) {
-            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for data ready to delete");
+            // Wait for response
+            LOGGER.debug("Waiting for ready to delete request response...");
+            sem.acquireUninterruptibly();
+
+            int nPermits = request.getNumPermits();
+            if (nPermits > 0) {
+                LOGGER.debug("Waiting for " + nPermits + " tasks to finish...");
+                semWait.acquireUninterruptibly(nPermits);
+            }
         }
-
-        // Wait for response
-        LOGGER.debug("Waiting for ready to delete request response...");
-        sem.acquireUninterruptibly();
-
-        int nPermits = request.getNumPermits();
-        if (nPermits > 0) {
-            LOGGER.debug("Waiting for " + nPermits + " tasks to finish...");
-            semWait.acquireUninterruptibly(nPermits);
-        }
-
         // Request to delete data
         if (!this.requestQueue.offer(new DeleteFileRequest(loc, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");

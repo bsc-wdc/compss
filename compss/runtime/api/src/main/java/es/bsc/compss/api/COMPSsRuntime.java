@@ -250,6 +250,15 @@ public interface COMPSsRuntime {
     public boolean deleteFile(String fileName);
 
     /**
+     * Deletes the specified version of a file.
+     *
+     * @param fileName File name.
+     * @param waitForData Flag to indicate if we want to wait for the data ready before removing
+     * @return true if the {@code fileName} has been deleted, false otherwise.
+     */
+    public boolean deleteFile(String fileName, boolean waitForData);
+
+    /**
      * Returns last version of file with its original name.
      *
      * @param appId Application id.

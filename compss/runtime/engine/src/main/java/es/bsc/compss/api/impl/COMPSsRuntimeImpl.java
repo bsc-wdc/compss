@@ -909,6 +909,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public boolean deleteFile(String fileName) {
+        return deleteFile(fileName, true);
+    }
+
+    @Override
+    public boolean deleteFile(String fileName, boolean waitForData) {
         // Check parameters
         if (fileName == null || fileName.isEmpty()) {
             return false;
@@ -924,7 +929,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         // Parse the file name and translate the access mode
         try {
             DataLocation loc = createLocation(fileName);
-            ap.markForDeletion(loc);
+            ap.markForDeletion(loc, waitForData);
             // Java case where task files are stored in the registry
             if (sReg != null) {
                 sReg.deleteTaskFile(fileName);
@@ -988,7 +993,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         String intermediateTmpPath = renamedPath + ".tmp";
         rename(renamedPath, intermediateTmpPath);
         closeFile(fileName, Direction.IN);
-        ap.markForDeletion(sourceLocation);
+        ap.markForDeletion(sourceLocation, true);
         // In the case of Java file can be stored in the Stream Registry
         if (sReg != null) {
             sReg.deleteTaskFile(fileName);

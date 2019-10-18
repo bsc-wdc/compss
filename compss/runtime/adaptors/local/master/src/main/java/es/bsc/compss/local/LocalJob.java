@@ -84,7 +84,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
         for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
             Parameter p = params.get(paramIdx);
-            
+
             this.arguments.add(generateLocalParameter(p));
         }
 
@@ -96,7 +96,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
     private LocalParameter generateLocalParameter(Parameter p) {
         if (p.getType() == DataType.COLLECTION_T) {
-            CollectionParameter cp = (CollectionParameter)p;
+            CollectionParameter cp = (CollectionParameter) p;
             LocalParameterCollection lpc = new LocalParameterCollection(p);
             for (Parameter subParam : cp.getParameters()) {
                 lpc.addParameter(generateLocalParameter(subParam));

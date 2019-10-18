@@ -111,7 +111,7 @@ FILE* compss_fopen(char * filename, char * mode) {
 }
 
 void compss_delete_file(char *filename) {
-    GS_Delete_File(filename);
+    GS_Delete_File(filename,0);
     return;
 }
 

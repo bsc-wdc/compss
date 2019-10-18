@@ -276,7 +276,7 @@ void init_master_jni_types() {
     }
 
     // deleteFile method
-    midDeleteFile = m_env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;)Z");
+    midDeleteFile = m_env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;Z)Z");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -1163,12 +1163,15 @@ void GS_Close_File(char *file_name, int mode) {
     debug_printf("[BINDING-COMMONS]  -  @GS_Close_File  -  COMPSs filename: %s\n", file_name);
 }
 
-void GS_Delete_File(char *file_name) {
+void GS_Delete_File(char *file_name, int wait) {
 
 	get_lock();
     int isAttached = check_and_attach(m_jvm, m_env);
 
-    jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteFile, m_env->NewStringUTF(file_name));
+    bool _wait = false;
+    if (wait != 0) _wait = true;
+
+    jboolean res = m_env->CallBooleanMethod(jobjIT, midDeleteFile, m_env->NewStringUTF(file_name), _wait);
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_Delete_File  -  Error: Exception received when calling deleteFile.\n");
         m_env->ExceptionDescribe();

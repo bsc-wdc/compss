@@ -403,8 +403,9 @@ static PyObject *
 delete_file(PyObject *self, PyObject *args) {
     debug("####C#### DELETE FILE\n");
     char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    bool wait = PyObject_IsTrue(PyTuple_GetItem(args, 1));
     debug("####C#### Calling Delete File with file %s\n", file_name);
-    GS_Delete_File(file_name);
+    GS_Delete_File(file_name, wait);
     debug("####C#### COMPSs delete file name %s with result %d \n", file_name, 0);
     Py_RETURN_NONE;
 }

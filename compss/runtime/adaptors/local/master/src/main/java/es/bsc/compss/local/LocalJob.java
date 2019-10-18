@@ -28,6 +28,7 @@ import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.Job;
 import es.bsc.compss.types.job.JobListener;
+import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
@@ -72,29 +73,43 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
         for (int rIdx = 0; rIdx < numReturns; rIdx++) {
             Parameter p = params.get(params.size() - numReturns + rIdx);
-            this.results.addFirst(new LocalParameter(p));
+            this.results.addFirst(generateLocalParameter(p));
         }
         paramsCount -= numReturns;
         if (hasTarget) {
             Parameter p = params.get(params.size() - numReturns - 1);
-            this.target = new LocalParameter(p);
+            this.target = generateLocalParameter(p);
             paramsCount--;
         }
 
         for (int paramIdx = 0; paramIdx < paramsCount; paramIdx++) {
             Parameter p = params.get(paramIdx);
-            if (p.getType() == DataType.COLLECTION_T) {
-                this.arguments.add(new LocalParameterCollection(p));
-            } else {
-                this.arguments.add(new LocalParameter(p));
-            }
-            // this.arguments.add(new LocalParameter(params.get(paramIdx)));
+            
+            this.arguments.add(generateLocalParameter(p));
         }
 
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
 
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
         this.reqs = absMethodImpl.getRequirements();
+    }
+
+    private LocalParameter generateLocalParameter(Parameter p) {
+        if (p.getType() == DataType.COLLECTION_T) {
+            CollectionParameter cp = (CollectionParameter)p;
+            LocalParameterCollection lpc = new LocalParameterCollection(p);
+            for (Parameter subParam : cp.getParameters()) {
+                lpc.addParameter(generateLocalParameter(subParam));
+            }
+            return lpc;
+        } else {
+            return new LocalParameter(p);
+        }
+    }
+
+    private LocalParameter addParameter(Parameter p) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override

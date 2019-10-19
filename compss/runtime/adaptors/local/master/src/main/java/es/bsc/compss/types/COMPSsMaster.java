@@ -1046,6 +1046,8 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case OBJECT_T:
+                path = ProtocolType.OBJECT_URI.getSchema() + name;
+                break;
             case COLLECTION_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;

@@ -240,15 +240,6 @@ public abstract class ExternalInvoker extends Invoker {
             case COLLECTION_T:
                 InvocationParamCollection<InvocationParam> icp = (InvocationParamCollection<InvocationParam>) np;
                 writeCollection(icp);
-                String pathToWrite = (String) np.getValue();
-                try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
-                    for (InvocationParam subParam : icp.getCollectionParameters()) {
-                        writer.println(subParam.getType().ordinal() + " " + subParam.getValue());
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Error writting collection to file");
-                    e.printStackTrace();
-                }
                 paramArgs.add(np.getValue().toString());
                 break;
             default:
@@ -260,6 +251,7 @@ public abstract class ExternalInvoker extends Invoker {
     @SuppressWarnings("unchecked")
     private static void writeCollection(InvocationParamCollection<InvocationParam> icp) {
         String pathToWrite = (String) icp.getValue();
+        LOGGER.debug("Writting Collection file " + pathToWrite + " ");
         if (new File(pathToWrite).exists()) {
             LOGGER.debug("Collection file " + pathToWrite + " already written");
         } else {

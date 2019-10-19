@@ -49,6 +49,18 @@ public class LocalParameter implements InvocationParam {
 
 
     /**
+     * Creates a new LocalParameter instance for externalization.
+     */
+    public LocalParameter() {
+        // Only executed by externalizable
+        this.param = null;
+        this.preserveSourceData = false;
+        this.writeFinalValue = false;
+        this.sourceDataMgmtId = null;
+        this.dataMgmtId = null;
+    }
+
+    /**
      * Creates a new LocalParameter instance from the given parameter information.
      * 
      * @param param Parameter information.
@@ -59,6 +71,7 @@ public class LocalParameter implements InvocationParam {
         switch (type) {
             case FILE_T:
             case OBJECT_T:
+            case COLLECTION_T:
             case STREAM_T:
             case PSCO_T:
             case EXTERNAL_STREAM_T:
@@ -87,7 +100,7 @@ public class LocalParameter implements InvocationParam {
                     RWAccessId rwaId = (RWAccessId) faId;
                     this.sourceDataMgmtId = rwaId.getReadDataInstance().getRenaming();
                     this.dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
-                    if (type != DataType.FILE_T) {
+                    if (type != DataType.FILE_T && type != DataType.COLLECTION_T) {
                         this.value = "tmp" + this.value;
                     }
 

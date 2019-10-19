@@ -959,6 +959,24 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 LOGGER.debug("tgtData: " + tgtData.toString());
             }
         }
+        if (reason != null && reason.getType().equals(DataType.COLLECTION_T)) {
+
+            String targetPath;
+            if (target != null) {
+                targetPath = target.getURIInHost(Comm.getAppHost()).getPath();
+
+            } else if (tgtData != null) {
+                targetPath = tgtData.getName();
+            } else {
+                targetPath = ld.getName();
+                LOGGER.warn("No target location neither target data available. Setting targetPath to " + ld.getName());
+            }
+            LOGGER.debug("Data " + ld.getName() + "is COLLECTION_T nothing to tranfer. Elements already transferred."
+                + "Setting target path to " + targetPath);
+            reason.setDataTarget(targetPath);
+            listener.notifyEnd(null);
+            return;
+        }
         /*
          * Check if data is binding data
          */
@@ -1028,8 +1046,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case OBJECT_T:
-            case COLLECTION_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + name;
+                break;
+            case COLLECTION_T:
+                path = ProtocolType.OBJECT_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case STREAM_T:
                 path = ProtocolType.STREAM_URI.getSchema() + name;
@@ -1279,6 +1299,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         LocalParameter localParam = (LocalParameter) invParam;
         Parameter param = localParam.getParam();
         switch (param.getType()) {
+            case COLLECTION_T:
             case FILE_T:
             case EXTERNAL_STREAM_T:
                 // No need to store anything. Already stored on disk

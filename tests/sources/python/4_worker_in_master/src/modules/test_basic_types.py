@@ -9,19 +9,24 @@ PyCOMPSs Testbench Tasks
 
 # Imports
 import unittest
+import numpy as np
 
 from modules.utils import verify_line
 
 from pycompss.api.api import compss_open
 from pycompss.api.api import compss_delete_file
 from pycompss.api.api import compss_barrier
+from pycompss.api.api import compss_wait_on
 
 from pycompss.api.task import task
 from pycompss.api.parameter import FILE_OUT
+from pycompss.api.parameter import COLLECTION_IN
+from pycompss.api.parameter import COLLECTION_INOUT
 
 
 @task(filepath=FILE_OUT)
-def test_basic_types(filepath, b_arg, c_arg, s_arg, by_arg, sh_arg, i_arg, l_arg, f_arg, d_arg):
+def test_basic_types(filepath, b_arg, c_arg, s_arg, by_arg, sh_arg, i_arg,
+                     l_arg, f_arg, d_arg):
     """
     Prints into a file the values received as a parameter.
 
@@ -49,9 +54,22 @@ def test_basic_types(filepath, b_arg, c_arg, s_arg, by_arg, sh_arg, i_arg, l_arg
         f_channel.write("- double: " + str(d_arg)+"\n")
 
 
+@task(coll_arg=COLLECTION_IN)
+def test_collection_in(coll_arg):
+    assert np.array_equal(coll_arg, np.zeros(4))
+    return coll_arg
+
+
+@task(c=COLLECTION_INOUT)
+def test_collection_inout(c):
+    for elem in c:
+        elem += 1.0
+
+
 class TestBasicTypes(unittest.TestCase):
     """
-    Unit Test verifying the execution of a task passing in primitive-type parameters.
+    Unit Test verifying the execution of a task passing in primitive-type
+    parameters.
     """
 
     def test_basic_types(self):
@@ -69,7 +87,8 @@ class TestBasicTypes(unittest.TestCase):
         l_val = 7777
         f_val = 7.7
         d_val = 7.77777
-        test_basic_types(filename, b_val, c_val, s_val, by_val, sh_val, i_val, l_val, f_val, d_val)
+        test_basic_types(filename, b_val, c_val, s_val, by_val, sh_val,
+                         i_val, l_val, f_val, d_val)
 
         with compss_open(filename, "r") as f_channel:
             line = f_channel.readline()
@@ -97,4 +116,29 @@ class TestBasicTypes(unittest.TestCase):
 
         compss_delete_file(filename)
         compss_barrier()
+        print("\t OK")
+
+    def test_collection_in(self):
+        """
+        Tries COLLECTION_IN parameter passing.
+        """
+        print("Running collection in task")
+        c_arg = np.zeros(4)
+        result = test_collection_in(c_arg)
+        result = compss_wait_on(result)
+        assert np.array_equal(result, c_arg)
+        print("\t OK")
+
+    def test_collection_inout(self):
+        """
+        Tries COLLECTION_INOUT parameter passing.
+        """
+        print("Running collection inout task")
+        c_arg = np.zeros(4)
+        test_collection_inout(c_arg)
+        c_arg = compss_wait_on(c_arg)
+        expected = np.zeros(4)
+        for elem in expected:
+            elem += 1.0
+        assert np.array_equal(c_arg, expected)
         print("\t OK")

@@ -79,4 +79,10 @@ public class CommandCheckWorker implements Command {
         return "CommandCheckWorker for deployment ID " + this.uuid + " on nodeName " + this.nodeName;
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        // Nothing to do
+
+    }
+
 }

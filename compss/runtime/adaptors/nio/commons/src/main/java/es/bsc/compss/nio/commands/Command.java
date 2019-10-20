@@ -32,4 +32,6 @@ public interface Command extends Externalizable {
      */
     public abstract void handle(NIOAgent agent, Connection c);
 
+    public abstract void error(NIOAgent agent, Connection c);
+
 }

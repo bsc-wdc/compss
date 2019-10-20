@@ -54,4 +54,10 @@ public class CommandShutdownACK implements Command {
         return "ShutdownACK";
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleShutdownACKCommandError(c, this);
+
+    }
+
 }

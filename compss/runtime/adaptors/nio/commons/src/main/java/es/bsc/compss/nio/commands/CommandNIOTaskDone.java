@@ -27,10 +27,11 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandNIOTaskDone implements Command {
+public class CommandNIOTaskDone extends RetriableCommand {
 
     private boolean successful;
     private NIOTaskResult tr;
+    private String jobHistory;
     private COMPSsException compssException;
 
 
@@ -48,8 +49,9 @@ public class CommandNIOTaskDone implements Command {
      * @param tr Task result.
      * @param successful Whether the task has successfully finished or not.
      */
-    public CommandNIOTaskDone(NIOTaskResult tr, boolean successful, COMPSsException e) {
+    public CommandNIOTaskDone(NIOTaskResult tr, boolean successful, String jobHistory, COMPSsException e) {
         this.tr = tr;
+        this.jobHistory = jobHistory;
         this.successful = successful;
         this.compssException = e;
     }
@@ -75,6 +77,7 @@ public class CommandNIOTaskDone implements Command {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.successful = in.readBoolean();
         this.tr = (NIOTaskResult) in.readObject();
+        this.jobHistory = in.readUTF();
         this.compssException = (COMPSsException) in.readObject();
     }
 
@@ -82,12 +85,27 @@ public class CommandNIOTaskDone implements Command {
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeBoolean(this.successful);
         out.writeObject(this.tr);
+        out.writeUTF(this.jobHistory);
         out.writeObject(this.compssException);
     }
 
     @Override
     public String toString() {
         return "Job" + this.tr.getJobId() + " finishes " + (this.successful ? "properly" : "with some errors");
+    }
+
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleTaskDoneCommandError(c, this);
+
+    }
+
+    public NIOTaskResult getTaskResult() {
+        return this.tr;
+    }
+
+    public String getJobHistory() {
+        return this.jobHistory;
     }
 
 }

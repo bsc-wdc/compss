@@ -50,4 +50,10 @@ public class CommandGenerateDone implements Command {
         return "GeneratingTraceCommandDone";
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleTracingGenerateDoneCommandError(c, this);
+
+    }
+
 }

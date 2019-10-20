@@ -25,7 +25,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandCancelTask implements Command {
+public class CommandCancelTask extends RetriableCommand {
 
     // Job description
     private int jobId;
@@ -71,6 +71,12 @@ public class CommandCancelTask implements Command {
     @Override
     public String toString() {
         return "New Task with job ID " + this.jobId;
+    }
+
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleCancellingTaskCommandError(c, this);
+
     }
 
 }

@@ -70,4 +70,10 @@ public class CommandCheckWorkerACK implements Command {
         return "CommandCheckWorkerACK for deployment ID " + this.uuid;
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        // Nothing to do
+
+    }
+
 }

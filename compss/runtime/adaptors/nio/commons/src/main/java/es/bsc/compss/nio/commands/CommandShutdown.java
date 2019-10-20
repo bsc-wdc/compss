@@ -69,4 +69,10 @@ public class CommandShutdown implements Command {
         return "Shutdown";
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleShutdownCommandError(c, this);
+
+    }
+
 }

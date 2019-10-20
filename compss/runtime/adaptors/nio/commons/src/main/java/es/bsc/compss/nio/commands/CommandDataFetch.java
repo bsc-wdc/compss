@@ -72,4 +72,10 @@ public class CommandDataFetch implements Command {
         return "Data Fetch " + this.param;
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        // Nothing to do
+
+    }
+
 }

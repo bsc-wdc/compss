@@ -67,4 +67,10 @@ public class RemoveResourcesCommand implements Command {
         }
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        System.err.println("Error processing remove resources command in connection " + c.hashCode());
+
+    }
+
 }

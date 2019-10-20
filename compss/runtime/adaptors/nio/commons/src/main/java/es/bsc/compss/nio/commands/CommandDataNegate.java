@@ -74,4 +74,10 @@ public class CommandDataNegate implements Command {
             + (this.hosted ? ", although it is in the node" : " since the node does not have it");
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        // Nothing to do
+
+    }
+
 }

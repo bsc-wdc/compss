@@ -22,7 +22,7 @@ import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.exceptions.CommException.ErrorType;
 import es.bsc.comm.nio.exceptions.NIOException;
 import es.bsc.comm.stage.Transfer;
-
+import es.bsc.comm.stage.Transfer.Type;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
 
@@ -66,8 +66,33 @@ public class NIOMessageHandler implements MessageHandler {
         String errorText =
             "NIO Error: " + ce.getMessage() + " processing " + ((t == null) ? "null" : t.hashCode()) + "\n";
         LOGGER.error(errorText, ce);
-
-        this.agent.receivedRequestedDataNotAvailableError(c, t);
+        if (t != null) {
+            switch (t.getType()) {
+                case DATA:
+                    this.agent.receivedRequestedDataNotAvailableError(c);
+                    break;
+                case COMMAND:
+                    Command command = (Command) t.getObject();
+                    if (command != null) {
+                        command.error(this.agent, c);
+                    } else {
+                        if (!this.agent.receivedRequestedDataNotAvailableError(c)) {
+                            this.agent.unhandeledError(c);
+                        }
+                    }
+                    break;
+                default:
+                    if (!this.agent.receivedRequestedDataNotAvailableError(c)) {
+                        this.agent.unhandeledError(c);
+                    }
+                    break;
+            }
+        } else {
+            LOGGER.error(" Tranfer object is null. ");
+            if (!this.agent.receivedRequestedDataNotAvailableError(c)) {
+                this.agent.unhandeledError(c);
+            }
+        }
 
         // Handle FINISH_CONNECTION and CLOSED CONNECTION errors
         /*

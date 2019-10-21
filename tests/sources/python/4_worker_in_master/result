@@ -53,5 +53,42 @@
   fi
 
   #----------------------------------------------------------------------------------
+  # Specific checks
+  jobs_logs="${target_log_folder}/jobs"
+
+  monday_file=$(grep -r -l "date -d next monday" "$jobs_logs")
+  mondayDate1=$(LANG=en_US date -d "next monday")
+  mondayDate2=$(date -d "next monday")
+  monday=$(grep -E "$mondayDate1|$mondayDate2" "$monday_file")
+  if [ "$monday" = "" ]; then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a "${output_file}"
+    echo "  - FILE:     $monday_file" | tee -a "${output_file}"
+    echo "  - GOT:      $monday" | tee -a "${output_file}"
+    echo "  - EXPECTED: $mondayDate1 or $mondayDate2" | tee -a "${output_file}"
+    exit 1
+  else
+    appearances=$(grep -c "$mondayDate2" "$monday_file")
+    if [ ! "$appearances" -eq "4" ]; then
+      echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function computing_nodes parameter failed." | tee -a "${output_file}"
+      exit 1
+    fi
+  fi
+  
+  tuesday_file=$(grep -r -l "date -d next tuesday" "$jobs_logs")
+  tuesdayDate1=$(LANG=en_US date -d "next tuesday")
+  tuesdayDate2=$(date -d "next tuesday")
+  tuesday=$(grep -E "$tuesdayDate1|$tuesdayDate2" "$tuesday_file")
+  if [ "$tuesday" = "" ]; then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function failed." | tee -a "${output_file}"
+    echo "  - FILE:     $tuesday_file" | tee -a "${output_file}"
+    echo "  - GOT:      $tuesday" | tee -a "${output_file}"
+    echo "  - EXPECTED: $tuesdayDate1 or $tuesdayDate2" | tee -a "${output_file}"
+    exit 1
+  elif grep "Null value obtained while loading \$CUS from environment" "${target_log_folder}"/runtime.log; then
+    echo "WARNING: TASK FAILED: testFunctionalUsageWithEnvVarConstraint function received NULL environment variable." | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
   # Report result status
   exit 0

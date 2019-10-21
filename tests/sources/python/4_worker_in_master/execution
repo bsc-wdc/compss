@@ -27,6 +27,8 @@
   echo
   echo "*** RUNNING PYTHON APPLICATION  WORKER IN MASTER"
 
+  export CUS=2
+
   for python_interpreter in ${execution_envs}; do
     echo "   - Running with Interpreter: ${python_interpreter}"
     output_log="${target_log_folder}/${app_name}_${python_interpreter}_0${retry_num}.outputlog"

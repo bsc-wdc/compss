@@ -24,10 +24,15 @@ PyCOMPSs Util - Object properties
     For example, check if an object belongs to a module and so on.
 """
 
-import os
+import os, sys
 import imp
 import inspect
+from pycompss.runtime.commons import IS_PYTHON3
 
+if IS_PYTHON3:
+    import builtins as _builtins
+else:
+    import __builtin__ as _builtins
 
 def get_defining_class(meth):
     """
@@ -203,3 +208,32 @@ def object_belongs_to_module(obj, module_name):
                         False otherwise
     """
     return any(module_name == x for x in type(obj).__module__.split('.'))
+
+
+def create_object_by_con_type(con_type, default=object):
+    path, class_name = con_type.split(":")
+    if hasattr(_builtins, class_name):
+        _obj = getattr(_builtins, class_name)
+        return _obj()
+    try:
+        import importlib
+        sys.path.append(path)
+        module = importlib.import_module(path.split("/")[-1].split(".py")[0])
+        klass = getattr(module, class_name)
+        ret = klass()
+        return ret
+    except Exception:
+        # todo: handle the exception?
+        pass
+    #
+    # if IS_PYTHON3:
+    #     from importlib.machinery import SourceFileLoader
+    #     module = SourceFileLoader(class_name, path).load_module()
+    # else:
+    #     module = __import__(path, globals(), locals(), [path], -1)
+    # ret = getattr(module, class_name)()
+    # print("__________NM")
+    # print(ret)
+    # return ret
+    #
+    return default()

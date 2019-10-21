@@ -65,7 +65,8 @@ except ImportError:
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 TYPE = DataType
-UNDEFINED_CONTENT_TYPE = "#UNDEFINED#"
+UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
+
 
 # Numbers match both C and Java enums
 class DIRECTION(object):

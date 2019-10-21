@@ -36,6 +36,7 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
+from pycompss.util.objects.properties import create_object_by_con_type
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -1142,6 +1143,8 @@ class Task(object):
                 # consulting it
                 arg.collection_content = []
                 col_f_name = arg.file_name.split(':')[-1]
+                _col_dir = self.decorator_arguments[arg.name].direction
+                # TODO: send proper file names for collections
                 if not os.path.exists(col_f_name):
                     col_f_name = "../" + col_f_name
 
@@ -1161,15 +1164,20 @@ class Task(object):
                                                           sub_name,
                                                           content_file,
                                                           arg.content_type)
-                        # Recursively call the retrieve method, fill the content
-                        # field in our new taskParameter object
-                        retrieve_content(sub_arg, sub_name)
-                        arg.content.append(sub_arg.content)
-                        arg.collection_content.append(sub_arg)
+                        if _col_dir == parameter.DIRECTION.OUT:
+                            temp = create_object_by_con_type(content_type)
+                            sub_arg.content = temp
+                            arg.content.append(sub_arg.content)
+                            arg.collection_content.append(sub_arg)
+                        else:
+                            # Recursively call the retrieve method, fill the
+                            # content field in our new taskParameter object
+                            retrieve_content(sub_arg, sub_name)
+                            arg.content.append(sub_arg.content)
+                            arg.collection_content.append(sub_arg)
                     else:
                         arg.content.append(content_file)
                         arg.collection_content.append(content_file)
-
 
             elif not storage_supports_pipelining() and \
                     arg.type == parameter.TYPE.EXTERNAL_PSCO:
@@ -1371,8 +1379,10 @@ class Task(object):
             original_name = parameter.get_original_name(arg.name)
             param = self.decorator_arguments.get(original_name,
                                                  self.get_default_direction(original_name))  # noqa
-            if (param.direction == parameter.DIRECTION.INOUT or
-                param.direction == parameter.DIRECTION.COMMUTATIVE) and \
+            # todo: simplify this 'if'..
+            if ((param.direction == parameter.DIRECTION.INOUT or
+                param.direction == parameter.DIRECTION.COMMUTATIVE) or
+                (arg.type == parameter.TYPE.COLLECTION and param.direction == parameter.DIRECTION.OUT)) and \
                     not (arg.type == parameter.TYPE.EXTERNAL_PSCO or
                          is_psco(arg.content)):
                 # If it si INOUT and not PSCO, serialize to file

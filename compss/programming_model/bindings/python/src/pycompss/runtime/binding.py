@@ -138,6 +138,8 @@ _runtime_id = str(uuid.uuid1())
 # to their filenames
 _addr2id2obj = {}
 
+content_type_format = "{}:{}"   # <module_path>:<class_name>
+
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
     """
@@ -1066,7 +1068,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
             param.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
-        con_type = str(type(param.object).__name__)
+        con_type = content_type_format.format(
+            "builtins", str(param.object.__class__.__name__))
 
     if param.type == TYPE.FILE or param.is_future:
         # If the parameter is a file or is future, the content is in a file
@@ -1078,7 +1081,11 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # we register it as file
         value = param.file_name
         typ = TYPE.FILE
-        con_type = str(type(param.object).__name__)
+
+        _mf = sys.modules[param.object.__class__.__module__].__file__
+        _class_name = str(param.object.__class__.__name__)
+        con_type = content_type_format.format(_mf, _class_name)
+
     elif param.type == TYPE.EXTERNAL_STREAM:
         # If the parameter type is stream, its value is stored in a file but
         # we keep the type
@@ -1099,7 +1106,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     type1 Id1
         #     ...
         #     typeN IdN
-        con_type = str(type(param.object).__name__)
+        _class_name = str(param.object.__class__.__name__)
+        con_type = content_type_format.format("collection", _class_name)
         value = "{} {} {}".format(get_object_id(param.object),
                                    len(param.object), con_type)
         typ = TYPE.COLLECTION
@@ -1110,8 +1118,6 @@ def _extract_parameter(param, code_strings, collection_depth=0):
                 param.depth - 1
             )
             value += ' %s %s %s' % (x_type, x_value, x_con_type)
-            # if param.direction == DIRECTION.OUT:
-            #     value += ' {}'.format(str(type(x.object).__name__))
     else:
         # Keep the original value and type
         value = param.object

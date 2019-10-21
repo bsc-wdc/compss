@@ -46,6 +46,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     private LinkedList<LocalParameter> results;
     private MethodResourceDescription reqs;
     private final List<String> slaveWorkersNodeNames;
+    private TaskType taskType;
 
 
     /**
@@ -62,7 +63,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         List<String> slaveWorkersNodeNames, JobListener listener) {
 
         super(taskId, task, impl, res, listener);
-
+        this.taskType = impl.getTaskType();
         // Construct parameters
         final boolean hasTarget = this.taskParams.hasTargetObject();
         final int numReturns = this.taskParams.getNumReturns();
@@ -128,45 +129,17 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
     @Override
     public TaskType getTaskType() {
-        return TaskType.METHOD;
+        return taskType;
     }
 
     @Override
     public String toString() {
-        AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
-        String className;
-        switch (absMethodImpl.getMethodType()) {
-            case METHOD:
-                MethodImplementation method = (MethodImplementation) this.impl;
-                className = method.getDeclaringClass();
-                break;
-            case MULTI_NODE:
-                MultiNodeImplementation multiNodeMethod = (MultiNodeImplementation) this.impl;
-                className = multiNodeMethod.getDeclaringClass();
-                break;
-            default:
-                ErrorManager
-                    .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
-                return null;
-        }
-
-        String methodName = this.taskParams.getName();
-        return "LocalJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
+        return "LocalJob JobId" + this.jobId + " for task " + this.impl.getSignature();
     }
 
     @Override
     public AbstractMethodImplementation getMethodImplementation() {
-        AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
-        switch (absMethodImpl.getMethodType()) {
-            case METHOD:
-                return (MethodImplementation) this.impl;
-            case MULTI_NODE:
-                return (MultiNodeImplementation) this.impl;
-            default:
-                ErrorManager
-                    .error("ERROR: Unrecognised methodtype " + absMethodImpl.getMethodType() + " on local adaptor");
-                return null;
-        }
+        return (AbstractMethodImplementation) this.impl;
     }
 
     @Override

@@ -128,7 +128,7 @@ public class NIOParamFactory {
         // Create the NIO Param
         boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
         NIOParam np = new NIOParam(dataMgmtId, param.getType(), param.getStream(), param.getPrefix(), param.getName(),
-            param.getContentType(), preserveSourceData, writeFinalValue, value, (NIOData) dPar.getDataSource(),
+            param.getContentType(), dPar.isSourcePreserved(), writeFinalValue, value, (NIOData) dPar.getDataSource(),
             dPar.getOriginalName());
         return np;
     }

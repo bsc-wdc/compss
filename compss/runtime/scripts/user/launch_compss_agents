@@ -570,13 +570,6 @@ get_args() {
   # Shift COMPSs arguments
   shift $((OPTIND-1))
 
-  # Wrap full app path for lang inference
-  fullAppPath=$1
-
-  # Pass application name and args
-  args_pass="$args_pass $*"
-
-  shift 1
   app_args="$*"
 }
 
@@ -1082,7 +1075,7 @@ launch() {
   echo "Wait until master is awake..."
   while [ true ]; do
     sleep 1
-    curl -XGET http://${master_node}${network}:46101/COMPSs/test # 2>/dev/null
+    curl -s -XGET http://${master_node}${network}:46101/COMPSs/test # 2>/dev/null
     if [ $? -eq 0 ]; then
       break;
     fi
@@ -1096,7 +1089,7 @@ launch() {
     sleep 1
     CONFIRMED_AGENTS=0
     for worker in "${worker_nodes}"; do
-      curl -XGET http://${worker}${network}:46101/COMPSs/test # 2>/dev/null
+      curl -s -XGET http://${worker}${network}:46101/COMPSs/test # 2>/dev/null
       if [ $? -eq 0 ]; then
         CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
       fi
@@ -1104,36 +1097,15 @@ launch() {
   done  
   echo "All nodes are ready"
 
-  curl -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null
+  curl -s -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null
   for worker in "${worker_nodes}"; do
-    curl -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
+    curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
   done
 
   echo "------ Launching Execution ------"
-
-
-  
-  app_cmd="curl"
-  http_resource="http://${master_node}${network}:46101/COMPSs/startApplication"
-  http_header="content-type: application/xml"
-  http_data="<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" standalone=\\\"yes\\\"?><startApplication><ceiClass>${fullAppPath}Itf</ceiClass><className>${fullAppPath}</className><hasResult>false</hasResult><methodName>main</methodName><parameters><params paramId=\\\"0\\\"><direction>IN</direction><paramName>args</paramName><prefix></prefix><stdIOStream>UNSPECIFIED</stdIOStream><type>OBJECT_T</type><array paramId=\\\"0\\\"><componentClassname>java.lang.String</componentClassname><values>"
-  
-  param_id=0
-  for param in "${app_args}"; do
-    http_data="${http_data}<element paramId=\\\"${param_id}\\\"><className>java.lang.String</className><value xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:xs=\\\"http://www.w3.org/2001/XMLSchema\\\" xsi:type=\\\"xs:string\\\">${param}</value></element>"
-    param_id=$((param_id + 1))
-  done
- 
-  # Parameters parsing on REST Agent bug - workaround
-  if [ "${param_id}" -eq "0" ]; then
-    http_data="${http_data}<element paramId=\\\"${param_id}\\\"><className>java.lang.String</className><value xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:xs=\\\"http://www.w3.org/2001/XMLSchema\\\" xsi:type=\\\"xs:string\\\">${param}</value></element>"
-  fi 
-
-  http_data="${http_data}</values></array></params></parameters></startApplication>"
-
-  echo "${app_cmd}" "-XPUT" "${http_resource}" "-H" "'${http_header}'" "-d" "\"${http_data}\""
-
-  ${app_cmd} "-v" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}"
+  # Calling main method of the application passing in a single parameter containing an array with the method arguments
+  echo ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 ${fullAppPath} ${args_pass} ${app_args}
+  ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 ${fullAppPath} ${args_pass} ${app_args}
 }
 
 ###############################################

@@ -1144,9 +1144,6 @@ class Task(object):
                 arg.collection_content = []
                 col_f_name = arg.file_name.split(':')[-1]
                 _col_dir = self.decorator_arguments[arg.name].direction
-                # TODO: send proper file names for collections
-                if not os.path.exists(col_f_name):
-                    col_f_name = "../" + col_f_name
 
                 for (i, line) in enumerate(open(col_f_name, 'r')):
                     data_type, content_file,  content_type = line.strip().split()

@@ -1082,7 +1082,12 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         value = param.file_name
         typ = TYPE.FILE
 
-        _mf = sys.modules[param.object.__class__.__module__].__file__
+        try:
+            _mf = sys.modules[param.object.__class__.__module__].__file__
+        except AttributeError:
+            # 'builtin' modules do not have __file__ attribute!
+            _mf = "builtins"
+
         _class_name = str(param.object.__class__.__name__)
         con_type = content_type_format.format(_mf, _class_name)
 

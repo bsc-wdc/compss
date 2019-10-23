@@ -248,6 +248,11 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     }
 
     @Override
+    public long getGroupPriority() {
+        return ACTION_START_WORKER;
+    }
+
+    @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
     }

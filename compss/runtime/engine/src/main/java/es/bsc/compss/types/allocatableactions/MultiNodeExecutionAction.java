@@ -36,7 +36,7 @@ import java.util.List;
 public class MultiNodeExecutionAction extends ExecutionAction {
 
     private final MultiNodeGroup group;
-    private int multiNodeId = MultiNodeGroup.UNASSIGNED_ID;
+    private int actionIdInsideGroup = MultiNodeGroup.ID_UNASSIGNED;
 
 
     /**
@@ -56,6 +56,11 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         this.group = group;
     }
 
+    @Override
+    public long getGroupPriority() {
+        return this.group.isAnyActionRunning() ? ACTION_GROUP_RUNNING : ACTION_GROUP_IDLE;
+    }
+
     /*
      * ***************************************************************************************************************
      * ORCHESTRATOR OPERATIONS
@@ -63,27 +68,27 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      */
     @Override
     protected void notifyCompleted() {
-        if (this.multiNodeId == MultiNodeGroup.MASTER_GROUP_ID) {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             if (DEBUG) {
-                LOGGER.debug("Notify completed of " + this + " to orchestrator " + orchestrator);
+                LOGGER.debug("Notify completed of " + this + " to orchestrator " + this.orchestrator);
             }
-            group.actionCompletion();
+            this.group.actionCompletion();
         }
 
         // Notify orchestrator
-        orchestrator.actionCompletion(this);
+        this.orchestrator.actionCompletion(this);
     }
 
     @Override
     protected void notifyError() {
-        if (this.multiNodeId == MultiNodeGroup.MASTER_GROUP_ID) {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             if (DEBUG) {
-                LOGGER.debug("Notify error of " + this + " to orchestrator " + orchestrator);
+                LOGGER.debug("Notify error of " + this + " to orchestrator " + this.orchestrator);
             }
-            group.actionError();
+            this.group.actionError();
         }
         // Notify orchestrator
-        orchestrator.actionError(this);
+        this.orchestrator.actionError(this);
     }
 
     /*
@@ -95,16 +100,19 @@ public class MultiNodeExecutionAction extends ExecutionAction {
     protected void doAction() {
         LOGGER.info("Registering action for task " + task.getId());
 
-        this.multiNodeId = group.registerProcess(this);
-        executionErrors = 0;
+        this.group.setActionRunning();
+        this.actionIdInsideGroup = this.group.registerProcess(this);
+        this.executionErrors = 0;
 
-        if (this.multiNodeId == MultiNodeGroup.MASTER_GROUP_ID) {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             // The action is assigned as master, launch as a normal execution
-            LOGGER.info("Action registered as master for task " + task.getId() + " with groupId " + this.multiNodeId);
+            LOGGER.info("Action registered as master for task " + this.task.getId() + " with groupId "
+                + this.group.getGroupId());
             super.doAction();
         } else {
             // The action is assigned as slave, it only waits for task execution
-            LOGGER.info("Action registered as slave for task " + task.getId() + " with groupId " + this.multiNodeId);
+            LOGGER.info("Action registered as slave for task " + this.task.getId() + " with groupId "
+                + this.group.getGroupId());
         }
     }
 
@@ -115,7 +123,7 @@ public class MultiNodeExecutionAction extends ExecutionAction {
             LOGGER.debug(this.toString() + " starts job creation");
         }
         Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
-        List<String> slaveNames = group.getSlavesNames();
+        List<String> slaveNames = this.group.getSlavesNames();
         Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(),
             slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
@@ -131,25 +139,25 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      */
     @Override
     protected void doCompleted() {
-        if (this.multiNodeId == MultiNodeGroup.MASTER_GROUP_ID) {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             // The action is assigned as master, release all slaves and perform doCompleted as normal task
             super.doCompleted();
         } else {
             // The action is assigned as slave, end profile
-            this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), profile);
-            task.decreaseExecutionCount();
+            this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), this.profile);
+            this.task.decreaseExecutionCount();
         }
     }
 
     @Override
     protected void doFailed() {
-        if (this.multiNodeId == MultiNodeGroup.MASTER_GROUP_ID) {
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
             // The action is assigned as master, release all slaves and perform doCompleted as normal task
             super.doFailed();
         } else {
             // The action is assigned as slave, mark task as failed
-            task.setStatus(TaskState.FAILED);
-            task.decreaseExecutionCount();
+            this.task.setStatus(TaskState.FAILED);
+            this.task.decreaseExecutionCount();
         }
     }
 
@@ -160,8 +168,8 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      */
     @Override
     public String toString() {
-        return "MultiNodeExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName()
-            + ") with GroupId = " + this.multiNodeId;
+        return "MultiNodeExecutionAction (Task " + this.task.getId() + ", CE name "
+            + this.task.getTaskDescription().getName() + ") with GroupId = " + this.group.getGroupId();
     }
 
 }

@@ -146,10 +146,12 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
                 lessTimeStamp = 0;
             }
         }
-        long actionPriority = actionScore.getActionScore();
+        long actionPriority = actionScore.getPriority();
+        long actionGroupId = action.getGroupPriority();
         long expectedDataAvailable =
             ((MOScore) actionScore).getExpectedDataAvailable() + resScore * MOConfiguration.DATA_TRANSFER_DELAY;
-        return new MOScore(actionPriority, expectedDataAvailable, lessTimeStamp, 0, 0, 0);
+
+        return new MOScore(actionPriority, actionGroupId, lessTimeStamp, expectedDataAvailable, 0, 0, 0);
     }
 
     @Override
@@ -157,8 +159,9 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
         Score resourceScore) {
         long resourceFreeTime = getResourceFreeTime(impl);
         long expectedDataAvailable = ((MOScore) resourceScore).getExpectedDataAvailable();
-        long actionPriority = resourceScore.getActionScore();
-        return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, impl);
+        long actionPriority = resourceScore.getPriority();
+        long actionGroupId = action.getGroupPriority();
+        return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, actionGroupId, impl);
     }
 
     /**
@@ -176,8 +179,9 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
 
         long resourceFreeTime = getResourceFreeTime(impl) + moveTime;
         long expectedDataAvailable = ((MOScore) resourceScore).getExpectedDataAvailable() + moveTime;
-        long actionPriority = resourceScore.getActionScore();
-        return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, impl);
+        long actionPriority = resourceScore.getPriority();
+        long actionGroupId = action.getGroupPriority();
+        return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, actionGroupId, impl);
     }
 
     private long getResourceFreeTime(Implementation impl) {
@@ -218,8 +222,9 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             resourceFreeTime = ((MOSchedulingInformation) action.getSchedulingInfo()).getExpectedStart();
         }
         long expectedDataAvailable = ((MOScore) resourceScore).getExpectedDataAvailable();
-        long actionPriority = resourceScore.getActionScore();
-        return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, impl);
+        long actionPriority = resourceScore.getPriority();
+        long actionGroupId = action.getGroupPriority();
+        return generateMOScore(resourceFreeTime, expectedDataAvailable, actionPriority, actionGroupId, impl);
 
     }
 
@@ -233,7 +238,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
      * @return Score.
      */
     public MOScore generateMOScore(long resourceFreeTime, long expectedDataAvailable, long actionPriority,
-        Implementation impl) {
+        long actionGroupId, Implementation impl) {
 
         long implScore = 0;
         double energy = 0;
@@ -251,7 +256,8 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             }
         }
         // The data transfer penalty is already included on the datadependency time of the resourceScore
-        return new MOScore(actionPriority, expectedDataAvailable, resourceFreeTime, implScore, energy, cost);
+        return new MOScore(actionPriority, actionGroupId, resourceFreeTime, expectedDataAvailable, implScore, energy,
+            cost);
     }
 
     /*--------------------------------------------------
@@ -1062,8 +1068,7 @@ public class MOResourceScheduler<T extends WorkerResourceDescription> extends Re
             // Nothing to do
         }
         if (!launched) {
-            long actionScore = MOScore.getActionScore(action);
-            Score aScore = new MOScore(actionScore, 0, 0, 0, 0, 0);
+            Score aScore = new MOScore(action.getPriority(), action.getGroupPriority(), 0, 0, 0, 0, 0);
             try {
                 action.schedule(aScore);
                 try {

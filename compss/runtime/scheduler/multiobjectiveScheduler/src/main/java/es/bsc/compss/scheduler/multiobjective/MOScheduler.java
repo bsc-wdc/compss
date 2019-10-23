@@ -74,9 +74,8 @@ public class MOScheduler extends TaskScheduler {
      * @return The action score.
      */
     public static MOScore getActionScore(AllocatableAction action) {
-        long actionScore = MOScore.getActionScore(action);
         long dataTime = MOScore.getDataPredecessorTime(action.getDataPredecessors());
-        return new MOScore(actionScore, dataTime, 0, 0, 0, 0);
+        return new MOScore(action.getPriority(), action.getGroupPriority(), dataTime, 0, 0, 0, 0);
     }
 
     @Override

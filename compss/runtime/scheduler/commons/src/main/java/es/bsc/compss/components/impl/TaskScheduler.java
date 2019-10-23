@@ -95,8 +95,9 @@ public class TaskScheduler {
 
     // Profiles from resources that have already been turned off
     private Profile[][] offVMsProfiles;
-    
+
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
+
 
     /**
      * Constructs a new Task Scheduler.
@@ -262,7 +263,7 @@ public class TaskScheduler {
      */
     public Score generateActionScore(AllocatableAction action) {
         // LOGGER.debug("[TaskScheduler] Generate priority action score");
-        return new Score(action.getPriority(), 0, 0, 0);
+        return new Score(action.getPriority(), action.getGroupPriority(), 0, 0, 0);
     }
 
     /*
@@ -503,7 +504,7 @@ public class TaskScheduler {
 
         // We update the worker load
         workerLoadUpdate(resource);
-        
+
         // Schedule data free actions
         List<AllocatableAction> blockedCandidates = new LinkedList<>();
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
@@ -1472,7 +1473,7 @@ public class TaskScheduler {
 
     private class WorkersMap {
 
-        private final Map<Worker<? extends WorkerResourceDescription>, 
+        private final Map<Worker<? extends WorkerResourceDescription>,
             ResourceScheduler<? extends WorkerResourceDescription>> map;
 
 

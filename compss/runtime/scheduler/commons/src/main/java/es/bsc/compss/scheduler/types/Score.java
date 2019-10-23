@@ -38,8 +38,12 @@ import java.util.Set;
  */
 public class Score implements Comparable<Score> {
 
-    protected long actionScore; // Action Priority
-    protected long resourceScore; // Resource Priority
+    // TaskScheduler granted parameters
+    protected long priority; // Action priority
+    protected long actionGroupPriority; // Multi-Node action group id
+
+    // Scheduler implementation parameters
+    protected long resourceScore; // Resource Priority (e.g., data locatity)
     protected long waitingScore; // Resource Blocked Priority
     protected long implementationScore; // Implementation Priority
 
@@ -47,16 +51,21 @@ public class Score implements Comparable<Score> {
     /**
      * Creates a new score instance.
      *
-     * @param actionScore The priority of the action.
-     * @param waiting The estimated time of wait in the resource.
-     * @param res The score of the resource (number of data in that resource)
-     * @param impl Implementation score.
+     * @param priority The priority of the action.
+     * @param actionGroupPriority The MultiNodeGroup Id of the action.
+     * @param resourceScore The score of the resource (e.g., number of data in that resource)
+     * @param waitingScore The estimated time of wait in the resource.
+     * @param implementationScore Implementation's score.
      */
-    public Score(long actionScore, long res, long waiting, long impl) {
-        this.actionScore = actionScore;
-        this.resourceScore = res;
-        this.waitingScore = waiting;
-        this.implementationScore = impl;
+    public Score(long priority, long actionGroupPriority, long resourceScore, long waitingScore,
+        long implementationScore) {
+
+        this.priority = priority;
+        this.actionGroupPriority = actionGroupPriority;
+
+        this.resourceScore = resourceScore;
+        this.waitingScore = waitingScore;
+        this.implementationScore = implementationScore;
     }
 
     /**
@@ -65,28 +74,29 @@ public class Score implements Comparable<Score> {
      * @param clone Score to clone.
      */
     public Score(Score clone) {
-        this.actionScore = clone.actionScore;
+        this.priority = clone.priority;
+        this.actionGroupPriority = clone.actionGroupPriority;
         this.resourceScore = clone.resourceScore;
         this.waitingScore = clone.waitingScore;
         this.implementationScore = clone.implementationScore;
     }
 
     /**
-     * Returns the action priority.
-     *
-     * @return The action priority.
+     * Returns the action's priority.
+     * 
+     * @return The action's priority.
      */
-    public long getActionScore() {
-        return this.actionScore;
+    public long getPriority() {
+        return this.priority;
     }
 
     /**
-     * Returns the estimated time of wait in the resource.
-     *
-     * @return The estimated time of wait in the resource.
+     * Returns the action group's priority.
+     * 
+     * @return The action group's priority.
      */
-    public long getWaitingScore() {
-        return this.waitingScore;
+    public long getGroupPriority() {
+        return this.actionGroupPriority;
     }
 
     /**
@@ -96,6 +106,15 @@ public class Score implements Comparable<Score> {
      */
     public long getResourceScore() {
         return this.resourceScore;
+    }
+
+    /**
+     * Returns the estimated time of wait in the resource.
+     *
+     * @return The estimated time of wait in the resource.
+     */
+    public long getWaitingScore() {
+        return this.waitingScore;
     }
 
     /**
@@ -130,10 +149,25 @@ public class Score implements Comparable<Score> {
      * @param other Score to compare.
      * @return Returns {@literal true} if {@code this} is better than {@code other}, {@literal false} otherwise.
      */
-    public boolean isBetter(Score other) {
-        if (this.actionScore != other.actionScore) {
-            return this.actionScore > other.actionScore;
+    public final boolean isBetter(Score other) {
+        if (this.priority != other.priority) {
+            return this.priority > other.priority;
         }
+        if (this.actionGroupPriority != other.actionGroupPriority) {
+            // Single actins have group -1
+            // We always prioritize the single ones and the first generated groups
+            return this.actionGroupPriority < other.actionGroupPriority;
+        }
+        return isBetterCustomValues(other);
+    }
+
+    /**
+     * Checks if the current score is better than the given.
+     *
+     * @param other Score to compare.
+     * @return Returns {@literal true} if {@code this} is better than {@code other}, {@literal false} otherwise.
+     */
+    public boolean isBetterCustomValues(Score other) {
         if (this.resourceScore != other.resourceScore) {
             return this.resourceScore > other.resourceScore;
         }
@@ -146,10 +180,11 @@ public class Score implements Comparable<Score> {
     @Override
     public int hashCode() {
         int result = 17;
-        result = 31 * result + Long.hashCode(actionScore);
-        result = 31 * result + Long.hashCode(resourceScore);
-        result = 31 * result + Long.hashCode(waitingScore);
-        result = 31 * result + Long.hashCode(implementationScore);
+        result = 31 * result + Long.hashCode(this.priority);
+        result = 31 * result + Long.hashCode(this.actionGroupPriority);
+        result = 31 * result + Long.hashCode(this.resourceScore);
+        result = 31 * result + Long.hashCode(this.waitingScore);
+        result = 31 * result + Long.hashCode(this.implementationScore);
         return result;
     }
 
@@ -157,8 +192,9 @@ public class Score implements Comparable<Score> {
     public boolean equals(Object obj) {
         if (obj instanceof Score) {
             Score other = (Score) obj;
-            return (this.actionScore == other.actionScore && this.resourceScore == other.resourceScore
-                && this.waitingScore == other.waitingScore && this.implementationScore == other.implementationScore);
+            return (this.priority == other.priority && this.actionGroupPriority == other.actionGroupPriority
+                && this.resourceScore == other.resourceScore && this.waitingScore == other.waitingScore
+                && this.implementationScore == other.implementationScore);
         }
 
         return false;
@@ -242,8 +278,9 @@ public class Score implements Comparable<Score> {
 
     @Override
     public String toString() {
-        return "[Score = [" + "action:" + this.actionScore + ", " + "resource:" + this.resourceScore + ", " + "load:"
-            + this.waitingScore + ", " + "implementation:" + this.implementationScore + "]" + "]";
+        return "[Score = [" + "Priority: " + this.priority + ", " + "MultiNodeGroupId: " + this.actionGroupPriority
+            + ", " + "Resource: " + this.resourceScore + ", " + "Waiting: " + this.waitingScore + ", "
+            + "Implementation: " + this.implementationScore + "]" + "]";
     }
 
 }

@@ -92,7 +92,7 @@ public class LIFOScheduler extends TaskScheduler {
     @Override
     public Score generateActionScore(AllocatableAction action) {
         // LOGGER.debug("[FIFOScheduler] Generate Action Score for " + action);
-        return new Score(action.getPriority(), 0, 0, 0);
+        return new Score(action.getPriority(), action.getGroupPriority(), 0, 0, 0);
     }
 
     /*

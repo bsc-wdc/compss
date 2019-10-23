@@ -119,7 +119,7 @@ public class Action extends AllocatableAction {
     @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
         Score actionScore) {
-        return new Score(0, 0, 0, 0);
+        return new Score(0, 0, 0, 0, 0);
     }
 
     @Override
@@ -163,12 +163,17 @@ public class Action extends AllocatableAction {
 
     @Override
     public Integer getCoreId() {
-        return core.getCoreId();
+        return this.core.getCoreId();
     }
 
     @Override
     public int getPriority() {
         return 0;
+    }
+
+    @Override
+    public long getGroupPriority() {
+        return ACTION_SINGLE;
     }
 
     @Override

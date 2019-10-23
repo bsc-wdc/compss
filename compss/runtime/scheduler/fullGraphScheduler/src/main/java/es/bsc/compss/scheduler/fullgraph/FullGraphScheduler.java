@@ -50,7 +50,7 @@ public class FullGraphScheduler extends TaskScheduler {
     public FullGraphScheduler() {
         super();
 
-        this.dummyScore = new FullGraphScore(0, 0, 0, 0, 0);
+        this.dummyScore = new FullGraphScore(0, 0, 0, 0, 0, 0);
         this.optimizer = new ScheduleOptimizer(this);
 
         this.optimizer.start();
@@ -75,14 +75,14 @@ public class FullGraphScheduler extends TaskScheduler {
 
     @Override
     public <T extends WorkerResourceDescription> SchedulingInformation generateSchedulingInformation(
-            ResourceScheduler<T> rs) {
+        ResourceScheduler<T> rs) {
         LOGGER.info("[FGScheduler] Generate empty scheduling information");
         return new FullGraphSchedulingInformation(null);
     }
 
     @Override
     public <T extends WorkerResourceDescription> ResourceScheduler<T> generateSchedulerForResource(Worker<T> w,
-            JSONObject defaultResources, JSONObject defaultImplementations) {
+        JSONObject defaultResources, JSONObject defaultImplementations) {
 
         LOGGER.info("[FGScheduler] Generate scheduler for resource " + w.getName());
         return new FullGraphResourceScheduler<>(w, null, null, getOrchestrator());
@@ -91,9 +91,8 @@ public class FullGraphScheduler extends TaskScheduler {
     @Override
     public Score generateActionScore(AllocatableAction action) {
         LOGGER.info("[FGScheduler] Generate Action Score for " + action);
-        long actionScore = FullGraphScore.getActionScore(action);
         long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
-        return new FullGraphScore(actionScore, dataTime, 0, 0, 0);
+        return new FullGraphScore(action.getPriority(), action.getGroupPriority(), 0, 0, 0, dataTime);
     }
 
 }

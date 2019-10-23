@@ -57,21 +57,24 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
     @Override
     public Score generateBlockedScore(AllocatableAction action) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate blocked score for action " + action);
-        long actionPriority = action.getPriority();
+        long priority = action.getPriority();
+        long groupId = action.getGroupPriority();
         long resourceScore = 0;
         long waitingScore = this.blocked.size();
         long implementationScore = 0;
 
-        return new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
+        return new LoadBalancingScore(priority, groupId, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate resource score for action " + action);
 
-        // Gets the action priority
-        long actionPriority = actionScore.getActionScore();
+        // Since we are generating the resource score, we copy the previous fields from actionScore
+        long priority = actionScore.getPriority();
+        long groupId = action.getGroupPriority();
 
+        // We compute the rest of the fields
         // Computes the resource waiting score
         long waitingScore = -action.getId();
         // Computes the priority of the resource
@@ -80,7 +83,7 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
         long implementationScore = -100;
 
         LoadBalancingScore score =
-            new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
+            new LoadBalancingScore(priority, groupId, resourceScore, waitingScore, implementationScore);
         // LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore
         // + " " + waitingScore
         // + " " + implementationScore);
@@ -109,13 +112,17 @@ public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription>
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks?
             return null;
         }
-        if (myWorker.canRunNow((T) impl.getRequirements())) {
-            long actionPriority = resourceScore.getActionScore();
+        if (this.myWorker.canRunNow((T) impl.getRequirements())) {
+            // Since we are generating the implementation score, we copy the previous fields from resourceScore
+            long priority = resourceScore.getPriority();
+            long groupId = action.getGroupPriority();
             long resourcePriority = resourceScore.getResourceScore();
+
+            // We compute the rest of the fields
             long waitingScore = -action.getId();
             long implScore = -this.getProfile(impl).getAverageExecutionTime();
 
-            return new LoadBalancingScore(actionPriority, resourcePriority, waitingScore, implScore);
+            return new LoadBalancingScore(priority, groupId, resourcePriority, waitingScore, implScore);
         } else {
             // Implementation cannot be run
             return null;

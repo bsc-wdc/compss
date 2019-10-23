@@ -107,6 +107,11 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
+    public long getGroupPriority() {
+        return ACTION_OPTIMIZE;
+    }
+
+    @Override
     public <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker,
         Score actionScore) {
 

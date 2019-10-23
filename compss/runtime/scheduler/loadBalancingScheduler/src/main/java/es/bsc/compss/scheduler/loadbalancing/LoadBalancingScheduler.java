@@ -59,7 +59,7 @@ public class LoadBalancingScheduler extends ReadyScheduler {
     @Override
     public Score generateActionScore(AllocatableAction action) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate Action Score for " + action);
-        return new LoadBalancingScore(action.getPriority(), 0, -action.getId(), -100);
+        return new LoadBalancingScore(action.getPriority(), action.getGroupPriority(), 0, -action.getId(), -100);
     }
 
     /*

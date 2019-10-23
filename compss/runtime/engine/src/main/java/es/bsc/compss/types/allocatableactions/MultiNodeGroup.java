@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,14 +34,19 @@ import org.apache.logging.log4j.Logger;
  */
 public class MultiNodeGroup {
 
-    public static final int MASTER_GROUP_ID = 1;
-    public static final int UNASSIGNED_ID = -1;
-
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
+    // Constants and group counters
+    public static final int ID_MASTER_PROC = 1;
+    public static final int ID_UNASSIGNED = -1;
+    private static final AtomicLong NEXT_GROUP_ID = new AtomicLong();
+
+    // Group definition
+    private final long groupId;
     private final int groupSize;
-    private int nextProcessId;
+    private AtomicInteger nextProcessId;
+    private boolean isAnyActionRunning;
 
     private final HashMap<Integer, MultiNodeExecutionAction> registeredSlaves;
     private MultiNodeExecutionAction registeredMaster;
@@ -52,32 +59,23 @@ public class MultiNodeGroup {
      */
     public MultiNodeGroup(int groupSize) {
         LOGGER.debug("[MultiNodeGroup] Creating new group of size " + groupSize);
+        this.groupId = NEXT_GROUP_ID.getAndIncrement();
+
         this.groupSize = groupSize;
-        this.nextProcessId = groupSize;
+        this.nextProcessId = new AtomicInteger(groupSize);
+        this.isAnyActionRunning = false;
 
         this.registeredSlaves = new HashMap<>();
         this.registeredMaster = null;
     }
 
     /**
-     * Registers a new process into the group and returns its assigned process Id.
-     *
-     * @param action ExecutionAction to register into the group.
-     * @return The assigned process group Id.
+     * Returns the group Id.
+     * 
+     * @return The group Id.
      */
-    public int registerProcess(MultiNodeExecutionAction action) {
-        int actionId = this.nextProcessId--;
-        if (actionId == MASTER_GROUP_ID) {
-            // Register process as master
-            LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as master of group " + this);
-            registeredMaster = action;
-        } else {
-            // Register process as slave
-            LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as slave of group " + this);
-            this.registeredSlaves.put(actionId, action);
-        }
-
-        return actionId;
+    public long getGroupId() {
+        return this.groupId;
     }
 
     /**
@@ -87,6 +85,43 @@ public class MultiNodeGroup {
      */
     public int getGroupSize() {
         return this.groupSize;
+    }
+
+    /**
+     * Returns whether there is an action running whithin the group or not.
+     * 
+     * @return {@literal true} if an action within the group is running, {@literal false} otherwise.
+     */
+    public boolean isAnyActionRunning() {
+        return this.isAnyActionRunning;
+    }
+
+    /**
+     * Marks that the group has an action running.
+     */
+    public void setActionRunning() {
+        this.isAnyActionRunning = true;
+    }
+
+    /**
+     * Registers a new process into the group and returns its assigned process Id.
+     *
+     * @param action ExecutionAction to register into the group.
+     * @return The assigned process group Id.
+     */
+    public int registerProcess(MultiNodeExecutionAction action) {
+        int actionId = this.nextProcessId.getAndDecrement();
+        if (actionId == ID_MASTER_PROC) {
+            // Register process as master
+            LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as master of group " + this.groupId);
+            this.registeredMaster = action;
+        } else {
+            // Register process as slave
+            LOGGER.debug("[MultiNodeGroup] Register action " + action.getId() + " as slave of group " + this.groupId);
+            this.registeredSlaves.put(actionId, action);
+        }
+
+        return actionId;
     }
 
     /**
@@ -105,7 +140,7 @@ public class MultiNodeGroup {
      */
     public List<String> getSlavesNames() {
         List<String> slavesNames = new ArrayList<>();
-        for (Entry<Integer, MultiNodeExecutionAction> slave : registeredSlaves.entrySet()) {
+        for (Entry<Integer, MultiNodeExecutionAction> slave : this.registeredSlaves.entrySet()) {
             slavesNames.add(slave.getValue().getAssignedResource().getName());
         }
 
@@ -126,7 +161,7 @@ public class MultiNodeGroup {
      */
     public void actionCompletion() {
         LOGGER.debug("[MultiNodeGroup] Notify action completion to all slaves of group " + this);
-        for (Entry<Integer, MultiNodeExecutionAction> entry : registeredSlaves.entrySet()) {
+        for (Entry<Integer, MultiNodeExecutionAction> entry : this.registeredSlaves.entrySet()) {
             entry.getValue().notifyCompleted();
         }
     }
@@ -136,14 +171,14 @@ public class MultiNodeGroup {
      */
     public void actionError() {
         LOGGER.debug("[MultiNodeGroup] Notify action error to all slaves of group " + this);
-        for (Entry<Integer, MultiNodeExecutionAction> entry : registeredSlaves.entrySet()) {
+        for (Entry<Integer, MultiNodeExecutionAction> entry : this.registeredSlaves.entrySet()) {
             entry.getValue().notifyError();
         }
     }
 
     @Override
     public String toString() {
-        return "MultiNodeGroup@" + this.hashCode();
+        return "MultiNodeGroup@" + this.groupId;
     }
 
 }

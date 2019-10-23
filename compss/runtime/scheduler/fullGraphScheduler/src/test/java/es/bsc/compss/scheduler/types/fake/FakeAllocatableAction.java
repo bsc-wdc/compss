@@ -188,7 +188,12 @@ public class FakeAllocatableAction extends AllocatableAction {
 
     @Override
     public int getPriority() {
-        return priority;
+        return this.priority;
+    }
+
+    @Override
+    public long getGroupPriority() {
+        return ACTION_SINGLE;
     }
 
     @Override

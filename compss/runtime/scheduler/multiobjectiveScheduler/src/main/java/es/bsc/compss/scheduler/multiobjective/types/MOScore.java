@@ -38,18 +38,20 @@ public class MOScore extends Score {
 
 
     /**
-     * Creates a new MO Score instance.
-     * 
-     * @param taskPriority Task priority score.
+     * Creates a new score instance.
+     *
+     * @param priority The priority of the action.
+     * @param multiNodeGroupId The MultiNodeGroup Id of the action.
+     * @param resourceScore The score of the resource (e.g., number of data in that resource)
      * @param dataAvailability Data availability score.
-     * @param resourceAvailability Resource availability score.
-     * @param execTime Execution time score.
-     * @param energy Energy score.
-     * @param cost Cost score.
+     * @param execTime Implementation's execution time.
+     * @param energy Energy cost.
+     * @param cost Money cost.
      */
-    public MOScore(long taskPriority, long dataAvailability, long resourceAvailability, long execTime, double energy,
-        double cost) {
-        super(taskPriority, resourceAvailability, Math.max(resourceAvailability, dataAvailability), execTime);
+    public MOScore(long priority, long multiNodeGroupId, long resourceScore, long dataAvailability, long execTime,
+        double energy, double cost) {
+
+        super(priority, multiNodeGroupId, resourceScore, Math.max(resourceScore, dataAvailability), execTime);
 
         this.expectedDataAvailable = dataAvailability;
         this.expectedCost = cost;
@@ -57,12 +59,8 @@ public class MOScore extends Score {
     }
 
     @Override
-    public boolean isBetter(Score other) {
+    public boolean isBetterCustomValues(Score other) {
         MOScore otherDS = (MOScore) other;
-        if (this.actionScore != otherDS.actionScore) {
-            return this.actionScore > otherDS.actionScore;
-        }
-
         double diffCost = this.expectedCost - otherDS.expectedCost;
         double diffEnergy = this.expectedEnergy - otherDS.expectedEnergy;
         long ownEnd = this.waitingScore + this.implementationScore;
@@ -146,10 +144,11 @@ public class MOScore extends Score {
 
     @Override
     public String toString() {
-        return "[MOScore = [" + "Action Priority:" + this.actionScore + ", " + "Resource Availability:"
-            + this.resourceScore + ", " + "Data Availability:" + this.expectedDataAvailable + ", "
+        return "[MOScore = [" + "Priority: " + this.priority + ", " + "MultiNodeGroupId: " + this.actionGroupPriority
+            + ", " + "Resource: " + this.resourceScore + ", " + "Data Availability:" + this.expectedDataAvailable + ", "
             + "Expected Start Timestamp:" + this.waitingScore + ", " + "Expected Execution Time:"
             + this.implementationScore + ", " + "Expected Execution Consumption:" + this.expectedEnergy + ", "
             + "Expected Execution Cost:" + this.expectedCost + "]" + "]";
     }
+
 }

@@ -1092,9 +1092,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
     elif param.type == TYPE.COLLECTION or \
-            (collection_depth > 0 and
-             is_basic_iterable(param.obj)):
-        # TODO: Update comments
+            (collection_depth > 0 and is_basic_iterable(param.obj)):
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator
@@ -1102,10 +1100,12 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #        are inside the specified depth radius
         #
         # The content of a collection is sent via JNI to the master, and the
-        # format is collectionId numberOfElements
-        #     type1 Id1
+        # format is:
+        # collectionId numberOfElements collectionPyContentType
+        #     type1 Id1 pyType1
+        #     type2 Id2 pyType2
         #     ...
-        #     typeN IdN
+        #     typeN IdN pyTypeN
         _class_name = str(param.object.__class__.__name__)
         con_type = content_type_format.format("collection", _class_name)
         value = "{} {} {}".format(get_object_id(param.object),
@@ -1331,9 +1331,9 @@ def _serialize_object_into_file(name, p):
                 )
                 for x in p.object
             ]
+        # COL_OUT: no need to create new 'empty' objects and serialize them
+        # one-by-one. They will be created on the Worker.
         else:
-            # COLLECTION OUT!
-            from pycompss.api.parameter import get_compss_type
             new_object = _retrieve_col_out_objects(p)
 
         p.object = new_object
@@ -1344,7 +1344,9 @@ def _serialize_object_into_file(name, p):
 
 def _retrieve_col_out_objects(p_col_out):
     """
-
+    Create len(p_col_out) Parameter elements without serializing into files.
+    Each Parameter element will save 'content_type' info that, on the Worker,
+    new empty object will be created based on it.
     :param p_col_out: Parameter object
     :return:
     """

@@ -211,6 +211,12 @@ def object_belongs_to_module(obj, module_name):
 
 
 def create_object_by_con_type(con_type, default=object):
+    """
+    Knowing its class name create an 'empty' object.
+    :param con_type: object type info in <path_to_module>:<class_name> format.
+    :param default: default object type to be returned if class not found.
+    :return: 'empty' object of a type
+    """
     path, class_name = con_type.split(":")
     if hasattr(_builtins, class_name):
         _obj = getattr(_builtins, class_name)
@@ -225,15 +231,4 @@ def create_object_by_con_type(con_type, default=object):
     except Exception:
         # todo: handle the exception?
         pass
-    #
-    # if IS_PYTHON3:
-    #     from importlib.machinery import SourceFileLoader
-    #     module = SourceFileLoader(class_name, path).load_module()
-    # else:
-    #     module = __import__(path, globals(), locals(), [path], -1)
-    # ret = getattr(module, class_name)()
-    # print("__________NM")
-    # print(ret)
-    # return ret
-    #
     return default()

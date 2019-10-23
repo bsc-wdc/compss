@@ -68,8 +68,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
             file_name=p_value,
             content_type=p_c_type
         )
-        _offset = 0 if p_type == parameter.TYPE.FILE else 0
-        return _param, _offset
+        return _param, 0
     elif p_type == parameter.TYPE.EXTERNAL_PSCO:
         # Next position contains R/W but we do not need it. Currently skipped.
         return TaskParameter(
@@ -192,8 +191,8 @@ def get_input_params(num_params, logger, args):
             logger.debug("\t * Std IO Stream : %s" % str(p_stream))
             logger.debug("\t * Prefix : %s" % str(p_prefix))
             logger.debug("\t * Name : %s" % str(p_name))
-            logger.debug("\t * Value: %r" % p_value)
             logger.debug("\t * Content Type: %r" % p_c_type)
+            logger.debug("\t * Value: %r" % p_value)
 
         task_param, offset = build_task_parameter(p_type, p_stream, p_prefix,
                                                   p_name, p_value, p_c_type, args, pos)
@@ -462,7 +461,7 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
     # Get all parameter values
     if __debug__:
         logger.debug("Processing parameters:")
-        logger.debug(args)
+        # logger.debug(args)
     values = get_input_params(num_params, logger, args)
     types = [x.type for x in values]
 

@@ -83,7 +83,7 @@ public class CommandDataDemand implements Command {
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        agent.receivedRequestedDataNotAvailableError(c);
+        agent.checkAndHandleRequestedDataNotAvailableError(c);
     }
 
 }

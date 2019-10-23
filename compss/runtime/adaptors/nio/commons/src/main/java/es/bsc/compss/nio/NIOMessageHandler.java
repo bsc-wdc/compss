@@ -66,39 +66,14 @@ public class NIOMessageHandler implements MessageHandler {
         String errorText =
             "NIO Error: " + ce.getMessage() + " processing " + ((t == null) ? "null" : t.hashCode()) + "\n";
         LOGGER.error(errorText, ce);
-        if (t != null) {
-            switch (t.getType()) {
-                case DATA:
-                    this.agent.receivedRequestedDataNotAvailableError(c);
-                    break;
-                case COMMAND:
-                    Command command = (Command) t.getObject();
-                    if (command != null) {
-                        command.error(this.agent, c);
-                    } else {
-                        if (!this.agent.receivedRequestedDataNotAvailableError(c)) {
-                            this.agent.unhandeledError(c);
-                        }
-                    }
-                    break;
-                default:
-                    if (!this.agent.receivedRequestedDataNotAvailableError(c)) {
-                        this.agent.unhandeledError(c);
-                    }
-                    break;
-            }
-        } else {
-            LOGGER.error(" Tranfer object is null. ");
-            if (!this.agent.receivedRequestedDataNotAvailableError(c)) {
+        boolean managed = this.agent.checkAndHandleRequestedDataNotAvailableError(c);
+        if (!managed) {
+            managed = this.agent.checkAndHandleCommandError(c);
+            if (!managed) {
                 this.agent.unhandeledError(c);
             }
         }
 
-        // Handle FINISH_CONNECTION and CLOSED CONNECTION errors
-        /*
-         * if (((NIOException)ce).getError() == ErrorType.FINISHING_CONNECTION || ((NIOException)ce).getError() ==
-         * ErrorType.CLOSED_CONNECTION) { c.finishConnection(); }
-         */
     }
 
     @Override
@@ -134,6 +109,9 @@ public class NIOMessageHandler implements MessageHandler {
     @Override
     public void connectionFinished(Connection c) {
         LOGGER.debug("Connection " + c.hashCode() + " finished");
+        if (!c.hasErrors()) {
+            this.agent.unregisterConnectionInOngoingCommands(c);
+        }
     }
 
     @Override

@@ -504,6 +504,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
     private void sendNIOTaskDoneCommandSequence(CommandNIOTaskDone cmd) {
         Connection c = TM.startConnection(this.masterNode);
+        registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
 
         if (this.transferLogs || !cmd.isSuccessful()) {
@@ -573,6 +574,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
 
         CommandDataReceived cdr = new CommandDataReceived(task.getTransferGroupId());
         Connection c = TM.startConnection(this.masterNode);
+        registerOngoingCommand(c, cdr);
         c.sendCommand(cdr);
         c.finishConnection();
     }

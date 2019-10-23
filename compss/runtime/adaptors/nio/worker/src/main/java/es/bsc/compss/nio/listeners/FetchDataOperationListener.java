@@ -18,6 +18,7 @@ package es.bsc.compss.nio.listeners;
 
 import es.bsc.comm.Connection;
 import es.bsc.compss.data.MultiOperationFetchListener;
+import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.commands.CommandDataReceived;
 import es.bsc.compss.nio.worker.NIOWorker;
 
@@ -43,6 +44,7 @@ public class FetchDataOperationListener extends MultiOperationFetchListener {
     public void doCompleted() {
         CommandDataReceived cdr = new CommandDataReceived(this.transferId);
         Connection c = this.nw.startConnection();
+        NIOAgent.registerOngoingCommand(c, cdr);
         c.sendCommand(cdr);
         c.finishConnection();
     }

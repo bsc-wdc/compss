@@ -63,6 +63,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -102,6 +103,9 @@ public abstract class NIOAgent {
     private final LinkedList<DataRequest> pendingRequests;
     // Ongoing transfers
     private final Map<Connection, String> ongoingTransfers;
+    // Ongoing Commands
+    private static final Map<Connection, Command> ONGOING_COMMANDS = new ConcurrentHashMap<>();
+
     // Master information
     protected int masterPort;
     protected NIONode masterNode;
@@ -217,6 +221,7 @@ public abstract class NIOAgent {
                 }
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
                 CommandDataDemand cdd = new CommandDataDemand(remoteData, this.tracingId);
+                registerOngoingCommand(c, cdd);
                 this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
@@ -784,13 +789,14 @@ public abstract class NIOAgent {
      *
      * @param c Connection.
      */
-    public boolean receivedRequestedDataNotAvailableError(Connection c) {
+    public boolean checkAndHandleRequestedDataNotAvailableError(Connection c) {
         String dataId = this.ongoingTransfers.remove(c);
         if (dataId == null) { // It has received the output and error of a job
             LOGGER.error("Failed data connection not a tranfer");
             return false;
         }
-
+        // Remove connection from commands Hasmap
+        unregisterConnectionInOngoingCommands(c);
         releaseReceiveSlot();
         List<DataRequest> requests = this.dataToRequests.remove(dataId);
         handleRequestedDataNotAvailableError(requests, dataId);
@@ -923,10 +929,36 @@ public abstract class NIOAgent {
      * @param node NIO node to re-send the command
      * @param cmd Command to re-send
      */
-    public void resendCommand(NIONode node, Command cmd) {
+    protected void resendCommand(NIONode node, Command cmd) {
         Connection c = this.TM.startConnection(node);
+        registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.finishConnection();
+    }
+
+    public static void registerOngoingCommand(Connection connection, Command command) {
+        ONGOING_COMMANDS.put(connection, command);
+    }
+
+    protected void unregisterConnectionInOngoingCommands(Connection connection) {
+        ONGOING_COMMANDS.remove(connection);
+    }
+
+    /**
+     * Check and handle if error in connection is for a command.
+     * 
+     * @param c Connection with an error.
+     * @return Returns true True if error is in a command and it has been managed, otherwise returns False
+     */
+    public boolean checkAndHandleCommandError(Connection c) {
+        Command command = ONGOING_COMMANDS.remove(c);
+        if (command == null) {
+            LOGGER.error("Failed connection not a command");
+            return false;
+        }
+        command.error(this, c);
+        return true;
+
     }
 
 }

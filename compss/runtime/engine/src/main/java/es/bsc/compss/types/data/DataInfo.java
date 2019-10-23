@@ -225,7 +225,7 @@ public abstract class DataInfo {
      *
      * @return {@code true} if all the versions have been removed, {@code false} otherwise.
      */
-    public boolean delete() {
+    public boolean delete(boolean noReuse) {
         if (this.deletionBlocks > 0) {
             this.pendingDeletions.addAll(this.versions.values());
         } else {

@@ -810,7 +810,7 @@ public class DataInfoProvider {
      * @param loc Data location.
      * @return DataInfo associated with the given data.
      */
-    public DataInfo deleteData(DataLocation loc) {
+    public DataInfo deleteData(DataLocation loc, boolean noReuse) {
         LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
         Integer dataId = this.nameToId.get(locationKey);
@@ -822,7 +822,7 @@ public class DataInfoProvider {
 
         DataInfo dataInfo = this.idToData.get(dataId);
         this.nameToId.remove(locationKey);
-        if (dataInfo.delete()) {
+        if (dataInfo.delete(noReuse)) {
             idToData.remove(dataId);
         }
         return dataInfo;
@@ -834,14 +834,14 @@ public class DataInfoProvider {
      * @param code Data code.
      * @return DataInfo associated with the given code.
      */
-    public DataInfo deleteData(int code) {
+    public DataInfo deleteData(int code, boolean noReuse) {
         LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
 
         Integer id = this.codeToId.get(code);
         DataInfo dataInfo = this.idToData.get(id);
 
         // We delete the data associated with all the versions of the same object
-        if (dataInfo.delete()) {
+        if (dataInfo.delete(noReuse)) {
             idToData.remove(id);
         }
 
@@ -1048,7 +1048,7 @@ public class DataInfoProvider {
                             String origName = splitPath[splitPath.length - 1];
                             LOGGER.debug("Trying to delete file " + origName);
                         }
-                        if (fileInfo.delete()) {
+                        if (fileInfo.delete(true)) {
                             idToData.remove(dataId);
                         }
                     }

@@ -217,11 +217,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
             hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
-        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
-        registeredMonitor.onCreation();
+
+        LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
         }
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        registeredMonitor.onCreation();
         return currentTask.getId();
     }
 
@@ -245,15 +247,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
     public int newTask(Long appId, TaskMonitor monitor, String namespace, String service, String port, String operation,
         boolean priority, boolean hasTarget, int numReturns, List<Parameter> parameters, OnFailure onFailure,
         long timeOut) {
-
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, numReturns,
             parameters, monitor, onFailure, timeOut);
-
-        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
-        registeredMonitor.onCreation();
+        LOGGER.debug("Requesting analysis of new service Task " + currentTask.getId());
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
         }
+        TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
+        registeredMonitor.onCreation();
         return currentTask.getId();
     }
 
@@ -822,11 +823,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
      *
      * @param loc Location to delete.
      */
-    public void markForDeletion(DataLocation loc, boolean waitForData) {
+    public void markForDeletion(DataLocation loc, boolean enableReuse) {
         LOGGER.debug("Marking data " + loc + " for deletion");
         Semaphore sem = new Semaphore(0);
         Semaphore semWait = new Semaphore(0);
-        if (waitForData) {
+        // No need to wait if data is noReuse
+        if (enableReuse) {
             WaitForDataReadyToDeleteRequest request = new WaitForDataReadyToDeleteRequest(loc, sem, semWait);
             // Wait for data to be ready for deletion
             if (!this.requestQueue.offer(request)) {
@@ -844,7 +846,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
             }
         }
         // Request to delete data
-        if (!this.requestQueue.offer(new DeleteFileRequest(loc, sem))) {
+        LOGGER.debug("Sending delete request response for " + loc);
+        if (!this.requestQueue.offer(new DeleteFileRequest(loc, sem, !enableReuse))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
 

@@ -402,7 +402,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     debug_printf("[BINDING_COMMONS]  -  @process_param\n");
     // params     is of the form: value type direction stream prefix name
     // jobjOBJArr is of the form: value type direction stream prefix name
-    // This means that the ith parameters occupies the fields in the interval [NF * k, NK * k + 5]
+    // This means that the ith parameters occupies the fields in the interval [NF * k, NK * k + 6]
     int pv = NUM_FIELDS * i + 0,
         pt = NUM_FIELDS * i + 1,
         pd = NUM_FIELDS * i + 2,

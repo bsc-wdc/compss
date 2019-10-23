@@ -767,7 +767,7 @@ class Task(object):
         self.returns = OrderedDict()
 
         _returns = self.decorator_arguments['returns']
-        # Note that returns is by default False
+        # Note that 'returns' is by default False
         if not _returns:
             return False
 
@@ -1059,7 +1059,7 @@ class Task(object):
         for arg in args:
             arg.direction = self.get_parameter_direction(arg.name)
 
-    def is_parameter_object(self, name):
+    def is_parameter_an_object(self, name):
         """
         Given the name of a parameter, determine if it is an object or not
 
@@ -1125,7 +1125,7 @@ class Task(object):
             if parameter.is_vararg(arg.name):
                 self.param_varargs = arg.name
             if arg.type == parameter.TYPE.FILE:
-                if self.is_parameter_object(arg.name):
+                if self.is_parameter_an_object(arg.name):
                     # The object is stored in some file, load and deserialize
                     arg.content = deserialize_from_file(
                         arg.file_name.split(':')[-1]
@@ -1161,7 +1161,13 @@ class Task(object):
                                                           sub_name,
                                                           content_file,
                                                           arg.content_type)
+
+                        # if direction of the collection is 'out', it means we
+                        # haven't received serialized objects from the Master
+                        # (even though parameters have 'file_name', those files
+                        # haven't been created yet)..
                         if _col_dir == parameter.DIRECTION.OUT:
+                            # create an 'empty' instance of given type
                             temp = create_object_by_con_type(content_type)
                             sub_arg.content = temp
                             arg.content.append(sub_arg.content)
@@ -1371,43 +1377,68 @@ class Task(object):
         if kwargs["python_MPI"]:
             python_mpi = True
 
-        # Deal with INOUTs
-        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:  # noqa
-            original_name = parameter.get_original_name(arg.name)
-            param = self.decorator_arguments.get(original_name,
-                                                 self.get_default_direction(original_name))  # noqa
-            # todo: simplify this 'if'..
-            if ((param.direction == parameter.DIRECTION.INOUT or
-                param.direction == parameter.DIRECTION.COMMUTATIVE) or
-                (arg.type == parameter.TYPE.COLLECTION and param.direction == parameter.DIRECTION.OUT)) and \
-                    not (arg.type == parameter.TYPE.EXTERNAL_PSCO or
-                         is_psco(arg.content)):
-                # If it si INOUT and not PSCO, serialize to file
-                # We can not use here:
-                #     param.type != parameter.TYPE.EXTERNAL_PSCO
-                # since param.type has the old type
-                if arg.type == parameter.TYPE.COLLECTION:
-                    if not self.is_parameter_file_collection(arg.name):
-                        def get_collection_objects(content, arg):
-                            if arg.type == parameter.TYPE.COLLECTION:
-                                for (new_content, elem) in zip(arg.content, arg.collection_content):  # noqa
-                                    for sub_elem in get_collection_objects(new_content, elem):  # noqa
-                                        yield sub_elem
-                            else:
-                                yield (content, arg)
+        # Deal with INOUTs and COL_OUTs
 
-                        for (content, elem) in get_collection_objects(arg.content, arg):  # noqa
-                            f_name = get_file_name(elem.file_name)
-                            if python_mpi:
-                                serialize_to_file_mpienv(content, f_name, False)
-                            else:
-                                serialize_to_file(content, f_name)
-                else:
-                    f_name = get_file_name(arg.file_name)
+        def get_collection_objects(_content, _arg):
+            """ Retrieve collection objects recursively
+            """
+            if _arg.type == parameter.TYPE.COLLECTION:
+                for (new_con, _elem) in zip(_arg.content,
+                                            _arg.collection_content):
+                    for sub_el in get_collection_objects(new_con, _elem):
+                        yield sub_el
+            else:
+                yield (_content, _arg)
+
+        for arg in args:
+            # handle only task parameters that are objects
+
+            # skip files and non-task-parameters
+            if not isinstance(arg, parameter.TaskParameter) or \
+                    not self.is_parameter_an_object(arg.name):
+                continue
+
+            # file collections are objects, but must be skipped as well
+            if self.is_parameter_file_collection(arg.name):
+                continue
+
+            # skip psco
+            # since param.type has the old type, we can not use:
+            #     param.type != parameter.TYPE.EXTERNAL_PSCO
+            _is_psco_true = (arg.type == parameter.TYPE.EXTERNAL_PSCO or
+                             is_psco(arg.content))
+            if _is_psco_true:
+                continue
+
+            original_name = parameter.get_original_name(arg.name)
+            param = self.decorator_arguments.get(
+                original_name, self.get_default_direction(original_name))
+
+            # skip non-inouts or non-col_outs
+            _is_col_out = (arg.type == parameter.TYPE.COLLECTION and
+                           param.direction == parameter.DIRECTION.OUT)
+
+            _is_inout = (param.direction == parameter.DIRECTION.INOUT or
+                         param.direction == parameter.DIRECTION.COMMUTATIVE)
+
+            if not (_is_inout or _is_col_out):
+                continue
+
+            # Now it's 'INOUT' or 'COL_OUT' object param, serialize to a file
+            if arg.type == parameter.TYPE.COLLECTION:
+                # handle collections recursively
+                for (content, elem) in get_collection_objects(arg.content, arg):
+                    f_name = get_file_name(elem.file_name)
                     if python_mpi:
-                        serialize_to_file_mpienv(arg.content, f_name, False)
+                                serialize_to_file_mpienv(content, f_name, False)
                     else:
-                        serialize_to_file(arg.content, f_name)
+                        serialize_to_file(content, f_name)
+            else:
+                f_name = get_file_name(arg.file_name)
+                if python_mpi:
+                        serialize_to_file_mpienv(arg.content, f_name, False)
+                else:
+                    serialize_to_file(arg.content, f_name)
 
         # Deal with returns (if any)
         if num_returns > 0:

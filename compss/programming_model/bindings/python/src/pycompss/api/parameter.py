@@ -65,6 +65,7 @@ except ImportError:
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 TYPE = DataType
+# Content type format is <module_path> and <class_name> separated by colon (':')
 UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
 
 
@@ -127,6 +128,7 @@ class Parameter(object):
         self.is_file_collection = is_file_collection
 
         # TODO: Remove this 'if'
+        # empty content types break the format while splitting by space (' ')
         if not content_type:
             content_type = UNDEFINED_CONTENT_TYPE
         self.content_type = content_type
@@ -171,6 +173,7 @@ class TaskParameter(object):
         self.stream = stream
         self.prefix = prefix
         # TODO: Remove this 'if'
+        # empty content types break the format while splitting by space (' ')
         if not content_type:
             content_type = UNDEFINED_CONTENT_TYPE
         self.content_type = content_type

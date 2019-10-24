@@ -238,6 +238,11 @@ public class ReduceWorkerAction<T extends WorkerResourceDescription> extends All
     }
 
     @Override
+    public long getGroupPriority() {
+        return ACTION_REDUCE_WORKER;
+    }
+
+    @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
     }

@@ -67,6 +67,16 @@ public abstract class AllocatableAction {
     // AllocatableAction Id counter
     private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
+    // Default action group priorities (the less the better)
+    protected static final long ACTION_SINGLE = Long.MAX_VALUE;
+    protected static final long ACTION_GROUP_RUNNING = 0L;
+    protected static final long ACTION_GROUP_IDLE = 1L;
+    protected static final long ACTION_VALUE_TRANSFER = -1L;
+    protected static final long ACTION_START_WORKER = -1L;
+    protected static final long ACTION_STOP_WORKER = -1L;
+    protected static final long ACTION_REDUCE_WORKER = -1L;
+    protected static final long ACTION_OPTIMIZE = -1L;
+
     // Orchestrator
     protected final ActionOrchestrator orchestrator;
 
@@ -1092,6 +1102,13 @@ public abstract class AllocatableAction {
      * @return The action priority.
      */
     public abstract int getPriority();
+
+    /**
+     * Returns the action's MultiNodeGroup priority.
+     * 
+     * @return The action's MultiNodeGroup priority.
+     */
+    public abstract long getGroupPriority();
 
     /**
      * Returns the behavior when action fails.

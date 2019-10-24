@@ -88,7 +88,7 @@ public class Verifiers {
      * @param expectedReady Expected ready actions.
      */
     public static void verifyReadyActions(PriorityQueue<AllocatableAction> obtained,
-            HashMap<AllocatableAction, Long> expectedReady) {
+        HashMap<AllocatableAction, Long> expectedReady) {
         if (obtained.size() != expectedReady.size()) {
             fail("Obtained lists doesn't match on size.");
         }
@@ -114,7 +114,7 @@ public class Verifiers {
      * @param expected Expected workers' priority.
      */
     public static <T extends WorkerResourceDescription> void verifyWorkersPriority(
-            LinkedList<OptimizationWorker<T>> obtained, LinkedList<String> expected) {
+        LinkedList<OptimizationWorker<T>> obtained, LinkedList<String> expected) {
 
         int idx = 0;
         if (obtained.size() != expected.size()) {
@@ -142,32 +142,32 @@ public class Verifiers {
      * @param start Start time score.
      */
     public static void verifyScore(FullGraphScore ds, long action, long data, long res, long impl, long start) {
-        if (action != ds.getActionScore()) {
-            System.out.println("Scores do not match. Expected action score " + action + " and " + ds.getActionScore()
-                    + " obtianed.");
-            fail("Scores do not match. Expected action score " + action + " and " + ds.getActionScore() + " obtianed.");
+        if (action != ds.getPriority()) {
+            System.out.println(
+                "Scores do not match. Expected action score " + action + " and " + ds.getPriority() + " obtianed.");
+            fail("Scores do not match. Expected action score " + action + " and " + ds.getPriority() + " obtianed.");
         }
         if (data != ds.getExpectedDataAvailable()) {
             System.out.println("Scores do not match. Expected data available at " + data + " and "
-                    + ds.getExpectedDataAvailable() + " obtianed.");
+                + ds.getExpectedDataAvailable() + " obtianed.");
             fail("Scores do not match. Expected data available at " + data + " and " + ds.getExpectedDataAvailable()
-                    + " obtianed.");
+                + " obtianed.");
         }
         if (res != ds.getResourceScore()) {
-            System.out.println("Scores do not match. Expected resource score " + res + " and " + ds.getResourceScore()
-                    + " obtianed.");
-            fail("Scores do not match. Expected resource score " + res + " and " + ds.getResourceScore()
-                    + " obtianed.");
+            System.out.println(
+                "Scores do not match. Expected resource score " + res + " and " + ds.getResourceScore() + " obtianed.");
+            fail(
+                "Scores do not match. Expected resource score " + res + " and " + ds.getResourceScore() + " obtianed.");
         }
         if (impl != ds.getImplementationScore()) {
             System.out.println("Scores do not match. Expected implementation score " + impl + " and "
-                    + ds.getImplementationScore() + " obtianed.");
+                + ds.getImplementationScore() + " obtianed.");
             fail("Scores do not match. Expected implementation score " + impl + " and " + ds.getImplementationScore()
-                    + " obtianed.");
+                + " obtianed.");
         }
         if (start != ds.getExpectedStart()) {
-            System.out.println("Scores do not match. Expected start time " + start + " and " + ds.getExpectedStart()
-                    + " obtianed.");
+            System.out.println(
+                "Scores do not match. Expected start time " + start + " and " + ds.getExpectedStart() + " obtianed.");
             fail("Scores do not match. Expected start time " + start + " and " + ds.getExpectedStart() + " obtianed.");
         }
     }
@@ -198,14 +198,14 @@ public class Verifiers {
                 AllocatableAction action = actions[coreId].get(actionIdx);
                 FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) action.getSchedulingInfo();
                 if (dsi.getExpectedStart() != times[coreId][actionIdx][0]
-                        || dsi.getExpectedEnd() != times[coreId][actionIdx][1]) {
+                    || dsi.getExpectedEnd() != times[coreId][actionIdx][1]) {
                     System.out.println("Action " + action + " has not been updated properly.\n" + "Expected start at "
-                            + times[coreId][actionIdx][0] + " and end at " + times[coreId][actionIdx][1] + "\n"
-                            + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
+                        + times[coreId][actionIdx][0] + " and end at " + times[coreId][actionIdx][1] + "\n"
+                        + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
 
                     fail("Action " + action + " has not been updated properly.\n" + "Expected start at "
-                            + times[coreId][actionIdx][0] + " and end at " + times[coreId][actionIdx][1] + "\n"
-                            + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
+                        + times[coreId][actionIdx][0] + " and end at " + times[coreId][actionIdx][1] + "\n"
+                        + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
                 }
             }
         }
@@ -228,7 +228,7 @@ public class Verifiers {
             while (gapsIt.hasNext()) {
                 Gap g = gapsIt.next();
                 if (g.getInitialTime() == eg.getInitialTime() && g.getEndTime() == eg.getEndTime()
-                        && g.getOrigin() == eg.getOrigin()) {
+                    && g.getOrigin() == eg.getOrigin()) {
 
                     FakeResourceDescription frd1 = (FakeResourceDescription) g.getResources();
                     FakeResourceDescription frd2 = (FakeResourceDescription) eg.getResources();
@@ -259,7 +259,7 @@ public class Verifiers {
      * @param predecessors Action predecessors.
      */
     public static void verifyInitialPlan(AllocatableAction action, long executionTime,
-            AllocatableAction... predecessors) {
+        AllocatableAction... predecessors) {
 
         long start = 0;
         for (AllocatableAction predecessor : predecessors) {
@@ -280,16 +280,16 @@ public class Verifiers {
         }
         if (predecessors.length != dsi.getPredecessors().size()) {
             System.out.println(action + " expected number of predecessors " + predecessors.length + " obtained "
-                    + dsi.getPredecessors().size() + "\n" + "\tExpected :" + Arrays.asList(predecessors) + "\n"
-                    + "\tObtained :" + dsi.getPredecessors() + "\n");
+                + dsi.getPredecessors().size() + "\n" + "\tExpected :" + Arrays.asList(predecessors) + "\n"
+                + "\tObtained :" + dsi.getPredecessors() + "\n");
             fail(action + " expected number of predecessors " + predecessors.length + " obtained "
-                    + dsi.getPredecessors().size());
+                + dsi.getPredecessors().size());
         }
         for (AllocatableAction predecessor : predecessors) {
             if (!dsi.getPredecessors().contains(predecessor)) {
                 System.out.println(
-                        predecessor + "expected to be a predecessor of " + action + " and it's not.\n" + "\tExpected :"
-                                + Arrays.asList(predecessors) + "\n" + "\tObtained :" + dsi.getPredecessors() + "\n");
+                    predecessor + "expected to be a predecessor of " + action + " and it's not.\n" + "\tExpected :"
+                        + Arrays.asList(predecessors) + "\n" + "\tObtained :" + dsi.getPredecessors() + "\n");
                 fail(predecessor + "expected to be a predecessor of " + action + " and it's not");
             }
         }

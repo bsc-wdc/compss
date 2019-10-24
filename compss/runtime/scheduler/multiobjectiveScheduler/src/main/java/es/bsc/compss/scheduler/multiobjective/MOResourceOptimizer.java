@@ -720,14 +720,14 @@ public class MOResourceOptimizer extends ResourceOptimizer {
 
     private Implementation getBestImplementation(List<Implementation> impls, MOProfile[] profiles) {
         Implementation impl = impls.get(0);
-        MOScore bestScore =
-            new MOScore(0, 0, 0, profiles[0].getAverageExecutionTime(), profiles[0].getPower(), profiles[0].getPrice());
+        MOScore bestScore = new MOScore(0, 0, 0, 0, profiles[0].getAverageExecutionTime(), profiles[0].getPower(),
+            profiles[0].getPrice());
         for (int i = 1; i < impls.size(); i++) {
             Implementation candidate = impls.get(i);
             long length = profiles[i].getAverageExecutionTime();
             double power = profiles[i].getPower();
             double price = profiles[i].getPrice();
-            MOScore score = new MOScore(0, 0, 0, length, power * length, price);
+            MOScore score = new MOScore(0, 0, 0, 0, length, power * length, price);
             if (Score.isBetter(score, bestScore)) {
                 bestScore = score;
                 impl = candidate;

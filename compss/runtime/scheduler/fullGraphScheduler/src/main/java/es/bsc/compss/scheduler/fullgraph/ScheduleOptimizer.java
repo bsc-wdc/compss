@@ -45,7 +45,7 @@ public class ScheduleOptimizer extends Thread {
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
 
-    private FullGraphScore dummyScore = new FullGraphScore(0, 0, 0, 0, 0);
+    private FullGraphScore dummyScore = new FullGraphScore(0, 0, 0, 0, 0, 0);
 
 
     /**
@@ -160,7 +160,7 @@ public class ScheduleOptimizer extends Thread {
      * @return Top donor.
      */
     public OptimizationWorker<?> determineDonorAndReceivers(OptimizationWorker<?>[] workers,
-            LinkedList<OptimizationWorker<?>> receivers) {
+        LinkedList<OptimizationWorker<?>> receivers) {
 
         receivers.clear();
         PriorityQueue<OptimizationWorker<?>> receiversPQ = new PriorityQueue<>(1, getReceptionComparator());
@@ -221,10 +221,10 @@ public class ScheduleOptimizer extends Thread {
 
             @Override
             public int compare(AllocatableAction action1, AllocatableAction action2) {
-                FullGraphSchedulingInformation action1DSI = (FullGraphSchedulingInformation) action1
-                        .getSchedulingInfo();
-                FullGraphSchedulingInformation action2DSI = (FullGraphSchedulingInformation) action2
-                        .getSchedulingInfo();
+                FullGraphSchedulingInformation action1DSI =
+                    (FullGraphSchedulingInformation) action1.getSchedulingInfo();
+                FullGraphSchedulingInformation action2DSI =
+                    (FullGraphSchedulingInformation) action2.getSchedulingInfo();
                 int priority = Long.compare(action2DSI.getExpectedEnd(), action1DSI.getExpectedEnd());
                 if (priority == 0) {
                     return Long.compare(action1.getId(), action2.getId());
@@ -300,9 +300,8 @@ public class ScheduleOptimizer extends Thread {
             action.tryToLaunch();
         } catch (InvalidSchedulingException ise) {
             try {
-                long actionScore = FullGraphScore.getActionScore(action);
                 long dataTime = this.dummyScore.getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new FullGraphScore(actionScore, dataTime, 0, 0, 0);
+                Score aScore = new FullGraphScore(action.getPriority(), action.getGroupPriority(), 0, 0, 0, dataTime);
                 boolean keepTrying = true;
                 for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
                     AllocatableAction pre = action.getConstrainingPredecessors().get(i);

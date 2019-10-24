@@ -610,7 +610,7 @@ public class Comm {
      */
     public static synchronized void removeDataKeepingValue(String renaming) {
         LOGGER.debug("Removing data " + renaming);
-        LogicalData ld = DATA.remove(renaming);
+        DATA.remove(renaming);
     }
 
     /**

@@ -558,7 +558,7 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     public Score generateBlockedScore(AllocatableAction action) {
         LOGGER.debug("[ResourceScheduler] Generate blocked score for action " + action);
-        return new Score(action.getPriority(), 0, 0, 0);
+        return new Score(action.getPriority(), action.getGroupPriority(), 0, 0, 0);
     }
 
     /**
@@ -571,14 +571,18 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      */
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
         // LOGGER.debug("[ResourceScheduler] Generate resource score for action " + action);
-        // Gets the action priority
-        long actionPriority = actionScore.getActionScore();
+
+        // Since we are generating the resource score, we copy the previous fields from actionScore
+        long priority = actionScore.getPriority();
+        long groupId = action.getGroupPriority();
+
+        // Now we compute the rest of the score
         // Computes the resource waiting score
         long waitingScore = -this.blocked.size();
         // Computes the priority of the resource
         long resourceScore = Score.calculateDataLocalityScore(params, this.myWorker);
 
-        return new Score(actionPriority, resourceScore, waitingScore, 0);
+        return new Score(priority, groupId, resourceScore, waitingScore, 0);
     }
 
     /**
@@ -594,15 +598,21 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
     @SuppressWarnings("unchecked")
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
         Score resourceScore) {
+
         // LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
-        long actionPriority = resourceScore.getActionScore();
-        long resourcePriority = resourceScore.getResourceScore();
-        if (!myWorker.canRunNow((T) impl.getRequirements())) {
-            resourcePriority -= Integer.MAX_VALUE;
+
+        // Since we are generating the implementation score, we copy the previous fields from resourceScore
+        long priority = resourceScore.getPriority();
+        long groupId = action.getGroupPriority();
+        long resource = resourceScore.getResourceScore();
+        if (!this.myWorker.canRunNow((T) impl.getRequirements())) {
+            resource -= Integer.MAX_VALUE;
         }
+
+        // Now we compute the rest of the score
         long waitingScore = resourceScore.getWaitingScore();
         long implScore = -this.getProfile(impl).getAverageExecutionTime();
-        return new Score(actionPriority, resourcePriority, waitingScore, implScore);
+        return new Score(priority, groupId, resource, waitingScore, implScore);
     }
 
     /*

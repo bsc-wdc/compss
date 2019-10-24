@@ -25,15 +25,18 @@ import es.bsc.compss.scheduler.types.Score;
 public class LoadBalancingScore extends Score {
 
     /**
-     * Creates a new LoadBalancingScore with the given values.
+     * Creates a new score instance.
      *
-     * @param actionScore Associated action score.
-     * @param res Resource score.
-     * @param waiting Waiting score.
-     * @param impl Implementation score.
+     * @param priority The priority of the action.
+     * @param multiNodeGroupId The MultiNodeGroup Id of the action.
+     * @param resourceScore The score of the resource (e.g., number of data in that resource)
+     * @param waitingScore The estimated time of wait in the resource.
+     * @param implementationScore Implementation's score.
      */
-    public LoadBalancingScore(long actionScore, long res, long waiting, long impl) {
-        super(actionScore, res, waiting, impl);
+    public LoadBalancingScore(long priority, long multiNodeGroupId, long resourceScore, long waitingScore,
+        long implementationScore) {
+
+        super(priority, multiNodeGroupId, resourceScore, waitingScore, implementationScore);
     }
 
     /**
@@ -46,11 +49,9 @@ public class LoadBalancingScore extends Score {
     }
 
     @Override
-    public boolean isBetter(Score reference) {
+    public boolean isBetterCustomValues(Score reference) {
+        // The order is different from the default Score
         LoadBalancingScore other = (LoadBalancingScore) reference;
-        if (this.actionScore != other.actionScore) {
-            return this.actionScore > other.actionScore;
-        }
         if (this.resourceScore != other.resourceScore) {
             return this.resourceScore > other.resourceScore;
         }
@@ -62,8 +63,9 @@ public class LoadBalancingScore extends Score {
 
     @Override
     public String toString() {
-        return "[LoadBalancingScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
-            + ", implementation:" + implementationScore + "]" + "]";
+        return "[LoadBalancingScore = [" + "Priority: " + this.priority + ", " + "MultiNodeGroupId: "
+            + this.actionGroupPriority + ", " + "Resource: " + this.resourceScore + ", " + "Waiting: "
+            + this.waitingScore + ", " + "Implementation: " + this.implementationScore + "]" + "]";
     }
 
 }

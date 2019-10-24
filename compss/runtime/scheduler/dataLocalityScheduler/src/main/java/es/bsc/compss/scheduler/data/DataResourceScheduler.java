@@ -54,40 +54,52 @@ public class DataResourceScheduler<T extends WorkerResourceDescription> extends 
     public Score generateBlockedScore(AllocatableAction action) {
         // LOGGER.debug("[DataResourceScheduler] Generate blocked score for action " + action);
 
-        long actionPriority = action.getPriority();
+        long priority = action.getPriority();
+        long groupId = action.getGroupPriority();
         long waitingScore = -this.blocked.size();
         long resourceScore = 0;
         long implementationScore = 0;
 
-        return new Score(actionPriority, resourceScore, waitingScore, implementationScore);
+        return new Score(priority, groupId, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
         // LOGGER.debug("[DataResourceScheduler] Generate resource score for action " + action);
 
-        long actionPriority = actionScore.getActionScore();
-        long waitingScore = -this.blocked.size();
+        // Since we are generating the resource score, we copy the previous fields from actionScore
+        long priority = actionScore.getPriority();
+        long groupId = action.getGroupPriority();
+
+        // Compute new score fields
         long resourceScore = Score.calculateDataLocalityScore(params, this.myWorker);
-        return new Score(actionPriority, resourceScore, waitingScore, 0);
+        long waitingScore = -this.blocked.size();
+
+        return new Score(priority, groupId, resourceScore, waitingScore, 0);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl,
         Score resourceScore) {
+
         // LOGGER.debug("[DataResourceScheduler] Generate implementation score for action " + action);
         if (this.hasBlockedActions()) {
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks?
             return null;
         }
+
         if (this.myWorker.canRunNow((T) impl.getRequirements())) {
-            long actionPriority = resourceScore.getActionScore();
+            // Since we are generating the implementation score, we copy the previous fields from resourceScore
+            long priority = resourceScore.getPriority();
+            long groupId = action.getGroupPriority();
+            long resource = resourceScore.getResourceScore();
             long waitingScore = resourceScore.getWaitingScore();
-            long resourcePriority = resourceScore.getResourceScore();
+
+            // Compute the rest of the fields
             long implScore = -this.getProfile(impl).getAverageExecutionTime();
 
-            return new Score(actionPriority, resourcePriority, waitingScore, implScore);
+            return new Score(priority, groupId, resource, waitingScore, implScore);
         } else {
             // Implementation cannot be run
             return null;

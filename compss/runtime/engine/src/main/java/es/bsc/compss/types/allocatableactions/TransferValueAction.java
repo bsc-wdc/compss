@@ -256,6 +256,11 @@ public class TransferValueAction<T extends WorkerResourceDescription> extends Al
     }
 
     @Override
+    public long getGroupPriority() {
+        return ACTION_VALUE_TRANSFER;
+    }
+
+    @Override
     public OnFailure getOnFailure() {
         return OnFailure.IGNORE;
     }

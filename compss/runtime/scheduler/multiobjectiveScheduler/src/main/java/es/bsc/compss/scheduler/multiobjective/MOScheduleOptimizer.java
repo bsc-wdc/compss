@@ -346,9 +346,8 @@ public class MOScheduleOptimizer extends SchedulingOptimizer<MOScheduler> {
 
         if (failedSpecificScheduling) {
             try {
-                long actionScore = MOScore.getActionScore(action);
                 long dataTime = MOScore.getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new MOScore(actionScore, dataTime, 0, 0, 0, 0);
+                Score aScore = new MOScore(action.getPriority(), action.getGroupPriority(), dataTime, 0, 0, 0, 0);
                 action.schedule(aScore);
                 try {
                     action.tryToLaunch();

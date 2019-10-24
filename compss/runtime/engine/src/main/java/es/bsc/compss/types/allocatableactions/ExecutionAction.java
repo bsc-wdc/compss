@@ -54,7 +54,6 @@ import es.bsc.compss.types.job.JobHistory;
 import es.bsc.compss.types.job.JobStatusListener;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
-import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.Worker;
 import es.bsc.compss.types.resources.WorkerResourceDescription;
@@ -191,10 +190,10 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void doAction() {
-        JOB_LOGGER.info("Ordering transfers to " + getAssignedResource() + " to run task: " + task.getId());
-        transferErrors = 0;
-        executionErrors = 0;
-        TaskMonitor monitor = task.getTaskMonitor();
+        JOB_LOGGER.info("Ordering transfers to " + getAssignedResource() + " to run task: " + this.task.getId());
+        this.transferErrors = 0;
+        this.executionErrors = 0;
+        TaskMonitor monitor = this.task.getTaskMonitor();
         monitor.onSubmission();
         doInputTransfers();
         for (CommutativeGroupTask com : this.getTask().getCommutativeGroupList()) {
@@ -204,7 +203,7 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     public boolean taskIsReadyForExecution() {
-        return task.canBeExecuted();
+        return this.task.canBeExecuted();
     }
 
     @Override
@@ -224,7 +223,7 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     private void transferInputData(JobTransfersListener listener) {
-        TaskDescription taskDescription = task.getTaskDescription();
+        TaskDescription taskDescription = this.task.getTaskDescription();
         for (Parameter p : taskDescription.getParameters()) {
             if (DEBUG) {
                 JOB_LOGGER.debug("    * " + p);
@@ -351,14 +350,15 @@ public class ExecutionAction extends AllocatableAction {
      * @param failedtransfers Number of failed transfers.
      */
     public final void failedTransfers(int failedtransfers) {
-        JOB_LOGGER.debug("Received a notification for the transfers for task " + task.getId() + " with state FAILED");
+        JOB_LOGGER
+            .debug("Received a notification for the transfers for task " + this.task.getId() + " with state FAILED");
         ++transferErrors;
-        if (transferErrors < TRANSFER_CHANCES && task.getOnFailure() == OnFailure.RETRY) {
-            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host "
+        if (transferErrors < TRANSFER_CHANCES && this.task.getOnFailure() == OnFailure.RETRY) {
+            JOB_LOGGER.debug("Resubmitting input files for task " + this.task.getId() + " to host "
                 + getAssignedResource().getName() + " since " + failedtransfers + " transfers failed.");
             doInputTransfers();
         } else {
-            ErrorManager.warn("Transfers for running task " + task.getId() + " on worker "
+            ErrorManager.warn("Transfers for running task " + this.task.getId() + " on worker "
                 + getAssignedResource().getName() + " have failed.");
             this.notifyError();
         }
@@ -370,7 +370,7 @@ public class ExecutionAction extends AllocatableAction {
      * @param transferGroupId Transferring group Id.
      */
     public final void doSubmit(int transferGroupId) {
-        JOB_LOGGER.debug("Received a notification for the transfers of task " + task.getId() + " with state DONE");
+        JOB_LOGGER.debug("Received a notification for the transfers of task " + this.task.getId() + " with state DONE");
 
         JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = submitJob(transferGroupId, listener);
@@ -378,8 +378,8 @@ public class ExecutionAction extends AllocatableAction {
             // Register job
             this.jobs.add(job.getJobId());
             JOB_LOGGER.info((this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId()
-                + " (Task: " + task.getId() + ")");
-            JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
+                + " (Task: " + this.task.getId() + ")");
+            JOB_LOGGER.info("  * Method name: " + this.task.getTaskDescription().getName());
             JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
 
             this.profile.start();
@@ -414,14 +414,14 @@ public class ExecutionAction extends AllocatableAction {
     protected void stopAction() throws Exception {
         // Submit stop petition
         if (DEBUG) {
-            LOGGER.debug("Task " + this.getId() + " starts cancelling running job");
+            LOGGER.debug("Task " + this.task.getId() + " starts cancelling running job");
         }
-        if (currentJob != null) {
+        if (this.currentJob != null) {
             this.currentJob.cancelJob();
             // Update info about the generated/updated data
             doOutputTransfers(this.currentJob);
         } else {
-            cancelledBeforeSubmit = true;
+            this.cancelledBeforeSubmit = true;
         }
     }
 
@@ -878,6 +878,11 @@ public class ExecutionAction extends AllocatableAction {
     }
 
     @Override
+    public long getGroupPriority() {
+        return ACTION_SINGLE;
+    }
+
+    @Override
     public OnFailure getOnFailure() {
         return this.task.getOnFailure();
     }
@@ -925,7 +930,7 @@ public class ExecutionAction extends AllocatableAction {
             }
         }
         Collections.shuffle(candidates);
-        this.schedule(actionScore, candidates);
+        schedule(actionScore, candidates);
         return uselessWorkers;
     }
 
@@ -1085,7 +1090,6 @@ public class ExecutionAction extends AllocatableAction {
 
     @Override
     protected void treatDependencyFreeAction(List<AllocatableAction> freeTasks) {
-
         for (CommutativeGroupTask cgt : this.getTask().getCommutativeGroupList()) {
             for (Task t : cgt.getCommutativeTasks()) {
                 if (t.getStatus() == TaskState.TO_EXECUTE) {
@@ -1100,4 +1104,5 @@ public class ExecutionAction extends AllocatableAction {
             }
         }
     }
+
 }

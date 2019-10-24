@@ -262,6 +262,11 @@ public class StopWorkerAction extends AllocatableAction {
     }
 
     @Override
+    public long getGroupPriority() {
+        return ACTION_STOP_WORKER;
+    }
+
+    @Override
     public OnFailure getOnFailure() {
         return OnFailure.RETRY;
     }

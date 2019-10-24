@@ -57,7 +57,7 @@ public class FIFOScheduler extends ReadyScheduler {
     @Override
     public Score generateActionScore(AllocatableAction action) {
         // LOGGER.debug("[FIFOScheduler] Generate Action Score for " + action);
-        return new Score(action.getPriority(), -action.getId(), 0, 0);
+        return new Score(action.getPriority(), action.getGroupPriority(), -action.getId(), 0, 0);
     }
 
     /*

@@ -253,13 +253,11 @@ public class DataManagerImpl implements DataManager {
     private DataRegister getOriginalDataRegister(InvocationParam param) {
         String originalRename = param.getSourceDataId();
         DataRegister originalRegister;
-        boolean newRegister = false;
         synchronized (registry) {
             originalRegister = this.registry.get(originalRename);
             if (originalRegister == null) {
                 originalRegister = new DataRegister();
                 this.registry.put(originalRename, originalRegister);
-                newRegister = true;
             }
         }
 

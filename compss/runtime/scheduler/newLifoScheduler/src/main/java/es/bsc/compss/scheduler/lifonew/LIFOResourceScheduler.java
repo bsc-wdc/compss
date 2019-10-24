@@ -53,24 +53,29 @@ public class LIFOResourceScheduler<T extends WorkerResourceDescription> extends 
     @Override
     public Score generateBlockedScore(AllocatableAction action) {
         // LOGGER.debug("[LIFOScheduler] Generate blocked score for action " + action);
-        long actionPriority = action.getPriority();
+        long priority = action.getPriority();
+        long groupId = action.getGroupPriority();
         long resourceScore = action.getId();
         long waitingScore = 0;
         long implementationScore = 0;
 
-        return new Score(actionPriority, resourceScore, waitingScore, implementationScore);
+        return new Score(priority, groupId, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
     public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
         // LOGGER.debug("[LIFOScheduler] Generate resource score for action " + action);
 
-        long actionPriority = actionScore.getActionScore();
-        long resourceScore = actionScore.getResourceScore();
+        // Since we are generating the resource score, we copy the previous fields from actionScore
+        long priority = actionScore.getPriority();
+        long groupId = action.getGroupPriority();
+
+        // We compute the rest of the fields
+        long resource = actionScore.getResourceScore();
         long waitingScore = 0;
         long implementationScore = 0;
 
-        return new Score(actionPriority, resourceScore, waitingScore, implementationScore);
+        return new Score(priority, groupId, resource, waitingScore, implementationScore);
     }
 
     @SuppressWarnings("unchecked")
@@ -82,13 +87,17 @@ public class LIFOResourceScheduler<T extends WorkerResourceDescription> extends 
             // Added for scale-down: In readyScheduler, should disable the node for scheduling more tasks?
             return null;
         }
-        if (myWorker.canRunNow((T) impl.getRequirements())) {
-            long actionPriority = resourceScore.getActionScore();
-            long resourcePriority = action.getId();
-            long waitingScore = 0;
+        if (this.myWorker.canRunNow((T) impl.getRequirements())) {
+            // Since we are generating the implementation score, we copy the previous fields from resourceScore
+            long priority = resourceScore.getPriority();
+            long groupId = action.getGroupPriority();
+            long resourcePriority = resourceScore.getResourceScore();
+            long waitingScore = resourceScore.getWaitingScore();
+
+            // We compute the rest of the fields
             long implScore = 0;
 
-            return new Score(actionPriority, resourcePriority, waitingScore, implScore);
+            return new Score(priority, groupId, resourcePriority, waitingScore, implScore);
         } else {
             // Implementation cannot be run
             return null;

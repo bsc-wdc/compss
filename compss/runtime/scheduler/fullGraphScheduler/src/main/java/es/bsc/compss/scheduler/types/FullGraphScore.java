@@ -34,16 +34,20 @@ public class FullGraphScore extends Score {
 
 
     /**
-     * Creates a FullGraphScore instance.
-     * 
-     * @param actionScore Associated action score.
+     * Creates a new score instance.
+     *
+     * @param priority The priority of the action.
+     * @param multiNodeGroupId The MultiNodeGroup Id of the action.
+     * @param resourceScore The score of the resource (e.g., number of data in that resource)
+     * @param waitingScore The estimated time of wait in the resource.
+     * @param implementationScore Implementation's score.
      * @param dataAvailability Data score.
-     * @param waiting Waiting score.
-     * @param res Resource score.
-     * @param impl Implementation score.
      */
-    public FullGraphScore(long actionScore, double dataAvailability, long waiting, long res, long impl) {
-        super(actionScore, res, waiting, impl);
+    public FullGraphScore(long priority, long multiNodeGroupId, long resourceScore, long waitingScore,
+        long implementationScore, double dataAvailability) {
+
+        super(priority, multiNodeGroupId, resourceScore, waitingScore, implementationScore);
+
         this.expectedDataAvailable = dataAvailability;
         this.expectedStart = Math.max(this.resourceScore, this.expectedDataAvailable);
     }
@@ -52,36 +56,28 @@ public class FullGraphScore extends Score {
      * Creates a new FullGraphScore instance.
      * 
      * @param actionScore Action score.
+     * @param resourceScore Resource score.
+     * @param waitingScore Waiting score.
+     * @param implementationScore Implementation score.
      * @param transferTime Data transferring time.
-     * @param waiting Waiting score.
-     * @param resourceTime Resource score.
-     * @param impl Implementation score.
      */
-    public FullGraphScore(FullGraphScore actionScore, double transferTime, long waiting, long resourceTime, long impl) {
-        super(actionScore.getActionScore(), resourceTime, waiting, impl);
+    public FullGraphScore(FullGraphScore actionScore, long resourceScore, long waitingScore, long implementationScore,
+        double transferTime) {
+
+        super(actionScore.getPriority(), actionScore.getGroupPriority(), resourceScore, waitingScore,
+            implementationScore);
+
         this.expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
         this.expectedStart = Math.max(this.resourceScore, this.expectedDataAvailable);
     }
 
     @Override
-    public boolean isBetter(Score other) {
+    public boolean isBetterCustomValues(Score other) {
         FullGraphScore otherDS = (FullGraphScore) other;
-        if (this.actionScore != other.actionScore) {
-            return this.actionScore > other.actionScore;
-        }
+
         double ownEnd = this.expectedStart + this.implementationScore;
         double otherEnd = otherDS.expectedStart + other.implementationScore;
         return ownEnd < otherEnd;
-    }
-
-    /**
-     * Returns the action score.
-     * 
-     * @param action Action.
-     * @return The associated action score.
-     */
-    public static long getActionScore(AllocatableAction action) {
-        return action.getPriority();
     }
 
     /**
@@ -118,9 +114,9 @@ public class FullGraphScore extends Score {
 
     @Override
     public String toString() {
-        return "[FGScore = [action: " + this.actionScore + ", availableData: " + this.expectedDataAvailable
-                + ", resource: " + this.resourceScore + ", expectedStart: " + this.expectedStart + ", implementation:"
-                + this.implementationScore + "]";
+        return "[FGScore = [" + "Priority: " + this.priority + ", " + "MultiNodeGroupId: " + this.actionGroupPriority
+            + ", " + "Resource: " + this.resourceScore + ", " + "ExpectedStart: " + this.expectedStart + ", "
+            + "Implementation: " + this.implementationScore + "]" + "]";
     }
 
 }

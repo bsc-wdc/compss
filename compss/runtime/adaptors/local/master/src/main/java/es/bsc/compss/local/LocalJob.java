@@ -107,11 +107,6 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
         }
     }
 
-    private LocalParameter addParameter(Parameter p) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     @Override
     public void submit() throws Exception {
         this.getResourceNode().runJob(this);

@@ -40,6 +40,7 @@ import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.LocationType;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationContext;
@@ -70,6 +71,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
@@ -473,58 +475,49 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug(
                                 "Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
-                        Copy.waitForCopyTofinish(copy, this);
-                        // try {
-                        if (DEBUG) {
-                            LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
-                                + tgtBO.getName());
-                        }
-                        try {
-                            if (this.persistentEnabled) {
-                                manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
-                            } else {
-                                manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target, reason);
-                            }
-                            listener.notifyEnd(null);
-                        } catch (Exception e) {
-                            LOGGER.error("ERROR: managing obtain binding object at cache", e);
-                            listener.notifyFailure(null, e);
-                        }
-                        ld.releaseHostRemoval();
-                        return;
+                        copy.addEventListener(new EventListener() {
 
-                    } else {
-                        if (copy.getTargetData() != null
-                            && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
-                            Copy.waitForCopyTofinish(copy, this);
-                            // try {
-                            if (DEBUG) {
-                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
-                                    + " to " + tgtBO.getName());
-                            }
-                            try {
-                                if (this.persistentEnabled) {
-                                    manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target,
-                                        reason);
-                                } else {
-                                    manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target,
-                                        reason);
+                            @Override
+                            public void notifyEnd(DataOperation fOp) {
+                                if (DEBUG) {
+                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
+                                        + " to " + tgtBO.getName());
                                 }
-                                listener.notifyEnd(null);
-                            } catch (Exception e) {
+                                try {
+                                    if (COMPSsMaster.this.persistentEnabled) {
+                                        manageObtainBindingObjectInCache(copy.getFinalTarget(), tgtBO, tgtData, target,
+                                            reason);
+                                    } else {
+                                        manageObtainBindingObjectAsFile(copy.getFinalTarget(), tgtBO, tgtData, target,
+                                            reason);
+                                    }
+                                    listener.notifyEnd(null);
+                                } catch (Exception e) {
+                                    LOGGER.error("ERROR: managing obtain binding object at cache", e);
+                                    listener.notifyFailure(null, e);
+                                }
+                                ld.releaseHostRemoval();
+                            }
+
+                            @Override
+                            public void notifyFailure(DataOperation fOp, Exception e) {
+                                if (DEBUG) {
+                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
+                                        + " to " + tgtBO.getName());
+                                }
                                 LOGGER.error("ERROR: managing obtain binding object at cache", e);
                                 listener.notifyFailure(null, e);
+                                ld.releaseHostRemoval();
                             }
-                            ld.releaseHostRemoval();
-                            return;
-
-                        } else {
-                            if (DEBUG) {
-                                LOGGER.debug("Current copies are not transfering " + ld.getName()
-                                    + " to master. Ignoring at this moment");
-                            }
+                        });
+                        return;
+                    } else {
+                        if (DEBUG) {
+                            LOGGER.debug("Current copies are not transfering " + ld.getName()
+                                + " to master. Ignoring at this moment");
                         }
                     }
+
                 }
             }
         }
@@ -781,28 +774,49 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                             LOGGER.debug(
                                 "Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
-                        Copy.waitForCopyTofinish(copy, this);
-                        try {
-                            if (DEBUG) {
-                                LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
-                                    + " to " + targetPath);
-                            }
-                            Files.copy((new File(copy.getFinalTarget())).toPath(), new File(targetPath).toPath(),
-                                StandardCopyOption.REPLACE_EXISTING);
-                            if (tgtData != null) {
-                                tgtData.addLocation(target);
-                            }
-                            LOGGER.debug("File copied set dataTarget " + targetPath);
-                            reason.setDataTarget(targetPath);
+                        EventListener el = new EventListener() {
 
-                            listener.notifyEnd(null);
-                            ld.releaseHostRemoval();
-                            return;
-                        } catch (IOException ex) {
-                            ErrorManager.warn("Error master local copying file " + copy.getFinalTarget()
-                                + " from master to " + targetPath + " with replacing", ex);
-                        }
+                            @Override
+                            public void notifyEnd(DataOperation fOp) {
+                                if (DEBUG) {
+                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
+                                        + " to " + targetPath);
+                                }
+                                try {
+                                    Path tgtPath = (new File(copy.getFinalTarget())).toPath();
+                                    Path copyPath = (new File(copy.getFinalTarget())).toPath();
+                                    if (tgtPath.compareTo(copyPath) != 0) {
+                                        Files.copy(copyPath, tgtPath, StandardCopyOption.REPLACE_EXISTING);
+                                    }
+                                    if (tgtData != null) {
+                                        tgtData.addLocation(target);
+                                    }
+                                    LOGGER.debug("File copied set dataTarget " + targetPath);
+                                    reason.setDataTarget(targetPath);
 
+                                    listener.notifyEnd(null);
+                                } catch (IOException ex) {
+                                    ErrorManager.warn("Error master local copying file " + copy.getFinalTarget()
+                                        + " from master to " + targetPath + " with replacing", ex);
+                                    listener.notifyFailure(null, ex);
+                                }
+                                ld.releaseHostRemoval();
+                            }
+
+                            @Override
+                            public void notifyFailure(DataOperation fOp, Exception e) {
+                                if (DEBUG) {
+                                    LOGGER.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget()
+                                        + " to " + targetPath);
+                                }
+                                ErrorManager.warn("Error master local copying file " + copy.getFinalTarget()
+                                    + " from master to " + targetPath + " with replacing", e);
+                                listener.notifyFailure(null, e);
+                                ld.releaseHostRemoval();
+                            }
+                        };
+                        copy.addEventListener(el);
+                        return;
                     }
                 }
             }

@@ -418,6 +418,7 @@ java \
 -Dcompss.masterName="${AGENT_HOSTNAME}" \
 -Dcompss.uuid="${uuid}" \
 -Dcompss.appLogDir="${LOG_DIR}" \
+-Dcompss.specificLogDir="${LOG_DIR}" \
 -Dcompss.comm=${comm} \
 -Dcompss.agent.configpath="${COMPSS_HOME}/Runtime/configuration/agents/all.json" \
 -Dcompss.project.file="${PROJECT_FILE}" \

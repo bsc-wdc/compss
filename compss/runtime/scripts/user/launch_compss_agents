@@ -42,6 +42,7 @@ DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 
+DEFAULT_SCHEDULER="es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -554,6 +555,10 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
+        scheduler=*)
+          # Added for tracing in heterogeneity
+          scheduler="${OPTARG//scheduler=/}"
+          ;;          
         *)
           # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
@@ -662,6 +667,10 @@ check_args() {
 
   if [ -z "${python_mpi_worker}" ]; then
     python_mpi_worker=${DEFAULT_PYTHON_MPI_WORKER}
+  fi
+
+  if [ -z "${scheduler}" ]; then
+    scheduler="${DEFAULT_SCHEDULER}"
   fi
 
   #
@@ -1028,7 +1037,7 @@ launch_agent () {
   fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
   fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
 
-  agent_cmd "${node_name}" "${network}" "${worker_working_dir}" "${worker_install_dir}" "${specific_log_dir}" "${jvm_opts_size}" "${jvm_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${node_memory}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${cp}" "${master_node}" ${worker_nodes}
+  agent_cmd "${node_name}" "${network}" "${worker_working_dir}" "${worker_install_dir}" "${specific_log_dir}" "${jvm_opts_size}" "${jvm_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${scheduler}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${node_memory}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${cp}" "${master_node}" ${worker_nodes}
 
   if [ ! -z "${NODE_NAME_QUEUE}" ]; then
       node=$(${NODE_NAME_QUEUE} ${node})

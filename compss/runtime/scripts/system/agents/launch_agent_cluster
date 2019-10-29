@@ -260,6 +260,9 @@ fpga_reprogram_size="${1}"
 # fpga_reprogram_str="${*:1:!fpga_reprogram_size}"
 shift "${fpga_reprogram_size}"
 
+scheduler="${1}"
+shift 1
+
 cpus_per_node="${1}"
 gpus_per_node="${2}"
 fpgas_per_node="${3}"
@@ -290,9 +293,10 @@ echo "Working Dir:    ${worker_working_dir}" >>"${log_dir}/INFO"
 echo "Install Dir:    ${worker_install_dir}" >>"${log_dir}/INFO"
 echo "Log Dir:        ${log_dir}" >>"${log_dir}/INFO"
 
-echo "CPUs:    ${cpus_per_node} ${cpu_affinity}" >>"${log_dir}/INFO"
-echo "GPUs:    ${gpus_per_node} ${gpu_affinity}" >>"${log_dir}/INFO"
-echo "FPGAs:    ${fpgas_per_node} ${fpga_affinity}" >>"${log_dir}/INFO"
+echo "Scheduler:      ${scheduler}" >>"${log_dir}/INFO"
+echo "CPUs:           ${cpus_per_node} ${cpu_affinity}" >>"${log_dir}/INFO"
+echo "GPUs:           ${gpus_per_node} ${gpu_affinity}" >>"${log_dir}/INFO"
+echo "FPGAs:          ${fpgas_per_node} ${fpga_affinity}" >>"${log_dir}/INFO"
 
 
 echo "Child nodes:" >>"${log_dir}/INFO"
@@ -315,5 +319,5 @@ generate_resources
 
 echo "--------${HOSTNAME}-OUT----" >"${log_dir}/OUT"
 echo "--------${HOSTNAME}-ERR----" >"${log_dir}/ERR"
-echo "${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d debug -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" >>"${log_dir}/OUT" 2>>"${log_dir}/ERR" 
-"${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d debug -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" >>"${log_dir}/OUT" 2>>"${log_dir}/ERR"
+echo "${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d debug -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" --scheduler ${scheduler}>>"${log_dir}/OUT" 2>>"${log_dir}/ERR" 
+"${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d debug -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" --scheduler ${scheduler}>>"${log_dir}/OUT" 2>>"${log_dir}/ERR"

@@ -155,9 +155,12 @@ show_opts() {
     --streaming_master_port=<int>           Use an specific port for the streaming master.
                                             Default: null
     --scheduler=<className>                 Class that implements the Scheduler for COMPSs
-                                            Supported schedulers: es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
-                                                                  | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
-                                                                  | es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
+                                            Supported schedulers: es.bsc.compss.scheduler.data.DataScheduler
+                                                    | es.bsc.compss.scheduler.fifo.FIFOScheduler
+                                                    | es.bsc.compss.scheduler.fifodata.FIFODataScheduler
+                                                    | es.bsc.compss.scheduler.lifo.LIFOScheduler
+                                                    | es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
+                                                    | es.bsc.compss.components.impl.TaskScheduler
                                             Default: ${DEFAULT_SCHEDULER}
     --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
                                             Default: Empty

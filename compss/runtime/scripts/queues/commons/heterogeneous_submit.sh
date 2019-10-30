@@ -129,12 +129,12 @@ submit() {
   # shellcheck source=../cfgs/default.cfg
   # shellcheck disable=SC1091
   # shellcheck disable=SC2154
-  source "${SCRIPT_DIR}/../cfgs/${sc_cfg}"
+  source "${SCRIPT_DIR}/../supercomputers/${sc_cfg}"
 
   # Load specific queue system flags
   # shellcheck source=../slurm/slurm.cfg
   # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg"
+  source "${SCRIPT_DIR}/../queue_systems/${QUEUE_SYSTEM}.cfg"
   
   check_heterogeneous_args
   # shellcheck source=./user/defined/file

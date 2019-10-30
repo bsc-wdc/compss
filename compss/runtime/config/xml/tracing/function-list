@@ -9,3 +9,8 @@ create_threads
 getByID
 makePersistent
 deletePersistent
+deserialize_from_shm
+try_dict
+try_attach
+try_load
+delete_shma

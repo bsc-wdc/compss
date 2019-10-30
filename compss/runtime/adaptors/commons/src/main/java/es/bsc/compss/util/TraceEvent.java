@@ -1,5 +1,6 @@
 /*
  *  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+ *  Copyright 2019      Cray UK Ltd., a Hewlett Packard Enterprise company
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -91,6 +92,11 @@ public enum TraceEvent {
     GET_BY_ID(9, Tracer.INSIDE_TASKS_TYPE, "Get by ID persistent object"), // Get by id
     MAKE_PERSISTENT(10, Tracer.INSIDE_TASKS_TYPE, "Make persistent object"), // Make persistent
     DELETE_PERSISTENT(11, Tracer.INSIDE_TASKS_TYPE, "Delete persistent object"), // Delete persistent
+    DESERIALIZE_SHM(12, Tracer.INSIDE_TASKS_TYPE, "Deserialize using SHM"), // Deserialize shared memory array
+    DICT_SHM(13, Tracer.INSIDE_TASKS_TYPE, "Reuse dictionnary from SHM"), // Recover segment from dictionnary
+    ATTACH_SHM(14, Tracer.INSIDE_TASKS_TYPE, "Attach from SHM"), // Attach shared memory segment
+    LOAD_SHM(15, Tracer.INSIDE_TASKS_TYPE, "Load from SHM"), // Load object from SHM
+    DELETE_SHM(16, Tracer.INSIDE_TASKS_TYPE, "Delete Shared Memory Array"), // Delete shared memory array
     WORKER_RUNNING(102, Tracer.INSIDE_TASKS_TYPE, "Worker running"), // Worker running
 
     READY_COUNT(1, Tracer.READY_COUNTS, "Ready queue count");// Ready count

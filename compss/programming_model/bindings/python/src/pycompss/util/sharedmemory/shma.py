@@ -92,18 +92,23 @@ def deserialize_from_shm(handler):
     """
     obj_name = basename(handler.name + '.shm')
 
-    if obj_name in shma_objects:
-        return shma_objects[obj_name]
+    def try_dict():
+        return shma_objects[obj_name] if obj_name in shma_objects else None
+    shared_array = try_dict()
 
-    else:
+    if shared_array is None:
         try:
             # Try to attach from OS shared memory system
-            shared_array = shma.attach('shm://' + obj_name)
+            def try_attach():
+                return shma.attach('shm://' + obj_name)
+            shared_array = try_attach()
 
         except (OSError, IOError):
             # Never been deserialized before
-            deserialized_array = numpy.load(handler, allow_pickle=False)
-            shared_array = shma.create_copy('shm://' + obj_name, deserialized_array)
+            def try_load():
+                deserialized_array = numpy.load(handler, allow_pickle=False)
+                return shma.create_copy('shm://' + obj_name, deserialized_array)
+            shared_array = try_load()
 
         shma_objects[obj_name] = shared_array
 

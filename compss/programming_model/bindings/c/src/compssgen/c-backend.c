@@ -1341,7 +1341,7 @@ static void generate_parameter_marshalling(FILE *outFile, function *func, Types 
             ret.elements="0";
         }
 
-        fprintf(outFile, "\t %s *%s;\n", ret.classname, ret.name);
+        fprintf(outFile, "\t %s *%s = NULL;\n", ret.classname, ret.name);
 
         treat_master_argument(outFile, &ret, i, current_types);
 

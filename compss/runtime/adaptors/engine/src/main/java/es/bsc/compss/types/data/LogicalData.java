@@ -21,6 +21,7 @@ import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -208,6 +209,23 @@ public class LogicalData {
             }
         }
 
+        return list;
+    }
+
+    /**
+     * Obtain all URIs in a resource.
+     * 
+     * @param targetHost Resource
+     * @return list of uri where data is located in the node
+     */
+    public synchronized List<MultiURI> getURIsInHost(Resource targetHost) {
+        List<MultiURI> list = new LinkedList<>();
+        for (DataLocation loc : this.locations) {
+            MultiURI locationURI = loc.getURIInHost(targetHost);
+            if (locationURI != null) {
+                list.add(locationURI);
+            }
+        }
         return list;
     }
 

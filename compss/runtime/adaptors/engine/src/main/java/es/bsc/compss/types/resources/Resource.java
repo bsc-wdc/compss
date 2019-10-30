@@ -70,7 +70,7 @@ public interface Resource extends Comparable<Resource> {
      *
      * @return List of logicalData objects
      */
-    public LogicalData[] pollObsoletes();
+    public List<MultiURI> pollObsoletes();
 
     /**
      * Clears the list of obsolete files.

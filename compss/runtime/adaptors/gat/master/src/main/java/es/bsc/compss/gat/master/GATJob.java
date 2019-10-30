@@ -45,6 +45,7 @@ import es.bsc.compss.types.parameter.DependencyParameter;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
@@ -320,11 +321,11 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(String.valueOf(Comm.getStreamingPort()));
         lArgs.add(String.valueOf(DEBUG));
 
-        LogicalData[] obsoleteFiles = getResource().pollObsoletes();
+        List<MultiURI> obsoleteFiles = getResource().pollObsoletes();
         if (obsoleteFiles != null) {
-            lArgs.add("" + obsoleteFiles.length);
-            for (LogicalData ld : obsoleteFiles) {
-                String renaming = ld.getName();
+            lArgs.add("" + obsoleteFiles.size());
+            for (MultiURI u : obsoleteFiles) {
+                String renaming = u.getPath();
                 lArgs.add(renaming);
             }
         } else {

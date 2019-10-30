@@ -48,6 +48,7 @@ import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
 import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
@@ -1168,6 +1169,32 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         CommandWorkerDebugFilesDone commandWorkerDebugFilesDone) {
         // Nothing to do at worker
         WORKER_LOGGER.warn("Error sending  generate worker debug done. Not handeled");
+
+    }
+
+    @Override
+    public void receivedRemoveObsoletes(NIONode node, List<String> obsoletes) {
+        // Remove obsoletes
+        long obsoletesTimeStart = 0L;
+        long obsoletesTimeEnd = 0L;
+        if (IS_TIMER_COMPSS_ENABLED) {
+            obsoletesTimeStart = System.nanoTime();
+        }
+        if (obsoletes != null) {
+            removeObsolete(obsoletes);
+        }
+        if (IS_TIMER_COMPSS_ENABLED) {
+            obsoletesTimeEnd = System.nanoTime();
+            final float obsoletesTimeElapsed = (obsoletesTimeEnd - obsoletesTimeStart) / (float) 1_000_000;
+            TIMER_LOGGER.info("[TIMER] Erasing obsoletes for command : " + obsoletesTimeElapsed + " ms");
+        }
+
+    }
+
+    @Override
+    public void handleRemoveObsoletesCommandError(Connection c, CommandRemoveObsoletes commandRemoveObsoletes) {
+        // Nothing to do at worker
+        WORKER_LOGGER.warn("Error receiving remove obsoletes command. Not handeled");
 
     }
 

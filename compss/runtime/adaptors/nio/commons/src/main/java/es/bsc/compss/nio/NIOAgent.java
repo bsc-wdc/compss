@@ -36,6 +36,7 @@ import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
 import es.bsc.compss.nio.commands.CommandTracingID;
@@ -960,5 +961,9 @@ public abstract class NIOAgent {
         return true;
 
     }
+
+    public abstract void receivedRemoveObsoletes(NIONode node, List<String> obsolete);
+
+    public abstract void handleRemoveObsoletesCommandError(Connection c, CommandRemoveObsoletes commandRemoveObsoletes);
 
 }

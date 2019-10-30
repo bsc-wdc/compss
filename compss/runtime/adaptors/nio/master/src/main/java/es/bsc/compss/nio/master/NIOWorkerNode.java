@@ -32,6 +32,7 @@ import es.bsc.compss.nio.commands.CommandCancelTask;
 import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandResourcesReduce;
 import es.bsc.compss.nio.commands.CommandShutdown;
@@ -68,6 +69,8 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
 
+import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -769,5 +772,21 @@ public class NIOWorkerNode extends COMPSsWorker {
             }
         }
         return data;
+    }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+        LOGGER.debug("Sending command to remove obsoletes for " + this.getHost());
+        List<String> obsoleteRenamings = new LinkedList<>();
+        for (MultiURI u : obsoletes) {
+            obsoleteRenamings.add(u.getPath());
+        }
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        CommandRemoveObsoletes cmd = new CommandRemoveObsoletes(obsoleteRenamings);
+        NIOAgent.registerOngoingCommand(c, cmd);
+        c.sendCommand(cmd);
+        c.receive();
+        c.finishConnection();
+
     }
 }

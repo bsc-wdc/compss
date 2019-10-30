@@ -41,6 +41,7 @@ import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandShutdown;
 import es.bsc.compss.nio.commands.CommandShutdownACK;
 import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
@@ -363,10 +364,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
-        LogicalData[] obsoletes = res.pollObsoletes();
+        List<MultiURI> obsoletes = res.pollObsoletes();
         List<String> obsoleteRenamings = new LinkedList<>();
-        for (LogicalData ld : obsoletes) {
-            obsoleteRenamings.add(worker.getWorkingDir() + File.separator + ld.getName());
+        for (MultiURI u : obsoletes) {
+            obsoleteRenamings.add(u.getPath());
         }
         RUNNING_JOBS.put(job.getJobId(), job);
         worker.submitTask(job, obsoleteRenamings);
@@ -1014,6 +1015,22 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         CommandWorkerDebugFilesDone commandWorkerDebugFilesDone) {
         // Nothing to do at master
         LOGGER.warn("Error receiving generate worker debug done. Not handeled");
+
+    }
+
+    @Override
+    public void receivedRemoveObsoletes(NIONode node, List<String> obsolete) {
+        // Nothing to do at master
+    }
+
+    @Override
+    public void handleRemoveObsoletesCommandError(Connection c, CommandRemoveObsoletes commandRemoveObsoletes) {
+        if (commandRemoveObsoletes.canRetry()) {
+            commandRemoveObsoletes.increaseRetries();
+            resendCommand((NIONode) c.getNode(), commandRemoveObsoletes);
+        } else {
+            LOGGER.warn("Error sending command remove obsoletes after retries. Nothing else to do.");
+        }
 
     }
 

@@ -231,4 +231,9 @@ public class ServiceInstance extends COMPSsWorker {
         // Does not apply.
         // The computing capabilities of a service is not controlled by the service user
     }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+        // No need to do anything
+    }
 }

@@ -428,4 +428,10 @@ public class GATWorkerNode extends COMPSsWorker {
         // Does not apply.
         // Workers are created with all the resources to run a task. After that the worker dies
     }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+        // TODO Nothing done at this version
+
+    }
 }

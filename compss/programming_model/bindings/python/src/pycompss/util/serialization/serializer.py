@@ -92,6 +92,34 @@ lib2idx = {
 idx2lib = dict([(v, k) for (k, v) in lib2idx.items()])
 
 
+try:
+    subtype2idx = {
+        numpy.ndarray: 0,
+        numpy.matrix: 1
+    }
+    idx2subtype = dict([(v, k) for (k, v) in subtype2idx.items()])
+
+
+    def encode_numpy_type(obj, handler):
+        try:
+            handler.write(bytearray('%04d' % subtype2idx[type(obj)], 'utf8'))
+        except KeyError:
+            # Fallback: serialize and deserialize a standard numpy.ndarray
+            handler.write(bytearray('%04d' % 0, 'utf8'))
+
+
+    def decode_numpy_type(handler):
+        try:
+            return idx2subtype[int(handler.read(4))]
+        except KeyError:
+            error_message = 'Unrecognize numpy subtype'
+            raise SerializerException(error_message)
+
+
+except NameError:
+    pass
+
+
 class SerializerException(Exception):
     """
     Exception on serialization
@@ -156,15 +184,16 @@ def serialize_to_handler(obj, handler):
                         NUMPY_AVAILABLE and \
                         (isinstance(obj, numpy.ndarray) or
                          isinstance(obj, numpy.matrix)):
+                    # Pickle the subclass/view name to the file
+                    encode_numpy_type(obj, handler)
                     serializer.save(handler, obj, allow_pickle=False)
                 elif serializer is shma and \
                         SHMA_AVAILABLE and \
                         (isinstance(obj, numpy.ndarray) or
                          isinstance(obj, numpy.matrix)):
+                    # Pickle the subclass/view name to the file
+                    encode_numpy_type(obj, handler)
                     shma.serialize_to_shm(obj, handler)
-                    # The file is already open and the magic number indicating
-                    # the serialize method is already set. No further action is
-                    # required.
                 else:
                     serializer.dump(obj,
                                     handler,
@@ -292,9 +321,13 @@ def deserialize_from_handler(handler):
 
     try:
         if serializer is shma and SHMA_AVAILABLE:
-            ret = shma.deserialize_from_shm(handler)
+            # Unpickle the subclass/view name from the file
+            subtype = decode_numpy_type(handler)
+            ret = shma.deserialize_from_shm(handler).view(type=subtype)
         elif serializer is numpy and NUMPY_AVAILABLE:
-            ret = serializer.load(handler, allow_pickle=False)
+            # Unpickle the subclass/view name from the file
+            subtype = decode_numpy_type(handler)
+            ret = serializer.load(handler, allow_pickle=False).view(type=subtype)
         else:
             ret = serializer.load(handler)
 

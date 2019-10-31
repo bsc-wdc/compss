@@ -39,7 +39,7 @@ from pycompss.util.arguments import check_arguments
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
-from pycompss.util.serialization.serializer import serialize_to_file_multienv
+from pycompss.util.serialization.serializer import serialize_to_file_mpienv
 from pycompss.worker.commons.worker import build_task_parameter
 
 if __debug__:
@@ -1387,13 +1387,13 @@ class Task(object):
                         for (content, elem) in get_collection_objects(arg.content, arg):  # noqa
                             f_name = get_file_name(elem.file_name)
                             if python_mpi:
-                                serialize_to_file_multienv(content, f_name, False)
+                                serialize_to_file_mpienv(content, f_name, False)
                             else:
                                 serialize_to_file(content, f_name)
                 else:
                     f_name = get_file_name(arg.file_name)
                     if python_mpi:
-                        serialize_to_file_multienv(arg.content, f_name, False)
+                        serialize_to_file_mpienv(arg.content, f_name, False)
                     else:
                         serialize_to_file(arg.content, f_name)
 
@@ -1403,6 +1403,13 @@ class Task(object):
                 # Generalize the return case to multi-return to simplify the
                 # code
                 user_returns = [user_returns]
+            elif num_returns > 1 and python_mpi:
+                def get_ret_rank(ret_params):
+                    from mpi4py import MPI
+                    return [ret_params[MPI.COMM_WORLD.rank]]
+					
+                user_returns = [user_returns]
+                ret_params = get_ret_rank(ret_params)
             # Note that we are implicitly assuming that the length of the user
             # returns matches the number of return parameters
             for (obj, param) in zip(user_returns, ret_params):
@@ -1417,7 +1424,12 @@ class Task(object):
                 # returns in that format
                 f_name = get_file_name(param.file_name)
                 if python_mpi:
-                    serialize_to_file_multienv(obj, f_name, True)
+                    if num_returns > 1:
+                       rank_zero_reduce = False
+                    else:
+                       rank_zero_reduce = True
+
+                    serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
                 else:
                     serialize_to_file(obj, f_name)
 

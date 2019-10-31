@@ -5,7 +5,7 @@
 """
 PyCOMPSs Testbench
 ==================
-    This file tests the Python Streams implementation in PyCOMPSs.
+    This file tests the Python FILE Streams implementation in PyCOMPSs.
 """
 
 # Imports

@@ -49,7 +49,7 @@ try:
     # Our working depends on numpy working.
     import numpy
     from SharedArray import SharedArray as shma
-    SHAREDARRAY_AVAILABLE = True
+    SHAREDARRAY_AVAILABLE = getenv('COMPSS_SHAREDARRAY_ENABLED', '1') == '1'
 except ImportError:
     SHAREDARRAY_AVAILABLE = False
 

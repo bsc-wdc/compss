@@ -14,7 +14,8 @@ import numpy as np
 
 from os.path import basename
 
-from pycompss.util.sharedmemory.shma import serialize_to_shm,       \
+from pycompss.util.sharedmemory.shma import SHAREDARRAY_AVAILABLE,  \
+                                            serialize_to_shm,       \
                                             deserialize_from_shm,   \
                                             delete_shma,            \
                                             clear_shma
@@ -23,6 +24,7 @@ class testSharedArray(unittest.TestCase):
 
     SHMA_TEST_ARRAY_SHAPE = (50, 50)
 
+    @unittest.skipIf(False == SHAREDARRAY_AVAILABLE, 'No SHM capabilities available.')
     def testSharedArray(self):
         """
         Tests de-/serialization of np.ndarrays of double using shared memory.

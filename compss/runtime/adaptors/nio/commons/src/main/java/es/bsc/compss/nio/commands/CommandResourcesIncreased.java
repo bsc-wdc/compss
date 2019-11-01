@@ -54,4 +54,10 @@ public class CommandResourcesIncreased implements Command {
         return "CommandResourcesIncreased";
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        // Nothing to do
+
+    }
+
 }

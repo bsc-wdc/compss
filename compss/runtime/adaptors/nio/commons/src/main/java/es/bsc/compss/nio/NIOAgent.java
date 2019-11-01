@@ -19,6 +19,7 @@ package es.bsc.compss.nio;
 import static java.lang.Math.abs;
 
 import es.bsc.comm.Connection;
+import es.bsc.comm.Node;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.nio.NIOEventManager;
@@ -27,9 +28,22 @@ import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.commands.Command;
+import es.bsc.compss.nio.commands.CommandCancelTask;
 import es.bsc.compss.nio.commands.CommandDataDemand;
+import es.bsc.compss.nio.commands.CommandDataReceived;
+import es.bsc.compss.nio.commands.CommandExecutorShutdown;
+import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
+import es.bsc.compss.nio.commands.CommandNIOTaskDone;
+import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
+import es.bsc.compss.nio.commands.CommandShutdown;
+import es.bsc.compss.nio.commands.CommandShutdownACK;
 import es.bsc.compss.nio.commands.CommandTracingID;
 import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
+import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
+import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.requests.DataRequest;
 import es.bsc.compss.nio.utils.NIOBindingDataManager;
@@ -50,6 +64,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -89,6 +104,9 @@ public abstract class NIOAgent {
     private final LinkedList<DataRequest> pendingRequests;
     // Ongoing transfers
     private final Map<Connection, String> ongoingTransfers;
+    // Ongoing Commands
+    private static final Map<Connection, Command> ONGOING_COMMANDS = new ConcurrentHashMap<>();
+
     // Master information
     protected int masterPort;
     protected NIONode masterNode;
@@ -204,6 +222,7 @@ public abstract class NIOAgent {
                 }
                 NIOData remoteData = new NIOData(source.getDataMgmtId(), uri);
                 CommandDataDemand cdd = new CommandDataDemand(remoteData, this.tracingId);
+                registerOngoingCommand(c, cdd);
                 this.ongoingTransfers.put(c, dr.getSource().getDataMgmtId());
                 c.sendCommand(cdd);
 
@@ -770,15 +789,15 @@ public abstract class NIOAgent {
      * Receive notification data not available.
      *
      * @param c Connection.
-     * @param t Transfer.
      */
-    public void receivedRequestedDataNotAvailableError(Connection c, Transfer t) {
+    public boolean checkAndHandleRequestedDataNotAvailableError(Connection c) {
         String dataId = this.ongoingTransfers.remove(c);
         if (dataId == null) { // It has received the output and error of a job
-            // execution
-            return;
+            LOGGER.error("Failed data connection not a tranfer");
+            return false;
         }
-
+        // Remove connection from commands Hasmap
+        unregisterConnectionInOngoingCommands(c);
         releaseReceiveSlot();
         List<DataRequest> requests = this.dataToRequests.remove(dataId);
         handleRequestedDataNotAvailableError(requests, dataId);
@@ -788,6 +807,7 @@ public abstract class NIOAgent {
         if (this.finish == true && !hasPendingTransfers()) {
             shutdown(this.closingConnection);
         }
+        return true;
     }
 
     /**
@@ -873,4 +893,77 @@ public abstract class NIOAgent {
     public abstract void performedResourceUpdate(Connection c);
 
     public abstract void cancelRunningTask(NIONode node, int jobId);
+
+    public abstract void unhandeledError(Connection c);
+
+    public abstract void handleCancellingTaskCommandError(Connection c, CommandCancelTask commandCancelTask);
+
+    public abstract void handleDataReceivedCommandError(Connection c, CommandDataReceived commandDataReceived);
+
+    public abstract void handleExecutorShutdownCommandError(Connection c,
+        CommandExecutorShutdown commandExecutorShutdown);
+
+    public abstract void handleExecutorShutdownCommandACKError(Connection c,
+        CommandExecutorShutdownACK commandExecutorShutdownACK);
+
+    public abstract void handleTaskDoneCommandError(Connection c, CommandNIOTaskDone commandNIOTaskDone);
+
+    public abstract void handleNewTaskCommandError(Connection c, CommandNewTask commandNewTask);
+
+    public abstract void handleShutdownCommandError(Connection c, CommandShutdown commandShutdown);
+
+    public abstract void handleShutdownACKCommandError(Connection c, CommandShutdownACK commandShutdownACK);
+
+    public abstract void handleTracingGenerateDoneCommandError(Connection c, CommandGenerateDone commandGenerateDone);
+
+    public abstract void handleTracingGenerateCommandError(Connection c, CommandGeneratePackage commandGeneratePackage);
+
+    public abstract void handleGenerateWorkerDebugCommandError(Connection c,
+        CommandGenerateWorkerDebugFiles commandGenerateWorkerDebugFiles);
+
+    public abstract void handleGenerateWorkerDebugDoneCommandError(Connection c,
+        CommandWorkerDebugFilesDone commandWorkerDebugFilesDone);
+
+    /**
+     * Re-send a given command to a given NIONode.
+     * 
+     * @param node NIO node to re-send the command
+     * @param cmd Command to re-send
+     */
+    protected void resendCommand(NIONode node, Command cmd) {
+        Connection c = this.TM.startConnection(node);
+        registerOngoingCommand(c, cmd);
+        c.sendCommand(cmd);
+        c.finishConnection();
+    }
+
+    public static void registerOngoingCommand(Connection connection, Command command) {
+        ONGOING_COMMANDS.put(connection, command);
+    }
+
+    protected void unregisterConnectionInOngoingCommands(Connection connection) {
+        ONGOING_COMMANDS.remove(connection);
+    }
+
+    /**
+     * Check and handle if error in connection is for a command.
+     * 
+     * @param c Connection with an error.
+     * @return Returns true True if error is in a command and it has been managed, otherwise returns False
+     */
+    public boolean checkAndHandleCommandError(Connection c) {
+        Command command = ONGOING_COMMANDS.remove(c);
+        if (command == null) {
+            LOGGER.error("Failed connection not a command");
+            return false;
+        }
+        command.error(this, c);
+        return true;
+
+    }
+
+    public abstract void receivedRemoveObsoletes(NIONode node, List<String> obsolete);
+
+    public abstract void handleRemoveObsoletesCommandError(Connection c, CommandRemoveObsoletes commandRemoveObsoletes);
+
 }

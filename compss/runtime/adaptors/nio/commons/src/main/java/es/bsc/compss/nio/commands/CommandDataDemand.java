@@ -81,4 +81,9 @@ public class CommandDataDemand implements Command {
         return "Request for sending data " + this.d;
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.checkAndHandleRequestedDataNotAvailableError(c);
+    }
+
 }

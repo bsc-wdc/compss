@@ -23,6 +23,7 @@ import es.bsc.compss.scheduler.types.WorkloadState;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.ResourceCreationRequest;
+import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -30,10 +31,13 @@ import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.DynamicMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.Resource;
+import es.bsc.compss.types.resources.Worker;
+import es.bsc.compss.types.resources.WorkerResourceDescription;
 import es.bsc.compss.types.resources.components.Processor;
 import es.bsc.compss.types.resources.description.CloudImageDescription;
 import es.bsc.compss.types.resources.description.CloudInstanceTypeDescription;
 import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
+import es.bsc.compss.types.uri.MultiURI;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -179,6 +183,7 @@ public class ResourceOptimizer extends Thread {
                         }
                         handlePotentialBlock(potentialBlock);
                     } while (redo);
+                    periodicRemoveObsoletes();
                 }
                 try {
                     synchronized (this) {
@@ -193,7 +198,19 @@ public class ResourceOptimizer extends Thread {
             } catch (Exception e) {
                 RUNTIME_LOGGER.error(ERROR_OPT_RES, e);
             }
+
         }
+    }
+
+    private void periodicRemoveObsoletes() {
+        List<Worker<? extends WorkerResourceDescription>> workers = ResourceManager.getAllWorkers();
+        for (Worker<? extends WorkerResourceDescription> w : workers) {
+            List<MultiURI> obsoletes = w.pollObsoletes();
+            if (obsoletes.size() > 0) {
+                w.getNode().removeObsoletes(obsoletes);
+            }
+        }
+
     }
 
     /**

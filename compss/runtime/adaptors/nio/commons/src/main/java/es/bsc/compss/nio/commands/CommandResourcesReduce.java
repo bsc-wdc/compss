@@ -69,4 +69,10 @@ public class CommandResourcesReduce implements Command {
         return "CommandResourcesReduce " + this.description;
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        // Nothing to do
+
+    }
+
 }

@@ -17,65 +17,76 @@
 package es.bsc.compss.nio.commands;
 
 import es.bsc.comm.Connection;
-import es.bsc.compss.nio.NIOAgent;
+import es.bsc.comm.nio.NIONode;
 
-import es.bsc.compss.nio.NIOParam;
+import es.bsc.compss.nio.NIOAgent;
+import es.bsc.compss.nio.NIOTask;
 
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.List;
 
 
-public class CommandDataFetch implements Command {
+public class CommandRemoveObsoletes extends RetriableCommand {
 
-    private NIOParam param;
-    private int transferId;
+    // List of the data to erase
+    private List<String> obsolete;
+
+    private static int MAX_RETRIES = 3;
+    private int retries = 0;
 
 
     /**
-     * Creates a new CommandDataFetch for externalization.
+     * Creates a new CommandNewTask for externalization.
      */
-    public CommandDataFetch() {
+    public CommandRemoveObsoletes() {
         super();
     }
 
     /**
-     * Creates a new CommandDataFetch instance.
+     * Creates a new CommandNewTask instance.
      *
-     * @param p Parameter to fetch.
-     * @param transferId Transfer Id.
+     * @param obsolete List of obsolete files.
      */
-    public CommandDataFetch(NIOParam p, int transferId) {
-        this.param = p;
+    public CommandRemoveObsoletes(List<String> obsolete) {
+        this.obsolete = obsolete;
     }
 
     @Override
     public void handle(NIOAgent agent, Connection c) {
-        agent.receivedNewDataFetchOrder(this.param, this.transferId);
+        agent.receivedRemoveObsoletes((NIONode) c.getNode(), this.obsolete);
         c.finishConnection();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        this.param = (NIOParam) in.readObject();
-        this.transferId = in.readInt();
+        try {
+            this.obsolete = (List<String>) in.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(this.param);
-        out.writeInt(this.transferId);
+        out.writeObject(this.obsolete);
     }
 
     @Override
     public String toString() {
-        return "Data Fetch " + this.param;
+        return "Remove obsoletes " + this.obsolete;
     }
 
     @Override
     public void error(NIOAgent agent, Connection c) {
-        // Nothing to do
+        agent.handleRemoveObsoletesCommandError(c, this);
+    }
 
+    public List<String> getObsolete() {
+        return obsolete;
     }
 
 }

@@ -31,6 +31,7 @@ public class DeleteFileRequest extends APRequest {
 
     private final DataLocation loc;
     private final Semaphore sem;
+    private boolean noReuse;
 
 
     /**
@@ -39,9 +40,10 @@ public class DeleteFileRequest extends APRequest {
      * @param loc File location.
      * @param sem Waiting semaphore.
      */
-    public DeleteFileRequest(DataLocation loc, Semaphore sem) {
+    public DeleteFileRequest(DataLocation loc, Semaphore sem, boolean noReuse) {
         this.loc = loc;
         this.sem = sem;
+        this.noReuse = noReuse;
     }
 
     /**
@@ -56,7 +58,7 @@ public class DeleteFileRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         LOGGER.info("[DeleteFileRequest] Notify data delete " + this.loc.getPath() + " to DIP...");
-        FileInfo fileInfo = (FileInfo) dip.deleteData(this.loc);
+        FileInfo fileInfo = (FileInfo) dip.deleteData(this.loc, this.noReuse);
         if (fileInfo == null) {
             // File is not used by any task, we can erase it
             // Retrieve the first valid URI location (private locations have only 1, shared locations may have more)

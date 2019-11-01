@@ -269,4 +269,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      */
     public abstract void reduceComputingCapabilities(ResourceDescription description);
 
+    public abstract void removeObsoletes(List<MultiURI> obsoletes);
+
 }

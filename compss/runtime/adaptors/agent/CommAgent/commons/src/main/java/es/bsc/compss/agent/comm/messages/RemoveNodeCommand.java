@@ -58,4 +58,10 @@ public class RemoveNodeCommand implements Command {
         this.node = oi.readUTF();
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        System.err.println("Error processing remove node command in connection " + c.hashCode());
+
+    }
+
 }

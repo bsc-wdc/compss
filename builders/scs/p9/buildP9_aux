@@ -28,7 +28,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="gcc openmpi boost java python/2.7.14"
+  modules="gcc openmpi boost java atlas/3.10.3 python/2.7.14"
   py2_modules="python/2.7.14"
   py3_modules="python/3.6.5"
 # additionalExports="export BOOST_CPPFLAGS=-I\${BOOST_INCLUDE} PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH"

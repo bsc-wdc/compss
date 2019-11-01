@@ -35,6 +35,18 @@ import es.bsc.compss.nio.NIOTask;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.NIOUri;
+import es.bsc.compss.nio.commands.CommandCancelTask;
+import es.bsc.compss.nio.commands.CommandDataReceived;
+import es.bsc.compss.nio.commands.CommandExecutorShutdown;
+import es.bsc.compss.nio.commands.CommandExecutorShutdownACK;
+import es.bsc.compss.nio.commands.CommandNIOTaskDone;
+import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
+import es.bsc.compss.nio.commands.CommandShutdown;
+import es.bsc.compss.nio.commands.CommandShutdownACK;
+import es.bsc.compss.nio.commands.tracing.CommandGenerateDone;
+import es.bsc.compss.nio.commands.tracing.CommandGeneratePackage;
+import es.bsc.compss.nio.commands.workerfiles.CommandGenerateWorkerDebugFiles;
 import es.bsc.compss.nio.commands.workerfiles.CommandWorkerDebugFilesDone;
 import es.bsc.compss.nio.exceptions.SerializedObjectException;
 import es.bsc.compss.nio.master.configuration.NIOConfiguration;
@@ -67,6 +79,8 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -350,10 +364,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
-        LogicalData[] obsoletes = res.pollObsoletes();
+        List<MultiURI> obsoletes = res.pollObsoletes();
         List<String> obsoleteRenamings = new LinkedList<>();
-        for (LogicalData ld : obsoletes) {
-            obsoleteRenamings.add(worker.getWorkingDir() + File.separator + ld.getName());
+        for (MultiURI u : obsoletes) {
+            obsoleteRenamings.add(u.getPath());
         }
         RUNNING_JOBS.put(job.getJobId(), job);
         worker.submitTask(job, obsoleteRenamings);
@@ -410,7 +424,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         int jobId = tr.getJobId();
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Received Task done message for Task " + jobId);
+            LOGGER.debug("Received Task done message for Job " + jobId);
         }
 
         // Update running jobs
@@ -447,6 +461,50 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Close connection
         c.finishConnection();
+    }
+
+    private void produceFailOnTask(NIOTask task, List<String> obsolete) {
+        int jobId = task.getJobId();
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Received Task done message for Job " + jobId);
+        }
+
+        // Update running jobs
+        NIOJob nj = RUNNING_JOBS.remove(jobId);
+        if (nj != null) {
+            int taskId = nj.getTaskId();
+
+            // Update NIO Job
+            // Mark task as finished and release waiters
+            JobHistory prevJobHistory = nj.getHistory();
+            nj.taskFinished(false, null);
+
+            // Retrieve files if required
+            generateFailedJobFiles(jobId, taskId, prevJobHistory, "Error sending new task command");
+
+        }
+
+    }
+
+    private void generateFailedJobFiles(int jobId, int taskId, JobHistory history, String message) {
+        String jobOut = JOBS_DIR + "job" + jobId + "_" + history + ".out";
+        String jobErr = JOBS_DIR + "job" + jobId + "_" + history + ".err";
+        writeJobFile(jobOut, message);
+        writeJobFile(jobErr, message);
+    }
+
+    private void writeJobFile(String taskFileName, String message) {
+        File taskFile = new File(taskFileName);
+        if (!taskFile.exists()) {
+            try (FileOutputStream stream = new FileOutputStream(taskFile)) {
+                stream.write(message.getBytes());
+                stream.close();
+            } catch (IOException ioe) {
+                LOGGER.error("IOException writing file: " + taskFile, ioe);
+            }
+        }
+
     }
 
     /**
@@ -859,6 +917,121 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         public ClosingExecutor(ExecutorShutdownListener l) {
             this.listener = l;
         }
+    }
+
+
+    @Override
+    public void unhandeledError(Connection c) {
+        LOGGER.fatal("Unhandeled error in connection " + c.hashCode() + ". Stopping the runtime...");
+        ErrorManager.fatal("Unhandeled error in connection " + c.hashCode() + ".");
+    }
+
+    @Override
+    public void handleCancellingTaskCommandError(Connection c, CommandCancelTask commandCancelTask) {
+        if (commandCancelTask.canRetry()) {
+            commandCancelTask.increaseRetries();
+            resendCommand((NIONode) c.getNode(), commandCancelTask);
+        } else {
+            LOGGER.warn("Error sending cancel tasks after retries. Nothing else to do.");
+        }
+    }
+
+    @Override
+    public void handleDataReceivedCommandError(Connection c, CommandDataReceived commandDataReceived) {
+        // Nothing to do at master
+        LOGGER.warn("Error receiving task done command. Not handeled");
+    }
+
+    @Override
+    public void handleExecutorShutdownCommandError(Connection c, CommandExecutorShutdown commandExecutorShutdown) {
+        // TODO Handle this error. Currently invoking unhandeled error
+        LOGGER.error("Error sending Executor Shutdown command. Not handeled");
+        unhandeledError(c);
+
+    }
+
+    @Override
+    public void handleExecutorShutdownCommandACKError(Connection c,
+        CommandExecutorShutdownACK commandExecutorShutdownACK) {
+        // Nothing to do at master
+        LOGGER.warn("Error receiving executor shutdown ACK. Not handeled");
+    }
+
+    @Override
+    public void handleTaskDoneCommandError(Connection c, CommandNIOTaskDone commandNIOTaskDone) {
+        // Nothing to do at master
+        LOGGER.warn("Error receiving task done notification. Not handeled");
+    }
+
+    @Override
+    public void handleNewTaskCommandError(Connection c, CommandNewTask commandNewTask) {
+        if (commandNewTask.canRetry()) {
+            commandNewTask.increaseRetries();
+            resendCommand((NIONode) c.getNode(), commandNewTask);
+        } else {
+            produceFailOnTask(commandNewTask.getTask(), commandNewTask.getObsolete());
+        }
+
+    }
+
+    @Override
+    public void handleShutdownCommandError(Connection c, CommandShutdown commandShutdown) {
+        // TODO Handle this error. Currently invoking unhandeled error
+        LOGGER.error("Error sending Executor Shutdown command. Not handeled");
+        unhandeledError(c);
+
+    }
+
+    @Override
+    public void handleShutdownACKCommandError(Connection c, CommandShutdownACK commandShutdownACK) {
+        // Nothing to do at master
+        LOGGER.warn("Error receiving shutdown ACK. Not handeled");
+    }
+
+    @Override
+    public void handleTracingGenerateDoneCommandError(Connection c, CommandGenerateDone commandGenerateDone) {
+        // Nothing to do at master
+        LOGGER.warn("Error receiving tracing generate done. Not handeled");
+    }
+
+    @Override
+    public void handleTracingGenerateCommandError(Connection c, CommandGeneratePackage commandGeneratePackage) {
+        // TODO Handle this error. Currently invoking unhandeled error
+        LOGGER.error("Error sending tracing generate command. Not handeled");
+        unhandeledError(c);
+
+    }
+
+    @Override
+    public void handleGenerateWorkerDebugCommandError(Connection c,
+        CommandGenerateWorkerDebugFiles commandGenerateWorkerDebugFiles) {
+        LOGGER.error("Error sending generate worker debug command. Not handeled");
+        unhandeledError(c);
+
+    }
+
+    @Override
+    public void handleGenerateWorkerDebugDoneCommandError(Connection c,
+        CommandWorkerDebugFilesDone commandWorkerDebugFilesDone) {
+        // Nothing to do at master
+        LOGGER.warn("Error receiving generate worker debug done. Not handeled");
+
+    }
+
+    @Override
+    public void receivedRemoveObsoletes(NIONode node, List<String> obsolete) {
+        // Nothing to do at master
+    }
+
+    @Override
+    public void handleRemoveObsoletesCommandError(Connection c, CommandRemoveObsoletes commandRemoveObsoletes) {
+        if (commandRemoveObsoletes.canRetry()) {
+            commandRemoveObsoletes.increaseRetries();
+            resendCommand((NIONode) c.getNode(), commandRemoveObsoletes);
+        } else {
+            LOGGER.warn("Error sending command remove obsoletes after retries. Nothing else to do.");
+        }
+
     }
 
 }

@@ -361,4 +361,10 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // Do nothing its managed internally by the remote agent
     }
 
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+        // TODO: Nothing done at this moment
+
+    }
+
 }

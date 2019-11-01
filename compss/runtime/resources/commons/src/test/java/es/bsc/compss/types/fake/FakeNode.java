@@ -153,4 +153,9 @@ public class FakeNode extends COMPSsWorker {
 
     }
 
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+
+    }
+
 }

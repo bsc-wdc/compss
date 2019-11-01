@@ -67,4 +67,10 @@ public class AddResourcesCommand implements Command {
         }
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        System.err.println("Error processing add resources command in connection " + c.hashCode());
+
+    }
+
 }

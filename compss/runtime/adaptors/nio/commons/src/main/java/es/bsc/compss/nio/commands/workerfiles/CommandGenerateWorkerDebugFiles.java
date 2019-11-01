@@ -52,4 +52,10 @@ public class CommandGenerateWorkerDebugFiles implements Command {
         // Nothing to do
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleGenerateWorkerDebugCommandError(c, this);
+
+    }
+
 }

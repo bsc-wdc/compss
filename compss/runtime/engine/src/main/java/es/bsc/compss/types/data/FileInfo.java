@@ -102,35 +102,38 @@ public class FileInfo extends DataInfo {
     }
 
     @Override
-    public boolean delete() {
+    public boolean delete(boolean noReuse) {
         LOGGER.debug("[FileInfo] Deleting file of data " + this.getDataId());
-        DataVersion firstVersion = this.getFirstVersion();
-        if (firstVersion != null) {
-            LogicalData ld = Comm.getData(firstVersion.getDataInstanceId().getRenaming());
-            if (ld != null) {
-                for (DataLocation loc : ld.getLocations()) {
-                    MultiURI uri = loc.getURIInHost(Comm.getAppHost());
-                    if (uri != null
-                        && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())) {
-                        String newPath = Comm.getAppHost().getTempDirPath() + File.separator
-                            + firstVersion.getDataInstanceId().getRenaming();
-                        LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);
-                        loc.modifyPath(newPath);
-                        try {
-                            LOGGER.debug("[FileInfo] Moving " + uri.getPath() + " to " + newPath);
-                            Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath(),
-                                StandardCopyOption.REPLACE_EXISTING);
-                        } catch (IOException e) {
-                            ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath + "Reason: "
-                                + e.getMessage());
+        if (!noReuse) {
+            DataVersion firstVersion = this.getFirstVersion();
+            if (firstVersion != null) {
+                LogicalData ld = Comm.getData(firstVersion.getDataInstanceId().getRenaming());
+                if (ld != null) {
+                    for (DataLocation loc : ld.getLocations()) {
+                        MultiURI uri = loc.getURIInHost(Comm.getAppHost());
+                        if (uri != null
+                            && uri.getPath().equals(getOriginalLocation().getURIInHost(Comm.getAppHost()).getPath())) {
+                            String newPath = Comm.getAppHost().getTempDirPath() + File.separator
+                                + firstVersion.getDataInstanceId().getRenaming();
+                            LOGGER.debug("[FileInfo] Modifying path in location " + loc + " with new path " + newPath);
+                            loc.modifyPath(newPath);
+                            try {
+                                LOGGER.debug("[FileInfo] Moving " + uri.getPath() + " to " + newPath);
+                                Files.move(new File(uri.getPath()).toPath(), new File(newPath).toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING);
+                            } catch (IOException e) {
+                                ErrorManager.warn("File " + uri.getPath() + " cannot be moved to " + newPath
+                                    + "Reason: " + e.getMessage());
+                            }
                         }
                     }
                 }
+
+            } else {
+                LOGGER.debug("[FileInfo] First Version is null. Nothing to delete");
             }
-        } else {
-            LOGGER.debug("[FileInfo] First Version is null. Nothing to delete");
         }
-        return super.delete();
+        return super.delete(noReuse);
     }
 
     private int waitForEndingCopies(LogicalData ld, DataLocation loc, Semaphore semWait) {

@@ -22,7 +22,7 @@ import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.exceptions.CommException.ErrorType;
 import es.bsc.comm.nio.exceptions.NIOException;
 import es.bsc.comm.stage.Transfer;
-
+import es.bsc.comm.stage.Transfer.Type;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
 
@@ -66,14 +66,14 @@ public class NIOMessageHandler implements MessageHandler {
         String errorText =
             "NIO Error: " + ce.getMessage() + " processing " + ((t == null) ? "null" : t.hashCode()) + "\n";
         LOGGER.error(errorText, ce);
+        boolean managed = this.agent.checkAndHandleRequestedDataNotAvailableError(c);
+        if (!managed) {
+            managed = this.agent.checkAndHandleCommandError(c);
+            if (!managed) {
+                this.agent.unhandeledError(c);
+            }
+        }
 
-        this.agent.receivedRequestedDataNotAvailableError(c, t);
-
-        // Handle FINISH_CONNECTION and CLOSED CONNECTION errors
-        /*
-         * if (((NIOException)ce).getError() == ErrorType.FINISHING_CONNECTION || ((NIOException)ce).getError() ==
-         * ErrorType.CLOSED_CONNECTION) { c.finishConnection(); }
-         */
     }
 
     @Override
@@ -109,6 +109,9 @@ public class NIOMessageHandler implements MessageHandler {
     @Override
     public void connectionFinished(Connection c) {
         LOGGER.debug("Connection " + c.hashCode() + " finished");
+        if (!c.hasErrors()) {
+            this.agent.unregisterConnectionInOngoingCommands(c);
+        }
     }
 
     @Override

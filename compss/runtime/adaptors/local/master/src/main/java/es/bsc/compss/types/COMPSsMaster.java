@@ -1365,4 +1365,10 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         final int otherCount = description.getTotalOTHERComputingUnits();
         this.executionManager.reduceCapabilities(cpuCount, gpuCount, fpgaCount, otherCount);
     }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+        // Nothing to do
+
+    }
 }

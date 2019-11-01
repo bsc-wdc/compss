@@ -109,4 +109,9 @@ public class FakeNode extends COMPSsNode {
     @Override
     public void reduceComputingCapabilities(ResourceDescription description) {
     }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+
+    }
 }

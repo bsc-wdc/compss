@@ -63,4 +63,10 @@ public class Test implements Command {
         val = oi.readInt();
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        System.err.println("Error processing test command in connection " + c.hashCode());
+
+    }
+
 }

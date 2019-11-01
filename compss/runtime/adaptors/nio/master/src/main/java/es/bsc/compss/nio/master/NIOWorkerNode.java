@@ -32,6 +32,7 @@ import es.bsc.compss.nio.commands.CommandCancelTask;
 import es.bsc.compss.nio.commands.CommandDataFetch;
 import es.bsc.compss.nio.commands.CommandExecutorShutdown;
 import es.bsc.compss.nio.commands.CommandNewTask;
+import es.bsc.compss.nio.commands.CommandRemoveObsoletes;
 import es.bsc.compss.nio.commands.CommandResourcesIncrease;
 import es.bsc.compss.nio.commands.CommandResourcesReduce;
 import es.bsc.compss.nio.commands.CommandShutdown;
@@ -68,6 +69,8 @@ import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.TraceEvent;
 
+import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -282,6 +285,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     Connection c = NIOAgent.getTransferManager().startConnection(node);
                     commManager.shuttingDown(this, c, sl);
                     CommandShutdown cmd = new CommandShutdown(null);
+                    NIOAgent.registerOngoingCommand(c, cmd);
                     c.sendCommand(cmd);
                     c.receive();
                     c.finishConnection();
@@ -310,6 +314,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
             LOGGER.debug("Sending shutdown command " + this.getName());
             CommandExecutorShutdown cmd = new CommandExecutorShutdown();
+            NIOAgent.registerOngoingCommand(c, cmd);
             c.sendCommand(cmd);
             c.receive();
             c.finishConnection();
@@ -561,6 +566,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         NIOParam param = NIOParamFactory.fromParameter((Parameter) reason, this);
         CommandDataFetch cmd = new CommandDataFetch(param, listener.getId());
         Connection c = NIOAgent.getTransferManager().startConnection(node);
+        NIOAgent.registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.finishConnection();
     }
@@ -634,6 +640,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
                 Connection c = NIOAgent.getTransferManager().startConnection(node);
                 CommandGeneratePackage cmd = new CommandGeneratePackage();
+                NIOAgent.registerOngoingCommand(c, cmd);
                 c.sendCommand(cmd);
                 c.receive();
                 c.finishConnection();
@@ -658,6 +665,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
             Connection c = NIOAgent.getTransferManager().startConnection(node);
             CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
+            NIOAgent.registerOngoingCommand(c, cmd);
             c.sendCommand(cmd);
             c.receive();
             c.finishConnection();
@@ -685,6 +693,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         NIOTask t = job.prepareJob();
         CommandNewTask cmd = new CommandNewTask(t, obsolete);
         Connection c = NIOAgent.getTransferManager().startConnection(node);
+        NIOAgent.registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.finishConnection();
     }
@@ -698,9 +707,10 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (node == null) {
             throw new UnstartedNodeException();
         }
+        LOGGER.debug("Sending task cancellation command to worker");
         CommandCancelTask cmd = new CommandCancelTask(job.getJobId());
         Connection c = NIOAgent.getTransferManager().startConnection(node);
-        LOGGER.debug("Sending task cancellation command to worker");
+        NIOAgent.registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.finishConnection();
     }
@@ -721,6 +731,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         CommandResourcesIncrease cmd = new CommandResourcesIncrease(mrd);
         Connection c = NIOAgent.getTransferManager().startConnection(this.node);
         this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
+        NIOAgent.registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.receive();
         try {
@@ -737,6 +748,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         CommandResourcesReduce cmd = new CommandResourcesReduce(mrd);
         Connection c = NIOAgent.getTransferManager().startConnection(this.node);
         this.commManager.registerPendingResourceUpdateConfirmation(c, sem);
+        NIOAgent.registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.receive();
         try {
@@ -760,5 +772,21 @@ public class NIOWorkerNode extends COMPSsWorker {
             }
         }
         return data;
+    }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+        LOGGER.debug("Sending command to remove obsoletes for " + this.getHost());
+        List<String> obsoleteRenamings = new LinkedList<>();
+        for (MultiURI u : obsoletes) {
+            obsoleteRenamings.add(u.getPath());
+        }
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
+        CommandRemoveObsoletes cmd = new CommandRemoveObsoletes(obsoleteRenamings);
+        NIOAgent.registerOngoingCommand(c, cmd);
+        c.sendCommand(cmd);
+        c.receive();
+        c.finishConnection();
+
     }
 }

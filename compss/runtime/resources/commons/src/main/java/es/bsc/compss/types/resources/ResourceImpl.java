@@ -174,12 +174,24 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     }
 
     @Override
-    public final LogicalData[] pollObsoletes() {
+    public final List<MultiURI> pollObsoletes() {
+        LogicalData[] obs = null;
         synchronized (this.obsoletes) {
-            LogicalData[] obs = this.obsoletes.toArray(new LogicalData[this.obsoletes.size()]);
+            obs = this.obsoletes.toArray(new LogicalData[this.obsoletes.size()]);
             this.obsoletes.clear();
-            return obs;
         }
+        List<MultiURI> obsoleteRenamings = new LinkedList<>();
+        if (obs != null) {
+            for (LogicalData ld : obs) {
+                for (MultiURI u : ld.getURIsInHost((Resource) this)) {
+                    if (u != null) {
+                        obsoleteRenamings.add(u);
+                    }
+                }
+            }
+
+        }
+        return obsoleteRenamings;
     }
 
     /**

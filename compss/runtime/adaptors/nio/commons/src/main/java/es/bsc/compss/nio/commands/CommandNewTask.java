@@ -21,18 +21,22 @@ import es.bsc.comm.nio.NIONode;
 
 import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTask;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.List;
 
 
-public class CommandNewTask implements Command {
+public class CommandNewTask extends RetriableCommand {
 
     // List of the data to erase
     private List<String> obsolete;
     // Job description
     private NIOTask task;
+
+    private static int MAX_RETRIES = 3;
+    private int retries = 0;
 
 
     /**
@@ -80,6 +84,19 @@ public class CommandNewTask implements Command {
     @Override
     public String toString() {
         return "New Task " + this.task.toString();
+    }
+
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleNewTaskCommandError(c, this);
+    }
+
+    public List<String> getObsolete() {
+        return obsolete;
+    }
+
+    public NIOTask getTask() {
+        return task;
     }
 
 }

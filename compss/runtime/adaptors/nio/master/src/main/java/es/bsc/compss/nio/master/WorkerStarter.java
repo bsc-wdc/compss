@@ -22,6 +22,7 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.exceptions.InitNodeException;
 import es.bsc.compss.log.Loggers;
+import es.bsc.compss.nio.NIOAgent;
 import es.bsc.compss.nio.NIOTracer;
 import es.bsc.compss.nio.commands.CommandCheckWorker;
 import es.bsc.compss.nio.master.handlers.Ender;
@@ -302,6 +303,7 @@ public class WorkerStarter {
 
             // Send command check
             Connection c = NIOAdaptor.getTransferManager().startConnection(n);
+            NIOAgent.registerOngoingCommand(c, cmd);
             c.sendCommand(cmd);
             c.receive();
             c.finishConnection();

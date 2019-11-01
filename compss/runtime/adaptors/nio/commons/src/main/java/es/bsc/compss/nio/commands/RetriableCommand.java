@@ -16,22 +16,18 @@
  */
 package es.bsc.compss.nio.commands;
 
-import es.bsc.comm.Connection;
-import es.bsc.compss.nio.NIOAgent;
+public abstract class RetriableCommand implements Command {
 
-import java.io.Externalizable;
+    private static int MAX_RETRIES = 3;
+    private int retries = 0;
 
 
-public interface Command extends Externalizable {
+    public void increaseRetries() {
+        retries++;
+    }
 
-    /**
-     * Invokes the command handler.
-     *
-     * @param agent agent handling the command processing
-     * @param c Connection.
-     */
-    public abstract void handle(NIOAgent agent, Connection c);
-
-    public abstract void error(NIOAgent agent, Connection c);
+    public boolean canRetry() {
+        return (retries < MAX_RETRIES);
+    }
 
 }

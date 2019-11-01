@@ -129,7 +129,7 @@ class TaskMonitor extends PrintMonitor {
         NIOTaskResult tr = new NIOTaskResult(jobId, new LinkedList<>(), null, new LinkedList<>());
 
         Connection c = TM.startConnection(n);
-        cmd = new CommandNIOTaskDone(tr, successful, null);
+        cmd = new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), null);
         c.sendCommand(cmd);
         c.finishConnection();
     }

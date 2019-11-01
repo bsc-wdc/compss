@@ -51,4 +51,10 @@ public class CommandGeneratePackage implements Command {
         return "GenerateTraceCommand";
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleTracingGenerateCommandError(c, this);
+
+    }
+
 }

@@ -152,4 +152,8 @@ public class DummyWorkerNode extends COMPSsWorker {
     @Override
     public void reduceComputingCapabilities(ResourceDescription description) {
     }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
+    }
 }

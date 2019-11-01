@@ -70,4 +70,10 @@ public class CommandTracingID implements Command {
         return "Request with sender ID: " + this.id;
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        // Nothing to do
+
+    }
+
 }

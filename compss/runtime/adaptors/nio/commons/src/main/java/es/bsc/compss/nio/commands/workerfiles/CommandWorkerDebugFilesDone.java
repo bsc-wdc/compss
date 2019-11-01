@@ -51,4 +51,10 @@ public class CommandWorkerDebugFilesDone implements Command {
         // Nothing to do
     }
 
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleGenerateWorkerDebugDoneCommandError(c, this);
+
+    }
+
 }

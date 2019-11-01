@@ -25,7 +25,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 
-public class CommandDataReceived implements Command {
+public class CommandDataReceived extends RetriableCommand {
 
     private int transfergroupID;
 
@@ -65,6 +65,12 @@ public class CommandDataReceived implements Command {
     @Override
     public String toString() {
         return "Data for transfer group" + this.transfergroupID + "has been received in the remote worker";
+    }
+
+    @Override
+    public void error(NIOAgent agent, Connection c) {
+        agent.handleDataReceivedCommandError(c, this);
+
     }
 
 }

@@ -41,7 +41,7 @@ COMPSs options:
                                                 | es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
                             Default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
 
-  -d, --debug               enables debug. (Default: disabled)
+  -d, --debug               Set debug level. (Default: disabled)
 
   -log, --log_dir           log directory. (Default: /tmp/${app_uuid})
 

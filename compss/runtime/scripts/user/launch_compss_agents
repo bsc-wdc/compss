@@ -374,7 +374,7 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-        streaming=*)                                                                                                                                                                                                                    
+        streaming=*)
           streaming=${OPTARG//streaming=/}
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
@@ -1037,7 +1037,7 @@ launch_agent () {
   fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
   fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
 
-  agent_cmd "${node_name}" "${network}" "${worker_working_dir}" "${worker_install_dir}" "${specific_log_dir}" "${jvm_opts_size}" "${jvm_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${scheduler}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${node_memory}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${cp}" "${master_node}" ${worker_nodes}
+  agent_cmd "${node_name}" "${network}" "${log_level}" "${specific_log_dir}" "${worker_working_dir}" "${worker_install_dir}" "${jvm_opts_size}" "${jvm_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${scheduler}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${node_memory}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${cp}" "${master_node}" ${worker_nodes}
 
   if [ ! -z "${NODE_NAME_QUEUE}" ]; then
       node=$(${NODE_NAME_QUEUE} ${node})

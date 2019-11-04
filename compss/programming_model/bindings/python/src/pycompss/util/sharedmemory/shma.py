@@ -90,9 +90,10 @@ def deserialize_from_shm(handler):
     """
     obj_name = basename(handler.name)
 
-    try: # EAFP style. Maybe LBYL is more effective... We will see.
-        shared_array = shma_objects[obj_name]
-    except KeyError:
+    if obj_name in shma_objects:
+        return shma_objects[obj_name]
+
+    else:
         try:
             # Try to attach from OS shared memory system
             shared_array = shma.attach('shm://' + obj_name)

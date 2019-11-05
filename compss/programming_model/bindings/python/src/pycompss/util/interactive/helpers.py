@@ -82,6 +82,12 @@ def update_tasks_code_file(f, file_path):
     new_imports = _update_imports(imports, old_code['imports'])
     new_globals = _update_globals(global_code, old_code['globals'])
     new_classes = _update_classes(classes_code, old_code['classes'])
+    # Check that there are no functions with the same name as a newly defined
+    # tasks
+    for k in task_code.keys():
+        functions_code.pop(k, None)
+        old_code['functions'].pop(k, None)
+    # Continue with comparisons
     new_functions = _update_functions(functions_code, old_code['functions'])
     new_tasks = _update_tasks(task_code, old_code['tasks'])
 

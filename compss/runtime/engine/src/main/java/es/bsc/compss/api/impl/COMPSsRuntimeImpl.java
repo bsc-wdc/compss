@@ -1322,12 +1322,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 int numOfElements = Integer.parseInt(values[offset + 1]);
                 String colPyType = values[offset + 2];
                 // The elements of the collection are all the elements of the list except for the first one
-                // Each element is defined by a pair TYPE VALUE
-                // Also note the +2 offset!
+                // Each element is defined by TYPE VALUE PYTHON_CONTENT_TYPE
+                // Also note the +3 offset!
                 List<DataType> contentTypes = new ArrayList<>();
                 List<String> contentIds = new ArrayList<>();
                 ArrayList<Parameter> collectionParameters = new ArrayList<>();
-                // Ret = number of read elements by this recursive step (atm 2: id + numOfElements)
+                // Ret = number of read elements by this recursive step (atm 3: id + numOfElements + pyContentType)
                 int ret = 3;
                 for (int j = 0; j < numOfElements; ++j) {
                     // First element is the type, translate it to the corresponding DataType field by direct indexing

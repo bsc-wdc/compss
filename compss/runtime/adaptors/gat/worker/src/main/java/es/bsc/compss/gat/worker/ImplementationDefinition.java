@@ -154,7 +154,7 @@ public abstract class ImplementationDefinition implements Invocation {
             }
 
             // So far, not available in args array
-            String pyType = " ";
+            String pyType = "null";
 
             switch (argType) {
                 case FILE_T:

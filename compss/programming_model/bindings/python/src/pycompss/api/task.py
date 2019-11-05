@@ -1169,11 +1169,14 @@ class Task(object):
                         # if direction of the collection is 'out', it means we
                         # haven't received serialized objects from the Master
                         # (even though parameters have 'file_name', those files
-                        # haven't been created yet)..
+                        # haven't been created yet). plus, inner collections of
+                        # col_out params do NOT have 'direction', we identify
+                        # them by 'depth'..
                         if _col_dir == parameter.DIRECTION.OUT or \
                                 ((_col_dir is None) and _col_dep > 0):
 
-                            # create an 'empty' instance of given type
+                            # if we are at the last level of COL_OUT param,
+                            # create 'empty' instances of elements
                             if _col_dep == 1:
                                 temp = create_object_by_con_type(content_type)
                                 sub_arg.content = temp

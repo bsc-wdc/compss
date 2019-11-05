@@ -1032,7 +1032,7 @@ launch_agent () {
 
   local jvm_opts_str
   local jvm_opts_size
-  jvm_opts_str=$(echo "${jvm_opts_str}" | tr "," " ")
+  jvm_opts_str=$(echo "${jvm_workers_opts_str}" | tr "," " ")
   jvm_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
   fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
   fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
@@ -1097,7 +1097,7 @@ launch() {
   while [ ${CONFIRMED_AGENTS} -lt ${num_agents} ]; do
     sleep 1
     CONFIRMED_AGENTS=0
-    for worker in "${worker_nodes}"; do
+    for worker in ${worker_nodes}; do
       curl -s -XGET http://${worker}${network}:46101/COMPSs/test # 2>/dev/null
       if [ $? -eq 0 ]; then
         CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
@@ -1107,7 +1107,7 @@ launch() {
   echo "All nodes are ready"
 
   curl -s -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null
-  for worker in "${worker_nodes}"; do
+  for worker in ${worker_nodes}; do
     curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
   done
 

@@ -57,7 +57,7 @@ get_topology() {
 
         CHILD_NODES=$(
          for blade in ${RACK_OTHER_BLADES}; do
-           echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${max_tasks_per_node}"; 
+           echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${max_tasks_per_node}"; 
          done
         )
       #else
@@ -96,7 +96,6 @@ xml_project_add_child_agents() {
       else
         worker_node_name=${worker_node}
       fi
-      echo "*${max_tasks}*" 1>&2
       if [ "${max_tasks}" -lt "-1" ]; then
         max_tasks=-1
       fi
@@ -261,6 +260,7 @@ shift 7
 shift "${jvm_opts_size}"
 
 fpga_reprogram_size="${1}"
+shift 1
 # IGNORING FPGA REPROGRAM
 # fpga_reprogram_str="${*:1:!fpga_reprogram_size}"
 shift "${fpga_reprogram_size}"
@@ -307,8 +307,8 @@ echo "FPGAs:          ${fpgas_per_node} ${fpga_affinity}" >>"${log_dir}/INFO"
 echo "Child nodes:" >>"${log_dir}/INFO"
 
 if [ ! -z "${CHILD_NODES}" ]; then
-  while read -r blade cpu gpu fpgas memory; do
-    echo "  * name ${blade} cpus ${cpu} gpus ${gpu} fpgas ${fpgas} memory ${memory}" >>"${log_dir}/INFO"
+  while read -r blade cpu gpu fpgas memory limit_of_tasks; do
+    echo "  * name ${blade} cpus ${cpu} gpus ${gpu} fpgas ${fpgas} memory ${memory} limit of tasks ${limit_of_tasks}" >>"${log_dir}/INFO"
   done <<< "${CHILD_NODES}"
 fi
 

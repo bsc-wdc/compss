@@ -149,16 +149,6 @@ public class Agent {
         monitor.setAppId(mainAppId);
 
         try {
-            Class<?> cei = Class.forName(ceiClass);
-            List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(cei);
-            for (CoreElementDefinition ced : ceds) {
-                RUNTIME.registerCoreElement(ced);
-            }
-        } catch (ClassNotFoundException cnfe) {
-            throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
-        }
-
-        try {
             int taskParamsCount = arguments.length;
             if (target != null) {
                 taskParamsCount++;

@@ -1119,7 +1119,7 @@ class Task(object):
             except Exception:
                 return False
 
-        def retrieve_content(arg, name_prefix):
+        def retrieve_content(arg, name_prefix, depth=0):
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
             if parameter.is_vararg(arg.name):
@@ -1143,10 +1143,14 @@ class Task(object):
                 # consulting it
                 arg.collection_content = []
                 col_f_name = arg.file_name.split(':')[-1]
-                _col_dir = self.decorator_arguments[arg.name].direction
+
+                # maybe it is an inner-collection..
+                _dec_arg = self.decorator_arguments.get(arg.name, None)
+                _col_dir = _dec_arg.direction if _dec_arg else None
+                _col_dep = _dec_arg.depth if _dec_arg else depth
 
                 for (i, line) in enumerate(open(col_f_name, 'r')):
-                    data_type, content_file,  content_type = line.strip().split()
+                    data_type, content_file, content_type = line.strip().split()
                     # Same naming convention as in COMPSsRuntimeImpl.java
                     sub_name = "%s.%d" % (arg.name, i)
                     if name_prefix:
@@ -1166,12 +1170,20 @@ class Task(object):
                         # haven't received serialized objects from the Master
                         # (even though parameters have 'file_name', those files
                         # haven't been created yet)..
-                        if _col_dir == parameter.DIRECTION.OUT:
+                        if _col_dir == parameter.DIRECTION.OUT or \
+                                ((_col_dir is None) and _col_dep > 0):
+
                             # create an 'empty' instance of given type
-                            temp = create_object_by_con_type(content_type)
-                            sub_arg.content = temp
-                            arg.content.append(sub_arg.content)
-                            arg.collection_content.append(sub_arg)
+                            if _col_dep == 1:
+                                temp = create_object_by_con_type(content_type)
+                                sub_arg.content = temp
+                                arg.content.append(sub_arg.content)
+                                arg.collection_content.append(sub_arg)
+                            else:
+                                retrieve_content(sub_arg, sub_name,
+                                                 depth=_col_dep-1)
+                                arg.content.append(sub_arg.content)
+                                arg.collection_content.append(sub_arg)
                         else:
                             # Recursively call the retrieve method, fill the
                             # content field in our new taskParameter object

@@ -1273,7 +1273,8 @@ def _serialize_object_into_file(name, p):
                     p.object = list(map(synchronize,
                                         p.object,
                                         [mode] * len(p.object)))
-            _turn_into_file(name, p)
+            _skip_file_creation = (p.direction == DIRECTION.OUT)
+            _turn_into_file(name, p, skip_creation=_skip_file_creation)
         except SerializerException:
             import sys
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -1298,7 +1299,8 @@ def _serialize_object_into_file(name, p):
         if p.object > JAVA_MAX_LONG or p.object < JAVA_MIN_LONG:
             # This must be serialized to prevent overflow with Java long
             p.type = TYPE.OBJECT
-            _turn_into_file(name, p)
+            _skip_file_creation = (p.direction == DIRECTION.OUT)
+            _turn_into_file(name, p, _skip_file_creation)
     elif p.type == TYPE.STRING:
         from pycompss.api.task import prepend_strings
         if prepend_strings:
@@ -1321,8 +1323,7 @@ def _serialize_object_into_file(name, p):
                 )
                 for x in p.object
             ]
-        elif p.direction != DIRECTION.OUT:
-            from pycompss.api.parameter import get_compss_type
+        else:
             new_object = [
                 _serialize_object_into_file(
                     name,
@@ -1336,10 +1337,6 @@ def _serialize_object_into_file(name, p):
                 )
                 for x in p.object
             ]
-        # COL_OUT: no need to create new 'empty' objects and serialize them
-        # one-by-one. They will be created on the Worker.
-        else:
-            new_object = _retrieve_col_out_objects(p)
 
         p.object = new_object
         # Give this object an identifier inside the binding
@@ -1414,7 +1411,7 @@ def _manage_persistent_object(p):
         logger.debug("Managed persistent object: %s" % obj_id)
 
 
-def _turn_into_file(name, p):
+def _turn_into_file(name, p, skip_creation=False):
     """
     Write a object into a file if the object has not been already written
     (p.object).
@@ -1445,7 +1442,8 @@ def _turn_into_file(name, p):
         objid_to_filename[obj_id] = file_name
         if __debug__:
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
-        serialize_to_file(p.object, file_name)
+        if not skip_creation:
+            serialize_to_file(p.object, file_name)
     elif obj_id in _objs_written_by_mp:
         if p.direction == DIRECTION.INOUT or \
                 p.direction == DIRECTION.COMMUTATIVE:
@@ -1455,7 +1453,8 @@ def _turn_into_file(name, p):
         if __debug__:
             logger.debug("Serializing object %s to file %s" % (obj_id,
                                                                compss_file))
-        serialize_to_file(p.object, compss_file)
+        if not skip_creation:
+            serialize_to_file(p.object, compss_file)
     else:
         pass
     # Set file name in Parameter object

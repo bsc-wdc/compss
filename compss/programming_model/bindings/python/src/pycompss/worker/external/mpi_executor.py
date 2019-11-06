@@ -40,6 +40,9 @@ from pycompss.worker.piper.commons.constants import END_TASK_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 from pycompss.worker.commons.worker import execute_task
 
+SUCCESS_SIG = 0
+FAILURE_SIG = 1
+UNEXPECTED_SIG = 2
 
 def shutdown_handler(signal, frame):  # noqa
     """ MPI exception signal handler
@@ -102,6 +105,11 @@ def executor(process_name, command):
                             logger_handlers,
                             logger_level,
                             logger_formatter)
+                            
+    if sig == FAILURE_SIG:
+       raise Exception("Task execution failed!", msg)
+    elif sig == UNEXPECTED_SIG:
+       raise Exception("Unexpected message!", msg)
 
     sys.stdout.flush()
     sys.stderr.flush()
@@ -141,7 +149,17 @@ def process_task(current_line,     # type: str
 
     current_line = current_line.split()
     if current_line[0] == EXECUTE_TASK_TAG:
-        # Remove the last elements: cpu and gpu bindings
+        hasCollectionParams = int(current_line[-1])
+        if hasCollectionParams != 0:
+            collections_layouts = current_line[hasCollectionParams*-5:-1]
+            itr = 1
+            while itr < len(collections_layouts):
+                collections_layouts[itr] = int(collections_layouts[itr])
+                itr += 1
+        else:
+            collections_layouts = None
+
+        # Remove the last elements: cpu and gpu bindings and collection params
         current_line = current_line[0:-3]
 
         # task jobId command
@@ -218,7 +236,8 @@ def process_task(current_line,     # type: str
                                   tracing,
                                   logger,
                                   (job_out, job_err),
-                                  python_mpi)
+                                  python_mpi, 
+                                  collections_layouts)
             exit_value, new_types, new_values, time_out, except_msg = result
 
             # Restore out/err wrappers
@@ -229,28 +248,21 @@ def process_task(current_line,     # type: str
             out.close()
             err.close()
 
-            if exit_value == 0:
+            global_exit_value = MPI.COMM_WORLD.reduce(exit_value, op=MPI.SUM, root=0)
+            message = ""
+
+            if MPI.COMM_WORLD.rank == 0 and global_exit_value == 0:
                 # Task has finished without exceptions
                 # endTask jobId exitValue message
                 params = build_return_params_message(new_types, new_values)
                 message = END_TASK_TAG + " " + str(job_id)
                 message += " " + str(exit_value) + " " + str(params) + "\n"
-            elif exit_value == 2:
-                # Task has finished with a COMPSs Exception
-                # compssExceptionTask jobId exitValue message
-
-                except_msg = except_msg.replace(" ", "_")
-                message = COMPSS_EXCEPTION_TAG + " " + str(job_id)
-                message += " " + str(except_msg) + "\n"
-                if __debug__:
-                    logger.debug(
-                        "%s - COMPSS EXCEPTION TASK MESSAGE: %s" %
-                        (str(process_name),
-                         str(except_msg)))
-            else:
+            elif MPI.COMM_WORLD.rank == 0 and global_exit_value != 0:
                 # An exception has been raised in task
                 message = END_TASK_TAG + " " + str(job_id)
                 message += " " + str(exit_value) + "\n"
+                
+                return FAILURE_SIG, except_msg
 
             if __debug__:
                 logger.debug("%s - END TASK MESSAGE: %s" % (str(process_name),
@@ -281,8 +293,12 @@ def process_task(current_line,     # type: str
         except Exception as e:
             logger.exception("%s - Exception %s" % (str(process_name),
                                                     str(e)))
+            #TODO: to be reviewed
+            #HEAD
             exit_value = 7
             message = END_TASK_TAG + " " + str(job_id) + " " + str(exit_value) + "\n"  # noqa: E501
+            #Layout version
+            #return FAILURE_SIG, e
 
         # Clean environment variables
         if __debug__:
@@ -301,16 +317,14 @@ def process_task(current_line,     # type: str
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Finished task with id: %s" %
                          (str(process_name), str(job_id)))
+    
+        return SUCCESS_SIG, "{0} -- Task Ended Successfully!".format(str(process_name)) 
+
     else:
         if __debug__:
             logger.debug("[PYTHON EXECUTOR] [%s] Unexpected message: %s" %
                          (str(process_name), str(current_line)))
-        exit_value = 7
-        message = END_TASK_TAG + " " + str(job_id)
-        message += " " + str(exit_value) + "\n"
-
-    return exit_value, message
-
+        return UNEXPECTED_SIG, "Unexpected message: %s" % str(current_line)
 
 if __name__ == '__main__':
     # Set the binding in worker mode

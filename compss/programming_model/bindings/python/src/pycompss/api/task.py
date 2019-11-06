@@ -234,6 +234,7 @@ class Task(PyCOMPSsDecorator):
 
         return task_decorator
 
+<<<<<<< HEAD
     def _sequential_call(self, *args, **kwargs):
         """ Sequential task execution.
 

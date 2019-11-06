@@ -32,8 +32,22 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     private final boolean failByEV;
 
 
+    public class CollectionLayout {
+
+        private String paramName;
+        private int blockCount;
+        private int blockLen;
+        private int blockStride;
+    }
+
+
+    // This parameter has to be a list because if you have multiple layouts for multiple parameters
+    private final CollectionLayout cl;
+
+
     protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
         String mpiRunner, String mpiFlags, boolean scaleByCU, boolean failByEV,
+        String paramName, int blockCount, int blockLen, int blockStride,
         MethodResourceDescription implConstraints) {
 
         super(implSignature, implConstraints);
@@ -45,12 +59,18 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         this.methodName = methodName;
         this.scaleByCU = scaleByCU;
         this.failByEV = failByEV;
+        this.cl = new CollectionLayout();
+        this.cl.paramName = paramName;
+        this.cl.blockCount = blockCount;
+        this.cl.blockLen = blockLen;
+        this.cl.blockStride = blockStride;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
         return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, mpiFlags, scaleByCU,
-            failByEV, coreId, implId, this.getSignature(), this.getConstraints());
+            failByEV, coreId, implId, this.cl.paramName, this.cl.blockCount, this.cl.blockLen, this.cl.blockStride,
+	    this.getSignature(), this.getConstraints());
     }
 
     @Override
@@ -66,6 +86,11 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
+        sb.append("\t Collection Layouts: ").append("\n");
+        sb.append("\t\t - Parameter Name: ").append(this.cl.paramName).append("\n");
+        sb.append("\t\t - Block Count: ").append(this.cl.blockCount).append("\n");
+        sb.append("\t\t - Block Length: ").append(this.cl.blockLen).append("\n");
+        sb.append("\t\t - Block Stride: ").append(this.cl.blockStride).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

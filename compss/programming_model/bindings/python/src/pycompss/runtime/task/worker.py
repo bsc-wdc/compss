@@ -85,7 +85,7 @@ class TaskWorker(TaskCommons):
         # the type, the name and the "value" of the parameter. This value may
         # be treated to get the actual object (e.g: deserialize it, query the
         # database in case of persistent objects, etc.)
-        self.reveal_objects(args, logger)
+        self.reveal_objects(args, logger, kwargs["python_MPI"], kwargs["collections_layouts"])
         if __debug__:
             logger.debug("Finished revealing objects")
             logger.debug("Building task parameters structures")
@@ -188,7 +188,7 @@ class TaskWorker(TaskCommons):
 
         return new_types, new_values, self.decorator_arguments[target_label]
 
-    def reveal_objects(self, args, logger):  # noqa
+    def reveal_objects(self, args, logger, python_mpi=False, collections_layouts=None):  # noqa
         # type: (tuple, logger) -> None
         """ Get the objects from the args message.
 
@@ -198,6 +198,8 @@ class TaskWorker(TaskCommons):
         :param args: Arguments.
         :param logger: Logger (shadows outer logger since this is only used
                                in the worker to reveal the parameter objects).
+        :param python_mpi: If the task is python MPI.
+        :param collections_layouts: Layouts of collections params for python MPI tasks.
         :return: None
         """
         if self.storage_supports_pipelining():
@@ -216,7 +218,7 @@ class TaskWorker(TaskCommons):
         # Deal with all the parameters that are NOT returns
         for arg in [x for x in args if
                     isinstance(x, Parameter) and not is_return(x.name)]:
-            self.retrieve_content(arg, "")
+            self.retrieve_content(arg, "", python_mpi, collections_layouts)
 
     @staticmethod
     def storage_supports_pipelining():
@@ -237,12 +239,16 @@ class TaskWorker(TaskCommons):
         except (ImportError, AttributeError):
             return False
 
-    def retrieve_content(self, argument, name_prefix, depth=0):
-        # type: (Parameter, str, int) -> None
+    def retrieve_content(self, argument, name_prefix, 
+                         python_mpi, collections_layouts, 
+                         depth=0):
+        # type: (Parameter, str, bool, bool, int) -> None
         """ Retrieve the content of a particular argument.
 
         :param argument: Argument.
         :param name_prefix: Name prefix.
+        :param python_mpi: If the task is python MPI.
+        :param collections_layouts: Layouts of collections params for python MPI tasks.
         :param depth: Collection depth (0 if not a collection).
         :return: None
         """
@@ -294,8 +300,25 @@ class TaskWorker(TaskCommons):
                 logger.debug("\t\t - It is a COLLECTION: " +
                              str(col_f_name))
                 logger.debug("\t\t\t - Depth: " + str(_col_dep))
-
+            
+            # Check if this collection is in layout
+            # Three conditions:
+            # 1- this is a mpi task
+            # 2- it has a collection layout
+            # 3- the current argument is the layout target
+            in_mpi_collection_env = False
+            if python_mpi and collections_layouts and collections_layouts[0] == argument.name:
+                in_mpi_collection_env = True
+                from pycompss.util.mpi.helper import rank_distributor
+                # call rank_distributor if the current param is the target of the layout
+                # for each rank, return its offset(s) in the collection
+                rank_distribution = rank_distributor(collections_layouts[1:])
+            
             for (i, line) in enumerate(open(col_f_name, 'r')):
+                if in_mpi_collection_env:
+                    # this is not my offset? skip
+                    if i not in rank_distribution:
+                        continue
                 data_type, content_file, content_type = line.strip().split()  # noqa: E501
                 # Same naming convention as in COMPSsRuntimeImpl.java
                 sub_name = "%s.%d" % (argument.name, i)
@@ -330,21 +353,43 @@ class TaskWorker(TaskCommons):
                         if _col_dep == 1:
                             temp = create_object_by_con_type(content_type)
                             sub_arg.content = temp
-                            argument.content.append(sub_arg.content)
+                            # In case that only one element is used in this mpi rank, 
+                            # the collection list is removed
+                            if in_mpi_collection_env and len(rank_distribution) == 1:
+                                argument.content = sub_arg.content
+                            else:
+                                argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
                         else:
                             self.retrieve_content(sub_arg, sub_name,
+                                                  python_mpi, collections_layouts,
                                                   depth=_col_dep - 1)
-                            argument.content.append(sub_arg.content)
+                            # In case that only one element is used in this mpi rank,
+                            # the collection list is removed
+                            if in_mpi_collection_env and len(rank_distribution) == 1:
+                                argument.content = sub_arg.content
+                            else:
+                                argument.content.append(sub_arg.content)
                             argument.collection_content.append(sub_arg)
                     else:
                         # Recursively call the retrieve method, fill the
                         # content field in our new taskParameter object
-                        self.retrieve_content(sub_arg, sub_name)
-                        argument.content.append(sub_arg.content)
+                        self.retrieve_content(sub_arg, sub_name, 
+                                              python_mpi, collections_layouts)
+                        # In case only one element is used in this mpi rank,
+                        # the collection list is removed
+                        if in_mpi_collection_env and len(rank_distribution) == 1:
+                            argument.content = sub_arg.content
+                        else:
+                            argument.content.append(sub_arg.content)
                         argument.collection_content.append(sub_arg)
                 else:
-                    argument.content.append(content_file)
+                    # In case only one element is used in this mpi rank,
+                    # the collection list is removed
+                    if in_mpi_collection_env and len(rank_distribution) == 1:
+                        argument.content = content_file
+                    else:
+                        argument.content.append(content_file)
                     argument.collection_content.append(content_file)
 
         elif not self.storage_supports_pipelining() and \

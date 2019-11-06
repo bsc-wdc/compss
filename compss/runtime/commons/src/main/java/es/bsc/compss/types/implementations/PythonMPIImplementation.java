@@ -37,6 +37,35 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     private boolean failByEV;
 
 
+    public class CollectionLayout {
+
+        private String paramName = "";
+        private int blockCount = -1;
+        private int blockLen = -1;
+        private int blockStride = -1;
+
+
+        public String getParamName() {
+            return this.paramName;
+        }
+
+        public int getBlockCount() {
+            return this.blockCount;
+        }
+
+        public int getBlockLen() {
+            return this.blockLen;
+        }
+
+        public int getBlockStride() {
+            return this.blockStride;
+        }
+    }
+
+
+    private CollectionLayout cl;
+
+
     /**
      * Creates a new MPIImplementation for serialization.
      */
@@ -56,11 +85,16 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      * @param failByEV Flag to enable failure with EV.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
+     * @param paramName Collection Layout's Parameter name.
+     * @param blockCount Collection Layout's block count.
+     * @param blockLen Collection Layout's block length.
+     * @param blockStride Collection Layout's block stride.
      * @param signature Method signature.
      * @param requirements Method requirements.
      */
     public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
         String mpiFlags, boolean scaleByCU, boolean failByEV, Integer coreId, Integer implementationId,
+        String paramName, int blockCount, int blockLen, int blockStride,
         String signature, MethodResourceDescription requirements) {
 
         super(coreId, implementationId, signature, requirements);
@@ -72,6 +106,11 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.mpiFlags = mpiFlags;
         this.scaleByCU = scaleByCU;
         this.failByEV = failByEV;
+        this.cl = new CollectionLayout();
+        this.cl.paramName = paramName;
+        this.cl.blockCount = blockCount;
+        this.cl.blockLen = blockLen;
+        this.cl.blockStride = blockStride;
     }
 
     /**
@@ -144,6 +183,14 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      */
     public boolean isFailByEV() {
         return failByEV;
+
+    /** 
+     * Returns the collection layout.
+     * 
+     * @return The collection layout.
+     */
+    public CollectionLayout getCollectionLayout() {
+        return this.cl;
     }
 
     @Override
@@ -160,6 +207,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         sb.append(", MPI FLAGS=").append(this.mpiFlags);
         sb.append(", SCALE_BY_CU=").append(this.scaleByCU);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
+        sb.append(", Collection Layouts: ").append(this.cl.paramName).append(", ").append(this.cl.blockCount)
+            .append(", ").append(this.cl.blockLen).append(", ").append(this.cl.blockStride);
         sb.append("]");
 
         return sb.toString();
@@ -168,7 +217,10 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     @Override
     public String toString() {
         return super.toString() + " Python MPI Method declared in class " + this.declaringClass + "."
-            + this.alternativeMethod + " with MPIrunner " + this.mpiRunner + ": " + this.requirements.toString();
+            + this.alternativeMethod + " with MPIrunner " + this.mpiRunner
+            + ". with the following Collection Layout: \n" + "- Parameter Name: " + this.cl.paramName + "\n"
+            + "- Block Count: " + cl.blockCount + "\n- Block Length: " + this.cl.blockLen + " \n- Block Stride: "
+            + this.cl.blockStride + "\n " + this.requirements.toString();
     }
 
     @Override
@@ -181,6 +233,11 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
         this.failByEV = in.readBoolean();
+        this.cl = new CollectionLayout();
+        this.cl.paramName = (String) in.readObject();
+        this.cl.blockCount = (int) in.readObject();
+        this.cl.blockLen = (int) in.readObject();
+        this.cl.blockStride = (int) in.readObject();
     }
 
     @Override
@@ -193,6 +250,10 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);
         out.writeBoolean(this.failByEV);
+        out.writeObject(this.cl.paramName);
+        out.writeObject(this.cl.blockCount);
+        out.writeObject(this.cl.blockLen);
+        out.writeObject(this.cl.blockStride);
     }
 
 }

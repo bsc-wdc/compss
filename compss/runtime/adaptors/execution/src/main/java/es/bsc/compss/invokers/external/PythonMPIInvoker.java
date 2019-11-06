@@ -49,6 +49,18 @@ public class PythonMPIInvoker extends ExternalInvoker {
     private BinaryRunner br;
 
 
+    public class CollectionLayout {
+
+        String paramName;
+        int blockCount;
+        int blockLen;
+        int blockStride;
+    }
+
+
+    private CollectionLayout cl;
+
+
     /**
      * Python MPI Invoker constructor.
      *
@@ -80,6 +92,21 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Internal binary runner
         this.br = null;
+        this.cl = new CollectionLayout();
+        this.cl.paramName = pythonmpiImpl.getCollectionLayout().getParamName();
+        this.cl.blockCount = pythonmpiImpl.getCollectionLayout().getBlockCount();
+        this.cl.blockLen = pythonmpiImpl.getCollectionLayout().getBlockLen();
+        this.cl.blockStride = pythonmpiImpl.getCollectionLayout().getBlockStride();
+
+        System.out.println(">>>>>> " + this.cl.paramName);
+        System.out.println(">>>>>> " + this.cl.blockCount);
+        System.out.println(">>>>>> " + this.cl.blockLen);
+        System.out.println(">>>>>> " + this.cl.blockStride);
+
+        if ((this.cl.blockCount + this.cl.blockLen + this.cl.blockStride) < 0) {
+            this.cl = null;
+        }
+
     }
 
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
@@ -181,7 +208,24 @@ public class PythonMPIInvoker extends ExternalInvoker {
         cmd[numBasePythonMpiArgs - 2] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker"
             + File.separator + "external" + File.separator + "mpi_executor.py";
 
-        cmd[numBasePythonMpiArgs - 1] = taskCMD;
+        //TODO, to be review this could not work
+	//OLD part:
+	//cmd[numBasePythonMpiArgs - 1] = taskCMD;
+	int collectionLayoutNum = this.cl == null ? 0 : 1;
+        int collectionLayoutParamsNum = collectionLayoutNum * 4;
+        String collectionLayoutParams = " ";
+
+        for (int i = 0; i < collectionLayoutParamsNum; i += 4) {
+            collectionLayoutParams += this.cl.paramName + " ";
+            collectionLayoutParams += Integer.toString(this.cl.blockCount) + " ";
+            collectionLayoutParams += Integer.toString(this.cl.blockLen) + " ";
+            collectionLayoutParams += Integer.toString(this.cl.blockStride) + " ";
+        }
+
+        collectionLayoutParams += Integer.toString(collectionLayoutNum);
+	
+	//Merged
+        cmd[numBasePythonMpiArgs - 1] = taskCMD + collectionLayoutParams;
 
         String pythonPath = System.getenv("PYTHONPATH");
         pythonPath = pyCOMPSsHome + ":" + pythonPath;

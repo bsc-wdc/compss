@@ -41,6 +41,9 @@ PyCOMPSs Util - Shared memory array serializer/deserializer
                            system.
 """
 
+from os import getenv
+from os.path import basename
+
 try:
     # We rely on numpy for transfering the data.
     # Our working depends on numpy working.
@@ -49,8 +52,6 @@ try:
     SHAREDARRAY_AVAILABLE = True
 except ImportError:
     SHAREDARRAY_AVAILABLE = False
-
-from os.path import basename
 
 
 shma_objects = dict()
@@ -65,7 +66,8 @@ def serialize_to_shm(obj, handler):
     :param obj: Name of the object.
     :param handler: File handler.
     """
-    obj_name = basename(handler.name)
+    obj_name = basename(handler.name + '.shm')
+
     shma_objects[obj_name] = shma.create_copy('shm://' + obj_name, obj)
     numpy.save(handler, obj, allow_pickle=False)
 
@@ -88,7 +90,7 @@ def deserialize_from_shm(handler):
     :param handler: File handler to the numpy-serialized array.
     :return: A new numpy array.
     """
-    obj_name = basename(handler.name)
+    obj_name = basename(handler.name + '.shm')
 
     if obj_name in shma_objects:
         return shma_objects[obj_name]
@@ -133,7 +135,8 @@ def delete_shma(name):
 
     :param name: the filename of the array to free.
     """
-    obj_name = basename(name)
+    obj_name = basename(name + '.shm')
+
     try:
         shma_objects.pop(obj_name)
     except KeyError:

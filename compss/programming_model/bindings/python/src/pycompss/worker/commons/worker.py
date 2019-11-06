@@ -478,9 +478,20 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
         # Try to import the module (for functions)
         if __debug__:
             logger.debug("Trying to import the user module: %s" % path)
-        if sys.version_info >= (2, 7):
+        py_version = sys.version_info
+        if py_version >= (2, 7):
             import importlib
             module = importlib.import_module(path)  # Python 2.7
+            if path.startswith('InteractiveMode_'):
+                # Force reload in interactive mode. The user may have
+                # overwritten a function or task.
+                if py_version < (3, 0):
+                    reload(module)
+                elif py_version < (3, 4):
+                    import imp
+                    imp.reload(module)
+                else:
+                    importlib.reload(module)
             if __debug__:
                 msg = "Module successfully loaded (Python version >= 2.7)"
                 logger.debug(msg)

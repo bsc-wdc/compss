@@ -41,6 +41,9 @@ SEPARATORS = {  # for user defined lines in the entire/global scope
               'tasks_separator': "### TASKS ###"}
 
 
+PREFIXES = ("@implement", "@constraint", "@decaf", "@mpi",
+            "@ompss", "@binary", "@opencl")
+
 # ################################################################# #
 # ################# MAIN FUNCTION ################################# #
 # ################################################################# #
@@ -301,10 +304,17 @@ def _get_functions():
         is_function = False
         function_found = False
         func_name = ''
+        decorators = ''
         for line in lines:
             if line.startswith('@task'):
                 # The following function detected will be a task --> ignore
                 is_task = True
+            if line.startswith("@") and \
+                    not any(map(line.startswith, PREFIXES)) and \
+                    not is_task:
+                # It is a function preceded by a decorator
+                is_function = True
+                is_task = False
             if line.startswith("def") and not is_task:
                 # A function which is not a task has been defined --> capture
                 # with is_function boolean
@@ -313,6 +323,8 @@ def _get_functions():
                 is_function = True
                 is_task = False
             if is_function:
+                if line.startswith("@"):
+                    decorators += line + '\n'
                 if line.startswith("def"):
                     # Function header: find name and include it in the
                     # functions dict. Split and remove empty spaces
@@ -320,7 +332,8 @@ def _get_functions():
                     # the name may be followed by the parameters parenthesis
                     func_name = header[1].split("(")[0].strip()
                     # create an entry in the functions dict
-                    functions[func_name] = [line + '\n']
+                    functions[func_name] = [decorators + line + '\n']
+                    decorators = ''
                     function_found = True
                 elif (line.startswith("  ") or
                       (line.startswith("\t")) or
@@ -345,7 +358,11 @@ def _get_task_code(f):
     :return: A dictionary with the task code:
              {'name': str(line\nline\n...)}
     """
-    task_code = inspect.getsource(f)
+    try:
+        task_code = inspect.getsource(f)
+    except TypeError:
+        # This is a numba jit declared task
+        task_code = inspect.getsource(f.py_func)
     if task_code.startswith((' ', '\t')):
         return {}
     else:
@@ -496,17 +513,19 @@ def _get_old_code(file_path):
     tsks = [('@' + l) for l in [deco for deco in collapsed.split('@') if deco]]
     # Take into account that other decorators my be over @task, so it is
     # necessary to collapse the function stack
-    prefixes = ("@implement", "@constraint", "@decaf", "@mpi",
-                "@ompss", "@binary", "@opencl")
     tasks_list = []
     tsk = ""
     for t in tsks:
-        if any(map(t.startswith, prefixes)):
+        if any(map(t.startswith, PREFIXES)):
             tsk += t
         if t.startswith("@task"):
             tsk += t
             tasks_list.append(tsk)
             tsk = ""
+        elif not any(map(t.startswith, PREFIXES)):
+            # If a decorator over the function is provided, it will
+            # have to be included in the last task
+            tasks_list[-1] += t
     # Add functions to dictionary by function name:
     for t in tasks_list:
         # Example: '@task(returns=int)\ndef mytask(v):\n    return v+1'

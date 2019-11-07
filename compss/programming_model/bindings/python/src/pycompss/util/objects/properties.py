@@ -221,14 +221,26 @@ def create_object_by_con_type(con_type, default=object):
     if hasattr(_builtins, class_name):
         _obj = getattr(_builtins, class_name)
         return _obj()
-    try:
-        import importlib
-        sys.path.append(path)
-        module = importlib.import_module(path.split("/")[-1].split(".py")[0])
-        klass = getattr(module, class_name)
-        ret = klass()
-        return ret
-    except Exception:
-        # todo: handle the exception?
-        pass
-    return default()
+
+    # try:
+    directory, module_name = os.path.split(path)
+    module_name = os.path.splitext(module_name)[0]
+
+    klass = globals().get(class_name, None)
+    if klass:
+        return klass()
+
+    if module_name not in sys.modules:
+        sys.path.append(directory)
+        module = __import__(module_name)
+        sys.modules[module_name] = module
+    else:
+        module = sys.modules[module_name]
+
+    klass = getattr(module, class_name)
+    ret = klass()
+    return ret
+    # except Exception:
+    #     # todo: handle the exception?
+    #     pass
+    # return default()

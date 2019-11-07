@@ -1344,54 +1344,6 @@ def _serialize_object_into_file(name, p):
     return p
 
 
-def _retrieve_col_out_objects(p_col_out):
-    """
-    Create len(p_col_out) Parameter elements without serializing into files.
-    Each Parameter element will save 'content_type' info that, on the Worker,
-    new empty object will be created based on it.
-    :param p_col_out: Parameter object
-    :return:
-    """
-    new_objects = list()
-    for item in p_col_out.object:
-        obj = Parameter(
-            p_type=get_compss_type(item, p_col_out.depth - 1),
-            p_direction=p_col_out.direction,
-            p_object=item,
-            depth=p_col_out.depth-1,
-            content_type=str(type(item).__name__)
-        )
-
-        if obj.type in [TYPE.OBJECT, TYPE.EXTERNAL_STREAM] or obj.is_future:
-            val_type = type(obj.object)
-            if isinstance(val_type, list):
-                if any(isinstance(v, Future) for v in obj.object):
-                    mode = get_compss_mode('in')
-                    obj.object = list(map(synchronize, obj.object,
-                                          [mode] * len(obj.object)))
-        obj_id = get_object_id(obj.object, True)
-        file_name = objid_to_filename.get(obj_id)
-
-        if file_name is None:
-            # This is the first time a task accesses this object
-            pending_to_synchronize[obj_id] = obj.object
-            file_name = temp_dir + _temp_obj_prefix + str(obj_id)
-            objid_to_filename[obj_id] = file_name
-            logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
-
-        elif obj_id in _objs_written_by_mp:
-            # Main program generated the last version
-            compss_file = _objs_written_by_mp.pop(obj_id)
-        else:
-            compss_file = None
-            pass
-        # Set file name in Parameter object
-        obj.file_name = file_name or compss_file
-        new_objects.append(obj)
-
-    return new_objects
-
-
 def _manage_persistent_object(p):
     """
     Does the necessary actions over a persistent object used as task parameter.

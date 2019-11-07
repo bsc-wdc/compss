@@ -94,7 +94,7 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
             num_substrings = int(p_value)
             aux = ''
             first_substring = True
-            for j in range(5, num_substrings + 5):
+            for j in range(6, num_substrings + 6):
                 if not first_substring:
                     aux += ' '
                 first_substring = False

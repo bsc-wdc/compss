@@ -65,18 +65,8 @@ public class OMPSsDefinition extends ImplementationDefinition {
     }
 
     @Override
-    public Lang getLang() {
-        return null;
-    }
-
-    @Override
     public String toLogString() {
         return this.impl.getMethodDefinition();
-    }
-
-    @Override
-    public long getTimeOut() {
-        return 0L;
     }
 
 }

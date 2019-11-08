@@ -17,6 +17,7 @@
 package es.bsc.compss.nio;
 
 import es.bsc.compss.COMPSsConstants.Lang;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
@@ -52,6 +53,7 @@ public class NIOTask implements Externalizable, Invocation {
     private JobHistory history;
     private int transferGroupId;
     private int numReturns;
+    private OnFailure onFailure;
     private long timeOut;
 
 
@@ -83,13 +85,15 @@ public class NIOTask implements Externalizable, Invocation {
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, int numReturns,
         LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames,
-        int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId, long timeOut) {
+        int taskId, TaskType taskType, int jobId, JobHistory hist, int transferGroupId, OnFailure onFailure,
+        long timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
         this.impl = impl;
         this.arguments = new LinkedList<>();
         this.results = new LinkedList<>();
+        this.onFailure = onFailure;
         this.timeOut = timeOut;
 
         Iterator<NIOParam> paramItr = params.descendingIterator();
@@ -136,7 +140,7 @@ public class NIOTask implements Externalizable, Invocation {
      */
     public NIOTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, LinkedList<NIOParam> arguments,
         NIOParam target, LinkedList<NIOParam> results, List<String> slaveWorkersNodeNames, int taskId, int jobId,
-        JobHistory hist, int transferGroupId, long timeOut) {
+        JobHistory hist, int transferGroupId, OnFailure onFailure, long timeOut) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -145,7 +149,7 @@ public class NIOTask implements Externalizable, Invocation {
         this.arguments = arguments;
         this.target = target;
         this.results = results;
-
+        this.onFailure = onFailure;
         this.timeOut = timeOut;
 
         this.reqs = impl.getRequirements();
@@ -290,6 +294,10 @@ public class NIOTask implements Externalizable, Invocation {
         return this.slaveWorkersNodeNames;
     }
 
+    public OnFailure getOnFailure() {
+        return this.onFailure;
+    }
+
     @Override
     public long getTimeOut() {
         return this.timeOut;
@@ -311,8 +319,8 @@ public class NIOTask implements Externalizable, Invocation {
         this.taskId = in.readInt();
         this.jobId = in.readInt();
         this.history = (JobHistory) in.readObject();
-
         this.transferGroupId = in.readInt();
+        this.onFailure = (OnFailure) in.readObject();
         this.timeOut = in.readLong();
     }
 
@@ -332,6 +340,7 @@ public class NIOTask implements Externalizable, Invocation {
         out.writeInt(this.jobId);
         out.writeObject(this.history);
         out.writeInt(this.transferGroupId);
+        out.writeObject(this.onFailure);
         out.writeLong(this.timeOut);
     }
 

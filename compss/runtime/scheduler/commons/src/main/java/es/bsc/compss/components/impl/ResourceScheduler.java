@@ -529,7 +529,8 @@ public class ResourceScheduler<T extends WorkerResourceDescription> {
      * @throws ActionNotFoundException When the action is not found.
      */
     public List<AllocatableAction> unscheduleAction(AllocatableAction action) throws ActionNotFoundException {
-        LOGGER.debug("[ResourceScheduler] Unschedule action " + action + " on resource " + getName());
+        LOGGER.debug("[ResourceScheduler] Unschedule action " + action + " on resource scheduler for " + getName()
+            + " No new actions have been released.");
         return new LinkedList<>();
     }
 

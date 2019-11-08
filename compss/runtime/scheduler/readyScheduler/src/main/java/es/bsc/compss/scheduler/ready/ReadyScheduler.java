@@ -63,7 +63,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
-
+        LOGGER.debug("[ReadyScheduler] Update load on worker " + resource.getName() + ". Nothing to do.");
     }
 
     @Override
@@ -112,7 +112,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
     public final <T extends WorkerResourceDescription> void handleDependencyFreeActions(
         List<AllocatableAction> dataFreeActions, List<AllocatableAction> resourceFreeActions,
         List<AllocatableAction> blockedCandidates, ResourceScheduler<T> resource) {
-
+        LOGGER.debug("[ReadyScheduler] Handling dependency free actions.");
         purgeFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
         tryToLaunchFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
     }
@@ -147,7 +147,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
             AllocatableAction freeAction = obj.getObject();
             Score actionScore = obj.getScore();
 
-            // LOGGER.debug("Trying to launch action " + freeAction);
+            LOGGER.debug("[ReadyScheduler] Trying to launch action " + freeAction);
             try {
                 scheduleAction(freeAction, actionScore);
                 tryToLaunch(freeAction);

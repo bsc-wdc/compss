@@ -83,7 +83,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
      */
     @Override
     public <T extends WorkerResourceDescription> void workerLoadUpdate(ResourceScheduler<T> resource) {
-
+        LOGGER.debug("[ReadyScheduler] Update load on worker " + resource.getName() + ". Nothing to do.");
     }
 
     @Override

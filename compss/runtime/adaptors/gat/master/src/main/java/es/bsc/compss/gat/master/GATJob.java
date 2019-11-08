@@ -451,6 +451,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         lArgs.add(String.valueOf(this.jobId));
         lArgs.add(String.valueOf(this.taskId));
 
+        // Job time-out and on-failure
+        lArgs.add(String.valueOf(getTimeOut()));
+
         // Slave nodes and cus description
         lArgs.add(String.valueOf(slaveWorkersNodeNames.size()));
         lArgs.addAll(slaveWorkersNodeNames);

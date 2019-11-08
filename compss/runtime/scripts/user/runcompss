@@ -277,12 +277,10 @@ EOF
 show_flower() {
   cat << EOF
 
-Freesia
-
-Freesia is a genus of herbaceous perennial flowering plants in the family Iridaceae, first described as a genus in 1866 by Christian Friedrich Ecklon (1886) and named after the German botanist and medical practitioner, Friedrich Freese (1795-1876). They are herbaceous plants which grow from a conical corm 1–2.5 cm diameter, which sends up a tuft of narrow leaves 10–30 cm long, and a sparsely branched stem 10–40 cm tall bearing a few leaves and a loose one-sided spike of flowers with six tepals. Many species have fragrant narrowly funnel-shaped flowers, although those formerly placed in the genus Anomatheca, such as F. laxa, have flat flowers.
+Gardenia is a genus of flowering plants in the coffee family, Rubiaceae, native to the tropical and subtropical regions of Africa, Asia, Madagascar and Pacific Islands.The genus was named by Carl Linnaeus and John Ellis after Dr. Alexander Garden (1730–1791), a Scottish-born American naturalist.They are evergreen shrubs and small trees growing to 1–15 metres (3.3–49.2 ft) tall. The leaves are opposite or in whorls of three or four, 5–50 centimetres (2.0–19.7 in) long and 3–25 centimetres (1.2–9.8 in) broad, dark green and glossy with a leathery texture. The flowers are solitary or in small clusters, white, or pale yellow, with a tubular-based corolla with 5–12 lobes (petals) from 5 to 12 centimetres (2.0 to 4.7 in) diameter. Flowering is from about mid-spring to mid-summer, and many species are strongly scented. 
 
 Check more information:
-   https://en.wikipedia.org/wiki/Freesia
+   https://en.wikipedia.org/wiki/Gardenia
 
 EOF
 }
@@ -290,14 +288,14 @@ EOF
 show_recipe() {
   cat << EOF
 
-Freesia  - Cocktail
+Gardenia  - Cocktail
 
-  3 Oz. Freesia infused Vya Whisper Dry
-  2 Oz. Cucumber-mint juice
-  1/2 oz Freshly squeezed lemon juice
-  1/2 oz Agave Nectar
+1 oz of Gin
+1 oz of Pineapple Juice
+1 oz of double cream
+1 tsp of grenadine syrup
 
-Puree your cucumber with the mint leaves. In a cocktail shaker, combine cucumber-mint juice, lemon juice, agave nectar, Freesia Vya Whisper Dry Vermouth and ice. Shake and then strain. Serve over ice, garnish with Freesia bud and a mint sprig.
+Shake and strain into a saucer. Garnish with a pineapple chunk and a sprig of mint, and serve. 
 
 EOF
 }

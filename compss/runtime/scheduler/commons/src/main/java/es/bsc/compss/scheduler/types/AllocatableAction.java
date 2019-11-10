@@ -488,6 +488,15 @@ public abstract class AllocatableAction {
     }
 
     /**
+     * Returns whether the AllocatableAction is in RUNNABLE state.
+     *
+     * @return {@literal true} if the AllocatableAction is runnable, {@literal false} otherwise.
+     */
+    public final boolean isRunnable() {
+        return this.state == State.RUNNABLE;
+    }
+
+    /**
      * Returns whether the action is locked for another scheduling or not.
      *
      * @return {@literal true} if the action is locked because of another scheduling, {@literal false} otherwise.

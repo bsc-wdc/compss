@@ -49,12 +49,13 @@ get_host_parameters () {
 get_invocation_params () {
     jobId=$1
     taskId=$2
-
-    numSlaves=$3
+    timeout=$3
+    
+    numSlaves=$4
     # shellcheck disable=SC2206
-    slaves=(${@:4:${numSlaves}})
-    shift $((3 + numSlaves))
-
+    slaves=(${@:5:${numSlaves}})
+    shift $((4 + numSlaves))
+    
     cus=$1
     numParams=$2
     hasTarget=$3
@@ -64,7 +65,7 @@ get_invocation_params () {
     # shellcheck disable=SC2206
     params=($@)
     # shellcheck disable=SC2206
-    invocationParams=( "${jobId}" "${taskId}" "$numSlaves" ${slaves[@]} "${cus}" "${numParams}" "${hasTarget}" "${numResults}" ${params[@]})
+    invocationParams=( "${jobId}" "${taskId}" "${timeout}" "$numSlaves" ${slaves[@]} "${cus}" "${numParams}" "${hasTarget}" "${numResults}" ${params[@]})
 }
 
 add_to_classpath () {

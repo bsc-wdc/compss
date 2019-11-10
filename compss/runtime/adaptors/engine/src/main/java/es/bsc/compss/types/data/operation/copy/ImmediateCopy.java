@@ -59,7 +59,8 @@ public abstract class ImmediateCopy extends Copy {
         synchronized (srcData) {
             if (tgtData != null) {
                 MultiURI u;
-                if ((u = srcData.alreadyAvailable(targetHost)) != null) {
+                if ((u = srcData.alreadyAvailable(targetHost)) != null
+                    && (srcData.getName().equals(tgtData.getName()))) {
                     setFinalTarget(u.getPath());
                     end(OperationEndState.OP_OK);
                     LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - A copy of " + getName()

@@ -21,6 +21,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.TaskDescription;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.resources.Resource;
@@ -285,6 +286,15 @@ public abstract class Job<T extends COMPSsWorker> {
 
     @Override
     public abstract String toString();
+
+    /**
+     * Returns the on-failure mechanisms.
+     *
+     * @return The on-failure mechanisms.
+     */
+    public OnFailure getOnFailure() {
+        return this.taskParams.getOnFailure();
+    }
 
     /**
      * Returns the time out of the task.

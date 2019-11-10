@@ -579,6 +579,7 @@ public class TaskScheduler {
 
         if (action.getOnFailure() == OnFailure.RETRY) {
             if (!failed) {
+                LOGGER.debug("Adding action " + action + " to data Free actions.");
                 dataFreeActions.add(action);
                 // Try to re-schedule the action
                 /*

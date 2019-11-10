@@ -77,9 +77,4 @@ public class JavaMethodDefinition extends ImplementationDefinition {
         return sb.toString();
     }
 
-    @Override
-    public long getTimeOut() {
-        return 0L;
-    }
-
 }

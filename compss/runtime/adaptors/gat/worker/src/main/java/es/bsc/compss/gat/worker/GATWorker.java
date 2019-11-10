@@ -389,6 +389,7 @@ public class GATWorker implements InvocationContext {
             case OBJECT_T:
             case STREAM_T:
                 String fileLocation = np.getOriginalName();
+                System.out.println("Storing parameter " + np.getName() + " in " + fileLocation);
                 try {
                     Serializer.serialize(np.getValue(), fileLocation);
                 } catch (IOException ioe) {

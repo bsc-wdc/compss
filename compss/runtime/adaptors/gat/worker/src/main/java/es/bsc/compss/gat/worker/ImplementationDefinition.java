@@ -16,8 +16,10 @@
  */
 package es.bsc.compss.gat.worker;
 
+import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.execution.Invocation;
 import es.bsc.compss.types.execution.InvocationParam;
@@ -45,7 +47,10 @@ public abstract class ImplementationDefinition implements Invocation {
     private final boolean debug;
     private final int jobId;
     private final int taskId;
+    private final Lang lang;
     private final JobHistory history;
+    private final OnFailure onFailure;
+    private final long timeout;
 
     private final List<String> hostnames;
     private final int cus;
@@ -67,7 +72,10 @@ public abstract class ImplementationDefinition implements Invocation {
     public ImplementationDefinition(boolean enableDebug, String[] args, int appArgsIdx) {
         this.jobId = Integer.parseInt(args[appArgsIdx++]);
         this.taskId = Integer.parseInt(args[appArgsIdx++]);
+        this.lang = Lang.JAVA;
         this.history = JobHistory.NEW;
+        this.onFailure = OnFailure.IGNORE;
+        this.timeout = Long.parseLong(args[appArgsIdx++]);
 
         this.debug = enableDebug;
 
@@ -312,6 +320,21 @@ public abstract class ImplementationDefinition implements Invocation {
     @Override
     public JobHistory getHistory() {
         return history;
+    }
+
+    @Override
+    public Lang getLang() {
+        return lang;
+    }
+
+    @Override
+    public long getTimeOut() {
+        return timeout;
+    }
+
+    @Override
+    public OnFailure getOnFailure() {
+        return onFailure;
     }
 
 

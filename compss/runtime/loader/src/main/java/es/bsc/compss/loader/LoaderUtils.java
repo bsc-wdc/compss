@@ -535,10 +535,10 @@ public class LoaderUtils {
      * @param values Method parameter values.
      * @param types Method parameter types.
      * @return Return value after the method invocation (can be {@code null}).
-     * @throws InvocationTargetException If an error occurs while invoking the method into the given object.
+     * @throws Throwable Re-throw the user exception thrown by the method
      */
     public static Object runMethodOnObject(Object o, Class<?> methodClass, String methodName, Object[] values,
-        Class<?>[] types) throws InvocationTargetException {
+        Class<?>[] types) throws Throwable {
         // Use reflection to get the requested method
         java.lang.reflect.Method method = null;
         try {
@@ -565,7 +565,12 @@ public class LoaderUtils {
         } catch (IllegalAccessException iae) {
             ErrorManager.error("Cannot access method " + methodName, iae);
         } catch (InvocationTargetException e) {
-            throw e; // re-throw the user exception thrown by the method
+            Throwable cause = e.getCause();
+            if (cause != null) {
+                throw cause;// re-throw the user exception thrown by the method
+            } else {
+                throw e;
+            }
         }
 
         return retValue;

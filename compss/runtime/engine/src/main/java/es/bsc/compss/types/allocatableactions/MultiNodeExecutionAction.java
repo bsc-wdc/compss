@@ -17,6 +17,7 @@
 package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.components.impl.TaskProducer;
+import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
@@ -74,21 +75,28 @@ public class MultiNodeExecutionAction extends ExecutionAction {
             }
             this.group.actionCompletion();
         }
-
         // Notify orchestrator
-        this.orchestrator.actionCompletion(this);
+        if (isPending()) {
+            this.orchestrator.actionCompletion(this);
+        }
     }
 
     @Override
     protected void notifyError() {
         if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {
+
             if (DEBUG) {
                 LOGGER.debug("Notify error of " + this + " to orchestrator " + this.orchestrator);
             }
             this.group.actionError();
+            this.orchestrator.actionError(this);
+        } else {
+            if (isRunning()) {
+                // Notify orchestrator
+                LOGGER.debug("Notify slave " + this + " to orchestrator " + this.orchestrator);
+                this.orchestrator.actionError(this);
+            }
         }
-        // Notify orchestrator
-        this.orchestrator.actionError(this);
     }
 
     /*
@@ -101,7 +109,9 @@ public class MultiNodeExecutionAction extends ExecutionAction {
         LOGGER.info("Registering action for task " + task.getId());
 
         this.group.setActionRunning();
-        this.actionIdInsideGroup = this.group.registerProcess(this);
+        if (this.actionIdInsideGroup == MultiNodeGroup.ID_UNASSIGNED) {
+            this.actionIdInsideGroup = this.group.registerProcess(this);
+        }
         this.executionErrors = 0;
 
         if (this.actionIdInsideGroup == MultiNodeGroup.ID_MASTER_PROC) {

@@ -594,8 +594,10 @@ public class NIOWorkerNode extends COMPSsWorker {
                 path = ProtocolType.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case OBJECT_T:
-            case COLLECTION_T:
                 path = ProtocolType.OBJECT_URI.getSchema() + name;
+                break;
+            case COLLECTION_T:
+                path = ProtocolType.OBJECT_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;
             case STREAM_T:
                 path = ProtocolType.STREAM_URI.getSchema() + name;

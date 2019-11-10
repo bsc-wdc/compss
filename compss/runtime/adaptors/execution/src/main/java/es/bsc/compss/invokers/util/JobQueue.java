@@ -62,14 +62,16 @@ public class JobQueue {
         } else {
             LOGGER.debug("Enqueueing job " + request.getInvocation().getJobId());
         }
-        this.queue.add(request);
+        synchronized (this) {
+            this.queue.add(request);
 
-        // Wake up the last executor thread if any
-        if (!this.waitingLocks.isEmpty()) {
-            Object lock = this.waitingLocks.pop();
-            synchronized (lock) {
-                LOGGER.debug("Releasing lock " + lock.hashCode());
-                lock.notify();
+            // Wake up the last executor thread if any
+            if (!this.waitingLocks.isEmpty()) {
+                Object lock = this.waitingLocks.pop();
+                synchronized (lock) {
+                    LOGGER.debug("Releasing lock " + lock.hashCode());
+                    lock.notify();
+                }
             }
         }
     }
@@ -82,19 +84,31 @@ public class JobQueue {
      */
     public Execution dequeue() {
         Execution exec = null;
-        while ((exec = this.queue.poll()) == null) {
-            // The queue is empty, register the thread on the waiting stack
-            Object lock = new Object();
-            this.waitingLocks.push(lock);
-            try {
-                synchronized (lock) {
-                    lock.wait();
+        Object lock = new Object();
+        while (exec == null) {
+            synchronized (lock) {
+                synchronized (this) {
+                    exec = this.queue.poll();
+                    if (exec != null) {
+                        continue;
+                    }
+                    // The queue is empty, register the thread on the waiting stack
+                    this.waitingLocks.push(lock);
                 }
-            } catch (InterruptedException ie) {
-                LOGGER.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
-                return null;
+                try {
+                    lock.wait();
+                } catch (InterruptedException ie) {
+                    LOGGER.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
+                    return null;
+                }
             }
         }
+        /*
+         * while ((exec = this.queue.poll()) == null) { // The queue is empty, register the thread on the waiting stack
+         * Object lock = new Object(); this.waitingLocks.push(lock); try { synchronized (lock) { lock.wait(); } } catch
+         * (InterruptedException ie) { LOGGER.error("ERROR: Job Thread was interrupted while waiting for next job", ie);
+         * return null; } }
+         */
 
         // The queue is not empty, take the first available job
         return exec;

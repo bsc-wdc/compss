@@ -35,7 +35,7 @@
   fi
 
   workerConfDescription=( "${tracing}" "${taskId}" "${debug}" "${storageConf}" )
-  implDescription=( "${implType}" "NULL" "${methodName}" "$numSlaves" ${slaves[@]} "${cus}" "${hasTarget}" "${numResults}" "null" "${numParams}")
+  implDescription=( "${implType}" "NULL" "${methodName}" "${timeout}" "$numSlaves" ${slaves[@]} "${cus}" "${hasTarget}" "${numResults}" "null" "${numParams}")
   
   invocationParams=( )
 

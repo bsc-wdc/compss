@@ -18,6 +18,7 @@ package es.bsc.compss.types;
 
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.types.annotations.Constants;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.Parameter;
 import es.bsc.compss.util.ErrorManager;
@@ -39,6 +40,7 @@ public class TaskDescription {
     private final List<Parameter> parameters;
     private final boolean hasTarget;
     private final int numReturns;
+    private final OnFailure onFailure;
     private final long timeOut;
 
 
@@ -55,11 +57,13 @@ public class TaskDescription {
      * @param isDistributed Whether the method is distributed or not.
      * @param hasTarget Whether the method has a target parameter or not.
      * @param numReturns Number of return values.
+     * @param timeOut Task timeout.
+     * @param onFailure On failure mechanisms.
      * @param parameters Number of parameters.
      */
     public TaskDescription(TaskType type, Lang lang, String signature, CoreElement coreElement, boolean isPrioritary,
-        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns, long timeOut,
-        List<Parameter> parameters) {
+        int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int numReturns,
+        OnFailure onFailure, long timeOut, List<Parameter> parameters) {
 
         this.type = type;
         this.lang = lang;
@@ -74,6 +78,8 @@ public class TaskDescription {
         this.hasTarget = hasTarget;
         this.parameters = parameters;
         this.numReturns = numReturns;
+
+        this.onFailure = onFailure;
         this.timeOut = timeOut;
 
         if (this.numNodes < Constants.SINGLE_NODE) {
@@ -197,6 +203,15 @@ public class TaskDescription {
     }
 
     /**
+     * Returns the on-failure mechanisms.
+     *
+     * @return The on-failure mechanisms.
+     */
+    public OnFailure getOnFailure() {
+        return this.onFailure;
+    }
+
+    /**
      * Returns the set time out.
      *
      * @return The time out.
@@ -232,5 +247,4 @@ public class TaskDescription {
 
         return buffer.toString();
     }
-
 }

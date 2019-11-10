@@ -20,6 +20,7 @@ package es.bsc.compss.agent.comm.messages.types;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTask;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobHistory;
@@ -68,10 +69,10 @@ public class CommTask extends NIOTask {
     public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei, boolean hasTarget,
         int numReturns, LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs,
         List<String> slaveWorkersNodeNames, int taskId, TaskType taskType, int jobId, JobHistory hist,
-        int transferGroupId, long timeOut, CommResource orchestrator) {
+        int transferGroupId, OnFailure onFailure, long timeOut, CommResource orchestrator) {
 
         super(lang, workerDebug, impl, hasTarget, numReturns, params, numParams, reqs, slaveWorkersNodeNames, taskId,
-            taskType, jobId, hist, transferGroupId, timeOut);
+            taskType, jobId, hist, transferGroupId, onFailure, timeOut);
 
         this.cei = cei;
         this.orchestrator = orchestrator;
@@ -97,11 +98,11 @@ public class CommTask extends NIOTask {
      */
     public CommTask(Lang lang, boolean workerDebug, AbstractMethodImplementation impl, String cei,
         LinkedList<NIOParam> arguments, NIOParam target, LinkedList<NIOParam> results,
-        List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId, long timeOut,
-        CommResource orchestrator) {
+        List<String> slaveWorkersNodeNames, int taskId, int jobId, JobHistory hist, int transferGroupId,
+        OnFailure onFailure, long timeOut, CommResource orchestrator) {
 
         super(lang, workerDebug, impl, arguments, target, results, slaveWorkersNodeNames, taskId, jobId, hist,
-            transferGroupId, timeOut);
+            transferGroupId, onFailure, timeOut);
 
         this.cei = cei;
         this.orchestrator = orchestrator;

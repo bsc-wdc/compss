@@ -37,24 +37,7 @@
   implType="${invocation[0]}"
   lang="${invocation[1]}"
   cp="${invocation[2]}"
-  methodName="${invocation[3]}"
-  echo "[WORKER_PYTHON.SH]    - method name                        = $methodName"
 
-  arguments=(${invocation[@]:4})
-  get_invocation_params ${arguments[@]}
-
-  # Pre-execution
-  set_env
-
-  compute_generic_sandbox
-  echo "[WORKER_PYTHON.SH]    - sandbox                        = ${sandbox}"
-  if [ ! -d "${sandbox}" ]; then
-    mkdir -p "${sandbox}"
-  fi
-
-  implType=${invocation[0]}
-  lang=${invocation[1]}
-  
   # Pre-execution
   pythonpath=${invocation[2]}
   pythonInterpreter=${invocation[3]}
@@ -73,12 +56,21 @@
   arguments=(${invocation[@]:9})
   moduleName=${invocation[7]}
   methodName=${invocation[8]}
+  if [ "${debug}" == "true" ]; then
+    echo "[WORKER_PYTHON.SH] - arguments                         = $pythonpath"
+  fi
   get_invocation_params ${arguments[@]}
 
   # Pre-execution
   set_env
+  
+  compute_generic_sandbox
+  echo "[WORKER_PYTHON.SH]    - sandbox                        = ${sandbox}"
+  if [ ! -d "${sandbox}" ]; then
+    mkdir -p "${sandbox}"
+  fi
 
-  workerConfDescription=( "${tracing}" "${taskId}" "${debug}" "${storageConf}" )
+  workerConfDescription=( "${tracing}" "${taskId}" "${debug}" "${storageConf}" "${streaming}" "${streamingMasterName}" "${streamingPort}" )
   if [ "${hasTarget}" == "true" ]; then
     paramCount=$((numParams + 1))
   else
@@ -86,7 +78,7 @@
   fi
   paramCount=$((paramCount + numResults))
   # shellcheck disable=SC2206
-  implDescription=( "${implType}" "${moduleName}" "${methodName}" "$numSlaves" ${slaves[@]} "${cus}" "${hasTarget}" "null" "${numResults}" "${paramCount}")
+  implDescription=( "${implType}" "${moduleName}" "${methodName}" "${timeout}" "$numSlaves" ${slaves[@]} "${cus}" "${hasTarget}" "null" "${numResults}" "${paramCount}")
 
 
   invocationParams=( )

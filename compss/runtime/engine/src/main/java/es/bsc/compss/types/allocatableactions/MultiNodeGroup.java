@@ -170,6 +170,8 @@ public class MultiNodeGroup {
      * Triggers an action failure to all the slaves registered into the group.
      */
     public void actionError() {
+        this.nextProcessId = new AtomicInteger(groupSize);
+        this.isAnyActionRunning = false;
         LOGGER.debug("[MultiNodeGroup] Notify action error to all slaves of group " + this);
         for (Entry<Integer, MultiNodeExecutionAction> entry : this.registeredSlaves.entrySet()) {
             entry.getValue().notifyError();

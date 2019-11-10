@@ -576,7 +576,7 @@ public class DataManagerImpl implements DataManager {
                                     originalRegister.removeFileLocation(path);
                                 }
                                 DataRegister dr = new DataRegister();
-                                dr.addFileLocation(path);
+                                dr.addFileLocation(tgtPath.toString());
                                 registry.put(finalName, dr);
                                 fetchedLocalParameter(param, index, tt);
                                 return;

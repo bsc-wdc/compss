@@ -76,9 +76,6 @@ Known Limitations:
      * Support limited to SOAP based services
      * Persistent Workers do NOT isolate task executions in a sandbox
 
-For further information please refer to COMPSs User Manual: Application development
-
-
 Release number: 1.4
 Release date: April-2016
 -------------------------------
@@ -103,8 +100,6 @@ New features:
 Known Limitations:
         * When executing python applications with constraints in the cloud the initial VMs
  must be set to 0
-
-For further information please refer to COMPSs User Manual: Application development
 
 
 Release number: 2.0 Amapola (Poppy)
@@ -143,9 +138,6 @@ Improvements:
 Known Limitations:
         * When executing python applications with constraints in the cloud the initial VMs
  must be set to 0
-
-For further information please refer to COMPSs User Manual: Application development
-
 
 Release number: 2.1 Bougainvillea
 Release date: June-2017                                                                                                                                                                                                                     
@@ -221,8 +213,6 @@ Known Limitations:
           the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another.
 	
 
-For further information, please refer to “COMPSs User Manual: Application development guide”.
-
 Release number: 2.3 Daisy
 Release date: June-2018
 -------------------------------
@@ -258,8 +248,6 @@ Improvements:
 Known Limitations:
          - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
 
-For further information, please refer to “COMPSs User Manual: Application development guide”.
-
 Release number: 2.4 Elderflower
 Release date: November-2018
 -------------------------------
@@ -286,10 +274,6 @@ Known Limitations:
          - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
          - C++ Objects declared as arguments in a coarse-grain tasks must be passed in the task methods as object pointers in order to have a proper dependency management.
 
-For further information, please refer to “COMPSs User Manual: Application development guide”.
-
-Please find more details about the COMP Superscalar framework at: 
-		http://compss.bsc.es/
 
 Release number: 2.5 Freesia
 Release date: June-2019
@@ -326,6 +310,40 @@ Known Limitations:
          - Master as worker is not working for executions with persistent worker in C++.
 	 - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlaying distributed storage system.
 	 - Delete file calls for files used as input can produce a significant synchronization of the main code.  
+
+Release number: 2.6 Gardenia
+Release date: November-2019
+-------------------------------
+New features:
+         * Runtime:
+		- New Commutative direction type for task parameter. It indicates that the order of modifications done by tasks of the same type to the parameter does not affect the final result, i.e., tasks operating on a given commutative parameter can be executed in any order between them.
+		- New "Stream" parameter type, to enable the combination of data-flows and task-based workflows in the same application. The stream parameter type is defined to enable communication of streamed data between tasks.
+                - Timeout property for tasks. Tasks lasting more than their timeout will be cancelled and considered as failed. This property can be combined with the "onFailure" mechanism.
+		- Enable the definition of task groups.
+		- Support for throwing special exceptions (COMPSsExceptions) in tasks and catching them in task groups.
+		- Task cancellation management in the occurrence of a task group exception and unexpected application finalization (Exception or exit code different from 0)
+
+         * Python:
+                - Enable the declaration of a list of strings as a file collection task parameter.
+		- Support for Python MPI tasks
+
+         * C:
+                - Support for tasks with fine-grain parallelization with OmpSs-2 programming model. 
+
+Improvements:
+         - New multi-threaded ready scheduler with better scalability.
+         - Support for task with "isReplicated" properties and parameters with INOUT/OUT direction. 
+	 - Optimization in deletion of python objects to avoid large synchronizations in shared file systems.
+	 - Improved the AutoParallel submodule to define data blocks as collection types.
+	 - Several Bug fixes
+
+Known Limitations:
+         - Tasks that invoke Numpy and MKL may experience issues if a different MKL threads count is used in different tasks. This is due to the fact that MKL reuses  threads in the different calls and it does not change the number of threads from one call to another.
+         - C++ Objects declared as arguments in coarse-grain tasks must be passed as object pointers in order to have proper dependency management.
+         - Master as worker is not working for executions with persistent worker in C++.
+	 - Coherence and concurrent writing in parameters annotated with the "Concurrent" direction must be managed by the underlying distributed storage system.
+	 - Delete file calls for files used as input can produce a significant synchronization of the main code.
+	 - Defining a parameter as OUT is only allowed for files and collection files.   
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 

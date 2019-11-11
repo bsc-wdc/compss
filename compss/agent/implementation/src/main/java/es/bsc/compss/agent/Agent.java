@@ -383,10 +383,9 @@ public class Agent {
         int addedSources = 0;
         LogicalData ld = Comm.getData(remote.getRenaming());
         System.out.println(ld);
-        if (ld == null) {
-            ld = Comm.registerData(remote.getRenaming());
-        }
+        LogicalData otherNamedLocalData = null;
 
+        LinkedList<DataLocation> locations = new LinkedList<>();
         for (RemoteDataLocation loc : remote.getSources()) {
             try {
                 String path = loc.getPath();
@@ -402,14 +401,35 @@ public class Agent {
                     Map<String, Object> resourcesConf = new HashMap<>();
                     resourcesConf.put("Properties", r.getResourceConf());
                     host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
+                } else {
+                    if (host == Comm.getAppHost()) {
+                        LogicalData localData = Comm.getData(uri.getPath());
+                        if (localData != null) {
+                            otherNamedLocalData = localData;
+                            addedSources++;
+                            continue;
+                        }
+                    }
                 }
                 DataLocation dl = DataLocation.createLocation(host, uri);
-                ld.addLocation(dl);
-                addedSources++;
+                locations.add(dl);
             } catch (AgentException | IOException e) {
                 // Do nothing. Ignore location
                 e.printStackTrace();
             }
+        }
+
+        if (ld == null) {
+            if (otherNamedLocalData == null) {
+                ld = Comm.registerData(remote.getRenaming());
+            } else {
+                Comm.linkData(remote.getRenaming(), otherNamedLocalData.getName());
+                addedSources++;
+            }
+        }
+        for (DataLocation loc : locations) {
+            ld.addLocation(loc);
+            addedSources++;
         }
         System.out.println(ld);
         if (addedSources == 0) {

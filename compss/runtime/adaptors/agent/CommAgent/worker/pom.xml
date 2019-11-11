@@ -137,8 +137,8 @@
 
             <!--Copy compss-adaptors-agent-comm-worker.jar to adaptor basedir -->
             <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+		<artifactId>maven-resources-plugin</artifactId>
+		<version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-final-jar</id>

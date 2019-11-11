@@ -101,7 +101,7 @@
             <!--Copy compss-adaptors-agent-comm-master.jar to adaptor basedir -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+                <version>${maven-resources-plugin.version}</version> 
                 <executions>
                     <execution>
                         <id>copy-final-jar</id>

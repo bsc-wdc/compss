@@ -16,17 +16,12 @@
  */
 package es.bsc.compss.types.data.operation.copy;
 
-import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
-import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.operation.DataOperation;
-import es.bsc.compss.util.ErrorManager;
-
-import java.util.concurrent.Semaphore;
 
 
 public abstract class Copy extends DataOperation {
@@ -135,30 +130,6 @@ public abstract class Copy extends DataOperation {
 
     public String getFinalTarget() {
         return reason.getDataTarget();
-    }
-
-    /**
-     * Blocks the thread until a copy to a resource is finished.
-     *
-     * @param copy Copy to wait
-     * @param resource Resource
-     */
-    public static void waitForCopyTofinish(Copy copy, COMPSsNode resource) {
-        Semaphore sem = new Semaphore(0);
-        SafeCopyListener currentCopylistener = new SafeCopyListener(sem);
-        copy.addEventListener(currentCopylistener);
-        currentCopylistener.addOperation();
-        currentCopylistener.enable();
-        try {
-            sem.acquire();
-        } catch (InterruptedException ex) {
-            ErrorManager.warn("Error waiting for files in resource " + resource.getName() + " to get saved");
-            Thread.currentThread().interrupt();
-        }
-        if (DEBUG) {
-            LOGGER.debug("Copy " + copy.getName() + "(id: " + copy.getId() + ") is finished");
-        }
-
     }
 
 }

@@ -21,7 +21,6 @@ import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
-import es.bsc.compss.types.COMPSsNode;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -73,8 +72,6 @@ public class LogicalData {
 
     // List of existing copies
     private final Set<DataLocation> locations = new TreeSet<>();
-    // List of hosts where the data has been used
-    private final Set<Resource> localLocations = new TreeSet<>();
     // In progress
     private final List<CopyInProgress> inProgress = new LinkedList<>();
     // File's size.
@@ -142,24 +139,6 @@ public class LogicalData {
         }
 
         return list;
-    }
-
-    /**
-     * Returns all the hosts where a task using the data has been scheduled.
-     *
-     * @return
-     */
-    public synchronized Set<Resource> getAllLocalHosts() {
-        return localLocations;
-    }
-
-    /**
-     * Add a new location where a task using the data has been scheduled.
-     *
-     * @param res Resource
-     */
-    public synchronized void addLocation(Resource res) {
-        localLocations.add(res);
     }
 
     /**

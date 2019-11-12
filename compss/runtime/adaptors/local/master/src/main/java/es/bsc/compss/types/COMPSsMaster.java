@@ -465,7 +465,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         Transferable reason, EventListener listener) {
 
         BindingObject tgtBO = ((BindingObjectLocation) target).getBindingObject();
-        ld.lockHostRemoval();
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
             for (Copy copy : copiesInProgress) {
@@ -496,7 +495,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                     LOGGER.error("ERROR: managing obtain binding object at cache", e);
                                     listener.notifyFailure(null, e);
                                 }
-                                ld.releaseHostRemoval();
                             }
 
                             @Override
@@ -507,7 +505,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                                 }
                                 LOGGER.error("ERROR: managing obtain binding object at cache", e);
                                 listener.notifyFailure(null, e);
-                                ld.releaseHostRemoval();
                             }
                         });
                         return;
@@ -548,7 +545,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     LOGGER.error("ERROR: managing obtain binding object at cache", e);
                     listener.notifyFailure(null, e);
                 }
-                ld.releaseHostRemoval();
                 return;
             } else {
                 if (DEBUG) {
@@ -576,7 +572,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                         continue;
                     }
                     LOGGER.debug("Data " + ld.getName() + " sent.");
-                    ld.releaseHostRemoval();
                     return;
                 } else {
                     try {
@@ -590,7 +585,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                         LOGGER.error("ERROR: managing obtain binding object at cache", e);
                         listener.notifyFailure(null, e);
                     }
-                    ld.releaseHostRemoval();
                     return;
                 }
             }
@@ -611,7 +605,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                     continue;
                 }
                 LOGGER.debug("Data " + ld.getName() + " sent.");
-                ld.releaseHostRemoval();
                 return;
             } else {
                 if (DEBUG) {
@@ -623,7 +616,6 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
         LOGGER.warn("WARN: All posibilities checked for obtaining data " + ld.getName()
             + " and nothing done. Releasing listeners and locks");
         listener.notifyEnd(null);
-        ld.releaseHostRemoval();
     }
 
     private void manageObtainBindingObjectInCache(String initialPath, BindingObject tgtBO, LogicalData tgtData,

@@ -472,7 +472,6 @@ public class LogicalData {
         if (isBeingSaved) {
             return null;
         }
-
         // Otherwise, we must remove all the host locations and store a unique
         // location if needed. We only store the "best" location if any (by
         // choosing
@@ -521,7 +520,6 @@ public class LogicalData {
                     break;
             }
         }
-
         return uniqueHostLocation;
     }
 
@@ -627,14 +625,6 @@ public class LogicalData {
         }
     }
 
-    public void lockHostRemoval() {
-        lockHostRemoval_private();
-    }
-
-    public void releaseHostRemoval() {
-        releaseHostRemoval_private();
-    }
-
     @Override
     public synchronized String toString() {
         StringBuilder sb = new StringBuilder();
@@ -649,22 +639,6 @@ public class LogicalData {
         }
         return sb.toString();
     }
-
-    /*
-     * PRIVATE HELPER METHODS
-     */
-    private void lockHostRemoval_private() {
-        try {
-            lockHostRemoval.acquire();
-        } catch (InterruptedException e) {
-            LOGGER.error("Exception", e);
-        }
-    }
-
-    private void releaseHostRemoval_private() {
-        lockHostRemoval.release();
-    }
-
 
     /*
      * Copy in progress class to extend external copy

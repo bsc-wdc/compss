@@ -342,9 +342,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
             if (ld.getCopiesInProgress().size() > 0) {
                 ld.notifyToInProgressCopiesEnd(listener);
             }
-            ld.lockHostRemoval();
             DataLocation lastLoc = ld.removeHostAndCheckLocationToSave(this, disks);
-            ld.releaseHostRemoval();
             if (lastLoc != null) {
                 listener.addOperation();
 

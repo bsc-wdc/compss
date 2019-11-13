@@ -640,6 +640,7 @@ public class LogicalData {
         return sb.toString();
     }
 
+
     /*
      * Copy in progress class to extend external copy
      */

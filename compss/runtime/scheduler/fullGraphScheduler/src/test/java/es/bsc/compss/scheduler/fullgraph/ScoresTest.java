@@ -41,6 +41,7 @@ import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
+import es.bsc.compss.types.annotations.parameter.OnFailure;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.data.DataInstanceId;
 import es.bsc.compss.types.data.accessid.RAccessId;
@@ -235,33 +236,33 @@ public class ScoresTest {
         Comm.registerData(d2v2.getRenaming());
 
         DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
-                Constants.PREFIX_EMPTY, "dp1");
+            Constants.PREFIX_EMPTY, "dp1");
         dpD1V1.setDataAccessId(new RAccessId(1, 1));
 
         DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, StdIOStream.UNSPECIFIED,
-                Constants.PREFIX_EMPTY, "dp2");
+            Constants.PREFIX_EMPTY, "dp2");
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
         TaskDescription params = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""),
-                false, Constants.SINGLE_NODE, false, false, false, 0, 0, Arrays.asList(dpD1V1, dpD2V2));
+            false, Constants.SINGLE_NODE, false, false, false, 0, OnFailure.RETRY, 0, Arrays.asList(dpD1V1, dpD2V2));
 
         FullGraphScore actionScore = (FullGraphScore) ds.generateActionScore(action1);
 
         FullGraphScore score1 = (FullGraphScore) drs1.generateResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 2 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY, 0, 0,
-                2 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
+            2 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
 
         Comm.registerLocation(d1v1.getRenaming(),
-                DataLocation.createLocation(drs1.getResource(), new SimpleURI("/home/test/a")));
+            DataLocation.createLocation(drs1.getResource(), new SimpleURI("/home/test/a")));
         score1 = (FullGraphScore) drs1.generateResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 1 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY, 0, 0,
-                1 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
+            1 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
 
         Comm.registerLocation(d2v2.getRenaming(),
-                DataLocation.createLocation(drs1.getResource(), new SimpleURI("/home/test/b")));
+            DataLocation.createLocation(drs1.getResource(), new SimpleURI("/home/test/b")));
         score1 = (FullGraphScore) drs1.generateResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 0 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY, 0, 0,
-                0 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
+            0 * FullGraphResourceScheduler.DATA_TRANSFER_DELAY);
 
         Comm.removeData(d1v1.getRenaming());
         Comm.removeData(d2v2.getRenaming());
@@ -277,15 +278,15 @@ public class ScoresTest {
         // No resources and no dependencies
         FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, ce4Impls);
         TaskDescription tp1 = new TaskDescription(TaskType.METHOD, Lang.UNKNOWN, "task", new CoreElement(0, ""), false,
-                Constants.SINGLE_NODE, false, false, false, 0, 0, new LinkedList<>());
+            Constants.SINGLE_NODE, false, false, false, 0, OnFailure.RETRY, 0, new LinkedList<>());
         FullGraphScore score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
 
-        FullGraphScore score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1,
-                action1.getImplementations()[0], score1);
+        FullGraphScore score10 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score10, 0, 0, 0, CORE4_0, 0);
-        FullGraphScore score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1,
-                action1.getImplementations()[1], score1);
+        FullGraphScore score11 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1], score1);
         Verifiers.verifyScore(score11, 0, 0, 0, CORE4_1, 0);
         Verifiers.validateBetterScore(score10, score11, true);
 
@@ -296,11 +297,11 @@ public class ScoresTest {
         FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, ce0Impls);
         action2.selectExecution(drs1, (FakeImplementation) action2.getImplementations()[0]);
         drs1.scheduleAction(action2);
-        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
-                score1);
+        score10 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score10, 0, 0, CORE0, CORE4_0, CORE0);
-        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
-                score1);
+        score11 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1], score1);
         Verifiers.verifyScore(score11, 0, 0, 0, CORE4_1, 0);
         Verifiers.validateBetterScore(score10, score11, false);
 
@@ -310,11 +311,11 @@ public class ScoresTest {
         FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 0, ce2Impls);
         action3.selectExecution(drs1, (FakeImplementation) action3.getImplementations()[0]);
         drs1.scheduleAction(action3);
-        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
-                score1);
+        score10 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score10, 0, 0, CORE0, CORE4_0, CORE0);
-        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
-                score1);
+        score11 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1], score1);
         Verifiers.verifyScore(score11, 0, 0, CORE2, CORE4_1, CORE2);
         Verifiers.validateBetterScore(score10, score11, false);
 
@@ -327,11 +328,11 @@ public class ScoresTest {
         score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 10, 0, 0, 10);
 
-        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
-                score1);
+        score10 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score10, 0, 10, CORE0, CORE4_0, CORE0);
-        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
-                score1);
+        score11 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1], score1);
         Verifiers.verifyScore(score11, 0, 10, CORE2, CORE4_1, CORE2);
         Verifiers.validateBetterScore(score10, score11, false);
 
@@ -342,11 +343,11 @@ public class ScoresTest {
         action1.addDataPredecessor(action11);
         score1 = (FullGraphScore) ds.generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 10_000, 0, 0, 10_000);
-        score10 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0],
-                score1);
+        score10 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score10, 0, 10_000, CORE0, CORE4_0, 10_000);
-        score11 = (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1],
-                score1);
+        score11 =
+            (FullGraphScore) drs1.generateImplementationScore(action1, tp1, action1.getImplementations()[1], score1);
         Verifiers.verifyScore(score11, 0, 10_000, CORE2, CORE4_1, 10_000);
         Verifiers.validateBetterScore(score10, score11, true);
     }

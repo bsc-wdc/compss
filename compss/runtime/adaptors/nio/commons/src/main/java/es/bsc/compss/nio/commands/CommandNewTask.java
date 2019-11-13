@@ -35,9 +35,6 @@ public class CommandNewTask extends RetriableCommand {
     // Job description
     private NIOTask task;
 
-    private static int MAX_RETRIES = 3;
-    private int retries = 0;
-
 
     /**
      * Creates a new CommandNewTask for externalization.
@@ -55,6 +52,14 @@ public class CommandNewTask extends RetriableCommand {
     public CommandNewTask(NIOTask t, List<String> obsolete) {
         this.task = t;
         this.obsolete = obsolete;
+    }
+
+    public List<String> getObsolete() {
+        return this.obsolete;
+    }
+
+    public NIOTask getTask() {
+        return this.task;
     }
 
     @Override
@@ -89,14 +94,6 @@ public class CommandNewTask extends RetriableCommand {
     @Override
     public void error(NIOAgent agent, Connection c) {
         agent.handleNewTaskCommandError(c, this);
-    }
-
-    public List<String> getObsolete() {
-        return obsolete;
-    }
-
-    public NIOTask getTask() {
-        return task;
     }
 
 }

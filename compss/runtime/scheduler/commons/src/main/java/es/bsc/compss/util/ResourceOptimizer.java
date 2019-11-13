@@ -23,7 +23,6 @@ import es.bsc.compss.scheduler.types.WorkloadState;
 import es.bsc.compss.types.CloudProvider;
 import es.bsc.compss.types.CoreElement;
 import es.bsc.compss.types.ResourceCreationRequest;
-import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;

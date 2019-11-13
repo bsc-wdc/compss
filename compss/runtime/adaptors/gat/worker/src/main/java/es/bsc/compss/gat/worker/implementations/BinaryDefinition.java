@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.gat.worker.implementations;
 
-import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.gat.worker.ImplementationDefinition;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;

@@ -19,13 +19,13 @@ package es.bsc.compss.nio;
 import static java.lang.Math.abs;
 
 import es.bsc.comm.Connection;
-import es.bsc.comm.Node;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.nio.NIOEventManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
+
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
@@ -931,7 +931,7 @@ public abstract class NIOAgent {
      * @param cmd Command to re-send
      */
     protected void resendCommand(NIONode node, Command cmd) {
-        Connection c = this.TM.startConnection(node);
+        Connection c = TM.startConnection(node);
         registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
         c.finishConnection();

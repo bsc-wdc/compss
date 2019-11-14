@@ -83,7 +83,7 @@ def get_args():
                                      add_help=True)
 
     # Add version
-    parser.add_argument('--version', action='version', version='2.5.rc1906')
+    parser.add_argument('--version', action='version', version='2.6.rc1911')
 
     # Add skip options
     parser.add_argument("-s", "--skip",

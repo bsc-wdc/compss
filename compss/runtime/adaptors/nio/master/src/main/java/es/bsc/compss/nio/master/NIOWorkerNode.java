@@ -51,6 +51,7 @@ import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.data.operation.copy.Copy;
 import es.bsc.compss.types.data.operation.copy.DeferredCopy;
@@ -522,10 +523,12 @@ public class NIOWorkerNode extends COMPSsWorker {
                 break;
             }
         }
-        LogicalData ld = c.getSourceData();
-        String path;
+        final LogicalData ld = c.getSourceData();
+        final LogicalData tgtData = c.getTargetData();
+
         synchronized (ld) {
-            LogicalData tgtData = c.getTargetData();
+            // Assigning target location to the copy
+            String path;
             if (tgtData != null) {
                 LOGGER.debug("tgtResName:" + tgtRes.getNode().getName());
                 LOGGER.debug("tgtData: " + tgtData.toString());
@@ -551,14 +554,53 @@ public class NIOWorkerNode extends COMPSsWorker {
                     return;
                 }
             }
-            c.setProposedSource(getNIODatafromLogicalData(ld));
             LOGGER.debug("Setting final target in deferred copy " + path);
             c.setFinalTarget(path);
-            // TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
-            ld.startCopy(c, c.getTargetLoc());
-            commManager.registerCopy(c);
+
+            // Assigning sources to the Copy
+            NIOData dataSources = getNIODatafromLogicalData(ld);
+            if (dataSources.getSources().isEmpty()) {
+                for (Copy inProgressCopy : ld.getCopiesInProgress()) {
+                    LOGGER.debug("No source locations for copy " + c.getName() + "." + " Waiting for copy "
+                        + inProgressCopy.getName() + " to finish.");
+                    inProgressCopy.addEventListener(new EventListener() {
+
+                        @Override
+                        public void notifyEnd(DataOperation fOp) {
+                            synchronized (ld) {
+                                prepareCopy(c, dataSources);
+                            }
+                            c.end(OperationEndState.OP_OK);
+                        }
+
+                        @Override
+                        public void notifyFailure(DataOperation fOp, Exception e) {
+                            c.end(OperationEndState.OP_FAILED, e);
+                        }
+                    });
+                    return;
+                }
+                c.end(OperationEndState.OP_FAILED,
+                    new Exception(" No source location nor copies in progress for copy " + c.getName()));
+            }
+
+            try {
+                prepareCopy(c, dataSources);
+            } catch (Exception e) {
+                c.end(OperationEndState.OP_FAILED, e);
+            }
         }
         c.end(OperationEndState.OP_OK);
+    }
+
+    private void prepareCopy(Copy c, NIOData dataSources) {
+        LogicalData srcData = c.getSourceData();
+
+        c.setProposedSource(dataSources);
+
+        // TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
+        srcData.startCopy(c, c.getTargetLoc());
+        commManager.registerCopy(c);
     }
 
     @Override

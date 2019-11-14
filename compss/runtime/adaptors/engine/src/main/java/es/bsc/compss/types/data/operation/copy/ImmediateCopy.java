@@ -21,6 +21,7 @@ import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.Transferable;
 import es.bsc.compss.types.data.listener.EventListener;
 import es.bsc.compss.types.data.location.DataLocation;
+import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.OperationEndState;
 import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.uri.MultiURI;
@@ -82,6 +83,29 @@ public abstract class ImmediateCopy extends Copy {
                         + " is already in progress, skipping replication");
                     return;
                 }
+                if (srcData.getLocations().isEmpty()) {
+                    for (Copy inProgressCopy : srcData.getCopiesInProgress()) {
+                        LOGGER.debug("No source locations for copy " + getName() + "." + " Waiting for copy "
+                            + inProgressCopy.getName() + " to finish.");
+                        inProgressCopy.addEventListener(new EventListener() {
+
+                            @Override
+                            public void notifyEnd(DataOperation fOp) {
+                                perform();
+                            }
+
+                            @Override
+                            public void notifyFailure(DataOperation fOp, Exception e) {
+                                end(OperationEndState.OP_FAILED, e);
+                            }
+                        });
+                        return;
+                    }
+                    end(OperationEndState.OP_FAILED,
+                        new Exception(" No source location nor copies in progress for copy " + getName()));
+
+                }
+
             }
             srcData.startCopy(this, tgtLoc);
         }

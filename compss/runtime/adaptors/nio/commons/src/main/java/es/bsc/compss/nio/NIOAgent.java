@@ -44,7 +44,9 @@ import es.bsc.compss.util.Serializer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -624,7 +626,12 @@ public abstract class NIOAgent {
                             receivedValue(t.getDestination(), bo.getName(), bo.toString(), byTarget.remove(targetName));
 
                         } else {
-                            Files.copy((new File(t.getFileName())).toPath(), (new File(targetName)).toPath());
+                            Path tgtPath = new File(targetName).toPath();
+                            try {
+                                Files.copy((new File(t.getFileName())).toPath(), tgtPath);
+                            } catch (FileAlreadyExistsException e) {
+                                LOGGER.warn("WARN:File " + tgtPath + " already exists when replicating data");
+                            }
                             receivedValue(t.getDestination(), targetName, t.getObject(), byTarget.remove(targetName));
                         }
                     } else {

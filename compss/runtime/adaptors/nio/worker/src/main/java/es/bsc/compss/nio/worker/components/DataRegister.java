@@ -247,6 +247,7 @@ public class DataRegister {
         removeValue();
         for (String path : this.files) {
             try {
+                LOGGER.debug("Deleting file " + path + " when clearing data registrer");
                 File f = new File(path);
                 f.delete();
             } catch (Exception e) {

@@ -211,6 +211,8 @@ show_opts() {
                                             Default: $DEFAULT_PERSISTENT_WORKER_C
     --enable_external_adaptation=<bool>     Enable external adaptation. This option will disable the Resource Optimizer.
                                             Default: false
+    --gen_coredump			    Enable master coredump generation
+					    Default: false
     --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
                                             Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
     --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
@@ -648,12 +650,16 @@ get_args() {
             # Enable or disable the virtual environment propagation
             python_mpi_worker=${OPTARG//python_mpi_worker=/}
             ;;
-  	      *)
-	        # Flag didn't match any patern. Raise exception
-	        display_error "Bad argument: $OPTARG"
-	        ;;
-	    esac
+	  gen_coredump)
+            # Enable coredump generation
+            gen_core=true
+            ;;
+  	  *)
+	    # Flag didn't match any patern. Raise exception
+	    display_error "Bad argument: $OPTARG"
 	    ;;
+	  esac
+	  ;;
       *)
 	    # Flag didn't match any patern. End of COMPSs flags
 	    break
@@ -1061,7 +1067,10 @@ execute_runtime() {
 
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
-
+  if [ -n ${gen_core} ]; then
+    echo "[RUNCOMPSS] Setting coredump generation." 
+    ulimit -c unlimited
+  fi
   # Launch application execution
   if [ $lang = java ]; then
     add_jvm_opts_java

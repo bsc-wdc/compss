@@ -1113,8 +1113,8 @@ launch() {
 
   echo "------ Launching Execution ------"
   # Calling main method of the application passing in a single parameter containing an array with the method arguments
-  echo ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 ${fullAppPath} ${args_pass} ${app_args}
-  ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 ${fullAppPath} ${args_pass} ${app_args}
+  echo ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${fullAppPath} ${args_pass} ${app_args}
+  ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${fullAppPath} ${args_pass} ${app_args}
 }
 
 ###############################################

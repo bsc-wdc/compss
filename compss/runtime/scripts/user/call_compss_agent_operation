@@ -66,7 +66,9 @@ display_invocation() {
   echo "    Lang:               JAVA"
   echo "    Class name:         ${fullAppPath}"
   echo "    Method name:        ${method_name}"
-  echo "    COMPSs Interface    ${cei}"
+  if [ ! -z "${cei}" ]; then
+    echo "    COMPSs Interface    ${cei}"
+  fi
   echo "    Parameters:"
   if [ "${params_as_array}" == "true" ]; then
     local params="["
@@ -107,7 +109,7 @@ show_opts() {
   # Show usage
   cat <<EOT
     --cei=<string>                          Canonical name of the interface declaring the methods
-                                            Default: \${APP_NAME}Itf
+                                            Default: No interface declared
 
     --method_name=<string>                  Name of the method to invoke
                                             Default: main and enables array parameter
@@ -217,10 +219,6 @@ check_args() {
     display_error "${ERROR_MASTER_PORT}"
   fi
 
-  if [ -z "${cei}" ]; then
-    cei="${fullAppPath}Itf"
-  fi
-
   if [ -z "${method_name}" ]; then
     method_name=${DEFAULT_METHOD}
     params_as_array="true"
@@ -293,7 +291,9 @@ call(){
   http_header="content-type: application/xml"
   http_data="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
   http_data="${http_data}<startApplication>"
-  http_data="${http_data}<ceiClass>${cei}</ceiClass>"
+  if [ ! -z "${cei}" ]; then
+    http_data="${http_data}<ceiClass>${cei}</ceiClass>"
+  fi
   http_data="${http_data}<className>${fullAppPath}</className>"
   http_data="${http_data}<hasResult>false</hasResult>"
   http_data="${http_data}<methodName>${method_name}</methodName>"

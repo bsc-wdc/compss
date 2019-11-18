@@ -343,6 +343,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         RESTAgent ra = new RESTAgent();
         RESTAgentConf config = new RESTAgentConf(ra, port);
         Agent.startInterface(config);
+        Agent.start();
     }
 
 }

@@ -48,7 +48,6 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.util.parsers.ITFParser;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -109,7 +108,18 @@ public class Agent {
         RUNTIME = new COMPSsRuntimeImpl();
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
         RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
+
+        INTERFACES = new LinkedList<>();
+    }
+
+
+    /**
+     * Start the runtime within the Agent and sets it up to allow the execution of COMPSs methods.
+     */
+    public static void start() {
+
         RUNTIME.startIT();
+
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(LOADER_SIGNATURE);
         MethodResourceDescription mrd = new MethodResourceDescription("");
@@ -121,10 +131,7 @@ public class Agent {
                 new MethodResourceDescription(""), LOADER_CLASS_NAME, LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
-
-        INTERFACES = new LinkedList<>();
     }
-
 
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
@@ -623,5 +630,6 @@ public class Agent {
         if (INTERFACES.isEmpty()) {
             ErrorManager.fatal("Could not start any interface");
         }
+        start();
     }
 }

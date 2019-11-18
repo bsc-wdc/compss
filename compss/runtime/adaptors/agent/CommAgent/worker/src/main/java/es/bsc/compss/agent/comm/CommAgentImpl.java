@@ -232,6 +232,7 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         CommAgentImpl cai = new CommAgentImpl();
         CommAgentConfig config = new CommAgentConfig(cai, port);
         Agent.startInterface(config);
+        Agent.start();
     }
 
 }

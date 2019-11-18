@@ -575,6 +575,7 @@ get_args() {
   # Shift COMPSs arguments
   shift $((OPTIND-1))
 
+  fullAppPath=$1
   app_args="$*"
 }
 
@@ -1113,8 +1114,8 @@ launch() {
 
   echo "------ Launching Execution ------"
   # Calling main method of the application passing in a single parameter containing an array with the method arguments
-  echo ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${fullAppPath} ${args_pass} ${app_args}
-  ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${fullAppPath} ${args_pass} ${app_args}
+  echo ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${args_pass} ${app_args}
+  ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${args_pass} ${app_args}
 }
 
 ###############################################

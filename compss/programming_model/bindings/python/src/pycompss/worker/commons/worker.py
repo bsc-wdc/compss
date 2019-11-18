@@ -538,8 +538,15 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
             module_name = '.'.join(path.split('.')[0:-1])
         else:
             module_name = path
-        module = __import__(module_name, fromlist=[class_name])
-        klass = getattr(module, class_name)
+        try:
+            module = __import__(module_name, fromlist=[class_name])
+            klass = getattr(module, class_name)
+        except Exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            logger.exception("EXCEPTION IMPORTING MODULE IN %s" % process_name)
+            logger.exception(''.join(line for line in lines))
+            return 1, [], [], False, None
 
         if __debug__:
             logger.debug("Method in class %s of module %s" % (class_name,

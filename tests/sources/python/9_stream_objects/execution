@@ -37,6 +37,9 @@
       mkdir -p "${exec_target_log_folder}"
       expectedTime=120s
 
+      # Add a little sleep to allow OS free Kafka structures
+      sleep 10s
+
       # shellcheck disable=SC2086
       timeout --signal=2 $expectedTime "${COMPSs_exec}" \
         --project="${base_app_dir}"/project.xml \

@@ -35,6 +35,9 @@
   error_log="${target_log_folder}/objectStreams_0${retry_num}.errorlog"
   expectedTime=120s
 
+  # Add a little sleep to allow OS free Kafka ports
+  sleep 10s
+
   # shellcheck disable=SC2086
   timeout --signal=2 $expectedTime "${COMPSs_exec}" \
      --project="${base_app_dir}"/project.xml \

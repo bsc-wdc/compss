@@ -20,7 +20,6 @@ import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 
 import es.bsc.compss.nio.NIOAgent;
-import es.bsc.compss.nio.NIOTask;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -32,9 +31,6 @@ public class CommandRemoveObsoletes extends RetriableCommand {
 
     // List of the data to erase
     private List<String> obsolete;
-
-    private static int MAX_RETRIES = 3;
-    private int retries = 0;
 
 
     /**

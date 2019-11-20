@@ -45,12 +45,12 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
-  filesPerTest=$(grep "\\[LOG\\] TOTAL NUMBER" "${output_file}" | awk '{ print $NF }' | tr "\\n" " ")
-  expectedFilesPerTest="10 20 10 10 20 10 20 10 10 "
-  if [ "${filesPerTest}" != "${expectedFilesPerTest}" ]; then
-    echo "ERROR: Stream processed files are not as expected"
-    echo " - GOT: ${filesPerTest}"
-    echo " - EXPECTED: ${expectedFilesPerTest}"
+  objectsPerTest=$(grep "\\[LOG\\] TOTAL NUMBER" "${output_file}" | awk '{ print $NF }' | tr "\\n" " ")
+  expectedObjectsPerTest="10 20 10 10 20 10 20 10 10 "
+  if [ "${objectsPerTest}" != "${expectedObjectsPerTest}" ]; then
+    echo "ERROR: Stream processed objects are not as expected"
+    echo " - GOT: ${objectsPerTest}"
+    echo " - EXPECTED: ${expectedObjectsPerTest}"
     exit 1
   fi
 

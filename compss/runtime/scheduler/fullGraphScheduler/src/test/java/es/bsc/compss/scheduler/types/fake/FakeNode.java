@@ -57,17 +57,17 @@ public class FakeNode extends COMPSsNode {
 
     @Override
     public void sendData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t,
-            EventListener el) {
+        EventListener el) {
     }
 
     @Override
     public void obtainData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t,
-            EventListener el) {
+        EventListener el) {
     }
 
     @Override
     public Job<?> newJob(int i, TaskDescription tp, Implementation i1, Resource rsrc,
-            List<String> slaveWorkersNodeNames, JobListener jl) {
+        List<String> slaveWorkersNodeNames, JobListener jl) {
 
         return null;
     }
@@ -117,6 +117,11 @@ public class FakeNode extends COMPSsNode {
 
     @Override
     public void reduceComputingCapabilities(ResourceDescription description) {
+        // Nothing to do
+    }
+
+    @Override
+    public void removeObsoletes(List<MultiURI> obsoletes) {
         // Nothing to do
     }
 

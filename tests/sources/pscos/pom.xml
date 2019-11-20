@@ -37,6 +37,7 @@
         <!-- 0_dummy_python -->
         <module>1_redis_java</module>
         <!-- 1_redis_python -->
+       <module>2_dummy_streams_java</module>
 
 		<!-- Add new modules below -->
 	</modules>

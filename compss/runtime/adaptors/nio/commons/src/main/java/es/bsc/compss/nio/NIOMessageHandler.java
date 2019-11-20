@@ -22,7 +22,7 @@ import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.exceptions.CommException.ErrorType;
 import es.bsc.comm.nio.exceptions.NIOException;
 import es.bsc.comm.stage.Transfer;
-import es.bsc.comm.stage.Transfer.Type;
+
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
 

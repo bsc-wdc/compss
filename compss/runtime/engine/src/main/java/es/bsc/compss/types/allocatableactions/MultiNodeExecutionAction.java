@@ -17,7 +17,6 @@
 package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.components.impl.TaskProducer;
-import es.bsc.compss.scheduler.exceptions.FailedActionException;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;

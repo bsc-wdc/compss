@@ -1,5 +1,5 @@
 #!/bin/bash -e
-
+COMPSs_VERSION="2.6.rc1911"
 SANDBOX="/tmp/agent_container"
 rm -rf ${SANDBOX}
 mkdir -p ${SANDBOX}
@@ -22,7 +22,7 @@ mvn clean
 # BUILDING IMAGE
 echo "Building image"
 cd "${SANDBOX}"
-docker build -t compss/agent:2.5 ./framework -f ./framework/utils/docker/agent/Dockerfile
+docker build -t compss/agent:${COMPSs_VERSION} ./framework -f ./framework/utils/docker/agent/Dockerfile
 
 rm -rf "${SANDBOX}"
 cd "${INIT_DIR}"

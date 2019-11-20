@@ -406,7 +406,7 @@ create_simple_project() {
 
   init "${project}"
   add_header
-  add_master_node "48" "0" "0" ""
+  add_master_node "48" "0" "0" "NULL"
   for worker_info in ${workers_info}; do
     IFS=":" read -ra worker_info_fields <<< "${worker_info}"
     local worker_name=${worker_info_fields[0]}

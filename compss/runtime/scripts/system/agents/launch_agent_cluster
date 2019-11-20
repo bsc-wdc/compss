@@ -248,7 +248,6 @@ mkdir -p ${log_dir}
 
 
 worker_working_dir="${5}"
-worker_working_dir="/home/bsc19/bsc19111/agents/tmp/${HOSTNAME}"
 mkdir -p "${worker_working_dir}"
 
 worker_install_dir="${6}"

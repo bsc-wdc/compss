@@ -543,7 +543,7 @@ create_xml_project() {
   add_header
 
   # Add master information (from generate_project.sh)
-  add_master_node "0" "0" "0" "0" "${shared_disks_info}"
+  add_master_node "NULL" "NULL" "NULL" "NULL" "${shared_disks_info}"
 
   # Add workers
   xml_project_add_worker_in_master

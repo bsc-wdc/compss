@@ -48,10 +48,19 @@ usage() {
   sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$setupFile"
 
   #---------------------------------------------------------------------
+  # Modify utils/docker/
+  echo "- Modifying utils/docker files..."
+  cd "${base_trunk_dir}/utils/docker/agent"
+  file="build_image"
+  echo "    $file"
+  sed -i 's/COMPSs_VERSION="'${previousVersion}'"/COMPSs_VERSION="'${newVersion}'"/g' "$file"
+  cd "${base_trunk_dir}"
+
+  #---------------------------------------------------------------------
   # Modify utils/scripts
   echo "- Modifying utils/scripts files..."
   cd "${base_trunk_dir}/utils/scripts/"
-  files=$(grep -R -l "$previousVersion")
+  files=$(grep -R -l "$previousVersion" | cat)
   for file in $files; do
     echo "    $file"
     sed -i 's/'"${previousVersion}"'/'"${newVersion}"'/g' "$file"
@@ -66,6 +75,8 @@ usage() {
   echo "    $file"
   sed -i 's/<version>'"${previousVersion}"'<\/version>/<version>'"${newVersion}"'<\/version>/g' "$file"
   cd "${base_trunk_dir}"
+
+
 
   #---------------------------------------------------------------------
   # Modify builders version

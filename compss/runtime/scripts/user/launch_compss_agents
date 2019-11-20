@@ -13,7 +13,7 @@ DEFAULT_APPDIR=$(pwd)
 DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_DEBUG=off
-DEFAULT_DEBUG_ARG=debug
+DEFAULT_LOG_LEVEL_ARG=debug
 DEFAULT_COMMUNICATION_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
@@ -42,6 +42,7 @@ DEFAULT_PYTHON_MPI_WORKER=false
 DEFAULT_JUPYTER_NOTEBOOK=false
 DEFAULT_JUPYTER_NOTEBOOK_PATH=$HOME
 
+DEFAULT_SCHEDULER="es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -212,51 +213,6 @@ action_error() {
 }
 
 ###############################################
-# Infers the language from the Application Path
-# WARN: Sets global lang variable
-###############################################
-infer_language() {
-  local fullApp
-  local fileName
-  local extension
-  local isPython
-  local isPythonCompiled
-  local isC
-
-  fullApp=$1
-  fileName=$(basename "$fullApp")
-  extension=${fileName##*.}
-  if [ "$extension" == "py" ] || [ "$extension" == "pyc" ]; then
-    if [ "${log_level}" != "off" ]; then
-       echo "[ INFO] Inferred PYTHON language"
-    fi
-    lang=python
-  else
-    # Try to infer language by file command
-    isPython=$(file "$fullAppPath" | grep "Python" | cat)
-    isPythonCompiled=$(file "$fullAppPath" | grep "python" | cat)
-    isC=$(file "$fullAppPath" | grep "executable" | cat)
-    if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
-      if [ "${log_level}" != "off" ]; then
-	 echo "[  INFO] Inferred PYTHON language"
-      fi
-      lang=python
-    elif [ -n "$isC" ]; then
-      if [ "${log_level}" != "off" ]; then    
-         echo "[  INFO] Inferred C/C++ language"
-      fi
-      lang=c
-    else
-      # Lang cannot be infered or it's the default JAVA
-      if [ "${log_level}" != "off" ]; then
-         echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
-      fi
-      lang=${DEFAULT_LANGUAGE}
-    fi
-  fi
-}
-
-###############################################
 # Loads the tracing environment
 ###############################################
 load_tracing_env() {
@@ -284,590 +240,23 @@ load_tracing_env() {
 }
 
 ###############################################
-# Creates Worker CMD
+# Creates Agent CMD
 ###############################################
-worker_cmd() {
-  # WARNING: SETS GLOBAL SCRIPT VARIABLE WCMD
-  local nodeId=$1
-  local nodeName=$2
-  local master_name=$3
-  local jvm_opts_size=$4
-  local jvm_opts_str=$5
-  local fpga_reprog_size=$6
-  local fpga_reprog_str=$7
-  local cusCPU=$8
-  local cusGPU=$9
-  local cusFPGA=${10}
-  local cpuMap=${11}
-  local gpuMap=${12}
-  local fpgaMap=${13}
-  local lot=${14}
-  local streaming_backend=${15}
-  local streaming_master_port=${16}
-
-  if [ -z "${streaming_master_port}" ] || [ "${streaming_master_port}" == "null" ]; then
-    # Value will be ignored, just add a random number so that the parser does not complain
-    streaming_master_port=44000
-  fi
-
-  local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
-  local maxSend=5
-  local maxReceive=5
-  local worker_port=43001
-
-  if [ -z "${master_name}" ]; then
-     master_name="null"
-  fi
+agent_cmd() {
 
   if [ -z "${container_image}" ]; then
-     WCMD="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+    ACMD="${COMPSS_HOME}/Runtime/scripts/system/agents/launch_agent_cluster"
   else
-     WCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
-  fi
-
-  WCMD="$WCMD ${library_path} \
-            ${appdir} \
-            ${cp} \
-            ${streaming_backend} \
-            ${jvm_opts_size} \
-            ${jvm_opts_str} \
-            ${fpga_reprog_size} \
-            ${fpga_reprog_str} \
-            ${debug} \
-            ${maxSend} \
-            ${maxReceive} \
-            ${nodeName} \
-            ${worker_port} \
-            ${master_name} \
-            ${master_port} \
-            ${streaming_master_port} \
-            ${cusCPU} \
-            ${cusGPU} \
-            ${cusFPGA} \
-            ${cpuMap} \
-            ${gpuMap} \
-            ${fpgaMap} \
-            ${lot} \
-            ${uuid} \
-            ${lang} \
-            ${sandbox_worker_working_dir} \
-            ${worker_install_dir} \
-            ${appdir} \
-            ${library_path} \
-            ${cp} \
-            ${pythonpath} \
-            ${w_tracing} \
-            ${custom_extrae_file} \
-            ${nodeId} \
-            ${storage_conf} \
-            ${taskExecution} \
-            ${persistent_worker_c} \
-            ${python_interpreter} \
-            ${python_version} \
-            ${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT} \
-            ${python_propagate_virtual_environment} \
-            ${python_mpi_worker}"
-}
-
-###############################################
-# Create Master CMD
-###############################################
-master_cmd() {
-  local master_name=$1
-
-  if [ -z "${container_image}" ]; then
-    MCMD="${COMPSS_HOME}/Runtime/scripts/user/runcompss"
-  else
-    MCMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/user/runcompss"
+    ACMD="singularity exec $container_opts $container_image ${COMPSS_HOME}/Runtime/scripts/system/agents/launch_agent_cluster"
   fi
 
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
-  MCMD="$MCMD --project=${PROJECT_FILE} \
-            --resources=${RESOURCES_FILE} \
-            --uuid=${uuid} \
-            --specific_log_dir=${specific_log_dir} \
-            --master_name=${master_name} \
-            --master_port=${master_port} \
-            --streaming=${streaming} \
-            --streaming_master_port=${streaming_master_port} \
-            --jvm_master_opts=${jvm_master_opts} \
-            --jvm_workers_opts=${jvm_workers_opts}"
+
+  
+  ACMD="${ACMD} ${@}"
+  echo ${ACMD}
 }
 
-
-#---------------------------------------------------------------------------------------
-# XML HELPER FUNCTIONS (PROJECT.XML)
-#---------------------------------------------------------------------------------------
-
-###############################################
-# Setup to generate project.xml
-###############################################
-xml_project_setup() {
-  # Shared disks information
-  shared_disks_names=""
-  shared_disks_info=""
-  if [ -n "${GPFS_PREFIX}" ]; then
-    shared_disks_names="gpfs"
-    shared_disks_info="gpfs=${GPFS_PREFIX}"
-  fi
-  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    shared_disks_names="${shared_disks_names} gpfs2"
-    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
-  fi
-
-  # Init project file
-  init "${PROJECT_FILE}"
-}
-
-###############################################
-# Add worker in master to project.xml
-###############################################
-xml_project_add_worker_in_master() {
-  # Add worker in master if defined
-  if [ "${worker_in_master_cpus}" -ne 0 ]; then
-    local master_node_name
-    # Rename master node if defined
-    if [ -n "${NODE_NAME_XML}" ]; then
-      master_node_name=$(${NODE_NAME_XML} "${master_node}" "${network}")
-    elif [ -n "${NODE_NAME_QUEUE}" ]; then
-      master_node_name=$(${NODE_NAME_QUEUE} "${master_node}")
-    else
-      master_node_name=${master_node}
-    fi
-    # Create working dirs
-    if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
-      if [ "${log_level}" == "debug" ]; then
-         echo "[LAUNCH_COMPSS] Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
-      fi
-      # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
-    fi
-    # Add compute node
-    master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
-  fi
-}
-
-###############################################
-# Add workers to project.xml
-###############################################
-xml_project_add_workers() {
-  # Add workers
-  for worker_node in ${worker_nodes}; do
-    local worker_node_name
-    if [ ! -z "${NODE_NAME_XML}" ]; then
-      worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
-    elif [ -n "${NODE_NAME_QUEUE}" ]; then
-      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")
-    else
-      worker_node_name=${worker_node}
-    fi
-    # Create working dirs
-    if [ -z "${CREATE_WORKING_DIRS}" ] || [ "${CREATE_WORKING_DIRS}" == "true" ]; then
-      if [ "${log_level}" == "debug" ]; then
-         echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c \"mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}\"${CMD_SEPARATOR}"
-      fi
-      # shellcheck disable=SC2086
-      ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${worker_node_name} ${CMD_SEPARATOR}bash -c "mkdir -p ${worker_working_dir} && chmod +rx ${worker_working_dir}"${CMD_SEPARATOR}
-    fi
-    # Add compute node
-    worker_node_name=${worker_node_name}${network}
-    add_compute_node "${worker_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "${library_path}" "NULL" "NULL" "${max_tasks_per_node}"
-  done
-}
-
-###############################################
-# Add heterogeneity to project.xml
-###############################################
-xml_project_add_elasticity() {
-  # Add elasticity if defined
-  if [ -n "${elasticity}" ]; then
-    local jvm_workers_opts_str
-    local jvm_workers_opts_size
-    local fpga_reprogram_str
-    local fpga_reprogram_size
-    jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
-    jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
-    fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
-    fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
-
-    local props
-    props="master_name=${master_node}"
-    props="$props master_port=${master_port}"
-    props="$props worker_debug=${debug}"
-    props="$props jvm_opts_size=${jvm_workers_opts_size}"
-    props="$props jvm_opts_str=${jvm_workers_opts_str}"
-    props="$props fpga_reprogram_size=${fpga_reprogram_size}"
-    props="$props fpga_reprogram_str=${fpga_reprogram_str}"
-    props="$props network=${network}"
-    props="$props estimated-creation-time=10"
-    if [ -z "${container_image}" ]; then
-      props="$props slurm_over_ssh=false"
-    else
-      props="$props slurm_over_ssh=true"
-    fi
-    if [ -n "${queue}" ]; then
-      props="$props queue=${queue}"
-    fi
-    if [ -n "${reservation}" ]; then
-      props="$props reservation=${reservation}"
-    fi
-    if [ -n "${qos}" ]; then
-      props="$props qos=${qos}"
-    fi
-    if [ -n "${constraints}" ]; then
-     props="$props constraints=${constraints}"
-    fi
-    if [ -n "${container_opts}" ]; then
-      props="$props container_opts=${container_opts}"
-    fi
-    if [ -n "${cpu_affinity}" ]; then
-      props="$props cpu_affinity=${cpu_affinity}"
-    fi
-
-    add_cloud 0 0 "${elasticity}" "SLURM-Cluster" "${props}" "${container_image}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "${appdir:-NULL}" "${library_path:-NULL}" "${cp:-NULL}" "${pythonpath:-NULL}" "${max_tasks_per_node}" "default"
-  fi
-}
-
-###############################################
-# Create complete project.xml
-###############################################
-create_xml_project() {
-  #
-  # GENERATE PROJECT
-  #
-  # Setup project variables and scripts
-  xml_project_setup
-
-  # Add header (from generate_project.sh)
-  add_header
-
-  # Add master information (from generate_project.sh)
-  add_master_node "NULL" "NULL" "NULL" "NULL" "${shared_disks_info}"
-
-  # Add workers
-  xml_project_add_worker_in_master
-  xml_project_add_workers
-
-  # Add elasticity
-  xml_project_add_elasticity
-
-  # Close project (from generate_project.sh)
-  add_footer
-}
-
-
-#---------------------------------------------------------------------------------------
-# XML HELPER FUNCTIONS (RESOURCES.XML)
-#---------------------------------------------------------------------------------------
-
-###############################################
-# Setup to generate resources.xml
-###############################################
-xml_resources_setup() {
-  # Shared disks information
-  shared_disks_names=""
-  shared_disks_info=""
-  if [ -n "${GPFS_PREFIX}" ]; then
-    shared_disks_names="gpfs"
-    shared_disks_info="gpfs=${GPFS_PREFIX}"
-  fi
-  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    shared_disks_names="${shared_disks_names} gpfs2"
-    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
-  fi
-
-  # Init resources file
-  init "${RESOURCES_FILE}"
-}
-
-###############################################
-# Add worker in master to resources.xml
-###############################################
-xml_resources_add_worker_in_master() {
-  # Add worker in master if defined
-  if [ "${worker_in_master_cpus}" -ne 0 ]; then
-    local master_node_name
-    # Rename master node if defined
-    if [ -n "${NODE_NAME_XML}" ]; then
-      master_node_name=$(${NODE_NAME_XML} "${master_node}" "${network}")
-    elif [ -n "${NODE_NAME_QUEUE}" ]; then
-      master_node_name=$(${NODE_NAME_QUEUE} "${master_node}")
-    else
-      master_node_name=${master_node}
-    fi
-    # Add compute node
-    master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
-  fi
-}
-
-###############################################
-# Add workers to resources.xml
-###############################################
-xml_resources_add_workers() {
-  # Add workers
-  for worker_node in ${worker_nodes}; do
-    local worker_node_name
-    if [ ! -z "${NODE_NAME_XML}" ]; then
-      worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
-    elif [ -n "${NODE_NAME_QUEUE}" ]; then
-      worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")
-    else
-      worker_node_name=${worker_node}
-    fi
-    # Add compute node
-    worker_node_name=${worker_node_name}${network}
-    add_compute_node "${worker_node_name}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${node_memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
-  done
-}
-
-###############################################
-# Add heterogeneity to resources.xml
-###############################################
-xml_resources_add_elasticity() {
-  # Add elasticity if defined
-  if [ -n "${elasticity}" ]; then
-    local instance_types="default:${cpus_per_node}:${gpus_per_node}:${fpgas_per_node}:${node_memory}:1:0.085"
-    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SLURMConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
-  fi
-}
-
-###############################################
-# Create complete resources.xml
-###############################################
-create_xml_resources() {
-  #
-  # GENERATE RESOURCES FILE
-  #
-
-  # Setup resources variables and scripts
-  xml_resources_setup
-
-  # Add header (from generate_resources.sh)
-  add_header
-
-  # Add shared disks (from generate_resources.sh)
-  add_shared_disks "${shared_disks_names}"
-
-  # Add workers
-  xml_resources_add_worker_in_master
-  xml_resources_add_workers
-
-  # Add elasticity
-  xml_resources_add_elasticity
-
-  # Close resources (from generate_resources.sh)
-  add_footer
-}
-
-
-#---------------------------------------------------------------------------------------
-# XML MAIN GENERATION FUNCTIONS
-#---------------------------------------------------------------------------------------
-
-###############################################
-# Create XML files
-###############################################
-create_xml_files() {
-  if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] XML - Begin generation of project and resources files"
-     # Log Master Node
-     echo "[LAUNCH_COMPSS] Master will run in ${master_node}"
-     # Log List of Workers
-     echo "[LAUNCH_COMPSS] List of workers: ${worker_nodes}"
-  fi
-  local sec
-  sec=$(date +%s)
-
-  # Generate project file
-  # shellcheck source=../system/xmls/generate_project.sh
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
-  PROJECT_FILE=${worker_working_dir}/project_$sec.xml
-  if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] XML - Generating project at ${PROJECT_FILE}"
-  fi
-  export PROJECT_FILE
-  create_xml_project
-
-  # Generate resources file
-  if [ -n "$resources" ]; then
-    # Custom user resources.xml file
-    if [ "${log_level}" != "off" ]; then
-        echo "[LAUNCH_COMPSS] XML - Using user-defined resources.xml file at ${resources}"
-    fi
-    RESOURCES_FILE=${resources}
-  else
-    # Generate file
-    # shellcheck source=../system/xmls/generate_resources.sh
-    # shellcheck disable=SC1091
-    source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
-    RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
-    if [ "${log_level}" != "off" ]; then
-        echo "[LAUNCH_COMPSS] XML - Generating resources at ${RESOURCES_FILE}"
-    fi
-    export RESOURCES_FILE
-    create_xml_resources
-  fi
-
-  # LOG AND FINISH
-  if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] XML - Generation of project and resources files finished"
-     echo "[LAUNCH_COMPSS] XML - Project.xml:   ${PROJECT_FILE}"
-     echo "[LAUNCH_COMPSS] XML - Resources.xml: ${RESOURCES_FILE}"
-  fi
-}
-
-###############################################
-# Initialize Heterogeneous XML files
-###############################################
-init_het_xml_files() {
-  local suffix=$1
-
-  if [ "${log_level}" != "off" ]; then
-      # Log Master Node
-      echo "[LAUNCH_COMPSS] Master will run in ${master_node}"
-      # Log List of Workers
-      echo "[LAUNCH_COMPSS] List of workers: ${worker_nodes}"
-
-      # LOG
-      echo "[LAUNCH_COMPSS] HT-XML - Generating project and resources files"
-  fi
-  # GENERATE PROJECT FILE
-  # shellcheck source=../system/xmls/generate_project.sh
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
-  PROJECT_FILE=${PWD}/project_$suffix.xml
-  export PROJECT_FILE
-  if [ "${log_level}" != "off" ]; then
-    echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
-  fi
-  # Setup project variables and scripts
-  xml_project_setup
-  # Add header (from generate_project.sh)
-  add_header
-  # Add master information (from generate_project.sh)
-  add_master_node "0" "0" "0" "0" "${shared_disks_info}"
-  # Add workers
-  xml_project_add_worker_in_master
-  xml_project_add_workers
-  # Add elasticity
-  if [ -n "${elasticity}" ]; then
-    echo " WARNING: Heterogeneity with elasticity not yet supported !"
-  fi
-
-  # GENERATE RESOURCES FILE
-  # shellcheck source=../system/xmls/generate_resources.sh
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
-  RESOURCES_FILE=${PWD}/resources_$suffix.xml
-  export RESOURCES_FILE
-  if [ "${log_level}" != "off" ]; then
-    echo "[LAUNCH_COMPSS] HT-XML Resources.xml: ${RESOURCES_FILE}"
-  fi
-  # Setup resources variables and scripts
-  xml_resources_setup
-  # Add header (from generate_resources.sh)
-  add_header
-  # Add shared disks (from generate_resources.sh)
-  add_shared_disks "${shared_disks_names}"
-  # Add workers
-  xml_resources_add_worker_in_master
-  xml_resources_add_workers
-  # Add elasticity
-  if [ -n "${elasticity}" ]; then
-    echo " WARNING: Heterogeneity with elasticity not yet supported !"
-  fi
-}
-
-###############################################
-# Add worker nodes to Heterogeneous XML files
-###############################################
-add_het_xml_files() {
-  local suffix=$1
-  if [ "${log_level}" != "off" ]; then 
-    # LOG
-    echo "[LAUNCH_COMPSS] HT-XML - Continue generating project and resources files"
-    echo "[LAUNCH_COMPSS] HT-XML - List of workers: ${worker_nodes}"
-  fi
-  # GENERATE PROJECT FILE
-  # shellcheck source=../system/xmls/generate_project.sh
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
-  PROJECT_FILE=${PWD}/project_$suffix.xml
-  export PROJECT_FILE
-  if [ "${log_level}" != "off" ]; then
-    echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
-  fi
-  # Setup project variables and scripts
-  xml_project_setup
-  # Add workers
-  xml_project_add_workers
-
-  # GENERATE RESOURCES FILE
-  # shellcheck source=../system/xmls/generate_resources.sh
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
-  RESOURCES_FILE=${PWD}/resources_$suffix.xml
-  export RESOURCES_FILE
-  if [ "${log_level}" != "off" ]; then
-    echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
-  fi
-  # Setup resources variables and scripts
-  xml_resources_setup
-  # Add workers
-  xml_resources_add_workers
-}
-
-###############################################
-# Finish Heterogeneous XML files
-###############################################
-fini_het_xml_files() {
-  local suffix=$1
-  if [ "${log_level}" != "off" ]; then
-     # LOG
-     echo "[LAUNCH_COMPSS] HT-XML - Finishing generation of project and resources files"
-     echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
-     echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
-  fi
-
-  # GENERATE PROJECT FILE
-  # shellcheck source=../system/xmls/generate_project.sh
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_project.sh
-  PROJECT_FILE=${PWD}/project_$suffix.xml
-  export PROJECT_FILE
-  if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] HT-XML - Project.xml:   ${PROJECT_FILE}"
-  fi
-
-  # Setup project variables and scripts
-  xml_project_setup
-  # Close project (from generate_project.sh)
-  add_footer
-
-  # GENERATE RESOURCES FILE
-  # shellcheck source=../system/xmls/generate_resources.sh
-  # shellcheck disable=SC1091
-  source "${SCRIPT_DIR}"/../system/xmls/generate_resources.sh
-  RESOURCES_FILE=${PWD}/resources_$suffix.xml
-  export RESOURCES_FILE
-  if [ "${log_level}" != "off" ]; then
-     echo "[LAUNCH_COMPSS] HT-XML - Resources.xml: ${RESOURCES_FILE}"
-  fi
-
-  # Setup resources variables and scripts
-  xml_resources_setup
-  # Close resources (from generate_resources.sh)
-  add_footer
-
-  # LOG
-  if [ "${log_level}" != "off" ]; then
-     # LOG
-     echo "[LAUNCH_COMPSS] HT-XML -Generation of project and resources files finished"
-  fi
-}
 
 
 #---------------------------------------------------------------------------------------
@@ -896,7 +285,7 @@ get_args() {
         display_version 0
         ;;
       d)
-        log_level=${DEFAULT_DEBUG_ARG}
+        log_level=${DEFAULT_LOG_LEVEL_ARG}
         #Keep it for runcompss (to add them to master)
         args_pass="$args_pass -$flag"
         ;;
@@ -985,7 +374,7 @@ get_args() {
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
-        streaming=*)                                                                                                                                                                                                                    
+        streaming=*)
           streaming=${OPTARG//streaming=/}
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
@@ -1020,7 +409,7 @@ get_args() {
           args_pass="$args_pass --$OPTARG"
           ;;
         debug)
-          log_level=${DEFAULT_DEBUG_ARG}
+          log_level=${DEFAULT_LOG_LEVEL_ARG}
           # Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
@@ -1166,6 +555,10 @@ get_args() {
           # Added for tracing in heterogeneity
           initial_hostid=${OPTARG//initial_hostid=/}
           ;;
+        scheduler=*)
+          # Added for tracing in heterogeneity
+          scheduler="${OPTARG//scheduler=/}"
+          ;;          
         *)
           # Flag didn't match any patern. Add to COMPSs
           args_pass="$args_pass --$OPTARG"
@@ -1182,11 +575,8 @@ get_args() {
   # Shift COMPSs arguments
   shift $((OPTIND-1))
 
-  # Wrap full app path for lang inference
   fullAppPath=$1
-
-  # Pass application name and args
-  args_pass="$args_pass $*"
+  app_args="$*"
 }
 
 ###############################################
@@ -1278,6 +668,10 @@ check_args() {
 
   if [ -z "${python_mpi_worker}" ]; then
     python_mpi_worker=${DEFAULT_PYTHON_MPI_WORKER}
+  fi
+
+  if [ -z "${scheduler}" ]; then
+    scheduler="${DEFAULT_SCHEDULER}"
   fi
 
   #
@@ -1414,19 +808,6 @@ check_args() {
   #
   # Application Checks
   #
-  # Lang
-  if [ -z "$lang" ]; then
-    # Try to infer language
-    infer_language "$fullAppPath"
-  elif [ "$lang" = "java" ]; then
-    lang=java
-  elif [ "$lang" = "c" ]; then
-    lang=c
-  elif [ "$lang" = "python" ]; then
-    lang=python
-  else
-    display_error "${ERROR_LANGUAGE}"
-  fi
 
   # Library path
   if [ -z "${library_path}" ]; then
@@ -1598,6 +979,7 @@ log_variables() {
   echo "Master Port:               ${master_port}"
   echo "Master WD:                 ${master_working_dir}"
   echo "Worker WD:                 ${worker_working_dir}"
+  echo "Worker ID:                 ${worker_install_dir}"
   echo "Master JVM Opts:           ${jvm_master_opts}"
   echo "Workers JVM Opts:          ${jvm_workers_opts}"
   echo "Worker in Master JVM Opts: ${jvm_worker_in_master_opts}"
@@ -1606,7 +988,7 @@ log_variables() {
   echo "Library Path:              ${library_path}"
   echo "Classpath:                 ${cp}"
   echo "Pythonpath:                ${pythonpath}"
-  echo "Appdir:                    ${appdir}"
+  echo "Appdir:			               ${appdir}"
   echo "Lang:                      ${lang}"
   echo "Python Interpreter:        ${python_interpreter}"
   echo "Python version:            ${python_version}"
@@ -1646,144 +1028,94 @@ write_log_usage() {
 ###############################################
 # Launches the application
 ###############################################
+launch_agent () { 
+  local node_name=$1
+
+  local jvm_opts_str
+  local jvm_opts_size
+  jvm_opts_str=$(echo "${jvm_workers_opts_str}" | tr "," " ")
+  jvm_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
+  fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
+  fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
+
+  agent_cmd "${node_name}" "${network}" "${log_level}" "${specific_log_dir}" "${worker_working_dir}" "${worker_install_dir}" "${jvm_opts_size}" "${jvm_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${scheduler}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${node_memory}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}" "${cp}" "${master_node}" ${worker_nodes}
+
+  if [ ! -z "${NODE_NAME_QUEUE}" ]; then
+      node=$(${NODE_NAME_QUEUE} ${node})
+  fi
+
+  if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
+      if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
+          AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
+      fi
+  fi
+
+  ACMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node_name} ${ACMD}"
+  $ACMD&
+}
+
 launch() {
-  echo "------ Launching COMPSs application ------"
+  echo "------ Launching Agents ------"
 
   # Launch workers separately if they are persistent
-  if [ "${comm/NIO}" != "${comm}" ]; then
-    # Start workers' processes
-    local hostid=1
-    if [ ! -z "${initial_hostid}" ]; then
-      if [ "${log_level}" != "off" ]; then
-         echo "[LAUNCH_COMPSS] Host id set to ${initial_hostid}"
-      fi
-      hostid=${initial_hostid}
-    fi
-    if [ ! -z "${master_node}" ]; then
-      if [ "${worker_in_master_cpus}" -ne 0 ]; then 
-        # Worker in master node
-        local jvm_worker_in_master_opts_str
-        local jvm_worker_in_master_opts_size
-        local fpga_reprogram_str
-        local fpga_reprogram_size
-        jvm_worker_in_master_opts_str=$(echo "${jvm_worker_in_master_opts}" | tr "," " ")
-        jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
-        fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
-        fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
-        # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
-
-        if [ ! -z "${NODE_NAME_QUEUE}" ]; then
-          master_node=$(${NODE_NAME_QUEUE} "${master_node}")
-        fi
-
-        AUXILIAR_LAUNCH_PARAMS=${LAUNCH_PARAMS}
-        if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
-            if [ -n "${worker_in_master_cpus}" ] && [ "${worker_in_master_cpus}" != "0" ]; then
-                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${worker_in_master_cpus} "
-            fi
-        fi
-
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
-        if [ "${log_level}" != "off" ]; then
-	    echo "[LAUNCH_COMPSS] Launching worker in master with id $hostid and command: $WCMD"
-        fi
-        $WCMD&
-        hostid=$((hostid+1))
-      fi
-    fi
-
-    if [ ! -z "${worker_nodes}" ]; then
-      local jvm_workers_opts_str
-      local jvm_workers_opts_size
-      jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
-      jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
-      fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
-      fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
-      for node in ${worker_nodes}; do
-        # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd $hostid "$node${network}" "${master_node}${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
-
-        if [ ! -z "${NODE_NAME_QUEUE}" ]; then
-            node=$(${NODE_NAME_QUEUE} ${node})
-        fi
-
-        if [ -n "${cpus_per_task}" ] && [ "${cpus_per_task}" == "true" ]; then
-            if [ -n "${cpus_per_node}" ] && [ "${cpus_per_node}" != "0" ]; then
-                AUXILIAR_LAUNCH_PARAMS="${QARG_CPUS_PER_TASK} ${cpus_per_node} "
-            fi
-        fi
-
-        WCMD="${LAUNCH_CMD} ${AUXILIAR_LAUNCH_PARAMS}${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
-        if [ "${log_level}" != "off" ]; then
-	    echo "[LAUNCH_COMPSS] Launching worker with id $hostid and command: $WCMD"
-        fi
-        $WCMD&
-        hostid=$((hostid+1))
-      done
-    fi
-
-    # Sleep a little before launching master
-    local num_workers=$((hostid-1))
-    local sleep_time
-    if [ ${num_workers} -ge 1 ] && [ ${num_workers} -lt 100 ]; then
-      sleep_time="10s"
-    else
-      if [ ${num_workers} -ge 100 ] && [ ${num_workers} -lt 800 ]; then
-        sleep_time="$((num_workers/10))s"
-      else
-        sleep_time="80s"
-      fi
-    fi
-    if [ "${log_level}" != "off" ]; then 
-        echo "[LAUNCH_COMPSS] Number of spawned workers: $num_workers"
-        echo "[LAUNCH_COMPSS] Waiting ${sleep_time} ..."
-    fi
-    sleep ${sleep_time}
+  # Start workers' processes
+  local hostid=1
+  if [ ! -z "${initial_hostid}" ]; then
+    echo "Host id set to ${initial_hostid}"
+    hostid=${initial_hostid}
   fi
 
-  # Launching the master
-  if [ ! -z "${master_node}" ]; then
-    # Launch master
-    if [ "${jupyter_notebook}" = false ]; then
-      master_cmd "${master_node}${network}"
-      MCMD="${MCMD} ${args_pass}"
-      if [ "${log_level}" != "off" ]; then
-          echo "[LAUNCH_COMPSS] Executing Master with command: $MCMD"
-      fi
-      $MCMD
-      ev=$?
-      if [ $ev -ne 0 ]; then
-        echo "Master execution failed. Exiting job."
-        exit $ev
-      fi
-    else
-      # Prepare needed environment variables for starting the runtime from the PyCOMPSs API (in normal executions it is done by runcompss).
-      export PYTHONPATH=${jupyter_notebook_path}:${COMPSS_HOME}/Bindings/python/${python_version}/:${COMPSS_HOME}/Bindings/bindings-common/lib/:$PYTHONPATH
-      # JAVA_HOME variable must exist
-      export LD_LIBRARY_PATH=${COMPSS_HOME}/Bindings/bindings-common/lib/:${COMPSS_HOME}/Runtime/compss-engine.jar:${JAVA_HOME}/jre/lib/amd64/server/:$LD_LIBRARY_PATH
-      unset XDG_RUNTIME_DIR  # Required for Jupyter in MN4. Supposed to be necessary also in other supercomputers. Otherwise, move this line to the supercomputer "module"
-      export COMPSS_LOG_LEVEL=${log_level}
-      export COMPSS_TRACING=${tracing}
-      if [ -v "$tracing" ] && [ $tracing != "false" ]; then
-        load_tracing_env
-      fi
-      # Export project and resources xmls as environment variables to be used from PyCOMPSs binding
-      # Also export the master name, master port, and worker nodes to be used from PyCOMPSs binding
-      export COMPSS_PROJECT_XML="${PROJECT_FILE}"
-      export COMPSS_RESOURCES_XML="${RESOURCES_FILE}"
-      export COMPSS_MASTER_NODE="${master_node}"
-      export COMPSS_MASTER_PORT="${master_port}"
-      export COMPSS_WORKER_NODES="${worker_nodes}"
-      export COMPSS_UUID="${uuid}"
-      export COMPSS_BASE_LOG_DIR="${base_log_dir}"
-      export COMPSS_SPECIFIC_LOG_DIR="${specific_log_dir}"
-      export COMPSS_STORAGE_CONF="${storage_conf}"
-      # Run jupyter notebook instead of the master within the jupyter_notebook_path
-      # The master will be started when the user wants later from the notebook (the workers have already been launched)
-      (cd "${jupyter_notebook_path}" && jupyter notebook --no-browser --ip=127.0.0.1 --port=8888)
-    fi
+  local jvm_workers_opts_str
+  local jvm_workers_opts_size
+  jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
+  jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
+  fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
+  fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
+
+  launch_agent ${master_node}
+  hostid=$((hostid+1))
+  
+  if [ ! -z "${worker_nodes}" ]; then    
+    for node in ${worker_nodes}; do
+      launch_agent ${node}
+      hostid=$((hostid+1))
+    done
   fi
+
+  echo "Wait until master is awake..."
+  while [ true ]; do
+    sleep 1
+    curl -s -XGET http://${master_node}${network}:46101/COMPSs/test # 2>/dev/null
+    if [ $? -eq 0 ]; then
+      break;
+    fi
+  done
+  echo "Master is up and running"
+
+  num_agents=$(wc -w <<< "${worker_nodes}")
+  echo "Wait until all workers are awake..."
+  CONFIRMED_AGENTS=0
+  while [ ${CONFIRMED_AGENTS} -lt ${num_agents} ]; do
+    sleep 1
+    CONFIRMED_AGENTS=0
+    for worker in ${worker_nodes}; do
+      curl -s -XGET http://${worker}${network}:46101/COMPSs/test # 2>/dev/null
+      if [ $? -eq 0 ]; then
+        CONFIRMED_AGENTS=$(( CONFIRMED_AGENTS + 1))
+      fi
+    done
+  done  
+  echo "All nodes are ready"
+
+  curl -s -XGET http://${master_node}${network}:46101/COMPSs/printResources # 2>/dev/null
+  for worker in ${worker_nodes}; do
+    curl -s -XGET http://${worker}${network}:46101/COMPSs/printResources # 2>/dev/null
+  done
+
+  echo "------ Launching Execution ------"
+  # Calling main method of the application passing in a single parameter containing an array with the method arguments
+  echo ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${args_pass} ${app_args}
+  ${SCRIPT_DIR}/call_compss_agent_operation --master_node=${master_node}${network} --master_port=46101 --cei=${fullAppPath}Itf ${args_pass} ${app_args}
 }
 
 ###############################################
@@ -1791,14 +1123,10 @@ launch() {
 ###############################################
 prolog() {
   # Execute user prolog actions
-  if [ "${log_level}" != "off" ]; then
-      echo "---- Executing Prolog actions ----"
-  fi
+  echo "---- Executing Prolog actions ----"
   for action in "${prologActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
-    if [ "${log_level}" != "off" ]; then
-       echo "- Prolog: $realAction"
-    fi
+    echo "- Prolog: $realAction"
     $realAction
     local actionExitValue=$?
     if [ $actionExitValue -ne 0 ]; then
@@ -1812,14 +1140,10 @@ prolog() {
 ###############################################
 epilog() {
   # Execute user epilog actions
-  if [ "${log_level}" != "off" ]; then
-      echo "---- Executing Epilog actions ----"
-  fi
+  echo "---- Executing Epilog actions ----"
   for action in "${epilogActions[@]}"; do
     realAction=$(echo "${action}" | tr "," " ")
-    if [ "${log_level}" != "off" ]; then
-       echo "- Epilog: $realAction"
-    fi
+    echo "- Epilog: $realAction"
     $realAction
     local actionExitValue=$?
     if [ $actionExitValue -ne 0 ]; then
@@ -1833,7 +1157,7 @@ epilog() {
 ###############################################
 wait_for_completion() {
   # Wait for Master and Workers to finish
-  echo "[LAUNCH_COMPSS] Waiting for application completion"
+  echo "Waiting for application completion"
   wait
 }
 
@@ -1847,27 +1171,17 @@ cleanup() {
     echo "[WARN] Flag removeWD set to false. Not cleaning XML files"
   else
     # Cleanup
-    if [ "${log_level}" != "off" ]; then
-       echo "[LAUNCH_COMPSS] Cleanup Worker TMP files"
-    fi
+    echo "Cleanup Worker TMP files"
     for node in ${worker_nodes}; do
       local sandboxWD=${worker_working_dir}/${uuid}
       if [ ! -z "${NODE_NAME_QUEUE}" ]; then
         node=$(${NODE_NAME_QUEUE} ${node})
       fi
-      if [ "${log_level}" != "off" ]; then
-          echo "[LAUNCH_COMPSS] Removing ${sandboxWD}"
-      fi
+      echo "- Removing ${sandboxWD}"
       # shellcheck disable=SC2086
       ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${CMD_SEPARATOR}rm -rf ${sandboxWD}${CMD_SEPARATOR}
     done
-    if [ "${log_level}" != "off" ]; then
-        echo "[LAUNCH_COMPSS] Cleanup TMP files"
-    fi
-    if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" = "all" ] || [ "${xmls_phase}" = "fini" ]; then
-    	rm -f "${PROJECT_FILE}"
-    	rm -f "${RESOURCES_FILE}"
-    fi
+
   fi
 }
 
@@ -1899,26 +1213,13 @@ cleanup() {
   set_variables
 
   # Log variables
-  if [ "${log_level}" == "debug" ]; then
-     log_variables
-  fi
+  log_variables
+
   # Write log usage
   write_log_usage
 
   # Add clean up for execution end
   trap cleanup EXIT
-
-  # Create XML files
-  CREATE_WORKING_DIRS=true  # used by xml_project_add_worker_in_master and xml_project_add_workers
-  if [ -z "${xmls_phase}" ] || [ "${xmls_phase}" == "all" ]; then
-    create_xml_files
-  elif [ "${xmls_phase}" == "init" ]; then
-    init_het_xml_files "${xmls_suffix}"
-  elif [ "${xmls_phase}" == "add" ]; then
-    add_het_xml_files "${xmls_suffix}"
-  elif [ "${xmls_phase}" == "fini" ]; then
-    fini_het_xml_files "${xmls_suffix}"
-  fi
 
   # Prolog
   prolog

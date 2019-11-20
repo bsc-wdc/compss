@@ -55,16 +55,27 @@ add_master_node() {
   # Parameters are of the form sd_name=sd_mountpoint sd_name2=sd_mountpoint2
 
   # Retrieve parameters
-  local shared_disks=$*
-
+  local cus=${1}
+  local gpus=${2}
+  local fpgas=${3}
+  local memory=${4}
+  shift 4
+  local shared_disks="${*}"
+  
   # Check parameters
   :
+    cat >> "${PROJECT_FILE}" << EOT
+  <MasterNode>
+EOT
+
 
   # Dump information to file
+   _fill_processors "${cus}" "${gpus}" "${fpgas}"
+   _fill_memory "${memory}"
+
   if [ -n "${shared_disks}" ] && [ "${shared_disks}" != "NULL" ]; then
     # Create master node with shared disks
     cat >> "${PROJECT_FILE}" << EOT
-  <MasterNode>
     <SharedDisks>
 EOT
     for sd in ${shared_disks}; do
@@ -78,17 +89,13 @@ EOT
     done
     cat >> "${PROJECT_FILE}" << EOT
     </SharedDisks>
+EOT
+  fi
+    
+    cat >> "${PROJECT_FILE}" << EOT
   </MasterNode>
 
 EOT
-
-  else
-    # Create empty master node
-    cat >> "${PROJECT_FILE}" << EOT
-  <MasterNode></MasterNode>
-
-EOT
-  fi
 
   # TODO: SKIPPING PRICE SECTION
 }
@@ -222,6 +229,71 @@ EOT
 # PRIVATE FUNCTIONS
 #
 
+
+
+_fill_processors() {
+  # Retrieve parameters
+  local cus=${1:-$DEFAULT_CUS}
+  local gpus=${2:-$DEFAULT_GPUS}
+  local fpgas=${3:-$DEFAULT_FPGAS}
+
+  # Check parameters
+  :
+
+  # Dump information to file
+
+  # TODO: Architecture as parameter
+  # TODO: Speed as parameter
+  if [ -n "${cus}" ] && [ "${cus}" -gt 0 ]; then
+    cat >> "${PROJECT_FILE}" << EOT
+    <Processor Name="MainProcessor">
+      <ComputingUnits>${cus}</ComputingUnits>
+      <Architecture>Intel</Architecture>
+      <Speed>2.6</Speed>
+    </Processor>
+EOT
+  fi
+  if [ -n "${gpus}" ] && [ "${gpus}" -gt 0 ]; then
+    cat >> "${PROJECT_FILE}" << EOT
+    <Processor Name="GPU">
+      <Type>GPU</Type>
+      <ComputingUnits>${gpus}</ComputingUnits>
+      <Architecture>k80</Architecture>
+      <Speed>2.6</Speed>
+    </Processor>
+EOT
+  fi
+  if [ -n "${fpgas}" ] && [ "${fpgas}" -gt 0 ]; then
+    cat >> "${PROJECT_FILE}" << EOT
+    <Processor Name="FPGA">
+      <Type>FPGA</Type>
+      <ComputingUnits>${fpgas}</ComputingUnits>
+      <Architecture>altera</Architecture>
+      <Speed>1.0</Speed>
+    </Processor>
+EOT
+  fi
+}
+
+_fill_memory() {
+  # Retrieve parameters
+  local memory=${1:-$DEFAULT_MEMORY}
+
+  # Check parameters
+  :
+
+  # Dump information to file
+  if [ -n "${memory}" ] && [ "${memory}" != "NULL" ]; then
+    cat >> "${PROJECT_FILE}" << EOT
+    <Memory>
+      <Size>${memory}</Size>
+    </Memory>
+EOT
+  fi
+}
+
+
+
 _fill_compute_node_info() {
   # Retrieve parameters
   local worker_install_dir=${1:-$DEFAULT_WORKER_INSTALL_DIR}
@@ -334,7 +406,7 @@ create_simple_project() {
 
   init "${project}"
   add_header
-  add_master_node ""
+  add_master_node "48" "0" "0" "NULL"
   for worker_info in ${workers_info}; do
     IFS=":" read -ra worker_info_fields <<< "${worker_info}"
     local worker_name=${worker_info_fields[0]}

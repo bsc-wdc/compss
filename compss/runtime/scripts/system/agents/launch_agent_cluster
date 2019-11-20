@@ -1,0 +1,327 @@
+#!/bin/bash
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+generate_resources() {
+  source "${SCRIPT_DIR}"/../xmls/generate_resources.sh
+  echo "[XML] Generating project at ${PROJECT_FILE}"
+}
+
+###############################################
+# Identifies other agents which it may interact
+###############################################
+get_topology() {
+  MASTER="${1}"
+
+  local HOST_RACK;
+  local MASTER_RACK;
+  HOST_RACK=$(echo "${HOSTNAME}" | cut -d 'b' -f 1)
+  MASTER_RACK=$(echo "${MASTER}" | cut -d 'b' -f 1)
+
+  if [ "${HOSTNAME}" == "${MASTER}" ]; then
+      # IS THE MASTER
+      local RACK_OTHER_BLADES 
+      local RACKS
+      local WORKER_RACKS
+      RACK_OTHER_BLADES=$(echo "${@}"| tr " " "\\n" | grep "${HOST_RACK}" | grep -v "${HOSTNAME}")
+      RACKS=$(echo "${@}"| tr " " "\\n" | cut -d 'b' -f 1 | uniq )
+      WORKER_RACKS=$(echo "${RACKS}"| grep -v "${MASTER_RACK}" )
+      
+      CHILD_NODES=$(
+        for blade in ${RACK_OTHER_BLADES}; do
+          echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${max_tasks_per_node}"
+        done
+        for rack in ${WORKER_RACKS}; do
+          WORKER_RACK_BLADES=$(echo "${@:2}"| tr " " "\\n" | grep "${rack}")
+          WORKER_RACK_REP=$(echo "${WORKER_RACK_BLADES}" | sort | head -n 1)
+          WORKER_RACK_COUNT=$(echo "${WORKER_RACK_BLADES}" | wc -l)
+          echo "${WORKER_RACK_REP} $(( WORKER_RACK_COUNT * cpus_per_node )) $(( WORKER_RACK_COUNT * gpus_per_node )) $(( WORKER_RACK_COUNT * fpgas_per_node )) $(( WORKER_RACK_COUNT * memory_per_node )) $(( WORKER_RACK_COUNT * max_tasks_per_node ))"
+        done
+      )
+  else
+    if [ ! "${HOST_RACK}" == "${MASTER_RACK}" ]; then
+
+      # IS A NODE IN A RACK OTHER THAN MASTER
+      local RACK_BLADES
+      local MAIN_RACK_BLADE
+      RACK_BLADES=$(echo "${@}"| tr " " "\\n" | grep "${HOST_RACK}" | sort)
+      MAIN_RACK_BLADE=$(echo "${RACK_BLADES}" | head -n 1)
+
+      if [ "${MAIN_RACK_BLADE}" == "${HOSTNAME}" ]; then
+        # IS REPRESENTATIVE ON REMOTE RACK
+        local RACK_OTHER_BLADES
+        RACK_OTHER_BLADES=$(echo "${RACK_BLADES}" | grep -v "${HOSTNAME}")
+
+        CHILD_NODES=$(
+         for blade in ${RACK_OTHER_BLADES}; do
+           echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${max_tasks_per_node}"; 
+         done
+        )
+      #else
+      #  IS A LEAF ON A REMOTE RACK. DO NOTHING
+      fi
+    #else
+    # IS A LEAF ON THE MASTER. DO NOTHING
+    fi
+  fi
+}
+
+
+#---------------------------------------------------------------------------------------
+# XML HELPER FUNCTIONS (PROJECT.XML)
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Add agents' own resources to project.xml
+###############################################
+xml_project_add_own_resources() {
+  add_master_node "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${memory_per_node}" "${shared_disks_info}"
+}
+
+###############################################
+# Add remote agents to project.xml
+###############################################
+xml_project_add_child_agents() {
+  # Add workers
+  if [ ! -z "${CHILD_NODES}" ]; then
+    while read -r worker_node cpus gpus fpgas max_tasks ignored_values; do
+      local worker_node_name
+      if [ ! -z "${NODE_NAME_XML}" ]; then
+        worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
+      elif [ -n "${NODE_NAME_QUEUE}" ]; then
+        worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")
+      else
+        worker_node_name=${worker_node}
+      fi
+      if [ "${max_tasks}" -lt "-1" ]; then
+        max_tasks=-1
+      fi
+      # Add compute node
+      worker_node_name=${worker_node_name}${network}
+      add_compute_node "${worker_node_name}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "NULL" "NULL" "NULL" "NULL" "${max_tasks}"      
+    done <<< "${CHILD_NODES}"
+  fi
+}
+
+###############################################
+# Generate project.xml
+###############################################
+generate_project() {
+  source "${SCRIPT_DIR}"/../xmls/generate_project.sh
+  echo "[XML] Generating project at ${PROJECT_FILE}"
+  xml_project_setup
+
+  # Add header (from generate_project.sh)
+  add_header
+
+  xml_project_add_own_resources
+
+  xml_project_add_child_agents
+
+  # Close project (from generate_project.sh)
+  add_footer
+}
+
+###############################################
+# Setup to generate project.xml
+###############################################
+xml_project_setup() {
+  # Shared disks information
+  shared_disks_names=""
+  shared_disks_info=""
+  if [ -n "${GPFS_PREFIX}" ]; then
+    shared_disks_names="gpfs"
+    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  fi
+  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} gpfs2"
+    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  fi
+
+  # Init project file
+  init "${PROJECT_FILE}"
+}
+
+
+
+#---------------------------------------------------------------------------------------
+# XML HELPER FUNCTIONS (RESOURCES.XML)
+#---------------------------------------------------------------------------------------
+###############################################
+# Generate resources.xml
+###############################################
+generate_resources() {
+  source "${SCRIPT_DIR}"/../xmls/generate_resources.sh
+  echo "[XML] Generating resources at ${RESOURCES_FILE}"
+  xml_resources_setup
+
+  # Add header (from generate_project.sh)
+  add_header
+
+  # Add shared disks (from generate_resources.sh)
+  add_shared_disks "${shared_disks_names}"
+
+   # Add workers
+  xml_resources_add_workers
+
+  # Add elasticity
+  xml_resources_add_elasticity
+
+  # Close project (from generate_resources.sh)
+  add_footer
+}
+
+
+###############################################
+# Setup to generate resources.xml
+###############################################
+xml_resources_setup() {
+  # Shared disks information
+  shared_disks_names=""
+  shared_disks_info=""
+  if [ -n "${GPFS_PREFIX}" ]; then
+    shared_disks_names="gpfs"
+    shared_disks_info="gpfs=${GPFS_PREFIX}"
+  fi
+  if [ -n "${GPFS2_PREFIX}" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    shared_disks_names="${shared_disks_names} gpfs2"
+    shared_disks_info="${shared_disks_info} gpfs2=${GPFS2_PREFIX}"
+  fi
+
+  # Init resources file
+  init "${RESOURCES_FILE}"
+}
+
+###############################################
+# Add workers to resources.xml
+###############################################
+xml_resources_add_workers() {
+  # Add workers
+  if [ ! -z "${CHILD_NODES}" ]; then
+    while read -r worker_node cpus gpus fpgas memory max_tasks_per_node; do
+      local worker_node_name
+      if [ ! -z "${NODE_NAME_XML}" ]; then
+        worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
+      elif [ -n "${NODE_NAME_QUEUE}" ]; then
+        worker_node_name=$(${NODE_NAME_QUEUE} "${worker_node}")
+      else
+        worker_node_name=${worker_node}
+      fi
+
+      if [ "${max_tasks_per_node}" -lt "-1" ]; then
+        max_tasks_per_node="-1"
+      fi
+      # Add compute node
+      worker_node_name=${worker_node_name}${network}
+      add_compute_node "${worker_node_name}" "${cpus}" "${gpus}" "${fpgas}" "${memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    done <<< "${CHILD_NODES}"
+  fi
+}
+
+###############################################
+# Add heterogeneity to resources.xml
+###############################################
+xml_resources_add_elasticity() {
+  # Add elasticity if defined
+  if [ -n "${elasticity}" ]; then
+    local instance_types="default:${cpus_per_node}:${gpus_per_node}:${fpgas_per_node}:${node_memory}:1:0.085"
+    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SLURMConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
+  fi
+}
+
+#
+# MAIN (when script is called directly)
+#
+# Expected parameters:
+
+
+HOSTNAME="${1}"
+network="${2}"
+
+debug="${3}"
+
+log_dir="${4}${HOSTNAME}"
+mkdir -p ${log_dir}
+
+
+worker_working_dir="${5}"
+mkdir -p "${worker_working_dir}"
+
+worker_install_dir="${6}"
+
+jvm_opts_size="${7}"
+shift 7
+# IGNORING JVM OPTS
+# jvm_opts_str="${*:1:!jvm_opts_size}"
+shift "${jvm_opts_size}"
+
+fpga_reprogram_size="${1}"
+shift 1
+# IGNORING FPGA REPROGRAM
+# fpga_reprogram_str="${*:1:!fpga_reprogram_size}"
+shift "${fpga_reprogram_size}"
+
+scheduler="${1}"
+shift 1
+
+cpus_per_node="${1}"
+gpus_per_node="${2}"
+fpgas_per_node="${3}"
+cpu_affinity="${4}"
+gpu_affinity="${5}"
+fpga_affinity="${6}"
+memory_per_node="${7}"
+max_tasks_per_node="${8}"
+streaming="${9}"
+streaming_master_port="${10}"
+shift 10
+
+APP_DIR=${1}
+shift
+
+get_topology "${@}" # masterName workerName[]
+
+
+
+echo "--------${HOSTNAME}--------" >"${log_dir}/INFO"
+echo "VARIABLES" >>"${log_dir}/INFO"
+
+echo "hostname:       ${HOSTNAME}" >>"${log_dir}/INFO"
+echo "Network         ${network}" >>"${log_dir}/INFO"
+
+echo "Debug Level:    ${debug}" >>"${log_dir}/INFO"
+echo "Working Dir:    ${worker_working_dir}" >>"${log_dir}/INFO"
+echo "Install Dir:    ${worker_install_dir}" >>"${log_dir}/INFO"
+echo "Log Dir:        ${log_dir}" >>"${log_dir}/INFO"
+
+echo "Scheduler:      ${scheduler}" >>"${log_dir}/INFO"
+echo "CPUs:           ${cpus_per_node} ${cpu_affinity}" >>"${log_dir}/INFO"
+echo "GPUs:           ${gpus_per_node} ${gpu_affinity}" >>"${log_dir}/INFO"
+echo "FPGAs:          ${fpgas_per_node} ${fpga_affinity}" >>"${log_dir}/INFO"
+
+
+echo "Child nodes:" >>"${log_dir}/INFO"
+
+if [ ! -z "${CHILD_NODES}" ]; then
+  while read -r blade cpu gpu fpgas memory limit_of_tasks; do
+    echo "  * name ${blade} cpus ${cpu} gpus ${gpu} fpgas ${fpgas} memory ${memory} limit of tasks ${limit_of_tasks}" >>"${log_dir}/INFO"
+  done <<< "${CHILD_NODES}"
+fi
+
+
+PROJECT_FILE="${worker_working_dir}/project_${HOSTNAME}.xml"
+export PROJECT_FILE
+generate_project
+
+
+RESOURCES_FILE="${worker_working_dir}/resources_$HOSTNAME.xml"
+export RESOURCES_FILE
+generate_resources
+
+echo "--------${HOSTNAME}-OUT----" >"${log_dir}/OUT"
+echo "--------${HOSTNAME}-ERR----" >"${log_dir}/ERR"
+echo "${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d ${debug} -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" --scheduler ${scheduler}>>"${log_dir}/OUT" 2>>"${log_dir}/ERR" 
+"${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d ${debug} -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" --scheduler ${scheduler}>>"${log_dir}/OUT" 2>>"${log_dir}/ERR"

@@ -240,7 +240,8 @@ public class LocalParameter implements InvocationParam {
 
     @Override
     public String toString() {
-        return this.getType() + " " + this.getValue() + " " + (this.isPreserveSourceData() ? "PRESERVE " : "VOLATILE ")
-            + (this.isWriteFinalValue() ? "WRITE" : "DISMISS");
+        return this.getType() + " " + this.getValue() + " " + (this.isPreserveSourceData() ? "PRESERVE" : "VOLATILE")
+            + " " + (this.isWriteFinalValue() ? "WRITE" : "DISMISS") + " originalName " + originalName + " renamedName "
+            + renamedName + " sourceData " + sourceDataMgmtId + " finalData " + dataMgmtId;
     }
 }

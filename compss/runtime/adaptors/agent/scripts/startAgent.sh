@@ -3,6 +3,7 @@
 #COMPSs Options
 DEFAULT_DEBUG="off"
 DEFAULT_COMM="es.bsc.compss.agent.comm.CommAgentAdaptor"
+DEFAULT_SCHEDULER="es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler"
 
 #DataClay Options
 DC_CLASSPATH="$(for i in /opt/COMPSs/storage/lib/*.jar ; do echo -n ${i}: ; done)/opt/COMPSs/storage/dataclay.jar"
@@ -21,29 +22,49 @@ Usage: $0 [OPTION]...
 
 Mandatory options:
   -h, --hostname            name of the mF2C hostname
+
   -a, --app                 application jar
 
-COMPSs options:  
+
+COMPSs options:
   -rp, --rest_port          port on which the agent sets up a REST interface. (<=0: Disabled)
+
   -cp, --comm_port          port on which the agent sets up a Comm interface. (<=0: Disabled)
+
   --comm=<ClassName>        Class that implements the adaptor for communications
                             Supported adaptors: es.bsc.compss.nio.master.NIOAdaptor | es.bsc.compss.gat.master.GATAdaptor |es.bsc.compss.agent.comm.CommAgentAdaptor | es.bsc.compss.agent.rest.master.Adaptor
                             Default: es.bsc.compss.agent.comm.CommAgentAdaptor
 
-  -d, --debug               enables debug. (Default: disabled)
+  --scheduler=<className>   Class that implements the Scheduler for COMPSs
+                            Supported schedulers: es.bsc.compss.scheduler.fullGraphScheduler.FullGraphScheduler
+                                                | es.bsc.compss.scheduler.fifoScheduler.FIFOScheduler
+                                                | es.bsc.compss.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
+                            Default: es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
+
+  -d, --debug               Set debug level. (Default: disabled)
+
   -log, --log_dir           log directory. (Default: /tmp/${app_uuid})
+
   -project                  path of the project file 
                             (Default: ${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml)
+
   -resources                path of the resources file 
                             (Default: ${COMPSS_HOME}/Runtime/configuration/xml/resources/examples/local/resources.xml)
 
+
 DataClay options:
   -DC, --no-dataclay        Disable DataClay  
+
   -lm, --logicmodule        DataClay's logic module endpoint
+
   -u, --username            DataClay user
+
   -pwd, --password          DataClay password 
+
   -ds, --dataset            DataClay dataset name
+
   -ns, --namespace          DataClay namespace
+
 
 Other options:
   --help                    prints this message
@@ -106,7 +127,14 @@ parse_options() {
         fi
         COMM=$2;
         shift 2;;
-
+      --scheduler )
+        if [ "$#" -lt 2 ]; then
+          echo "Illegal number of params"
+          usage
+          exit
+        fi
+        SCHEDULER=$2;
+        shift 2;;
       -d    | --debug )
         if [ "$#" -lt 2 ]; then
           echo "Illegal number of params"
@@ -229,8 +257,8 @@ parse_options() {
   fi
   if  [[ "${comm}" == "es.bsc.compss.agent.comm.CommAgentAdaptor" ]]; then
     if [[ -z "${COMM_AGENT_PORT}" ]]; then
-	echo "When using the Comm Agent adaptor, COMM port needs to be specified (-cp/--comm_port)"
-        exit
+	      echo "When using the Comm Agent adaptor, COMM port needs to be specified (-cp/--comm_port)"
+        exit 1
     fi
     comm="${comm} -Dcompss.masterPort=${COMM_AGENT_PORT}"
   fi
@@ -327,9 +355,12 @@ generate_dataclay_stubs() {
   ${DC_TOOL} dataclay.tool.GetStubs ${DC_USERNAME} ${DC_PASSWORD} ${DC_NAMESPACE} "${CURRENT_DIR}/stubs"
 }
 
+##############################################
+############### MAIN CODE ####################
+##############################################
 
-
-
+# Setting up default values
+SCHEDULER=${DEFAULT_SCHEDULER}
 
 # Obtain COMPSs installation root
 if [ -z "${COMPSS_HOME}" ]; then
@@ -408,7 +439,7 @@ echo java \
 -Dcompss.project.schema="${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd" \
 -Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
--Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler \
+-Dcompss.scheduler=${SCHEDULER} \
 ${DATACLAY_CONFIG_OPT} \
 es.bsc.compss.agent.Agent
 
@@ -418,6 +449,7 @@ java \
 -Dcompss.masterName="${AGENT_HOSTNAME}" \
 -Dcompss.uuid="${uuid}" \
 -Dcompss.appLogDir="${LOG_DIR}" \
+-Dcompss.specificLogDir="${LOG_DIR}" \
 -Dcompss.comm=${comm} \
 -Dcompss.agent.configpath="${COMPSS_HOME}/Runtime/configuration/agents/all.json" \
 -Dcompss.project.file="${PROJECT_FILE}" \
@@ -425,7 +457,7 @@ java \
 -Dcompss.project.schema="${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd" \
 -Dcompss.resources.schema="${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd" \
 -Dlog4j.configurationFile="${COMPSS_HOME}/Runtime/configuration/log/COMPSsMaster-log4j.${DEBUG}" \
--Dcompss.scheduler=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler \
+-Dcompss.scheduler=${SCHEDULER} \
 ${DATACLAY_CONFIG_OPT} \
 es.bsc.compss.agent.Agent
 

@@ -19,13 +19,17 @@ package es.bsc.compss.agent.loader;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.api.COMPSsRuntime;
+import es.bsc.compss.api.impl.COMPSsRuntimeImpl;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.LoaderConstants;
 import es.bsc.compss.loader.LoaderUtils;
 import es.bsc.compss.loader.total.ITAppEditor;
+import es.bsc.compss.types.CoreElementDefinition;
+import es.bsc.compss.util.parsers.ITFParser;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.List;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CodeConverter;
@@ -55,6 +59,18 @@ public class Loader {
      */
     public static Object load(COMPSsRuntime runtime, LoaderAPI api, String ceiClass, long appId, String className,
         String methodName, Object... params) throws AgentException {
+
+        // Register Core Elements on Runtime
+        try {
+            Class<?> cei = Class.forName(ceiClass);
+            List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(cei);
+            for (CoreElementDefinition ced : ceds) {
+                ((COMPSsRuntimeImpl) runtime).registerCoreElement(ced);
+            }
+        } catch (ClassNotFoundException cnfe) {
+            throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
+        }
+
         try {
             // Add the jars that the custom class loader needs
             String compssHome = System.getenv(COMPSsConstants.COMPSS_HOME);

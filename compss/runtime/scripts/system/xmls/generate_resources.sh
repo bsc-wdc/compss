@@ -393,6 +393,17 @@ EOT
         </SubmissionSystem>
         <BrokerAdaptor>sshtrilead</BrokerAdaptor>
       </Adaptor>
+      <Adaptor Name="es.bsc.compss.agent.comm.CommAgentAdaptor">
+        <SubmissionSystem>
+          <Interactive/>
+        </SubmissionSystem>
+        <Properties>
+          <Property>
+            <Name>Port</Name>
+            <Value>46102</Value>
+          </Property>
+        </Properties>
+      </Adaptor>
     </Adaptors>
 EOT
 }

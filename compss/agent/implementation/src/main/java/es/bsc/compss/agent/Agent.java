@@ -48,7 +48,6 @@ import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
-import es.bsc.compss.util.parsers.ITFParser;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -109,7 +108,18 @@ public class Agent {
         RUNTIME = new COMPSsRuntimeImpl();
         RUNTIME.setObjectRegistry(new ObjectRegistry(RUNTIME));
         RUNTIME.setStreamRegistry(new StreamRegistry(RUNTIME));
+
+        INTERFACES = new LinkedList<>();
+    }
+
+
+    /**
+     * Start the runtime within the Agent and sets it up to allow the execution of COMPSs methods.
+     */
+    public static void start() {
+
         RUNTIME.startIT();
+
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(LOADER_SIGNATURE);
         MethodResourceDescription mrd = new MethodResourceDescription("");
@@ -121,10 +131,7 @@ public class Agent {
                 new MethodResourceDescription(""), LOADER_CLASS_NAME, LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
-
-        INTERFACES = new LinkedList<>();
     }
-
 
     /**
      * Request the execution of a method tasks and detect possible nested tasks.
@@ -147,16 +154,6 @@ public class Agent {
         long appId = Math.abs(APP_ID_GENERATOR.nextLong());
         long mainAppId = Math.abs(APP_ID_GENERATOR.nextLong());
         monitor.setAppId(mainAppId);
-
-        try {
-            Class<?> cei = Class.forName(ceiClass);
-            List<CoreElementDefinition> ceds = ITFParser.parseITFMethods(cei);
-            for (CoreElementDefinition ced : ceds) {
-                RUNTIME.registerCoreElement(ced);
-            }
-        } catch (ClassNotFoundException cnfe) {
-            throw new AgentException("Could not find class " + ceiClass + " to detect internal methods.");
-        }
 
         try {
             int taskParamsCount = arguments.length;
@@ -276,6 +273,17 @@ public class Agent {
     public static long runTask(Lang lang, String className, String methodName, ApplicationParameter[] arguments,
         ApplicationParameter target, ApplicationParameter[] results, MethodResourceDescription requirements,
         AppMonitor monitor) throws AgentException {
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("New request to run as a " + lang + " task " + className + "." + methodName);
+        System.out.println("Parameters: ");
+        for (ApplicationParameter param : arguments) {
+            System.out.println("\t* " + param);
+        }
+
         LOGGER.debug("New request to run as a " + lang + " task " + className + "." + methodName);
         LOGGER.debug("Parameters: ");
         for (ApplicationParameter param : arguments) {
@@ -382,10 +390,9 @@ public class Agent {
         int addedSources = 0;
         LogicalData ld = Comm.getData(remote.getRenaming());
         System.out.println(ld);
-        if (ld == null) {
-            ld = Comm.registerData(remote.getRenaming());
-        }
+        LogicalData otherNamedLocalData = null;
 
+        LinkedList<DataLocation> locations = new LinkedList<>();
         for (RemoteDataLocation loc : remote.getSources()) {
             try {
                 String path = loc.getPath();
@@ -401,14 +408,35 @@ public class Agent {
                     Map<String, Object> resourcesConf = new HashMap<>();
                     resourcesConf.put("Properties", r.getResourceConf());
                     host = registerWorker(workerName, mrd, adaptor, projectConf, resourcesConf);
+                } else {
+                    if (host == Comm.getAppHost()) {
+                        LogicalData localData = Comm.getData(uri.getPath());
+                        if (localData != null) {
+                            otherNamedLocalData = localData;
+                            addedSources++;
+                            continue;
+                        }
+                    }
                 }
                 DataLocation dl = DataLocation.createLocation(host, uri);
-                ld.addLocation(dl);
-                addedSources++;
+                locations.add(dl);
             } catch (AgentException | IOException e) {
                 // Do nothing. Ignore location
                 e.printStackTrace();
             }
+        }
+
+        if (ld == null) {
+            if (otherNamedLocalData == null) {
+                ld = Comm.registerData(remote.getRenaming());
+            } else {
+                Comm.linkData(remote.getRenaming(), otherNamedLocalData.getName());
+                addedSources++;
+            }
+        }
+        for (DataLocation loc : locations) {
+            ld.addLocation(loc);
+            addedSources++;
         }
         System.out.println(ld);
         if (addedSources == 0) {
@@ -602,5 +630,6 @@ public class Agent {
         if (INTERFACES.isEmpty()) {
             ErrorManager.fatal("Could not start any interface");
         }
+        start();
     }
 }

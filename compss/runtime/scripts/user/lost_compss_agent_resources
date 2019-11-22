@@ -1,0 +1,192 @@
+#!/bin/bash
+
+#---------------------------------------------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------------------------------------------
+APP_CMD="curl"
+DEFAULT_AGENT_NODE="localhost"
+DEFAULT_AGENT_PORT="46101"
+
+
+#---------------------------------------------------------------------------------------
+# ERROR CONSTANTS DECLARATION
+#---------------------------------------------------------------------------------------
+ERROR_NO_TARGET_HOST="Target host not specified."
+
+#---------------------------------------------------------------------------------------
+# GENERIC HELPER FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Displays version
+###############################################
+display_version() {
+  local exitValue=$1
+
+  "${SCRIPT_DIR}"/runcompss --version
+
+  exit "$exitValue"
+}
+
+###############################################
+# Displays usage
+###############################################
+usage() {
+  SCRIPT_NAME=`basename "$0"`
+  cat <<EOT
+Usage: ${SCRIPT_NAME} [options] resource_name [<adaptor_property_name=adaptor_property_value>]
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+
+    --opts                                  Show available options
+
+    --version, -v                           Print COMPSs version
+
+    --agent_node=<string>                   Name of the node where to add the resource
+                                            Default: ${DEFAULT_AGENT_NODE}
+
+    --agent_port=<string>                   Port of the node where to add the resource
+                                            Default: ${DEFAULT_AGENT_PORT}                                            
+  Resource description:
+EOT
+  show_opts
+}
+
+###############################################
+# Displays errors when treating arguments
+###############################################
+display_invocation() {
+  echo "Target agent details:"
+  echo "    Host:                     ${agent_node}"
+  echo "    Port:                     ${agent_port}"
+  echo ""
+  echo "Lost agent details:"
+  echo "    Resource Name:            ${resource_node}"
+  
+}
+
+###############################################
+# Displays errors when treating arguments
+###############################################
+display_error() {
+  local error_msg=$1
+
+  echo "$error_msg"
+  echo " "
+
+  usage
+  exit 1
+}
+
+###############################################
+# Show Options
+###############################################
+show_opts() {
+
+  # Show usage
+  cat <<EOT
+EOT
+}
+
+
+
+#---------------------------------------------------------------------------------------
+# MAIN FUNCTIONS
+#---------------------------------------------------------------------------------------
+###############################################
+# Function to get the arguments
+###############################################
+get_args() {
+  # Parse COMPSs Options
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+        # Display help
+        usage 0
+        ;;
+      v)
+        # Display version
+        display_version 0
+        ;;
+      -)
+      # Check more complex arguments
+      case "$OPTARG" in
+        help)
+          # Display help
+          usage 0
+          ;;
+        version)
+          # Display compss version
+          display_version 0
+          ;;
+        opts)
+          # Display options
+          show_opts 0
+          ;;
+        agent_node=*)
+          agent_node=${OPTARG//agent_node=/}
+          ;;
+        agent_port=*)
+          agent_port=${OPTARG//agent_port=/}
+          ;;
+        *)
+          # Flag didn't match any patern. Add to COMPSs
+          args_pass="$args_pass --$OPTARG"
+          ;;
+      esac
+      ;;
+    *)
+      # Flag didn't match any patern. End of description flags
+      ;;
+    esac
+  done
+
+  options_index=$((OPTIND))
+}
+
+###############################################
+# Function to check the arguments
+###############################################
+check_args() {
+  
+  if [ -z "${agent_node}" ]; then
+    agent_node=${DEFAULT_AGENT_NODE}
+  fi
+  if [ -z "${agent_port}" ]; then
+    agent_port=${DEFAULT_AGENT_PORT}
+  fi
+}
+###############################################
+# Agent Invocation
+###############################################
+notify_lost_node() {
+  ${APP_CMD} -XPUT "http://${agent_node}:${agent_port}/COMPSs/lostNode" -H 'content-type: application/xml' -d "\
+<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
+<lostNode>
+  <workerName>${resource_node}</workerName>
+</lostNode>"
+
+}
+
+
+###############################################
+# Agent Invocation
+###############################################
+get_args "$@"
+check_args "$@"
+shift $((options_index - 1))
+ 
+if [ $# -eq 0 ]; then
+  display_error "${ERROR_NO_TARGET_HOST}"
+  usage
+  exit
+fi
+
+resource_node=${1}
+shift 1
+
+display_invocation
+notify_lost_node

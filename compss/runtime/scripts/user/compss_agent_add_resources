@@ -1,0 +1,380 @@
+#!/bin/bash
+
+#---------------------------------------------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------------------------------------------
+APP_CMD="curl"
+DEFAULT_AGENT_NODE="localhost"
+DEFAULT_AGENT_PORT="46101"
+DEFAULT_COMM="es.bsc.compss.agent.comm.CommAgentAdaptor"
+DEFAULT_CPU_COUNT="1"
+DEFAULT_GPU_COUNT="0"
+DEFAULT_FPGA_COUNT="0"
+DEFAULT_MEM_TYPE="[unassigned]"
+DEFAULT_MEM_SIZE="-1"
+DEFAULT_OS_TYPE="[unassigned]"
+DEFAULT_OS_DISTR="[unassigned]"
+DEFAULT_OS_VERSION="[unassigned]"
+
+#---------------------------------------------------------------------------------------
+# ERROR CONSTANTS DECLARATION
+#---------------------------------------------------------------------------------------
+ERROR_NO_TARGET_HOST="Target host not specified."
+
+#---------------------------------------------------------------------------------------
+# GENERIC HELPER FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Displays version
+###############################################
+display_version() {
+  local exitValue=$1
+
+  "${SCRIPT_DIR}"/runcompss --version
+
+  exit "$exitValue"
+}
+
+###############################################
+# Displays usage
+###############################################
+usage() {
+  SCRIPT_NAME=`basename "$0"`
+  cat <<EOT
+Usage: ${SCRIPT_NAME} [options] resource_name [<adaptor_property_name=adaptor_property_value>]
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+
+    --opts                                  Show available options
+
+    --version, -v                           Print COMPSs version
+
+    --agent_node=<string>                   Name of the node where to add the resource
+                                            Default: ${DEFAULT_AGENT_NODE}
+
+    --agent_port=<string>                   Port of the node where to add the resource
+                                            Default: ${DEFAULT_AGENT_PORT}                                            
+  Resource description:
+EOT
+  show_opts
+}
+
+###############################################
+# Displays errors when treating arguments
+###############################################
+display_invocation() {
+  echo "Target agent details:"
+  echo "    Host:                     ${agent_node}"
+  echo "    Port:                     ${agent_port}"
+  echo ""
+  echo "Interaction details:"
+  echo "    Resource Name:            ${resource_node}"
+  echo "    Adaptor:                  ${resource_adaptor}"
+  echo "    Adaptor properties:"
+  echo "${ADAPTOR_PROPERTIES_DEBUG}"
+  echo "Resource details:"
+  echo "    Description:"
+  echo "        Processors:"
+  echo "            CPU:              ${resource_cpu_count}"
+  echo "            GPU:              ${resource_gpu_count}"
+  echo "            FPGA:             ${resource_fpga_count}"
+  echo "        Memory:"
+  echo "            Type:             ${resource_mem_type}"
+  echo "            Size:             ${resource_mem_size}"
+  echo "        OS:"
+  echo "            Type:             ${resource_os_type}"
+  echo "            Distribution:     ${resource_os_distr}"
+  echo "            Version:          ${resource_os_version}"
+}
+
+###############################################
+# Displays errors when treating arguments
+###############################################
+display_error() {
+  local error_msg=$1
+
+  echo "$error_msg"
+  echo " "
+
+  usage
+  exit 1
+}
+
+###############################################
+# Show Options
+###############################################
+show_opts() {
+
+  # Show usage
+  cat <<EOT
+    --comm=<string>                         Canonical class name of the adaptor to interact with the resource 
+                                            Default: ${DEFAULT_COMM}
+
+    --cpu=<integer>                         Number of cpu cores available on the resource 
+                                            Default: ${DEFAULT_CPU_COUNT}
+
+    --gpu=<integer>                         Number of gpus devices available on the resource 
+                                            Default: ${DEFAULT_GPU_COUNT}
+
+    --fpga=<integer>                        Number of fpga devices available on the resource 
+                                            Default: ${DEFAULT_FPGA_COUNT}
+
+    --mem_type=<string>                     Type of memory used by the resource
+                                            Default: ${DEFAULT_MEM_TYPE}
+
+    --mem_size=<string>                     Size of the memory available on the resource
+                                            Default: ${DEFAULT_MEM_SIZE}
+
+    --os_type=<string>                      Type of operating system managing the resource  
+                                            Default: ${DEFAULT_OS_TYPE}
+
+    --os_distr=<string>                     Distribution of the operating system managing the resource  
+                                            Default: ${DEFAULT_OS_DISTR}
+                                            
+    --os_version=<string>                   Version of the operating system managing the resource  
+                                            Default: ${DEFAULT_OS_VERSION}
+EOT
+}
+
+
+
+#---------------------------------------------------------------------------------------
+# MAIN FUNCTIONS
+#---------------------------------------------------------------------------------------
+###############################################
+# Function to get the arguments
+###############################################
+get_args() {
+  # Parse COMPSs Options
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+        # Display help
+        usage 0
+        ;;
+      v)
+        # Display version
+        display_version 0
+        ;;
+      -)
+      # Check more complex arguments
+      case "$OPTARG" in
+        help)
+          # Display help
+          usage 0
+          ;;
+        version)
+          # Display compss version
+          display_version 0
+          ;;
+        opts)
+          # Display options
+          show_opts 0
+          ;;
+        agent_node=*)
+          agent_node=${OPTARG//agent_node=/}
+          ;;
+        agent_port=*)
+          agent_port=${OPTARG//agent_port=/}
+          ;;
+        comm=*)
+          resource_adaptor=${OPTARG//comm=/}
+          ;;
+        cpu=*)
+          resource_cpu_count=${OPTARG//cpu=/}
+          ;;
+        gpu=*)
+          resource_gpu_count=${OPTARG//gpu=/}
+          ;;
+        fpga=*)
+          resource_fpga_count=${OPTARG//fpga=/}
+          ;;
+        mem_type=*)
+          resource_mem_type=${OPTARG//mem_type=/}
+          ;;
+        mem_size=*)
+          resource_mem_size=${OPTARG//mem_size=/}
+          ;;          
+        os_type=*)
+          resource_os_type=${OPTARG//os_type=/}
+          ;;
+        os_distr=*)
+          resource_os_distr=${OPTARG//os_distr=/}
+          ;;
+        os_version=*)
+          resource_os_version=${OPTARG//os_version=/}
+          ;;
+        *)
+          # Flag didn't match any patern. Add to COMPSs
+          args_pass="$args_pass --$OPTARG"
+          ;;
+      esac
+      ;;
+    *)
+      # Flag didn't match any patern. End of description flags
+      ;;
+    esac
+  done
+
+  options_index=$((OPTIND))
+}
+
+get_adaptor_properties() {
+  ADAPTOR_PROPERTIES_DEBUG=""
+  ADAPTOR_PROPERTIES_XML="<resourceConf xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"ResourcesExternalAdaptorProperties\">"
+
+  for property in "${@}"; do
+    property_name=$(echo ${property} | cut -d '=' -f1)
+    property_value=$(echo ${property} | cut -d '=' -f2)
+    ADAPTOR_PROPERTIES_DEBUG="${ADAPTOR_PROPERTIES_DEBUG}                              ${property_name} -> ${property_value}
+"
+    ADAPTOR_PROPERTIES_XML="${ADAPTOR_PROPERTIES_XML}
+      <Property>
+        <Name>${property_name}</Name>
+        <Value>${property_value}</Value>
+      </Property>"
+  done
+
+  ADAPTOR_PROPERTIES_XML="${ADAPTOR_PROPERTIES_XML}
+    </resourceConf>"
+}
+
+###############################################
+# Function to check the arguments
+###############################################
+check_args() {
+  
+  if [ -z "${agent_node}" ]; then
+    agent_node=${DEFAULT_AGENT_NODE}
+  fi
+  if [ -z "${agent_port}" ]; then
+    agent_port=${DEFAULT_AGENT_PORT}
+  fi
+
+  if [ -z "${resource_cpu_count}" ]; then
+    resource_cpu_count=${DEFAULT_CPU_COUNT}
+  fi
+  if [ -z "${resource_gpu_count}" ]; then
+    resource_gpu_count=${DEFAULT_GPU_COUNT}
+  fi
+  if [ -z "${resource_fpga_count}" ]; then
+    resource_fpga_count=${DEFAULT_FPGA_COUNT}
+  fi
+
+  if [ -z "${resource_adaptor}" ]; then
+    resource_adaptor=${DEFAULT_COMM}
+  fi
+
+  if [ -z "${resource_mem_type}" ]; then
+    resource_mem_type=${DEFAULT_MEM_TYPE}
+  fi
+  if [ -z "${resource_mem_size}" ]; then
+    resource_mem_size=${DEFAULT_MEM_SIZE}
+  fi
+
+  if [ -z "${resource_os_type}" ]; then
+    resource_os_type=${DEFAULT_OS_TYPE}
+  fi
+  if [ -z "${resource_os_distr}" ]; then
+    resource_os_distr=${DEFAULT_OS_DISTR}
+  fi
+  if [ -z "${resource_os_version}" ]; then
+    resource_os_version=${DEFAULT_OS_VERSION}
+  fi
+
+}
+###############################################
+# Agent Invocation
+###############################################
+add_resource() {
+  local processors
+  processors="<processors>"
+
+  if [ "${resource_cpu_count}" -gt "0" ]; then
+    processors="${processors}
+        <name>MainProcessor</name>
+        <type>CPU</type>
+        <architecture>[unassigned]</architecture>
+        <computingUnits>${resource_cpu_count}</computingUnits>
+        <internalMemory>-1.0</internalMemory>
+        <propName>[unassigned]</propName>
+        <propValue>[unassigned]</propValue>
+        <speed>-1.0</speed>"
+  fi
+
+  if [ "${resource_gpu_count}" -gt "0" ]; then
+    processors="${processors}
+        <name>gpu</name>
+        <type>GPU</type>
+        <architecture>[unassigned]</architecture>
+        <computingUnits>${resource_gpu_count}</computingUnits>
+        <internalMemory>-1.0</internalMemory>
+        <propName>[unassigned]</propName>
+        <propValue>[unassigned]</propValue>
+        <speed>-1.0</speed>"
+  fi
+
+  if [ "${resource_fpga_count}" -gt "0" ]; then
+    processors="${processors}
+        <name>FPGA</name>
+        <type>FPGA</type>
+        <architecture>[unassigned]</architecture>
+        <computingUnits>${resource_fpga_count}</computingUnits>
+        <internalMemory>-1.0</internalMemory>
+        <propName>[unassigned]</propName>
+        <propValue>[unassigned]</propValue>
+        <speed>-1.0</speed>"
+  fi
+  processors="${processors}
+      </processors>"
+
+  ${APP_CMD} -XPUT "http://${agent_node}:${agent_port}/COMPSs/addResources" -H 'content-type: application/xml' -d "\
+<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
+<newResource>
+  <externalResource>
+    <adaptor>${resource_adaptor}</adaptor>
+    <name>${resource_node}</name>
+    <description>
+      ${processors}
+      <memorySize>${resource_mem_size}</memorySize>
+      <memoryType>${resource_mem_type}</memoryType>
+      <storageSize>-1.0</storageSize>
+      <storageType>[unassigned]</storageType>
+      <operatingSystemDistribution>${resource_os_distr}</operatingSystemDistribution>
+      <operatingSystemType>${resource_os_type}</operatingSystemType>
+      <operatingSystemVersion>${resource_os_version}</operatingSystemVersion>
+      <pricePerUnit>-1.0</pricePerUnit>
+      <priceTimeUnit>-1</priceTimeUnit>
+      <value>0.0</value>
+      <wallClockLimit>-1</wallClockLimit>
+    </description>
+    ${ADAPTOR_PROPERTIES_XML}
+  </externalResource>
+</newResource>"
+
+}
+
+
+###############################################
+# Agent Invocation
+###############################################
+get_args "$@"
+check_args "$@"
+shift $((options_index - 1))
+ 
+if [ $# -eq 0 ]; then
+  display_error "${ERROR_NO_TARGET_HOST}"
+  usage
+  exit
+fi
+
+resource_node=${1}
+shift 1
+
+get_adaptor_properties "$@"
+display_invocation
+add_resource

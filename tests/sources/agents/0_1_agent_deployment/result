@@ -1,0 +1,101 @@
+#!/bin/bash -e
+
+  # Obtain parameters
+  output_file=$1
+  error_file=$2
+  target_log_folder=$3
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+  resources_log="${target_log_folder}/resources.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f "${output_file}" ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 "${output_file}")
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a "${output_file}"
+        exit 1
+     fi
+  else
+     echo "[ERROR] Output file not found" | tee -a "${output_file}"
+     exit 1
+  fi
+  # Check that ErrorManager has not raised any ERROR or FATAL message
+  if [ -f "${error_file}" ]; then
+    if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
+      echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    # Empty error file, no exceptions could have been raised
+    :
+  fi
+  # Check that the Runtime has not registered any fatal error
+  if [ -f "${runtime_log}" ]; then
+    if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
+      echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
+      exit 1
+    fi
+  else
+    echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Compute result status
+  init_counter1=$(grep "Initial counter1 value is" "${output_file}" | awk '{ print $NF }')
+  final_counter_got1=$(grep "Final counter1 value is" "${output_file}" | awk '{ print $NF }')
+  final_counter_expected1=$((init_counter1+1))
+
+  # Report result status
+  if [ "$final_counter_got1" != "$final_counter_expected1" ]; then
+     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+     echo "EXPECTED FIRST INCREMENT: $final_counter_expected1" | tee -a "${output_file}"
+     echo "GOT:      $final_counter_got1" | tee -a "${output_file}"
+     exit 1
+  fi
+  
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  init_counter2=$(grep "Initial counter2 value is" "${output_file}" | awk '{ print $NF }')
+  final_counter_got2=$(grep "Final counter2 value is" "${output_file}" | awk '{ print $NF }')
+  final_counter_expected2=$((init_counter2+1))
+
+  # Report result status
+  if [ "$final_counter_got2" != "$final_counter_expected2" ]; then
+     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+     echo "EXPECTED FIRST INCREMENT: $final_counter_expected2" | tee -a "${output_file}"
+     echo "GOT:      $final_counter_got2" | tee -a "${output_file}"
+     exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  init_counter3=$(grep "Initial counter3 value is" "${output_file}" | awk '{ print $NF }')
+  final_counter_got3=$(grep "Final counter3 value is" "${output_file}" | awk '{ print $NF }')
+  final_counter_expected3=$((init_counter3+1))
+
+  # Report result status
+  if [ "$final_counter_got3" != "$final_counter_expected3" ]; then
+     echo "ERROR ON TASKS SCHEDULE" | tee -a "${output_file}"
+     echo "EXPECTED FIRST INCREMENT: $final_counter_expected3" | tee -a "${output_file}"
+     echo "GOT:      $final_counter_got3" | tee -a "${output_file}"
+     exit 1
+  fi
+  
+  #---------------------------------------------------------------------------------- 
+  # Check barrier
+  barrier=$(grep -E -o "Creating task|Barrier" "${output_file}")
+  expectedBarrier=$'Creating task\nBarrier\nCreating task\nBarrier\nCreating task\nBarrier'
+  if [ "$barrier" != "$expectedBarrier" ]; then
+     echo "ERROR ON BARRIER" | tee -a "${output_file}"
+     echo "EXPECTED: $expectedBarrier" | tee -a "${output_file}"
+     echo "GOT:      $barrier" | tee -a "${output_file}"
+     exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Report result status
+  exit 0

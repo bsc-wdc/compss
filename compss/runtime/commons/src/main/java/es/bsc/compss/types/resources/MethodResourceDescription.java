@@ -28,6 +28,7 @@ import es.bsc.compss.util.ErrorManager;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -1779,7 +1780,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         for (Processor p : mrd2.processors) {
             // Looks for a mergeable processor
             boolean processorMerged = false;
-            for (Processor pThis : this.processors) {
+            Iterator<Processor> processors = this.processors.iterator();
+            while (processors.hasNext() && !processorMerged) {
+                Processor pThis = processors.next();
                 if (checkProcessorCompatibility(pThis, p)) {
                     processorMerged = true;
                     int cus = p.getComputingUnits();
@@ -1792,6 +1795,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     // Decrease current
                     pThis.removeComputingUnits(cus);
                     this.decreaseComputingUnits(pThis.getType(), cus);
+
+                    if (pThis.getComputingUnits() == 0) {
+                        processors.remove();
+                    }
 
                     // Go for next processor
                     break;

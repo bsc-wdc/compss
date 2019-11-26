@@ -305,7 +305,7 @@ call(){
   #http_data="${http_data}<resources/>"
   http_data="${http_data}</startApplication>"
 
-  "${APP_CMD}" "-v" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}" 
+  "${APP_CMD}" "-s" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}" 
 }
 
 #---------------------------------------------------------------------------------------
@@ -328,3 +328,4 @@ shift ${app_args_optind}
 check_args
 
 call "$@"
+echo ""

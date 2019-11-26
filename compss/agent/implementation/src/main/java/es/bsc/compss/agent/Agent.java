@@ -124,7 +124,7 @@ public class Agent {
         ced.setCeSignature(LOADER_SIGNATURE);
         MethodResourceDescription mrd = new MethodResourceDescription("");
         for (Processor p : mrd.getProcessors()) {
-            p.setName("LocalProcessor");
+            p.setName("MainProcessor");
         }
         ImplementationDefinition<?> implDef =
             ImplementationDefinition.defineImplementation("METHOD", LOADER_SIGNATURE + LOADER_CLASS_NAME,

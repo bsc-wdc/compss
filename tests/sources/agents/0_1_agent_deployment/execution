@@ -1,0 +1,413 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+  
+  # Global variables
+  AGENT_PIDS=""
+  exit_value=0
+  jar_name="0_1_agent_deployment.jar"
+  app_name="1_agent_deployment"
+
+  # Traps and Handlers
+  function kill_agents() {
+    for pid in ${AGENT_PIDS}; do
+      kill -SIGINT ${pid}
+    done
+  }
+  trap kill_agents EXIT
+
+
+  function validate_max__parallel_running_tasks() {
+    starts="${1}"
+    ends="${2}"
+    limit_parallel_tasks=$3
+    already_started=0
+    max_parallel_tasks=0
+    for start in ${starts}; do
+      already_started=$((already_started + 1))
+      already_ended="0";
+      for end in ${ends}; do
+        if [ "${end}" -le "${start}" ]; then
+          already_ended=$((already_ended + 1))
+        fi
+      done
+      running_tasks=$((already_started - already_ended))
+      if [ "${running_tasks}" -gt "${max_parallel_tasks}" ]; then
+        max_parallel_tasks=${running_tasks}
+      fi
+    done
+    if [ ${max_parallel_tasks} -gt "${limit_parallel_tasks}" ]; then
+      echo "Simultaneous tasks not properly managed. Found ${max_parallel_tasks} running and parallel and only ${limit_parallel_tasks} expected."  > >(tee -a "${error_log}")
+      exit 1
+    fi
+  }
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+  
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo ""
+  echo "*** RUNNING AGENTS TEST: 1 agent deployment"
+  log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
+  mkdir -p "${log_dir}"
+  output_log="${log_dir}test.outputlog"
+  error_log="${log_dir}test.errorlog"
+  touch "${output_log}"
+  touch "${error_log}"
+
+  # Starting agent
+  agent1_log_dir="${log_dir}/agent1/"
+  mkdir -p "${agent1_log_dir}" 
+  agent1_output_log="${agent1_log_dir}agent1.outputlog"
+  agent1_error_log="${agent1_log_dir}agent1.errorlog"
+  "${COMPSS_HOME}/Runtime/scripts/system/adaptors/agent/startAgent.sh" \
+     -h COMPSsWorker01 \
+     -a "${base_app_dir}/${jar_name}" \
+     -log "${agent1_log_dir}" \
+     -DC \
+     -rp 46101 \
+     -cp 46102 \
+     -d debug  \
+     --project "${base_app_dir}"/project.xml \
+     --resources "${base_app_dir}"/resources.xml 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+
+  agent_pid="$!"
+  AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
+
+  retries="3"
+  curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+  while [ ! "$?" == "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+  done
+
+  RESULT=$(grep "test invoked" "${agent1_output_log}")
+  if [ -z "${RESULT}" ]; then  
+     echo "Agent 1 failed to start" > >(tee -a "${error_log}")
+     exit 1
+  fi
+  echo "Agent 1 started" > >(tee -a "${output_log}")
+  sleep 1
+ 
+  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
+  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null
+  sleep 1
+  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
+  if [ ! "${num_RESOURCE}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}')
+  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
+    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1 
+  fi
+  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+
+
+  # Invoking Main method
+  /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  if [ ! "$?" == "0" ]; then
+    echo "Could not invoke main method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "Main function invoked" > >(tee -a "${output_log}")
+
+  retries="3"
+  while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+  done
+  if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
+    echo "Could not invoke main method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job1_NEW.out" | awk '{print $2}')
+  if [ ! "${method_name}" == "main" ]; then
+    echo "Could not invoke main method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo  "main method properly executed" > >(tee -a "${output_log}")
+
+
+
+  # Invoking method other than main
+  /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  if [ ! "$?" == "0" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "demoFunction function invoked" > >(tee -a "${output_log}")
+  retries="3"
+  while [ ! -f "${agent1_log_dir}/jobs/job2_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+  done
+  if [ ! -f "${agent1_log_dir}/jobs/job2_NEW.out" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job2_NEW.out" | awk '{print $2}')
+  if [ ! "${method_name}" == "demoFunction" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo  "demoFunction method properly executed" > >(tee -a "${output_log}")
+
+
+
+  # Checking management of simultaneous operation invocations
+  for job in 3 4 5 6; do
+    /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+    if [ ! "$?" == "0" ]; then
+      echo "Error invoking method." > >(tee -a "${error_log}")
+      exit 1
+    fi
+  done
+  echo  "4 simultaneous demoFunction methods invoked" > >(tee -a "${output_log}")
+
+  sleep 5
+  retries="3"
+  files=0
+  while [ "${files}" -lt "4" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    files=0
+    for job in 3 4 5 6; do
+      if [ -f "${agent1_log_dir}/jobs/job${job}_NEW.out" ]; then
+        files=$(( files + 1 ))
+      fi
+    done
+  done
+  if [ "${files}" -lt "4" ]; then
+    echo "Simultaneous tasks not properly submitted." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  job3_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -d ':' -f2)
+  job4_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d ':' -f2)
+  job5_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job5_NEW.out" | cut -d ':' -f2)
+  job6_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job6_NEW.out" | cut -d ':' -f2)
+  job3_end=$( grep "End time:" "${agent1_log_dir}/jobs/job3_NEW.out" | cut -d ':' -f2)
+  job4_end=$( grep "End time:" "${agent1_log_dir}/jobs/job4_NEW.out" | cut -d ':' -f2)
+  job5_end=$( grep "End time:" "${agent1_log_dir}/jobs/job5_NEW.out" | cut -d ':' -f2)
+  job6_end=$( grep "End time:" "${agent1_log_dir}/jobs/job6_NEW.out" | cut -d ':' -f2)
+
+  starts=$(
+    for var in "${job3_start}" "${job4_start}" "${job5_start}" "${job6_start}"; do
+      echo "$var"
+    done | sort -n)
+  ends=$(
+    for var in "${job3_end}" "${job4_end}" "${job5_end}" "${job6_end}"; do
+      echo "$var"
+    done | sort -n)
+
+  validate_max__parallel_running_tasks "${starts}" "${ends}" "1"
+
+  echo  "4 simultaneous demoFunction methods properly managed with 1 cpu" > >(tee -a "${output_log}")
+
+
+
+  # Increasing local resources
+  echo "Adding additional resources: 1 CPU core." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
+    --agent_node "COMPSsWorker01" \
+    --agent_port "46101" \
+    "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
+  sleep 1
+  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null 
+  sleep 1
+  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
+  if [ ! "${num_RESOURCES}" == "2" ]; then
+    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
+  if [ ! "${num_RESOURCE}" == "2" ]; then
+    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
+  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
+    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1 
+  fi
+  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
+  if [ ! "${CPU_COUNT}" == "2" ]; then
+    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "Resources properly added" > >(tee -a "${output_log}")
+  
+  # Checking management of simultaneous operation invocations
+  for job in 7 8 9 10; do
+    /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+    if [ ! "$?" == "0" ]; then
+      echo "Error invoking method." > >(tee -a "${error_log}")
+      exit 1
+    fi
+  done
+  echo  "4 simultaneous demoFunction methods invoked" > >(tee -a "${output_log}")
+
+  sleep 5
+  retries="3"
+  files=0
+  while [ "${files}" -lt "4" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    files=0
+    for job in 7 8 9 10; do
+      if [ -f "${agent1_log_dir}/jobs/job${job}_NEW.out" ]; then
+        files=$(( files + 1 ))
+      fi
+    done
+  done
+  if [ "${files}" -lt "4" ]; then
+    echo "Simultaneous tasks not properly submitted." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  job7_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job7_NEW.out" | cut -d ':' -f2)
+  job8_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job8_NEW.out" | cut -d ':' -f2)
+  job9_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job9_NEW.out" | cut -d ':' -f2)
+  job10_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job10_NEW.out" | cut -d ':' -f2)
+  job7_end=$( grep "End time:" "${agent1_log_dir}/jobs/job7_NEW.out" | cut -d ':' -f2)
+  job8_end=$( grep "End time:" "${agent1_log_dir}/jobs/job8_NEW.out" | cut -d ':' -f2)
+  job9_end=$( grep "End time:" "${agent1_log_dir}/jobs/job9_NEW.out" | cut -d ':' -f2)
+  job10_end=$( grep "End time:" "${agent1_log_dir}/jobs/job10_NEW.out" | cut -d ':' -f2)
+
+
+  starts=$(
+    for var in "${job7_start}" "${job8_start}" "${job9_start}" "${job10_start}"; do
+      echo "$var"
+    done | sort -n)
+  ends=$(
+    for var in "${job7_end}" "${job8_end}" "${job9_end}" "${job10_end}"; do
+      echo "$var"
+    done | sort -n)
+
+  validate_max__parallel_running_tasks "${starts}" "${ends}" "2"
+  echo "4 simultaneous demoFunction methods properly managed with 2 CPUs" > >(tee -a "${output_log}")
+
+
+
+  
+  # Removing local resources
+  echo "Removing resources: 1 CPU core." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_reduce_resources" \
+    --agent_node "COMPSsWorker01" \
+    --agent_port "46101" \
+    "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
+  sleep 1
+  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null 
+  sleep 1
+  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
+  if [ ! "${num_RESOURCES}" == "3" ]; then
+    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
+  if [ ! "${num_RESOURCE}" == "3" ]; then
+    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
+  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
+    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1 
+  fi
+  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "Resources properly removed" > >(tee -a "${output_log}")
+
+  # Checking management of simultaneous operation invocations
+  for job in 11 12 13 14; do
+    /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+    if [ ! "$?" == "0" ]; then
+      echo "Error invoking method." > >(tee -a "${error_log}")
+      exit 1
+    fi
+  done
+  echo  "4 simultaneous demoFunction methods invoked" > >(tee -a "${output_log}")
+
+  sleep 5
+  retries="3"
+  files=0
+  while [ "${files}" -lt "4" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    files=0
+    for job in 11 12 13 14; do
+      if [ -f "${agent1_log_dir}/jobs/job${job}_NEW.out" ]; then
+        files=$(( files + 1 ))
+      fi
+    done
+  done
+  if [ "${files}" -lt "4" ]; then
+    echo "Simultaneous tasks not properly submitted." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  job11_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job11_NEW.out" | cut -d ':' -f2)
+  job12_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job12_NEW.out" | cut -d ':' -f2)
+  job13_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job13_NEW.out" | cut -d ':' -f2)
+  job14_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job14_NEW.out" | cut -d ':' -f2)
+  job11_end=$( grep "End time:" "${agent1_log_dir}/jobs/job11_NEW.out" | cut -d ':' -f2)
+  job12_end=$( grep "End time:" "${agent1_log_dir}/jobs/job12_NEW.out" | cut -d ':' -f2)
+  job13_end=$( grep "End time:" "${agent1_log_dir}/jobs/job13_NEW.out" | cut -d ':' -f2)
+  job14_end=$( grep "End time:" "${agent1_log_dir}/jobs/job14_NEW.out" | cut -d ':' -f2)
+
+  starts=$(
+    for var in "${job11_start}" "${job12_start}" "${job13_start}" "${job14_start}"; do
+      echo "$var"
+    done | sort -n)
+  ends=$(
+    for var in "${job11_end}" "${job12_end}" "${job13_end}" "${job14_end}"; do
+      echo "$var"
+    done | sort -n)
+
+  validate_max__parallel_running_tasks "${starts}" "${ends}" "1"
+
+  echo  "4 simultaneous demoFunction methods properly managed with 1 cpu" > >(tee -a "${output_log}")
+
+
+
+
+  # Copy LOG files
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+  
+  # Check result
+  #"${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
+  #exit_value=$?
+  exit_value=0
+
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}

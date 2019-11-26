@@ -332,7 +332,7 @@ add_resource() {
   processors="${processors}
       </processors>"
 
-  ${APP_CMD} -XPUT "http://${agent_node}:${agent_port}/COMPSs/addResources" -H 'content-type: application/xml' -d "\
+  ${APP_CMD} "-s" "-XPUT" "http://${agent_node}:${agent_port}/COMPSs/addResources" -H 'content-type: application/xml' -d "\
 <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
 <newResource>
   <externalResource>

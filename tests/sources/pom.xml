@@ -187,6 +187,7 @@
 
     <!-- SUB-MODULES -->
     <modules>
+        <module>agents</module>
         <module>autoparallel</module>
         <module>c</module>
         <module>cloud</module>

@@ -45,10 +45,10 @@ COMPSs options:
 
   -log, --log_dir           log directory. (Default: /tmp/${app_uuid})
 
-  -project                  path of the project file 
+  --project                  path of the project file 
                             (Default: ${COMPSS_HOME}/Runtime/configuration/xml/projects/examples/local/project.xml)
 
-  -resources                path of the resources file 
+  --resources                path of the resources file 
                             (Default: ${COMPSS_HOME}/Runtime/configuration/xml/resources/examples/local/resources.xml)
 
 

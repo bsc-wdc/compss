@@ -33,6 +33,7 @@
 	<!-- SUB-MODULES -->
 	<modules>
         <module>0_1_agent_deployment</module>
+        <module>1_1_agent_compss</module>
 		<!-- Add new modules below -->
 	</modules>
 </project>

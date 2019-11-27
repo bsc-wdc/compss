@@ -45,7 +45,7 @@
       fi
     done
     if [ ${max_parallel_tasks} -gt "${limit_parallel_tasks}" ]; then
-      echo "Simultaneous tasks not properly managed. Found ${max_parallel_tasks} running and parallel and only ${limit_parallel_tasks} expected."  > >(tee -a "${error_log}")
+      echo "Simultaneous tasks not properly managed. Found ${max_parallel_tasks} running in parallel and only ${limit_parallel_tasks} expected."  > >(tee -a "${error_log}")
       exit 1
     fi
   }

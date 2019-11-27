@@ -15,7 +15,9 @@ import os
 DEFAULT_SKIP = True
 DEFAULT_NUM_RETRIES = 3
 DEFAULT_FAIL_FAST = False
-DEFAULT_FAMILIES = ["autoparallel",
+DEFAULT_FAMILIES = [
+                    "agents",
+                    "autoparallel",
                     "c",
                     "cloud",
                     "java",

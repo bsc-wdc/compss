@@ -217,10 +217,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         Task currentTask = new Task(appId, lang, signature, isPrioritary, numNodes, isReplicated, isDistributed,
             hasTarget, numReturns, parameters, monitor, onFailure, timeOut);
-        
+
         TaskMonitor registeredMonitor = currentTask.getTaskMonitor();
         registeredMonitor.onCreation();
-        
+
         LOGGER.debug("Requesting analysis of Task " + currentTask.getId());
         if (!this.requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");

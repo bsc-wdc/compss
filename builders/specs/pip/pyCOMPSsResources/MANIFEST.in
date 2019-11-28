@@ -1,10 +1,10 @@
 include backend.py
 
-include README.txt
+include README.rst
 include LICENSE.txt
 include VERSION.txt
 include pycompssenv
 include url
 
 global-exclude *.pyc
-global-exclude *.class 
+global-exclude *.class

@@ -6,7 +6,7 @@
   # It needs as a command line argument with the version of the target distributable
   # The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
   # exist in the specified repository in pyCOMPSsResources/url file
-  
+
   # Define script variables
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -17,11 +17,11 @@
     exit 1
   fi
   COMPSS_VERSION=$1
-  
+
   # Add the version number as a resource
   echo "$COMPSS_VERSION" > pyCOMPSsResources/VERSION.txt
-  
-  # Create distributable folder 
+
+  # Create distributable folder
   mkdir -p pyCOMPSs
   
   # Copy scripts and other files into the pyCOMPSs directory
@@ -35,9 +35,9 @@
   cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
   cp pyCOMPSsResources/url pyCOMPSs/
   cp pyCOMPSsResources/backend.py pyCOMPSs/
-  cp pyCOMPSsResources/README.txt pyCOMPSs/
+  cp pyCOMPSsResources/README.rst pyCOMPSs/
   cp pyCOMPSsResources/LICENSE.txt pyCOMPSs/
-  
+
   # Change permissions. This will avoid issues with, for example, python's subprocess.call
   cd pyCOMPSs
   chmod -R 777 *
@@ -45,7 +45,7 @@
   # This should leave a .tar.gz in pyCOMPSs/dist
   python setup.py sdist
   cd "${SCRIPT_DIR}"
-  
+
   # Finally, move the pyCOMPSs distributable to packages/pip (tgz included)
   # Delete previous versions (if any)
   rm -rf ../../packages/pip
@@ -54,4 +54,3 @@
   chmod -R 777 pyCOMPSs
   # Move it to its final destination
   mv pyCOMPSs ../../packages/pip/
-

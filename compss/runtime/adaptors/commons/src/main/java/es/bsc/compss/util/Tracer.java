@@ -709,7 +709,7 @@ public abstract class Tracer {
         if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
                 new TraceMerger(System.getProperty(COMPSsConstants.APP_LOG_DIR), appName).merge();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 ErrorManager.warn("Error while trying to merge files: " + e.toString());
             }
         }

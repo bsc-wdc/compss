@@ -146,9 +146,9 @@ public class TraceMerger {
     /**
      * Merge traces.
      * 
-     * @throws IOException Error managing traces
+     * @throws Exception Error managing traces
      */
-    public void merge() throws IOException {
+    public void merge() throws Exception {
         LOGGER.debug("Parsing master sync events");
         Map<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(this.masterTracePath, -1);
 
@@ -240,7 +240,7 @@ public class TraceMerger {
     }
 
     private void writeWorkerEvents(Map<Integer, List<LineInfo>> masterSyncEvents,
-        Map<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) {
+        Map<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) throws Exception {
 
         LOGGER.debug("Writing " + eventsLine.size() + " lines from worker " + workerID);
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
@@ -266,10 +266,15 @@ public class TraceMerger {
         return newLine;
     }
 
-    private LineInfo getWorkerInfo(List<LineInfo> masterSyncEvents, List<LineInfo> workerSyncEvents) {
+    private LineInfo getWorkerInfo(List<LineInfo> masterSyncEvents, List<LineInfo> workerSyncEvents) throws Exception {
+        if (masterSyncEvents.size() < 2) {
+            throw new Exception("ERROR: Malformed master trace. Master sync events not found");
+        }
         LineInfo javaStart = masterSyncEvents.get(0);
         LineInfo javaEnd = masterSyncEvents.get(1);
-
+        if (workerSyncEvents.size() < 2) {
+            throw new Exception("ERROR: Malformed worker trace. Worker sync events not found");
+        }
         LineInfo workerStart = workerSyncEvents.get(0);
         LineInfo workerEnd = workerSyncEvents.get(1);
 

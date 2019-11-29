@@ -20,6 +20,8 @@ DEFAULT_TRACING_ARG=true
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
 DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
+DEFAULT_WORKER_MIN_PORT=43001
+DEFAULT_WORKER_MAX_PORT=43005
 DEFAULT_CPU_AFFINITY="automatic"
 DEFAULT_GPU_AFFINITY="automatic"
 DEFAULT_FPGA_AFFINITY="automatic"
@@ -153,6 +155,8 @@ show_opts() {
     --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
                                             Mandatory if worker_in_master_cpus is specified.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
+    --worker_port_range=<min>,<max>	    Port range used by the NIO adaptor at the worker side
+					    Default: ${DEFAULT_WORKER_MIN_PORT},${DEFAULT_WORKER_MAX_PORT}
     --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node.
                                             Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
@@ -313,7 +317,7 @@ worker_cmd() {
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
   local maxSend=5
   local maxReceive=5
-  local worker_port=43001
+  local worker_port=${worker_min_port}
 
   if [ -z "${master_name}" ]; then
      master_name="null"
@@ -543,7 +547,7 @@ create_xml_project() {
   add_header
 
   # Add master information (from generate_project.sh)
-  add_master_node "NULL" "NULL" "NULL" "NULL" "${shared_disks_info}"
+  add_master_node "0" "0" "0" "NULL" "${shared_disks_info}"
 
   # Add workers
   xml_project_add_worker_in_master
@@ -598,7 +602,7 @@ xml_resources_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
   fi
 }
 
@@ -618,7 +622,7 @@ xml_resources_add_workers() {
     fi
     # Add compute node
     worker_node_name=${worker_node_name}${network}
-    add_compute_node "${worker_node_name}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${node_memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    add_compute_node "${worker_node_name}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${node_memory}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
   done
 }
 
@@ -629,7 +633,7 @@ xml_resources_add_elasticity() {
   # Add elasticity if defined
   if [ -n "${elasticity}" ]; then
     local instance_types="default:${cpus_per_node}:${gpus_per_node}:${fpgas_per_node}:${node_memory}:1:0.085"
-    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SLURMConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
+    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SLURMConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
   fi
 }
 
@@ -748,7 +752,7 @@ init_het_xml_files() {
   # Add header (from generate_project.sh)
   add_header
   # Add master information (from generate_project.sh)
-  add_master_node "0" "0" "0" "0" "${shared_disks_info}"
+  add_master_node "0" "0" "0" "NULL" "${shared_disks_info}"
   # Add workers
   xml_project_add_worker_in_master
   xml_project_add_workers
@@ -1114,6 +1118,10 @@ get_args() {
           # Remove from runcompss since launcher will add it
           master_port=${OPTARG//master_port=/}
           ;;
+	worker_port_range=*)
+          # Remove from runcompss since launcher will add it
+          worker_port_range=${OPTARG//worker_port_range=/}
+          ;;
         container_image=*)
           container_image=${OPTARG//container_image=/}
           ;;
@@ -1355,6 +1363,17 @@ check_args() {
     echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
     master_port=$((master_port+1))
   done
+
+  #
+  # Worker port range
+  #
+  if [ -z "${worker_port_range}" ]; then
+    worker_max_port=${DEFAULT_WORKER_MAX_PORT}
+    worker_min_port=${DEFAULT_WORKER_MIN_PORT}
+  else
+    worker_max_port=$(echo ${worker_port_range} |tr "," "\\t"| awk {'print $2'})
+    worker_min_port=$(echo ${worker_port_range} |tr "," "\\t"| awk {'print $1'})
+  fi
 
   #
   # Working Directory Checks

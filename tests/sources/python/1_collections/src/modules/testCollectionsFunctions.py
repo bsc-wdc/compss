@@ -73,7 +73,7 @@ class testCollectionFunctions(unittest.TestCase):
         for i in range(5):
             append(array_1, "appended")
             modify_obj(array_2, "modified")
-            # modify_deep_obj(array_3, "appended", "modified")
+            modify_deep_obj(array_3, "appended", "modified")
 
         array_1 = compss_wait_on(array_1)
         array_2 = compss_wait_on(array_2)
@@ -91,16 +91,16 @@ class testCollectionFunctions(unittest.TestCase):
             if modifies:
                 modifies = array_2[i].get_test() == "modified"
 
-            # if deep_modifies:
-            #     _0 = "appended" in array_3[i][0]
-            #     _1 = array_3[i][1].get_test() == "modified"
-            #     deep_modifies = _0 and _1
+            if deep_modifies:
+                _0 = "appended" in array_3[i][0]
+                _1 = array_3[i][1].get_test() == "modified"
+                deep_modifies = _0 and _1
 
         self.assertTrue(appends)
         self.assertTrue(modifies)
         self.assertTrue(deep_modifies)
 
-    def _testMasterGenerationIn(self):
+    def testMasterGenerationIn(self):
         matrix = [
             np.random.rand(5) for _ in range(10)
         ]
@@ -113,7 +113,7 @@ class testCollectionFunctions(unittest.TestCase):
             )
         )
 
-    def _testWorkerGenerationIn(self):
+    def testWorkerGenerationIn(self):
         matrix = [
             generate_object(i) for i in range(10)
         ]
@@ -128,7 +128,7 @@ class testCollectionFunctions(unittest.TestCase):
             )
         )
 
-    def _testDepthWorkerGenerationIn(self):
+    def testDepthWorkerGenerationIn(self):
         two_two_two_two_matrix = \
             [
                 [
@@ -153,7 +153,7 @@ class testCollectionFunctions(unittest.TestCase):
             )
         )
 
-    def _testWorkerGenerationInout(self):
+    def testWorkerGenerationInout(self):
         # Generate ten random vectors with pre-determined seed
         ten_random_vectors = [generate_object(i) for i in range(10)]
         increase_elements(ten_random_vectors)
@@ -168,15 +168,3 @@ class testCollectionFunctions(unittest.TestCase):
                 np.random.rand(5) + 2.0
             )
         )
-
-
-# class MyClass(object):
-#     def __init__(self):
-#         self.test = "holala"
-#
-#     def get_test(self):
-#         return self.test
-#
-#     def set_test(self, test):
-#         self.test = test
-

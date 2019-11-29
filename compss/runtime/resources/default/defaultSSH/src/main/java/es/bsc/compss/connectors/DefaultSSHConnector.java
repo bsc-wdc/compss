@@ -120,7 +120,8 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
         LOGGER.debug("Create connection " + name);
         return this.connector.create(name, Converter.getHardwareDescription(cmrd),
-            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
+            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties(),
+            cmrd.getImage().getConfig().getAdaptorName());
 
     }
 

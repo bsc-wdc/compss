@@ -24,6 +24,7 @@ import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.jaxb.ResourcesExternalAdaptorProperties;
 import es.bsc.compss.types.resources.jaxb.ResourcesPropertyAdaptorType;
 import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.conn.types.StarterCommand;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -79,6 +80,13 @@ public class Adaptor implements CommAdaptor {
     @Override
     public void stopSubmittedJobs() {
         // You can't do that
+    }
+
+    @Override
+    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        return null;
     }
 
 }

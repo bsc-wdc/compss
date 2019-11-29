@@ -29,6 +29,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.RequestQueue;
 import es.bsc.compss.util.ThreadPool;
+import es.bsc.conn.types.StarterCommand;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -230,6 +231,13 @@ public class GATAdaptor implements CommAdaptor {
 
     public static GATContext getTransferContext() {
         return transferContext;
+    }
+
+    @Override
+    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        return null;
     }
 
 }

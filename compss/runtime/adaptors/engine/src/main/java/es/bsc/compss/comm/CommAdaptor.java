@@ -21,6 +21,7 @@ import es.bsc.compss.types.COMPSsWorker;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.conn.types.StarterCommand;
 
 import java.util.List;
 import java.util.Map;
@@ -78,5 +79,9 @@ public interface CommAdaptor {
      * Stops all the pending jobs inside the Communication Adaptor.
      */
     public void stopSubmittedJobs();
+
+    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId);
 
 }

@@ -24,6 +24,8 @@ import es.bsc.compss.types.fake.FakeNode;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
 import es.bsc.compss.types.uri.MultiURI;
+import es.bsc.conn.types.StarterCommand;
+
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -66,6 +68,13 @@ public class FakeMethodAdaptor implements CommAdaptor {
     @Override
     public void stopSubmittedJobs() {
         // Nothing to do
+    }
+
+    @Override
+    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
+        return null;
     }
 
 }

@@ -21,6 +21,7 @@ import es.bsc.compss.exceptions.ConstructConfigurationException;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.resources.configuration.Configuration;
 import es.bsc.compss.types.resources.configuration.MethodConfiguration;
+import es.bsc.conn.types.StarterCommand;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -72,6 +73,13 @@ public class DummyAdaptor implements CommAdaptor {
 
     @Override
     public LinkedList<DataOperation> getPending() {
+        return null;
+    }
+
+    @Override
+    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId) {
         return null;
     }
 

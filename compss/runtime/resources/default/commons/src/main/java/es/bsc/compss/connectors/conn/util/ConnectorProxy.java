@@ -16,12 +16,14 @@
  */
 package es.bsc.compss.connectors.conn.util;
 
+import es.bsc.compss.comm.Comm;
 import es.bsc.compss.connectors.ConnectorException;
 
 import es.bsc.conn.Connector;
 import es.bsc.conn.exceptions.ConnException;
 import es.bsc.conn.types.HardwareDescription;
 import es.bsc.conn.types.SoftwareDescription;
+import es.bsc.conn.types.StarterCommand;
 import es.bsc.conn.types.VirtualResource;
 
 import java.util.Map;
@@ -55,18 +57,58 @@ public class ConnectorProxy {
      * @param hardwareDescription Connector hardware properties.
      * @param softwareDescription Connector software properties.
      * @param properties Specific properties.
+     * @param adaptorName Name of the adaptor used to connect to this machine.
      * @return Machine Object.
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
     public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription,
-        Map<String, String> properties) throws ConnectorException {
+        Map<String, String> properties, String adaptorName) throws ConnectorException {
 
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
         Object created;
         try {
-            created = this.connector.create(name, hardwareDescription, softwareDescription, properties);
+            StarterCommand starterCMD =
+                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
+            created = this.connector.create(name, hardwareDescription, softwareDescription, properties, starterCMD);
+        } catch (ConnException ce) {
+            throw new ConnectorException(ce);
+        }
+        return created;
+    }
+
+    private StarterCommand getStarterCommand(String adaptorName, String name, HardwareDescription hd,
+        SoftwareDescription sd, Map<String, String> properties) {
+        return null;
+
+    }
+
+    /**
+     * Creates several new machines in the given connector with the given information.
+     * 
+     * @param replicas Number of replicas for this machine
+     * @param name Machine name.
+     * @param hardwareDescription Connector hardware properties.
+     * @param softwareDescription Connector software properties.
+     * @param properties Specific properties.
+     * @param adaptorName Name of the adaptor used to connect to this machine.
+     * @return Machine Object.
+     * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
+     */
+    public Object createMultiple(int replicas, String name, HardwareDescription hardwareDescription,
+        SoftwareDescription softwareDescription, Map<String, String> properties, String adaptorName)
+        throws ConnectorException {
+
+        if (this.connector == null) {
+            throw new ConnectorException(ERROR_NO_CONN);
+        }
+        Object[] created;
+        try {
+            StarterCommand starterCMD =
+                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
+            created = this.connector.createMultiple(replicas, name, hardwareDescription, softwareDescription,
+                properties, starterCMD);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }

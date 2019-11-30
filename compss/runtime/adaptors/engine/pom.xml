@@ -45,6 +45,12 @@
             <version>${project.version}</version>
         </dependency>
         
+        <dependency>
+            <groupId>es.bsc.conn</groupId>
+            <artifactId>commons-conn</artifactId>
+            <version>${conn.version}</version>
+        </dependency>
+        
         <!-- jUnit -->
         <dependency>
             <groupId>junit</groupId>

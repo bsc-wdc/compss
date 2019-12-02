@@ -64,6 +64,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     protected static final String TOKEN_NEW_LINE = "\n";
     protected static final String TOKEN_SEP = " ";
 
+    // Piper paths
     protected static final String PIPER_SCRIPT_RELATIVE_PATH =
         File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator
             + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
@@ -78,10 +79,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     private final MirrorMonitor monitor;
 
     private Process pipeBuilderProcess;
-    private ControlPipePair pipeBuilderPipe;
     private StreamGobbler pipeBuildeOutGobbler;
     private StreamGobbler pipeBuildeErrGobbler;
 
+    private ControlPipePair pipeBuilderPipe;
     private ControlPipePair pipeWorkerPipe;
 
 
@@ -92,12 +93,12 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
      * @param size Processes size
      */
     public PipedMirror(InvocationContext context, int size) {
-        mirrorId = String.valueOf(UUID.randomUUID().hashCode());
+        this.mirrorId = String.valueOf(UUID.randomUUID().hashCode());
         String workingDir = context.getWorkingDir();
         if (!workingDir.endsWith(File.separator)) {
             workingDir += File.separator;
         }
-        basePipePath = workingDir + PIPE_FILE_BASENAME + mirrorId + "_";
+        this.basePipePath = workingDir + PIPE_FILE_BASENAME + this.mirrorId + "_";
         this.size = size;
         this.pipePool = new HashMap<>();
         this.monitor = new MirrorMonitor();
@@ -108,7 +109,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     }
 
     protected final void init(InvocationContext context) {
-        monitor.start();
+        this.monitor.start();
+
         startPipeBuilder(context);
 
         if (Tracer.extraeEnabled()) {
@@ -122,7 +124,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     private void startPipeBuilder(InvocationContext context) {
         String installDir = context.getInstallDir();
         String piperScript = installDir + PIPER_SCRIPT_RELATIVE_PATH + PIPE_SCRIPT_NAME;
-        LOGGER.debug("PIPE Script: " + piperScript);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("PIPE Script: " + piperScript);
+        }
+
         String args = constructPipeBuilderArgs(context);
         LOGGER.info("Init piper PipeBuilder");
         ProcessBuilder pb = new ProcessBuilder(piperScript, args);
@@ -135,36 +140,48 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
             pb.directory(new File(getPBWorkingDir(context)));
             pb.environment().putAll(env);
+
+            // Clean the EXTRAE environment
+            pb.environment().put("EXTRAE_SKIP_AUTO_LIBRARY_INITIALIZE", "1");
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
 
-            pipeBuilderProcess = pb.start();
+            // Emit start host id event
+            if (Tracer.extraeEnabled()) {
+                // long tracingHostId = context.getTracingHostID();
+                Tracer.emitEvent(this.size, Tracer.getSyncType());
+            }
+
+            // Launch process builder
+            this.pipeBuilderProcess = pb.start();
             LOGGER.debug("Starting stdout/stderr gobblers ...");
             try {
-                pipeBuilderProcess.getOutputStream().close();
+                this.pipeBuilderProcess.getOutputStream().close();
             } catch (IOException e) {
                 // Stream no Longer Exists
             }
 
             // Active wait until the process is created and the pipes are ready
-            while (pipeBuilderProcess.isAlive() && !new File(pipeBuilderPipe.getOutboundPipe()).exists()) {
+            while (this.pipeBuilderProcess.isAlive() && !new File(this.pipeBuilderPipe.getOutboundPipe()).exists()) {
                 // TODO: SHOULD WE ADD A TIMEOUT AT THIS POINT??
             }
 
-            if (!pipeBuilderProcess.isAlive()) {
+            // Check that the process is still alive
+            if (!this.pipeBuilderProcess.isAlive()) {
                 ErrorManager.fatal(ERROR_PB_START);
             }
 
-            pipeBuildeOutGobbler = new StreamGobbler(pipeBuilderProcess.getInputStream(), null, LOGGER);
-            pipeBuildeErrGobbler = new StreamGobbler(pipeBuilderProcess.getErrorStream(), null, LOGGER);
-            pipeBuildeOutGobbler.start();
-            pipeBuildeErrGobbler.start();
+            // Enable pipes, monitor and commands
+            this.pipeBuildeOutGobbler = new StreamGobbler(this.pipeBuilderProcess.getInputStream(), null, LOGGER);
+            this.pipeBuildeErrGobbler = new StreamGobbler(this.pipeBuilderProcess.getErrorStream(), null, LOGGER);
+            this.pipeBuildeOutGobbler.start();
+            this.pipeBuildeErrGobbler.start();
 
-            monitor.mainProcess(pipeBuilderProcess, pipeBuilderPipe);
+            this.monitor.mainProcess(this.pipeBuilderProcess, this.pipeBuilderPipe);
 
-            if (pipeBuilderPipe.sendCommand(new PingPipeCommand())) {
+            if (this.pipeBuilderPipe.sendCommand(new PingPipeCommand())) {
                 try {
-                    pipeBuilderPipe.waitForCommand(new PongPipeCommand());
+                    this.pipeBuilderPipe.waitForCommand(new PongPipeCommand());
                 } catch (ClosedPipeException ie) {
                     ErrorManager.fatal("Exception creating process builder. Message: " + ie.getMessage(), ie);
                 }
@@ -181,14 +198,14 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         StringBuilder cmd = new StringBuilder();
 
         // Control pipes
-        pipeBuilderPipe = new ControlPipePair(basePipePath, "control", this);
-        cmd.append(pipeBuilderPipe.getOutboundPipe()).append(TOKEN_SEP);
-        cmd.append(pipeBuilderPipe.getInboundPipe()).append(TOKEN_SEP);
+        this.pipeBuilderPipe = new ControlPipePair(basePipePath, "control", this);
+        cmd.append(this.pipeBuilderPipe.getOutboundPipe()).append(TOKEN_SEP);
+        cmd.append(this.pipeBuilderPipe.getInboundPipe()).append(TOKEN_SEP);
 
         // Executor Pipes
         StringBuilder writePipes = new StringBuilder();
         StringBuilder readPipes = new StringBuilder();
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; i < this.size; ++i) {
             String pipeName = "executor" + i;
             PipePair executorPipe = new PipePair(basePipePath, pipeName, this);
             this.pipePool.put(pipeName, executorPipe);
@@ -197,11 +214,11 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         }
 
         // Write Pipes
-        cmd.append(size).append(TOKEN_SEP);
+        cmd.append(this.size).append(TOKEN_SEP);
         cmd.append(writePipes.toString());
 
         // Read Pipes
-        cmd.append(size).append(TOKEN_SEP);
+        cmd.append(this.size).append(TOKEN_SEP);
         cmd.append(readPipes.toString());
 
         if (LOGGER.isDebugEnabled()) {
@@ -225,17 +242,19 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     public abstract String getPipeBuilderContext();
 
     private void startWorker(InvocationContext context) {
-        pipeWorkerPipe = new ControlPipePair(basePipePath, "control_worker", this);
-        String cmd = getLaunchWorkerCommand(context, pipeWorkerPipe);
-        if (pipeBuilderPipe.sendCommand(new StartWorkerPipeCommand(cmd, pipeWorkerPipe))) {
+        this.pipeWorkerPipe = new ControlPipePair(this.basePipePath, "control_worker", this);
+
+        String cmd = getLaunchWorkerCommand(context, this.pipeWorkerPipe);
+        StartWorkerPipeCommand swpc = new StartWorkerPipeCommand(cmd, this.pipeWorkerPipe);
+        if (this.pipeBuilderPipe.sendCommand(swpc)) {
             WorkerStartedPipeCommand startedCMD = new WorkerStartedPipeCommand();
             try {
-                pipeBuilderPipe.waitForCommand(startedCMD);
+                this.pipeBuilderPipe.waitForCommand(startedCMD);
             } catch (ClosedPipeException ie) {
                 ErrorManager.fatal(ERROR_W_START);
             }
             int workerPID = startedCMD.getPid();
-            monitor.registerWorker(mirrorId, workerPID, pipeWorkerPipe);
+            this.monitor.registerWorker(this.mirrorId, workerPID, this.pipeWorkerPipe);
         } else {
             ErrorManager.fatal(ERROR_W_START);
         }
@@ -266,11 +285,13 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     public void stop() {
         stopWorker();
         stopPiper();
-        monitor.stop();
+
+        this.monitor.stop();
     }
 
     private void stopExecutors() {
-        LOGGER.info("Stopping executor pipes for mirror " + mirrorId);
+        LOGGER.info("Stopping executor pipes for mirror " + this.mirrorId);
+
         for (String executorId : new LinkedList<>(pipePool.keySet())) {
             unregisterExecutor(executorId);
         }
@@ -278,32 +299,35 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
     private void stopWorker() {
         stopExecutors();
-        LOGGER.info("Stopping mirror " + mirrorId);
-        if (pipeWorkerPipe.sendCommand(new QuitPipeCommand())) {
+
+        LOGGER.info("Stopping mirror " + this.mirrorId);
+        if (this.pipeWorkerPipe.sendCommand(new QuitPipeCommand())) {
             try {
-                pipeWorkerPipe.waitForCommand(new QuitPipeCommand());
+                this.pipeWorkerPipe.waitForCommand(new QuitPipeCommand());
             } catch (ClosedPipeException cpe) {
                 // Worker is already closed
             }
         } else {
             // Worker is already closed
         }
+
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             Tracer.emitEvent((long) timestamp.getTime(), Tracer.getSyncType());
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getSyncType());
         }
-        monitor.unregisterWorker(mirrorId);
-        pipeWorkerPipe.delete();
+        this.monitor.unregisterWorker(this.mirrorId);
+        this.pipeWorkerPipe.delete();
     }
 
     private void stopPiper() {
-        boolean errorOnPipe = false;
         LOGGER.info("Stopping piper process");
-        if (pipeBuilderPipe.sendCommand(new QuitPipeCommand())) {
+
+        boolean errorOnPipe = false;
+        if (this.pipeBuilderPipe.sendCommand(new QuitPipeCommand())) {
             try {
-                pipeBuilderPipe.waitForCommand(new QuitPipeCommand());
+                this.pipeBuilderPipe.waitForCommand(new QuitPipeCommand());
             } catch (ClosedPipeException cpe) {
                 LOGGER.error(ERROR_W_PIPE, cpe);
                 errorOnPipe = true;
@@ -315,9 +339,9 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
 
         try {
             if (errorOnPipe) {
-                if (pipeBuilderProcess.isAlive()) {
+                if (this.pipeBuilderProcess.isAlive()) {
                     LOGGER.info("Error passing QUIT message. Killing piper process");
-                    pipeBuilderProcess.destroy();
+                    this.pipeBuilderProcess.destroy();
                 }
             } else {
                 LOGGER.info("Waiting for finishing piper process");
@@ -326,30 +350,29 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                     ErrorManager.error("ExternalExecutor piper ended with " + exitCode + " status");
                 }
             }
-            pipeBuildeOutGobbler.join();
-            pipeBuildeErrGobbler.join();
-
+            this.pipeBuildeOutGobbler.join();
+            this.pipeBuildeErrGobbler.join();
         } catch (InterruptedException e) {
             // No need to handle such exception
         } finally {
-            if (pipeBuilderProcess != null) {
-                if (pipeBuilderProcess.getInputStream() != null) {
+            if (this.pipeBuilderProcess != null) {
+                if (this.pipeBuilderProcess.getInputStream() != null) {
                     try {
-                        pipeBuilderProcess.getInputStream().close();
+                        this.pipeBuilderProcess.getInputStream().close();
                     } catch (IOException e) {
                         // No need to handle such exception
                     }
                 }
-                if (pipeBuilderProcess.getErrorStream() != null) {
+                if (this.pipeBuilderProcess.getErrorStream() != null) {
                     try {
-                        pipeBuilderProcess.getErrorStream().close();
+                        this.pipeBuilderProcess.getErrorStream().close();
                     } catch (IOException e) {
                         // No need to handle such exception
                     }
                 }
             }
         }
-        pipeBuilderPipe.delete();
+        this.pipeBuilderPipe.delete();
         LOGGER.info("ExternalThreadPool finished");
     }
 
@@ -368,10 +391,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         int executorPID = -1;
         if (createExecutor) {
             // Create pipe
-            if (pipeBuilderPipe.sendCommand(new CreateChannelPipeCommand(pp))) {
+            if (this.pipeBuilderPipe.sendCommand(new CreateChannelPipeCommand(pp))) {
                 ChannelCreatedPipeCommand createdPipe = new ChannelCreatedPipeCommand(pp);
                 try {
-                    pipeBuilderPipe.waitForCommand(createdPipe);
+                    this.pipeBuilderPipe.waitForCommand(createdPipe);
                 } catch (ClosedPipeException ie) {
                     throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
                 }
@@ -380,10 +403,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             }
 
             // Launch executor
-            if (pipeWorkerPipe.sendCommand(new AddExecutorPipeCommand(pp))) {
+            if (this.pipeWorkerPipe.sendCommand(new AddExecutorPipeCommand(pp))) {
                 try {
                     AddedExecutorPipeCommand reply = new AddedExecutorPipeCommand(pp);
-                    pipeWorkerPipe.waitForCommand(reply);
+                    this.pipeWorkerPipe.waitForCommand(reply);
                     executorPID = reply.getPid();
 
                 } catch (ClosedPipeException ie) {
@@ -394,10 +417,10 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             }
         } else {
             // Query executor PID
-            if (pipeWorkerPipe.sendCommand(new ExecutorPIDQueryPipeCommand(pp))) {
+            if (this.pipeWorkerPipe.sendCommand(new ExecutorPIDQueryPipeCommand(pp))) {
                 try {
                     ExecutorPIDReplyPipeCommand reply = new ExecutorPIDReplyPipeCommand(pp);
-                    pipeWorkerPipe.waitForCommand(reply);
+                    this.pipeWorkerPipe.waitForCommand(reply);
                     executorPID = reply.getPids().get(0);
                 } catch (ClosedPipeException ie) {
                     throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
@@ -406,7 +429,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 throw new UnsupportedOperationException("Not yet implemented. Specific exception should be raised");
             }
         }
-        monitor.registerExecutor(this, executorId, executorPID, pp);
+        this.monitor.registerExecutor(this, executorId, executorPID, pp);
 
         return pp;
     }
@@ -436,13 +459,14 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
                 // Executor is already dead -> Do nothing
             }
         }
+
         // Executor is down, no need to keep monitoring it
-        monitor.unregisterExecutor(this, executorId);
+        this.monitor.unregisterExecutor(this, executorId);
 
         // Making sure that it is off through the Worker
-        if (pipeWorkerPipe.sendCommand(new RemoveExecutorPipeCommand(pp))) {
+        if (this.pipeWorkerPipe.sendCommand(new RemoveExecutorPipeCommand(pp))) {
             try {
-                pipeWorkerPipe.waitForCommand(new RemovedExecutorPipeCommand(pp));
+                this.pipeWorkerPipe.waitForCommand(new RemovedExecutorPipeCommand(pp));
             } catch (ClosedPipeException cpe) {
                 LOGGER.error(ERROR_W_PIPE, cpe);
             }
@@ -455,6 +479,6 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     @Override
     public void cancelJob(PipePair pipe) {
         // Making sure that it is off through the Worker
-        pipeWorkerPipe.sendCommand(new CancelJobCommand(pipe));
+        this.pipeWorkerPipe.sendCommand(new CancelJobCommand(pipe));
     }
 }

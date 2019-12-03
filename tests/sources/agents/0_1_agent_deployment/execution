@@ -130,7 +130,11 @@
 
 
   # Invoking Main method
-  /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+    --master_node="127.0.0.1" \
+    --master_port="46101" \
+    es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+
   if [ ! "$?" == "0" ]; then
     echo "Could not invoke main method." > >(tee -a "${error_log}")
     exit 1
@@ -156,7 +160,11 @@
 
 
   # Invoking method other than main
-  /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+    --master_node="127.0.0.1" \
+    --master_port="46101" \
+    --method_name="demoFunction" \
+    es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
   if [ ! "$?" == "0" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
     exit 1
@@ -182,7 +190,11 @@
 
   # Checking management of simultaneous operation invocations
   for job in 3 4 5 6; do
-    /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+      "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+    --master_node="127.0.0.1" \
+    --master_port="46101" \
+    --method_name="demoFunction" \
+    es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
     if [ ! "$?" == "0" ]; then
       echo "Error invoking method." > >(tee -a "${error_log}")
       exit 1
@@ -235,8 +247,8 @@
   # Increasing local resources
   echo "Adding additional resources: 1 CPU core." > >(tee -a "${output_log}")
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
-    --agent_node "COMPSsWorker01" \
-    --agent_port "46101" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
     "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
   sleep 1
   curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null 
@@ -265,7 +277,11 @@
   
   # Checking management of simultaneous operation invocations
   for job in 7 8 9 10; do
-    /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+      "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+    --master_node="127.0.0.1" \
+    --master_port="46101" \
+    --method_name="demoFunction" \
+    es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
     if [ ! "$?" == "0" ]; then
       echo "Error invoking method." > >(tee -a "${error_log}")
       exit 1
@@ -319,8 +335,8 @@
   # Removing local resources
   echo "Removing resources: 1 CPU core." > >(tee -a "${output_log}")
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_reduce_resources" \
-    --agent_node "COMPSsWorker01" \
-    --agent_port "46101" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
     "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
   sleep 1
   curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null 
@@ -349,7 +365,11 @@
 
   # Checking management of simultaneous operation invocations
   for job in 11 12 13 14; do
-    /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101 --method_name=demoFunction es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+      "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+    --master_node="127.0.0.1" \
+    --master_port="46101" \
+    --method_name="demoFunction" \
+    es.bsc.compss.test.DemoClass 1 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
     if [ ! "$?" == "0" ]; then
       echo "Error invoking method." > >(tee -a "${error_log}")
       exit 1
@@ -402,10 +422,6 @@
 
   # Copy LOG files
   cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-  
-  # Check result
-  #"${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
-  #exit_value=$?
   exit_value=0
 
   #----------------------------------------------------------------------------------

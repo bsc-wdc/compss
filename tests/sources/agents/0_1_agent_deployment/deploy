@@ -13,4 +13,3 @@
   cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
 
   cp "${source_base_dir}"/execution "${target_base_dir}"/execution
-  cp "${source_base_dir}"/result "${target_base_dir}"/result

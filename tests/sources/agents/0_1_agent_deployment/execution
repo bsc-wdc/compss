@@ -97,33 +97,33 @@
 
   RESULT=$(grep "test invoked" "${agent1_output_log}")
   if [ -z "${RESULT}" ]; then  
-     echo "Agent 1 failed to start" > >(tee -a "${error_log}")
+     echo "Agent failed to start" > >(tee -a "${error_log}")
      exit 1
   fi
-  echo "Agent 1 started" > >(tee -a "${output_log}")
+  echo "Agent started" > >(tee -a "${output_log}")
   sleep 1
  
   # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
-  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null
-  sleep 1
-  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+    num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
   if [ ! "${num_RESOURCES}" == "1" ]; then
-    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 1 expected." > >(tee -a "${error_log}")
+    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCE}" == "1" ]; then
-    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 1 expected." > >(tee -a "${error_log}")
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}')
-  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
-    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
-    exit 1 
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
   fi
-  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}')
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "1" ]; then
-    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
     exit 1
   fi
 
@@ -251,26 +251,26 @@
     --agent_port="46101" \
     "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
   sleep 1
-  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null 
-  sleep 1
-  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCES}" == "2" ]; then
-    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 2 expected." > >(tee -a "${error_log}")
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+    num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCE}" == "2" ]; then
-    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 2 expected." > >(tee -a "${error_log}")
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
-  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
-    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
-    exit 1 
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
   fi
-  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "2" ]; then
-    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 2 expected." > >(tee -a "${error_log}")
+    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 2 expected." > >(tee -a "${error_log}")
     exit 1
   fi
   echo "Resources properly added" > >(tee -a "${output_log}")
@@ -339,26 +339,26 @@
     --agent_port="46101" \
     "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
   sleep 1
-  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null 
-  sleep 1
-  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCES}" == "3" ]; then
-    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 2 expected." > >(tee -a "${error_log}")
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+    num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCE}" == "3" ]; then
-    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 2 expected." > >(tee -a "${error_log}")
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
-  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
-    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
-    exit 1 
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
   fi
-  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "1" ]; then
-    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
     exit 1
   fi
   echo "Resources properly removed" > >(tee -a "${output_log}")

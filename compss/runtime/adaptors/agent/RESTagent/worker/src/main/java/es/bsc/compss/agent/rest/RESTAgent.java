@@ -324,9 +324,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         AppMainMonitor monitor = new AppMainMonitor();
         long appId;
         try {
-             appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, null, new
-             ApplicationParameter[0],
-             monitor);
+            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
+                monitor);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runMain : ", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();

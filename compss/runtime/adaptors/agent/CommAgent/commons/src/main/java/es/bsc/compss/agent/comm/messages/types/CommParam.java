@@ -76,6 +76,11 @@ public class CommParam extends NIOParam implements ApplicationParameter, Externa
         return super.getName();
     }
 
+    @Override
+    public String getContentType() {
+        return super.getContentType();
+    }
+
     public void setRemoteData(RemoteDataInformation remoteData) {
         this.remoteData = remoteData;
     }

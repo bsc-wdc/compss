@@ -38,6 +38,7 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     private StdIOStream stdIOStream;
     private String prefix;
     private String paramName;
+    private String contentType;
 
 
     public ApplicationParameterImpl() {
@@ -55,13 +56,14 @@ public class ApplicationParameterImpl implements ApplicationParameter {
      * @param paramName name of the parameter
      */
     public ApplicationParameterImpl(Object val, Direction dir, DataType type, StdIOStream stream, String prefix,
-        String paramName) {
+        String paramName, String contentType) {
         this.value = ApplicationParameterValue.createParameterValue(val);
         this.direction = dir;
         this.stdIOStream = stream;
         this.type = type;
         this.prefix = prefix;
         this.paramName = paramName;
+        this.contentType = contentType;
     }
 
     @XmlAttribute
@@ -116,6 +118,11 @@ public class ApplicationParameterImpl implements ApplicationParameter {
     @Override
     public String getParamName() {
         return this.paramName;
+    }
+
+    @Override
+    public String getContentType() {
+        return this.contentType;
     }
 
     @XmlElements({ @XmlElement(name = "array", type = ApplicationParameterValue.ArrayParameter.class, required = false),

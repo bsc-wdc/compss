@@ -72,4 +72,11 @@ public interface ApplicationParameter {
      */
     public RemoteDataInformation getRemoteData();
 
+    /**
+     * Returns the python object type of the parameter, if exists.
+     *
+     * @return parameter name
+     */
+    public String getContentType();
+
 }

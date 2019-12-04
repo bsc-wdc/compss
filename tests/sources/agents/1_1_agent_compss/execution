@@ -46,8 +46,8 @@
         max_parallel_tasks=${running_tasks}
       fi
     done
-    if [ ${min_parallel_tasks} -lt "${limit_parallel_tasks}" ]; then
-      echo "Simultaneous tasks not properly managed. Found ${max_parallel_tasks} running in parallel and at least ${limit_parallel_tasks} expected."  > >(tee -a "${error_log}")
+    if [ ${max_parallel_tasks} -lt "${min_parallel_tasks}" ]; then
+      echo "Simultaneous tasks not properly managed. Found ${max_parallel_tasks} running in parallel and at least ${min_parallel_tasks} expected."  > >(tee -a "${error_log}")
       exit 1
     fi
     if [ ${max_parallel_tasks} -gt "${limit_parallel_tasks}" ]; then
@@ -103,40 +103,45 @@
 
   RESULT=$(grep "test invoked" "${agent1_output_log}")
   if [ -z "${RESULT}" ]; then  
-     echo "Agent 1 failed to start" > >(tee -a "${error_log}")
+     echo "Agent failed to start" > >(tee -a "${error_log}")
      exit 1
   fi
-  echo "Agent 1 started" > >(tee -a "${output_log}")
+  echo "Agent started" > >(tee -a "${output_log}")
   sleep 1
  
   # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ
-  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null
-  sleep 1
-  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
   if [ ! "${num_RESOURCES}" == "1" ]; then
-    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 1 expected." > >(tee -a "${error_log}")
+    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCE}" == "1" ]; then
-    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 1 expected." > >(tee -a "${error_log}")
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}')
-  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
-    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
-    exit 1 
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
   fi
-  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}')
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "2" ]; then
-    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 2 expected." > >(tee -a "${error_log}")
-    #exit 1
+    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 2 expected." > >(tee -a "${error_log}")
+    exit 1
   fi
 
 
 
   # Invoking DemoFunction method
-  /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101  --method_name=demoFunction --cei=es.bsc.compss.test.DemoClassItf es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+   --master_node="127.0.0.1" \
+   --master_port="46101" \
+   --method_name="demoFunction" \
+   --cei="es.bsc.compss.test.DemoClassItf" \
+   es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
   if [ ! "$?" == "0" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
     exit 1
@@ -194,37 +199,43 @@
  # Increasing local resources
   echo "Adding additional resources: 1 CPU core." > >(tee -a "${output_log}")
   "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
-    --agent_node "COMPSsWorker01" \
-    --agent_port "46101" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
     "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
   sleep 1
-  curl -XGET http://127.0.0.1:46101/COMPSs/printResources 1>/dev/null 2>/dev/null 
-  sleep 1
-  num_RESOURCES=$(grep -c "RESOURCES = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCES}" == "2" ]; then
-    echo "Wrong number of RESOURCES tags on the agent output. Found ${num_RESOURCES}; 2 expected." > >(tee -a "${error_log}")
+    RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+    num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  num_RESOURCE=$(grep -c "RESOURCE = \[" "${agent1_output_log}")
-  if [ ! "${num_RESOURCE}" == "2" ]; then
-    echo "Wrong number of RESOURCE tags on the agent output. Found ${num_RESOURCE}; 2 expected." > >(tee -a "${error_log}")
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
     exit 1
   fi
-  RESOURCE_NAME=$(grep "NAME = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
-  if [ ! "${RESOURCE_NAME}" == "COMPSsWorker01" ]; then
-    echo "Wrong RESOURCE NAME on the agent output. Found ${RESOURCE_NAME}; COMPSsWorker01 expected." > >(tee -a "${error_log}")
-    exit 1 
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
   fi
-  CPU_COUNT=$(grep "CPU_COMPUTING_UNITS = " "${agent1_output_log}" | cut -d '=' -f2 | awk '{print $1}' | tail -n 1)
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
   if [ ! "${CPU_COUNT}" == "3" ]; then
-    echo "Wrong number of CPU cores configured on the agent output. Found ${CPU_COUNT}; 3 expected." > >(tee -a "${error_log}")
+    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 3 expected." > >(tee -a "${error_log}")
     exit 1
   fi
   echo "Resources properly added" > >(tee -a "${output_log}")
 
 
   # Invoking DemoFunction method
-  /opt/COMPSs/Runtime/scripts/user/compss_agent_call_operation --master_node=127.0.0.1 --master_port=46101  --method_name=demoFunction --cei=es.bsc.compss.test.DemoClassItf es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+    --master_node="127.0.0.1" \
+    --master_port="46101" \
+    --method_name="demoFunction" \
+    --cei="es.bsc.compss.test.DemoClassItf" \
+    es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+
   if [ ! "$?" == "0" ]; then
     echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
     exit 1
@@ -278,15 +289,100 @@
   validate_parallel_running_tasks "${starts}" "${ends}" "2" "2"
   echo  "Task executions properly scheduled." > >(tee -a "${output_log}")
 
+ # Removing local resources
+  echo "Removing resources: 1 CPU core." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_reduce_resources" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    "COMPSsWorker01"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
+  sleep 1
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+    num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "2" ]; then
+    echo "Wrong number of CPU cores configured for the Agent. Found ${CPU_COUNT}; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "Resources properly removed" > >(tee -a "${output_log}")
 
+  # Invoking DemoFunction method
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+    --master_node="127.0.0.1" \
+    --master_port="46101" \
+    --method_name="demoFunction" \
+    --cei="es.bsc.compss.test.DemoClassItf" \
+    es.bsc.compss.test.DemoClass 5 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
 
+  if [ ! "$?" == "0" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "demoFunction function invoked" > >(tee -a "${output_log}")
+
+  retries="3"
+  while [ ! -f "${agent1_log_dir}/jobs/job13_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+  done
+  if [ ! -f "${agent1_log_dir}/jobs/job13_NEW.out" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job13_NEW.out" | awk '{print $2}')
+  if [ ! "${method_name}" == "demoFunction" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo  "demoFunction method properly started" > >(tee -a "${output_log}")
+  sleep 5
+
+  created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out)
+  if [ ! "${created_jobs}" == "18" ]; then
+    echo "COMPSs has not generated tasks." > >(tee -a "${error_log}")
+    exit 1
+  fi 
+
+  job14_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job14_NEW.out" | cut -d ':' -f2)
+  job15_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job15_NEW.out" | cut -d ':' -f2)
+  job16_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job16_NEW.out" | cut -d ':' -f2)
+  job17_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job17_NEW.out" | cut -d ':' -f2)
+  job18_start=$( grep "Start time:" "${agent1_log_dir}/jobs/job18_NEW.out" | cut -d ':' -f2)
+
+  job14_end=$( grep "End time:" "${agent1_log_dir}/jobs/job14_NEW.out" | cut -d ':' -f2)
+  job15_end=$( grep "End time:" "${agent1_log_dir}/jobs/job15_NEW.out" | cut -d ':' -f2)
+  job16_end=$( grep "End time:" "${agent1_log_dir}/jobs/job16_NEW.out" | cut -d ':' -f2)
+  job17_end=$( grep "End time:" "${agent1_log_dir}/jobs/job17_NEW.out" | cut -d ':' -f2)
+  job18_end=$( grep "End time:" "${agent1_log_dir}/jobs/job18_NEW.out" | cut -d ':' -f2)
+
+  starts=$(
+    for var in "${job14_start}" "${job15_start}" "${job16_start}" "${job17_start}" "${job18_start}"; do
+      echo "$var"
+    done | sort -n)
+  ends=$(
+    for var in "${job14_end}" "${job15_end}" "${job16_end}" "${job17_end}" "${job18_end}"; do
+      echo "$var"
+    done | sort -n)
+
+  validate_parallel_running_tasks "${starts}" "${ends}" "1" "1"
+  echo  "Task executions properly scheduled." > >(tee -a "${output_log}")
 
   # Copy LOG files
   cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
-  
-  # Check result
-  #"${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}"
-  #exit_value=$?
   exit_value=0
 
   #----------------------------------------------------------------------------------

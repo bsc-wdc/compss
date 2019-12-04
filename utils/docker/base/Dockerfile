@@ -12,6 +12,8 @@ RUN apt-get update && \
 	git  \
     vim \
     wget \
+    jq \
+    curl \
     openssh-server \
     sudo && \
 # Create Jenkins User

@@ -191,7 +191,8 @@
         <module>autoparallel</module>
         <module>c</module>
         <module>cloud</module>
-        <module>fault_tolerance</module>
+	<module>fault_tolerance</module>
+	<module>gat</module>
         <module>java</module>
         <module>performance</module>
         <module>pscos</module>

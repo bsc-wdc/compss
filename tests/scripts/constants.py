@@ -20,6 +20,7 @@ DEFAULT_FAMILIES = [
                     "autoparallel",
                     "c",
                     "cloud",
+                    "gat",
                     "java",
                     "performance",
                     "pscos",

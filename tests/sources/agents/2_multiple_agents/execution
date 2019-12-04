@@ -1,0 +1,753 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  runcompss_opts=$3
+  base_app_dir=$4
+  COMPSs_log_folder=$5
+  target_log_folder=$6
+  retry_num=$7
+  execution_envs=$8
+  
+  # Global variables
+  AGENT_PIDS=""
+  exit_value=0
+  jar_name="2_multiple_agents.jar"
+  app_name="2_multiple_agents"
+
+  # Traps and Handlers
+  function kill_agents() {
+    for pid in ${AGENT_PIDS}; do
+      kill -SIGINT ${pid}
+    done
+  }
+  trap kill_agents EXIT
+
+
+  function validate_parallel_running_tasks() {
+    starts="${1}"
+    ends="${2}"
+    min_parallel_tasks=${3}
+    limit_parallel_tasks=${4}
+    
+    already_started=0
+    max_parallel_tasks=0
+    for start in ${starts}; do
+      already_started=$((already_started + 1))
+      already_ended="0";
+      for end in ${ends}; do
+        if [ "${end}" -le "${start}" ]; then
+          already_ended=$((already_ended + 1))
+        fi
+      done
+      running_tasks=$((already_started - already_ended))
+      if [ "${running_tasks}" -gt "${max_parallel_tasks}" ]; then
+        max_parallel_tasks=${running_tasks}
+      fi
+    done
+    if [ ${max_parallel_tasks} -lt "${min_parallel_tasks}" ]; then
+      echo "Simultaneous tasks not properly managed. Found ${max_parallel_tasks} running in parallel and at least ${min_parallel_tasks} expected."  > >(tee -a "${error_log}")
+      exit 1
+    fi
+    if [ ${max_parallel_tasks} -gt "${limit_parallel_tasks}" ]; then
+      echo "Simultaneous tasks not properly managed. Found ${max_parallel_tasks} running in parallel and only ${limit_parallel_tasks} expected."  > >(tee -a "${error_log}")
+      exit 1
+    fi
+  }
+
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'"${COMPSS_HOME}"'<\/InstallDir>' "${base_app_dir}"/project.xml
+  
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  # Run application
+  echo ""
+  echo "*** RUNNING AGENTS TEST: multiple agents"
+  log_dir="${COMPSs_log_folder}/${app_name}_0${retry_num}/"
+  mkdir -p "${log_dir}"
+  output_log="${log_dir}test.outputlog"
+  error_log="${log_dir}test.errorlog"
+  touch "${output_log}"
+  touch "${error_log}"
+
+  # ---------------------------------------
+  # ---------- STARTING AGENTS ------------
+  # ---------------------------------------
+  agent1_log_dir="${log_dir}/agent1/"
+  mkdir -p "${agent1_log_dir}" 
+  agent1_output_log="${agent1_log_dir}agent1.outputlog"
+  agent1_error_log="${agent1_log_dir}agent1.errorlog"
+  "${COMPSS_HOME}/Runtime/scripts/system/adaptors/agent/startAgent.sh" \
+     -h COMPSsWorker01 \
+     -a "${base_app_dir}/${jar_name}" \
+     -log "${agent1_log_dir}" \
+     -DC \
+     -rp 46101 \
+     -cp 46102 \
+     -d debug  \
+     --project "${base_app_dir}"/project.xml \
+     --resources "${base_app_dir}"/resources.xml 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+
+  agent_pid="$!"
+  AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
+
+
+  agent2_log_dir="${log_dir}/agent2/"
+  mkdir -p "${agent2_log_dir}" 
+  agent2_output_log="${agent2_log_dir}agent2.outputlog"
+  agent2_error_log="${agent2_log_dir}agent2.errorlog"
+  "${COMPSS_HOME}/Runtime/scripts/system/adaptors/agent/startAgent.sh" \
+     -h COMPSsWorker02 \
+     -a "${base_app_dir}/${jar_name}" \
+     -log "${agent2_log_dir}" \
+     -DC \
+     -rp 46201 \
+     -cp 46202 \
+     -d debug  \
+     --project "${base_app_dir}"/project.xml \
+     --resources "${base_app_dir}"/resources.xml 1>"${agent2_output_log}" 2>"${agent2_error_log}" &
+
+  agent_pid="$!"
+  AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
+
+
+  agent3_log_dir="${log_dir}/agent3/"
+  mkdir -p "${agent3_log_dir}" 
+  agent3_output_log="${agent3_log_dir}agent3.outputlog"
+  agent3_error_log="${agent3_log_dir}agent3.errorlog"
+  "${COMPSS_HOME}/Runtime/scripts/system/adaptors/agent/startAgent.sh" \
+     -h COMPSsWorker03 \
+     -a "${base_app_dir}/${jar_name}" \
+     -log "${agent3_log_dir}" \
+     -DC \
+     -rp 46301 \
+     -cp 46302 \
+     -d debug  \
+     --project "${base_app_dir}"/project.xml \
+     --resources "${base_app_dir}"/resources.xml 1>"${agent3_output_log}" 2>"${agent3_error_log}" &
+
+  agent_pid="$!"
+  AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
+
+  agent4_log_dir="${log_dir}/agent4/"
+  mkdir -p "${agent4_log_dir}" 
+  agent4_output_log="${agent4_log_dir}agent4.outputlog"
+  agent4_error_log="${agent4_log_dir}agent4.errorlog"
+  "${COMPSS_HOME}/Runtime/scripts/system/adaptors/agent/startAgent.sh" \
+     -h COMPSsWorker04 \
+     -a "${base_app_dir}/${jar_name}" \
+     -log "${agent4_log_dir}" \
+     -DC \
+     -rp 46401 \
+     -cp 46402 \
+     -d debug  \
+     --project "${base_app_dir}"/project.xml \
+     --resources "${base_app_dir}"/resources.xml 1>"${agent4_output_log}" 2>"${agent4_error_log}" &
+
+  agent_pid="$!"
+  AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"
+
+  sleep 5
+
+  retries="3"
+  curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+  exit_value=$?
+  while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46101/COMPSs/test 1>/dev/null 2>/dev/null
+    exit_value=$?
+  done
+
+  retries="3"
+  curl -XGET http://127.0.0.1:46201/COMPSs/test
+  exit_value=$?
+  while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46201/COMPSs/test
+    exit_value=$?
+  done
+
+  retries="3"
+  curl -XGET http://127.0.0.1:46301/COMPSs/test
+  exit_value=$?
+  while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46301/COMPSs/test
+    exit_value=$?
+  done
+
+  retries="3"
+  curl -XGET http://127.0.0.1:46401/COMPSs/test
+  exit_value=$?
+  while [ ! "${exit_value}" == "0" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+    curl -XGET http://127.0.0.1:46401/COMPSs/test
+    exit_value=$?
+  done
+
+  RESULT=$(grep "test invoked" "${agent1_output_log}")
+  if [ -z "${RESULT}" ]; then  
+     echo "Agent 1 failed to start" > >(tee -a "${error_log}")
+     exit 1
+  fi
+  echo "Agent 1 started" > >(tee -a "${output_log}")
+
+  RESULT=$(grep "test invoked" "${agent2_output_log}")
+  if [ -z "${RESULT}" ]; then  
+     echo "Agent 2 failed to start" > >(tee -a "${error_log}")
+     exit 1
+  fi
+  echo "Agent 2 started" > >(tee -a "${output_log}")
+  
+  RESULT=$(grep "test invoked" "${agent3_output_log}")
+  if [ -z "${RESULT}" ]; then  
+     echo "Agent 3 failed to start" > >(tee -a "${error_log}")
+     exit 1
+  fi
+  echo "Agent 3 started" > >(tee -a "${output_log}")
+  
+  RESULT=$(grep "test invoked" "${agent4_output_log}")
+  if [ -z "${RESULT}" ]; then  
+     echo "Agent 4 failed to start" > >(tee -a "${error_log}")
+     exit 1
+  fi
+  echo "Agent 4 started" > >(tee -a "${output_log}")
+  
+  sleep 1
+  
+  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ on AGENT 1
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 1's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01") | .description ')
+  if [ -z "${DESCRIPTION}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 1. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 1. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  # CHECK WHETHER THE PROJECT FILE AS BEEN PROPERLY READ on AGENT 1
+  RESOURCES=$(curl -XGET http://127.0.0.1:46201/COMPSs/resources 2>/dev/null)
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 2's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker02") | .description ')
+  if [ -z "${DESCRIPTION}" ]; then
+    echo "Wrong Resource on Agent 2; COMPSsWorker02 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 2. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 2. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+
+  # ---------------------------------------
+  # ------- TESTING COMM INTERFACE --------
+  # ---------------------------------------
+
+  # Afegir un nou worker Comm agent adaptor
+  echo "Adding additional resources: 1 CPU core." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
+    --cpu=1 \
+    "COMPSsWorker02" "Port=46202" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
+  sleep 1
+  
+# CHECK WHETHER THE Worker as properly set on AGENT 1
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "2" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 1's output. Found .${num_RESOURCES}.; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ADAPTOR=$(echo "${RESOURCE}" | jq '.adaptor ' | tr -d '"')
+  if [ ! "${ADAPTOR}" == "es.bsc.compss.types.COMPSsMaster" ]; then
+    echo "Unexpected adaptor for COMPSsWorker01; obtained ${ADAPTOR} and es.bsc.compss.types.COMPSsMaster was expected."
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 1. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 1. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker02")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker02 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ADAPTOR=$(echo "${RESOURCE}" | jq '.adaptor ' | tr -d '"')
+  if [ ! "${ADAPTOR}" == "es.bsc.compss.agent.comm.CommAgentWorker" ]; then
+    echo "Unexpected adaptor for COMPSsWorker01; obtained ${ADAPTOR} and es.bsc.compss.agent.comm.CommAgentWorker was expected."
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 2. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 2. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  # EXECUTING OPERATION USING BOTH AGENTS
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+   --master_node="127.0.0.1" \
+   --master_port="46101" \
+   --method_name="demoFunction" \
+   --cei="es.bsc.compss.test.DemoClassItf" \
+   es.bsc.compss.test.DemoClass 2 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+   
+  if [ ! "$?" == "0" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "demoFunction function invoked" > >(tee -a "${output_log}")
+
+  retries="3"
+  while [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+  done
+  if [ ! -f "${agent1_log_dir}/jobs/job1_NEW.out" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job1_NEW.out" | awk '{print $2}')
+  if [ ! "${method_name}" == "demoFunction" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo  "demoFunction method properly started" > >(tee -a "${output_log}")
+  sleep 2
+
+  created_jobs=$(ls "${agent2_log_dir}jobs" | grep -c NEW.out)
+  if [ "${created_jobs}" == "0" ]; then
+    echo " No tasks executed on Agent2"
+    exit 1
+  fi 
+  if [ ! "${created_jobs}" == "2" ]; then
+    echo "unexpected number of tasks executed on Agent2. Expecting 2 and ${created_jobs} ran."
+    exit 1
+  fi 
+  job1_start=$( grep "Start time:" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
+  job1_end=$( grep "Start time:" "${agent2_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
+  job2_start=$( grep "Start time:" "${agent2_log_dir}/jobs/job2_NEW.out" | cut -d ':' -f2)
+  job2_end=$( grep "End time:" "${agent2_log_dir}/jobs/job2_NEW.out" | cut -d ':' -f2)
+
+  starts=$(
+    for var in "${job1_start}" "${job2_start}"; do
+      echo "$var"
+    done | sort -n)
+  ends=$(
+    for var in "${job1_end}" "${job2_end}"; do
+      echo "$var"
+    done | sort -n)
+
+  validate_parallel_running_tasks "${starts}" "${ends}" "1" "1"
+  echo  "Task executions properly scheduled and executed." > >(tee -a "${output_log}")
+
+
+  # Removing local resources
+  echo "Removing remote resource." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_reduce_resources" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    "COMPSsWorker02"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
+  sleep 1
+
+
+  # CHECK WHETHER THE RESOURCE MANAGER on AGENT 1 is properly configured
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 1's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01") | .description ')
+  if [ -z "${DESCRIPTION}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 1. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 1. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  echo "Resource properly removed."
+
+
+
+  # ---------------------------------------
+  # ----- TESTING HOTPLUG DYNAMICITY ------
+  # ---------------------------------------
+
+  # LAUNCHING OPERATION WITH ONE SINGLE AGENT
+  next_job_id=4 
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+   --master_node="127.0.0.1" \
+   --master_port="46101" \
+   --method_name="demoFunction" \
+   --cei="es.bsc.compss.test.DemoClassItf" \
+   es.bsc.compss.test.DemoClass 2 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+   
+  if [ ! "$?" == "0" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "demoFunction function invoked" > >(tee -a "${output_log}")
+
+  retries="3"
+  while [ ! -f "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+  done
+  if [ ! -f "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" | awk '{print $2}')
+  if [ ! "${method_name}" == "demoFunction" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  
+  sleep 4
+  created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out) 
+  if [ ! "${created_jobs}" == "2" ]; then
+    echo "Unexpected number of tasks executed on Agent1. Expecting 2 main tasks and ${created_jobs} tasks ran."
+    exit 1
+  fi
+  echo "Master properly manages a lack of resources!"
+
+
+  # Adding a new worker using the Comm agent adaptor
+  echo "Adding additional resources: 1 CPU core." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    --comm="es.bsc.compss.agent.comm.CommAgentAdaptor" \
+    --cpu=1 \
+    "COMPSsWorker03" "Port=46302" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
+  sleep 1
+  
+# CHECK WHETHER THE Worker as properly set on AGENT 1
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "2" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 1's output. Found .${num_RESOURCES}.; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ADAPTOR=$(echo "${RESOURCE}" | jq '.adaptor ' | tr -d '"')
+  if [ ! "${ADAPTOR}" == "es.bsc.compss.types.COMPSsMaster" ]; then
+    echo "Unexpected adaptor for COMPSsWorker01; obtained ${ADAPTOR} and es.bsc.compss.types.COMPSsMaster was expected."
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 1. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 1. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker03")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker03 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ADAPTOR=$(echo "${RESOURCE}" | jq '.adaptor ' | tr -d '"')
+  if [ ! "${ADAPTOR}" == "es.bsc.compss.agent.comm.CommAgentWorker" ]; then
+    echo "Unexpected adaptor for COMPSsWorker01; obtained ${ADAPTOR} and es.bsc.compss.agent.comm.CommAgentWorker was expected."
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 2. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 2. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  sleep 2
+
+  created_jobs=$(ls "${agent3_log_dir}jobs" | grep -c NEW.out)
+  if [ "${created_jobs}" == "0" ]; then
+    echo " No tasks executed on Agent3"
+    exit 1
+  fi 
+  if [ ! "${created_jobs}" == "2" ]; then
+    echo "Unexpected number of tasks executed on Agent3. Expecting 2 and ${created_jobs} ran."
+    exit 1
+  fi 
+  job1_start=$( grep "Start time:" "${agent3_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
+  job1_end=$( grep "Start time:" "${agent3_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
+  job2_start=$( grep "Start time:" "${agent3_log_dir}/jobs/job2_NEW.out" | cut -d ':' -f2)
+  job2_end=$( grep "End time:" "${agent3_log_dir}/jobs/job2_NEW.out" | cut -d ':' -f2)
+
+  starts=$(
+    for var in "${job1_start}" "${job2_start}"; do
+      echo "$var"
+    done | sort -n)
+  ends=$(
+    for var in "${job1_end}" "${job2_end}"; do
+      echo "$var"
+    done | sort -n)
+
+  validate_parallel_running_tasks "${starts}" "${ends}" "1" "1"
+  echo  "Task executions properly scheduled and executed." > >(tee -a "${output_log}")
+
+
+
+  # Removing local resources
+  echo "Removing remote resource." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_reduce_resources" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    "COMPSsWorker03"  > >(tee -a "${output_log}")  2> >(tee -a "${error_log}")
+  sleep 1
+
+
+  # CHECK WHETHER THE RESOURCE MANAGER on AGENT 1 is properly configured
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "1" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 1's output. Found .${num_RESOURCES}.; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01") | .description ')
+  if [ -z "${DESCRIPTION}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 1. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 1. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  echo "Resource properly removed."
+
+
+
+
+  # ---------------------------------------
+  # ------- TESTING REST INTERFACE --------
+  # ---------------------------------------
+
+  # Adding a new worker using the REST agent adaptor
+  echo "Adding additional resources: 1 CPU core." > >(tee -a "${output_log}")
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_add_resources" \
+    --agent_node="COMPSsWorker01" \
+    --agent_port="46101" \
+    --comm="es.bsc.compss.agent.rest.master.Adaptor" \
+    --cpu=1 \
+    "COMPSsWorker04" "Port=46401" > >(tee -a "${output_log}")  2> >(tee -a "${error_log}") 
+  sleep 1
+
+
+  # CHECK WHETHER THE Worker as properly set on AGENT 1
+  RESOURCES=$(curl -XGET http://127.0.0.1:46101/COMPSs/resources 2>/dev/null)
+
+
+  num_RESOURCES=$(echo "${RESOURCES}" | jq '.resources | length')
+  if [ ! "${num_RESOURCES}" == "2" ]; then
+    echo "Wrong number of RESOURCE tags on the agent 1's output. Found .${num_RESOURCES}.; 2 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker01")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker01 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ADAPTOR=$(echo "${RESOURCE}" | jq '.adaptor ' | tr -d '"')
+  if [ ! "${ADAPTOR}" == "es.bsc.compss.types.COMPSsMaster" ]; then
+    echo "Unexpected adaptor for COMPSsWorker01; obtained ${ADAPTOR} and es.bsc.compss.types.COMPSsMaster was expected."
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 1. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 1. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+  RESOURCE=$(echo "${RESOURCES}" | jq '.resources[] | select(.name=="COMPSsWorker04")')
+  if [ -z "${RESOURCE}" ]; then
+    echo "Wrong Resource on Agent 1; COMPSsWorker04 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  ADAPTOR=$(echo "${RESOURCE}" | jq '.adaptor ' | tr -d '"')
+  if [ ! "${ADAPTOR}" == "es.bsc.compss.agent.rest.master.RemoteRESTAgent" ]; then
+    echo "Unexpected adaptor for COMPSsWorker04; obtained ${ADAPTOR} and es.bsc.compss.agent.rest.master.RemoteRESTAgent was expected."
+    exit 1
+  fi
+  DESCRIPTION=$(echo "${RESOURCE}" | jq '.description ')
+  PROCESSOR_COUNT=$(echo "${DESCRIPTION}" | jq '.processors | length')
+  if [ ! "${PROCESSOR_COUNT}" == "1" ]; then
+    echo "Wrong number of Processors configured for the Agent 2. Found ${PROCESSOR_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  CPU_COUNT=$(echo "${DESCRIPTION}" | jq '.processors[] | select(.name=="MainProcessor") | .units')
+  if [ ! "${CPU_COUNT}" == "1" ]; then
+    echo "Wrong number of CPU cores configured for the Agent 2. Found ${CPU_COUNT}; 1 expected." > >(tee -a "${error_log}")
+    exit 1
+  fi
+
+# LAUNCHING OPERATION WITH ONE SINGLE AGENT
+  next_job_id=7 
+  "${COMPSS_HOME}/Runtime/scripts/user/compss_agent_call_operation" \
+   --master_node="127.0.0.1" \
+   --master_port="46101" \
+   --method_name="demoFunction" \
+   --cei="es.bsc.compss.test.DemoClassItf" \
+   es.bsc.compss.test.DemoClass 2 > >(tee -a "${output_log}") 2> >(tee -a "${error_log}")
+   
+  if [ ! "$?" == "0" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  echo "demoFunction function invoked" > >(tee -a "${output_log}")
+
+  retries="3"
+  while [ ! -f "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" ] && [ "${retries}" -gt "0" ]; do
+    sleep 1
+    retries=$((retries - 1 ))
+  done
+  if [ ! -f "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  method_name=$( grep "Executing" "${agent1_log_dir}/jobs/job${next_job_id}_NEW.out" | awk '{print $2}')
+  if [ ! "${method_name}" == "demoFunction" ]; then
+    echo "Could not invoke demoFunction method." > >(tee -a "${error_log}")
+    exit 1
+  fi
+  
+  sleep 4
+  created_jobs=$(ls "${agent1_log_dir}jobs" | grep -c NEW.out) 
+  if [ ! "${created_jobs}" == "3" ]; then
+    echo "Unexpected number of tasks executed on Agent1. Expecting 3 main tasks and ${created_jobs} tasks ran."
+    exit 1
+  fi
+
+  created_jobs=$(ls "${agent4_log_dir}jobs" | grep -c NEW.out)
+  if [ "${created_jobs}" == "0" ]; then
+    echo " No tasks executed on Agent4"
+    exit 1
+  fi 
+  if [ ! "${created_jobs}" == "2" ]; then
+    echo "Unexpected number of tasks executed on Agent4. Expecting 2 and ${created_jobs} ran."
+    exit 1
+  fi 
+  job1_start=$( grep "Start time:" "${agent4_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
+  job1_end=$( grep "Start time:" "${agent4_log_dir}/jobs/job1_NEW.out" | cut -d ':' -f2)
+  job2_start=$( grep "Start time:" "${agent4_log_dir}/jobs/job2_NEW.out" | cut -d ':' -f2)
+  job2_end=$( grep "End time:" "${agent4_log_dir}/jobs/job2_NEW.out" | cut -d ':' -f2)
+
+  starts=$(
+    for var in "${job1_start}" "${job2_start}"; do
+      echo "$var"
+    done | sort -n)
+  ends=$(
+    for var in "${job1_end}" "${job2_end}"; do
+      echo "$var"
+    done | sort -n)
+
+  validate_parallel_running_tasks "${starts}" "${ends}" "1" "1"
+  echo  "Task executions properly scheduled and executed." > >(tee -a "${output_log}")
+
+
+  # Copy LOG files
+  cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
+  exit_value=0
+
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit ${exit_value}

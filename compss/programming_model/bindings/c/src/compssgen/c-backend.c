@@ -28,8 +28,8 @@
 #include "backendlib.h"
 #include "types.h"
 
-#define BUFF_ELEMENTS 6
-#define ARGS_OFFSET 4
+#define BUFF_ELEMENTS 7
+#define ARGS_OFFSET 5
 typedef int bool;
 enum { false, true };
 
@@ -1175,6 +1175,8 @@ static void add_parameter_to_taskbuffer(FILE *outFile, char* name, enum datatype
     fprintf(outFile, "%s arrayObjs[%d] = &param%d;\n", tabs, i+4, i+4);
     fprintf(outFile, "%s char *param%d = \"null\";\n", tabs, i+5);
     fprintf(outFile, "%s arrayObjs[%d] = &param%d;\n", tabs, i+5, i+5);
+    fprintf(outFile, "%s char *param%d = \"null\";\n", tabs, i+6);
+    fprintf(outFile, "%s arrayObjs[%d] = &param%d;\n", tabs, i+6, i+6);
 }
 
 static void add_object_or_array_arg_master_treatment(FILE *outFile, argument *arg, int i, Types current_types) {

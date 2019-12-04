@@ -220,7 +220,7 @@ public class Agent {
                 StdIOStream.UNSPECIFIED,
                 "",
                 "fakeParam", // Fake param
-                "", };
+                "" };
 
             System.arraycopy(loadParams, 0, params, 0, loadParams.length);
             int position = loadParams.length;

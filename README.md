@@ -97,6 +97,8 @@ Install the listed dependencies for each component you wish to install. For a co
   * wget
   * openjdk-8-jdk
   * maven
+  * curl
+  * jq
 * Bindings-common dependencies
   * build-essential
   * autoconf

@@ -20,6 +20,7 @@ import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.agent.Agent;
 import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.AgentInterface;
+import es.bsc.compss.agent.RESTAgentConfig;
 import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.Orchestrator;
@@ -103,9 +104,8 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         RESTServiceLauncher launcher = null;
         try {
             this.port = args.getPort();
-            System.setProperty(RESTAgentConstants.COMPSS_AGENT_PORT, Integer.toString(port));
+            RESTAgentConfig.localAgentPort = port;
             launcher = new RESTServiceLauncher(port);
-            LOGGER.info("Starting RESTAgent on port " + port);
             new Thread(launcher).start();
             launcher.waitForBoot();
         } catch (Exception e) {

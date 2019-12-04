@@ -16,6 +16,7 @@
  */
 package es.bsc.compss.agent.rest.master;
 
+import es.bsc.compss.agent.RESTAgentConfig;
 import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
@@ -56,7 +57,7 @@ import javax.ws.rs.core.Response;
 public class RemoteRESTAgentJob extends Job<RemoteRESTAgent> {
 
     private static final String REST_AGENT_URL =
-        "http://" + COMPSsNode.getMasterName() + ":" + System.getProperty(RESTAgentConstants.COMPSS_AGENT_PORT) + "/";
+        "http://" + COMPSsNode.getMasterName() + ":" + RESTAgentConfig.localAgentPort + "/";
 
 
     public RemoteRESTAgentJob(RemoteRESTAgent executor, int taskId, TaskDescription task, Implementation impl,

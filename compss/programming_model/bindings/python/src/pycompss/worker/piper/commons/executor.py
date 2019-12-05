@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2019      Cray UK Ltd., a Hewlett Packard Enterprise company
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -41,6 +42,8 @@ from pycompss.worker.piper.commons.constants import QUIT_TAG
 from pycompss.worker.commons.executor import build_return_params_message
 
 from pycompss.streams.components.distro_stream_client import DistroStreamClientHandler  # noqa: E501
+
+from pycompss.util.sharedmemory.shma import SHAREDARRAY_AVAILABLE, clear_shma
 
 HEADER = "*[PYTHON EXECUTOR] "
 
@@ -243,6 +246,13 @@ def executor(queue, process_name, pipe, conf):
                 logger.info(
                     HEADER + "[%s] Could not find finishWorkerPostFork storage call. Ignoring it." %  # noqa: E501
                     str(process_name))
+
+    # Release system memory
+    if SHAREDARRAY_AVAILABLE:
+        if __debug__:
+            logger.debug(HEADER + "[%s] Releasing system shared memory segments " %
+                         str(process_name))
+        clear_shma(True)
 
     # Stop streaming
     if streaming:

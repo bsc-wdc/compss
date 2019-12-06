@@ -20,29 +20,26 @@
      fi
   else
      echo "[ERROR] Output file not found" | tee -a "${output_file}"
-     exit 1
+     exit 2
   fi
   # Check that ErrorManager has not raised any ERROR or FATAL message
   if [ -f "${error_file}" ]; then
     if grep -E "\\[ERRMGR\\].*(ERROR|FATAL|Shutting down COMPSs)" "${error_file}"; then
       echo "ERROR: ErrorManager has raised a fatal error" | tee -a "${output_file}"
-      exit 1
+      exit 3
     fi
-  else
-    # Empty error file, no exceptions could have been raised
-    :
   fi
   # Check that the Runtime has not registered any fatal error
   if [ -f "${runtime_log}" ]; then
     if grep -E "ErrorManager\\].*\\[ERRMGR\\].*Error detected. Shutting down COMPSs" "${runtime_log}"; then
       echo "ERROR: ErrorManager has registered a fatal error in the runtime.log" | tee -a "${output_file}"
-      exit 1
+      exit 4
     fi
   else
     echo "[ERROR] runtime.log not found" | tee -a "${output_file}"
-    exit 1
+    exit 5
   fi
-
+  echo "Evaluating generated trace"
   #---------------------------------------------------------------------------------- 
   # Compute result status
   num_different_tasks=4
@@ -57,50 +54,60 @@
 
   if [ "$events_type1" != "$executions_per_task" ]; then
      echo "[ERROR] Incorrect number of task 1 events. [$events_type1/$executions_per_task]" | tee -a "${output_file}"
-     exit 1
+     exit 5
   fi
   if [ "$events_type2" != "$executions_per_task" ]; then
      echo "[ERROR] Incorrect number of task 2 events. [$events_type2/$executions_per_task]" | tee -a "${output_file}"
-     exit 1
+     exit 6
   fi
   if [ "$events_type3" != "$executions_per_task" ]; then 
      echo "[ERROR] Incorrect number of task 3 events. [$events_type3/$executions_per_task]" | tee -a "${output_file}"
-     exit 1
+     exit 7
   fi
   if [ "$events_type4" != "$executions_per_task" ]; then 
      echo "[ERROR] Incorrect number of task 4 events. [$events_type4/$executions_per_task]" | tee -a "${output_file}"
-     exit 1
+     exit 8
   fi
   if [ "$events_close" != "$finish_events" ] ; then
      echo "[ERROR] Incorrect number of finished task events. [$events_close/$finish_events]" | tee -a "${output_file}"
-     exit 1
+     exit 9
   fi
-  
+  echo " Checking if all events have been ended"
   start_events_8000000=$(grep -c ':8000000:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
   end_events_8000000=$(grep -c ':8000000:0' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
-  start_events_8000001=$(grep -c ':8000001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
-  end_events_8000001=$(grep -c ':8000001:0' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
+  start_events_8001001=$(grep -c ':8001001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
+  end_events_8001001=$(grep -c ':8001001:0' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
+  start_events_8001002=$(grep -c ':8001002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
+  end_events_8001002=$(grep -c ':8001002:0' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
   start_events_8000002=$(grep -c ':8000002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
   end_events_8000002=$(grep -c ':8000002:0' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
   start_events_8000003=$(grep -c ':8000003:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
   end_events_8000003=$(grep -c ':8000003:0' "${target_log_folder}"/trace/tracing.BasicTracing_compss_trace_*.prv)
-
+  echo " Checking 8000000 events"
   if [ "$start_events_8000000" != "$end_events_8000000" ] ; then
     echo "[ERROR] Number of start and end emits is not equal for 8000000 type of events" | tee -a "${output_file}"
-    exit 1
+    exit 1 
   fi
-  if [ "$start_events_8000001" != "$end_events_8000001" ] ; then
-    echo "[ERROR] Number of start and end emits is not equal for 8000001 type of events" | tee -a "${output_file}"
-    exit 1
+  echo " Checking 8001001 events"
+  if [ "$start_events_8001001" != "$end_events_8001001" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8001001 type of events" | tee -a "${output_file}"
+    exit 2
   fi
+  echo " Checking 8001002 events"
+  if [ "$start_events_8001002" != "$end_events_8001002" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8001002 type of events" | tee -a "${output_file}"
+    exit 2
+  fi
+  echo " Checking 8000002 events"
   if [ "$start_events_8000002" != "$end_events_8000002" ] ; then
     echo "[ERROR] Number of start and end emits is not equal for 8000002 type of events" | tee -a "${output_file}"
-    exit 1
+    exit 3
   fi
+  echo " Checking 8000003 events"
   if [ "$start_events_8000003" != "$end_events_8000003" ] ; then
     echo "[ERROR] Number of start and end emits is not equal for 8000003 type of events" | tee -a "${output_file}"
-    exit 1
+    exit 4
   fi
-  
+  echo "Endding result evaluation"
   # Exit value
   exit 0

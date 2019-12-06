@@ -21,6 +21,7 @@ import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.uri.SimpleURI;
 
 import java.io.File;
@@ -30,6 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,22 +70,34 @@ public abstract class Tracer {
 
     // Description tags for Paraver
     private static final String TASK_DESC = "Task";
-    private static final String API_DESC = "Runtime";
+    private static final String API_DESC = "API";
+    private static final String RUNTIME_DESC = "Runtime";
     private static final String TASKID_DESC = "Task IDs";
     private static final String DATA_TRANSFERS_DESC = "Data Transfers";
     private static final String TASK_TRANSFERS_DESC = "Task Transfers Request";
     private static final String STORAGE_DESC = "Storage API";
     private static final String INSIDE_TASK_DESC = "Events inside tasks";
+    private static final String TASKTYPE_DESC = "Type of task";
+    private static final String READY_COUNT_DESC = "Ready queue count";
+    private static final String CPU_COUNT_DESC = "Number of requested CPUs";
+    private static final String GPU_COUNT_DESC = "Number of requested GPUs";
+    private static final String MEMORY_DESC = " Requested Memory";
+    private static final String DISK_BW_DESC = " Requested disk bandwidth";
 
     // Event codes
     protected static final int TASKS_FUNC_TYPE = 8_000_000;
-    protected static final int RUNTIME_EVENTS = 8_000_001;
+    protected static final int API_EVENTS = 8_001_001;
+    protected static final int RUNTIME_EVENTS = 8_001_002;
     protected static final int TASKS_ID_TYPE = 8_000_002;
     protected static final int TASK_TRANSFERS = 8_000_003;
     protected static final int DATA_TRANSFERS = 8_000_004;
     protected static final int STORAGE_TYPE = 8_000_005;
     protected static final int READY_COUNTS = 8_000_006;
-    protected static final int NUMBER_OF_CPUS = 8_000_007;
+    protected static final int TASKTYPE_EVENTS = 8_000_007;
+    protected static final int CPU_COUNTS = 8_000_008;
+    protected static final int GPU_COUNTS = 8_000_009;
+    protected static final int MEMORY = 8_000_0010;
+    protected static final int DISK_BW = 8_000_011;
     protected static final int SYNC_TYPE = 8_000_666;
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
 
@@ -322,6 +337,30 @@ public abstract class Tracer {
         return INSIDE_TASKS_TYPE;
     }
 
+    public static int getTaskTypeEventsType() {
+        return TASKTYPE_EVENTS;
+    }
+
+    public static int getCPUCountEventsType() {
+        return CPU_COUNTS;
+    }
+
+    public static int getGPUCountEventsType() {
+        return GPU_COUNTS;
+    }
+
+    public static int getReadyCountEventsType() {
+        return READY_COUNTS;
+    }
+
+    public static int getMemoryEventsType() {
+        return MEMORY;
+    }
+
+    public static int getDiskBWEventsType() {
+        return DISK_BW;
+    }
+
     public static TraceEvent getAcessProcessorRequestEvent(String eventType) {
         return TraceEvent.valueOf(eventType);
     }
@@ -459,6 +498,16 @@ public abstract class Tracer {
         return size;
     }
 
+    private static List<TraceEvent> getEventsByType(int eventsType) {
+        LinkedList<TraceEvent> eventsList = new LinkedList<TraceEvent>();
+        for (TraceEvent traceEvent : TraceEvent.values()) {
+            if (traceEvent.getType() == eventsType) {
+                eventsList.add(traceEvent);
+            }
+        }
+        return eventsList;
+    }
+
     /**
      * Iterates over all the tracing events and sets them in the Wrapper to generate the config. for the tracefile.
      *
@@ -468,141 +517,96 @@ public abstract class Tracer {
         if (DEBUG) {
             LOGGER.debug("SignatureToId size: " + runtimeEvents.size());
         }
+        defineEventsForType(API_EVENTS, API_DESC);
+        defineEventsForType(RUNTIME_EVENTS, RUNTIME_DESC);
+        defineEventsForFunctions(TASKS_FUNC_TYPE, TASK_DESC, runtimeEvents);
+        defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
+        defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
+        defineEventsForType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC);
+        defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, TaskType.values());
+        // Definition of Scheduling and Transfer time events
+        Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, new long[0], new String[0]);
+        // Definition of Data transfers
+        Wrapper.defineEventType(DATA_TRANSFERS, DATA_TRANSFERS_DESC, new long[0], new String[0]);
+        // Definition of Ready Counts
+        defineEventsForType(READY_COUNTS, READY_COUNT_DESC);
+        // Definition of CPU Counts
+        Wrapper.defineEventType(CPU_COUNTS, CPU_COUNT_DESC, new long[0], new String[0]);
+        // Definition of GPU Counts
+        Wrapper.defineEventType(GPU_COUNTS, GPU_COUNT_DESC, new long[0], new String[0]);
+        // Definition of Memory
+        Wrapper.defineEventType(MEMORY, MEMORY_DESC, new long[0], new String[0]);
+        // Definition of Disk BW
+        Wrapper.defineEventType(DISK_BW, DISK_BW_DESC, new long[0], new String[0]);
+    }
 
-        int size = getSizeByEventType(RUNTIME_EVENTS) + 1;
+    private static void defineEventsForTaskType(int tasktypeEvents, String tasktypeDesc, TaskType[] types) {
+        int size = types.length + 1;
         long[] values = new long[size];
-        // int offset = Event.values().length; // We offset the values of the
-        // defined API events (plus the 0 which is the end task always).
-
         String[] descriptionValues = new String[size];
-
         values[0] = 0;
         descriptionValues[0] = "End";
         int i = 1;
-        for (TraceEvent task : TraceEvent.values()) {
-            if (task.getType() == RUNTIME_EVENTS) {
-                values[i] = task.getId();
-                descriptionValues[i] = task.getSignature();
-                if (DEBUG) {
-                    LOGGER.debug(
-                        "Tracing[API]: Api Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
-                }
-                ++i;
-            }
+        for (TaskType tp : types) {
+            values[i] = tp.ordinal();
+            descriptionValues[i] = tp.name();
+            ++i;
         }
+        Wrapper.defineEventType(tasktypeEvents, tasktypeDesc, values, descriptionValues);
 
-        Wrapper.defineEventType(RUNTIME_EVENTS, API_DESC, values, descriptionValues);
+    }
 
-        size = runtimeEvents.entrySet().size() + 1;
-
-        values = new long[size];
-        descriptionValues = new String[size];
+    private static void defineEventsForFunctions(int tasksFuncType, String taskDesc,
+        Map<String, Integer> runtimeEvents) {
+        int size = runtimeEvents.entrySet().size() + 1;
+        long[] values = new long[size];
+        String[] descriptionValues = new String[size];
         values[0] = 0;
         descriptionValues[0] = "End";
-
-        i = 1;
+        int i = 1;
         for (Entry<String, Integer> entry : runtimeEvents.entrySet()) {
             String signature = entry.getKey();
             Integer methodId = entry.getValue();
             values[i] = methodId + 1;
             LOGGER.debug("Tracing debug: " + signature);
             String methodName = signature.substring(signature.indexOf('.') + 1, signature.length());
-            String mN = methodName.replace("(", "(["). replace(")", "])");
+            String mN = methodName.replace("(", "([").replace(")", "])");
             if (mN.contains(".")) {
                 int start = mN.lastIndexOf(".");
                 mN = "[" + mN.substring(0, start) + ".]" + mN.substring(start + 1);
             }
             descriptionValues[i] = mN;
             if (DEBUG) {
-                LOGGER.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: "
-                    + values[i] + ", Desc: " + descriptionValues[i]);
+                LOGGER.debug("Tracing Funtion Event [i,methodId]: [" + i + "," + methodId + "] => value: " + values[i]
+                    + ", Desc: " + descriptionValues[i]);
             }
             i++;
         }
 
-        Wrapper.defineEventType(TASKS_FUNC_TYPE, TASK_DESC, values, descriptionValues);
+        Wrapper.defineEventType(tasksFuncType, taskDesc, values, descriptionValues);
+    }
 
-        // Definition of TRANSFER_TYPE events
-        size = getSizeByEventType(TASK_TRANSFERS) + 1;
-        values = new long[size];
-        descriptionValues = new String[size];
-
-        values[0] = 0;
-        descriptionValues[0] = "End";
-        i = 1;
-        for (TraceEvent task : TraceEvent.values()) {
-            if (task.getType() == TASK_TRANSFERS) {
-                values[i] = task.getId();
-                descriptionValues[i] = task.getSignature();
-                if (DEBUG) {
-                    LOGGER.debug("Tracing[TASK_TRANSFERS]: Event " + i + "=> value: " + values[i] + ", Desc: "
-                        + descriptionValues[i]);
-                }
-                ++i;
-            }
-        }
-
-        Wrapper.defineEventType(TASK_TRANSFERS, TASK_TRANSFERS_DESC, values, descriptionValues);
-
-        // Definition of STORAGE_TYPE events
-        size = getSizeByEventType(STORAGE_TYPE) + 1;
-        values = new long[size];
-        descriptionValues = new String[size];
+    private static void defineEventsForType(int eventsType, String eventsDesc) {
+        List<TraceEvent> events = getEventsByType(eventsType);
+        // defined API events (plus the 0 which is the end task always).
+        int size = events.size() + 1;
+        long[] values = new long[size];
+        String[] descriptionValues = new String[size];
 
         values[0] = 0;
         descriptionValues[0] = "End";
-        i = 1;
-        for (TraceEvent task : TraceEvent.values()) {
-            if (task.getType() == STORAGE_TYPE) {
-                values[i] = task.getId();
-                descriptionValues[i] = task.getSignature();
-                if (DEBUG) {
-                    LOGGER.debug("Tracing[STORAGE_TYPE]: Event " + i + "=> value: " + values[i] + ", Desc: "
-                        + descriptionValues[i]);
-                }
-                ++i;
+        int i = 1;
+        for (TraceEvent event : events) {
+            values[i] = event.getId();
+            descriptionValues[i] = event.getSignature();
+            if (DEBUG) {
+                LOGGER.debug("Tracing[API]: Type " + eventsType + " Event " + i + "=> value: " + values[i] + ", Desc: "
+                    + descriptionValues[i]);
             }
+            ++i;
         }
+        Wrapper.defineEventType(eventsType, eventsDesc, values, descriptionValues);
 
-        Wrapper.defineEventType(STORAGE_TYPE, STORAGE_DESC, values, descriptionValues);
-
-        // Definition of Events inside task
-        size = getSizeByEventType(INSIDE_TASKS_TYPE) + 1;
-        values = new long[size];
-        descriptionValues = new String[size];
-
-        values[0] = 0;
-        descriptionValues[0] = "End";
-        i = 1;
-        for (TraceEvent task : TraceEvent.values()) {
-            if (task.getType() == INSIDE_TASKS_TYPE) {
-                values[i] = task.getId();
-                descriptionValues[i] = task.getSignature();
-                if (DEBUG) {
-                    LOGGER.debug("Tracing[INSIDE_TASKS_EVENTS]: Event " + i + "=> value: " + values[i] + ", Desc: "
-                        + descriptionValues[i]);
-                }
-                ++i;
-            }
-        }
-
-        Wrapper.defineEventType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC, values, descriptionValues);
-
-        // Definition of Scheduling and Transfer time events
-        size = 0;
-        values = new long[size];
-
-        descriptionValues = new String[size];
-
-        Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, values, descriptionValues);
-
-        // Definition of Data transfers
-        size = 0;
-        values = new long[size];
-
-        descriptionValues = new String[size];
-
-        Wrapper.defineEventType(DATA_TRANSFERS, DATA_TRANSFERS_DESC, values, descriptionValues);
     }
 
     /**

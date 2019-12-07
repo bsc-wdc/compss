@@ -35,6 +35,7 @@
         <module>0_1_agent_deployment</module>
         <module>1_1_agent_compss</module>
         <module>2_multiple_agents</module>
+		<module>3_multiple_sources</module>
 		<!-- Add new modules below -->
 	</modules>
 </project>

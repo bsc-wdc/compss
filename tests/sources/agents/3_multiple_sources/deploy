@@ -1,0 +1,16 @@
+#!/bin/bash -e
+  
+  # Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  # Copy files
+  app_name="3_multiple_sources"
+
+  cp "${source_base_dir}"/target/${app_name}.jar "${target_base_dir}"/${app_name}.jar
+
+  cp "${source_base_dir}"/project_source.xml "${target_base_dir}"/project_source.xml
+  cp "${source_base_dir}"/project_compute.xml "${target_base_dir}"/project_compute.xml
+  cp "${source_base_dir}"/resources.xml "${target_base_dir}"/resources.xml
+
+  cp "${source_base_dir}"/execution "${target_base_dir}"/execution

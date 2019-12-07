@@ -161,7 +161,7 @@ public class NIOTracer extends Tracer {
         }
         if (Tracer.extraeEnabled()) {
             emitEvent(TraceEvent.STOP.getId(), TraceEvent.STOP.getType());
-            emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
 
             try {
                 Thread.sleep(10000);

@@ -48,7 +48,8 @@
      "${app_name}" $tasks > >(tee "${output_log}") 2> >(tee "${error_log}" >&2)
   
   # Check timeout
-  if [[ "$?" = "124" ]]; then
+  exit_code=$?
+  if [[ "${exit_code}" = "124" ]]; then
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
      
@@ -56,12 +57,14 @@
      echo "[WARNING] Java Application timed out" >> "${output_log}"
      exit_value=124
   else
+     #echo "Application finished with value ${exit_code}. Checking results" 	  
      # Copy LOG files
      cp -rf "${COMPSs_log_folder}/${app_name}_0${retry_num}"/* "${target_log_folder}"
   
      # Check result
      "${base_app_dir}"/result "${output_log}" "${error_log}" "${target_log_folder}" $tasks
      exit_value=$?
+     echo "Result script finished with value ${exit_value}"
   fi
   
   #----------------------------------------------------------------------------------

@@ -346,8 +346,8 @@ public class Comm {
         }
 
         if (Tracer.extraeEnabled()) {
-            // Emit last EVENT_END event
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            // Emit last EVENT_END event for STOP
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STOP.getType());
         }
 
         // Stop tracing system

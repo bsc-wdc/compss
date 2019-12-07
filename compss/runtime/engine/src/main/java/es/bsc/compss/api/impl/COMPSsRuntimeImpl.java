@@ -431,7 +431,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     @Override
     public synchronized void startIT() {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STATIC_IT.getType());
             Tracer.emitEvent(TraceEvent.START.getId(), TraceEvent.START.getType());
         }
 
@@ -493,7 +493,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.START.getType());
         }
 
     }
@@ -743,7 +743,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             pars, onFailure, timeOut);
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK.getType());
         }
 
         return task;
@@ -819,7 +819,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         // End tracing event
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK.getType());
         }
 
         // Return the taskId
@@ -858,7 +858,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         ap.getResultFiles(appId);
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.NO_MORE_TASKS.getType());
         }
     }
 
@@ -938,7 +938,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
         } finally {
             if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.DELETE.getType());
             }
         }
 
@@ -1000,7 +1000,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
         rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_FILE.getType());
         }
     }
 
@@ -1048,7 +1048,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_OBJECT.getType());
         }
 
         return oUpdated;
@@ -1146,7 +1146,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.OPEN_FILE.getType());
         }
 
         return finalPath;
@@ -1246,7 +1246,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         int hashCode = externalObjectHashcode(bo.getId());
         ap.markForBindingObjectDeletion(hashCode);
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.DELETE.getType());
         }
 
         // Return deletion was successful

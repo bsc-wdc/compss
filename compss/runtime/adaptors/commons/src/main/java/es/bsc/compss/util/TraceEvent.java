@@ -20,17 +20,17 @@ package es.bsc.compss.util;
  * Representation of a tracing event.
  */
 public enum TraceEvent {
-    STATIC_IT(1, Tracer.RUNTIME_EVENTS, "Loading Runtime"), // Static COMPSs
-    START(2, Tracer.RUNTIME_EVENTS, "Start"), // Start
-    STOP(3, Tracer.RUNTIME_EVENTS, "Stop"), // Stop
-    TASK(4, Tracer.RUNTIME_EVENTS, "Execute Task"), // Execute task
-    NO_MORE_TASKS(5, Tracer.RUNTIME_EVENTS, "Waiting for tasks end"), // No more tasks
-    WAIT_FOR_ALL_TASKS(6, Tracer.RUNTIME_EVENTS, "Barrier"), // Waiting for tasks
-    OPEN_FILE(7, Tracer.RUNTIME_EVENTS, "Waiting for open file"), // Open file
-    GET_FILE(8, Tracer.RUNTIME_EVENTS, "Waiting for get file"), // Get file
-    GET_OBJECT(9, Tracer.RUNTIME_EVENTS, "Waiting for get object"), // Get Object
+    STATIC_IT(1, Tracer.API_EVENTS, "Loading Runtime"), // Static COMPSs
+    START(2, Tracer.API_EVENTS, "Start"), // Start
+    STOP(3, Tracer.API_EVENTS, "Stop"), // Stop
+    TASK(4, Tracer.API_EVENTS, "Execute Task"), // Execute task
+    NO_MORE_TASKS(5, Tracer.API_EVENTS, "Waiting for tasks end"), // No more tasks
+    WAIT_FOR_ALL_TASKS(6, Tracer.API_EVENTS, "Barrier"), // Waiting for tasks
+    OPEN_FILE(7, Tracer.API_EVENTS, "Waiting for open file"), // Open file
+    GET_FILE(8, Tracer.API_EVENTS, "Waiting for get file"), // Get file
+    GET_OBJECT(9, Tracer.API_EVENTS, "Waiting for get object"), // Get Object
     TASK_RUNNING(11, Tracer.RUNTIME_EVENTS, "Task Running"), // Task running
-    DELETE(12, Tracer.RUNTIME_EVENTS, "Delete File"), // Delete file
+    DELETE(12, Tracer.API_EVENTS, "Delete File"), // Delete file
     WORKER_RECEIVED_NEW_TASK(13, Tracer.RUNTIME_EVENTS, "Received new task"), // New task at worker
 
     // Access Processor Events

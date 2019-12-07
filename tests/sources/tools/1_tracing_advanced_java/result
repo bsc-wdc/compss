@@ -78,8 +78,10 @@
   
   start_events_8000000=$(grep -c ':8000000:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
   end_events_8000000=$(grep -c ':8000000:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  start_events_8000001=$(grep -c ':8000001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
-  end_events_8000001=$(grep -c ':8000001:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
+  start_events_8001001=$(grep -c ':8001001:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
+  end_events_8001001=$(grep -c ':8001001:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
+  start_events_8001002=$(grep -c ':8001002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
+  end_events_8001002=$(grep -c ':8001002:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
   start_events_8000002=$(grep -c ':8000002:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
   end_events_8000002=$(grep -c ':8000002:0' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
   start_events_8000003=$(grep -c ':8000003:[1-9][0-9]*' "${target_log_folder}"/trace/tracing.AdvancedTracing_compss_trace_*.prv)
@@ -89,8 +91,12 @@
     echo "[ERROR] Number of start and end emits is not equal for 8000000 type of events" | tee -a"${output_file}"
     exit 1
   fi
-  if [ "$start_events_8000001" != "$end_events_8000001" ] ; then
-    echo "[ERROR] Number of start and end emits is not equal for 8000001 type of events" | tee -a "${output_file}"
+  if [ "$start_events_8001001" != "$end_events_8001001" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8001001 type of events" | tee -a "${output_file}"
+    exit 1
+  fi
+  if [ "$start_events_8001002" != "$end_events_8001002" ] ; then
+    echo "[ERROR] Number of start and end emits is not equal for 8001002 type of events" | tee -a "${output_file}"
     exit 1
   fi
   if [ "$start_events_8000002" != "$end_events_8000002" ] ; then

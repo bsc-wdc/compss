@@ -55,6 +55,7 @@ import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
+import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
 import es.bsc.compss.worker.COMPSsException;
@@ -230,6 +231,16 @@ public class Executor implements Runnable {
 
     private Exception executeTaskWrapper(Invocation invocation) {
         if (Tracer.extraeEnabled()) {
+            int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits();
+            int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits();
+            int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize();
+            int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW();
+            int taskType = invocation.getTaskType().ordinal() + 1;
+            Tracer.emitEvent(nCPUs, Tracer.getCPUCountEventsType());
+            Tracer.emitEvent(nGPUs, Tracer.getGPUCountEventsType());
+            Tracer.emitEvent(memory, Tracer.getMemoryEventsType());
+            Tracer.emitEvent(diskBW, Tracer.getDiskBWEventsType());
+            Tracer.emitEvent(taskType, Tracer.getTaskTypeEventsType());
             Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
         }
 
@@ -398,6 +409,11 @@ public class Executor implements Runnable {
 
             // Always end task tracing
             if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getCPUCountEventsType());
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getGPUCountEventsType());
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getMemoryEventsType());
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getDiskBWEventsType());
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getTaskTypeEventsType());
                 Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
             }
         }

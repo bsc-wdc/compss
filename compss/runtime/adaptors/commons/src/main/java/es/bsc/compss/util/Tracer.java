@@ -96,7 +96,7 @@ public abstract class Tracer {
     protected static final int TASKTYPE_EVENTS = 8_000_007;
     protected static final int CPU_COUNTS = 8_000_008;
     protected static final int GPU_COUNTS = 8_000_009;
-    protected static final int MEMORY = 8_000_0010;
+    protected static final int MEMORY = 8_000_010;
     protected static final int DISK_BW = 8_000_011;
     protected static final int SYNC_TYPE = 8_000_666;
     protected static final int INSIDE_TASKS_TYPE = 60_000_100;
@@ -548,7 +548,7 @@ public abstract class Tracer {
         descriptionValues[0] = "End";
         int i = 1;
         for (TaskType tp : types) {
-            values[i] = tp.ordinal();
+            values[i] = tp.ordinal() + 1;
             descriptionValues[i] = tp.name();
             ++i;
         }

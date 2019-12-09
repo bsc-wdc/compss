@@ -687,9 +687,13 @@ public abstract class Tracer {
             LOGGER.debug("Tracing: Generating trace with mode " + mode);
         }
         String script = System.getenv(COMPSsConstants.COMPSS_HOME) + TRACE_SCRIPT_PATH;
-        String appName = System.getProperty(COMPSsConstants.APP_NAME);
+        String traceName = System.getProperty(COMPSsConstants.APP_NAME);
+        String label = System.getProperty(COMPSsConstants.TRACE_LABEL);
+        if (label != null && !label.isEmpty() && !label.equals("None")) {
+            traceName = traceName.concat("_" + label);
+        }
 
-        ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), appName,
+        ProcessBuilder pb = new ProcessBuilder(script, mode, System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName,
             String.valueOf(hostToSlots.size() + 1));
         Process p;
         pb.environment().remove(LD_PRELOAD);
@@ -718,7 +722,7 @@ public abstract class Tracer {
         String lang = System.getProperty(COMPSsConstants.LANG);
         if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
-                new TraceMerger(System.getProperty(COMPSsConstants.APP_LOG_DIR), appName).merge();
+                new TraceMerger(System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName).merge();
             } catch (Exception e) {
                 ErrorManager.warn("Error while trying to merge files: " + e.toString());
             }

@@ -22,7 +22,7 @@ DEFAULT_GRAPH_ARGUMENT=true
 
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARGUMENT=true #-3:arm-ddt, -2:arm-map, -1:scorep, 0:deactivated, 1:basic, 2:advanced
-
+DEFAULT_TRACE_LABEL="None"
 DEFAULT_MONITORING_INTERVAL=0
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 
@@ -140,6 +140,8 @@ show_opts() {
   Advanced options:
     --extrae_config_file=<path>             Sets a custom extrae config file. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE}
+    --trace_label=<string>					Add a label in the generated trace file. Only used in the case of tracing is activated.
+    										Default: None                                        
     --comm=<ClassName>                      Class that implements the adaptor for communications
                                             Supported adaptors: es.bsc.compss.nio.master.NIOAdaptor | es.bsc.compss.gat.master.GATAdaptor
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
@@ -520,6 +522,10 @@ get_args() {
             # Custom extrae config file
             custom_extrae_config_file=${OPTARG//extrae_config_file=/}
             ;;
+          trace_label=*)
+            # Custom trace_label
+            trace_label=${OPTARG//trace_label=/}
+            ;;
 	      monitoring=*)
 	        # Value between monitor steps (ms)
 	        monitoring=${OPTARG//monitoring=/}
@@ -650,7 +656,7 @@ get_args() {
             # Enable or disable the virtual environment propagation
             python_mpi_worker=${OPTARG//python_mpi_worker=/}
             ;;
-	  gen_coredump)
+	      gen_coredump)
             # Enable coredump generation
             gen_core=true
             ;;
@@ -772,6 +778,10 @@ check_args() {
   # TRACING file option
   if [ -z "${custom_extrae_config_file}" ]; then
     custom_extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
+  fi
+  
+  if [ -z "${trace_label}" ]; then
+    trace_label=${DEFAULT_TRACE_LABEL}
   fi
 
   # Tracing level
@@ -1158,6 +1168,7 @@ ${jvm_debugger_opts}
 -Dcompss.graph=${graph}
 -Dcompss.monitor=${monitoring}
 -Dcompss.tracing=${tracing}
+-Dcompss.trace.label=${trace_label}
 -Dcompss.extrae.file=${custom_extrae_config_file}
 -Dcompss.comm=${comm}
 -Dcompss.conn=${conn}

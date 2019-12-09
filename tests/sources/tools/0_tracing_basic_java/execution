@@ -41,6 +41,7 @@
      \
      --debug \
      --tracing=true \
+     --trace_label=test \
      ${runcompss_opts} \
      \
      --classpath="${base_app_dir}/${jar_name}" \

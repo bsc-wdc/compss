@@ -235,7 +235,8 @@ public class Executor implements Runnable {
             int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits();
             int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize();
             int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW();
-            int taskType = invocation.getTaskType().ordinal() + 1;
+
+            int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
             Tracer.emitEvent(nCPUs, Tracer.getCPUCountEventsType());
             Tracer.emitEvent(nGPUs, Tracer.getGPUCountEventsType());
             Tracer.emitEvent(memory, Tracer.getMemoryEventsType());

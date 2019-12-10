@@ -1306,6 +1306,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
                 break;
             case OBJECT_T:
             case STREAM_T:
+            case PSCO_T:
                 String resultName = localParam.getDataMgmtId();
                 LogicalData ld = Comm.getData(resultName);
                 ld.setValue(invParam.getValue());

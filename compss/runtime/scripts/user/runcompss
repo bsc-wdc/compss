@@ -140,8 +140,8 @@ show_opts() {
   Advanced options:
     --extrae_config_file=<path>             Sets a custom extrae config file. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE}
-    --trace_label=<string>					Add a label in the generated trace file. Only used in the case of tracing is activated.
-    										Default: None                                        
+    --trace_label=<string>	            Add a label in the generated trace file. Only used in the case of tracing is activated.
+    					    Default: None                                        
     --comm=<ClassName>                      Class that implements the adaptor for communications
                                             Supported adaptors: es.bsc.compss.nio.master.NIOAdaptor | es.bsc.compss.gat.master.GATAdaptor
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}

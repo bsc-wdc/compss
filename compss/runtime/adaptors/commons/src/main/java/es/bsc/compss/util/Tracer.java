@@ -21,6 +21,7 @@ import es.bsc.cepbatools.extrae.Wrapper;
 import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.uri.SimpleURI;
 
@@ -523,7 +524,7 @@ public abstract class Tracer {
         defineEventsForType(TASK_TRANSFERS, TASK_TRANSFERS_DESC);
         defineEventsForType(STORAGE_TYPE, STORAGE_DESC);
         defineEventsForType(INSIDE_TASKS_TYPE, INSIDE_TASK_DESC);
-        defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, TaskType.values());
+        defineEventsForTaskType(TASKTYPE_EVENTS, TASKTYPE_DESC, MethodType.values());
         // Definition of Scheduling and Transfer time events
         Wrapper.defineEventType(TASKS_ID_TYPE, TASKID_DESC, new long[0], new String[0]);
         // Definition of Data transfers
@@ -540,14 +541,14 @@ public abstract class Tracer {
         Wrapper.defineEventType(DISK_BW, DISK_BW_DESC, new long[0], new String[0]);
     }
 
-    private static void defineEventsForTaskType(int tasktypeEvents, String tasktypeDesc, TaskType[] types) {
+    private static void defineEventsForTaskType(int tasktypeEvents, String tasktypeDesc, MethodType[] types) {
         int size = types.length + 1;
         long[] values = new long[size];
         String[] descriptionValues = new String[size];
         values[0] = 0;
         descriptionValues[0] = "End";
         int i = 1;
-        for (TaskType tp : types) {
+        for (MethodType tp : types) {
             values[i] = tp.ordinal() + 1;
             descriptionValues[i] = tp.name();
             ++i;

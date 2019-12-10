@@ -232,15 +232,20 @@ public class Executor implements Runnable {
     private Exception executeTaskWrapper(Invocation invocation) {
         if (Tracer.extraeEnabled()) {
             int nCPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalCPUComputingUnits();
-            int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits();
-            int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize();
-            int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW();
-
-            int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
             Tracer.emitEvent(nCPUs, Tracer.getCPUCountEventsType());
+            int nGPUs = ((MethodResourceDescription) invocation.getRequirements()).getTotalGPUComputingUnits();
             Tracer.emitEvent(nGPUs, Tracer.getGPUCountEventsType());
+            int memory = (int) ((MethodResourceDescription) invocation.getRequirements()).getMemorySize();
+            if (memory < 0) {
+                memory = 0;
+            }
             Tracer.emitEvent(memory, Tracer.getMemoryEventsType());
+            int diskBW = ((MethodResourceDescription) invocation.getRequirements()).getStorageBW();
+            if (diskBW < 0) {
+                diskBW = 0;
+            }
             Tracer.emitEvent(diskBW, Tracer.getDiskBWEventsType());
+            int taskType = invocation.getMethodImplementation().getMethodType().ordinal() + 1;
             Tracer.emitEvent(taskType, Tracer.getTaskTypeEventsType());
             Tracer.emitEvent(TraceEvent.TASK_RUNNING.getId(), TraceEvent.TASK_RUNNING.getType());
         }

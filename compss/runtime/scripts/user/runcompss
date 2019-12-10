@@ -1077,7 +1077,7 @@ execute_runtime() {
 
   # Init COMPSs
   echo -e "\\n----------------- Executing $appName --------------------------\\n"
-  if [ -n ${gen_core} ]; then
+  if [ -n "${gen_core}" ]; then
     echo "[RUNCOMPSS] Setting coredump generation." 
     ulimit -c unlimited
   fi

@@ -8,6 +8,7 @@
   #             <storageMasterNode>  Node reserved for Storage Master Node (if needed)
   #             "<workerNodes>"      Nodes set as COMPSs workers
   #             <network>            Network type
+  #             <storageProps>       Storage properties
   #############################################################
 
   #---------------------------------------------------------
@@ -20,7 +21,7 @@
   usage() {
     local exitValue=$1
 
-    echo " Usage: $0 <jobId> <masterNode> <storageMasterNode> \"<workerNodes>\" <network>"
+    echo " Usage: $0 <jobId> <masterNode> <storageMasterNode> \"<workerNodes>\" <network> <storageProps>"
     echo " "
 
     exit $exitValue
@@ -45,7 +46,7 @@
   # Function to get args
   ####################
   get_args() {
-    NUM_PARAMS=5
+    NUM_PARAMS=6
 
     # Check parameters
     if [ $# -eq 1 ]; then
@@ -64,6 +65,7 @@
     storage_master_node=$3
     worker_nodes=$4
     network=$5
+    storage_props=$6
   }
 
   ####################
@@ -90,6 +92,7 @@
     echo "Storage Master Node: $storage_master_node"
     echo "Worker Nodes:        $worker_nodes"
     echo "Network:             $network"
+    echo "Storage Properties:  $storage_props"
     echo "-----------------------"
   }
 

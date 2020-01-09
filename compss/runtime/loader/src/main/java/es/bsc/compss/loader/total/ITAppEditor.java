@@ -561,7 +561,8 @@ public class ITAppEditor extends ExprEditor {
             toAppend.append(infoParam.getDirection()).append(",");
             toAppend.append(infoParam.getStream()).append(",");
             toAppend.append(infoParam.getPrefix() + ",");
-            toAppend.append("\"\""); // Parameter Name
+            toAppend.append("\"\"" + ","); // Parameter Name
+            toAppend.append("\"\""); // Parameter Content Type
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
             }
@@ -706,6 +707,8 @@ public class ITAppEditor extends ExprEditor {
             // Add empty prefix
             targetObj.append(',').append("\"").append(Constants.PREFIX_EMPTY).append("\"");
             // Add empty parameter name
+            targetObj.append(',').append("\"").append("\"");
+            // Add empty parameter content type
             targetObj.append(',').append("\"").append("\"");
         }
 

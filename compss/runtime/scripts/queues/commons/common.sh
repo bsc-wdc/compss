@@ -818,10 +818,32 @@ ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\
 
 EOT
   else
+  # ADD CLEAN-UP FUNCTION TO FREE ALL SHMA BEFORE AND AFTER
+  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+function cleanup_shma() {
+for i in \${master_node} \${worker_nodes}; do
+	ssh \$i "module load intel mkl COMPSs/.custom/Trunkcfoyer && PYTHONPATH=\$PYTHONPATH:/gpfs/apps/MN3/COMPSs/Trunkcfoyer/Bindings/python/2/SharedArray python <<EOS
+import SharedArray as shma
+for arr in shma.list():
+    print('later deleting ' + arr.name)
+    shma.delete(arr.name)
+EOS"
+	echo "=== Begin \$i"
+	ssh \$i "ls /dev/shm"
+	echo "=== End \$i"
+done
+}
+
+cleanup_shma
+EOT
+
     # ONLY ADD EXECUTE COMMAND
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
 ${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} ${args_pass}
 EOT
   fi
+
+  # ADD CLEAN-UP AFTER EXECUTION ON BOTH MASTER AND WORKER
+  echo "cleanup_shma" >> "${TMP_SUBMIT_SCRIPT}"
 }

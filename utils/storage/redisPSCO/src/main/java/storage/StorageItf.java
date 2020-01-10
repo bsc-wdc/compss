@@ -276,7 +276,6 @@ public final class StorageItf {
         return rets;
     }
 
-
     /**
      * Executes the task into persistent storage.
      *

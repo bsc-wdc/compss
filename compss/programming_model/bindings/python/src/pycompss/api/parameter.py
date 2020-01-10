@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2019-2020 Cray UK Ltd., a Hewlett Packard Enterprise company
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -43,8 +44,9 @@ PyCOMPSs API - Parameter
         - STDERR
         - UNSPECIFIED
     4. PREFIX.
-    5. Parameter.
-    6. Aliases.
+    5. RecurrentReadOnly.
+    6. Parameter.
+    7. Aliases.
 """
 
 # Python3 has no ints and longs, only ints that are longs
@@ -116,7 +118,8 @@ class Parameter(object):
                  is_future=False,
                  depth=1,
                  is_file_collection=False,
-                 content_type=UNDEFINED_CONTENT_TYPE):
+                 content_type=UNDEFINED_CONTENT_TYPE,
+                 recurrent_read_only=False):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -126,6 +129,7 @@ class Parameter(object):
         self.is_future = is_future
         self.depth = depth          # Recursive depth for collections
         self.is_file_collection = is_file_collection
+        self.recurrent_read_only = recurrent_read_only # Try to use SHM
 
         # TODO: Remove this 'if'
         # empty content types break the format while splitting by space (' ')
@@ -138,14 +142,16 @@ class Parameter(object):
                '          object=%s\n' \
                '          content_type=%s\n' \
                '          file_name=%s\n' \
-               '          is_future=%s)' % (str(self.type),
+               '          is_future=%s\n' \
+               '          recurrent_read_only=%s)' % (str(self.type),
                                             str(self.direction),
                                             str(self.stream),
                                             str(self.prefix),
                                             str(self.object),
                                             str(self.content_type),
                                             str(self.file_name),
-                                            str(self.is_future))
+                                            str(self.is_future),
+                                            str(self.recurrent_read_only))
 
 
 class TaskParameter(object):
@@ -164,7 +170,8 @@ class TaskParameter(object):
                  content=None,
                  stream=None,
                  prefix=None,
-                 content_type=UNDEFINED_CONTENT_TYPE):
+                 content_type=UNDEFINED_CONTENT_TYPE,
+                 recurrent_read_only=False):
         self.name = name
         self.type = p_type
         self.file_name = file_name
@@ -177,6 +184,7 @@ class TaskParameter(object):
         if not content_type:
             content_type = UNDEFINED_CONTENT_TYPE
         self.content_type = content_type
+        self.recurrent_read_only = recurrent_read_only
 
     def __repr__(self):
         return '\nParameter %s' % self.name + '\n' + \
@@ -187,6 +195,7 @@ class TaskParameter(object):
                '\tStream %s' % str(self.stream) + '\n' + \
                '\tPrefix %s' % str(self.prefix) + '\n' + \
                '\tContent Type %s' % str(self.content_type) + '\n' + \
+               '\tRRO %s' % str(self.recurrent_read_only) + '\n' + \
                '-' * 20 + '\n'
 
 
@@ -428,6 +437,8 @@ def get_parameter_from_dictionary(d):
         p.prefix = d[Prefix]
     if Depth in d:
         p.depth = d[Depth]
+    if RRO in d:
+        p.recurrent_read_only = d[RRO]
     return p
 
 
@@ -726,6 +737,7 @@ Direction = 'direction'  # parameter type
 StdIOStream = 'stream'  # parameter stream
 Prefix = 'prefix'  # parameter prefix
 Depth = 'depth'  # collection recursive depth
+RRO = 'recurrent_read_only'  # read_only to be reused. Worth putting in SHM
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

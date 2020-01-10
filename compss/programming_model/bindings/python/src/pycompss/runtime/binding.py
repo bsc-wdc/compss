@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
-#  Copyright 2019      Cray UK Ltd., a Hewlett Packard Enterprise company
+#  Copyright 2019-2020 Cray UK Ltd., a Hewlett Packard Enterprise company
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -1408,7 +1408,7 @@ def _turn_into_file(name, p, skip_creation=False):
         if __debug__:
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
         if not skip_creation:
-            serialize_to_file(p.object, file_name)
+            serialize_to_file(p.object, file_name, p.recurrent_read_only)
     elif obj_id in _objs_written_by_mp:
         if p.direction == DIRECTION.INOUT or \
                 p.direction == DIRECTION.COMMUTATIVE:
@@ -1419,7 +1419,7 @@ def _turn_into_file(name, p, skip_creation=False):
             logger.debug("Serializing object %s to file %s" % (obj_id,
                                                                compss_file))
         if not skip_creation:
-            serialize_to_file(p.object, compss_file)
+            serialize_to_file(p.object, compss_file, p.recurrent_read_only)
     else:
         pass
     # Set file name in Parameter object

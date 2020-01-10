@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2019-2020 Cray UK Ltd., a Hewlett Packard Enterprise company
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -995,7 +996,7 @@ class Task(object):
             parameter_values[parameter.get_kwarg_name(name)] = value
         # Build a dictionary of parameters
         self.parameters = OrderedDict()
-        # Assign directions to parameters
+        # Assign directions and recurrent_read_only flag to parameters
         for var_name in parameter_values.keys():
             # Is the argument a vararg? or a kwarg? Then check the direction
             # for varargs or kwargs
@@ -1446,15 +1447,15 @@ class Task(object):
                 for (content, elem) in get_collection_objects(arg.content, arg):
                     f_name = get_file_name(elem.file_name)
                     if python_mpi:
-                                serialize_to_file_mpienv(content, f_name, False)
+                        serialize_to_file_mpienv(content, f_name, False)
                     else:
-                        serialize_to_file(content, f_name)
+                        serialize_to_file(content, f_name, param.recurrent_read_only)
             else:
                 f_name = get_file_name(arg.file_name)
                 if python_mpi:
                         serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
-                    serialize_to_file(arg.content, f_name)
+                    serialize_to_file(arg.content, f_name, param.recurrent_read_only)
 
         # Deal with returns (if any)
         if num_returns > 0:

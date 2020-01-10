@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 #  Copyright 2002-2019 Barcelona Supercomputing Center (www.bsc.es)
-#  Copyright 2019      Cray UK Ltd., a Hewlett Packard Enterprise company
+#  Copyright 2019-2020 Cray UK Ltd., a Hewlett Packard Enterprise company
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -149,13 +149,15 @@ def get_serializers():
     return get_serializer_priority()
 
 
-def serialize_to_handler(obj, handler):
+def serialize_to_handler(obj, handler, recurrent_read_only=False):
     """
     Serialize an object to a handler.
 
     :param obj: Object to be serialized.
     :param handler: A handler object. It must implement methods like write,
                     writeline and similar stuff
+    :param recurrent_read_only: Boolean flag for trying to use SHM when
+                                deserialising. By default is set to False.
     """
     # Get the serializer priority
     serializer_priority = get_serializer_priority(obj)
@@ -188,7 +190,7 @@ def serialize_to_handler(obj, handler):
                     encode_numpy_type(obj, handler)
                     serializer.save(handler, obj, allow_pickle=False)
                 elif serializer is shma and \
-                        SHMA_AVAILABLE and \
+                        SHMA_AVAILABLE and recurrent_read_only and \
                         (isinstance(obj, numpy.ndarray) or
                          isinstance(obj, numpy.matrix)):
                     # Pickle the subclass/view name to the file
@@ -217,16 +219,18 @@ def serialize_to_handler(obj, handler):
         raise SerializerException('Cannot serialize object %s' % obj)
 
 
-def serialize_to_file(obj, file_name):
+def serialize_to_file(obj, file_name, recurrent_read_only=False):
     """
     Serialize an object to a file.
 
     :param obj: Object to be serialized.
     :param file_name: File name where the object is going to be serialized.
+    :param recurrent_read_only: Boolean flag for trying to use SHM when
+                                deserialising. By default is set to False.
     :return: Nothing, it just serializes the object
     """
     handler = open(file_name, 'wb')
-    serialize_to_handler(obj, handler)
+    serialize_to_handler(obj, handler, recurrent_read_only)
     handler.close()
     return file_name
 
@@ -260,7 +264,7 @@ def serialize_to_string(obj):
     :return: <String> the serialized content
     """
     handler = BytesIO()
-    serialize_to_handler(obj, handler)
+    serialize_to_handler(obj, handler, False)
     ret = handler.getvalue()
     handler.close()
     return ret

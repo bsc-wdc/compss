@@ -34,23 +34,24 @@ try:
 except ImportError as e:
     # print("INFO: No storage API defined.")
     # Defined methods throwing exceptions.
+    ERROR_MSG = e
 
     def init(config_file_path=None):
         raise Exception('Unexpected call to init from storage. Reason: %s' %
-                        e)
+                        ERROR_MSG)
 
     def finish():
         raise Exception('Unexpected call to finish from storage. Reason: %s' %
-                        e)
+                        ERROR_MSG)
 
     def getByID(id):
-        raise Exception('Unexpected call to getByID. Reason: %s' % e)
+        raise Exception('Unexpected call to getByID. Reason: %s' % ERROR_MSG)
 
     class TaskContext(object):
         def __init__(self, logger, values, config_file_path=None):
             self.logger = logger
             err_msg = 'Unexpected call to dummy storage task context. ' \
-                      'Reason: %s' % e
+                      'Reason: %s' % ERROR_MSG
             self.logger.error(err_msg)
             self.values = values
             self.config_file_path = config_file_path

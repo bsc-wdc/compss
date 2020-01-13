@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public final class StorageItf {
 
     /**
      * Initializes the persistent storage Configuration file must contain all the worker hostnames, one by line.
-     * 
+     *
      * @param storageConf Path to the storage configuration File.
      * @throws StorageException When an internal error occurs.
      * @throws IOException When the storage configuration file cannot be opened.
@@ -146,7 +147,7 @@ public final class StorageItf {
 
     /**
      * Stops the persistent storage StorageItf.
-     * 
+     *
      * @throws StorageException When the persistent storage cannot be stopped.
      */
     public static void finish() throws StorageException {
@@ -163,7 +164,7 @@ public final class StorageItf {
 
     /**
      * Returns all the valid locations of a given id.
-     * 
+     *
      * @param id Object identifier.
      * @return List of valid locations for given resource.
      * @throws StorageException When the persistent storage raises an internal exception.
@@ -179,7 +180,7 @@ public final class StorageItf {
 
     /**
      * Creates a new replica of PSCO id {@code id} in host {@code hostname}.
-     * 
+     *
      * @param id Data Id.
      * @param hostName Hostname.
      * @throws StorageException When the persistent storage raises an internal exception.
@@ -196,9 +197,20 @@ public final class StorageItf {
         }
     }
 
+    private static void putListInRedis(List<byte[]> serializedObjects, String id) throws StorageException {
+        long position = 0;
+        for (byte[] element : serializedObjects) {
+            position = clusterMode ? redisClusterConnection.rpush(id.getBytes(), element)
+                : redisConnection.getResource().rpush(id.getBytes(), element);
+        }
+        if (position != serializedObjects.size()) {
+            throw new StorageException("Redis failed while storing object with id " + id);
+        }
+    }
+
     /**
      * Create a new version of the PSCO id {@code id} in the host {@code hostname}. Returns the id of the new version.
-     * 
+     *
      * @param id Data id.
      * @param hostName Hostname.
      * @return The Id of the new version.
@@ -206,10 +218,18 @@ public final class StorageItf {
      */
     public static String newVersion(String id, boolean preserveSource, String hostName)
         throws StorageException, IOException, ClassNotFoundException {
-        byte[] obj = getBytesByID(id);
         String newId = UUID.randomUUID().toString();
-        PREVIOUS_VERSION.put(newId, id);
-        putInRedis(obj, newId);
+        String valueType = clusterMode ? redisClusterConnection.type(id.getBytes())
+            : redisConnection.getResource().type(id.getBytes());
+        if (valueType.equals("list")) {
+            List<byte[]> obj = getBytesByIDFromList(id);
+            PREVIOUS_VERSION.put(newId, id);
+            putListInRedis(obj, newId);
+        } else {
+            byte[] obj = getBytesByID(id);
+            PREVIOUS_VERSION.put(newId, id);
+            putInRedis(obj, newId);
+        }
         if (!preserveSource) {
             consolidateVersion(newId);
         }
@@ -218,7 +238,7 @@ public final class StorageItf {
 
     /**
      * Returns the object with id {@code id}. This function retrieves the object from any location.
-     * 
+     *
      * @param id Data Id.
      * @return The object with the given id.
      * @throws StorageException When the persistent storage raises an internal exception.
@@ -235,7 +255,8 @@ public final class StorageItf {
     }
 
     private static byte[] getBytesByID(String id) throws StorageException {
-        byte[] ret =
+        byte[] ret = null;
+        ret =
             clusterMode ? redisClusterConnection.get(id.getBytes()) : redisConnection.getResource().get(id.getBytes());
         if (ret == null) {
             throw new StorageException("Object with id " + id + " is not in Redis!");
@@ -243,9 +264,21 @@ public final class StorageItf {
         return ret;
     }
 
+    private static List<byte[]> getBytesByIDFromList(String id) throws StorageException {
+        List<byte[]> rets = new ArrayList<>();
+        long valueLength = clusterMode ? redisClusterConnection.llen(id.getBytes())
+            : redisConnection.getResource().llen(id.getBytes());
+        if (valueLength == 0) {
+            throw new StorageException("Object with id " + id + " is not in Redis!");
+        }
+        rets = clusterMode ? redisClusterConnection.lrange(id.getBytes(), 0, valueLength)
+            : redisConnection.getResource().lrange(id.getBytes(), 0, valueLength);
+        return rets;
+    }
+
     /**
      * Executes the task into persistent storage.
-     * 
+     *
      * @param id Task id.
      * @param descriptor Task description.
      * @param values Task parameter values.
@@ -261,7 +294,7 @@ public final class StorageItf {
 
     /**
      * Retrieves the result of persistent storage execution.
-     * 
+     *
      * @param event Event to retrieve the result from.
      * @return Result of the persistent storage execution.
      */
@@ -271,7 +304,7 @@ public final class StorageItf {
 
     /**
      * Consolidates all intermediate versions to the final id.
-     * 
+     *
      * @param idFinal Final Id.
      * @throws StorageException When an internal error occurs.
      */
@@ -294,7 +327,7 @@ public final class StorageItf {
      *****************************************************************************************************************/
     /**
      * Stores the object {@code o} in the persistent storage with id {@code id}.
-     * 
+     *
      * @param o Object to store.
      * @param id Object Id.
      * @throws StorageException When an internal error occurs.
@@ -320,7 +353,7 @@ public final class StorageItf {
 
     /**
      * Removes all the occurrences of a given data with id {@code id}.
-     * 
+     *
      * @param id Data Id to remove.
      */
     public static void removeById(String id) {
@@ -351,7 +384,7 @@ public final class StorageItf {
 
         /**
          * Creates a new host parsing the info line.
-         * 
+         *
          * @param clusterInfoLine Host information string line.
          */
         public Host(String clusterInfoLine) {
@@ -401,7 +434,7 @@ public final class StorageItf {
 
     /**
      * Main function for internal testing purposes.
-     * 
+     *
      * @param args Application arguments.
      * @throws ClassNotFoundException When main class is not found.
      */

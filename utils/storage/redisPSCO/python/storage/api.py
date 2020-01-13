@@ -78,7 +78,7 @@ def init(config_file_path=None, **kwargs):
         # slave hierarchy discovery, we will simply connect to the first
         # node we got
         redis_connection = \
-            rediscluster.StrictRedisCluster(host=hosts[0], port=REDIS_PORT)
+            rediscluster.RedisCluster(host=hosts[0], port=REDIS_PORT)
     else:
         # We are in standalone mode
         redis_connection = \

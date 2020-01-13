@@ -31,7 +31,7 @@
         <compss.version>2.6.rc2001</compss.version>
 
         <!-- BSC Streaming Component version -->
-        <streaming.version>1.2-24</streaming.version>
+        <streaming.version>1.2-25</streaming.version>
 
         <!-- Log4j version -->
         <log4j.version>2.11.2</log4j.version>

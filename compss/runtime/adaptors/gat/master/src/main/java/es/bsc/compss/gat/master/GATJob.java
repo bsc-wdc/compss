@@ -604,6 +604,9 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
         String paramName = param.getName();
         paramDesc.add((paramName == null) ? "null" : (paramName.isEmpty()) ? "null" : paramName);
 
+        String conType = param.getContentType();
+        paramDesc.add((conType == null) ? "null" : (conType.isEmpty()) ? "null" : conType);
+
         switch (type) {
             case FILE_T:
             case EXTERNAL_STREAM_T:

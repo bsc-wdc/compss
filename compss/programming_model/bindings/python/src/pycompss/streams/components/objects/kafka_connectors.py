@@ -57,6 +57,7 @@ class ODSPublisher(object):
         # Create internal producer
         import socket
         from kafka import KafkaProducer
+
         bootstrap_server_info = str(bootstrap_server).split(":")
         bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))
         bootstrap_server_port = str(bootstrap_server_info[1])
@@ -143,6 +144,7 @@ class ODSConsumer(object):
         # Create internal consumer
         import socket
         from kafka import KafkaConsumer
+
         bootstrap_server_info = str(bootstrap_server).split(":")
         bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))
         bootstrap_server_port = str(bootstrap_server_info[1])

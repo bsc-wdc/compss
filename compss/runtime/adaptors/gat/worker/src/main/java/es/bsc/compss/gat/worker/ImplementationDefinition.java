@@ -153,8 +153,13 @@ public abstract class ImplementationDefinition implements Invocation {
                 name = "";
             }
 
-            // So far, not available in args array
-            String pyType = "null";
+            String pyType = args[appArgsIdx++];
+            if (pyType.compareTo("null") == 0) {
+                pyType = "";
+            }
+
+            // // So far, not available in args array
+            // String pyType = "null";
 
             switch (argType) {
                 case FILE_T:

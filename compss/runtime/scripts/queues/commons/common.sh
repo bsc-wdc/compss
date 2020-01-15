@@ -347,6 +347,15 @@ get_args() {
           project_name=*)
             project_name=${OPTARG//project_name=/}
             ;;
+          base_log_dir=*)
+            base_log_dir=${OPTARG//base_log_dir=/}/
+            # Remove surounding quotes
+            base_log_dir="${base_log_dir%\'}"
+            base_log_dir="${base_log_dir#\'}"
+            base_log_dir="${base_log_dir%\"}"
+            base_log_dir="${base_log_dir#\"}"
+            args_pass="$args_pass --$OPTARG"
+            ;;
           job_dependency=*)
             dependencyJob=${OPTARG//job_dependency=/}
             ;;
@@ -688,12 +697,12 @@ EOT
   # Add JOBID customizable stderr and stdout redirection when defined in queue system
   if [ -n "${QARG_JOB_OUT}" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-#${QUEUE_CMD} ${QARG_JOB_OUT}${QUEUE_SEPARATOR} compss-${QJOB_ID}.out
+#${QUEUE_CMD} ${QARG_JOB_OUT}${QUEUE_SEPARATOR} "${base_log_dir:-}compss-${QJOB_ID}.out"
 EOT
   fi
   if [ -n "${QARG_JOB_ERROR}" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-#${QUEUE_CMD} ${QARG_JOB_ERROR}${QUEUE_SEPARATOR} compss-${QJOB_ID}.err
+#${QUEUE_CMD} ${QARG_JOB_ERROR}${QUEUE_SEPARATOR} "${base_log_dir:-}compss-${QJOB_ID}.err"
 EOT
   fi
   # Add num nodes when defined in queue system

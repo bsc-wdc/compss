@@ -1,0 +1,14 @@
+include pycompss-headless/__init__.py
+include pycompss-headless/pycompss
+include pycompss-headless/pycompss_cmd.py
+
+include LICENSE.txt
+include MANIFEST.in
+include QUICKSTART.md
+include README.md
+include VERSION.txt
+include requirements.txt
+include setup.py
+
+global-exclude *.pyc
+global-exclude *.class

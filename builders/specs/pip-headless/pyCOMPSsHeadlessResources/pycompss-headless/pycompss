@@ -1,0 +1,75 @@
+#!/bin/bash
+
+getpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+cmd_path=$(dirname $(getpath "$0"))
+
+cmd=$1
+shift 1
+
+export PYTHONPATH=$PYTHONPATH:${cmd_path}
+
+if [ -z "${cmd}" ]; then
+
+    echo "PyCOMPSs:"
+    echo ""
+    echo "Usage: pycompss COMMAND"
+    echo ""
+    echo "Available commands:"
+    echo "    init [WORK_DIR]:              initializes PyCOMPSs in the current working dir or in WORK_DIR args is set."
+    echo "    kill:                         stops and kills all instances of the PyCOMPSs."
+    echo "    update:                       updates the PyCOMPSs docker image (use only when installing master branch)."
+    echo "    run CMD:                      executes the CMD command inside the PyCOMPSs master container."
+    echo "    exec [OPTIONS] FILE [PARAMS]: executes FILE with PyCOMPSs, where OPTIONS are COMPSs options and PARAMS are application parameters."
+    echo "    monitor [start|stop]:         starts or stops the COMPSs monitoring."
+    echo "    jupyter [PATH|FILE]:          starts jupyter-notebook in the given PATH or FILE."
+    echo "    components list:              lists PyCOMPSs actives components."
+    echo "    components add RESOURCE:      adds the RESOURCE to the pool of workers of the PyCOMPSs."
+    echo ""
+    echo "       Example given: pycompss add worker '127.0.0.1:6' # to add a local worker with 6 computing units."
+fi
+if [ "${cmd}" == "init" ]; then
+    working_dir=$1
+    python3 -c "from pycompss_cmd import _start_daemon; _start_daemon(working_dir='${working_dir}')"
+fi
+if [ "${cmd}" == "update" ]; then
+    echo "Downloading latest compss/compss images"
+    docker pull compss/compss:latest
+fi
+if [ "${cmd}" == "kill" ]; then
+    python3 -c "from pycompss_cmd import _stop_daemon; _stop_daemon()"
+fi
+if [ "${cmd}" == "run" ]; then    subcmd=$@
+    python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
+fi
+if [ "${cmd}" == "exec" ]; then
+    params=$@
+    python3 -c "from pycompss_cmd import _exec_in_daemon; \
+    _exec_in_daemon('runcompss \
+        --project=/project.xml \
+        --resources=/resources.xml \
+        ${params}')"
+fi
+if [ "${cmd}" == "monitor" ]; then
+    option=$1
+    if [ "${option}" == "start" ]; then
+        python3 -c "from pycompss_cmd import _start_monitoring; _start_monitoring()"
+    elif [ "${option}" == "stop" ]; then
+        python3 -c "from pycompss_cmd import _stop_monitoring; _stop_monitoring()"
+    else
+        echo "Unexpected option for monitoring: ${option}"
+        echo "Please, use start or stop."
+    fi
+fi
+if [ "${cmd}" == "jupyter" ]; then
+    params=$@
+    subcmd="jupyter-notebook ${params} --ip=0.0.0.0 --allow-root"
+    python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
+fi
+if [ "${cmd}" == "components" ]; then
+    subcmd=$@
+    python3 -c "from pycompss_cmd import _components; _components(arg='${subcmd}')"
+
+fi

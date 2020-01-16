@@ -123,6 +123,7 @@ This folder contains the following folder hierarchy and files:
 ├── pyCOMPSsHeadlessResources
 │   ├── pycompss-headless
 │   |   ├── __init__.py
+│   |   ├── compss
 │   |   ├── pycompss
 |   |   └── pycompss_cmd.py
 │   ├── CHANGELOG.md
@@ -144,6 +145,9 @@ buildpipheadless:
 	  named pycompss-headless-${PyCOMPSs_VERSION}.tar.gz in
 		framework/builders/packages/pip-headless/pyCOMPSsHeadless/dist/
 	  Example: sudo -E ./buildpipheadless 2.6 will create a pycompss-headless-2.6.tar.gz
+
+PyCOMPSsResources/pycompss-headless/compss:
+	- pycompss alias.
 
 PyCOMPSsResources/pycompss-headless/pycompss:
 	- Main bash script which enables users to interact with the docker instances.
@@ -199,6 +203,7 @@ pyCOMPSsHeadless
 ├── MANIFEST.in
 ├── pycompss-headless
 │   ├── __init__.py
+│   ├── compss
 │   ├── pycompss
 │   └── pycompss_cmd.py
 ├── pycompss_headless.egg-info

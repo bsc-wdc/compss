@@ -1,4 +1,5 @@
 include pycompss-headless/__init__.py
+include pycompss-headless/compss
 include pycompss-headless/pycompss
 include pycompss-headless/pycompss_cmd.py
 

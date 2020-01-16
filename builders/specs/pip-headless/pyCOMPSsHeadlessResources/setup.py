@@ -31,5 +31,7 @@ setuptools.setup(
     install_requires=['setuptools'],
 
     # Executable
-    scripts=["pycompss-headless/pycompss", "pycompss-headless/pycompss_cmd.py"],
+    scripts=["pycompss-headless/compss",
+             "pycompss-headless/pycompss",
+             "pycompss-headless/pycompss_cmd.py"],
 )

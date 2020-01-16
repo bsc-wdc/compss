@@ -25,7 +25,7 @@ pycompss-headless currently requires:
 
         - [Docker for Arch Linux](https://wiki.archlinux.org/index.php/Docker#Installation).
 
-    Be aware that for some distros the docker package has been renamed from `docker` to `docker-ce`. Make sure you install the new package.
+        Be aware that for some distros the docker package has been renamed from `docker` to `docker-ce`. Make sure you install the new package.
 
     2. Add user to docker group to run pycompss as a non-root user.
 

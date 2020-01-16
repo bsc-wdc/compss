@@ -19,11 +19,11 @@ pycompss-headless currently requires:
 
     1. Follow these instructions
 
-       - [Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac). Or, if you prefer to use [Homebrew](https://brew.sh/).
+        - [Docker for Mac](https://store.docker.com/editions/community/docker-ce-desktop-mac). Or, if you prefer to use [Homebrew](https://brew.sh/).
 
-       - [Docker for Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1).
+        - [Docker for Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1).
 
-       - [Docker for Arch Linux](https://wiki.archlinux.org/index.php/Docker#Installation).
+        - [Docker for Arch Linux](https://wiki.archlinux.org/index.php/Docker#Installation).
 
     Be aware that for some distros the docker package has been renamed from `docker` to `docker-ce`. Make sure you install the new package.
 

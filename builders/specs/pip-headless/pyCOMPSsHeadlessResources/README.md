@@ -13,7 +13,7 @@ This tool has been implemented on top of [PyCOMPSs programming model](http://com
 
 ## Quickstart
 
-Get started with pycompss headless following our [quickstart guide](QUICKSTART.md).
+Get started with pycompss-headless following our [quickstart guide](./QUICKSTART.md).
 
 
 ## License

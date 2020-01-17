@@ -1273,7 +1273,8 @@ def _serialize_object_into_file(name, p):
                     p.object = list(map(synchronize,
                                         p.object,
                                         [mode] * len(p.object)))
-            _skip_file_creation = (p.direction == DIRECTION.OUT)
+            _skip_file_creation = ((p.direction == DIRECTION.OUT)
+                                   and p.type != TYPE.EXTERNAL_STREAM)
             _turn_into_file(name, p, skip_creation=_skip_file_creation)
         except SerializerException:
             import sys

@@ -2,6 +2,9 @@ import json
 import os
 import pickle
 import sys
+import tarfile
+import tempfile
+import shutil
 from uuid import uuid4
 
 import docker
@@ -11,11 +14,13 @@ client = docker.from_env()
 # api_client = docker.APIClient()
 api_client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
-image_name = 'compss/compss:latest'  # Update when releasing new version
+image_name = 'compss/compss:2.6'  # Update when releasing new version
 master_name = 'pycompss-master'
 worker_name = 'pycompss-worker'
 service_name = 'pycompss-service'
 default_workdir = '/home/user'
+default_cfg_name = 'cfg'
+default_cfg = default_workdir + '/' + default_cfg_name
 
 
 def _is_running(name: str):
@@ -36,22 +41,13 @@ def _get_master():
     return master
 
 
-def _save_cfg(working_dir: str, resources_cfg: str, project_cfg: str):
-    cfg = {'working_dir': working_dir,
-           'resources': resources_cfg,
-           'project': project_cfg}
-
-    with open('cfg', 'w') as f:
-        pickle.dump(cfg, f)
-
-
 def _start_daemon(working_dir: str = "", restart: bool = True):
     masters = client.containers.list(filters={'name': master_name},
                                      all=True)
     assert len(masters) < 2  # never should we run 2 masters
 
     if restart or _exists(master_name):
-        _stop_daemon()
+        _stop_daemon(False)
 
     if not _is_running(master_name):
         if not working_dir:
@@ -73,11 +69,37 @@ def _start_daemon(working_dir: str = "", restart: bool = True):
 
         # don't pass configs because they need to be  overwritten when adding
         # new nodes
-        cmd = 'echo \"{\'working_dir\':\'' + working_dir + '\',\'resources\':\'\',\'project\':\'\'}\" > cfg'
-        exit_code, output = (m.exec_run(cmd=cmd))
+        cfg_content = '{"working_dir":"' + working_dir + '","resources":"","project":""}'
+        tmp_path, cfg_file = _store_temp_cfg(cfg_content)
+        _copy_file(cfg_file, default_cfg)
+        shutil.rmtree(tmp_path)
 
-        if exit_code != 0:
-            print(output.decode())
+
+def _store_temp_cfg(cfg_content: str):
+    tmp_path = tempfile.mkdtemp()
+    cfg_file = os.path.join(tmp_path, default_cfg_name)
+    with open(cfg_file, 'w') as f:
+        f.write(cfg_content)
+    return tmp_path, cfg_file
+
+
+def _copy_file(src: str, dst: str):
+    master = _get_master()
+
+    os.chdir(os.path.dirname(src))
+    src_name = os.path.basename(src)
+    tar_name = src + '.tar'
+    tar = tarfile.open(tar_name, mode='w')
+    try:
+        tar.add(src_name)
+    finally:
+        tar.close()
+
+    data = open(tar_name, 'rb').read()
+    output = master.put_archive(os.path.dirname(dst), data)
+
+    if not output:
+        print("ERROR COPYING CFG TO MASTER CONTAINER!!!")
 
 
 def _get_mounts(user_working_dir: str):
@@ -121,7 +143,6 @@ def _generate_project_cfg(curr_cfg: str = '', ips: list = (), cpus: int = 4,
 
 def _generate_resources_cfg(curr_cfg: str = '', ips: list = (), cpus: int = 4):
     # ./generate_resources.sh resources.xml "172.17.0.3:4"
-
     master = _get_master()
 
     res_cmd = '/opt/COMPSs/Runtime/scripts/system/xmls/generate_resources.sh'
@@ -138,8 +159,8 @@ def _generate_resources_cfg(curr_cfg: str = '', ips: list = (), cpus: int = 4):
 
 
 def _get_cfg(master) -> dict:
-    exit_code, output = master.exec_run(cmd='cat cfg')
-    json_str = output.decode().replace("'", "\"")
+    exit_code, output = master.exec_run(cmd='cat ' + default_cfg)
+    json_str = output.decode()
     cfg = json.loads(json_str)
 
     return cfg
@@ -152,11 +173,10 @@ def _update_cfg(master, cfg: dict, ips, cpus):
     # Generate resources.xml
     new_res_cfg = _generate_resources_cfg(cfg['resources'], ips, cpus=cpus)
 
-    cmd = 'echo \"{\'working_dir\':\'' + cfg['working_dir'] + '\',\'resources\':\'' + new_res_cfg + '\',\'project\':\'' + new_proj_cfg + '\'}\" > cfg'
-    exit_code, output = (m.exec_run(cmd=cmd))
-
-    if exit_code != 0:
-        print(output.decode())
+    cfg_content = '{"working_dir":"' + cfg['working_dir'] + '","resources":"' + new_res_cfg + '","project":"' + new_proj_cfg + '"}'
+    tmp_path, cfg_file = _store_temp_cfg(cfg_content)
+    _copy_file(cfg_file, default_cfg)
+    shutil.rmtree(tmp_path)
 
 
 def _add_custom_worker(custom_cfg: str):
@@ -193,9 +213,16 @@ def _add_workers(num_workers: int = 1, user_working_dir: str = "",
           (num_workers, user_working_dir, cpus))
 
 
-def _stop_daemon():
+def _stop_daemon(clean):
     _stop_by_name(master_name)
     _stop_by_name(worker_name)
+    if clean:
+        # Clean the cfg file
+        try:
+            os.remove(default_cfg_name)
+        except OSError:
+            print("WARNING: Could not remove the local " + default_cfg_name + " file.")
+            print("         Please, check the folder where you started pycompss.")
 
 
 def _stop_by_name(name: str):

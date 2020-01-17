@@ -28,22 +28,27 @@ if [ -z "${cmd}" ]; then
     echo "    components list:              lists COMPSs actives components."
     echo "    components add RESOURCE:      adds the RESOURCE to the pool of workers of the COMPSs."
     echo ""
-    echo "       Example given: pycompss add worker '127.0.0.1:6' # to add a local worker with 6 computing units."
+    echo "       Example given: pycompss components add worker 2 # to add 2 local workers."
 fi
+
 if [ "${cmd}" == "init" ]; then
     working_dir=$1
     python3 -c "from pycompss_cmd import _start_daemon; _start_daemon(working_dir='${working_dir}')"
 fi
+
 if [ "${cmd}" == "update" ]; then
     echo "Downloading latest compss/compss images"
     docker pull compss/compss:latest
 fi
+
 if [ "${cmd}" == "kill" ]; then
-    python3 -c "from pycompss_cmd import _stop_daemon; _stop_daemon()"
+    python3 -c "from pycompss_cmd import _stop_daemon; _stop_daemon(True)"
 fi
+
 if [ "${cmd}" == "run" ]; then    subcmd=$@
     python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
 fi
+
 if [ "${cmd}" == "exec" ]; then
     params=$@
     python3 -c "from pycompss_cmd import _exec_in_daemon; \
@@ -52,6 +57,7 @@ if [ "${cmd}" == "exec" ]; then
         --resources=/resources.xml \
         ${params}')"
 fi
+
 if [ "${cmd}" == "monitor" ]; then
     option=$1
     if [ "${option}" == "start" ]; then
@@ -63,11 +69,13 @@ if [ "${cmd}" == "monitor" ]; then
         echo "Please, use start or stop."
     fi
 fi
+
 if [ "${cmd}" == "jupyter" ]; then
     params=$@
     subcmd="jupyter-notebook ${params} --ip=0.0.0.0 --allow-root"
     python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
 fi
+
 if [ "${cmd}" == "components" ]; then
     subcmd=$@
     python3 -c "from pycompss_cmd import _components; _components(arg='${subcmd}')"

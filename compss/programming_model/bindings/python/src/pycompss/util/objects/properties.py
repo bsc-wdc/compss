@@ -24,10 +24,15 @@ PyCOMPSs Util - Object properties
     For example, check if an object belongs to a module and so on.
 """
 
-import os
+import os, sys
 import imp
 import inspect
+from pycompss.runtime.commons import IS_PYTHON3
 
+if IS_PYTHON3:
+    import builtins as _builtins
+else:
+    import __builtin__ as _builtins
 
 def get_defining_class(meth):
     """
@@ -203,3 +208,39 @@ def object_belongs_to_module(obj, module_name):
                         False otherwise
     """
     return any(module_name == x for x in type(obj).__module__.split('.'))
+
+
+def create_object_by_con_type(con_type, default=object):
+    """
+    Knowing its class name create an 'empty' object.
+    :param con_type: object type info in <path_to_module>:<class_name> format.
+    :param default: default object type to be returned if class not found.
+    :return: 'empty' object of a type
+    """
+    path, class_name = con_type.split(":")
+    if hasattr(_builtins, class_name):
+        _obj = getattr(_builtins, class_name)
+        return _obj()
+
+    # try:
+    directory, module_name = os.path.split(path)
+    module_name = os.path.splitext(module_name)[0]
+
+    klass = globals().get(class_name, None)
+    if klass:
+        return klass()
+
+    if module_name not in sys.modules:
+        sys.path.append(directory)
+        module = __import__(module_name)
+        sys.modules[module_name] = module
+    else:
+        module = sys.modules[module_name]
+
+    klass = getattr(module, class_name)
+    ret = klass()
+    return ret
+    # except Exception:
+    #     # todo: handle the exception?
+    #     pass
+    # return default()

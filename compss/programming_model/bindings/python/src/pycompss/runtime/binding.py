@@ -29,6 +29,7 @@ from pycompss.api.parameter import TYPE
 from pycompss.api.parameter import DIRECTION
 from pycompss.api.parameter import JAVA_MIN_INT, JAVA_MAX_INT
 from pycompss.api.parameter import JAVA_MIN_LONG, JAVA_MAX_LONG
+from pycompss.api.parameter import get_compss_type
 from pycompss.runtime.commons import EMPTY_STRING_KEY
 from pycompss.runtime.commons import STR_ESCAPE
 from pycompss.util.serialization.serializer import *
@@ -136,6 +137,8 @@ _runtime_id = str(uuid.uuid1())
 # Given these positions, all objects are then reverse-mapped according
 # to their filenames
 _addr2id2obj = {}
+
+content_type_format = "{}:{}"   # <module_path>:<class_name>
 
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
@@ -736,11 +739,12 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
     _serialize_objects(f_parameters)
 
     # Build values and COMPSs types and directions
-    vtds = _build_values_types_directions(ftype,
+    vtdsc = _build_values_types_directions(ftype,
                                           f_parameters,
                                           f_returns,
                                           f.__code_strings__)
-    values, names, compss_types, compss_directions, compss_streams, compss_prefixes = vtds  # noqa
+    values, names, compss_types, compss_directions, compss_streams, \
+      compss_prefixes, content_types = vtdsc  # noqa
 
     # Get priority
     has_priority = task_kwargs['priority']
@@ -760,6 +764,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
             streams_str = ' '.join(str(s) for s in compss_streams)
             prefixes_str = ' '.join(str(p) for p in compss_prefixes)
             names_str = ' '.join(x for x in names)
+            ct_str = ' '.join(str(x) for x in content_types)
             logger.debug("Processing task:")
             logger.debug("\t- App id: " + str(app_id))
             logger.debug("\t- Path: " + path)
@@ -778,11 +783,12 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
             logger.debug("\t- COMPSs directions: " + direct_str)
             logger.debug("\t- COMPSs streams: " + streams_str)
             logger.debug("\t- COMPSs prefixes: " + prefixes_str)
+            logger.debug("\t- Content Types: " + ct_str)
 
     # Check that there is the same amount of values as their types, as well
     # as their directions, streams and prefixes.
     assert (len(values) == len(compss_types) == len(compss_directions) ==
-            len(compss_streams) == len(compss_prefixes))
+            len(compss_streams) == len(compss_prefixes) == len(content_types))
 
     # Submit task to the runtime (call to the C extension):
     # Parameters:
@@ -824,7 +830,8 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
                         compss_types,
                         compss_directions,
                         compss_streams,
-                        compss_prefixes)
+                        compss_prefixes,
+                        content_types)
 
     # Return the future object/s corresponding to the task
     # This object will substitute the user expected return from the task and
@@ -991,6 +998,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     compss_directions = []
     compss_streams = []
     compss_prefixes = []
+    content_types = list()
+
     # Build the range of elements
     ra = list(f_parameters.keys())
     if ftype == FunctionType.INSTANCE_METHOD or \
@@ -1000,7 +1009,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from function parameters
     for i in ra:
-        val, typ, direc, st, pre = _extract_parameter(f_parameters[i],
+        val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[i],
                                                       code_strings)
         values.append(val)
         compss_types.append(typ)
@@ -1008,11 +1017,12 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(st)
         compss_prefixes.append(pre)
         names.append(arg_names.pop(0))
+        content_types.append(ct)
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from self (if exist)
     if ftype == FunctionType.INSTANCE_METHOD:
         # self is always an object
-        val, typ, direc, st, pre = _extract_parameter(f_parameters[slf],
+        val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[slf],
                                                       code_strings)
         values.append(val)
         compss_types.append(typ)
@@ -1020,6 +1030,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(st)
         compss_prefixes.append(pre)
         names.append(slf_name)
+        content_types.append(ct)
+
     # Fill the values, compss_types, compss_directions, compss_streams and
     # compss_prefixes from function returns
     for r in f_returns:
@@ -1030,7 +1042,10 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         compss_streams.append(p.stream)
         compss_prefixes.append(p.prefix)
         names.append(result_names.pop(0))
-    return values, names, compss_types, compss_directions, compss_streams, compss_prefixes  # noqa
+        content_types.append(p.content_type)
+
+    return values, names, compss_types, compss_directions, compss_streams,\
+        compss_prefixes, content_types
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
@@ -1039,8 +1054,10 @@ def _extract_parameter(param, code_strings, collection_depth=0):
 
     :param param: Parameter object
     :param code_strings: <Boolean> Encode strings
-    :return: value, type, direction stream and prefix of the given parameter
+    :return: value, type, direction stream prefix and content_type of the given
+    parameter
     """
+    con_type = parameter.UNDEFINED_CONTENT_TYPE
     if param.type == TYPE.STRING and not param.is_future and code_strings:
         # Encode the string in order to preserve the source
         # Checks that it is not a future (which is indicated with a path)
@@ -1051,6 +1068,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
             # Checked and substituted by empty string in the worker.py and
             # piper_worker.py
             param.object = base64.b64encode(EMPTY_STRING_KEY.encode()).decode()
+        con_type = content_type_format.format(
+            "builtins", str(param.object.__class__.__name__))
 
     if param.type == TYPE.FILE or param.is_future:
         # If the parameter is a file or is future, the content is in a file
@@ -1062,14 +1081,23 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # we register it as file
         value = param.file_name
         typ = TYPE.FILE
+
+        try:
+            _mf = sys.modules[param.object.__class__.__module__].__file__
+        except AttributeError:
+            # 'builtin' modules do not have __file__ attribute!
+            _mf = "builtins"
+
+        _class_name = str(param.object.__class__.__name__)
+        con_type = content_type_format.format(_mf, _class_name)
+
     elif param.type == TYPE.EXTERNAL_STREAM:
         # If the parameter type is stream, its value is stored in a file but
         # we keep the type
         value = param.file_name
         typ = TYPE.EXTERNAL_STREAM
     elif param.type == TYPE.COLLECTION or \
-            (collection_depth > 0 and
-             is_basic_iterable(param.obj)):
+            (collection_depth > 0 and is_basic_iterable(param.obj)):
         # An object will be considered a collection if at least one of the
         # following is true:
         #     1) We said it is a collection in the task decorator
@@ -1077,19 +1105,24 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #        are inside the specified depth radius
         #
         # The content of a collection is sent via JNI to the master, and the
-        # format is collectionId numberOfElements
-        #     type1 Id1
+        # format is:
+        # collectionId numberOfElements collectionPyContentType
+        #     type1 Id1 pyType1
+        #     type2 Id2 pyType2
         #     ...
-        #     typeN IdN
-        value = '%s %d' % (get_object_id(param.object), len(param.object))
+        #     typeN IdN pyTypeN
+        _class_name = str(param.object.__class__.__name__)
+        con_type = content_type_format.format("collection", _class_name)
+        value = "{} {} {}".format(get_object_id(param.object),
+                                   len(param.object), con_type)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
-            x_value, x_type, _, _, _ = _extract_parameter(
+            x_value, x_type, _, _, _, x_con_type = _extract_parameter(
                 x,
                 code_strings,
                 param.depth - 1
             )
-            value += ' %s %s' % (x_type, x_value)
+            value += ' %s %s %s' % (x_type, x_value, x_con_type)
     else:
         # Keep the original value and type
         value = param.object
@@ -1101,7 +1134,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
     # Get stream and prefix
     stream = param.stream
     prefix = param.prefix
-    return value, typ, direction, stream, prefix
+    return value, typ, direction, stream, prefix, con_type
 
 
 def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
@@ -1240,7 +1273,9 @@ def _serialize_object_into_file(name, p):
                     p.object = list(map(synchronize,
                                         p.object,
                                         [mode] * len(p.object)))
-            _turn_into_file(name, p)
+            _skip_file_creation = ((p.direction == DIRECTION.OUT)
+                                   and p.type != TYPE.EXTERNAL_STREAM)
+            _turn_into_file(name, p, skip_creation=_skip_file_creation)
         except SerializerException:
             import sys
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -1265,7 +1300,8 @@ def _serialize_object_into_file(name, p):
         if p.object > JAVA_MAX_LONG or p.object < JAVA_MIN_LONG:
             # This must be serialized to prevent overflow with Java long
             p.type = TYPE.OBJECT
-            _turn_into_file(name, p)
+            _skip_file_creation = (p.direction == DIRECTION.OUT)
+            _turn_into_file(name, p, _skip_file_creation)
     elif p.type == TYPE.STRING:
         from pycompss.api.task import prepend_strings
         if prepend_strings:
@@ -1289,7 +1325,6 @@ def _serialize_object_into_file(name, p):
                 for x in p.object
             ]
         else:
-            from pycompss.api.parameter import get_compss_type
             new_object = [
                 _serialize_object_into_file(
                     name,
@@ -1297,11 +1332,13 @@ def _serialize_object_into_file(name, p):
                         p_type=get_compss_type(x, p.depth - 1),
                         p_direction=p.direction,
                         p_object=x,
-                        depth=p.depth - 1
+                        depth=p.depth - 1,
+                        content_type=str(type(x).__name__)
                     )
                 )
                 for x in p.object
             ]
+
         p.object = new_object
         # Give this object an identifier inside the binding
         get_object_id(p.object, True, False)
@@ -1327,7 +1364,7 @@ def _manage_persistent_object(p):
         logger.debug("Managed persistent object: %s" % obj_id)
 
 
-def _turn_into_file(name, p):
+def _turn_into_file(name, p, skip_creation=False):
     """
     Write a object into a file if the object has not been already written
     (p.object).
@@ -1358,7 +1395,8 @@ def _turn_into_file(name, p):
         objid_to_filename[obj_id] = file_name
         if __debug__:
             logger.debug("Mapping object %s to file %s" % (obj_id, file_name))
-        serialize_to_file(p.object, file_name)
+        if not skip_creation:
+            serialize_to_file(p.object, file_name)
     elif obj_id in _objs_written_by_mp:
         if p.direction == DIRECTION.INOUT or \
                 p.direction == DIRECTION.COMMUTATIVE:
@@ -1368,7 +1406,8 @@ def _turn_into_file(name, p):
         if __debug__:
             logger.debug("Serializing object %s to file %s" % (obj_id,
                                                                compss_file))
-        serialize_to_file(p.object, compss_file)
+        if not skip_creation:
+            serialize_to_file(p.object, compss_file)
     else:
         pass
     # Set file name in Parameter object

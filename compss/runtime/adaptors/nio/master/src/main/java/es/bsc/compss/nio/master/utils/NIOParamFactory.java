@@ -128,7 +128,8 @@ public class NIOParamFactory {
         // Create the NIO Param
         boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
         NIOParam np = new NIOParam(dataMgmtId, param.getType(), param.getStream(), param.getPrefix(), param.getName(),
-            dPar.isSourcePreserved(), writeFinalValue, value, (NIOData) dPar.getDataSource(), dPar.getOriginalName());
+            param.getContentType(), dPar.isSourcePreserved(), writeFinalValue, value, (NIOData) dPar.getDataSource(),
+            dPar.getOriginalName());
         return np;
     }
 
@@ -158,7 +159,7 @@ public class NIOParamFactory {
         boolean preserveSourceData = false; // Basic parameters are not preserved on Worker
         boolean writeFinalValue = false; // Basic parameters are not stored on Worker
         NIOParam np = new NIOParam(null, param.getType(), param.getStream(), param.getPrefix(), param.getName(),
-            preserveSourceData, writeFinalValue, value, null, DependencyParameter.NO_NAME);
+            param.getContentType(), preserveSourceData, writeFinalValue, value, null, DependencyParameter.NO_NAME);
         return np;
     }
 }

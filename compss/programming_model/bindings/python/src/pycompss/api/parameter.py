@@ -65,6 +65,8 @@ except ImportError:
 PYCOMPSS_LONG = int if IS_PYTHON3 else long
 
 TYPE = DataType
+# Content type format is <module_path> and <class_name> separated by colon (':')
+UNDEFINED_CONTENT_TYPE = "#UNDEFINED#:#UNDEFINED#"
 
 
 # Numbers match both C and Java enums
@@ -113,7 +115,8 @@ class Parameter(object):
                  file_name=None,
                  is_future=False,
                  depth=1,
-                 is_file_collection=False):
+                 is_file_collection=False,
+                 content_type=UNDEFINED_CONTENT_TYPE):
         self.type = p_type
         self.direction = p_direction
         self.stream = p_stream
@@ -124,15 +127,23 @@ class Parameter(object):
         self.depth = depth          # Recursive depth for collections
         self.is_file_collection = is_file_collection
 
+        # TODO: Remove this 'if'
+        # empty content types break the format while splitting by space (' ')
+        if not content_type:
+            content_type = UNDEFINED_CONTENT_TYPE
+        self.content_type = content_type
+
     def __repr__(self):
         return 'Parameter(type=%s, direction=%s, stream=%s, prefix=%s\n' \
                '          object=%s\n' \
+               '          content_type=%s\n' \
                '          file_name=%s\n' \
                '          is_future=%s)' % (str(self.type),
                                             str(self.direction),
                                             str(self.stream),
                                             str(self.prefix),
                                             str(self.object),
+                                            str(self.content_type),
                                             str(self.file_name),
                                             str(self.is_future))
 
@@ -152,7 +163,8 @@ class TaskParameter(object):
                  key=None,
                  content=None,
                  stream=None,
-                 prefix=None):
+                 prefix=None,
+                 content_type=UNDEFINED_CONTENT_TYPE):
         self.name = name
         self.type = p_type
         self.file_name = file_name
@@ -160,6 +172,11 @@ class TaskParameter(object):
         self.content = content
         self.stream = stream
         self.prefix = prefix
+        # TODO: Remove this 'if'
+        # empty content types break the format while splitting by space (' ')
+        if not content_type:
+            content_type = UNDEFINED_CONTENT_TYPE
+        self.content_type = content_type
 
     def __repr__(self):
         return '\nParameter %s' % self.name + '\n' + \
@@ -169,6 +186,7 @@ class TaskParameter(object):
                '\tContent %s' % str(self.content) + '\n' + \
                '\tStream %s' % str(self.stream) + '\n' + \
                '\tPrefix %s' % str(self.prefix) + '\n' + \
+               '\tContent Type %s' % str(self.content_type) + '\n' + \
                '-' * 20 + '\n'
 
 
@@ -306,6 +324,10 @@ _param_conversion_dict_ = {
     'COLLECTION_INOUT': {
         'p_type': TYPE.COLLECTION,
         'p_direction': DIRECTION.INOUT
+    },
+    'COLLECTION_OUT': {
+        'p_type': TYPE.COLLECTION,
+        'p_direction': DIRECTION.OUT
     },
     'STREAM_IN': {
         'p_type': TYPE.EXTERNAL_STREAM,
@@ -683,6 +705,7 @@ FILE_COMMUTATIVE_STDOUT = _Param('FILE_COMMUTATIVE_STDOUT')
 COLLECTION = _Param('COLLECTION')
 COLLECTION_IN = _Param('COLLECTION_IN')
 COLLECTION_INOUT = _Param('COLLECTION_INOUT')
+COLLECTION_OUT = _Param('COLLECTION_OUT')
 COLLECTION_FILE = _Param('COLLECTION_FILE')
 COLLECTION_FILE_IN = _Param('COLLECTION_FILE_IN')
 COLLECTION_FILE_INOUT = _Param('COLLECTION_FILE_INOUT')

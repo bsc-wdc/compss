@@ -106,7 +106,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private static boolean initialized = false;
 
     // Number of fields per parameter
-    private static final int NUM_FIELDS_PER_PARAM = 6;
+    private static final int NUM_FIELDS_PER_PARAM = 7;
 
     // Language
     protected static final String DEFAULT_LANG_STR = System.getProperty(COMPSsConstants.LANG);
@@ -1254,7 +1254,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
-        String name, ArrayList<Parameter> pars, int offset, String[] vals) {
+        String name, String pyType, ArrayList<Parameter> pars, int offset, String[] vals) {
 
         switch (type) {
             case FILE_T:
@@ -1262,7 +1262,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     String fileName = (String) content;
                     String originalName = new File(fileName).getName();
                     DataLocation location = createLocation((String) content);
-                    pars.add(new FileParameter(direction, stream, prefix, name, location, originalName));
+                    pars.add(new FileParameter(direction, stream, prefix, name, pyType, location, originalName));
                 } catch (Exception e) {
                     LOGGER.error(ERROR_FILE_NAME, e);
                     ErrorManager.fatal(ERROR_FILE_NAME, e);
@@ -1271,7 +1271,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             case OBJECT_T:
             case PSCO_T:
                 int code = oReg.newObjectParameter(content);
-                pars.add(new ObjectParameter(direction, stream, prefix, name, content, code));
+                pars.add(new ObjectParameter(direction, stream, prefix, name, pyType, content, code));
                 break;
             case STREAM_T:
                 int streamCode = oReg.newObjectParameter(content);
@@ -1302,7 +1302,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                         String extObjectId = fields[0];
                         int extObjectType = Integer.parseInt(fields[1]);
                         int extObjectElements = Integer.parseInt(fields[2]);
-                        pars.add(new BindingObjectParameter(direction, stream, prefix, name,
+                        pars.add(new BindingObjectParameter(direction, stream, prefix, name, pyType,
                             new BindingObject(extObjectId, extObjectType, extObjectElements),
                             externalObjectHashcode(extObjectId)));
                     } else {
@@ -1320,14 +1320,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 String[] values = vals == null ? ((String) content).split(" ") : vals;
                 String collectionId = values[offset];
                 int numOfElements = Integer.parseInt(values[offset + 1]);
+                String colPyType = values[offset + 2];
                 // The elements of the collection are all the elements of the list except for the first one
-                // Each element is defined by a pair TYPE VALUE
-                // Also note the +2 offset!
+                // Each element is defined by TYPE VALUE PYTHON_CONTENT_TYPE
+                // Also note the +3 offset!
                 List<DataType> contentTypes = new ArrayList<>();
                 List<String> contentIds = new ArrayList<>();
                 ArrayList<Parameter> collectionParameters = new ArrayList<>();
-                // Ret = number of read elements by this recursive step (atm 2: id + numOfElements)
-                int ret = 2;
+                // Ret = number of read elements by this recursive step (atm 3: id + numOfElements + pyContentType)
+                int ret = 3;
                 for (int j = 0; j < numOfElements; ++j) {
                     // First element is the type, translate it to the corresponding DataType field by direct indexing
                     int idx = Integer.parseInt(values[offset + ret]);
@@ -1337,6 +1338,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     contentIds.add(values[offset + ret + 1]);
                     DataType elemType = contentTypes.get(j);
                     Direction elemDir = direction;
+                    // Third element is the Python type of the object
+                    String elemPyType = values[offset + ret + 2];
                     // Prepare stuff for recursive call
                     Object elemContent = elemType == DataType.COLLECTION_T ? values : contentIds.get(j);
                     // N/A to non-direct parameters
@@ -1352,11 +1355,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     if (!elemName.startsWith("@")) {
                         elemName = "@" + elemName;
                     }
-                    ret += addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName,
-                        collectionParameters, offset + ret + 1, values) + 1;
+                    ret += addParameter(elemContent, elemType, elemDir, elemStream, elemPrefix, elemName, elemPyType,
+                        collectionParameters, offset + ret + 1, values) + 2;
                 }
-                CollectionParameter cp =
-                    new CollectionParameter(collectionId, collectionParameters, direction, stream, prefix, name);
+                CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
+                    prefix, name, colPyType);
                 LOGGER.debug("Add COLLECTION_T with " + cp.getParameters().size() + " parameters");
                 LOGGER.debug(cp.toString());
                 pars.add(cp);
@@ -1368,7 +1371,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                     LOGGER.warn(WARN_WRONG_DIRECTION + "Parameter " + name
                         + " is a basic type, therefore it must have IN direction");
                 }
-                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content));
+                pars.add(new BasicTypeParameter(type, Direction.IN, stream, prefix, name, content, "null"));
                 break;
         }
         return 1;
@@ -1400,7 +1403,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("  Parameter " + i + " has type " + type.name());
             }
-            addParameter(content, type, direction, stream, prefix, name, pars, 0, null);
+            addParameter(content, type, direction, stream, prefix, name, null, pars, 0, null);
         }
 
         // Return parameters

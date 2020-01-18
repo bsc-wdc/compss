@@ -37,6 +37,7 @@ public abstract class Parameter implements Serializable {
     private final StdIOStream stream;
     private final String prefix;
     private final String name;
+    private final String contentType;
 
 
     /**
@@ -47,8 +48,10 @@ public abstract class Parameter implements Serializable {
      * @param stream Parameter IO stream mode.
      * @param prefix Parameter prefix.
      * @param name Parameter name.
+     * @param contentType Python object type.
      */
-    public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name) {
+    public Parameter(DataType type, Direction direction, StdIOStream stream, String prefix, String name,
+        String contentType) {
         this.type = type;
         this.direction = direction;
         this.stream = stream;
@@ -58,6 +61,7 @@ public abstract class Parameter implements Serializable {
             this.prefix = prefix;
         }
         this.name = name;
+        this.contentType = contentType;
     }
 
     /**
@@ -114,4 +118,7 @@ public abstract class Parameter implements Serializable {
         return this.name;
     }
 
+    public String getContentType() {
+        return this.contentType;
+    }
 }

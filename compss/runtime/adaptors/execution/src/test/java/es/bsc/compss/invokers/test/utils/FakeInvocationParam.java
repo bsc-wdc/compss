@@ -35,6 +35,7 @@ public class FakeInvocationParam implements InvocationParam {
 
     private final String prefix;
     private final String name;
+    private final String contentType;
     private final StdIOStream stream;
     private final boolean writeFinalValue;
     private final String dataMgmtId;
@@ -46,16 +47,18 @@ public class FakeInvocationParam implements InvocationParam {
      * @param type Type
      * @param prefix Prefix
      * @param name Name
+     * @param contentType Python Object Type
      * @param stream Stream
      * @param originalName Original Name
      * @param dataMgmtId Data Management Id
      * @param writeFinalValue Write final value flag
      */
-    public FakeInvocationParam(DataType type, String prefix, String name, StdIOStream stream, String originalName,
-        String dataMgmtId, boolean writeFinalValue) {
+    public FakeInvocationParam(DataType type, String prefix, String name, String contentType, StdIOStream stream,
+        String originalName, String dataMgmtId, boolean writeFinalValue) {
         this.type = type;
         this.prefix = prefix;
         this.name = name;
+        this.contentType = contentType;
         this.stream = stream;
         this.originalName = originalName;
         this.writeFinalValue = writeFinalValue;
@@ -90,6 +93,11 @@ public class FakeInvocationParam implements InvocationParam {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String getContentType() {
+        return this.contentType;
     }
 
     @Override

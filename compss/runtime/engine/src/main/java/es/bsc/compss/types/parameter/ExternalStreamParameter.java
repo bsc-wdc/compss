@@ -46,7 +46,7 @@ public class ExternalStreamParameter extends DependencyParameter {
     public ExternalStreamParameter(Direction direction, StdIOStream stream, String prefix, String name,
         DataLocation location, String originalName) {
 
-        super(DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name);
+        super(DataType.EXTERNAL_STREAM_T, direction, stream, prefix, name, "null");
         this.location = location;
         this.originalName = originalName;
     }

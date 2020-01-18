@@ -185,6 +185,7 @@ public abstract class ExternalInvoker extends Invoker {
         paramArgs.add(Integer.toString(np.getStdIOStream().ordinal()));
         paramArgs.add(np.getPrefix());
         paramArgs.add(np.getName());
+        paramArgs.add(np.getContentType());
         switch (type) {
             case FILE_T:
                 // Passing originalName link instead of renamed file
@@ -257,7 +258,8 @@ public abstract class ExternalInvoker extends Invoker {
         } else {
             try (PrintWriter writer = new PrintWriter(pathToWrite, "UTF-8");) {
                 for (InvocationParam subParam : icp.getCollectionParameters()) {
-                    writer.println(subParam.getType().ordinal() + " " + subParam.getValue());
+                    writer.println(
+                        subParam.getType().ordinal() + " " + subParam.getValue() + " " + subParam.getContentType());
                     if (subParam.getType() == DataType.COLLECTION_T) {
                         writeCollection((InvocationParamCollection<InvocationParam>) subParam);
                     }
@@ -267,7 +269,6 @@ public abstract class ExternalInvoker extends Invoker {
                 e.printStackTrace();
             }
         }
-
     }
 
     private static boolean isRuntimeRenamed(String filename) {

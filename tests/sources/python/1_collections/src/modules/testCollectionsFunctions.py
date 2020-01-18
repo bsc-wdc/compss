@@ -10,10 +10,12 @@ PyCOMPSs Testbench Tasks
 # Imports
 import unittest
 
-from pycompss.api.task import task
-from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on
-import numpy as np
+from pycompss.api.parameter import *
+from pycompss.api.task import task
+
+from my_class import MyClass
+
 
 @task(c = COLLECTION_IN, returns = 1)
 def select_element(c, i):
@@ -37,7 +39,66 @@ def increase_elements(c):
 def increase_element(e):
     e += 1.0
 
+
+@task(kol_out=COLLECTION_OUT)
+def append(kol_out, value):
+    for i in range(len(kol_out)):
+        kol_out[i].append(value)
+    return True
+
+
+@task(kol_out=COLLECTION_OUT)
+def modify_obj(kol_out, value):
+    for i in range(len(kol_out)):
+        kol_out[i].set_test(value)
+    return True
+
+
+@task(kol_out={"type": COLLECTION_OUT, "depth": 2})
+def modify_deep_obj(kol_out, to_append, to_modify):
+    for i in range(len(kol_out)):
+        kol_out[i][0].append(to_append)
+        kol_out[i][1].set_test(to_modify)
+    return True
+
+
 class testCollectionFunctions(unittest.TestCase):
+
+    def testCollectionOut(self):
+
+        array_1 = [[i, MyClass()] for i in range(5)]
+        array_2 = [MyClass() for _ in range(5)]
+        array_3 = [[[i, i * 2], MyClass()] for i in range(5)]
+
+        for i in range(5):
+            append(array_1, "appended")
+            modify_obj(array_2, "modified")
+            modify_deep_obj(array_3, "appended", "modified")
+
+        array_1 = compss_wait_on(array_1)
+        array_2 = compss_wait_on(array_2)
+        array_3 = compss_wait_on(array_3)
+
+        appends = True
+        modifies = True
+        deep_modifies = True
+
+        for i in range(5):
+
+            if appends:
+                appends = "appended" in array_1[i]
+
+            if modifies:
+                modifies = array_2[i].get_test() == "modified"
+
+            if deep_modifies:
+                _0 = "appended" in array_3[i][0]
+                _1 = array_3[i][1].get_test() == "modified"
+                deep_modifies = _0 and _1
+
+        self.assertTrue(appends)
+        self.assertTrue(modifies)
+        self.assertTrue(deep_modifies)
 
     def testMasterGenerationIn(self):
         matrix = [
@@ -91,7 +152,6 @@ class testCollectionFunctions(unittest.TestCase):
                 should
             )
         )
-
 
     def testWorkerGenerationInout(self):
         # Generate ten random vectors with pre-determined seed

@@ -163,7 +163,7 @@ public class Agent {
             taskParamsCount += results.length;
             int loadParamsCount = 7;
             int totalParamsCount = taskParamsCount + loadParamsCount;
-            Object[] params = new Object[6 * totalParamsCount];
+            Object[] params = new Object[7 * totalParamsCount];
 
             Object[] loadParams = new Object[] { RUNTIME,
                 DataType.OBJECT_T,
@@ -171,36 +171,42 @@ public class Agent {
                 StdIOStream.UNSPECIFIED,
                 "",
                 "runtime", // Runtime API
+                "",
                 RUNTIME,
                 DataType.OBJECT_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
                 "api", // Loader API
+                "",
                 ceiClass,
                 DataType.STRING_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
                 "ceiClass", // CEI
+                "",
                 appId,
                 DataType.LONG_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
                 "appId", // Nested tasks App ID
+                "",
                 className,
                 DataType.STRING_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
                 "className", // Class name
+                "",
                 methodName,
                 DataType.STRING_T,
                 Direction.IN,
                 StdIOStream.UNSPECIFIED,
                 "",
                 "methodName", // Method name
+                "",
                 /*
                  * When passing a single parameter with array type to the loaded method, the Object... parameter of the
                  * load method assumes that each element of the array is a different parameter ( any array matches
@@ -214,20 +220,20 @@ public class Agent {
                 StdIOStream.UNSPECIFIED,
                 "",
                 "fakeParam", // Fake param
-            };
+                "" };
 
             System.arraycopy(loadParams, 0, params, 0, loadParams.length);
             int position = loadParams.length;
             for (ApplicationParameter param : arguments) {
                 LOGGER.debug("\t Parameter:" + param.getParamName());
                 addParameterToTaskArguments(param, position, params);
-                position += 6;
+                position += 7;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
                 addParameterToTaskArguments(target, position, params);
-                position += 6;
+                position += 7;
             }
 
             for (ApplicationParameter param : results) {
@@ -237,7 +243,8 @@ public class Agent {
                 params[position + 3] = param.getStdIOStream();
                 params[position + 4] = param.getPrefix();
                 params[position + 5] = param.getParamName();
-                position += 6;
+                params[position + 6] = param.getContentType();
+                position += 7;
             }
 
             RUNTIME.executeTask(mainAppId, // Task application ID
@@ -303,7 +310,7 @@ public class Agent {
             }
             paramsCount += results.length;
 
-            Object[] params = new Object[6 * paramsCount];
+            Object[] params = new Object[7 * paramsCount];
             int position = 0;
             LOGGER.debug("Handles parameters:");
             for (ApplicationParameter param : arguments) {
@@ -317,13 +324,13 @@ public class Agent {
                     typesSB.append("OBJECT_T");
                 }
                 addParameterToTaskArguments(param, position, params);
-                position += 6;
+                position += 7;
             }
 
             if (target != null) {
                 LOGGER.debug("\t Target:" + target.getParamName());
                 addParameterToTaskArguments(target, position, params);
-                position += 6;
+                position += 7;
             }
 
             for (ApplicationParameter param : results) {
@@ -333,7 +340,8 @@ public class Agent {
                 params[position + 3] = param.getStdIOStream();
                 params[position + 4] = param.getPrefix();
                 params[position + 5] = param.getParamName();
-                position += 6;
+                params[position + 6] = param.getContentType();
+                position += 7;
             }
 
             String paramsTypes = typesSB.toString();
@@ -383,6 +391,7 @@ public class Agent {
         arguments[position + 3] = param.getStdIOStream();
         arguments[position + 4] = param.getPrefix();
         arguments[position + 5] = param.getParamName();
+        arguments[position + 6] = param.getContentType();
     }
 
     private static void addRemoteData(RemoteDataInformation remote) throws AgentException {

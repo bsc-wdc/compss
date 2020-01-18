@@ -18,7 +18,7 @@ import os
 import pickle
 
 from pycompss.api.api import compss_wait_on as cwo
-from pycompss.api.parameter import INOUT, IN, COLLECTION_INOUT
+from pycompss.api.parameter import INOUT, IN, COLLECTION_OUT
 from pycompss.api.task import task
 from pycompss.dds.partition_generators import IPartitionGenerator
 
@@ -46,7 +46,7 @@ def map_partition(func, partition, *collection):
     return res
 
 
-@task(col=COLLECTION_INOUT)
+@task(col=COLLECTION_OUT)
 def distribute_partition(col, func, partitioner_func, partition, *collection):
     """ Distribute (key, value) structured elements of the partition on
     'buckets'.

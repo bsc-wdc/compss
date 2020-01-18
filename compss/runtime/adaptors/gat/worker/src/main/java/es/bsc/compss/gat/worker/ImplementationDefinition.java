@@ -153,6 +153,14 @@ public abstract class ImplementationDefinition implements Invocation {
                 name = "";
             }
 
+            String pyType = args[appArgsIdx++];
+            if (pyType.compareTo("null") == 0) {
+                pyType = "";
+            }
+
+            // // So far, not available in args array
+            // String pyType = "null";
+
             switch (argType) {
                 case FILE_T:
                 case EXTERNAL_STREAM_T:
@@ -210,7 +218,7 @@ public abstract class ImplementationDefinition implements Invocation {
                     throw new Exception(WARN_UNSUPPORTED_DATA_TYPE + argType);
             }
 
-            Param p = new Param(argType, prefix, name, stream, originalName, writeFinal);
+            Param p = new Param(argType, prefix, name, pyType, stream, originalName, writeFinal);
             if (value != null) {
                 p.setValue(value);
             }
@@ -346,17 +354,19 @@ public abstract class ImplementationDefinition implements Invocation {
 
         private final String prefix;
         private final String name;
+        private final String contentType;
         private final StdIOStream stream;
         private String originalName;
         private String renamedName;
         private final boolean writeFinalValue;
 
 
-        public Param(DataType type, String prefix, String name, StdIOStream stream, String originalName,
-            boolean writeFinalValue) {
+        public Param(DataType type, String prefix, String name, String contentType, StdIOStream stream,
+            String originalName, boolean writeFinalValue) {
             this.type = type;
             this.prefix = prefix;
             this.name = name;
+            this.contentType = contentType;
             this.stream = stream;
             this.originalName = originalName;
             this.writeFinalValue = writeFinalValue;
@@ -390,6 +400,11 @@ public abstract class ImplementationDefinition implements Invocation {
         @Override
         public String getName() {
             return this.name;
+        }
+
+        @Override
+        public String getContentType() {
+            return this.contentType;
         }
 
         @Override

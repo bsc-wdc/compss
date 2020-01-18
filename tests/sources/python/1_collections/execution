@@ -68,7 +68,7 @@
         --lang=python \
         --python_interpreter="${python_interpreter}" \
         ${python_mpi_worker} \
-        --pythonpath="${base_app_dir}"/src \
+        --pythonpath="${base_app_dir}"/src:"${base_app_dir}"/src/modules \
         --specific_log_dir="${specific_log_dir}" \
         --tracing=${tfvalue} \
         \

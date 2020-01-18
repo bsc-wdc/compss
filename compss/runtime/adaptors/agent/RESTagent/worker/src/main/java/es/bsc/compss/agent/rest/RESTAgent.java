@@ -46,6 +46,8 @@ import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -325,6 +327,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
             appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
                 monitor);
         } catch (AgentException e) {
+            LOGGER.error("ERROR IN runMain : ", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return Response.ok(appId, MediaType.TEXT_PLAIN).build();
@@ -340,7 +343,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         if (hasResult) {
             results = new ApplicationParameterImpl[1];
             results[1] = new ApplicationParameterImpl(null, Direction.IN, DataType.OBJECT_T, StdIOStream.UNSPECIFIED,
-                "", "result");
+                "", "result", "");
         } else {
             results = new ApplicationParameterImpl[0];
         }

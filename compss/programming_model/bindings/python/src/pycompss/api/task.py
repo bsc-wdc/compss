@@ -36,6 +36,7 @@ from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
 import pycompss.util.context as context
 from pycompss.util.arguments import check_arguments
+from pycompss.util.objects.properties import create_object_by_con_type
 from pycompss.util.storages.persistent import is_psco
 from pycompss.util.serialization.serializer import deserialize_from_file
 from pycompss.util.serialization.serializer import serialize_to_file
@@ -764,65 +765,70 @@ class Task(object):
         """
         from collections import OrderedDict
         self.returns = OrderedDict()
-        # Note that returns is by default False
-        if self.decorator_arguments['returns']:
-            # A return statement can be the following:
-            # 1) A type. This means 'this task returns an object of this type'
-            # 2) An integer N. This means 'this task returns N objects'
-            # 3) A basic iterable (tuple, list...). This means 'this task
-            #    returns an iterable with the indicated elements inside
-            from pycompss.util.objects.properties import is_basic_iterable
-            # We are returning multiple objects until otherwise proven
-            # It is important to know because this will determine if we will
-            # return a single object or [a single object] in some cases
-            self.multi_return = True
-            if isinstance(self.decorator_arguments['returns'], str):
-                # Check if the returns statement contains an string with an
-                # integer or a global variable.
-                # In such case, build a list of objects of value length and
-                # set it in ret_type.
-                # Global variable or string wrapping integer value
+
+        _returns = self.decorator_arguments['returns']
+        # Note that 'returns' is by default False
+        if not _returns:
+            return False
+
+        # A return statement can be the following:
+        # 1) A type. This means 'this task returns an object of this type'
+        # 2) An integer N. This means 'this task returns N objects'
+        # 3) A basic iterable (tuple, list...). This means 'this task
+        #    returns an iterable with the indicated elements inside
+
+
+        # We are returning multiple objects until otherwise proven
+        # It is important to know because this will determine if we will
+        # return a single object or [a single object] in some cases
+
+        from pycompss.util.objects.properties import is_basic_iterable
+        self.multi_return = True
+        if isinstance(_returns, str):
+            # Check if the returns statement contains an string with an
+            # integer or a global variable.
+            # In such case, build a list of objects of value length and
+            # set it in ret_type.
+            # Global variable or string wrapping integer value
+            try:
+                # Return is hidden by an int as a string.
+                # i.e., returns="var_int"
+                num_rets = int(_returns)
+            except ValueError:
+                # Return is hidden by a global variable. i.e., LT_ARGS
                 try:
-                    # Return is hidden by an int as a string.
-                    # i.e., returns="var_int"
-                    num_rets = int(self.decorator_arguments['returns'])
-                except ValueError:
-                    # Return is hidden by a global variable. i.e., LT_ARGS
-                    try:
-                        num_rets = self.user_function.__globals__.get(
-                            self.decorator_arguments['returns'])
-                    except AttributeError:
-                        # This is a numba jit declared task
-                        num_rets = self.user_function.py_func.__globals__.get(
-                            self.decorator_arguments['returns'])
-                # Construct hidden multireturn
-                if num_rets > 1:
-                    to_return = [tuple([]) for _ in range(num_rets)]
-                else:
-                    to_return = tuple([])
-            elif is_basic_iterable(self.decorator_arguments['returns']):
-                # The task returns a basic iterable with some types
-                # already defined
-                to_return = self.decorator_arguments['returns']
-            elif isinstance(self.decorator_arguments['returns'], int):
-                # The task returns a list of N objects, defined by the int N
-                to_return = tuple([() for _ in
-                                   range(self.decorator_arguments['returns'])])
+                    num_rets = self.user_function.__globals__.get(_returns)
+                except AttributeError:
+                    # This is a numba jit declared task
+                    num_rets = self.user_function.py_func.__globals__.get(_returns)
+            # Construct hidden multi-return
+            if num_rets > 1:
+                to_return = [tuple([]) for _ in range(num_rets)]
             else:
-                # The task returns a single object of a single type
-                # This is also the only case when no multiple objects are
-                # returned but only one
-                self.multi_return = False
-                to_return = [self.decorator_arguments['returns']]
-            # At this point we have a list of returns
-            for (i, elem) in enumerate(to_return):
-                ret_type = parameter.get_compss_type(elem)
-                self.returns[parameter.get_return_name(i)] = \
-                    parameter.Parameter(p_type=ret_type,
-                                        p_object=elem,
-                                        p_direction=parameter.OUT)
-                # Hopefully, an exception have been thrown if some invalid
-                # stuff has been put in the returns field
+                to_return = tuple([])
+        elif is_basic_iterable(_returns):
+            # The task returns a basic iterable with some types
+            # already defined
+            to_return = _returns
+        elif isinstance(_returns, int):
+            # The task returns a list of N objects, defined by the int N
+            to_return = tuple([() for _ in range(_returns)])
+        else:
+            # The task returns a single object of a single type
+            # This is also the only case when no multiple objects are
+            # returned but only one
+            self.multi_return = False
+            to_return = [_returns]
+
+        # At this point we have a list of returns
+        for (i, elem) in enumerate(to_return):
+            ret_type = parameter.get_compss_type(elem)
+            self.returns[parameter.get_return_name(i)] = \
+                parameter.Parameter(p_type=ret_type,
+                                    p_object=elem,
+                                    p_direction=parameter.OUT)
+            # Hopefully, an exception have been thrown if some invalid
+            # stuff has been put in the returns field
 
     def master_call(self, *args, **kwargs):
         """
@@ -1053,7 +1059,7 @@ class Task(object):
         for arg in args:
             arg.direction = self.get_parameter_direction(arg.name)
 
-    def is_parameter_object(self, name):
+    def is_parameter_an_object(self, name):
         """
         Given the name of a parameter, determine if it is an object or not
 
@@ -1092,8 +1098,6 @@ class Task(object):
         # return False
         return False
 
-
-
     def reveal_objects(self, args):
         """
         This function takes the arguments passed from the persistent worker
@@ -1115,13 +1119,13 @@ class Task(object):
             except Exception:
                 return False
 
-        def retrieve_content(arg, name_prefix):
+        def retrieve_content(arg, name_prefix, depth=0):
             # This case is special, as a FILE can actually mean a FILE or an
             # object that is serialized in a file
             if parameter.is_vararg(arg.name):
                 self.param_varargs = arg.name
             if arg.type == parameter.TYPE.FILE:
-                if self.is_parameter_object(arg.name):
+                if self.is_parameter_an_object(arg.name):
                     # The object is stored in some file, load and deserialize
                     arg.content = deserialize_from_file(
                         arg.file_name.split(':')[-1]
@@ -1138,30 +1142,57 @@ class Task(object):
                 # sure you have checked this parameter is a collection before
                 # consulting it
                 arg.collection_content = []
-
                 col_f_name = arg.file_name.split(':')[-1]
-                if not os.path.exists(col_f_name):
-                    col_f_name = "../" + col_f_name
+
+                # maybe it is an inner-collection..
+                _dec_arg = self.decorator_arguments.get(arg.name, None)
+                _col_dir = _dec_arg.direction if _dec_arg else None
+                _col_dep = _dec_arg.depth if _dec_arg else depth
 
                 for (i, line) in enumerate(open(col_f_name, 'r')):
-                    content_type, content_file = line.strip().split(' ')
+                    data_type, content_file, content_type = line.strip().split()
                     # Same naming convention as in COMPSsRuntimeImpl.java
                     sub_name = "%s.%d" % (arg.name, i)
                     if name_prefix:
                         sub_name = "%s.%s" % (name_prefix, arg.name)
                     else:
                         sub_name = "@%s" % sub_name
+
                     if not self.is_parameter_file_collection(arg.name):
-                        sub_arg, _ = build_task_parameter(int(content_type),
+                        sub_arg, _ = build_task_parameter(int(data_type),
                                                           None,
                                                           "",
                                                           sub_name,
-                                                          content_file)
-                        # Recursively call the retrieve method, fill the content
-                        # field in our new taskParameter object
-                        retrieve_content(sub_arg, sub_name)
-                        arg.content.append(sub_arg.content)
-                        arg.collection_content.append(sub_arg)
+                                                          content_file,
+                                                          arg.content_type)
+
+                        # if direction of the collection is 'out', it means we
+                        # haven't received serialized objects from the Master
+                        # (even though parameters have 'file_name', those files
+                        # haven't been created yet). plus, inner collections of
+                        # col_out params do NOT have 'direction', we identify
+                        # them by 'depth'..
+                        if _col_dir == parameter.DIRECTION.OUT or \
+                                ((_col_dir is None) and _col_dep > 0):
+
+                            # if we are at the last level of COL_OUT param,
+                            # create 'empty' instances of elements
+                            if _col_dep == 1:
+                                temp = create_object_by_con_type(content_type)
+                                sub_arg.content = temp
+                                arg.content.append(sub_arg.content)
+                                arg.collection_content.append(sub_arg)
+                            else:
+                                retrieve_content(sub_arg, sub_name,
+                                                 depth=_col_dep-1)
+                                arg.content.append(sub_arg.content)
+                                arg.collection_content.append(sub_arg)
+                        else:
+                            # Recursively call the retrieve method, fill the
+                            # content field in our new taskParameter object
+                            retrieve_content(sub_arg, sub_name)
+                            arg.content.append(sub_arg.content)
+                            arg.collection_content.append(sub_arg)
                     else:
                         arg.content.append(content_file)
                         arg.collection_content.append(content_file)
@@ -1361,41 +1392,68 @@ class Task(object):
         if kwargs["python_MPI"]:
             python_mpi = True
 
-        # Deal with INOUTs
-        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and self.is_parameter_object(x.name)]:  # noqa
-            original_name = parameter.get_original_name(arg.name)
-            param = self.decorator_arguments.get(original_name,
-                                                 self.get_default_direction(original_name))  # noqa
-            if (param.direction == parameter.DIRECTION.INOUT or
-                param.direction == parameter.DIRECTION.COMMUTATIVE) and \
-                    not (arg.type == parameter.TYPE.EXTERNAL_PSCO or
-                         is_psco(arg.content)):
-                # If it si INOUT and not PSCO, serialize to file
-                # We can not use here:
-                #     param.type != parameter.TYPE.EXTERNAL_PSCO
-                # since param.type has the old type
-                if arg.type == parameter.TYPE.COLLECTION:
-                    if not self.is_parameter_file_collection(arg.name):
-                        def get_collection_objects(content, arg):
-                            if arg.type == parameter.TYPE.COLLECTION:
-                                for (new_content, elem) in zip(arg.content, arg.collection_content):  # noqa
-                                    for sub_elem in get_collection_objects(new_content, elem):  # noqa
-                                        yield sub_elem
-                            else:
-                                yield (content, arg)
+        # Deal with INOUTs and COL_OUTs
 
-                        for (content, elem) in get_collection_objects(arg.content, arg):  # noqa
-                            f_name = get_file_name(elem.file_name)
-                            if python_mpi:
-                                serialize_to_file_mpienv(content, f_name, False)
-                            else:
-                                serialize_to_file(content, f_name)
-                else:
-                    f_name = get_file_name(arg.file_name)
+        def get_collection_objects(_content, _arg):
+            """ Retrieve collection objects recursively
+            """
+            if _arg.type == parameter.TYPE.COLLECTION:
+                for (new_con, _elem) in zip(_arg.content,
+                                            _arg.collection_content):
+                    for sub_el in get_collection_objects(new_con, _elem):
+                        yield sub_el
+            else:
+                yield (_content, _arg)
+
+        for arg in args:
+            # handle only task parameters that are objects
+
+            # skip files and non-task-parameters
+            if not isinstance(arg, parameter.TaskParameter) or \
+                    not self.is_parameter_an_object(arg.name):
+                continue
+
+            # file collections are objects, but must be skipped as well
+            if self.is_parameter_file_collection(arg.name):
+                continue
+
+            # skip psco
+            # since param.type has the old type, we can not use:
+            #     param.type != parameter.TYPE.EXTERNAL_PSCO
+            _is_psco_true = (arg.type == parameter.TYPE.EXTERNAL_PSCO or
+                             is_psco(arg.content))
+            if _is_psco_true:
+                continue
+
+            original_name = parameter.get_original_name(arg.name)
+            param = self.decorator_arguments.get(
+                original_name, self.get_default_direction(original_name))
+
+            # skip non-inouts or non-col_outs
+            _is_col_out = (arg.type == parameter.TYPE.COLLECTION and
+                           param.direction == parameter.DIRECTION.OUT)
+
+            _is_inout = (param.direction == parameter.DIRECTION.INOUT or
+                         param.direction == parameter.DIRECTION.COMMUTATIVE)
+
+            if not (_is_inout or _is_col_out):
+                continue
+
+            # Now it's 'INOUT' or 'COL_OUT' object param, serialize to a file
+            if arg.type == parameter.TYPE.COLLECTION:
+                # handle collections recursively
+                for (content, elem) in get_collection_objects(arg.content, arg):
+                    f_name = get_file_name(elem.file_name)
                     if python_mpi:
-                        serialize_to_file_mpienv(arg.content, f_name, False)
+                                serialize_to_file_mpienv(content, f_name, False)
                     else:
-                        serialize_to_file(arg.content, f_name)
+                        serialize_to_file(content, f_name)
+            else:
+                f_name = get_file_name(arg.file_name)
+                if python_mpi:
+                        serialize_to_file_mpienv(arg.content, f_name, False)
+                else:
+                    serialize_to_file(arg.content, f_name)
 
         # Deal with returns (if any)
         if num_returns > 0:

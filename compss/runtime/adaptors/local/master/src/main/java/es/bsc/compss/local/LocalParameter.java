@@ -35,6 +35,7 @@ import java.util.List;
 public class LocalParameter implements InvocationParam {
 
     private final Parameter param;
+    private final DataType originalType;
 
     private final boolean preserveSourceData;
     private final boolean writeFinalValue;
@@ -54,6 +55,7 @@ public class LocalParameter implements InvocationParam {
     public LocalParameter() {
         // Only executed by externalizable
         this.param = null;
+        this.originalType = null;
         this.preserveSourceData = false;
         this.writeFinalValue = false;
         this.sourceDataMgmtId = null;
@@ -68,6 +70,7 @@ public class LocalParameter implements InvocationParam {
     public LocalParameter(Parameter param) {
         this.param = param;
         DataType type = param.getType();
+        this.originalType = type;
         switch (type) {
             case FILE_T:
             case OBJECT_T:
@@ -161,6 +164,15 @@ public class LocalParameter implements InvocationParam {
     @Override
     public DataType getType() {
         return this.param.getType();
+    }
+
+    /**
+     * Returns the original type for the parameter.
+     * 
+     * @return Original type of the parameter.
+     */
+    public DataType getOriginalType() {
+        return originalType;
     }
 
     @Override

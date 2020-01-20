@@ -80,6 +80,7 @@ import org.apache.logging.log4j.core.LoggerContext;
 
 import storage.StorageException;
 import storage.StorageItf;
+import storage.StubItf;
 
 
 /**
@@ -1158,6 +1159,17 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
             @Override
             public void notifyEnd(Invocation invocation, boolean success, COMPSsException e) {
+                for (LocalParameter p : job.getParams()) {
+                    updateParameter(p);
+                }
+                LocalParameter targetParam = job.getTarget();
+                if (targetParam != null) {
+                    updateParameter(targetParam);
+                }
+                for (LocalParameter p : job.getResults()) {
+                    updateParameter(p);
+                }
+
                 if (success) {
                     job.getListener().jobCompleted(job);
                 } else {
@@ -1170,6 +1182,73 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
             }
         });
         this.executionManager.enqueue(exec);
+    }
+
+    private void updateParameter(LocalParameter lp) {
+        DataType newType = lp.getType();
+        String pscoId;
+        switch (newType) {
+            case PSCO_T:
+                pscoId = ((StubItf) lp.getValue()).getID();
+                break;
+            case EXTERNAL_PSCO_T:
+                pscoId = (String) lp.getValue();
+                break;
+            default:
+                pscoId = null;
+        }
+
+        if (pscoId != null) {
+            DataType previousType = lp.getOriginalType();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Updating parameter " + lp.getDataMgmtId() + " from type " + previousType + " to type "
+                    + newType + " with id " + pscoId);
+            }
+
+            switch (previousType) {
+                case PSCO_T:
+                case EXTERNAL_PSCO_T:
+                    if (previousType.equals(newType)) {
+                        // The parameter was already a PSCO, we only update the information just in case
+                        DependencyParameter dp = (DependencyParameter) lp.getParam();
+                        dp.setDataTarget(pscoId);
+                    } else {
+                        // The parameter types do not match, log exception
+                        LOGGER.warn("WARN: Cannot update parameter " + lp.getDataMgmtId()
+                            + " because types are not compatible");
+                    }
+                    break;
+                default:
+                    // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
+                    registerUpdatedParameter(newType, pscoId, lp);
+                    break;
+            }
+        }
+    }
+
+    private void registerUpdatedParameter(DataType newType, String pscoId, LocalParameter lp) {
+        // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
+        String renaming = lp.getDataMgmtId();
+        // Update COMM information
+        switch (newType) {
+            case PSCO_T:
+                Comm.registerPSCO(renaming, pscoId);
+                break;
+            case EXTERNAL_PSCO_T:
+                if (renaming.contains("/")) {
+                    renaming = renaming.substring(renaming.lastIndexOf('/') + 1);
+                }
+                Comm.registerExternalPSCO(renaming, pscoId);
+                break;
+            default:
+                LOGGER.warn("WARN: Invalid new type " + newType + " for parameter " + renaming);
+                break;
+        }
+
+        // Update Task information
+        DependencyParameter dp = (DependencyParameter) lp.getParam();
+        dp.setType(newType);
+        dp.setDataTarget(pscoId);
     }
 
     @Override

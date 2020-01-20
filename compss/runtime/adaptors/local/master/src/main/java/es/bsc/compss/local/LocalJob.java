@@ -145,17 +145,17 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
     }
 
     @Override
-    public List<? extends InvocationParam> getParams() {
+    public List<LocalParameter> getParams() {
         return this.arguments;
     }
 
     @Override
-    public InvocationParam getTarget() {
+    public LocalParameter getTarget() {
         return this.target;
     }
 
     @Override
-    public List<? extends InvocationParam> getResults() {
+    public List<LocalParameter> getResults() {
         return this.results;
     }
 

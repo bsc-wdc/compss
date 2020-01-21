@@ -14,7 +14,10 @@ client = docker.from_env()
 # api_client = docker.APIClient()
 api_client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
-image_name = 'compss/compss:2.6'  # Update when releasing new version
+if os.environ.get('COMPSS_DOCKER_IMAGE') is not None:
+    image_name = os.environ['COMPSS_DOCKER_IMAGE']
+else:
+    image_name = 'compss/compss:2.6'  # Update when releasing new version
 master_name = 'pycompss-master'
 worker_name = 'pycompss-worker'
 service_name = 'pycompss-service'

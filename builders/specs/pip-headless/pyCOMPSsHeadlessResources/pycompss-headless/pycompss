@@ -29,6 +29,7 @@ if [ -z "${cmd}" ]; then
     echo "    components add RESOURCE:      adds the RESOURCE to the pool of workers of the COMPSs."
     echo ""
     echo "       Example given: pycompss components add worker 2 # to add 2 local workers."
+    echo "       Example given:   compss components add worker 2 # to add 2 local workers."
 fi
 
 if [ "${cmd}" == "init" ]; then
@@ -37,8 +38,15 @@ if [ "${cmd}" == "init" ]; then
 fi
 
 if [ "${cmd}" == "update" ]; then
-    echo "Downloading latest compss/compss images"
-    docker pull compss/compss:latest
+    echo "Updating docker image"
+    docker_image="compss/compss:2.6"
+    if [ -n "${COMPSS_DOCKER_IMAGE}" ]; then
+        echo "Found COMPSS_DOCKER_IMAGE environment variable: '$COMPSS_DOCKER_IMAGE'. Updating.";
+        docker_image=$COMPSS_DOCKER_IMAGE
+    else
+        echo "COMPSS_DOCKER_IMAGE is unset or empty. Updating default docker image: $docker_image";
+    fi
+    docker pull $docker_image
 fi
 
 if [ "${cmd}" == "kill" ]; then
@@ -55,6 +63,7 @@ if [ "${cmd}" == "exec" ]; then
     _exec_in_daemon('runcompss \
         --project=/project.xml \
         --resources=/resources.xml \
+        --master_name=172.17.0.2 \
         ${params}')"
 fi
 

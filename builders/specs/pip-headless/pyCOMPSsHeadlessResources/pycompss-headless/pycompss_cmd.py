@@ -21,7 +21,8 @@ else:
 master_name = 'pycompss-master'
 worker_name = 'pycompss-worker'
 service_name = 'pycompss-service'
-default_workdir = '/home/user'
+default_workdir = '/home/user/'
+default_worker_workdir = '/home/user/.COMPSsWorker'
 default_cfg_name = 'cfg'
 default_cfg = default_workdir + '/' + default_cfg_name
 
@@ -126,21 +127,21 @@ def _get_mounts(user_working_dir: str):
                      source=user_working_dir,
                      type='bind')
 
-    compss_dir = os.environ['HOME'] + '/.COMPSs'
-    os.makedirs(compss_dir, exist_ok=True)
+    # compss_dir = os.environ['HOME'] + '/.COMPSs'
+    # os.makedirs(compss_dir, exist_ok=True)
+    #
+    # compss_log_dir = Mount(target='/root/.COMPSs',
+    #                        source=compss_dir,
+    #                        type='bind')
 
-    compss_log_dir = Mount(target='/root/.COMPSs',
-                           source=compss_dir,
-                           type='bind')
-
-    mounts = [user_dir, compss_log_dir]
+    mounts = [user_dir]  #, compss_log_dir]
 
     return mounts
 
 
 def _generate_project_cfg(curr_cfg: str = '', ips: list = (), cpus: int = 4,
                           install_dir: str = '/opt/COMPSs',
-                          worker_dir: str = default_workdir):
+                          worker_dir: str = default_worker_workdir):
     # ./generate_project.sh project.xml "172.17.0.3:4:/opt/COMPSs:/tmp"
     master = _get_master()
     proj_cmd = '/opt/COMPSs/Runtime/scripts/system/xmls/generate_project.sh'

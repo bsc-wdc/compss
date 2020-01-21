@@ -39,6 +39,7 @@ elif [ "${cmd}" == "exec" ]; then
         --project=/project.xml \
         --resources=/resources.xml \
         --master_name=172.17.0.2 \
+        --base_log_dir=/home/user \
         ${params}')"
 
 elif [ "${cmd}" == "monitor" ]; then

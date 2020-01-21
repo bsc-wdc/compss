@@ -40,18 +40,18 @@ pycompss-headless currently requires:
     4. Install [docker-py](https://docker-py.readthedocs.io/en/stable/)
 
     ```
-    pip3 install docker
+    python3 -m pip install docker
     ```
 
 2. Install pycompss-headless:
 
 ```
-pip3 install pycompss-headless
+python3 -m pip install pycompss-headless
 ```
 
-This should add the pycompss-headless executable (`pycompss`) to your path.
+This should add the pycompss-headless executables (`pycompss` and `compss`) to your path. They can be used indiferently.
 
-**Warning:** The user executable path may not be automatically exported into the `PATH` environment variable. So, take this into account if installed with the `--user` flag, since the `pycompss` command will be unreachable until the path is exported into `PATH`.
+**Warning:** The user executable path may not be automatically exported into the `PATH` environment variable. So, take this into account if installed with the `--user` flag, since the `pycompss`|`compss` command will be unreachable until the path is exported into `PATH`.
 
 ### Usage
 

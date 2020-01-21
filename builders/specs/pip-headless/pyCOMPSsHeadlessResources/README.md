@@ -19,3 +19,12 @@ Get started with pycompss-headless following our [quickstart guide](./QUICKSTART
 ## License
 
 Apache License Version 2.0, see [LICENSE](LICENSE)
+
+
+***********************
+Workflows and Distributed Computing
+
+Department of Computer Science
+
+Barcelona Supercomputing Center (http://www.bsc.es)
+************************

@@ -13,7 +13,7 @@ export PYTHONPATH=$PYTHONPATH:${cmd_path}
 
 if [ -z "${cmd}" ]; then
 
-    echo "PyCOMPSs|COMPSS:"
+    echo "PyCOMPSs|COMPSS Headless:"
     echo ""
     echo "Usage: pycompss COMMAND  |  compss COMMAND"
     echo ""
@@ -27,9 +27,11 @@ if [ -z "${cmd}" ]; then
     echo "    jupyter [PATH|FILE]:          starts jupyter-notebook in the given PATH or FILE."
     echo "    components list:              lists COMPSs actives components."
     echo "    components add RESOURCE:      adds the RESOURCE to the pool of workers of the COMPSs."
-    echo ""
     echo "       Example given: pycompss components add worker 2 # to add 2 local workers."
     echo "       Example given:   compss components add worker 2 # to add 2 local workers."
+    echo ""
+    echo "Define the COMPSS_DOCKER_IMAGE environment variable to use a different COMPSs docker image."
+    echo ""
 fi
 
 if [ "${cmd}" == "init" ]; then

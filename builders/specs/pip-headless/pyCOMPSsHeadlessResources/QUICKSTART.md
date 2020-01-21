@@ -184,3 +184,25 @@ pycompss components add worker '127.0.0.1:6'
 * '6': desired number of available computing units for the new node.
 
 **Please be aware** that `pycompss components` will not list your custom nodes because they are not docker processes and thus it can't be verified if they are up and running.
+
+#### Removing existing nodes
+
+**Note**: removing nodes is still in beta phase. Please report issues, suggestions, or feature requests on [Github](https://github.com/bsc-wdc/).
+
+For docker just issue the desired number of workers to be removed. For example, to remove 2 docker workers:
+```
+pycompss components remove worker 2
+```
+
+You can check that the workers have been removed with:
+
+```
+pycompss components list
+```
+
+If you want to remove a custom node, you just need to specify its IP and number of
+computing units used when defined.
+
+```
+pycompss components remove worker '127.0.0.1:6'
+```

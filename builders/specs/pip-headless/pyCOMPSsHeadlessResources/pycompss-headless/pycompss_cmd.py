@@ -44,6 +44,19 @@ def _get_master():
     return master
 
 
+def _get_workers():
+    workers = client.containers.list(filters={'name': worker_name})
+
+    return workers
+
+
+def _get_worker_ips():
+    ips = [c.attrs['NetworkSettings']['Networks']['bridge']['IPAddress']
+           for c in client.containers.list(filters={'name': worker_name})]
+
+    return ips
+
+
 def _start_daemon(working_dir: str = "", restart: bool = True):
     masters = client.containers.list(filters={'name': master_name},
                                      all=True)
@@ -131,7 +144,7 @@ def _generate_project_cfg(curr_cfg: str = '', ips: list = (), cpus: int = 4,
     # ./generate_project.sh project.xml "172.17.0.3:4:/opt/COMPSs:/tmp"
     master = _get_master()
     proj_cmd = '/opt/COMPSs/Runtime/scripts/system/xmls/generate_project.sh'
-    proj_arg = curr_cfg + ' ' + ' '.join(
+    proj_arg = ' '.join(
         ["%s:%s:%s:%s" % (ip, cpus, install_dir, worker_dir) for ip in
          ips])
     cmd = "%s /project.xml '%s'" % (proj_cmd, proj_arg)
@@ -149,7 +162,7 @@ def _generate_resources_cfg(curr_cfg: str = '', ips: list = (), cpus: int = 4):
     master = _get_master()
 
     res_cmd = '/opt/COMPSs/Runtime/scripts/system/xmls/generate_resources.sh'
-    res_arg = curr_cfg + ' ' + ' '.join(["%s:%s" % (ip, cpus) for ip in ips])
+    res_arg = ' '.join(["%s:%s" % (ip, cpus) for ip in ips])
 
     cmd = "%s /resources.xml '%s'" % (res_cmd, res_arg)
     exit_code, output = master.exec_run(cmd=cmd)
@@ -192,9 +205,32 @@ def _add_custom_worker(custom_cfg: str):
     # try to copy the master working dir to custom worker
     os.system("scp -r %s %s:/tmp" % (cfg['working_dir'], ip))
 
-    _update_cfg(master, cfg, [ip], cpus)
+    ips = _get_worker_ips()
+    ips.append(ip)
+    _update_cfg(master, cfg, ips, cpus)
 
     print("Connected worker %s\n\tCPUs: %s" % (ip, cpus))
+
+
+def _remove_custom_worker(custom_cfg: str):
+    # custom_cfg = 'ip:cpus'
+    ip, cpus = custom_cfg.split(':')
+
+    master = _get_master()
+    cfg = _get_cfg(master)
+
+    # Find the worker with the given ip
+    workers = _get_workers()
+    for w in workers:
+        w_ip = w.attrs['NetworkSettings']['Networks']['bridge']['IPAddress']
+        if w_ip == ip:
+            w.remove(force=True)
+
+    ips = _get_worker_ips()
+    _update_cfg(master, cfg, ips, cpus)
+
+    print("Removed worker %s" % (ip))
+
 
 
 def _add_workers(num_workers: int = 1, user_working_dir: str = "",
@@ -207,13 +243,26 @@ def _add_workers(num_workers: int = 1, user_working_dir: str = "",
         worker_id = worker_name + '-' + uuid4().hex[:8]
         client.containers.run(image=image_name, name=worker_id,
                               mounts=mounts, detach=True, auto_remove=True)
-
-    ips = [c.attrs['NetworkSettings']['Networks']['bridge']['IPAddress']
-           for c in client.containers.list(filters={'name': worker_name})]
+    ips = _get_worker_ips()
 
     _update_cfg(master, cfg, ips, cpus)
     print("Started %s worker/s\n\tWorking dir: %s\n\tCPUs: %s" %
           (num_workers, user_working_dir, cpus))
+
+
+def _remove_workers(num_workers: int = 1,
+                    cpus: int = 4):
+    master = _get_master()
+    cfg = _get_cfg(master)
+    workers = _get_workers()
+    to_remove = workers[:num_workers]
+    for worker in to_remove:
+        worker.remove(force=True)
+    ips = _get_worker_ips()
+
+    _update_cfg(master, cfg, ips, cpus)
+    print("Removed " + str(num_workers) + " workers.")
+
 
 
 def _stop_daemon(clean):
@@ -284,7 +333,6 @@ def _components(arg: str = 'list'):
         workers = client.containers.list(filters={'name': worker_name})
         for c in masters + workers:
             print(c.name)
-
     elif subcmd == 'add':
         resource = args[1]
         if resource == 'worker':
@@ -293,3 +341,20 @@ def _components(arg: str = 'list'):
                 _add_workers(number_of_res)
             else:
                 _add_custom_worker(args[2])
+        else:
+            print("Unsupported resource to be added: " + str(resource))
+            print("Supported resources: worker")
+    elif subcmd == 'remove':
+        resource = args[1]
+        if resource == 'worker':
+            if args[2].isdigit():
+                number_of_res = int(args[2])
+                _remove_workers(number_of_res)
+            else:
+                _remove_custom_worker(args[2])
+        else:
+            print("Unsupported resource to be reduced: " + str(resource))
+            print("Supported resources: worker")
+    else:
+        print("Unexpected components command: " + subcmd)
+        print("Supported commponents commands: list, add, reduce")

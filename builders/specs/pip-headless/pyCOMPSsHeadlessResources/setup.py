@@ -28,7 +28,7 @@ setuptools.setup(
                  'Topic :: Scientific/Engineering',
                  'Topic :: System :: Distributed Computing',
                  'Topic :: Utilities'],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'docker'],
 
     # Executable
     scripts=["pycompss-headless/compss",

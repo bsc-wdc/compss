@@ -11,7 +11,7 @@ shift 1
 
 export PYTHONPATH=$PYTHONPATH:${cmd_path}
 
-if [ -z "${cmd}" ]; then
+if [ -z "${cmd}" ] || [ "$cmd" == "help" ]; then
 
     echo "PyCOMPSs|COMPSS Headless:"
     echo ""
@@ -28,7 +28,12 @@ if [ -z "${cmd}" ]; then
     echo "    components list:              lists COMPSs actives components."
     echo "    components add RESOURCE:      adds the RESOURCE to the pool of workers of the COMPSs."
     echo "       Example given: pycompss components add worker 2 # to add 2 local workers."
-    echo "       Example given:   compss components add worker 2 # to add 2 local workers."
+    echo "       Example given: pycompss components add worker <IP>:<CORES> # to add a remote worker"
+    echo "                Note: compss can be used instead of pycompss ib both examples."
+    echo "    components remove RESOURCE:   removes the RESOURCE to the pool of workers of the COMPSs."
+    echo "       Example given: pycompss components remove worker 2 # to remove 2 local workers."
+    echo "       Example given: pycompss components remove worker <IP>:<CORES> # to remove a remote worker"
+    echo "                Note: compss can be used instead of pycompss ib both examples."
     echo ""
     echo "Define the COMPSS_DOCKER_IMAGE environment variable to use a different COMPSs docker image."
     echo ""

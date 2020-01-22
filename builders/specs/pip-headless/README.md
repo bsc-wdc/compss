@@ -129,8 +129,7 @@ This folder contains the following folder hierarchy and files:
 │   ├── CHANGELOG.md
 │   ├── LICENSE.txt
 │   ├── MANIFEST.in
-│   ├── QUICKSTART.md
-│   ├── README.md
+│   ├── README.rst
 │   ├── requirements.txt
 │   ├── setup.py
 │   └── VERSION.txt
@@ -167,9 +166,6 @@ PyCOMPSsResources/MANIFEST.in:
 	  the Python distributables.
 		See https://docs.python.org/3/distutils/commandref.html
 	  for more clarification on how this file works.
-
-PyCOMPSsResources/QUICKSTART.md:
-	- Quickstart manual. Installation, first steps and usage.
 
 PyCOMPSsResources/README.rst:
 	- An user-oriented README file.
@@ -212,8 +208,7 @@ pyCOMPSsHeadless
 │   ├── requires.txt
 │   ├── SOURCES.txt
 │   └── top_level.txt
-├── QUICKSTART.md
-├── README.md
+├── README.rst
 ├── requirements.txt
 ├── setup.py
 └── VERSION.txt

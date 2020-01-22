@@ -32,8 +32,7 @@
   cp -r pyCOMPSsHeadlessResources/pycompss-headless pyCOMPSsHeadless/
   cp pyCOMPSsHeadlessResources/LICENSE.txt pyCOMPSsHeadless/
   cp pyCOMPSsHeadlessResources/MANIFEST.in pyCOMPSsHeadless/
-  cp pyCOMPSsHeadlessResources/QUICKSTART.md pyCOMPSsHeadless/
-  cp pyCOMPSsHeadlessResources/README.md pyCOMPSsHeadless/
+    cp pyCOMPSsHeadlessResources/README.rst pyCOMPSsHeadless/
   cp pyCOMPSsHeadlessResources/VERSION.txt pyCOMPSsHeadless/
   cp pyCOMPSsHeadlessResources/requirements.txt pyCOMPSsHeadless/
   cp pyCOMPSsHeadlessResources/setup.py pyCOMPSsHeadless/

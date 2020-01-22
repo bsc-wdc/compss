@@ -5,8 +5,7 @@ include pycompss-headless/pycompss_cmd.py
 
 include LICENSE.txt
 include MANIFEST.in
-include QUICKSTART.md
-include README.md
+include README.rst
 include VERSION.txt
 include requirements.txt
 include setup.py

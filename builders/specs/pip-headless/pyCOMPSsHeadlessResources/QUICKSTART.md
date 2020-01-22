@@ -82,7 +82,7 @@ The source files path are resolved from the init directory which sometimes can b
 ```bash
 cd tutorial_apps
 pycompss init
-pycompss exec python/simple/src/simple.py 1
+pycompss run python/simple/src/simple.py 1
 ```
 
 The log files of the execution can be found at $HOME/.COMPSs.
@@ -91,7 +91,7 @@ You can also init the COMPSs environment inside the examples folder. This will m
 ```bash
 cd python/simple/src
 pycompss init
-pycompss exec simple.py 1
+pycompss run simple.py 1
 ```
 
 #### Running the COMPSs monitor
@@ -105,7 +105,7 @@ Once started, it will show the url to open the monitor in your web browser (http
 ```bash
 cd python/simple/src
 pycompss init
-pycompss exec --monitor=1000 -g simple.py 1
+pycompss run --monitor=1000 -g simple.py 1
 ```
 If running a notebook, just add the monitoring parameter into the COMPSs runtime start call.
 
@@ -148,7 +148,7 @@ In order to enable it, include the tracing flag in the execution command:
 ```bash
 cd python/simple/src
 pycompss init
-pycompss exec --tracing simple.py 1
+pycompss run --tracing simple.py 1
 ```
 If running a notebook, just add the tracing parameter into the COMPSs runtime start call.
 

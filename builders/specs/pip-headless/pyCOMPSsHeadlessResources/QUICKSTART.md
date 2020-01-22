@@ -139,6 +139,30 @@ If the notebook process is not properly closed, you might get the following warn
 
 To fix it, just restart the pycompss container with `pycompss init`.
 
+#### Generating the task graph
+
+COMPSs is able to produce the task graph showing the dependencies that have
+been respected.
+In order to producee it, include the graph flag in the execution command:
+
+```bash
+cd python/simple/src
+pycompss init
+pycompss run --graph simple.py 1
+```
+
+Once the application finishes, the graph will be stored into the `~\.COMPSs\app_name_XX\monitor\complete_graph.dot` file.
+This dot file can be converted to pdf for easier visualilzation through the
+use of the `gengraph` parameter:
+
+```bash
+pycompss gengraph .COMPSs/simple.py_01/monitor/complete_graph.dot
+```
+
+The resulting pdf file will be stored into the `~\.COMPSs\app_name_XX\monitor\complete_graph.pdf` file,
+that is, the same folder where the dot file is.
+
+
 #### Tracing applications or notebooks
 
 COMPSs is able to produce tracing profiles of the application execution
@@ -152,7 +176,7 @@ pycompss run --tracing simple.py 1
 ```
 If running a notebook, just add the tracing parameter into the COMPSs runtime start call.
 
-Once the application finishes, the trace will be stored into the `~\.COMPSs\app_name\trace` folder.
+Once the application finishes, the trace will be stored into the `~\.COMPSs\app_name_XX\trace` folder.
 It can then be analysed with Paraver.
 
 #### Adding more nodes

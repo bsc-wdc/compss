@@ -58,6 +58,11 @@ elif [ "${cmd}" == "jupyter" ]; then
     subcmd="jupyter-notebook ${params} --ip=0.0.0.0 --allow-root"
     python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
 
+elif [ "${cmd}" == "gengraph" ]; then
+    params=$@
+    subcmd="compss_gengraph ${params}"
+    python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
+
 elif [ "${cmd}" == "components" ]; then
     subcmd=$@
     python3 -c "from pycompss_cmd import _components; _components(arg='${subcmd}')"
@@ -79,6 +84,7 @@ else
     echo "    run [OPTIONS] FILE [PARAMS]:  runs FILE with COMPSs, where OPTIONS are COMPSs options and PARAMS are application parameters."
     echo "    monitor [start|stop]:         starts or stops the COMPSs monitoring."
     echo "    jupyter [PATH|FILE]:          starts jupyter-notebook in the given PATH or FILE."
+    echo "    gengraph [FILE.dot]:          converts the .dot graph into .pdf"
     echo "    components list:              lists COMPSs actives components."
     echo "    components add RESOURCE:      adds the RESOURCE to the pool of workers of the COMPSs."
     echo "       Example given: pycompss components add worker 2 # to add 2 local workers."

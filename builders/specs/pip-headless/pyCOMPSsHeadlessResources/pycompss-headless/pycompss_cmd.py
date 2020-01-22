@@ -292,7 +292,10 @@ def _start_monitoring():
     cmd = "/etc/init.d/compss-monitor start"
 
     master = _get_master()
-    _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
+    _, output = master.exec_run(cmd,
+                                environment={'COMPSS_MONITOR':str(default_workdir) + '/.COMPSs'},
+                                workdir=default_workdir,
+                                stream=True)
 
     for line in output:
         print(line.strip().decode())
@@ -305,7 +308,9 @@ def _stop_monitoring():
     cmd = "/etc/init.d/compss-monitor stop"
 
     master = _get_master()
-    _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
+    _, output = master.exec_run(cmd,
+                                workdir=default_workdir,
+                                stream=True)
 
     for line in output:
         print(line.strip().decode())

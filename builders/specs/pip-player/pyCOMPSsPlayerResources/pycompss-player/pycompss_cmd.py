@@ -233,6 +233,13 @@ def _get_cfg(master) -> dict:
 
     return cfg
 
+def _remove_cfg(master) -> dict:
+    exit_code, output = master.exec_run(cmd='rm ' + default_cfg)
+
+    if exit_code != 0:
+        for line in output:
+            print(line.strip().decode())
+
 
 def _update_cfg(master, cfg: dict, ips, cpus):
     # Generate project.xml
@@ -316,17 +323,13 @@ def _remove_workers(num_workers: int = 1,
     print("Removed " + str(num_workers) + " workers.")
 
 
-
 def _stop_daemon(clean):
-    _stop_by_name(master_name)
-    _stop_by_name(worker_name)
     if clean:
         # Clean the cfg file
-        try:
-            os.remove(default_cfg_file)
-        except OSError:
-            print("WARNING: Could not remove the local " + default_cfg_file + " file.")
-            print("         Please, check the folder where you started pycompss.")
+        master = _get_master()
+        _remove_cfg(master)
+    _stop_by_name(master_name)
+    _stop_by_name(worker_name)
 
 
 def _stop_by_name(name: str):

@@ -113,7 +113,13 @@ registry, and it may take a while.
     pycompss init
 
     # You can also provide a path
-    pycompss init /home/user/replace/path/
+    pycompss init -w /home/user/replace/path/
+
+    # Or the COMPSs docker image to use
+    pycompss init -i compss/compss-tutorial:2.6
+
+    # Or both
+    pycompss init -w /home/user/replace/path/ -i compss/compss-tutorial:2.6
 
 Running applications
 ^^^^^^^^^^^^^^^^^^^^

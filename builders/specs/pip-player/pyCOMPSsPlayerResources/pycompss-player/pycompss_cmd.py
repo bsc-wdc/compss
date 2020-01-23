@@ -14,17 +14,16 @@ client = docker.from_env()
 # api_client = docker.APIClient()
 api_client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
-if os.environ.get('COMPSS_DOCKER_IMAGE') is not None:
-    image_name = os.environ['COMPSS_DOCKER_IMAGE']
-else:
-    image_name = 'compss/compss:2.6'  # Update when releasing new version
+
 master_name = 'pycompss-master'
 worker_name = 'pycompss-worker'
 service_name = 'pycompss-service'
 default_workdir = '/home/user/'
 default_worker_workdir = '/home/user/.COMPSsWorker'
-default_cfg_name = 'cfg'
-default_cfg = default_workdir + '/' + default_cfg_name
+default_cfg_file = 'cfg'
+default_cfg = default_workdir + '/' + default_cfg_file
+default_image_file = 'image'
+default_image = default_workdir + '/' + default_image_file
 
 
 def _is_running(name: str):
@@ -57,8 +56,31 @@ def _get_worker_ips():
 
     return ips
 
+# Needs to be here due to _is_running and _get_master functions.
+if os.environ.get('COMPSS_DOCKER_IMAGE') is not None:
+    # If specified in an environment variable, take it
+    image_name = os.environ['COMPSS_DOCKER_IMAGE']
+elif _is_running(master_name):
+    # If exists in the file (means that has been defined with init)
+    master = _get_master()
+    image_name = master.image.attrs['RepoTags'][0]
+else:
+    # Otherwise, fallback to default COMPSs image
+    image_name = 'compss/compss:2.6'  # Update when releasing new version
 
-def _start_daemon(working_dir: str = "", restart: bool = True):
+
+
+def _start_daemon(params: str = "", restart: bool = True):
+    docker_image = image_name
+    working_dir = ''
+    image = ''
+    i_tmp_path = ''
+    # Parse input params
+    if params:
+        working_dir, image = _parse_init_params(params)
+        if image:
+            docker_image = image
+
     masters = client.containers.list(filters={'name': master_name},
                                      all=True)
     assert len(masters) < 2  # never should we run 2 masters
@@ -78,7 +100,7 @@ def _start_daemon(working_dir: str = "", restart: bool = True):
         mounts = _get_mounts(user_working_dir=working_dir)
         ports = {'8888/tcp': 8888,  # required for jupyter notebooks
                  '8080/tcp': 8080}  # required for monitor
-        m = client.containers.run(image=image_name, name=master_name,
+        m = client.containers.run(image=docker_image, name=master_name,
                                   mounts=mounts, detach=True, ports=ports)
 
         _generate_resources_cfg(ips=['localhost'])
@@ -92,9 +114,38 @@ def _start_daemon(working_dir: str = "", restart: bool = True):
         shutil.rmtree(tmp_path)
 
 
+def _parse_init_params(params: str):
+    working_dir = ''
+    image = ''
+    fields = params.split()
+    if len(fields) == 2:
+        if fields[0] == '-w':
+            working_dir = fields[1]
+        elif fields[0] == '-i':
+            image = fields[1]
+        else:
+            Exception("Unsupported flag: " + str(fields[0]) + ". Supported -w for working directory and -i for COMPSs docker image.")
+    elif len(fields) == 4:
+        if fields[0] == '-w':
+            working_dir = fields[1]
+        elif fields[0] == '-i':
+            image = fields[1]
+        else:
+            Exception("Unsupported flag: " + str(fields[0]) + ". Supported -w for working directory and -i for COMPSs docker image.")
+        if fields[2] == '-w':
+            working_dir = fields[3]
+        elif fields[2] == '-i':
+            image = fields[3]
+        else:
+            Exception("Unsupported flag: " + str(fields[0]) + ". Supported -w for working directory and -i for COMPSs docker image.")
+    else:
+        raise Exception("Incorrect number of parameters")
+    return working_dir, image
+
+
 def _store_temp_cfg(cfg_content: str):
     tmp_path = tempfile.mkdtemp()
-    cfg_file = os.path.join(tmp_path, default_cfg_name)
+    cfg_file = os.path.join(tmp_path, default_cfg_file)
     with open(cfg_file, 'w') as f:
         f.write(cfg_content)
     return tmp_path, cfg_file
@@ -116,7 +167,7 @@ def _copy_file(src: str, dst: str):
     output = master.put_archive(os.path.dirname(dst), data)
 
     if not output:
-        print("ERROR COPYING CFG TO MASTER CONTAINER!!!")
+        print("ERROR COPYING " + str(src) + " TO " + src(dst) + " OF MASTER CONTAINER!!!")
 
 
 def _get_mounts(user_working_dir: str):
@@ -272,9 +323,9 @@ def _stop_daemon(clean):
     if clean:
         # Clean the cfg file
         try:
-            os.remove(default_cfg_name)
+            os.remove(default_cfg_file)
         except OSError:
-            print("WARNING: Could not remove the local " + default_cfg_name + " file.")
+            print("WARNING: Could not remove the local " + default_cfg_file + " file.")
             print("         Please, check the folder where you started pycompss.")
 
 
@@ -359,8 +410,8 @@ def _components(arg: str = 'list'):
             else:
                 _remove_custom_worker(args[2])
         else:
-            print("Unsupported resource to be reduced: " + str(resource))
+            print("Unsupported resource to be removed: " + str(resource))
             print("Supported resources: worker")
     else:
         print("Unexpected components command: " + subcmd)
-        print("Supported commponents commands: list, add, reduce")
+        print("Supported commponents commands: list, add, remove")

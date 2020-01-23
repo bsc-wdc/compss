@@ -12,8 +12,8 @@ shift 1
 export PYTHONPATH=$PYTHONPATH:${cmd_path}
 
 if [ "${cmd}" == "init" ]; then
-    working_dir=$1
-    python3 -c "from pycompss_cmd import _start_daemon; _start_daemon(working_dir='${working_dir}')"
+    params=$@
+    python3 -c "from pycompss_cmd import _start_daemon; _start_daemon(params='${params}')"
 
 elif [ "${cmd}" == "update" ]; then
     echo "Updating docker image"
@@ -77,16 +77,18 @@ else
     echo "Usage: pycompss COMMAND  |  compss COMMAND"
     echo ""
     echo "Available commands:"
-    echo "    init [WORK_DIR]:              initializes COMPSs in the current working dir or in WORK_DIR args is set."
-    echo "    kill:                         stops and kills all instances of the COMPSs."
-    echo "    update:                       updates the COMPSs docker image (use only when installing master branch)."
-    echo "    exec CMD:                     executes the CMD command inside the COMPSs master container."
-    echo "    run [OPTIONS] FILE [PARAMS]:  runs FILE with COMPSs, where OPTIONS are COMPSs options and PARAMS are application parameters."
-    echo "    monitor [start|stop]:         starts or stops the COMPSs monitoring."
-    echo "    jupyter [PATH|FILE]:          starts jupyter-notebook in the given PATH or FILE."
-    echo "    gengraph [FILE.dot]:          converts the .dot graph into .pdf"
-    echo "    components list:              lists COMPSs actives components."
-    echo "    components add RESOURCE:      adds the RESOURCE to the pool of workers of the COMPSs."
+    echo "    init -w [WORK_DIR] -i [IMAGE]:  initializes COMPSs in the current working dir or in WORK_DIR if -w is set."
+    echo "                                    The COMPSs docker image to be used can be specified with -i (it can also be "
+    echo "                                    specified with the COMPSS_DOCKER_IMAGE environment variable)."
+    echo "    kill:                           stops and kills all instances of the COMPSs."
+    echo "    update:                         updates the COMPSs docker image (use only when installing master branch)."
+    echo "    exec CMD:                       executes the CMD command inside the COMPSs master container."
+    echo "    run [OPTIONS] FILE [PARAMS]:    runs FILE with COMPSs, where OPTIONS are COMPSs options and PARAMS are application parameters."
+    echo "    monitor [start|stop]:           starts or stops the COMPSs monitoring."
+    echo "    jupyter [PATH|FILE]:            starts jupyter-notebook in the given PATH or FILE."
+    echo "    gengraph [FILE.dot]:            converts the .dot graph into .pdf"
+    echo "    components list:                lists COMPSs actives components."
+    echo "    components add RESOURCE:        adds the RESOURCE to the pool of workers of the COMPSs."
     echo "       Example given: pycompss components add worker 2 # to add 2 local workers."
     echo "       Example given: pycompss components add worker <IP>:<CORES> # to add a remote worker"
     echo "                Note: compss can be used instead of pycompss ib both examples."
@@ -94,8 +96,6 @@ else
     echo "       Example given: pycompss components remove worker 2 # to remove 2 local workers."
     echo "       Example given: pycompss components remove worker <IP>:<CORES> # to remove a remote worker"
     echo "                Note: compss can be used instead of pycompss ib both examples."
-    echo ""
-    echo "Define the COMPSS_DOCKER_IMAGE environment variable to use a different COMPSs docker image."
     echo ""
 
 fi

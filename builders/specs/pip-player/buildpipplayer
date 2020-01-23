@@ -5,7 +5,7 @@
   # An example usage would be ./buildpip 2.0
   # It needs as a command line argument with the version of the target distributable
   # The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
-  # exist in the specified repository in pyCOMPSsHeadlessResources/url file
+  # exist in the specified repository in pyCOMPSsPlayerResources/url file
 
   # Define script variables
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,37 +19,37 @@
   COMPSS_VERSION=$1
 
   # Add the version number as a resource
-  echo "$COMPSS_VERSION" > pyCOMPSsHeadlessResources/VERSION.txt
+  echo "$COMPSS_VERSION" > pyCOMPSsPlayerResources/VERSION.txt
 
   # Create distributable folder
-  mkdir -p pyCOMPSsHeadless
+  mkdir -p pyCOMPSsPlayer
 
   # Copy scripts and other files into the pyCOMPSs directory
   # Please, resist the temptation to replace all these lines by
-  # cp -rf pyCOMPSsHeadlessResources/* pyCOMPSsHeadless/ or something equivalent
+  # cp -rf pyCOMPSsPlayerResources/* pyCOMPSsPlayer/ or something equivalent
   # It may be possible that not all of the files in that folder are
   # necessary or even appropriate for the installation
-  cp -r pyCOMPSsHeadlessResources/pycompss-headless pyCOMPSsHeadless/
-  cp pyCOMPSsHeadlessResources/LICENSE.txt pyCOMPSsHeadless/
-  cp pyCOMPSsHeadlessResources/MANIFEST.in pyCOMPSsHeadless/
-    cp pyCOMPSsHeadlessResources/README.rst pyCOMPSsHeadless/
-  cp pyCOMPSsHeadlessResources/VERSION.txt pyCOMPSsHeadless/
-  cp pyCOMPSsHeadlessResources/requirements.txt pyCOMPSsHeadless/
-  cp pyCOMPSsHeadlessResources/setup.py pyCOMPSsHeadless/
+  cp -r pyCOMPSsPlayerResources/pycompss-player pyCOMPSsPlayer/
+  cp pyCOMPSsPlayerResources/LICENSE.txt pyCOMPSsPlayer/
+  cp pyCOMPSsPlayerResources/MANIFEST.in pyCOMPSsPlayer/
+    cp pyCOMPSsPlayerResources/README.rst pyCOMPSsPlayer/
+  cp pyCOMPSsPlayerResources/VERSION.txt pyCOMPSsPlayer/
+  cp pyCOMPSsPlayerResources/requirements.txt pyCOMPSsPlayer/
+  cp pyCOMPSsPlayerResources/setup.py pyCOMPSsPlayer/
 
   # Change permissions. This will avoid issues with, for example, python's subprocess.call
-  cd pyCOMPSsHeadless
+  cd pyCOMPSsPlayer
   chmod -R 777 *
   # Create the tar.gz distributable
-  # This should leave a .tar.gz in pyCOMPSsHeadless/dist
+  # This should leave a .tar.gz in pyCOMPSsPlayer/dist
   python setup.py sdist
   cd "${SCRIPT_DIR}"
 
-  # Finally, move the pyCOMPSsHeadless distributable to packages/pip (tgz included)
+  # Finally, move the pyCOMPSsPlayer distributable to packages/pip (tgz included)
   # Delete previous versions (if any)
-  rm -rf ../../packages/pip-headless
-  mkdir -p ../../packages/pip-headless
+  rm -rf ../../packages/pip-player
+  mkdir -p ../../packages/pip-player
   # Change permissions
-  chmod -R 777 pyCOMPSsHeadless
+  chmod -R 777 pyCOMPSsPlayer
   # Move it to its final destination
-  mv pyCOMPSsHeadless ../../packages/pip-headless/
+  mv pyCOMPSsPlayer ../../packages/pip-player/

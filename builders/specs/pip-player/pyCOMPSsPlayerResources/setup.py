@@ -2,9 +2,9 @@ import setuptools
 
 setuptools.setup(
     # Metadata
-    name="pycompss-headless",
+    name="pycompss-player",
     version=open('VERSION.txt').read().strip(),
-    description="PyCOMPSs headless",
+    description="PyCOMPSs player",
     long_description=open('README.rst').read(),
     long_description_content_type='text/x-rst',
     author='Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)',
@@ -32,7 +32,7 @@ setuptools.setup(
     install_requires=['setuptools', 'docker'],
 
     # Executable
-    scripts=["pycompss-headless/compss",
-             "pycompss-headless/pycompss",
-             "pycompss-headless/pycompss_cmd.py"],
+    scripts=["pycompss-player/compss",
+             "pycompss-player/pycompss",
+             "pycompss-player/pycompss_cmd.py"],
 )

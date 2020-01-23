@@ -1,11 +1,11 @@
 -----------------------------------
-PyCOMPSs programming model Headless
+PyCOMPSs programming model Player
 -----------------------------------
 
 Introduction
 ============
 
-The PyCOMPSs headless (pycompss) provides a tool to use PyCOMPSs within
+The PyCOMPSs player (pycompss) provides a tool to use PyCOMPSs within
 local machines interactively through docker images. This tool has been
 implemented on top of `PyCOMPSs programming
 model <http://compss.bsc.es>`__, and it is being developed by the
@@ -25,7 +25,7 @@ Quickstart
 There are two ways in which you can get started with PyCOMPSs. You can
 perform a local installation by installing the `pycompss
 package <https://pypi.org/project/pycompss/>`__, or you can use it
-through our ready-to-use docker image thorugh this `pycompss-headless
+through our ready-to-use docker image thorugh this `pycompss-player
 tool <#Installation>`__.
 
 Installation
@@ -34,7 +34,7 @@ Installation
 Dependencies
 ^^^^^^^^^^^^
 
-pycompss-headless currently requires:
+pycompss-player currently requires:
 
 -  docker >= 17.12.0-ce
 
@@ -43,7 +43,7 @@ Installation steps
 
 1. Install docker (continue with step 2 if already installed)
 
-   -  pycompss-headless requires **docker 17.12.0-ce** or greater.
+   -  pycompss-player requires **docker 17.12.0-ce** or greater.
 
    1. Follow these instructions
 
@@ -79,13 +79,13 @@ Installation steps
 
        python3 -m pip install docker
 
-2. Install pycompss-headless:
+2. Install pycompss-player:
 
 .. code:: bash
 
-    python3 -m pip install pycompss-headless
+    python3 -m pip install pycompss-player
 
-This should add the pycompss-headless executables (``pycompss`` and
+This should add the pycompss-player executables (``pycompss`` and
 ``compss``) to your path. They can be used indiferently.
 
 **Warning:** The user executable path may not be automatically exported

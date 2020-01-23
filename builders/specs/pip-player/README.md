@@ -1,12 +1,12 @@
 ========================================
-	pycompss-headless PYPI DISTRIBUTABLE
+	pycompss-player PYPI DISTRIBUTABLE
 ========================================
 
 This README contains information about the PIP distributable creation process.
 
-It is assumed that this README is placed (alongside with buildpipheadless and
-the whole pyCOMPSsHeadlessResources directory) in framework/builders/specs/pip-headless.
-If you want to install pycompss-headless via distutils and/or PIP there are a
+It is assumed that this README is placed (alongside with buildpipplayer and
+the whole pyCOMPSsPlayerResources directory) in framework/builders/specs/pip-player.
+If you want to install pycompss-player via distutils and/or PIP there are a
 set of depedencies that must be met. Current version requires docker.
 
 It is encouraged to read all sections of this README before proceeding on any
@@ -18,63 +18,63 @@ modification or action on this package.
 ==============================
 
 The PyPI distributable can be created with the following command:
-	sudo -E ./buildpipheadless $VERSION
+	sudo -E ./buildpipplayer $VERSION
 Where $VERSION contains the desired target version. For example, if
 you want to create a distributable for the 2.0.rc1337 version then
 the following command should be executed:
-	sudo -E ./buildpipheadless 2.0.rc1337
+	sudo -E ./buildpipplayer 2.0.rc1337
 
 This will create the following files and directories:
-	- A pyCOMPSsHeadless directory in /trunk/builders/packages/pip-headless.
+	- A pyCOMPSsPlayer directory in /trunk/builders/packages/pip-player.
 	  This directory contains the scripts and files necessary to
-	  install pyCOMPSsHeadless via distutils and/or PIP.
+	  install pyCOMPSsPlayer via distutils and/or PIP.
 
-	- A pycompss-rc1337.tar.gz file in /trunk/builders/packages/pip-headless/pyCOMPSsHeadless/dist
-	  This .tar.gz contains the whole pyCOMPSsHeadless directory (except for the dist
+	- A pycompss-rc1337.tar.gz file in /trunk/builders/packages/pip-player/pyCOMPSsPlayer/dist
+	  This .tar.gz contains the whole pyCOMPSsPlayer directory (except for the dist
 		folder). This file is useful for testing. For example, if you type
-		 sudo -E python -m pip install pycompss-headless-rc1337.tar.gz -v
-	  pip will try to install pyCOMPSsHeadless from this .tar.gz
+		 sudo -E python -m pip install pycompss-player-rc1337.tar.gz -v
+	  pip will try to install pyCOMPSsPlayer from this .tar.gz
 
 
 
 ================================
-	INSTALLING pycompss-headless
+	INSTALLING pycompss-player
 ================================
 
-In order to install pycompss-headless from a distributable you must:
+In order to install pycompss-player from a distributable you must:
 	- Have docker >= 17.12.0-ce
 
-A pyCOMPSsHeadless distributable can be installed in any of the following ways:
+A pyCOMPSsPlayer distributable can be installed in any of the following ways:
 	- From a .tar.gz distributable. Let's assume you have a
-	  pycompss-headless-<VERSION>.tar.gz created from the buildpipheadless script.
+	  pycompss-player-<VERSION>.tar.gz created from the buildpipplayer script.
 		Then the following command:
-		  sudo python -m pip install pycompss-headless-<VERSION>.tar.gz
+		  sudo python -m pip install pycompss-player-<VERSION>.tar.gz
 			or
-			python -m pip install pycompss-headless --user
-	  Will install pyCOMPSsHeadless in your site-packages.
+			python -m pip install pycompss-player --user
+	  Will install pyCOMPSsPlayer in your site-packages.
 
 	- From a pyPI repository (this will be clarified later).
 	  For example, if you type
-		  sudo -E python -m pip install pycompss-headless
-	  The latest pyCOMPSsHeadless version that was released on the live PyPI repository
+		  sudo -E python -m pip install pycompss-player
+	  The latest pyCOMPSsPlayer version that was released on the live PyPI repository
 		will be downloaded and installed.
 
-	- From the pyCOMPSsHeadless folder. The pyCOMPSsHeadless folder contains the
-	  very same files as the dist/pycompss-headless-<VERSION>.tar.gz (except for
+	- From the pyCOMPSsPlayer folder. The pyCOMPSsPlayer folder contains the
+	  very same files as the dist/pycompss-player-<VERSION>.tar.gz (except for
 		the tgz itself!).
-	  You can install pycompss-headless from this folder with
+	  You can install pycompss-player from this folder with
 		  python setup.py install
 
 
 ==================================
-	UNINSTALLING pycompss-headless
+	UNINSTALLING pycompss-player
 ==================================
 
-pycompss-headless can be uninstalled (if it was previously installed with distutils
+pycompss-player can be uninstalled (if it was previously installed with distutils
 and/or PIP) with the following command:
-	sudo -E python -m pip uninstall pycompss-headless
+	sudo -E python -m pip uninstall pycompss-player
   or
-	python -m pip uninstall pycompss-headless --user
+	python -m pip uninstall pycompss-player --user
 
 
 =============================
@@ -91,23 +91,23 @@ upload them to the test repository):
 And take a look at twine (and install it if necessary):
   https://pypi.org/project/twine/
 
-A pyCOMPSsHeadlessdistributable can be uploaded to a repository and then be
+A pyCOMPSsPlayerdistributable can be uploaded to a repository and then be
 downloadable and installable by anyone with python and pip.
 
 In order to upload a PyPI package the following command must be executed:
-  cd builders/packages/pip-headless/pyCOMPSsHeadless/dist
+  cd builders/packages/pip-player/pyCOMPSsPlayer/dist
 	# Check that the package is valid (the result must be PASSED)
-	twine check pycompss-headless-<version>.tar.gz
+	twine check pycompss-player-<version>.tar.gz
 	# Upload to the test repository
-	twine upload --repository-url https://test.pypi.org/legacy/ pycompss-headless-<version>.tar.gz
+	twine upload --repository-url https://test.pypi.org/legacy/ pycompss-player-<version>.tar.gz
 	# Check that the installation works fine:
 
 	# Upload the definitive package to pypi:
-	twine upload pycompss-headless-<version>.tar.gz
+	twine upload pycompss-player-<version>.tar.gz
 
 The login credentials requested by twine are available at the wiki.
 
-WARNING: Be very careful when uploading pyCOMPSsHeadless distributables on pyPI.
+WARNING: Be very careful when uploading pyCOMPSsPlayer distributables on pyPI.
 pyPI does not allow to re-upload a .tar.gz distributable for the same release.
 **Upload only well-tested installables!**
 
@@ -119,9 +119,9 @@ pyPI does not allow to re-upload a .tar.gz distributable for the same release.
 This folder contains the following folder hierarchy and files:
 
 .
-├── buildpipheadless
-├── pyCOMPSsHeadlessResources
-│   ├── pycompss-headless
+├── buildpipplayer
+├── pyCOMPSsPlayerResources
+│   ├── pycompss-player
 │   |   ├── __init__.py
 │   |   ├── compss
 │   |   ├── pycompss
@@ -139,19 +139,19 @@ This folder contains the following folder hierarchy and files:
 README:
 	- This file.
 
-buildpipheadless:
-	- Main script. sudo -E ./buildpipheadless VERSION will create a PIP distributable
-	  named pycompss-headless-${PyCOMPSs_VERSION}.tar.gz in
-		framework/builders/packages/pip-headless/pyCOMPSsHeadless/dist/
-	  Example: sudo -E ./buildpipheadless 2.6 will create a pycompss-headless-2.6.tar.gz
+buildpipplayer:
+	- Main script. sudo -E ./buildpipplayer VERSION will create a PIP distributable
+	  named pycompss-player-${PyCOMPSs_VERSION}.tar.gz in
+		framework/builders/packages/pip-player/pyCOMPSsPlayer/dist/
+	  Example: sudo -E ./buildpipplayer 2.6 will create a pycompss-player-2.6.tar.gz
 
-PyCOMPSsResources/pycompss-headless/compss:
+PyCOMPSsResources/pycompss-player/compss:
 	- pycompss alias.
 
-PyCOMPSsResources/pycompss-headless/pycompss:
+PyCOMPSsResources/pycompss-player/pycompss:
 	- Main bash script which enables users to interact with the docker instances.
 
-PyCOMPSsResources/pycompss-headless/pycompss_cmd.py:
+PyCOMPSsResources/pycompss-player/pycompss_cmd.py:
 	- Auxiliary script which implements the functionalities offered by the
 	  "pycompss" script.
 
@@ -174,10 +174,10 @@ PyCOMPSsResources/requirements.txt:
 	- Required dependencies.
 
 PyCOMPSsResources/setup.py:
-		- Pip installable main script. This installs pyCOMPSsHeadless.
+		- Pip installable main script. This installs pyCOMPSsPlayer.
 
 An additional file named VERSION.txt will be created (and NOT deleted) by the
-buildpipheadless script.
+buildpipplayer script.
 A manual modification of this file will have no effect on future PIP
 distributable builds since it will be automatically replaced by a new one.
 
@@ -185,24 +185,24 @@ distributable builds since it will be automatically replaced by a new one.
 
 ======================================
 	           GENERATED
-      pyCOMPSsHeadless FOLDER
+      pyCOMPSsPlayer FOLDER
 ======================================
 
-A succesfull buildpipheadless execution will leave in framework/builders/packages/pip-headless
+A succesfull buildpipplayer execution will leave in framework/builders/packages/pip-player
 the folder hierarchy and files listed below.
 Do not modify, add or delete any file on this folder.
 
-pyCOMPSsHeadless
+pyCOMPSsPlayer
 ├── dist
-│   └── pycompss-headless-<VERSION>.tar.gz
+│   └── pycompss-player-<VERSION>.tar.gz
 ├── LICENSE.txt
 ├── MANIFEST.in
-├── pycompss-headless
+├── pycompss-player
 │   ├── __init__.py
 │   ├── compss
 │   ├── pycompss
 │   └── pycompss_cmd.py
-├── pycompss_headless.egg-info
+├── pycompss_player.egg-info
 │   ├── dependency_links.txt
 │   ├── PKG-INFO
 │   ├── requires.txt

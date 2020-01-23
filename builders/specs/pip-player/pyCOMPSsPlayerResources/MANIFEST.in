@@ -1,7 +1,7 @@
-include pycompss-headless/__init__.py
-include pycompss-headless/compss
-include pycompss-headless/pycompss
-include pycompss-headless/pycompss_cmd.py
+include pycompss-player/__init__.py
+include pycompss-player/compss
+include pycompss-player/pycompss
+include pycompss-player/pycompss_cmd.py
 
 include LICENSE.txt
 include MANIFEST.in

@@ -72,7 +72,7 @@ else
         echo "ERROR: Unknown command: $cmd"
         echo ""
     fi
-    echo "PyCOMPSs|COMPSS Headless:"
+    echo "PyCOMPSs|COMPSS Player:"
     echo ""
     echo "Usage: pycompss COMMAND  |  compss COMMAND"
     echo ""

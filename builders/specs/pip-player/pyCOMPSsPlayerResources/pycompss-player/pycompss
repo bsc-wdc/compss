@@ -55,7 +55,7 @@ elif [ "${cmd}" == "monitor" ]; then
 
 elif [ "${cmd}" == "jupyter" ]; then
     params=$@
-    subcmd="jupyter-notebook ${params} --ip=0.0.0.0 --allow-root"
+    subcmd="jupyter-notebook ${params} --ip=172.17.0.2 --allow-root --NotebookApp.token="
     python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
 
 elif [ "${cmd}" == "gengraph" ]; then

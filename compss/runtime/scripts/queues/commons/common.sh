@@ -126,7 +126,7 @@ EOT
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes.
                                             Default: ${DEFAULT_NUM_SWITCHES}
     --agents                                Deploys the runtime as agents instead of the classic Master-Worker deployment.
-                                            Default: Disabled                                            
+                                            Default: Disabled
   Heterogeneous submission arguments:
     --type_cfg=<file_location>              Location of the file with the descriptions of node type requests
                                             File should follow the following format:
@@ -315,7 +315,7 @@ get_args() {
             ;;
           agents)
             AGENT_SUFFIX="_agents"
-            ;;            
+            ;;
           cpus_per_node=*)
             cpus_per_node=${OPTARG//cpus_per_node=/}
             args_pass="$args_pass --$OPTARG"
@@ -796,11 +796,11 @@ storage_master_node="\${master_node}"
 
 # The storage_init.sh can put environment variables in the temporary file which will be sourced afterwards
 variables_to_be_sourced=$(mktemp)
-${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props} ${variables_to_be_sourced}
+${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props} "\${variables_to_be_sourced}"
 
-if [ -f \$${variables_to_be_sourced} ]; then
-    source \$${variables_to_be_sourced}
-    rm \$${variables_to_be_sourced}
+if [ -f "\${variables_to_be_sourced}" ]; then
+    source "\${variables_to_be_sourced}"
+    rm "\${variables_to_be_sourced}"
 fi
 
 ${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --storage_conf=\${storage_conf} ${args_pass}

@@ -1,0 +1,14 @@
+include pycompss-player/__init__.py
+include pycompss-player/compss
+include pycompss-player/pycompss
+include pycompss-player/pycompss_cmd.py
+
+include LICENSE.txt
+include MANIFEST.in
+include README.rst
+include VERSION.txt
+include requirements.txt
+include setup.py
+
+global-exclude *.pyc
+global-exclude *.class

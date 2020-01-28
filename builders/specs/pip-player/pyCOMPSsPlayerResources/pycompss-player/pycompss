@@ -1,0 +1,101 @@
+#!/bin/bash
+
+getpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+cmd_path=$(dirname $(getpath "$0"))
+
+cmd=$1
+shift 1
+
+export PYTHONPATH=$PYTHONPATH:${cmd_path}
+
+if [ "${cmd}" == "init" ]; then
+    params=$@
+    python3 -c "from pycompss_cmd import _start_daemon; _start_daemon(params='${params}')"
+
+elif [ "${cmd}" == "update" ]; then
+    echo "Updating docker image"
+    docker_image="compss/compss:2.6"
+    if [ -n "${COMPSS_DOCKER_IMAGE}" ]; then
+        echo "Found COMPSS_DOCKER_IMAGE environment variable: '$COMPSS_DOCKER_IMAGE'. Updating.";
+        docker_image=$COMPSS_DOCKER_IMAGE
+    else
+        echo "COMPSS_DOCKER_IMAGE is unset or empty. Updating default docker image: $docker_image";
+    fi
+    docker pull $docker_image
+
+elif [ "${cmd}" == "kill" ]; then
+    python3 -c "from pycompss_cmd import _stop_daemon; _stop_daemon(True)"
+
+elif [ "${cmd}" == "exec" ]; then    subcmd=$@
+    python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
+
+elif [ "${cmd}" == "run" ]; then
+    params=$@
+    python3 -c "from pycompss_cmd import _exec_in_daemon; \
+    _exec_in_daemon('runcompss \
+        --project=/project.xml \
+        --resources=/resources.xml \
+        --master_name=172.17.0.2 \
+        --base_log_dir=/home/user \
+        ${params}')"
+
+elif [ "${cmd}" == "monitor" ]; then
+    option=$1
+    if [ "${option}" == "start" ]; then
+        python3 -c "from pycompss_cmd import _start_monitoring; _start_monitoring()"
+    elif [ "${option}" == "stop" ]; then
+        python3 -c "from pycompss_cmd import _stop_monitoring; _stop_monitoring()"
+    else
+        echo "Unexpected option for monitoring: ${option}"
+        echo "Please, use start or stop."
+    fi
+
+elif [ "${cmd}" == "jupyter" ]; then
+    params=$@
+    subcmd="jupyter-notebook ${params} --ip=172.17.0.2 --allow-root --NotebookApp.token="
+    python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
+
+elif [ "${cmd}" == "gengraph" ]; then
+    params=$@
+    subcmd="compss_gengraph ${params}"
+    python3 -c "from pycompss_cmd import _exec_in_daemon; _exec_in_daemon('${subcmd}')"
+
+elif [ "${cmd}" == "components" ]; then
+    subcmd=$@
+    python3 -c "from pycompss_cmd import _components; _components(arg='${subcmd}')"
+
+else
+    if ! { [ -z "${cmd}" ] || [ "$cmd" == "help" ]; }; then
+        echo "ERROR: Unknown command: $cmd"
+        echo ""
+    fi
+    echo "PyCOMPSs|COMPSS Player:"
+    echo ""
+    echo "Usage: pycompss COMMAND  |  compss COMMAND"
+    echo ""
+    echo "Available commands:"
+    echo "    init -w [WORK_DIR] -i [IMAGE]:  initializes COMPSs in the current working dir or in WORK_DIR if -w is set."
+    echo "                                    The COMPSs docker image to be used can be specified with -i (it can also be "
+    echo "                                    specified with the COMPSS_DOCKER_IMAGE environment variable)."
+    echo "    kill:                           stops and kills all instances of the COMPSs."
+    echo "    update:                         updates the COMPSs docker image (use only when installing master branch)."
+    echo "    exec CMD:                       executes the CMD command inside the COMPSs master container."
+    echo "    run [OPTIONS] FILE [PARAMS]:    runs FILE with COMPSs, where OPTIONS are COMPSs options and PARAMS are application parameters."
+    echo "    monitor [start|stop]:           starts or stops the COMPSs monitoring."
+    echo "    jupyter [PATH|FILE]:            starts jupyter-notebook in the given PATH or FILE."
+    echo "    gengraph [FILE.dot]:            converts the .dot graph into .pdf"
+    echo "    components list:                lists COMPSs actives components."
+    echo "    components add RESOURCE:        adds the RESOURCE to the pool of workers of the COMPSs."
+    echo "       Example given: pycompss components add worker 2 # to add 2 local workers."
+    echo "       Example given: pycompss components add worker <IP>:<CORES> # to add a remote worker"
+    echo "                Note: compss can be used instead of pycompss ib both examples."
+    echo "    components remove RESOURCE:   removes the RESOURCE to the pool of workers of the COMPSs."
+    echo "       Example given: pycompss components remove worker 2 # to remove 2 local workers."
+    echo "       Example given: pycompss components remove worker <IP>:<CORES> # to remove a remote worker"
+    echo "                Note: compss can be used instead of pycompss ib both examples."
+    echo ""
+
+fi

@@ -324,6 +324,17 @@ number of computing units used when defined.
     pycompss components remove worker '127.0.0.1:6'
 
 
+Stop ``pycompss``
+^^^^^^^^^^^^^^^^^
+
+The infrastructure deployed can be easily stopped and the docker instances
+closed with the following command:
+
+.. code:: bash
+
+    pycompss kill
+
+
 License
 =======
 

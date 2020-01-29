@@ -5,16 +5,16 @@ import sys
 import tarfile
 import tempfile
 import shutil
-from uuid import uuid4
-
 import docker
+from uuid import uuid4
 from docker.types import Mount
 
+# ################ #
+# GLOBAL VARIABLES #
+# ################ #
+
 client = docker.from_env()
-# api_client = docker.APIClient()
 api_client = docker.APIClient(base_url='unix://var/run/docker.sock')
-
-
 master_name = 'pycompss-master'
 worker_name = 'pycompss-worker'
 service_name = 'pycompss-service'
@@ -25,6 +25,147 @@ default_cfg = default_workdir + '/' + default_cfg_file
 default_image_file = 'image'
 default_image = default_workdir + '/' + default_image_file
 
+# ############# #
+# API FUNCTIONS #
+# ############# #
+
+def start_daemon(params: str = "", restart: bool = True):
+    docker_image = image_name
+    working_dir = ''
+    image = ''
+    i_tmp_path = ''
+    # Parse input params
+    if params:
+        working_dir, image = _parse_init_params(params)
+        if image:
+            docker_image = image
+
+    masters = client.containers.list(filters={'name': master_name},
+                                     all=True)
+    assert len(masters) < 2  # never should we run 2 masters
+
+    if restart or _exists(master_name):
+        stop_daemon(False)
+
+    if not _is_running(master_name):
+        if not working_dir:
+            working_dir = os.getcwd()
+
+        print("Starting %s container in dir %s" % (master_name, working_dir))
+        print("If this is your first time running PyCOMPSs it may take a while "
+              "because it needs to download the docker image. Please be "
+              "patient.")
+
+        mounts = _get_mounts(user_working_dir=working_dir)
+        ports = {'8888/tcp': 8888,  # required for jupyter notebooks
+                 '8080/tcp': 8080}  # required for monitor
+        m = client.containers.run(image=docker_image, name=master_name,
+                                  mounts=mounts, detach=True, ports=ports)
+
+        _generate_resources_cfg(ips=['localhost'])
+        _generate_project_cfg(ips=['localhost'])
+
+        # don't pass configs because they need to be  overwritten when adding
+        # new nodes
+        cfg_content = '{"working_dir":"' + working_dir + '","resources":"","project":""}'
+        tmp_path, cfg_file = _store_temp_cfg(cfg_content)
+        _copy_file(cfg_file, default_cfg)
+        shutil.rmtree(tmp_path)
+
+
+def stop_daemon(clean):
+    if clean:
+        # Clean the cfg file
+        master = _get_master()
+        _remove_cfg(master)
+    _stop_by_name(master_name)
+    _stop_by_name(worker_name)
+
+
+def exec_in_daemon(cmd: str):
+    print("Executing cmd: %s" % cmd)
+    if not _is_running(master_name):
+        _start_daemon()
+
+    master = _get_master()
+    _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
+
+    for line in output:
+        print(line.strip().decode())
+
+def start_monitoring():
+    print("Starting Monitor")
+    if not _is_running(master_name):
+        _start_daemon()
+
+    cmd = "/etc/init.d/compss-monitor start"
+
+    master = _get_master()
+    _, output = master.exec_run(cmd,
+                                environment={'COMPSS_MONITOR':str(default_workdir) + '/.COMPSs'},
+                                workdir=default_workdir,
+                                stream=True)
+
+    for line in output:
+        print(line.strip().decode())
+
+    print("Please, open: http://127.0.0.1:8080/compss-monitor")
+
+
+def stop_monitoring():
+    print("Stopping Monitor")
+    cmd = "/etc/init.d/compss-monitor stop"
+
+    master = _get_master()
+    _, output = master.exec_run(cmd,
+                                workdir=default_workdir,
+                                stream=True)
+
+    for line in output:
+        print(line.strip().decode())
+
+
+def components(arg: str = 'list'):
+    args = arg.split()
+
+    if len(args) > 0:
+        subcmd = args[0]
+
+    if len(args) == 0 or subcmd == 'list':
+        masters = client.containers.list(filters={'name': master_name})
+        workers = client.containers.list(filters={'name': worker_name})
+        for c in masters + workers:
+            print(c.name)
+    elif subcmd == 'add':
+        resource = args[1]
+        if resource == 'worker':
+            if args[2].isdigit():
+                number_of_res = int(args[2])
+                _add_workers(number_of_res)
+            else:
+                _add_custom_worker(args[2])
+        else:
+            print("Unsupported resource to be added: " + str(resource))
+            print("Supported resources: worker")
+    elif subcmd == 'remove':
+        resource = args[1]
+        if resource == 'worker':
+            if args[2].isdigit():
+                number_of_res = int(args[2])
+                _remove_workers(number_of_res)
+            else:
+                _remove_custom_worker(args[2])
+        else:
+            print("Unsupported resource to be removed: " + str(resource))
+            print("Supported resources: worker")
+    else:
+        print("Unexpected components command: " + subcmd)
+        print("Supported commponents commands: list, add, remove")
+
+
+# ################# #
+# PRIVATE FUNCTIONS #
+# ################# #
 
 def _is_running(name: str):
     cs = client.containers.list(filters={'name': name})
@@ -67,51 +208,6 @@ elif _is_running(master_name):
 else:
     # Otherwise, fallback to default COMPSs image
     image_name = 'compss/compss:2.6'  # Update when releasing new version
-
-
-
-def _start_daemon(params: str = "", restart: bool = True):
-    docker_image = image_name
-    working_dir = ''
-    image = ''
-    i_tmp_path = ''
-    # Parse input params
-    if params:
-        working_dir, image = _parse_init_params(params)
-        if image:
-            docker_image = image
-
-    masters = client.containers.list(filters={'name': master_name},
-                                     all=True)
-    assert len(masters) < 2  # never should we run 2 masters
-
-    if restart or _exists(master_name):
-        _stop_daemon(False)
-
-    if not _is_running(master_name):
-        if not working_dir:
-            working_dir = os.getcwd()
-
-        print("Starting %s container in dir %s" % (master_name, working_dir))
-        print("If this is your first time running PyCOMPSs it may take a while "
-              "because it needs to download the docker image. Please be "
-              "patient.")
-
-        mounts = _get_mounts(user_working_dir=working_dir)
-        ports = {'8888/tcp': 8888,  # required for jupyter notebooks
-                 '8080/tcp': 8080}  # required for monitor
-        m = client.containers.run(image=docker_image, name=master_name,
-                                  mounts=mounts, detach=True, ports=ports)
-
-        _generate_resources_cfg(ips=['localhost'])
-        _generate_project_cfg(ips=['localhost'])
-
-        # don't pass configs because they need to be  overwritten when adding
-        # new nodes
-        cfg_content = '{"working_dir":"' + working_dir + '","resources":"","project":""}'
-        tmp_path, cfg_file = _store_temp_cfg(cfg_content)
-        _copy_file(cfg_file, default_cfg)
-        shutil.rmtree(tmp_path)
 
 
 def _parse_init_params(params: str):
@@ -233,6 +329,7 @@ def _get_cfg(master) -> dict:
 
     return cfg
 
+
 def _remove_cfg(master) -> dict:
     exit_code, output = master.exec_run(cmd='rm ' + default_cfg)
 
@@ -291,7 +388,6 @@ def _remove_custom_worker(custom_cfg: str):
     print("Removed worker %s" % (ip))
 
 
-
 def _add_workers(num_workers: int = 1, user_working_dir: str = "",
                  cpus: int = 4):
     master = _get_master()
@@ -323,98 +419,7 @@ def _remove_workers(num_workers: int = 1,
     print("Removed " + str(num_workers) + " workers.")
 
 
-def _stop_daemon(clean):
-    if clean:
-        # Clean the cfg file
-        master = _get_master()
-        _remove_cfg(master)
-    _stop_by_name(master_name)
-    _stop_by_name(worker_name)
-
-
 def _stop_by_name(name: str):
     containers = client.containers.list(filters={'name': name}, all=True)
     for c in containers:
         c.remove(force=True)
-
-
-def _start_monitoring():
-    print("Starting Monitor")
-    if not _is_running(master_name):
-        _start_daemon()
-
-    cmd = "/etc/init.d/compss-monitor start"
-
-    master = _get_master()
-    _, output = master.exec_run(cmd,
-                                environment={'COMPSS_MONITOR':str(default_workdir) + '/.COMPSs'},
-                                workdir=default_workdir,
-                                stream=True)
-
-    for line in output:
-        print(line.strip().decode())
-
-    print("Please, open: http://127.0.0.1:8080/compss-monitor")
-
-
-def _stop_monitoring():
-    print("Stopping Monitor")
-    cmd = "/etc/init.d/compss-monitor stop"
-
-    master = _get_master()
-    _, output = master.exec_run(cmd,
-                                workdir=default_workdir,
-                                stream=True)
-
-    for line in output:
-        print(line.strip().decode())
-
-
-def _exec_in_daemon(cmd: str):
-    print("Executing cmd: %s" % cmd)
-    if not _is_running(master_name):
-        _start_daemon()
-
-    master = _get_master()
-    _, output = master.exec_run(cmd, workdir=default_workdir, stream=True)
-
-    for line in output:
-        print(line.strip().decode())
-
-
-def _components(arg: str = 'list'):
-    args = arg.split()
-
-    if len(args) > 0:
-        subcmd = args[0]
-
-    if len(args) == 0 or subcmd == 'list':
-        masters = client.containers.list(filters={'name': master_name})
-        workers = client.containers.list(filters={'name': worker_name})
-        for c in masters + workers:
-            print(c.name)
-    elif subcmd == 'add':
-        resource = args[1]
-        if resource == 'worker':
-            if args[2].isdigit():
-                number_of_res = int(args[2])
-                _add_workers(number_of_res)
-            else:
-                _add_custom_worker(args[2])
-        else:
-            print("Unsupported resource to be added: " + str(resource))
-            print("Supported resources: worker")
-    elif subcmd == 'remove':
-        resource = args[1]
-        if resource == 'worker':
-            if args[2].isdigit():
-                number_of_res = int(args[2])
-                _remove_workers(number_of_res)
-            else:
-                _remove_custom_worker(args[2])
-        else:
-            print("Unsupported resource to be removed: " + str(resource))
-            print("Supported resources: worker")
-    else:
-        print("Unexpected components command: " + subcmd)
-        print("Supported commponents commands: list, add, remove")

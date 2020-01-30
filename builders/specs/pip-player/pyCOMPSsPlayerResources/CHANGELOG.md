@@ -4,7 +4,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2020-01-15
+## [2.6.5] - 2020-01-31
+### Added
+- Support for dislib command.
+- Added code documentation
+
+### Changed
+- API exposed.
+- Source code sorted.
+- Format adapted to pep8.
+
+### Removed
+- Nothing
+
+
+## [2.6.4] - 2020-01-24
+### Added
+- Nothing
+
+### Changed
+- Jupyter notebook is started without token.
+- Fixed cfg cleanup from any folder.
+- Fixed README typos.
+
+### Removed
+- Nothing
+
+
+## [2.6.3] - 2020-01-23
 ### Added
 - Base project files
 

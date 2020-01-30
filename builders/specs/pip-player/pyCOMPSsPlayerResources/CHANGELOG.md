@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.6.5] - 2020-01-31
 ### Added
 - Support for dislib command.
-- Added code documentation
+- Added code documentation.
+- Added intances stoppage to README.md.
 
 ### Changed
 - API exposed.

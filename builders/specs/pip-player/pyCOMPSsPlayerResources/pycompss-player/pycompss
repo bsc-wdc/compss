@@ -74,7 +74,7 @@ else
     fi
     echo "PyCOMPSs|COMPSS Player:"
     echo ""
-    echo "Usage: pycompss COMMAND  |  compss COMMAND"
+    echo "Usage: pycompss COMMAND  |  compss COMMAND  |  dislib COMMAND"
     echo ""
     echo "Available commands:"
     echo "    init -w [WORK_DIR] -i [IMAGE]:  initializes COMPSs in the current working dir or in WORK_DIR if -w is set."
@@ -91,11 +91,11 @@ else
     echo "    components add RESOURCE:        adds the RESOURCE to the pool of workers of the COMPSs."
     echo "       Example given: pycompss components add worker 2 # to add 2 local workers."
     echo "       Example given: pycompss components add worker <IP>:<CORES> # to add a remote worker"
-    echo "                Note: compss can be used instead of pycompss ib both examples."
+    echo "                Note: compss and dislib can be used instead of pycompss in both examples."
     echo "    components remove RESOURCE:   removes the RESOURCE to the pool of workers of the COMPSs."
     echo "       Example given: pycompss components remove worker 2 # to remove 2 local workers."
     echo "       Example given: pycompss components remove worker <IP>:<CORES> # to remove a remote worker"
-    echo "                Note: compss can be used instead of pycompss ib both examples."
+    echo "                Note: compss and dislib can be used instead of pycompss in both examples."
     echo ""
 
 fi

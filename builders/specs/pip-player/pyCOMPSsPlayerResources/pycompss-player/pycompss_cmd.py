@@ -25,7 +25,12 @@ default_cfg = default_workdir + '/' + default_cfg_file
 default_image_file = 'image'
 default_image = default_workdir + '/' + default_image_file
 
-if os.environ.get('COMPSS_DOCKER_IMAGE') is not None:
+if os.environ.get('DEFAULT_DISLIB_DOCKER_IMAGE') is not None:
+    # This environment variable will be defined by the dislib script.
+    # It can be overriden by the COMPSS_DOCKER_IMAGE or the -i flag
+    # when running init.
+    image_name = os.environ['DEFAULT_DISLIB_DOCKER_IMAGE']
+elif os.environ.get('COMPSS_DOCKER_IMAGE') is not None:
     # If specified in an environment variable, take it
     image_name = os.environ['COMPSS_DOCKER_IMAGE']
 elif len(client.containers.list(filters={'name': master_name})) > 0:

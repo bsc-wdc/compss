@@ -1,5 +1,6 @@
 include pycompss-player/__init__.py
 include pycompss-player/compss
+include pycompss-player/dislib
 include pycompss-player/pycompss
 include pycompss-player/pycompss_cmd.py
 

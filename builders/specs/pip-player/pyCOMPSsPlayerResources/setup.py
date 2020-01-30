@@ -32,7 +32,8 @@ setuptools.setup(
     install_requires=['setuptools', 'docker'],
 
     # Executable
-    scripts=["pycompss-player/compss",
+    scripts=["pycompss-player/dislib",
+             "pycompss-player/compss",
              "pycompss-player/pycompss",
              "pycompss-player/pycompss_cmd.py"],
 )

@@ -85,8 +85,8 @@ Installation steps
 
     python3 -m pip install pycompss-player
 
-This should add the pycompss-player executables (``pycompss`` and
-``compss``) to your path. They can be used indiferently.
+This should add the pycompss-player executables (``pycompss``,
+``compss`` and ``dislib``) to your path. They can be used indiferently.
 
 **Warning:** The user executable path may not be automatically exported
 into the ``PATH`` environment variable. So, take this into account if

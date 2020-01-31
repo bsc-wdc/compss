@@ -672,6 +672,14 @@ def synchronize(obj, mode):
 
     # Runtime can return a path or a PSCOId
     if compss_file.startswith('/'):
+        # If the real filename is null, then return None. The task that produces
+        # the output file may have been ignored or cancelled, so its result
+        # does not exist.
+        real_file_name = compss_file.split('/')[-1]
+        if real_file_name == 'null':
+            print("WARNING: Could not retrieve the object " + str(file_name) +
+                  " since the task that produces it may have been IGNORED or CANCELLED. Please, check the logs. Returning None.")  # noqa
+            return None
         new_obj = deserialize_from_file(compss_file)
         compss.close_file(file_name, mode)
     else:

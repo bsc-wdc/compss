@@ -297,6 +297,7 @@ class Task(object):
                 # This file has to be visible for all workers.
                 from pycompss.util.interactive.helpers import update_tasks_code_file  # noqa
                 update_tasks_code_file(self.user_function, path)
+                print("Found task: " + str(self.user_function.__name__))
         else:
             pass
 

@@ -89,7 +89,7 @@ def find_packages(path='./src'):
 setup(
     # Metadata
     name='pycompss',
-    version='2.6.rc2001',
+    version='2.6.rc2002',
     description='Python Binding for COMP Superscalar Runtime',
     long_description=open('README.txt').read(),
     author='Workflows and Distributed Computing Group (WDC) - Barcelona Supercomputing Center (BSC)',

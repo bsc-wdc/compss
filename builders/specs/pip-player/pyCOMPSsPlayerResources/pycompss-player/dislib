@@ -1,0 +1,3 @@
+# Force to use the dislib image by default
+export DEFAULT_DISLIB_DOCKER_IMAGE=bscwdc/dislib:latest
+pycompss $@

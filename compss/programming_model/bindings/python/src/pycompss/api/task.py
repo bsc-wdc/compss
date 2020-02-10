@@ -31,6 +31,7 @@ import inspect
 from functools import wraps
 
 import pycompss.api.parameter as parameter
+from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
 from pycompss.runtime.commons import TRACING_HOOK_ENV_VAR
@@ -1345,8 +1346,18 @@ class Task(object):
             else:
                 raise Exception("Unsupported numba mode.")
         else:
-            # Normal task execution
-            user_returns = self.user_function(*user_args, **user_kwargs)
+            compss_exception = None
+            try:
+                # Normal task execution
+                user_returns = self.user_function(*user_args, **user_kwargs)
+            except:
+                compss_exception = ce
+                # Check old targetDirection
+                if 'targetDirection' in self.decorator_arguments:
+                    target_label = 'targetDirection'
+                else:
+                    target_label = 'target_direction'
+                compss_exception.target_direction = self.decorator_arguments[target_label]
 
         # Reestablish the hook if it was disabled
         if restore_hook:
@@ -1396,7 +1407,10 @@ class Task(object):
                         serialize_to_file_mpienv(arg.content, f_name, False)
                     else:
                         serialize_to_file(arg.content, f_name)
-
+        
+        # raise compss_exception after serializing inouts
+        if compss_exception != None :
+            raise compss_exception
         # Deal with returns (if any)
         if num_returns > 0:
             if num_returns == 1:
@@ -1490,7 +1504,7 @@ class Task(object):
                     self_value = 'null'
             new_types.append(self_type)
             new_values.append(self_value)
-
+        
         # Add return types and values
         # Loop through the rest of the arguments and update new_types and
         #  new_values.

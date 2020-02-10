@@ -213,6 +213,7 @@ _get_void_pointer_to_content(PyObject *val, int type, int size) {
     void *ret = new std::uint8_t[size];
     switch ((enum datatype) type) {
         case file_dt:
+        case directory_dt:
         case external_stream_dt:
         case external_psco_dt:
         case string_dt:

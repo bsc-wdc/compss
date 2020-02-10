@@ -50,5 +50,6 @@ public enum DataType {
     STREAM_T, // Streams
     EXTERNAL_STREAM_T, // Binding Streams
     ENUM_T, // Enum
-    NULL_T; // Null
+    NULL_T, // Null
+    DIRECTORY_T; // Directory
 }

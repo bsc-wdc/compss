@@ -21,6 +21,7 @@ package es.bsc.compss.types.data.location;
  */
 public enum ProtocolType {
     FILE_URI("file://"), // File protocol
+    DIR_URI("dir://"), // Directory protocol
     SHARED_URI("shared://"), // Shared protocol
     OBJECT_URI("object://"), // Object protocol
     STREAM_URI("stream://"), // Stream protocol

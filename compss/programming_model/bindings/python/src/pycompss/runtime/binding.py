@@ -1085,6 +1085,11 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # and we register it as file
         value = param.file_name
         typ = TYPE.FILE
+
+    elif param.type == TYPE.DIRECTORY:
+        value = param.file_name
+        typ = TYPE.DIRECTORY
+
     elif param.type == TYPE.OBJECT:
         # If the parameter is an object, its value is stored in a file and
         # we register it as file

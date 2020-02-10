@@ -1042,7 +1042,10 @@ class Task(object):
             # and get_compss_type will misslabel it as a TYPE.STRING
             if self.parameters[var_name].type is None:
                 self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])  # noqa
-            if self.parameters[var_name].type == parameter.TYPE.FILE:
+
+            # todo: add 'dir_name' to the parameter object
+            if self.parameters[var_name].type in \
+                    [parameter.TYPE.FILE, parameter.TYPE.DIRECTORY]:
                 self.parameters[var_name].file_name = parameter_values[var_name]  # noqa
             else:
                 self.parameters[var_name].object = parameter_values[var_name]

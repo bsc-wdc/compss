@@ -580,6 +580,25 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
             exit(1);
         }
         break;
+
+    case directory_dt:
+        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+
+        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Directory: %s\n", *(char **)parVal);
+
+        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("DIRECTORY_T"));
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+        break;
+
     case external_stream_dt:
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {

@@ -50,6 +50,7 @@ import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
 import es.bsc.compss.types.parameter.BasicTypeParameter;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
+import es.bsc.compss.types.parameter.DirectoryParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
@@ -94,6 +95,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     private static final String WARN_VERSION_PROPERTIES =
         "WARNING: COMPSs Runtime VERSION-BUILD" + " properties file could not be read";
     private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
+    private static final String ERROR_DIR_NAME = "ERROR: Not a valid directory";
     private static final String ERROR_BINDING_OBJECT_PARAMS =
         "ERROR: Incorrect number of parameters" + " for external objects";
     private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
@@ -616,6 +618,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     @Override
     public void registerData(DataType type, Object stub, String data) {
         switch (type) {
+            case DIRECTORY_T:
             case FILE_T:
                 try {
                     String fileName = (String) stub;
@@ -1257,6 +1260,24 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         String name, String pyType, ArrayList<Parameter> pars, int offset, String[] vals) {
 
         switch (type) {
+            case DIRECTORY_T:
+                try {
+                    String dirName = (String) content;
+                    File dirFile = new File(dirName);
+                    if (!dirFile.isDirectory()) {
+                        LOGGER.error(ERROR_DIR_NAME);
+                        ErrorManager.fatal(ERROR_DIR_NAME);
+                    }
+                    String originalName = dirFile.getName();
+                    String canonicalPath = dirFile.getCanonicalPath();
+                    String fullPath = ProtocolType.DIR_URI.getSchema() + canonicalPath;
+                    DataLocation location = createLocation(fullPath);
+                    pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, location, originalName));
+                } catch (Exception e) {
+                    LOGGER.error(ERROR_DIR_NAME, e);
+                    ErrorManager.fatal(ERROR_DIR_NAME, e);
+                }
+                break;
             case FILE_T:
                 try {
                     String fileName = (String) content;

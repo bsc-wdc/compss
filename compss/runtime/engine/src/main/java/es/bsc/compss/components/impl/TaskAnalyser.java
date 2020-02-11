@@ -43,6 +43,7 @@ import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.BindingObjectParameter;
 import es.bsc.compss.types.parameter.CollectionParameter;
 import es.bsc.compss.types.parameter.DependencyParameter;
+import es.bsc.compss.types.parameter.DirectoryParameter;
 import es.bsc.compss.types.parameter.ExternalPSCOParameter;
 import es.bsc.compss.types.parameter.ExternalStreamParameter;
 import es.bsc.compss.types.parameter.FileParameter;
@@ -801,6 +802,11 @@ public class TaskAnalyser {
         boolean hasParamEdge = false;
         DataAccessId daId;
         switch (p.getType()) {
+            case DIRECTORY_T:
+                DirectoryParameter dp = (DirectoryParameter) p;
+                // register file access for now, and directory will be accessed as a file
+                daId = this.dip.registerFileAccess(am, dp.getLocation());
+                break;
             case FILE_T:
                 FileParameter fp = (FileParameter) p;
                 daId = this.dip.registerFileAccess(am, fp.getLocation());
@@ -1290,9 +1296,9 @@ public class TaskAnalyser {
             }
         }
 
-        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.STREAM_T
-            || type == DataType.EXTERNAL_STREAM_T || type == DataType.EXTERNAL_PSCO_T
-            || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
+        if (type == DataType.FILE_T || type == DataType.DIRECTORY_T || type == DataType.OBJECT_T
+            || type == DataType.PSCO_T || type == DataType.STREAM_T || type == DataType.EXTERNAL_STREAM_T
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
 
             DependencyParameter dPar = (DependencyParameter) p;
             DataAccessId dAccId = dPar.getDataAccessId();
@@ -1648,8 +1654,6 @@ public class TaskAnalyser {
      * We will execute a task with no predecessors. Add edge from sync to task.
      *
      * @param dest Destination task.
-     * @param dataId Data causing the dependency.
-     * @param dataVersion Data version.
      */
     private void addEdgeFromMainToTask(Task dest) {
         String src = "Synchro" + dest.getSynchronizationId();
@@ -1779,7 +1783,7 @@ public class TaskAnalyser {
      * We have explicitly called the barrier group API call. STEPS: Add a new synchronization node. Add an edge from
      * last synchronization point to barrier. Add edges from group tasks to barrier.
      *
-     * @param groupName Name of the group.
+     * @param tg Name of the group.
      */
     private void addNewGroupBarrier(TaskGroup tg) {
         // Add barrier node

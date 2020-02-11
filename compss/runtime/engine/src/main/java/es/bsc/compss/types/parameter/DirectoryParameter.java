@@ -45,7 +45,7 @@ public class DirectoryParameter extends DependencyParameter {
      * @param originalName Original dir name.
      */
     public DirectoryParameter(Direction direction, StdIOStream stream, String prefix, String name, String contentType,
-                              DataLocation location, String originalName) {
+        DataLocation location, String originalName) {
 
         super(DataType.DIRECTORY_T, direction, stream, prefix, name, contentType);
         this.location = location;
@@ -64,7 +64,8 @@ public class DirectoryParameter extends DependencyParameter {
 
     @Override
     public String toString() {
-        return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction " + getDirection();
+        return "DirectoryParameter with location " + this.location + ", type " + getType() + ", direction "
+            + getDirection();
     }
 
 }

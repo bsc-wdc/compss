@@ -293,9 +293,13 @@ EOT
 
   clean_env() {
     if [ "$eraseWD" = "true" ]; then
-      echo "[persistent_worker.sh] Clean WD ${workingDir}"
+      if [ "$debug" == "true" ]; then
+        echo "[persistent_worker.sh] Clean WD ${workingDir}"
+      fi
       rm -rf "${workingDir}"
     else
-      echo "[persistent_worker.sh] Not cleaning WD ${workingDir}"
+      if [ "$debug" == "true" ]; then
+        echo "[persistent_worker.sh] Not cleaning WD ${workingDir}"
+      fi
     fi
   }

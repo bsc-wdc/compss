@@ -55,16 +55,26 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -426,6 +436,82 @@ public abstract class NIOAgent {
         }
     }
 
+    private void compressAndSendDir(Connection c, String path, NIOData d) {
+
+        File f = new File(path);
+        if (f.exists()) {
+            if (DEBUG) {
+                LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will compress and transfer directory " + path
+                    + " as data " + d.getDataMgmtId());
+            }
+
+            String zipFile = path + ".zip";
+            if(!createZip(path, zipFile)){
+            ErrorManager.warn("Can't send neither file '" + path + "'"
+                        + "' via connection " + c.hashCode() + " because files don't exist.");
+                handleDataToSendNotAvailable(c, d);
+            }
+            c.sendDataFile(zipFile);
+
+        } else {
+            // Not found check if it has been moved to the target name (renames
+            if (!f.getName().equals(d.getDataMgmtId())) {
+                // todo: is renamed in '.zip' format or how?
+                File renamed = new File(getPossiblyRenamedFileName(f, d));
+                if (renamed.exists()) {
+                    if (DEBUG) {
+                        LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer file "
+                            + renamed.getAbsolutePath() + " as data " + d.getDataMgmtId());
+                    }
+                    c.sendDataFile(renamed.getAbsolutePath());
+                } else {
+                    ErrorManager.warn("Can't send neither file '" + path + "' nor file '" + renamed.getAbsolutePath()
+                        + "' via connection " + c.hashCode() + " because files don't exist.");
+                    handleDataToSendNotAvailable(c, d);
+                }
+            } else {
+                ErrorManager.warn(
+                    "Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
+                handleDataToSendNotAvailable(c, d);
+            }
+        }
+
+    }
+
+    private boolean createZip(String sourceDirPath, String zipFilePath) {
+
+        Path p;
+        LOGGER.debug("________creating zip: " + sourceDirPath);
+        try {
+            p = Files.createFile(Paths.get(zipFilePath));
+        } catch (FileAlreadyExistsException fae) {
+            LOGGER.debug("________ zip found, skipping creation: " + zipFilePath);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
+            Path pp = Paths.get(sourceDirPath);
+            Files.walk(pp).filter(path -> !Files.isDirectory(path)).forEach(path -> {
+                ZipEntry zipEntry = new ZipEntry(pp.relativize(path).toString());
+                try {
+                    zs.putNextEntry(zipEntry);
+                    Files.copy(path, zs);
+                    zs.closeEntry();
+                } catch (IOException e) {
+                    LOGGER.error(e);
+                }
+            });
+            LOGGER.debug("________ zip created: " + sourceDirPath);
+        } catch (IOException e) {
+            LOGGER.error(e);
+            return false;
+        }
+        return true;
+    }
+
     private void sendBindingObject(Connection c, String path, NIOData d) {
         if (path.contains("#")) {
             BindingObject bo = BindingObject.generate(path);
@@ -667,6 +753,59 @@ public abstract class NIOAgent {
         // Check if shutdown and ready
         if (this.finish == true && !hasPendingTransfers()) {
             shutdown(closingConnection);
+        }
+
+    }
+
+    private void extractFolder(String zipFile, String extractFolder) {
+        try {
+            int buffer = 2048;
+            File file = new File(zipFile);
+
+            ZipFile zip = new ZipFile(file);
+
+            File zipDir = new File(extractFolder);
+            if (zipDir.exists()) {
+                boolean removed = zipDir.delete();
+            }
+            zipDir.mkdir();
+            Enumeration zipFileEntries = zip.entries();
+
+            // Process each entry
+            while (zipFileEntries.hasMoreElements()) {
+                // grab a zip file entry
+                ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
+                String currentEntry = entry.getName();
+
+                File destFile = new File(extractFolder, currentEntry);
+                // destFile = new File(newPath, destFile.getName());
+                File destinationParent = destFile.getParentFile();
+
+                // create the parent directory structure if needed
+                destinationParent.mkdirs();
+
+                if (!entry.isDirectory()) {
+                    BufferedInputStream is = new BufferedInputStream(zip.getInputStream(entry));
+                    int currentByte;
+                    // establish buffer for writing file
+                    byte[] data = new byte[buffer];
+
+                    // write the current file to disk
+                    FileOutputStream fos = new FileOutputStream(destFile);
+                    BufferedOutputStream dest = new BufferedOutputStream(fos, buffer);
+
+                    // read and write until last byte is encountered
+                    while ((currentByte = is.read(data, 0, buffer)) != -1) {
+                        dest.write(data, 0, currentByte);
+                    }
+                    dest.flush();
+                    dest.close();
+                    is.close();
+                }
+
+            }
+        } catch (Exception e) {
+            LOGGER.error("ERROR: " + e.getMessage());
         }
 
     }

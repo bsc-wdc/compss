@@ -242,6 +242,7 @@ public class Executor implements Runnable {
         TaskWorkingDir twd = null;
         // Flag to check if exception was unbinding files
         boolean failureUnbindingFiles = false;
+        boolean areResourcesAcquired = false;
         long timeUnbindOriginalFilesStart = 0L;
         try {
             // Set the Task working directory
@@ -280,6 +281,7 @@ public class Executor implements Runnable {
             }
             final InvocationResources assignedResources =
                 this.platform.acquireResources(jobId, invocation.getRequirements());
+            areResourcesAcquired = true;
             if (IS_TIMER_COMPSS_ENABLED) {
                 final long timeAssignResourcesEnd = System.nanoTime();
                 final float timeAssignResourcesElapsed =
@@ -358,55 +360,59 @@ public class Executor implements Runnable {
                 this.context.getThreadOutStream().println("Exception executing task " + e.getMessage());
                 e.printStackTrace(this.context.getThreadErrStream());
                 return e;
-            }
-            if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeCheckOutputFilesEnd = System.nanoTime();
-                final float timeCheckOutputFilesElapsed =
-                    (timeCheckOutputFilesEnd - timeCheckOutputFilesStart) / (float) NANO_TO_MS;
-                TIMER_LOGGER
-                    .debug("[TIMER] Check output files for job " + jobId + ": " + timeCheckOutputFilesElapsed + " ms");
-            }
+            } finally {
+                if (IS_TIMER_COMPSS_ENABLED) {
+                    final long timeCheckOutputFilesEnd = System.nanoTime();
+                    final float timeCheckOutputFilesElapsed =
+                        (timeCheckOutputFilesEnd - timeCheckOutputFilesStart) / (float) NANO_TO_MS;
+                    TIMER_LOGGER.debug(
+                        "[TIMER] Check output files for job " + jobId + ": " + timeCheckOutputFilesElapsed + " ms");
+                }
 
-            // Always release the binded computing units
-            LOGGER.debug("Release binded resources for Job " + jobId);
-            long timeUnassignResourcesStart = 0L;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                timeUnassignResourcesStart = System.nanoTime();
-            }
-            this.platform.releaseResources(jobId);
-            if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeUnassignResourcesEnd = System.nanoTime();
-                final float timeUnassignResourcesElapsed =
-                    (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
-                TIMER_LOGGER
-                    .debug("[TIMER] Unassign resources for job " + jobId + ": " + timeUnassignResourcesElapsed + " ms");
-            }
+                // Always release the binded computing units
+                if (areResourcesAcquired) {
+                    LOGGER.debug("Release binded resources for Job " + jobId);
+                    long timeUnassignResourcesStart = 0L;
+                    if (IS_TIMER_COMPSS_ENABLED) {
+                        timeUnassignResourcesStart = System.nanoTime();
+                    }
+                    this.platform.releaseResources(jobId);
+                    if (IS_TIMER_COMPSS_ENABLED) {
+                        final long timeUnassignResourcesEnd = System.nanoTime();
+                        final float timeUnassignResourcesElapsed =
+                            (timeUnassignResourcesEnd - timeUnassignResourcesStart) / (float) NANO_TO_MS;
+                        TIMER_LOGGER.debug("[TIMER] Unassign resources for job " + jobId + ": "
+                            + timeUnassignResourcesElapsed + " ms");
+                    }
+                }
 
-            // Always clean the task sandbox working dir
-            LOGGER.debug("Cleaning task sandbox for Job " + jobId);
-            long timeCleanSandboxStart = 0L;
-            if (IS_TIMER_COMPSS_ENABLED) {
-                timeCleanSandboxStart = System.nanoTime();
-            }
-            cleanTaskSandbox(twd);
-            if (IS_TIMER_COMPSS_ENABLED) {
-                final long timeCleanSandboxEnd = System.nanoTime();
-                final float timeCleanSandboxElapsed =
-                    (timeCleanSandboxEnd - timeCleanSandboxStart) / (float) NANO_TO_MS;
-                TIMER_LOGGER.debug("[TIMER] Clean sandbox for job " + jobId + ": " + timeCleanSandboxElapsed + " ms");
-            }
+                // Always clean the task sandbox working dir
+                LOGGER.debug("Cleaning task sandbox for Job " + jobId);
+                long timeCleanSandboxStart = 0L;
+                if (IS_TIMER_COMPSS_ENABLED) {
+                    timeCleanSandboxStart = System.nanoTime();
+                }
+                cleanTaskSandbox(twd);
+                if (IS_TIMER_COMPSS_ENABLED) {
+                    final long timeCleanSandboxEnd = System.nanoTime();
+                    final float timeCleanSandboxElapsed =
+                        (timeCleanSandboxEnd - timeCleanSandboxStart) / (float) NANO_TO_MS;
+                    TIMER_LOGGER
+                        .debug("[TIMER] Clean sandbox for job " + jobId + ": " + timeCleanSandboxElapsed + " ms");
+                }
 
-            // Always end task tracing
-            if (Tracer.extraeEnabled()) {
-                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
-            }
-        }
+                // Always end task tracing
+                if (Tracer.extraeEnabled()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.TASK_RUNNING.getType());
+                }
 
-        // Write timer if needed
-        if (IS_TIMER_COMPSS_ENABLED) {
-            final long timeTotalEnd = System.nanoTime();
-            final float timeTotalElapsed = (timeTotalEnd - timeTotalStart) / (float) NANO_TO_MS;
-            TIMER_LOGGER.info("[TIMER] Total time for job " + jobId + ": " + timeTotalElapsed + " ms");
+                // Write timer if needed
+                if (IS_TIMER_COMPSS_ENABLED) {
+                    final long timeTotalEnd = System.nanoTime();
+                    final float timeTotalElapsed = (timeTotalEnd - timeTotalStart) / (float) NANO_TO_MS;
+                    TIMER_LOGGER.info("[TIMER] Total time for job " + jobId + ": " + timeTotalElapsed + " ms");
+                }
+            }
         }
 
         // Any exception thrown, successful execution

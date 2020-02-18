@@ -235,6 +235,7 @@ public abstract class Invoker {
                     np.setValueClass(double.class);
                     break;
                 case STRING_T:
+                case DIRECTORY_T:
                 case FILE_T:
                 case BINDING_OBJECT_T:
                 case EXTERNAL_STREAM_T:

@@ -25,7 +25,6 @@ import es.bsc.comm.nio.NIOEventManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
@@ -241,6 +240,7 @@ public abstract class NIOAgent {
                 }
                 switch (dr.getType()) {
                     case FILE_T:
+                    case DIRECTORY_T:
                     case EXTERNAL_STREAM_T:
                         c.receiveDataFile(dr.getTarget());
                         c.finishConnection();
@@ -349,6 +349,9 @@ public abstract class NIOAgent {
         String path = d.getFirstURI().getPath();
         ProtocolType scheme = d.getFirstURI().getProtocol();
         switch (scheme) {
+            case DIR_URI:
+                compressAndSendDir(c, path, d);
+                break;
             case FILE_URI:
             case SHARED_URI:
             case EXTERNAL_STREAM_URI:
@@ -446,9 +449,9 @@ public abstract class NIOAgent {
             }
 
             String zipFile = path + ".zip";
-            if(!createZip(path, zipFile)){
-            ErrorManager.warn("Can't send neither file '" + path + "'"
-                        + "' via connection " + c.hashCode() + " because files don't exist.");
+            if (!createZip(path, zipFile)) {
+                ErrorManager.warn("Can't send neither file '" + path + "'" + "' via connection " + c.hashCode()
+                    + " because files don't exist.");
                 handleDataToSendNotAvailable(c, d);
             }
             c.sendDataFile(zipFile);
@@ -636,7 +639,17 @@ public abstract class NIOAgent {
                     // When worker binding is not persistent binding objects can be transferred as files
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
-                receivedValue(t.getDestination(), targetName, t.getObject(), requests);
+                boolean isDirectory = requests.get(0).getType().equals(DataType.DIRECTORY_T);
+                if (isDirectory) {
+                    String zipDir = targetName.replaceAll(".zip", "");
+                    LOGGER.debug(
+                        DBG_PREFIX + "Compressed data " + dataId + " will be decompressed  and saved as " + zipDir);
+                    // Creating the directory from zip file
+                    extractFolder(targetName, zipDir);
+                    receivedValue(t.getDestination(), targetName, t.getObject(), requests);
+                } else {
+                    receivedValue(t.getDestination(), targetName, t.getObject(), requests);
+                }
             } else {
                 if (t.isObject()) {
                     receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
@@ -1065,7 +1078,7 @@ public abstract class NIOAgent {
 
     /**
      * Re-send a given command to a given NIONode.
-     * 
+     *
      * @param node NIO node to re-send the command
      * @param cmd Command to re-send
      */
@@ -1086,7 +1099,7 @@ public abstract class NIOAgent {
 
     /**
      * Check and handle if error in connection is for a command.
-     * 
+     *
      * @param c Connection with an error.
      * @return Returns true True if error is in a command and it has been managed, otherwise returns False
      */

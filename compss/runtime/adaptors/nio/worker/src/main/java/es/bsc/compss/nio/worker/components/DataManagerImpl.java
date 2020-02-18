@@ -236,6 +236,9 @@ public class DataManagerImpl implements DataManager {
             case BINDING_OBJECT_T:
                 fetchBindingObject(param, paramIdx, tt);
                 break;
+            case DIRECTORY_T:
+                fetchFile(param, paramIdx, tt);
+                break;
             case FILE_T:
             case EXTERNAL_STREAM_T:
                 fetchFile(param, paramIdx, tt);
@@ -265,6 +268,7 @@ public class DataManagerImpl implements DataManager {
         synchronized (originalRegister) {
             for (InvocationParamURI loc : param.getSources()) {
                 switch (loc.getProtocol()) {
+                    case DIR_URI:
                     case FILE_URI:
                         if (loc.isHost(this.hostName)) {
                             originalRegister.addFileLocation(loc.getPath());

@@ -1350,7 +1350,7 @@ class Task(object):
             try:
                 # Normal task execution
                 user_returns = self.user_function(*user_args, **user_kwargs)
-            except:
+            except COMPSsException as ce:
                 compss_exception = ce
                 # Check old targetDirection
                 if 'targetDirection' in self.decorator_arguments:

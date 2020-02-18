@@ -263,22 +263,22 @@ load_tracing_env() {
   local module_tmp
   module_tmp=$(mktemp -p /tmp)
   module list &> "${module_tmp}"
+  if [ -z "${EXTRAE_HOME}" ]; then
+     # Look for openmpi / impi / none
+     impi=$(grep -i "impi" "${module_tmp}" | cat)
+     openmpi=$(grep -i "openmpi" "${module_tmp}" | cat)
 
-  # Look for openmpi / impi / none
-  impi=$(grep -i "impi" "${module_tmp}" | cat)
-  openmpi=$(grep -i "openmpi" "${module_tmp}" | cat)
-
-  if [ ! -z "$impi" ]; then
-    # Load Extrae IMPI
-    export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-impi/
-  elif [ ! -z "$openmpi" ]; then
-    # Load Extrae OpenMPI
-    export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-openmpi/
-  else
-    # Load sequential extrae
-    export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae/
+     if [ ! -z "$impi" ]; then
+       # Load Extrae IMPI
+       export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-impi/
+     elif [ ! -z "$openmpi" ]; then
+       # Load Extrae OpenMPI
+       export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae-openmpi/
+     else
+       # Load sequential extrae
+       export EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae/
+     fi
   fi
-
   # Clean tmp file
   rm -f "${module_tmp}"
 }
@@ -1351,7 +1351,7 @@ check_args() {
     master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
   fi
 
-  while [ "$(netstat | grep TIME_WAIT | grep -c ${master_port})" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
+  while [ "$(netstat | grep -v CLOSED | grep -c ${master_port})" -gt 0 ] || [ ! -z "$(lsof -i :${master_port})" ]; do
     echo "Port ${master_port} is already in use or time_wait, incrementing port by 1"
     master_port=$((master_port+1))
   done

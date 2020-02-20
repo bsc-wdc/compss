@@ -1365,6 +1365,7 @@ public class TaskAnalyser {
 
         // Update file and PSCO lists
         switch (dp.getType()) {
+            case DIRECTORY_T:
             case FILE_T:
                 Set<Integer> fileIdsWritten = this.appIdToWrittenFiles.get(appId);
                 if (fileIdsWritten == null) {
@@ -1396,6 +1397,7 @@ public class TaskAnalyser {
         LinkedList<DataInstanceId> fileIds = new LinkedList<>();
         for (Parameter p : t.getTaskDescription().getParameters()) {
             switch (p.getType()) {
+                case DIRECTORY_T:
                 case FILE_T:
                     FileParameter fp = (FileParameter) p;
                     switch (fp.getDirection()) {

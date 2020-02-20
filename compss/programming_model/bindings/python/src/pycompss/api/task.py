@@ -1160,6 +1160,8 @@ class Task(object):
                     # The object is a FILE, just forward the path of the file
                     # as a string parameter
                     arg.content = arg.file_name.split(':')[-1]
+            elif arg.type == parameter.TYPE.DIRECTORY:
+                arg.content = arg.file_name.split(":")[-1]
             elif arg.type == parameter.TYPE.EXTERNAL_STREAM:
                 arg.content = deserialize_from_file(arg.file_name)
             elif arg.type == parameter.TYPE.COLLECTION:

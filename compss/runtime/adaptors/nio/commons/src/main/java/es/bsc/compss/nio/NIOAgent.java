@@ -19,6 +19,7 @@ package es.bsc.compss.nio;
 import static java.lang.Math.abs;
 
 import es.bsc.comm.Connection;
+import es.bsc.comm.Node;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.nio.NIOEventManager;
@@ -61,9 +62,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -239,8 +243,11 @@ public abstract class NIOAgent {
                     c.receive();
                 }
                 switch (dr.getType()) {
-                    case FILE_T:
                     case DIRECTORY_T:
+                        c.receiveDataFile(dr.getTarget() + ".zip");
+                        c.finishConnection();
+                        break;
+                    case FILE_T:
                     case EXTERNAL_STREAM_T:
                         c.receiveDataFile(dr.getTarget());
                         c.finishConnection();
@@ -484,12 +491,18 @@ public abstract class NIOAgent {
     private boolean createZip(String sourceDirPath, String zipFilePath) {
 
         Path p;
-        LOGGER.debug("________creating zip: " + sourceDirPath);
         try {
             p = Files.createFile(Paths.get(zipFilePath));
         } catch (FileAlreadyExistsException fae) {
-            LOGGER.debug("________ zip found, skipping creation: " + zipFilePath);
-            return true;
+            // todo: what to do with the old zip?
+            File oldZipFile = new File(zipFilePath);
+            oldZipFile.delete();
+            try {
+                p = Files.createFile(Paths.get(zipFilePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -641,11 +654,11 @@ public abstract class NIOAgent {
                 }
                 boolean isDirectory = requests.get(0).getType().equals(DataType.DIRECTORY_T);
                 if (isDirectory) {
-                    String zipDir = targetName.replaceAll(".zip", "");
-                    LOGGER.debug(
-                        DBG_PREFIX + "Compressed data " + dataId + " will be decompressed  and saved as " + zipDir);
+                    String zipFile = targetName.concat(".zip");
+                    LOGGER.debug(DBG_PREFIX + "Compressed data " + zipFile + " will be decompressed  and saved as "
+                        + targetName);
                     // Creating the directory from zip file
-                    extractFolder(targetName, zipDir);
+                    extractFolder(zipFile, targetName);
                     receivedValue(t.getDestination(), targetName, t.getObject(), requests);
                 } else {
                     receivedValue(t.getDestination(), targetName, t.getObject(), requests);
@@ -772,16 +785,38 @@ public abstract class NIOAgent {
 
     private void extractFolder(String zipFile, String extractFolder) {
         try {
+            // todo: handle the error
             int buffer = 2048;
-            File file = new File(zipFile);
-
-            ZipFile zip = new ZipFile(file);
-
             File zipDir = new File(extractFolder);
             if (zipDir.exists()) {
                 boolean removed = zipDir.delete();
             }
+            if (zipDir.isDirectory()) {
+                // check if it's a directory
+                Path directory = Paths.get(extractFolder);
+                try {
+                    Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        @Override
+                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                } catch (IOException e) {
+                    LOGGER.error("Cannot delete directory " + extractFolder);
+                }
+            }
             zipDir.mkdir();
+
+            File file = new File(zipFile);
+            ZipFile zip = new ZipFile(file);
             Enumeration zipFileEntries = zip.entries();
 
             // Process each entry
@@ -817,7 +852,10 @@ public abstract class NIOAgent {
                 }
 
             }
+
+            file.delete();
         } catch (Exception e) {
+            e.printStackTrace();
             LOGGER.error("ERROR: " + e.getMessage());
         }
 

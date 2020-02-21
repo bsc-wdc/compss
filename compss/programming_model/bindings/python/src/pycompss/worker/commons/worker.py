@@ -304,6 +304,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
                             logger)
     finally:
         signal.alarm(0)
+        signal.signal(signal.SIGUSR2, signal.SIG_IGN)
 
     if isinstance(task_output[0], tuple):
         # Weak but effective way to check it without doing inspect that

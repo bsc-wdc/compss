@@ -1204,6 +1204,7 @@ class Task(object):
         # Self definition (only used when defined in the task)
         self_type = None
         self_value = None
+        compss_exception = None
         # All parameters are in the same args list. At the moment we only know
         # the type, the name and the "value" of the parameter. This value may
         # be treated to get the actual object (e.g: deserialize it, query the
@@ -1346,7 +1347,6 @@ class Task(object):
             else:
                 raise Exception("Unsupported numba mode.")
         else:
-            compss_exception = None
             try:
                 # Normal task execution
                 user_returns = self.user_function(*user_args, **user_kwargs)

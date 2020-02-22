@@ -275,7 +275,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
         return task_returns(2,
                             new_types,
                             new_values,
-                            None, False,
+                            compss_exception.target_direction, False,
                             return_message,
                             logger)
     except AttributeError:
@@ -313,6 +313,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
                             logger)
     finally:
         signal.alarm(0)
+        signal.signal(signal.SIGUSR2, signal.SIG_IGN)
 
     if isinstance(task_output[0], tuple):
         # Weak but effective way to check it without doing inspect that
@@ -622,16 +623,13 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
             timed_out = result[4]
             except_msg = result[5]
 
-            if exit_code != 0:
-                return exit_code, new_types, new_values, timed_out, except_msg
-
             # Depending on the target_direction option, it is necessary to
             # serialize again self or not. Since this option is only visible
             # within the task decorator, the task_execution returns the value
             # of target_direction in order to know here if self has to be
             # serialized. This solution avoids to use inspect.
-            if target_direction.direction == parameter.DIRECTION.INOUT or \
-                    target_direction.direction == parameter.DIRECTION.COMMUTATIVE:  # noqa: E501
+            if target_direction != None and (target_direction.direction == parameter.DIRECTION.INOUT or \
+                    target_direction.direction == parameter.DIRECTION.COMMUTATIVE ) :  # noqa: E501
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.
                     # Consequently, the changes on the PSCO must have been
@@ -655,6 +653,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                         return 1, new_types, new_values, timed_out, except_msg
                     if __debug__:
                         logger.debug("Obj: %r" % obj)
+
+            if exit_code != 0:
+                return exit_code, new_types, new_values, timed_out, except_msg
         else:
             # Class method - class is not included in values (e.g. values=[7])
             types.append(None)  # class must be first type

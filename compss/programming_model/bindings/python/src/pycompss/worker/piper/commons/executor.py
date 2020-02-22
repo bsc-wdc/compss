@@ -163,101 +163,104 @@ def executor(queue, process_name, pipe, conf):
     :param conf: configuration of the executor
     :return: None
     """
-    # Replace Python Worker's SIGTERM handler.
-    signal.signal(signal.SIGTERM, shutdown_handler)
-
-    tracing = conf.tracing
-    storage_conf = conf.storage_conf
     logger = conf.logger
-    storage_loggers = conf.storage_loggers
-
-    # Get a copy of the necessary information from the logger to re-establish
-    # after each task
-    logger_handlers = copy.copy(logger.handlers)
-    logger_level = logger.getEffectiveLevel()
-    logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
-    storage_loggers_handlers = []
-    for storage_logger in storage_loggers:
-        storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
-
-    if storage_conf != 'null':
-        try:
-            from storage.api import initWorkerPostFork
-            initWorkerPostFork()
-        except ImportError:
-            if __debug__:
-                logger.info(HEADER + "[%s] Could not find initWorkerPostFork storage call. Ignoring it." %  # noqa: E501
-                            str(process_name))
-
-    # Start the streaming backend if necessary
-    streaming = False
-    if conf.stream_backend not in [None, 'null', 'NONE']:
-        streaming = True
-
-    if streaming:
-        # Initialize streaming
-        logger.debug(HEADER + "Starting streaming for process " +
-                     str(process_name))
-        try:
-            DistroStreamClientHandler.init_and_start(
-                master_ip=conf.stream_master_ip,
-                master_port=int(conf.stream_master_port))
-        except Exception as e:
-            logger.error(e)
-            raise e
-
-    # Process properties
-    alive = True
-
-    if __debug__:
-        logger.debug(HEADER + "[%s] Starting process" %
-                     str(process_name))
-
-    # MAIN EXECUTOR LOOP
-    while alive:
-        # Runtime -> pipe - Read command from pipe
-        command = pipe.read_command(retry_period=0.5)
-        if command != "":
-            logger.debug(HEADER + "Received %s" % command)
-            # Process the command
-            alive = process_task(command,
-                                 process_name,
-                                 pipe,
-                                 queue,
-                                 tracing,
-                                 logger,
-                                 logger_handlers,
-                                 logger_level,
-                                 logger_formatter,
-                                 storage_conf,
-                                 storage_loggers,
-                                 storage_loggers_handlers)
-
-    # Stop storage
-    if storage_conf != 'null':
-        try:
-            from storage.api import finishWorkerPostFork
-            finishWorkerPostFork()
-        except ImportError:
-            if __debug__:
-                logger.info(
-                    HEADER + "[%s] Could not find finishWorkerPostFork storage call. Ignoring it." %  # noqa: E501
-                    str(process_name))
-
-    # Stop streaming
-    if streaming:
-        logger.debug(HEADER + "Stopping streaming for process " +
-                     str(process_name))
-        DistroStreamClientHandler.set_stop()
-
-    sys.stdout.flush()
-    sys.stderr.flush()
-    if __debug__:
-        logger.debug(HEADER + "[%s] Exiting process " %
-                     str(process_name))
-
-    pipe.write(QUIT_TAG)
-    pipe.close()
+    try:
+        # Replace Python Worker's SIGTERM handler.
+        signal.signal(signal.SIGTERM, shutdown_handler)
+    
+        tracing = conf.tracing
+        storage_conf = conf.storage_conf
+        storage_loggers = conf.storage_loggers
+    
+        # Get a copy of the necessary information from the logger to re-establish
+        # after each task
+        logger_handlers = copy.copy(logger.handlers)
+        logger_level = logger.getEffectiveLevel()
+        logger_formatter = logging.Formatter(logger_handlers[0].formatter._fmt)
+        storage_loggers_handlers = []
+        for storage_logger in storage_loggers:
+            storage_loggers_handlers.append(copy.copy(storage_logger.handlers))
+    
+        if storage_conf != 'null':
+            try:
+                from storage.api import initWorkerPostFork
+                initWorkerPostFork()
+            except ImportError:
+                if __debug__:
+                    logger.info(HEADER + "[%s] Could not find initWorkerPostFork storage call. Ignoring it." %  # noqa: E501
+                                str(process_name))
+    
+        # Start the streaming backend if necessary
+        streaming = False
+        if conf.stream_backend not in [None, 'null', 'NONE']:
+            streaming = True
+    
+        if streaming:
+            # Initialize streaming
+            logger.debug(HEADER + "Starting streaming for process " +
+                         str(process_name))
+            try:
+                DistroStreamClientHandler.init_and_start(
+                    master_ip=conf.stream_master_ip,
+                    master_port=int(conf.stream_master_port))
+            except Exception as e:
+                logger.error(e)
+                raise e
+    
+        # Process properties
+        alive = True
+    
+        if __debug__:
+            logger.debug(HEADER + "[%s] Starting process" %
+                         str(process_name))
+    
+        # MAIN EXECUTOR LOOP
+        while alive:
+            # Runtime -> pipe - Read command from pipe
+            command = pipe.read_command(retry_period=0.5)
+            if command != "":
+                logger.debug(HEADER + "Received %s" % command)
+                # Process the command
+                alive = process_task(command,
+                                     process_name,
+                                     pipe,
+                                     queue,
+                                     tracing,
+                                     logger,
+                                     logger_handlers,
+                                     logger_level,
+                                     logger_formatter,
+                                     storage_conf,
+                                     storage_loggers,
+                                     storage_loggers_handlers)
+    
+        # Stop storage
+        if storage_conf != 'null':
+            try:
+                from storage.api import finishWorkerPostFork
+                finishWorkerPostFork()
+            except ImportError:
+                if __debug__:
+                    logger.info(
+                        HEADER + "[%s] Could not find finishWorkerPostFork storage call. Ignoring it." %  # noqa: E501
+                        str(process_name))
+    
+        # Stop streaming
+        if streaming:
+            logger.debug(HEADER + "Stopping streaming for process " +
+                         str(process_name))
+            DistroStreamClientHandler.set_stop()
+    
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if __debug__:
+            logger.debug(HEADER + "[%s] Exiting process " %
+                         str(process_name))
+        pipe.write(QUIT_TAG)
+        pipe.close()
+    except BaseException as e:
+        logger.error(e)
+        raise e
 
 
 def process_task(current_line, process_name, pipe, queue, tracing,

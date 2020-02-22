@@ -31,3 +31,5 @@ class COMPSsException(Exception):
 
     def __init__(self, message):
         self.message = message
+        self.target_direction = None
+    

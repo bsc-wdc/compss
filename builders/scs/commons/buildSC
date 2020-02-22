@@ -43,7 +43,7 @@
   SCtargetDir=$4
   SCauxScript=$5
   PRELOAD_ENV=$6
-
+  kafka=1 # Set to 0 to skip kafka compilation
   # CREATE SC TMP DIR
   echo "Creating remote tmp directory..."
 
@@ -100,26 +100,28 @@
 
   # Compile streaming backend (kafka)
   echo "- Compiling Streaming Backend (Kafka)"
-  cd "${TMP_DIR}"/dependencies/kafka
-  if which gradle; then
-    gradle
+  if [ $kakfa -ne 0 ]; then
+    cd "${TMP_DIR}"/dependencies/kafka
+    if which gradle; then
+      gradle
+      ev=$?
+    elif [ -n "${GRADLE_HOME}" ]; then
+      "${GRADLE_HOME}"/bin/gradle
+      ev=$?
+    else
+       echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
+       exit 1
+    fi
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to compile Kafka dependency"
+      exit 1
+    fi
+    ./gradlew jar
     ev=$?
-  elif [ -n "${GRADLE_HOME}" ]; then
-    "${GRADLE_HOME}"/bin/gradle
-    ev=$?
-  else
-    echo "ERROR: Cannot find gradle installation. Please define it in the PATH or set the GRADLE_HOME environment variable"
-    exit 1
-  fi
-  if [ $ev -ne 0 ]; then
-    echo "ERROR: Failed to compile Kafka dependency"
-    exit 1
-  fi
-  ./gradlew jar
-  ev=$?
-  if [ $ev -ne 0 ]; then
-    echo "ERROR: Failed to build Kafka dependency"
-    exit 1
+    if [ $ev -ne 0 ]; then
+      echo "ERROR: Failed to build Kafka dependency"
+      exit 1
+    fi
   fi
   cd "${SCRIPT_DIR}"
 

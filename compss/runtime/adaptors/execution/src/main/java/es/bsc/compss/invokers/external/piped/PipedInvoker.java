@@ -58,8 +58,8 @@ public abstract class PipedInvoker extends ExternalInvoker {
 
     @Override
     public void invokeMethod() throws JobExecutionException, COMPSsException {
+        int jobId = invocation.getJobId();
         if (!pipes.sendCommand((PipeCommand) command)) {
-            int jobId = invocation.getJobId();
             LOGGER.error("ERROR: Could not execute job " + jobId + " because cannot write in pipe");
             throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
         }
@@ -75,7 +75,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                             taskStatus = ((EndTaskPipeCommand) rcvdCommand).getTaskStatus();
                             Integer exitValue = taskStatus.getExitValue();
                             if (exitValue != 0) {
-                                throw new JobExecutionException("Exit values is " + exitValue);
+                                throw new JobExecutionException("Job " + jobId + " exit with value " + exitValue);
                             }
                             // Update parameters
                             LOGGER.debug("Updating parameters for job " + this.invocation.getJobId());
@@ -102,7 +102,7 @@ public abstract class PipedInvoker extends ExternalInvoker {
                     }
                 }
             } catch (ExternalExecutorException e) {
-                throw new JobExecutionException("Notification pipe closed", e);
+                throw new JobExecutionException("Job " + jobId + "Notification pipe closed", e);
             }
         }
     }

@@ -180,7 +180,9 @@ public class MirrorMonitor {
                         if (!removed) {
                             // If it was not removed yet
                             PipePair workerPipe = info.getPipe();
-                            LOGGER.debug("Piped mirrors monitor has detected that executor process " + info.getPID()
+                            System.err.println("Piped mirrors monitor has detected that executor process "
+                                + info.getPID() + " has died.");
+                            LOGGER.error("Piped mirrors monitor has detected that executor process " + info.getPID()
                                 + " has died.");
                             workerPipe.noLongerExists();
                             workerPipe.delete();

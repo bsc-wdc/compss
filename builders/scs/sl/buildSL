@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildSL
+  # Description: SCRIPT FOR StarLife COMPSs BUILD
+  # Parameters: <MN_user> StarLife user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on StartLife for deployment
+  #             <FullTargetPath> Base Target Installation folder on MareNostrum
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildSL <SL_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  
+  MNuser=$1
+  MNtmpDir=$2
+  MNtargetDir=$3
+  MNloginNode=sl2.bsc.es
+  MNauxScript=${SCRIPT_DIR}/buildSL_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd "${SCRIPT_DIR}"/../commons/
+  ./buildSC "${MNuser}" "${MNloginNode}" "${MNtmpDir}" "${MNtargetDir}" "${MNauxScript}" "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd "${SCRIPT_DIR}"
+
+  # END
+  exit $exitStatus
+

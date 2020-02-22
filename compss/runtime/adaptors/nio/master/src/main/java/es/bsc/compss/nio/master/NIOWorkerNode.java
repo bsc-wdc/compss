@@ -787,7 +787,6 @@ public class NIOWorkerNode extends COMPSsWorker {
         CommandRemoveObsoletes cmd = new CommandRemoveObsoletes(obsoleteRenamings);
         NIOAgent.registerOngoingCommand(c, cmd);
         c.sendCommand(cmd);
-        c.receive();
         c.finishConnection();
 
     }

@@ -1264,7 +1264,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 try {
                     String dirName = (String) content;
                     File dirFile = new File(dirName);
-                    if (!dirFile.isDirectory()) {
+                    if (direction != Direction.OUT && !dirFile.isDirectory()) {
                         LOGGER.error(ERROR_DIR_NAME);
                         ErrorManager.fatal(ERROR_DIR_NAME);
                     }

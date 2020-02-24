@@ -643,7 +643,7 @@ public abstract class Tracer {
                 ErrorManager.warn("Error generating master package, exit code " + exitCode);
             }
         } catch (InterruptedException e) {
-            ErrorManager.warn("Error generating master package (interruptedException) : " + e.getMessage());
+            ErrorManager.warn("Error generating master package (interruptedException)", e);
         }
     }
 
@@ -714,15 +714,17 @@ public abstract class Tracer {
                 ErrorManager.warn("Error generating trace, exit code " + exitCode);
             }
         } catch (InterruptedException e) {
-            ErrorManager.warn("Error generating trace (interruptedException) : " + e.getMessage());
+            ErrorManager.warn("Error generating trace (interruptedException)", e);
         }
 
         String lang = System.getProperty(COMPSsConstants.LANG);
         if (exitCode == 0 && lang.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name()) && extraeEnabled()) {
             try {
-                new TraceMerger(System.getProperty(COMPSsConstants.APP_LOG_DIR), traceName).merge();
+                String appLogDir = System.getProperty(COMPSsConstants.APP_LOG_DIR);
+                TraceMerger t = new TraceMerger(appLogDir, traceName);
+                t.merge();
             } catch (Exception e) {
-                ErrorManager.warn("Error while trying to merge files: " + e.toString());
+                ErrorManager.warn("Error while trying to merge files", e);
             }
         }
     }
@@ -758,7 +760,7 @@ public abstract class Tracer {
                 }
             }
         } catch (Exception e) {
-            ErrorManager.warn("Exception while trying to remove tracing temporary " + "files of master node.", e);
+            ErrorManager.warn("Exception while trying to remove tracing temporary files of master node.", e);
         }
     }
 

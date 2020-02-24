@@ -220,7 +220,6 @@ public class ResourceOptimizer extends Thread {
                 potentialBlock = potentialBlock && (vmsBeingCreated == 0);
             }
             handlePotentialBlock(potentialBlock);
-
         } while (redo);
     }
 

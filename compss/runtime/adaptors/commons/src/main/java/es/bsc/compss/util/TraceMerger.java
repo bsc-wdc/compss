@@ -213,7 +213,22 @@ public class TraceMerger {
         currentValue.add(newValue);
     }
 
+    private List<String> getWorkerEvents(File worker) throws IOException {
+        if (DEBUG) {
+            LOGGER.debug("Getting worker events from: " + worker.getAbsolutePath());
+        }
+        List<String> lines = Files.readAllLines(Paths.get(worker.getAbsolutePath()), StandardCharsets.UTF_8);
+        int startIndex = 1; // Remove header
+        int endIndex = lines.size() - 1;
+
+        return lines.subList(startIndex, endIndex);
+    }
+
     private Map<Integer, List<LineInfo>> getSyncEvents(String tracePath, Integer workerID) throws IOException {
+        if (DEBUG) {
+            LOGGER.debug("Getting sync events from: " + tracePath + " for worker " + workerID);
+        }
+
         Map<Integer, List<LineInfo>> idToSyncInfo = new HashMap<>();
         try (FileInputStream inputStream = new FileInputStream(tracePath);
             Scanner sc = new Scanner(inputStream, "UTF-8")) {
@@ -239,19 +254,15 @@ public class TraceMerger {
         return idToSyncInfo;
     }
 
-    private List<String> getWorkerEvents(File worker) throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get(worker.getAbsolutePath()), StandardCharsets.UTF_8);
-        int startIndex = 1; // Remove header
-        int endIndex = lines.size() - 1;
-
-        return lines.subList(startIndex, endIndex);
-    }
-
     private void writeWorkerEvents(Map<Integer, List<LineInfo>> masterSyncEvents,
         Map<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) throws Exception {
+
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
-        LOGGER.debug("Writing " + eventsLine.size() + " lines from worker " + workerID + " with "
-            + workerHeader.getValue() + " threads");
+        if (DEBUG) {
+            LOGGER.debug("Writing " + eventsLine.size() + " lines from worker " + workerID + " with "
+                + workerHeader.getValue() + " threads");
+        }
+
         for (String line : eventsLine) {
             String newEvent = updateEvent(workerHeader, line, workerID);
             this.masterWriter.println(newEvent);

@@ -464,7 +464,7 @@ public abstract class NIOAgent {
             c.sendDataFile(zipFile);
 
         } else {
-            // Not found check if it has been moved to the target name (renames
+            // todo: fix!
             if (!f.getName().equals(d.getDataMgmtId())) {
                 // todo: is renamed in '.zip' format or how?
                 File renamed = new File(getPossiblyRenamedFileName(f, d));

@@ -1264,17 +1264,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 try {
                     String dirName = (String) content;
                     File dirFile = new File(dirName);
-                    if (direction != Direction.OUT && !dirFile.isDirectory()) {
-                        LOGGER.error(ERROR_DIR_NAME);
-                        ErrorManager.fatal(ERROR_DIR_NAME);
-                    }
                     String originalName = dirFile.getName();
                     String canonicalPath = dirFile.getCanonicalPath();
                     String fullPath = ProtocolType.DIR_URI.getSchema() + canonicalPath;
                     DataLocation location = createLocation(fullPath);
                     pars.add(new DirectoryParameter(direction, stream, prefix, name, pyType, location, originalName));
                 } catch (Exception e) {
-                    LOGGER.error(ERROR_DIR_NAME, e);
+                    LOGGER.error(ERROR_DIR_NAME + " : " + e.getMessage());
                     ErrorManager.fatal(ERROR_DIR_NAME, e);
                 }
                 break;

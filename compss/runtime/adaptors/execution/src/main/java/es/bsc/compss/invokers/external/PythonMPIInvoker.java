@@ -112,7 +112,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Get COMPSS ENV VARS
 
         final String taskCMD = this.command.getAsString();
-        final int numBasePythonMpiArgs = 7;
+        final int numBasePythonMpiArgs = 8;
 
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
@@ -130,17 +130,17 @@ public class PythonMPIInvoker extends ExternalInvoker {
         cmd[2] = numProcs;
         cmd[3] = "-hostfile";
         cmd[4] = hostfile;
-
+        cmd[5] = ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonInterpreter();
         String installDir = this.context.getInstallDir();
         final String pycompssRelativePath = File.separator + "Bindings" + File.separator + "python";
         String pythonVersion =
             ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonVersion();
         String pyCOMPSsHome = installDir + pycompssRelativePath + File.separator + pythonVersion;
 
-        cmd[5] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator + "external"
+        cmd[6] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator + "external"
             + File.separator + "mpi_executor.py";
 
-        cmd[6] = taskCMD;
+        cmd[7] = taskCMD;
 
         String pythonPath = System.getenv("PYTHONPATH");
         pythonPath = pyCOMPSsHome + ":" + pythonPath;

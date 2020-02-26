@@ -21,7 +21,7 @@
 #include "AbstractCache.h"
 #include "common.h"
 
-void GS_On(AbstractCache *);
+void GS_On(AbstractCache* absCache);
 
 /*** ==============> API FUNCTIONS <================= ***/
 
@@ -31,59 +31,62 @@ extern "C" void GS_Off(int code);
 extern "C" void GS_Cancel_Application_Tasks(long appId);
 
 // Task methods
-extern "C" void GS_RegisterCE(char *CESignature,
-                              char *ImplSignature,
-                              char *ImplConstraints,
-                              char *ImplType,
-                              char *ImplIO,
-                              int num_params,
-                              char **ImplTypeArgs
+extern "C" void GS_RegisterCE(char* ceSignature,
+                              char* implSignature,
+                              char* implConstraints,
+                              char* implType,
+                              char* implIO,
+                              int numParams,
+                              char** implTypeArgs
                              );
 extern "C" void GS_ExecuteTask(long appId,
-                               char *class_name,
-                               char *on_failure,
-                               int time_out,
-                               char *method_name,
+                               char* className,
+                               char* onFailure,
+                               int timeout,
+                               char* methodName,
                                int priority,
-                               int has_target,
-                               int num_returns,
-			                   int num_params,
-                               void **params
+                               int hasTarget,
+                               int numReturns,
+			                   int numParams,
+                               void** params
                               );
 extern "C" void GS_ExecuteTaskNew(long appId,
-                                  char *signature,
-                                  char *on_failure,
-                                  int time_out,
+                                  char* signature,
+                                  char* onFailure,
+                                  int timeout,
                                   int priority,
-                                  int num_nodes,
+                                  int numNodes,
                                   int replicated,
                                   int distributed,
-                                  int has_target,
-                                  int num_returns,
-                                  int num_params,
-                                  void **params
+                                  int hasTarget,
+                                  int numReturns,
+                                  int numParams,
+                                  void** params
                                  );
 
 // File methods
-extern "C" int GS_Accessed_File(char *file_name);
-extern "C" void GS_Open_File(char *file_name, int mode, char **buf);
-extern "C" void GS_Close_File(char *file_name, int mode);
-extern "C" void GS_Delete_File(char *file_name, int waitForData);
-extern "C" void GS_Get_File(long appId, char *file_name);
+extern "C" int GS_Accessed_File(char* fileName);
+extern "C" void GS_Open_File(char* fileName, int mode, char** buf);
+extern "C" void GS_Close_File(char* fileName, int mode);
+extern "C" void GS_Delete_File(char* fileName, int waitForData);
+extern "C" void GS_Get_File(long appId, char* fileName);
 
-extern "C" void GS_Get_Directory(long appId, char *dir_name);
+extern "C" void GS_Get_Directory(long appId, char* dirName);
 
 // COMPSs API Calls
 extern "C" void GS_Barrier(long appId);
 extern "C" void GS_BarrierNew(long appId, int noMoreTasks);
-extern "C" void GS_BarrierGroup(long _appId, char *group_name, char **exception_message);
-extern "C" void GS_OpenTaskGroup(char *group_name, int implicitBarrier, long appId);
-extern "C" void GS_CloseTaskGroup(char *group_name, long appId);
+extern "C" void GS_BarrierGroup(long appId, char* groupName, char** exceptionMessage);
+extern "C" void GS_OpenTaskGroup(char* groupName, int implicitBarrier, long appId);
+extern "C" void GS_CloseTaskGroup(char* groupName, long appId);
+extern "C" int GS_GetNumberOfResources(long appId);
+extern "C" void GS_RequestResources(long appId, int numResources, char* groupName);
+extern "C" void GS_FreeResources(long appId, int numResources, char* groupName);
 
 // Misc functions
-extern "C" void GS_Get_AppDir(char **buf);
+extern "C" void GS_Get_AppDir(char** buf);
 extern "C" void GS_EmitEvent(int type, long id);
-extern "C" void GS_Get_Object(char *objectId, char**buf);
-extern "C" void GS_Delete_Object(char *objectId, int **buf);
+extern "C" void GS_Get_Object(char* objectId, char** buf);
+extern "C" void GS_Delete_Object(char* objectId, int** buf);
 
 #endif /* GS_COMPSS_H */

@@ -72,6 +72,7 @@ int delete_object_from_runtime(char* name, int type, int elements) {
             cache->deleteFromCache(name, false);
         }
     }
+    return 0;
 }
 
 void *sync_object_from_runtime(char* name, int type, int elements) {
@@ -148,6 +149,8 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_removeData(JNI
         debug_printf("[BindingDataManager]  - Error: cache is null when removing data.\n");
         return (jint)-1;
     }
+
+    return (jint)0;
 }
 
 /*
@@ -272,7 +275,7 @@ JNIEXPORT jint JNICALL Java_es_bsc_compss_data_BindingDataManager_setByteArray(J
         cp.size = (long)env->GetDirectBufferCapacity(jobj);
         cp.type = (int)type;
         cp.elements = (int)elements;
-        debug_printf("[BindingDataManager] Storing %s in cache Buff: %p size: %d\n", id_str, cp.pointer, cp.size);
+        debug_printf("[BindingDataManager] Storing %s in cache Buff: %p size: %ld\n", id_str, cp.pointer, cp.size);
         jint res = (jint)cache->storeInCache(id_str, cp);
         env->ReleaseStringUTFChars( id, id_str);
         return res;

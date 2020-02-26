@@ -52,6 +52,27 @@ public interface COMPSsRuntime {
      */
     public String getApplicationDirectory();
 
+    /**
+     * Returns the number of active resources.
+     * 
+     * @return The number of active resources.
+     */
+    public int getNumberOfResources();
+
+    /**
+     * Requests the creation of {@code numResources} resources.
+     * 
+     * @param numResources Number of resources to create.
+     */
+    public void requestResources(int numResources);
+
+    /**
+     * Requests the destruction of {@code numResources} resources.
+     * 
+     * @param numResources Number of resources to destroy.
+     */
+    public void freeResources(int numResources);
+
     /*
      * *****************************************************************************************************************
      * TASK METHODS

@@ -65,6 +65,7 @@ import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.CoreManager;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.ResourceManager;
 import es.bsc.compss.util.RuntimeConfigManager;
 import es.bsc.compss.util.TraceEvent;
 import es.bsc.compss.util.Tracer;
@@ -390,10 +391,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     /*
-     * *********************************************************************************************************
-     * ************************************* CONSTRUCTOR *************************************
-     * *********************************************************************************************************
+     * ************************************************************************************************************
+     * CONSTRUCTOR
+     * ************************************************************************************************************
      */
+     
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -427,10 +429,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     /*
-     * *********************************************************************************************************
-     * COMPSsRuntime INTERFACE IMPLEMENTATION
-     * *********************************************************************************************************
+     * ************************************************************************************************************
+     * COMPSsRuntime INTERFACE
+     * ************************************************************************************************************
      */
+     
     @Override
     public synchronized void startIT() {
         if (Tracer.extraeEnabled()) {
@@ -502,11 +505,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public void fatalError() {
-        this.stopIT(true);
-    }
-
-    @Override
     public void stopIT(boolean terminate) {
         synchronized (this) {
             if (Tracer.extraeEnabled()) {
@@ -569,9 +567,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return td;
     }
 
-    /**
-     * Registers a new CoreElement in the COMPSS Runtime.
-     */
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
         String implType, String implIO, String... implTypeArgs) {
@@ -839,24 +834,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return task;
     }
 
-    /**
-     * Returns whether the method parameters define a return or not.
-     *
-     * @param parameters Task parameters.
-     * @return {@code true} if the method has a return value, {@code false} otherwise.
-     */
-    private boolean hasReturn(List<Parameter> parameters) {
-        boolean hasReturn = false;
-        if (parameters.size() != 0) {
-            Parameter lastParam = parameters.get(parameters.size() - 1);
-            DataType type = lastParam.getType();
-            hasReturn = (lastParam.getDirection() == Direction.OUT && (type == DataType.OBJECT_T
-                || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
-        }
-
-        return hasReturn;
-    }
-
     @Override
     public void noMoreTasks(Long appId) {
         if (Tracer.extraeEnabled()) {
@@ -901,12 +878,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
     }
 
-    /**
-     * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
-     * whether to expect new tasks after the barrier or not
-     *
-     * @throws COMPSsException Exception thrown by user
-     */
     @Override
     public void barrierGroup(Long appId, String groupName) throws COMPSsException {
         if (Tracer.extraeEnabled()) {
@@ -918,11 +889,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.WAIT_FOR_ALL_TASKS.getType());
         }
-    }
-
-    @Override
-    public boolean deleteFile(String fileName) {
-        return deleteFile(fileName, true);
     }
 
     @Override
@@ -974,9 +940,79 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         ap.closeCurrentTaskGroup(appId);
     }
 
+    @Override
+    public String getBindingObject(String fileName) {
+        // Parse the file name
+        LOGGER.debug(" Calling get binding object : " + fileName);
+        BindingObjectLocation sourceLocation =
+            new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
+        // Ask the AP to
+        String finalPath = mainAccessToBindingObject(fileName, sourceLocation);
+        LOGGER.debug(" Returning binding object as id: " + finalPath);
+        return finalPath;
+    }
+
+    @Override
+    public boolean deleteBindingObject(String fileName) {
+        // Check parameters
+        if (fileName == null || fileName.isEmpty()) {
+            return false;
+        }
+
+        LOGGER.info("Deleting BindingObject " + fileName);
+
+        // Emit event
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.DELETE.getId(), TraceEvent.DELETE.getType());
+        }
+
+        // Parse the binding object name and translate the access mode
+        BindingObject bo = BindingObject.generate(fileName);
+        int hashCode = externalObjectHashcode(bo.getId());
+        ap.markForBindingObjectDeletion(hashCode);
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.DELETE.getType());
+        }
+
+        // Return deletion was successful
+        return true;
+    }
+    
+    @Override
+    public void cancelApplicationTasks(Long appId) {
+        ap.cancelApplicationTasks(appId);
+    }
+
+    @Override
+    public void deregisterObject(Long appId, Object o) {
+        oReg.delete(o);
+    }
+
+    @Override
+    public void removeObject(Object o, int hashcode) { // private?
+        // This will remove the object from the Object Registry and the Data Info Provider
+        // eventually allowing the garbage collector to free it (better use of memory)
+        ap.deregisterObject(o);
+    }
+
+    @Override
+    public int getNumberOfResources() {
+        return ResourceManager.getTotalNumberOfWorkers();
+    }
+
+    @Override
+    public void requestResources(int numResources) {
+        // TODO: Create resources
+    }
+
+    @Override
+    public void freeResources(int numResources) {
+        // TODO: Destroy resources
+    }
+
     /*
      * *********************************************************************************************************
-     * *********************************** LoaderAPI INTERFACE IMPLEMENTATION **********************************
+     * LoaderAPI INTERFACE IMPLEMENTATION
      * *********************************************************************************************************
      */
     @Override
@@ -1191,9 +1227,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     /*
-     * *********************************************************************************************************
-     * *********************************** COMMON IN BOTH APIs ***********************************
-     * *********************************************************************************************************
+     * ************************************************************************************************************
+     * COMMON IN BOTH APIs
+     * ************************************************************************************************************
      */
 
     @Override
@@ -1210,7 +1246,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         } else {
             return false;
         }
+    }
 
+    @Override
+    public boolean deleteFile(String fileName) {
+        return deleteFile(fileName, true);
     }
 
     @Override
@@ -1397,42 +1437,59 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         // }
     }
 
+    /*
+     * ************************************************************************************************************
+     * FatalErrorHandler INTERFACE
+     * ************************************************************************************************************
+     */
+
     @Override
-    public String getBindingObject(String fileName) {
-        // Parse the file name
-        LOGGER.debug(" Calling get binding object : " + fileName);
-        BindingObjectLocation sourceLocation =
-            new BindingObjectLocation(Comm.getAppHost(), BindingObject.generate(fileName));
-        // Ask the AP to
-        String finalPath = mainAccessToBindingObject(fileName, sourceLocation);
-        LOGGER.debug(" Returning binding object as id: " + finalPath);
-        return finalPath;
+    public void fatalError() {
+        this.stopIT(true);
     }
 
-    @Override
-    public boolean deleteBindingObject(String fileName) {
-        // Check parameters
-        if (fileName == null || fileName.isEmpty()) {
-            return false;
+    /*
+     * ************************************************************************************************************
+     * PRIVATE HELPER METHODS
+     * ************************************************************************************************************
+     */
+
+    private boolean hasReturn(List<Parameter> parameters) {
+        boolean hasReturn = false;
+        if (parameters.size() != 0) {
+            Parameter lastParam = parameters.get(parameters.size() - 1);
+            DataType type = lastParam.getType();
+            hasReturn = (lastParam.getDirection() == Direction.OUT && (type == DataType.OBJECT_T
+                || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T));
         }
 
-        LOGGER.info("Deleting BindingObject " + fileName);
+        return hasReturn;
+    }
 
-        // Emit event
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.DELETE.getId(), TraceEvent.DELETE.getType());
+    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
+        ArrayList<Parameter> pars = new ArrayList<>();
+        // Parameter parsing needed, object is not serializable
+        for (int i = 0; i < parameterCount; ++i) {
+            Object content = parameters[NUM_FIELDS_PER_PARAM * i];
+            DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
+            if (type == null) {
+                type = DataType.NULL_T;
+            }
+            Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
+            StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
+            String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
+            String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
+            // Add parameter to list
+            // This function call is isolated for better readability and to easily
+            // allow recursion in the case of collections
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("  Parameter " + i + " has type " + type.name());
+            }
+            addParameter(content, type, direction, stream, prefix, name, null, pars, 0, null);
         }
 
-        // Parse the binding object name and translate the access mode
-        BindingObject bo = BindingObject.generate(fileName);
-        int hashCode = externalObjectHashcode(bo.getId());
-        ap.markForBindingObjectDeletion(hashCode);
-        if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.DELETE.getType());
-        }
-
-        // Return deletion was successful
-        return true;
+        // Return parameters
+        return pars;
     }
 
     private int addParameter(Object content, DataType type, Direction direction, StdIOStream stream, String prefix,
@@ -1576,42 +1633,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         return 1;
     }
 
-    @Override
-    public void cancelApplicationTasks(Long appId) {
-        ap.cancelApplicationTasks(appId);
-    }
-
-    /*
-     * *********************************************************************************************************
-     * *********************************** PRIVATE HELPER METHODS **********************************************
-     * *********************************************************************************************************
-     */
-    private List<Parameter> processParameters(int parameterCount, Object[] parameters) {
-        ArrayList<Parameter> pars = new ArrayList<>();
-        // Parameter parsing needed, object is not serializable
-        for (int i = 0; i < parameterCount; ++i) {
-            Object content = parameters[NUM_FIELDS_PER_PARAM * i];
-            DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
-            if (type == null) {
-                type = DataType.NULL_T;
-            }
-            Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
-            StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
-            String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];
-            String name = (String) parameters[NUM_FIELDS_PER_PARAM * i + 5];
-            // Add parameter to list
-            // This function call is isolated for better readability and to easily
-            // allow recursion in the case of collections
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("  Parameter " + i + " has type " + type.name());
-            }
-            addParameter(content, type, direction, stream, prefix, name, null, pars, 0, null);
-        }
-
-        // Return parameters
-        return pars;
-    }
-
     private int externalObjectHashcode(String id) {
         int hashCode = 7;
         for (int i = 0; i < id.length(); ++i) {
@@ -1719,17 +1740,5 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         // Create location
         return DataLocation.createLocation(host, uri);
-    }
-
-    @Override
-    public void deregisterObject(Long appId, Object o) {
-        oReg.delete(o);
-    }
-
-    @Override
-    public void removeObject(Object o, int hashcode) { // private?
-        // This will remove the object from the Object Registry and the Data Info Provider
-        // eventually allowing the garbage collector to free it (better use of memory)
-        ap.deregisterObject(o);
     }
 }

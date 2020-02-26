@@ -138,7 +138,7 @@ _runtime_id = str(uuid.uuid1())
 # to their filenames
 _addr2id2obj = {}
 
-content_type_format = "{}:{}"   # <module_path>:<class_name>
+content_type_format = "{}:{}"  # <module_path>:<class_name>
 
 
 def get_object_id(obj, assign_new_key=False, force_insertion=False):
@@ -472,6 +472,67 @@ def get_log_path():
     return log_path
 
 
+def get_number_of_resources():
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request for the number of active resources.
+
+    :return: Number of active resources
+        +type: <int>
+    """
+    if __debug__:
+        logger.debug("Request the number of active resources")
+
+    # Call the Runtime (appId 0)
+    return compss.get_number_of_resources(0)
+
+
+def request_resources(num_resources, group_name):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request for the creation of the given resources.
+
+    :param num_resources: Number of resources to create.
+        +type: <int>
+    :param group_name: Task group to notify upon resource creation
+        +type: <str> or None
+    :return: None
+    """
+    if group_name is None:
+        group_name = "NULL"
+
+    if __debug__:
+        logger.debug(
+            "Request the creation of " + str(num_resources) + " resources with notification to task group " + str(
+                group_name))
+
+    # Call the Runtime (appId 0)
+    compss.request_resources(0, num_resources, group_name)
+
+
+def free_resources(num_resources, group_name):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request for the destruction of the given resources.
+
+    :param num_resources: Number of resources to destroy.
+        +type: <int>
+    :param group_name: Task group to notify upon resource creation
+        +type: <str> or None
+    :return: None
+    """
+    if group_name is None:
+        group_name = "NULL"
+
+    if __debug__:
+        logger.debug(
+            "Request the destruction of " + str(num_resources) + " resources with notification to task group " + str(
+                group_name))
+
+    # Call the Runtime (appId 0)
+    compss.free_resources(0, num_resources, group_name)
+
+
 def register_ce(core_element):
     """
     Calls the external python library (that calls the bindings-common)
@@ -550,6 +611,7 @@ def register_ce(core_element):
     impl_signature: <String> Implementation signature (e.g.- 'methodClass.methodName')  # noqa
     impl_constraints: <Dict> Implementation constraints (e.g.- '{ComputingUnits:2}')  # noqa
     impl_type: <String> Implementation type ('METHOD' | 'MPI' | 'BINARY' | 'OMPSS' | 'OPENCL')  # noqa
+    impl_io: <String> IO Implementation  #noga
     impl_type_args: <List(Strings)> Implementation arguments (e.g.- ['methodClass', 'methodName'])  # noqa
 
     :param core_element: <CE> Core Element to register
@@ -779,11 +841,11 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
 
     # Build values and COMPSs types and directions
     vtdsc = _build_values_types_directions(ftype,
-                                          f_parameters,
-                                          f_returns,
-                                          f.__code_strings__)
+                                           f_parameters,
+                                           f_returns,
+                                           f.__code_strings__)
     values, names, compss_types, compss_directions, compss_streams, \
-      compss_prefixes, content_types = vtdsc  # noqa
+    compss_prefixes, content_types = vtdsc  # noqa
 
     # Get priority
     has_priority = task_kwargs['priority']
@@ -933,7 +995,8 @@ def _build_return_objects(f_returns):
                 fo = ret_value()
             except TypeError:
                 if __debug__:
-                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(ret_value))  # noqa
+                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(
+                        ret_value))  # noqa
                 fo = Future()
         else:
             fo = Future()  # modules, functions, methods
@@ -965,7 +1028,9 @@ def _build_return_objects(f_returns):
                     foe = v.object()
                 except TypeError:
                     if __debug__:
-                        logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))  # noqa
+                        logger.warning(
+                            "Type {0} does not have an empty constructor, building generic future object".format(
+                                v['Value']))  # noqa
                     foe = Future()
             else:
                 foe = Future()  # modules, functions, methods
@@ -1048,7 +1113,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     # compss_prefixes from function parameters
     for i in ra:
         val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[i],
-                                                      code_strings)
+                                                          code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)
@@ -1061,7 +1126,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     if ftype == FunctionType.INSTANCE_METHOD:
         # self is always an object
         val, typ, direc, st, pre, ct = _extract_parameter(f_parameters[slf],
-                                                      code_strings)
+                                                          code_strings)
         values.append(val)
         compss_types.append(typ)
         compss_directions.append(direc)
@@ -1082,8 +1147,8 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         names.append(result_names.pop(0))
         content_types.append(p.content_type)
 
-    return values, names, compss_types, compss_directions, compss_streams,\
-        compss_prefixes, content_types
+    return values, names, compss_types, compss_directions, compss_streams, \
+           compss_prefixes, content_types
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
@@ -1156,8 +1221,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN IdN pyTypeN
         _class_name = str(param.object.__class__.__name__)
         con_type = content_type_format.format("collection", _class_name)
-        value = "{} {} {}".format(get_object_id(param.object),
-                                   len(param.object), con_type)
+        value = "{} {} {}".format(get_object_id(param.object), len(param.object), con_type)
         pop_object_id(param.object)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
@@ -1270,7 +1334,7 @@ def _convert_object_to_string(p, max_obj_arg_size, policy='objectSize'):
                         p.object = v
                         p.type = TYPE.STRING
                         if __debug__:
-                            logger.debug("Inferred type modified (Object converted to String).")   # noqa
+                            logger.debug("Inferred type modified (Object converted to String).")  # noqa
                     else:
                         p.object = real_value
                         p.type = TYPE.OBJECT

@@ -144,3 +144,39 @@ def compss_close_task_group(group_name):
     :return: None
     """
     pass
+
+
+def compss_get_number_of_resources():
+    """
+    Request for the number of active resources.
+
+    :return: The number of active resources
+        +type: <int>
+    """
+    return 1
+
+
+def compss_request_resources(num_resources, group_name):
+    """
+    Requests the creation of num_resources resources.
+
+    :param num_resources: Number of resources to create.
+        +type: <int>
+    :param group_name: Task group to notify upon resource creation
+        +type: <str> or None
+    :return: None
+    """
+    pass
+
+
+def compss_free_resources(num_resources, group_name):
+    """
+    Requests the destruction of num_resources resources.
+
+    :param num_resources: Number of resources to destroy.
+        +type: <int>
+    :param group_name: Task group to notify upon resource creation
+        +type: <str> or None
+    :return: None
+    """
+    pass

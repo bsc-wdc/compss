@@ -38,7 +38,7 @@
 #endif
 
 struct module_state {
-    PyObject *error;
+    PyObject* error;
 };
 
 /*
@@ -46,7 +46,7 @@ struct module_state {
   See process_task
 */
 struct parameter {
-    PyObject *value;
+    PyObject* value;
     int type;
     int direction;
     int stream;
@@ -55,7 +55,7 @@ struct parameter {
     std::string name;
     std::string c_type;
 
-    parameter(PyObject *v, int t, int d, int s, std::string p, int sz, std::string n, std::string ct) {
+    parameter(PyObject* v, int t, int d, int s, std::string p, int sz, std::string n, std::string ct) {
         value = v;
         type = t;
         direction = d;
@@ -87,46 +87,18 @@ struct parameter {
 static struct module_state _state;
 #endif
 
-static PyObject *
-error_out(PyObject *m) {
-    struct module_state *st = GETSTATE(m);
-    PyErr_SetString(st->error, "Compss extension module: Something bad happened");
-    return NULL;
-}
 
+//////////////////////////////////////////////////////////////
+// Internal functions
 //////////////////////////////////////////////////////////////
 
 /*
-  Start a COMPSs-Runtime instance
+   Auxiliary function to print errors.
 */
-static PyObject *
-start_runtime(PyObject *self, PyObject *args) {
-    debug("####C#### START\n");
-    GS_On();
-    Py_RETURN_NONE;
-}
-
-/*
-  Stop the current COMPSs-Runtime instance
-*/
-static PyObject *
-stop_runtime(PyObject *self, PyObject *args) {
-    debug("####C#### STOP\n");
-    int code = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    GS_Off(code);
-    Py_RETURN_NONE;
-}
-
-/*
-  Cancel all application tasks
-*/
-static PyObject*
-cancel_application_tasks(PyObject *self, PyObject *args){
-    debug("####C#### CANCEL APPLICATION TASKS\n");
-    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    debug("####C#### COMPSs cancel application tasks for AppId: %ld \n", (app_id));
-    GS_Cancel_Application_Tasks(app_id);
-    Py_RETURN_NONE;
+static PyObject* error_out(PyObject *m) {
+    struct module_state* st = GETSTATE(m);
+    PyErr_SetString(st->error, "Compss extension module: Something bad happened");
+    return NULL;
 }
 
 /*
@@ -138,11 +110,9 @@ cancel_application_tasks(PyObject *self, PyObject *args){
   W A R N I N G
 
   Do not EVER free a pointer obtained from here. It will eventually happen
-  when the PyObject container gets refcd to 0
-
+  when the PyObject container gets refcd to 0.
 */
-static char *
-_pystring_to_char(PyObject *c) {
+static char* _pystring_to_char(PyObject* c) {
     return
 #if PY_MAJOR_VERSION >= 3
         PyBytes_AsString(PyUnicode_AsEncodedString(c, "utf-8", "Error ~"));
@@ -151,8 +121,10 @@ _pystring_to_char(PyObject *c) {
 #endif
 }
 
-static std::string
-_pystring_to_string(PyObject *c) {
+/*
+   Auxiliary functions to convert pystring to string.
+*/
+static std::string _pystring_to_string(PyObject* c) {
     return std::string(
 #if PY_MAJOR_VERSION >= 3
     PyBytes_AsString(PyUnicode_AsEncodedString(c, "utf-8", "Error ~"))
@@ -165,10 +137,9 @@ _pystring_to_string(PyObject *c) {
 /*
   Given an integer that can be translated to a type according to the
   datatype enum (see param_metadata.h), return its size.
-  If compiled with debug, the name of the type will also appear
+  If compiled with debug, the name of the type will also appear.
 */
-static int
-_get_type_size(int type) {
+static int _get_type_size(int type) {
     switch ((enum datatype) type) {
     case file_dt:
         debug("#### file_dt\n");
@@ -204,13 +175,12 @@ _get_type_size(int type) {
 
 /*
   Writes the bit representation of the contents of a PyObject in the
-  memory address indicated by the void*
+  memory address indicated by the void*.
 */
-static void*
-_get_void_pointer_to_content(PyObject *val, int type, int size) {
+static void* _get_void_pointer_to_content(PyObject* val, int type, int size) {
     // void is not a sizeable type, so we need something that allows us
     // to allocate the exact byte amount we want
-    void *ret = new std::uint8_t[size];
+    void* ret = new std::uint8_t[size];
     switch ((enum datatype) type) {
         case file_dt:
         case directory_dt:
@@ -238,21 +208,39 @@ _get_void_pointer_to_content(PyObject *val, int type, int size) {
     return ret;
 }
 
+
+//////////////////////////////////////////////////////////////
+// API functions
+//////////////////////////////////////////////////////////////
+
 /*
-  Deletes a void pointer by translating it to its actual type
+  Start a COMPSs-Runtime instance.
 */
-static void
-_delete_void_pointer(void *p, int type) {
-    switch ((enum datatype) type) {
-    case file_dt:
-    case external_stream_dt:
-    case external_psco_dt:
-    case string_dt:
-        delete (char*)p;
-        break;
-    default:
-        break;
-    }
+static PyObject* start_runtime(PyObject* self, PyObject* args) {
+    debug("####C#### START\n");
+    GS_On();
+    Py_RETURN_NONE;
+}
+
+/*
+  Stop the current COMPSs-Runtime instance.
+*/
+static PyObject* stop_runtime(PyObject* self, PyObject* args) {
+    debug("####C#### STOP\n");
+    int code = int(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    GS_Off(code);
+    Py_RETURN_NONE;
+}
+
+/*
+  Cancel all application tasks
+*/
+static PyObject* cancel_application_tasks(PyObject* self, PyObject* args){
+    debug("####C#### CANCEL APPLICATION TASKS\n");
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    debug("####C#### COMPSs cancel application tasks for AppId: %ld \n", (app_id));
+    GS_Cancel_Application_Tasks(app_id);
+    Py_RETURN_NONE;
 }
 
 /*
@@ -261,10 +249,9 @@ _delete_void_pointer(void *p, int type) {
   which is responsible to send them to the COMPSs runtime via JNI.
 
   This function can be decomposed into three major parts: argument parsing,
-  argument packing and conversion to bindings_common argument format
+  argument packing and conversion to bindings_common argument format.
 */
-static PyObject *
-process_task(PyObject *self, PyObject *args) {
+static PyObject* process_task(PyObject* self, PyObject* args) {
     /*
       Parse python object arguments and get pointers to them.
       lsiiiiiOOOOOO must be read as
@@ -273,15 +260,16 @@ process_task(PyObject *self, PyObject *args) {
     */
     debug("####C#### PROCESS TASK\n");
     long app_id;
-    char *signature, *on_failure;
+    char* signature;
+    char* on_failure;
     int priority, num_nodes, replicated, distributed, has_target, num_returns, time_out;
-    PyObject *values;
-    PyObject *names;
-    PyObject *compss_types;
-    PyObject *compss_directions;
-    PyObject *compss_streams;
-    PyObject *compss_prefixes;
-    PyObject *content_types;
+    PyObject* values;
+    PyObject* names;
+    PyObject* compss_types;
+    PyObject* compss_directions;
+    PyObject* compss_streams;
+    PyObject* compss_prefixes;
+    PyObject* content_types;
     //             See comment from above for the meaning of this "magic" string
     if(!PyArg_ParseTuple(args, "lssiiiiiiiOOOOOOO", &app_id, &signature, &on_failure, &time_out, &priority,
                          &num_nodes, &replicated, &distributed, &has_target, &num_returns, &values, &names, &compss_types,
@@ -389,26 +377,24 @@ process_task(PyObject *self, PyObject *args) {
 /*
   Given a PyCOMPSs-id file, check if it has been accessed before
 */
-static PyObject *
-accessed_file(PyObject *self, PyObject *args) {
+static PyObject* accessed_file(PyObject* self, PyObject* args) {
     debug("####C#### ACCESSED FILE\n");
-    char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
-    if (GS_Accessed_File(file_name) == 0){
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    if (GS_Accessed_File(file_name) == 0) {
     	Py_RETURN_FALSE;
-    }else{
+    } else {
     	Py_RETURN_TRUE;
     }
 }
 
 /*
-  Given a PyCOMPSs-id file, get its corresponding COMPSs-id file
+  Given a PyCOMPSs-id file, get its corresponding COMPSs-id file.
 */
-static PyObject *
-open_file(PyObject *self, PyObject *args) {
+static PyObject* open_file(PyObject* self, PyObject* args) {
     debug("####C#### GET FILE\n");
-    char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
-    char *compss_name;
+    char* compss_name;
     GS_Open_File(file_name, mode, &compss_name);
     debug("####C#### COMPSs file name %s\n", compss_name);
     PyObject *ret = Py_BuildValue("s", compss_name);
@@ -425,10 +411,9 @@ open_file(PyObject *self, PyObject *args) {
   AND someone asked to delete this file, so it may not happen
   immediately after calling this function.
 */
-static PyObject *
-delete_file(PyObject *self, PyObject *args) {
+static PyObject* delete_file(PyObject* self, PyObject* args) {
     debug("####C#### DELETE FILE\n");
-    char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     bool wait = PyObject_IsTrue(PyTuple_GetItem(args, 1));
     debug("####C#### Calling Delete File with file %s\n", file_name);
     GS_Delete_File(file_name, wait);
@@ -444,9 +429,8 @@ delete_file(PyObject *self, PyObject *args) {
   open again in the future, while delete_file implies knowledge that this
   file is obsolete and it can be safely deleted.
 */
-static PyObject*
-close_file(PyObject* self, PyObject* args) {
-    char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+static PyObject* close_file(PyObject* self, PyObject* args) {
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     int mode = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
     GS_Close_File(file_name, mode);
     Py_RETURN_NONE;
@@ -455,10 +439,9 @@ close_file(PyObject* self, PyObject* args) {
 /*
   Given a PyCOMPSs-id file, get its corresponding last version COMPSs-id file
 */
-static PyObject *
-get_file(PyObject *self, PyObject *args) {
+static PyObject* get_file(PyObject* self, PyObject* args) {
     debug("####C#### GET FILE\n");
-    char *file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    char* file_name = _pystring_to_char(PyTuple_GetItem(args, 1));
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
     GS_Get_File(app_id, file_name);
     debug("####C#### COMPSs file name %s\n", file_name);
@@ -469,11 +452,10 @@ get_file(PyObject *self, PyObject *args) {
 /*
   Given a PyCOMPSs-id directory, get its corresponding last version
 */
-static PyObject *
-get_directory(PyObject *self, PyObject *args) {
+static PyObject* get_directory(PyObject *self, PyObject *args) {
     debug("####C#### GET DIRECTORY\n");
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    char *dir_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    char* dir_name = _pystring_to_char(PyTuple_GetItem(args, 1));
     GS_Get_Directory(app_id, dir_name);
     debug("####C#### COMPSs dir name %s\n", dir_name);
     debug("####C#### COMPSs getDir for AppId: %ld \n", (app_id));
@@ -485,11 +467,10 @@ get_directory(PyObject *self, PyObject *args) {
   Program will be blocked in GS_BarrierNew until all running tasks have ended.
   Notifies the 'no more tasks' boolean value.
 */
-static PyObject *
-barrier(PyObject *self, PyObject *args) {
+static PyObject* barrier(PyObject* self, PyObject* args) {
     debug("####C#### BARRIER\n");
     long app_id;
-    PyObject *py_no_more_tasks;
+    PyObject* py_no_more_tasks;
     bool no_more_tasks;
     if(!PyArg_ParseTuple(args, "lO", &app_id, &py_no_more_tasks)) {
         return NULL;
@@ -505,12 +486,11 @@ barrier(PyObject *self, PyObject *args) {
   Notify the runtime that our current application wants to "execute" a barrier for a group.
   Program will be blocked in GS_BarrierGroup until all running tasks part of the group have ended.
 */
-static PyObject*
-barrier_group(PyObject *self, PyObject *args) {
+static PyObject* barrier_group(PyObject* self, PyObject* args) {
     debug("####C#### BARRIER OF GROUP\n");
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
-    char *group_name = _pystring_to_char(PyTuple_GetItem(args, 1));
-    char *exception_message = NULL;
+    char* group_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    char* exception_message = NULL;
     debug("####C#### COMPSs barrier for group: %s \n", (group_name));
     GS_BarrierGroup(app_id, group_name, &exception_message);
     if (exception_message != NULL){
@@ -525,8 +505,7 @@ barrier_group(PyObject *self, PyObject *args) {
 /*
   Creates a new task group that will include all the subsequent tasks.
 */
-static PyObject*
-open_task_group(PyObject *self, PyObject *args) {
+static PyObject* open_task_group(PyObject* self, PyObject* args) {
     debug("####C#### TASK GROUP CREATION\n");
     char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     debug("####C#### COMPSs task group: %s created\n", (group_name));
@@ -539,10 +518,9 @@ open_task_group(PyObject *self, PyObject *args) {
 /*
   Closes the opened task group.
 */
-static PyObject*
-close_task_group(PyObject *self, PyObject *args) {
+static PyObject* close_task_group(PyObject* self, PyObject* args) {
     debug("####C#### CLOSING TASK GROUP\n");
-    char *group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    char* group_name = _pystring_to_char(PyTuple_GetItem(args, 0));
     long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 1)));
     debug("####C#### COMPSs task group: %s closed\n", (group_name));
     GS_CloseTaskGroup(group_name, app_id);
@@ -552,27 +530,80 @@ close_task_group(PyObject *self, PyObject *args) {
 /*
   Returns the logging path.
 */
-static PyObject *
-get_logging_path(PyObject *self, PyObject *args) {
+static PyObject* get_logging_path(PyObject* self, PyObject* args) {
     debug("####C#### GET LOG PATH\n");
-    char *log_path;
+    char* log_path;
     GS_Get_AppDir(&log_path);
     debug("####C#### COMPSs log path %s\n", log_path);
     // This makes log_path unallocatable
-    PyObject *ret = Py_BuildValue("s", log_path);
+    PyObject* ret = Py_BuildValue("s", log_path);
     return ret;
 }
 
-static PyObject *
-register_core_element(PyObject *self, PyObject *args) {
+/*
+  Requests the number of active resources to the runtime.
+*/
+static PyObject* get_number_of_resources(PyObject* self, PyObject* args) {
+    debug("####C#### GET NUMBER OF RESOURCES\n");
+    long app_id;
+    if (!PyArg_ParseTuple(args, "l", &app_id)) {
+        return NULL;
+    }
+    debug("####C#### COMPSs getNumberOfResources for AppId: %ld \n", (app_id));
+    int resources = GS_GetNumberOfResources(app_id);
+    debug("####C#### COMPSs getNumberOfResources returned: %u\n", (resources));
+    PyObject* ret = Py_BuildValue("i", resources);
+    return ret;
+}
+
+/*
+  Requests the runtime to increase a given number of resources.
+*/
+static PyObject* request_resources(PyObject* self, PyObject* args) {
+    debug("####C#### REQUEST RESOURCES CREATION\n");
+
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    int num_resources = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
+    char* group_name = _pystring_to_char(PyTuple_GetItem(args, 2));
+
+    debug("####C#### COMPSs request resources creation for AppId: %ld \n", (app_id));
+    debug("####C#### COMPSs request resources creation num_resources: %u \n", (num_resources));
+    debug("####C#### COMPSs request resources creation group_name: %s \n", (group_name));
+
+    GS_RequestResources(app_id, num_resources, group_name);
+    Py_RETURN_NONE;
+}
+
+/*
+  Requests the runtime to decrease a given number of resources.
+*/
+static PyObject* free_resources(PyObject* self, PyObject* args) {
+    debug("####C#### REQUEST RESOURCES DESTRUCTION\n");
+
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    int num_resources = int(PyInt_AsLong(PyTuple_GetItem(args, 1)));
+    char *group_name = _pystring_to_char(PyTuple_GetItem(args, 2));
+
+    debug("####C#### COMPSs request resources destruction for AppId: %ld \n", (app_id));
+    debug("####C#### COMPSs request resources destruction num_resources: %u \n", (num_resources));
+    debug("####C#### COMPSs request resources destruction group_name: %s \n", (group_name));
+
+    GS_FreeResources(app_id, num_resources, group_name);
+    Py_RETURN_NONE;
+}
+
+/*
+  Registers a new core element
+*/
+static PyObject* register_core_element(PyObject* self, PyObject* args) {
     debug("####C#### REGISTER CORE ELEMENT\n");
-    char *CESignature,
-         *ImplSignature,
-         *ImplConstraints,
-         *ImplType,
-         *ImplIO;
-    PyObject *typeArgs;
-    if(!PyArg_ParseTuple(args, "sssssO", &CESignature, &ImplSignature,
+    char* CESignature;
+    char* ImplSignature;
+    char* ImplConstraints;
+    char* ImplType;
+    char* ImplIO;
+    PyObject* typeArgs;
+    if (!PyArg_ParseTuple(args, "sssssO", &CESignature, &ImplSignature,
                          &ImplConstraints, &ImplType, &ImplIO, &typeArgs)) {
         return NULL;
     }
@@ -584,7 +615,7 @@ register_core_element(PyObject *self, PyObject *args) {
     debug("####C#### Implementation IO: %s\n", ImplIO);
     int num_params = PyList_Size(typeArgs);
     debug("####C#### Implementation Type num args: %i\n", num_params);
-    char **ImplTypeArgs = new char*[num_params];
+    char** ImplTypeArgs = new char*[num_params];
     for(int i = 0; i < num_params; ++i) {
         ImplTypeArgs[i] = _pystring_to_char(PyList_GetItem(typeArgs, i));
         debug("####C#### Implementation Type Args: %s\n", ImplTypeArgs[i]);
@@ -597,7 +628,7 @@ register_core_element(PyObject *self, PyObject *args) {
                   ImplIO,
                   num_params,
                   ImplTypeArgs);
-    debug("####C#### COMPSs ALREADY REGISTERED THE CORE ELEMENT\n");
+    debug("####C#### CORE ELEMENT REGISTERED\n");
     // Free all allocated memory
     delete ImplTypeArgs;
     Py_RETURN_NONE;
@@ -619,10 +650,13 @@ static PyMethodDef CompssMethods[] = {
     { "get_file", get_file, METH_VARARGS, "Get last version of file with its original name." },
     { "get_directory", get_directory, METH_VARARGS, "Get last version of a directory with its original name." },
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
+    { "barrier_group", barrier_group, METH_VARARGS, "Barrier for a task group." },
     { "open_task_group", open_task_group, METH_VARARGS, "Opens a new task group." },
     { "close_task_group", close_task_group, METH_VARARGS, "Closes a new task group." },
-    { "barrier_group", barrier_group, METH_VARARGS, "Barrier for a task group." },
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
+    { "get_number_of_resources", get_number_of_resources, METH_VARARGS, "Requests the number of active resources." },
+    { "request_resources", request_resources, METH_VARARGS, "Requests the creation of a new resource."},
+    { "free_resources", free_resources, METH_VARARGS, "Requests the destruction of a resource."},
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
     { NULL, NULL } /* sentinel */
 };

@@ -19,6 +19,7 @@ package es.bsc.compss.types;
 import es.bsc.compss.connectors.Connector;
 import es.bsc.compss.connectors.ConnectorException;
 import es.bsc.compss.connectors.Cost;
+import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.resources.CloudMethodWorker;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -359,11 +360,13 @@ public class CloudProvider {
      * @param instanceDescription Resource description to create.
      * @return The new ResourceCreationRequest.
      */
-    public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription) {
+    public ResourceCreationRequest requestResourceCreation(CloudMethodResourceDescription instanceDescription,
+        ResourceCreationListener listener) {
+
         int[][] simultaneousCounts = computeSimultaneousCounts(instanceDescription);
         String requestID = "compss" + UUID.randomUUID().toString();
         ResourceCreationRequest rcr =
-            new ResourceCreationRequest(instanceDescription, simultaneousCounts, this, requestID);
+            new ResourceCreationRequest(instanceDescription, simultaneousCounts, this, requestID, listener);
         LOGGER.debug("[Cloud Manager] Asking for resource creation " + instanceDescription.getName() + " with image "
             + instanceDescription.getImage().getImageName());
 

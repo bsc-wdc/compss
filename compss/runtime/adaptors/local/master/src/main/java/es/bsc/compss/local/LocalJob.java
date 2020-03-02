@@ -20,7 +20,6 @@ import es.bsc.compss.types.COMPSsMaster;
 import es.bsc.compss.types.TaskDescription;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.execution.Invocation;
-import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.Implementation;
 import es.bsc.compss.types.implementations.TaskType;

@@ -16,7 +16,7 @@
  */
 package es.bsc.compss.types.allocatableactions;
 
-import es.bsc.compss.components.impl.TaskProducer;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.scheduler.types.ActionOrchestrator;
 import es.bsc.compss.scheduler.types.SchedulingInformation;
 import es.bsc.compss.types.Task;
@@ -44,14 +44,14 @@ public class MultiNodeExecutionAction extends ExecutionAction {
      *
      * @param schedulingInformation Scheduling information.
      * @param orchestrator Task orchestrator.
-     * @param producer Task producer.
+     * @param ap Access Processor.
      * @param task Associated task.
      * @param group Multi-node group.
      */
     public MultiNodeExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-        TaskProducer producer, Task task, MultiNodeGroup group) {
+        AccessProcessor ap, Task task, MultiNodeGroup group) {
 
-        super(schedulingInformation, orchestrator, producer, task);
+        super(schedulingInformation, orchestrator, ap, task);
 
         this.group = group;
     }

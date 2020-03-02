@@ -33,7 +33,7 @@ public abstract class AbstractTask implements Comparable<AbstractTask> {
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
     // Task fields
-    private final long appId;
+    private final Long appId;
     private final int taskId;
     private TaskState status;
 

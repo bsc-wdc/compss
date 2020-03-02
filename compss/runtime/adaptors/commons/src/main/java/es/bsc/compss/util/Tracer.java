@@ -22,7 +22,6 @@ import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.implementations.MethodType;
-import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.uri.SimpleURI;
 
 import java.io.File;
@@ -481,22 +480,6 @@ public abstract class Tracer {
             }
             Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
         }
-    }
-
-    /**
-     * Returns how many events of a given type exist.
-     *
-     * @param type of the events
-     * @return how many events does that type of event contains.
-     */
-    private static int getSizeByEventType(int type) {
-        int size = 0;
-        for (TraceEvent task : TraceEvent.values()) {
-            if (task.getType() == type) {
-                ++size;
-            }
-        }
-        return size;
     }
 
     private static List<TraceEvent> getEventsByType(int eventsType) {

@@ -19,6 +19,7 @@ package es.bsc.compss.components.impl;
 import es.bsc.compss.COMPSsConstants.Lang;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.components.TaskProducer;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
@@ -46,6 +47,7 @@ import es.bsc.compss.types.request.ap.AlreadyAccessedRequest;
 import es.bsc.compss.types.request.ap.BarrierGroupRequest;
 import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
+import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
@@ -262,8 +264,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return currentTask.getId();
     }
 
-    // Notification thread (JM)
-    @Override
+    /**
+     * Notifies the end of the given abstract task.
+     * 
+     * @param task Ended task.
+     */
     public void notifyTaskEnd(AbstractTask task) {
         if (!this.requestQueue.offer(new TaskEndNotification(task))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "notify task end");
@@ -700,6 +705,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Cancellation of all tasks of an application.
+     * 
+     * @param appId Application Id.
      */
     public void cancelApplicationTasks(Long appId) {
         LOGGER.info("Cancelled all remaining tasks for application with id " + appId);
@@ -713,6 +720,21 @@ public class AccessProcessor implements Runnable, TaskProducer {
         sem.acquireUninterruptibly();
 
         LOGGER.info("Tasks cancelled for application with id " + appId);
+    }
+
+    @Override
+    public void cancelTaskGroup(Long appId, String groupName) {
+        LOGGER.info("Cancel remaining tasks for application " + appId + " and group " + groupName);
+
+        Semaphore sem = new Semaphore(0);
+        if (!this.requestQueue.offer(new CancelTaskGroupRequest(appId, groupName, sem))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
+        }
+        // Wait for response
+        LOGGER.debug("Waiting for cancellation of tasks in group " + groupName);
+        sem.acquireUninterruptibly();
+
+        LOGGER.info("Tasks cancelled for group " + groupName);
     }
 
     /**

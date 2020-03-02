@@ -45,8 +45,6 @@ import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.ResourceManager;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -56,10 +54,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.eclipse.jetty.server.Server;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 

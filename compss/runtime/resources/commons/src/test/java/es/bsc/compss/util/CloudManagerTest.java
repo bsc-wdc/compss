@@ -262,7 +262,7 @@ public class CloudManagerTest {
         final CloudProvider cp2 = createProvider(cm);
 
         CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
-        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);
+        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1, null);
         if (rcr1 == null) {
             fail("Cloud Manager could not create the requested resource.");
         }
@@ -276,7 +276,7 @@ public class CloudManagerTest {
             fail("Cloud Manager is not properly keeping track of the requested VMs");
         }
         CloudMethodResourceDescription cmrd2 = createResourceDescriptionFromProvider(cp2);
-        ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd2);
+        ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd2, null);
         if (rcr2 == null) {
             fail("Cloud Manager could not create the requested resource.");
         }
@@ -293,7 +293,7 @@ public class CloudManagerTest {
             fail("Cloud Manager is not properly keeping track of the requested VMs");
         }
         CloudMethodResourceDescription cmrd3 = createResourceDescriptionFromProvider(cp1);
-        ResourceCreationRequest rcr3 = cp1.requestResourceCreation(cmrd3);
+        ResourceCreationRequest rcr3 = cp1.requestResourceCreation(cmrd3, null);
         if (rcr3 == null) {
             fail("Cloud Manager could not create the requested resource.");
         }
@@ -405,14 +405,14 @@ public class CloudManagerTest {
         CloudProvider cp2 = createProvider(cm);
 
         CloudMethodResourceDescription cmrd1 = createResourceDescriptionFromProvider(cp1);
-        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1);
+        ResourceCreationRequest rcr1 = cp1.requestResourceCreation(cmrd1, null);
         String vmName1 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw1 =
             new ExtendedCloudMethodWorker(vmName1, cp1, cmrd1, new FakeNode(vmName1), 0, new HashMap<>());
         cp1.confirmedCreation(rcr1, cmw1, cmrd1);
 
         CloudMethodResourceDescription cmrd2 = createResourceDescriptionFromProvider(cp2);
-        ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd2);
+        ResourceCreationRequest rcr2 = cp2.requestResourceCreation(cmrd2, null);
         String vmName2 = "VM" + (int) (Math.random() * 1000);
         ExtendedCloudMethodWorker cmw2 =
             new ExtendedCloudMethodWorker(vmName2, cp2, cmrd2, new FakeNode(vmName2), 0, new HashMap<>());

@@ -18,8 +18,8 @@ package es.bsc.compss.types.allocatableactions;
 
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.ResourceScheduler;
-import es.bsc.compss.components.impl.TaskProducer;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.scheduler.exceptions.BlockedActionException;
 import es.bsc.compss.scheduler.exceptions.FailedActionException;
@@ -84,7 +84,7 @@ public class ExecutionAction extends AllocatableAction {
     private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
 
     // Execution Info
-    protected final TaskProducer producer;
+    protected final AccessProcessor ap;
     protected final Task task;
     private final LinkedList<Integer> jobs;
     private int transferErrors = 0;
@@ -98,15 +98,15 @@ public class ExecutionAction extends AllocatableAction {
      *
      * @param schedulingInformation Associated scheduling information.
      * @param orchestrator Task orchestrator.
-     * @param producer Task producer.
+     * @param ap Access processor.
      * @param task Associated task.
      */
     public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
-        TaskProducer producer, Task task) {
+        AccessProcessor ap, Task task) {
 
         super(schedulingInformation, orchestrator);
 
-        this.producer = producer;
+        this.ap = ap;
         this.task = task;
         this.jobs = new LinkedList<>();
         this.transferErrors = 0;
@@ -775,7 +775,7 @@ public class ExecutionAction extends AllocatableAction {
         // Decrease the execution counter and set the task as finished and notify the producer
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
-        this.producer.notifyTaskEnd(task);
+        this.ap.notifyTaskEnd(task);
     }
 
     @Override
@@ -839,7 +839,7 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task failure
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FAILED);
-        this.producer.notifyTaskEnd(this.task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     @Override
@@ -877,7 +877,7 @@ public class ExecutionAction extends AllocatableAction {
         // Decrease the execution counter and set the task as finished and notify the producer
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
-        this.producer.notifyTaskEnd(task);
+        this.ap.notifyTaskEnd(task);
     }
 
     @Override
@@ -890,7 +890,7 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task cancellation
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.CANCELED);
-        this.producer.notifyTaskEnd(this.task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     @Override
@@ -909,7 +909,7 @@ public class ExecutionAction extends AllocatableAction {
         // Notify task completion despite the failure
         this.task.decreaseExecutionCount();
         this.task.setStatus(TaskState.FINISHED);
-        this.producer.notifyTaskEnd(this.task);
+        this.ap.notifyTaskEnd(this.task);
     }
 
     /*

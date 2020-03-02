@@ -17,7 +17,6 @@
 package es.bsc.compss.agent.rest.master;
 
 import es.bsc.compss.agent.RESTAgentConfig;
-import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.RemoteJobListener;
 import es.bsc.compss.agent.rest.types.messages.StartApplicationRequest;

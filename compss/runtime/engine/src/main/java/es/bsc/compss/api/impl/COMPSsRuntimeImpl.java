@@ -25,6 +25,7 @@ import es.bsc.compss.components.impl.AccessProcessor;
 import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.components.monitor.impl.GraphGenerator;
 import es.bsc.compss.components.monitor.impl.RuntimeMonitor;
+import es.bsc.compss.listeners.ResourceCreationListener;
 import es.bsc.compss.loader.LoaderAPI;
 import es.bsc.compss.loader.total.ObjectRegistry;
 import es.bsc.compss.loader.total.StreamRegistry;
@@ -395,7 +396,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * CONSTRUCTOR
      * ************************************************************************************************************
      */
-     
+
     /**
      * Creates a new COMPSs Runtime instance.
      */
@@ -433,7 +434,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * COMPSsRuntime INTERFACE
      * ************************************************************************************************************
      */
-     
+
     @Override
     public synchronized void startIT() {
         if (Tracer.extraeEnabled()) {
@@ -731,7 +732,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         LOGGER.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port
-            + ", operation " + operation);
+            + ", operation " + operation + " for application " + appId);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter"
                 + (parameterCount > 1 ? "s" : ""));
@@ -792,9 +793,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         // Log the details
         if (hasSignature) {
-            LOGGER.info("Creating task from method " + signature);
+            LOGGER.info("Creating task from method " + signature + " for application " + appId);
         } else {
-            LOGGER.info("Creating task from method " + methodName + " in " + methodClass);
+            LOGGER.info("Creating task from method " + methodName + " in " + methodClass + " for application " + appId);
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -926,6 +927,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
+    public boolean deleteFile(String fileName) {
+        return deleteFile(fileName, true);
+    }
+
+    @Override
     public void emitEvent(int type, long id) {
         Tracer.emitEvent(id, type);
     }
@@ -977,7 +983,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         // Return deletion was successful
         return true;
     }
-    
+
     @Override
     public void cancelApplicationTasks(Long appId) {
         ap.cancelApplicationTasks(appId);
@@ -997,17 +1003,33 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     @Override
     public int getNumberOfResources() {
+        LOGGER.info("Received request for number of active resources");
         return ResourceManager.getTotalNumberOfWorkers();
     }
 
     @Override
-    public void requestResources(int numResources) {
-        // TODO: Create resources
+    public void requestResources(Long appId, int numResources, String groupName) {
+        LOGGER.info("Received request to create " + numResources + " resources and notify " + groupName
+            + " for application " + appId);
+        // Create listener to cancel the associated task group
+        ResourceCreationListener rcl = new ResourceCreationListener(ap, appId, groupName);
+
+        // Create resources
+        ResourceManager.requestResources(numResources, rcl);
     }
 
     @Override
-    public void freeResources(int numResources) {
-        // TODO: Destroy resources
+    public void freeResources(Long appId, int numResources, String groupName) {
+        LOGGER.info("Received request to destroy " + numResources + " resources and notify " + groupName
+            + " for application " + appId);
+        // Cancel associated task group (if provided)
+        if (groupName != null && !groupName.isEmpty()) {
+            ap.cancelTaskGroup(appId, groupName);
+        }
+
+        // Destroy resources
+        // No need to sync since task will be re-scheduled as soon as the workers are available
+        ResourceManager.freeResources(numResources);
     }
 
     /*
@@ -1246,11 +1268,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         } else {
             return false;
         }
-    }
-
-    @Override
-    public boolean deleteFile(String fileName) {
-        return deleteFile(fileName, true);
     }
 
     @Override

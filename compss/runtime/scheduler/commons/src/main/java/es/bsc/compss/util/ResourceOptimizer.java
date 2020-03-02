@@ -1060,7 +1060,7 @@ public class ResourceOptimizer extends Thread {
             return null;
         }
 
-        return cp.requestResourceCreation(constraints);
+        return cp.requestResourceCreation(constraints, null);
     }
 
     /**
@@ -1116,7 +1116,7 @@ public class ResourceOptimizer extends Thread {
             return null;
         }
 
-        return bestProvider.requestResourceCreation(bestConstraints);
+        return bestProvider.requestResourceCreation(bestConstraints, null);
     }
 
     /**

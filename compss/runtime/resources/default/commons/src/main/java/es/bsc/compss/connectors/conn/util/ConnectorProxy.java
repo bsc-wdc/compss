@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.connectors.conn.util;
 
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.connectors.ConnectorException;
 
 import es.bsc.conn.Connector;

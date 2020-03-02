@@ -62,16 +62,20 @@ public interface COMPSsRuntime {
     /**
      * Requests the creation of {@code numResources} resources.
      * 
+     * @param appId Application Id.
      * @param numResources Number of resources to create.
+     * @param groupName Task group to notify upon resource creation.
      */
-    public void requestResources(int numResources);
+    public void requestResources(Long appId, int numResources, String groupName);
 
     /**
      * Requests the destruction of {@code numResources} resources.
      * 
+     * @param appId Application Id.
      * @param numResources Number of resources to destroy.
+     * @param groupName Task group to notify upon resource destruction.
      */
-    public void freeResources(int numResources);
+    public void freeResources(Long appId, int numResources, String groupName);
 
     /*
      * *****************************************************************************************************************

@@ -251,7 +251,7 @@ public class ExternalAdaptationManager extends Thread {
                 CloudInstanceTypeDescription typeDescription = cp.getInstanceType(typeName);
                 CloudMethodResourceDescription cmrd =
                     new CloudMethodResourceDescription(typeDescription, imageDescription);
-                ResourceCreationRequest rcr = cp.requestResourceCreation(cmrd);
+                ResourceCreationRequest rcr = cp.requestResourceCreation(cmrd, null);
                 if (rcr != null) {
                     RUNTIME_LOGGER.info(LOG_PREFIX + "Submited external request for creating (" + typeName + ", "
                         + imageName + ") in " + providerName);

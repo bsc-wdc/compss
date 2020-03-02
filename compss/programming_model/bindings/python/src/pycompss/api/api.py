@@ -52,6 +52,7 @@ if context.in_pycompss():
     from pycompss.runtime.binding import open_file
     from pycompss.runtime.binding import delete_file
     from pycompss.runtime.binding import get_file
+    from pycompss.runtime.binding import get_directory
     from pycompss.runtime.binding import delete_object
     from pycompss.runtime.binding import barrier
     from pycompss.runtime.binding import barrier_group
@@ -116,6 +117,14 @@ if context.in_pycompss():
         :return: True if success. False otherwise.
         """
         return get_file(file_name)
+
+    def compss_wait_on_directory(dir_name):
+        """
+
+        :param dir_name: Directory name.
+        :return: True if success. False otherwise.
+        """
+        return get_directory(dir_name)
 
     def compss_delete_object(obj):
         """

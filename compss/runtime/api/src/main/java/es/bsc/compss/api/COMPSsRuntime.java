@@ -234,6 +234,15 @@ public interface COMPSsRuntime {
     public String openFile(String fileName, Direction mode);
 
     /**
+     * Returns the renaming of the file version opened.
+     *
+     * @param fileName File name.
+     * @param mode Access mode.
+     * @return
+     */
+    public String openDirectory(String fileName, Direction mode);
+
+    /**
      * Close the opened file version.
      *
      * @param fileName File name.
@@ -265,6 +274,14 @@ public interface COMPSsRuntime {
      * @param fileName File name.
      */
     public void getFile(Long appId, String fileName);
+
+    /**
+     * Returns last version of file with its original name.
+     *
+     * @param appId Application id.
+     * @param dirName Directory name.
+     */
+    public void getDirectory(Long appId, String dirName);
 
     /**
      * Returns the renaming of the binding object version opened.

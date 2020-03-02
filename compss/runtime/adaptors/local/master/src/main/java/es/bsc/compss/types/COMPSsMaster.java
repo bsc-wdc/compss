@@ -1049,6 +1049,9 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
     public SimpleURI getCompletePath(DataType type, String name) {
         String path = null;
         switch (type) {
+            case DIRECTORY_T:
+                path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                break;
             case FILE_T:
                 path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;

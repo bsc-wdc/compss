@@ -67,6 +67,7 @@ import es.bsc.compss.types.request.ap.TaskEndNotification;
 import es.bsc.compss.types.request.ap.TasksStateRequest;
 import es.bsc.compss.types.request.ap.TransferBindingObjectRequest;
 import es.bsc.compss.types.request.ap.TransferObjectRequest;
+import es.bsc.compss.types.request.ap.TransferOpenDirectoryRequest;
 import es.bsc.compss.types.request.ap.TransferOpenFileRequest;
 import es.bsc.compss.types.request.ap.TransferRawFileRequest;
 import es.bsc.compss.types.request.ap.UnblockResultFilesRequest;
@@ -338,6 +339,90 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
                 String rename = daId.getRenaming();
                 String path = ProtocolType.FILE_URI.getSchema() + destDir + rename;
+                try {
+                    SimpleURI uri = new SimpleURI(path);
+                    tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
+                } catch (Exception e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+                }
+
+                transferFileRaw(faId, tgtLocation);
+            }
+        }
+
+        if (fap.getMode() != AccessMode.R && fap.getMode() != AccessMode.C) {
+            // Mode contains W
+            LOGGER.debug("File " + faId.getDataId() + " mode contains W, register new writer");
+            DataInstanceId daId;
+            if (fap.getMode() == AccessMode.RW || fap.getMode() == AccessMode.CV) {
+                RWAccessId ra = (RWAccessId) faId;
+                daId = ra.getWrittenDataInstance();
+            } else {
+                WAccessId ra = (WAccessId) faId;
+                daId = ra.getWrittenDataInstance();
+            }
+            String rename = daId.getRenaming();
+            String path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + rename;
+            try {
+                SimpleURI uri = new SimpleURI(path);
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+            }
+            Comm.registerLocation(rename, tgtLocation);
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("File " + faId.getDataId() + " located on " + tgtLocation.toString());
+        }
+        return tgtLocation;
+    }
+
+    /**
+     * Notifies a main access to a given file {@code sourceLocation} in mode {@code fap}.
+     *
+     * @param sourceLocation File location.
+     * @param fap File Access Parameters.
+     * @param destDir Destination file.
+     * @return Final location.
+     */
+    public DataLocation mainAccessToDirectory(DataLocation sourceLocation, FileAccessParams fap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(sourceLocation);
+
+        if (!alreadyAccessed) {
+            LOGGER.debug("Directory not accessed before, returning the same location");
+            return sourceLocation;
+        }
+
+        // Tell the DM that the application wants to access a file.
+        DataAccessId faId = registerDataAccess(fap);
+        DataLocation tgtLocation = sourceLocation;
+
+        if (fap.getMode() != AccessMode.W) {
+            // Wait until the last writer task for the file has finished
+            LOGGER.debug(
+                "Directory " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
+
+            waitForTask(faId.getDataId(), AccessMode.R);
+            if (this.taskAnalyser.dataWasAccessedConcurrent(faId.getDataId())) {
+                waitForConcurrent(faId.getDataId(), fap.getMode());
+                this.taskAnalyser.removeFromConcurrentAccess(faId.getDataId());
+            }
+            if (destDir == null) {
+                tgtLocation = transferDirectoryOpen(faId);
+            } else {
+                // todo: necessary? when?
+                DataInstanceId daId;
+                if (fap.getMode() == AccessMode.R) {
+                    RAccessId ra = (RAccessId) faId;
+                    daId = ra.getReadDataInstance();
+                } else {
+                    RWAccessId ra = (RWAccessId) faId;
+                    daId = ra.getReadDataInstance();
+                }
+
+                String rename = daId.getRenaming();
+                String path = ProtocolType.DIR_URI.getSchema() + destDir + rename;
                 try {
                     SimpleURI uri = new SimpleURI(path);
                     tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
@@ -909,6 +994,26 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         LOGGER.debug("Open file transferred");
         return request.getLocation();
+    }
+
+    /**
+     * Adds a request for open file transfer.
+     *
+     * @param faId Data Access Id.
+     * @return Location of the transferred open file.
+     */
+    private DataLocation transferDirectoryOpen(DataAccessId faId) {
+        Semaphore sem = new Semaphore(0);
+        TransferOpenDirectoryRequest req = new TransferOpenDirectoryRequest(faId, sem);
+        if (!this.requestQueue.offer(req)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file open");
+        }
+
+        // Wait for response
+        sem.acquireUninterruptibly();
+
+        LOGGER.debug("Open file transferred");
+        return req.getLocation();
     }
 
     /**

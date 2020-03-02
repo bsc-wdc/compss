@@ -1007,6 +1007,54 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
     }
 
+    @Override
+    public void getDirectory(Long appId, String dirName) {
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.GET_FILE.getId(), TraceEvent.GET_FILE.getType());
+        }
+
+        // Parse the dir name
+        DataLocation sourceLocation = null;
+        try {
+            // Check if fileName contains schema
+            SimpleURI uri = new SimpleURI(dirName);
+            if (uri.getSchema().isEmpty()) {
+                // Add default File scheme and wrap local paths
+                String canonicalPath = new File(dirName).getCanonicalPath();
+                dirName = ProtocolType.DIR_URI.getSchema() + canonicalPath;
+            }
+
+            sourceLocation = createLocation(dirName);
+
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+        }
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+        }
+
+        LOGGER.debug("Getting directory " + dirName);
+
+        String renamedPath = openDirectory(dirName, Direction.IN);
+
+        LOGGER.debug("Getting directory renamed path: " + renamedPath);
+        String intermediateTmpPath = renamedPath + ".tmp";
+        rename(renamedPath, intermediateTmpPath);
+        closeFile(dirName, Direction.IN);
+
+        ap.markForDeletion(sourceLocation, true);
+        // In the case of Java file can be stored in the Stream Registry
+        if (sReg != null) {
+            sReg.deleteTaskFile(dirName);
+        }
+
+        moveDirectory(intermediateTmpPath, dirName);
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_FILE.getType());
+        }
+    }
+
     /**
      * Moves the file to its target location.
      *
@@ -1019,6 +1067,32 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         LOGGER.info("Moving file from " + source + " to " + target);
         try {
             Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            try {
+                Files.move(sourcePath, destinationPath);
+            } catch (IOException e1) {
+                LOGGER.error("Move not possible ", e1);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Atomic move not possible ", e);
+        }
+    }
+
+    /**
+     * Moves the directory to its target location.
+     *
+     * @param source Source dir path.
+     * @param target Target dir path.
+     */
+    private void moveDirectory(String source, String target) {
+        target = target.substring(target.indexOf(File.separator));
+        LOGGER.info("Moving dir from " + source + " to " + target);
+        Path sourcePath = Paths.get(source);
+        Path destinationPath = Paths.get(target);
+
+        try {
+            Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
         } catch (AtomicMoveNotSupportedException e) {
             try {
                 Files.move(sourcePath, destinationPath);
@@ -1132,7 +1206,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(fileName, loc, am, null);
+                finalPath = mainAccessToFile(fileName, loc, am, null, false);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("File target Location: " + finalPath);
                 }
@@ -1141,6 +1215,66 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 finalPath = mainAccessToExternalPSCO(fileName, loc);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("External PSCO target Location: " + finalPath);
+                }
+                break;
+            default:
+                finalPath = null;
+                ErrorManager.error("ERROR: Unrecognised protocol requesting openFile " + fileName);
+        }
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.OPEN_FILE.getType());
+        }
+
+        return finalPath;
+    }
+
+    @Override
+    public String openDirectory(String fileName, Direction mode) {
+
+        // todo: common in both api's ??
+
+        LOGGER.info("Opening " + fileName + " in mode " + mode);
+
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.OPEN_FILE.getId(), TraceEvent.OPEN_FILE.getType());
+        }
+        // Parse arguments to internal structures
+        DataLocation loc;
+        try {
+            loc = createLocation(fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            return null;
+        }
+
+        AccessMode am = null;
+        switch (mode) {
+            case IN:
+                am = AccessMode.R;
+                break;
+            case OUT:
+                am = AccessMode.W;
+                break;
+            case INOUT:
+                am = AccessMode.RW;
+                break;
+            case CONCURRENT:
+                am = AccessMode.C;
+                break;
+            case COMMUTATIVE:
+                am = AccessMode.CV;
+                break;
+        }
+
+        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
+        String finalPath;
+        switch (loc.getType()) {
+            case PRIVATE:
+            case SHARED:
+                finalPath = mainAccessToFile(fileName, loc, am, null, false);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("File target Location: " + finalPath);
                 }
                 break;
             default:
@@ -1442,10 +1576,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         ap.finishAccessToFile(loc, fap, destDir);
     }
 
-    private String mainAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir) {
+    private String mainAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir,
+        boolean isDirectory) {
         // Tell the AP that the application wants to access a file.
         FileAccessParams fap = new FileAccessParams(am, ap.getDataInfoProvider(), loc);
-        DataLocation targetLocation = ap.mainAccessToFile(loc, fap, destDir);
+        DataLocation targetLocation;
+        if (isDirectory) {
+            targetLocation = ap.mainAccessToFile(loc, fap, destDir);
+        } else {
+            targetLocation = ap.mainAccessToDirectory(loc, fap, destDir);
+        }
 
         // Checks on target
         String path = (targetLocation == null) ? fileName : targetLocation.getPath();

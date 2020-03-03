@@ -32,6 +32,7 @@ import inspect
 from functools import wraps
 
 import pycompss.api.parameter as parameter
+from pycompss.api.commons.error_msgs import cast_env_to_int_error
 from pycompss.api.exceptions import COMPSsException
 from pycompss.runtime.core_element import CE
 from pycompss.runtime.commons import IS_PYTHON3
@@ -47,6 +48,7 @@ from pycompss.worker.commons.worker import build_task_parameter
 
 if __debug__:
     import logging
+
     logger = logging.getLogger(__name__)
 
 MANDATORY_ARGUMENTS = {}
@@ -177,8 +179,7 @@ class Task(object):
             # Not all decorator arguments are necessarily parameters
             # (see self.get_default_decorator_values)
             if parameter.is_parameter(value):
-                self.decorator_arguments[key] = \
-                    parameter.get_parameter_copy(value)
+                self.decorator_arguments[key] = parameter.get_parameter_copy(value)
             # Specific case when value is a dictionary
             # Use case example:
             # @binary(binary="ls")
@@ -188,15 +189,14 @@ class Task(object):
             #   pass
             # Transform this dictionary to a Parameter object
             if parameter.is_dict_specifier(value):
-                if key not in ['numba', 'numba_flags',
-                               'numba_signature', 'numba_declaration']:
+                if key not in ['numba', 'numba_flags', 'numba_signature', 'numba_declaration']:
                     # Perform user -> instance substitution
                     # param = self.decorator_arguments[key][parameter.Type]
                     # Replace the whole dict by a single parameter object
                     self.decorator_arguments[key] = \
                         parameter.get_parameter_from_dictionary(
                             self.decorator_arguments[key]
-                    )
+                        )
                     # self.decorator_arguments[key].update(
                     #     {parameter.Type: parameter.get_parameter_copy(param)}
                     # )
@@ -365,8 +365,7 @@ class Task(object):
         # It is python2 or could not find type-hinting
         source_code = get_wrapped_source(f).strip()
 
-        if self.first_arg_name == 'self' or \
-                source_code.startswith('@classmethod'):
+        if self.first_arg_name == 'self' or source_code.startswith('@classmethod'):
             # TODO: WHAT IF IS CLASSMETHOD FROM BOOLEAN?
             # It is a task defined within a class (can not parse the code
             # with ast since the class does not exist yet).
@@ -646,7 +645,7 @@ class Task(object):
         if current_core_element.get_impl_type() == "PYTHON_MPI":
             current_core_element.set_impl_signature("MPI." + impl_signature)
             current_core_element.set_impl_type_args(
-                impl_type_args+current_core_element.get_impl_type_args()[1:])
+                impl_type_args + current_core_element.get_impl_type_args()[1:])
 
         return impl_signature
 
@@ -890,25 +889,29 @@ class Task(object):
         master_lock.acquire()
         # IMPORTANT! recover initial decorator arguments
         self.decorator_arguments = copy.deepcopy(self.init_dec_args)
+
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
         # self.param_kwargs, self.param_defaults. And gives non-None default
         # values to them if necessary
         self.inspect_user_function_arguments()
+
         # Process the parameters, give them a proper direction
         self.process_master_parameters(*args, **kwargs)
+
         # Compute the function path, class (if any), and name
         self.compute_user_function_information()
+
         # Process the decorators to get the core element information
         # It is necessary to decide whether to register or not (the task may
         # be inherited, and in this case it has to be registered again with
         # the new implementation signature).
-        impl_signature = self.prepare_core_element_information(
-            self.user_function)
+        impl_signature = self.prepare_core_element_information(self.user_function)
         if not self.registered or self.signature != impl_signature:
             self.register_task(self.user_function)
             self.registered = True
             self.signature = impl_signature
+
         # Reset the global core element to a full-None status, ready for the
         # next task! (Note that this region is locked, so no race conditions
         # will ever happen here).
@@ -918,6 +921,50 @@ class Task(object):
         if register_only:
             master_lock.release()
             return
+
+        # Deal with dynamic computing nodes
+        parsed_computing_nodes = None
+        if isinstance(self.computing_nodes, int):
+            # Nothing to do
+            parsed_computing_nodes = self.computing_nodes
+        elif isinstance(self.computing_nodes, str):
+            # Check if computing_nodes can be casted to string
+            # Check if computing_nodes is an environment variable
+            # Check if computing_nodes is a dynamic global variable
+            try:
+                # Cast string to int
+                parsed_computing_nodes = int(self.computing_nodes)
+            except ValueError:
+                # Environment variable
+                if self.computing_nodes.strip().startswith('$'):
+                    # Computing nodes is an ENV variable, load it
+                    env_var = self.computing_nodes.strip()[1:]  # Remove $
+                    if env_var.startswith('{'):
+                        env_var = env_var[1:-1]  # remove brackets
+                    try:
+                        parsed_computing_nodes = int(os.environ[env_var])
+                    except ValueError:
+                        raise Exception(cast_env_to_int_error('ComputingNodes'))
+                else:
+                    # Dynamic global variable
+                    try:
+                        # Load from global variables
+                        parsed_computing_nodes = self.user_function.__globals__.get(self.computing_nodes)
+                    except AttributeError:
+                        # This is a numba jit declared task
+                        try:
+                            parsed_computing_nodes = self.user_function.py_func.__globals__.get(self.computing_nodes)
+                        except AttributeError:
+                            # No more chances
+                            # Ignore error and parsed_computing_nodes will raise the exception
+                            pass
+        if parsed_computing_nodes is None:
+            raise Exception("ERROR: Wrong Computing Nodes value at @mpi decorator.")
+        if parsed_computing_nodes <= 0:
+            logger.warn("Registered computing_nodes is less than 1 (" + str(
+                parsed_computing_nodes) + " <= 0). Automatically set it to 1")
+            parsed_computing_nodes = 1
+
         # Deal with the return part.
         self.add_return_parameters()
         if not self.returns:
@@ -932,6 +979,7 @@ class Task(object):
             is_distributed = self.decorator_arguments['isDistributed']
         else:
             is_distributed = self.decorator_arguments['is_distributed']
+
         # Process the task
         ret = process_task(
             self.user_function,
@@ -941,7 +989,7 @@ class Task(object):
             self.parameters,
             self.returns,
             self.decorator_arguments,
-            self.computing_nodes,
+            parsed_computing_nodes,
             is_replicated,
             is_distributed,
             self.decorator_arguments['on_failure'],
@@ -1141,7 +1189,7 @@ class Task(object):
         # return True
         return True
 
-    def is_parameter_file_collection (self, name):
+    def is_parameter_file_collection(self, name):
         """
         Given the name of a parameter, determine if it is an file collection or not
 
@@ -1247,7 +1295,7 @@ class Task(object):
                                 arg.collection_content.append(sub_arg)
                             else:
                                 retrieve_content(sub_arg, sub_name,
-                                                 depth=_col_dep-1)
+                                                 depth=_col_dep - 1)
                                 arg.content.append(sub_arg.content)
                                 arg.collection_content.append(sub_arg)
                         else:
@@ -1281,7 +1329,8 @@ class Task(object):
                 obj.content = value
 
         # Deal with all the parameters that are NOT returns
-        for arg in [x for x in args if isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:  # noqa
+        for arg in [x for x in args if
+                    isinstance(x, parameter.TaskParameter) and not parameter.is_return(x.name)]:  # noqa
             retrieve_content(arg, "")
 
     def worker_call(self, *args, **kwargs):
@@ -1434,9 +1483,9 @@ class Task(object):
             elif numba_mode == 'cfunc':
                 numba_signature = self.decorator_arguments['numba_signature']
                 user_returns = cfunc(
-                                   numba_signature
-                               )(self.user_function).ctypes(*user_args,
-                                                            **user_kwargs)
+                    numba_signature
+                )(self.user_function).ctypes(*user_args,
+                                             **user_kwargs)
             else:
                 raise Exception("Unsupported numba mode.")
         else:

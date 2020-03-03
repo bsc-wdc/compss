@@ -52,52 +52,59 @@
 
   #----------------------------------------------------------------------------------
   # Compute result status
+
+  # Check that tasks were cancelled
+  if grep -q "Task not cancelled" "${target_log_folder}"/jobs/job?_NEW.out; then
+    echo "ERROR: Runinng tasks were not cancelled" | tee -a "${output_file}"
+    exit 1
+  fi
+
   FILES=12
   resultN=4
 
   # Checks if the file has been written as many times as expected
   result=$(cat /tmp/sharedDisk/taskGROUPS.txt | grep -o 2 | wc -l)
   if [ ${result} -ne $resultN ]; then
-    echo "ERROR: The number of writing tasks is not correct. ${result} "
+    echo "ERROR: The number of writing tasks is not correct. ${result}" | tee -a "${output_file}"
     exit 1
   fi
 
   # Checks if the failed task has been executed through the creation of a job for each
   if [ ! -f "${target_log_folder}"/jobs/job"$FILES"_NEW.out ]; then
-    echo "ERROR: All tasks have not completed succesfully."
+    echo "ERROR: All tasks have not completed succesfully." | tee -a "${output_file}"
     exit 1
   fi
 
   if [ -f "${target_log_folder}/jobs/job$((FILES+1))_NEW.out" ]; then
-    echo "ERROR: More tasks than expected have been executed."
+    echo "ERROR: More tasks than expected have been executed." | tee -a "${output_file}"
     exit 1
   fi
 
   # Check if all tasks have finished
   output1=$(cat "${runtime_log}" | grep "with end status FINISHED" | wc -l)
   if [ "${output1}" -ne 8 ]; then
-  	echo "ERROR: The number of finished tasks is not correct."
+  	echo "ERROR: The number of finished tasks is not correct." | tee -a "${output_file}"
   	exit 1
   fi
 
   # Check if all members of group have been canceled
   output1=$(cat "${runtime_log}" | grep "with end status CANCELED" | wc -l)
   if [ "${output1}" -ne 8 ]; then
-  	echo "ERROR: The number of canceled tasks is not correct."
+  	echo "ERROR: The number of canceled tasks is not correct." | tee -a "${output_file}"
   	exit 1
   fi
 
   # Check if the tasks have raised a COMPSsException
   output1=$(grep -c "COMPSs Exception raised :" "${runtime_log}")
   if [ "${output1}" -ne 2 ]; then
-  	echo "ERROR: The number of COMPSsExceptions raised is not correct."
+  	echo "ERROR: The number of COMPSsExceptions raised is not correct." | tee -a "${output_file}"
   	exit 1
   fi
 
   # Check the exception message
   output1=$(cat "${runtime_log}" | grep "The thrown exception message is: Exception raised from the third task" | wc -l)
   if [ "${output1}" -ne 2 ]; then
-  	echo "ERROR: The thrown exception message is not correct. ${output1}"
+  	echo "ERROR: The thrown exception message is not correct. ${output1}" | tee -a "${output_file}"
   	exit 1
   fi
 

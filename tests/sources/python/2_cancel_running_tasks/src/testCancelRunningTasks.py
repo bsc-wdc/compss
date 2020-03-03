@@ -18,6 +18,7 @@ from pycompss.api.exceptions import COMPSsException
 NUM_TASKS = 6
 STORAGE_PATH = "/tmp/sharedDisk/"
 
+
 @task(file_path=FILE_INOUT)
 def throw_exception(file_path):
     time.sleep(10)
@@ -27,12 +28,12 @@ def throw_exception(file_path):
 @task(file_name=FILE_IN)
 def long_task(file_name):
     time.sleep(30)
+    print("Task not cancelled")
 
 
 @task(file_name=FILE_IN)
 def executed_task(file_name):
     time.sleep(1)
-    pass
 
 
 @task(file_path=FILE_IN)
@@ -46,6 +47,7 @@ def cancelled_task(file_path):
     with open(file_path, 'r') as fis:
         contents = fis.read()
         print(contents)
+
 
 @task(file_path=FILE_INOUT)
 def write_two(file_path):
@@ -108,6 +110,7 @@ def main():
 
     print("[LOG] Test CANCEL RUNNING TASKS WITHOUT IMPLICIT BARRIER")
     test_cancellation_no_implicit_barrier(file_name1)
+
 
 if __name__ == '__main__':
     main()

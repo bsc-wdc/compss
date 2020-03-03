@@ -48,6 +48,8 @@ public class MPIInvoker extends Invoker {
     private final boolean scaleByCU;
     private final boolean failByEV;
 
+    private BinaryRunner br;
+
 
     /**
      * MPI Invoker constructor.
@@ -62,6 +64,7 @@ public class MPIInvoker extends Invoker {
         InvocationResources assignedResources) throws JobExecutionException {
 
         super(context, invocation, taskSandboxWorkingDir, assignedResources);
+
         // Get method definition properties
         MPIImplementation mpiImpl = null;
         try {
@@ -77,6 +80,9 @@ public class MPIInvoker extends Invoker {
         this.mpiBinary = mpiImpl.getBinary();
         this.scaleByCU = mpiImpl.getScaleByCU();
         this.failByEV = mpiImpl.isFailByEV();
+
+        // Internal binary runner
+        this.br = null;
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -107,7 +113,9 @@ public class MPIInvoker extends Invoker {
 
         // Close out streams if any
         try {
-            BinaryRunner.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            if (this.br != null) {
+                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
@@ -196,12 +204,16 @@ public class MPIInvoker extends Invoker {
         }
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), this.failByEV);
+        this.br = new BinaryRunner();
+        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+            this.context.getThreadErrStream(), null, this.failByEV);
     }
 
     @Override
     public void cancelMethod() {
-
+        LOGGER.debug("Cancelling MPI process");
+        if (this.br != null) {
+            this.br.cancelProcess();
+        }
     }
 }

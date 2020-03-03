@@ -97,6 +97,6 @@ public class FakeInvoker extends Invoker {
 
     @Override
     protected void cancelMethod() {
-
+        // Nothing to do
     }
 }

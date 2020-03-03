@@ -41,6 +41,8 @@ public class OmpSsInvoker extends Invoker {
     private final String ompssBinary;
     private final boolean failByEV;
 
+    private BinaryRunner br;
+
 
     /**
      * OmpSs Invoker constructor.
@@ -64,8 +66,12 @@ public class OmpSsInvoker extends Invoker {
             throw new JobExecutionException(
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
+
         this.ompssBinary = ompssImpl.getBinary();
         this.failByEV = ompssImpl.isFailByEV();
+
+        // Internal binary runner
+        this.br = null;
     }
 
     @Override
@@ -82,7 +88,9 @@ public class OmpSsInvoker extends Invoker {
 
         // Close out streams if any
         try {
-            BinaryRunner.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            if (this.br != null) {
+                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
@@ -131,12 +139,16 @@ public class OmpSsInvoker extends Invoker {
             outLog.println("[OMPSS INVOKER] OmpSs STDERR: " + streamValues.getStdErr());
         }
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), this.failByEV);
+        this.br = new BinaryRunner();
+        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+            this.context.getThreadErrStream(), null, this.failByEV);
     }
 
     @Override
     public void cancelMethod() {
-
+        LOGGER.debug("Cancelling OmpSs process");
+        if (this.br != null) {
+            this.br.cancelProcess();
+        }
     }
 }

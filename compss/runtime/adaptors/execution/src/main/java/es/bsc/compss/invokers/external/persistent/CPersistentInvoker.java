@@ -46,6 +46,6 @@ public class CPersistentInvoker extends PersistentInvoker {
 
     @Override
     public void cancelMethod() {
-
+        // TODO: Implement canceling running method
     }
 }

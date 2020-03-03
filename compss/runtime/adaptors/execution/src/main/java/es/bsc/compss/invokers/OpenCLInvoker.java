@@ -62,6 +62,6 @@ public class OpenCLInvoker extends Invoker {
 
     @Override
     public void cancelMethod() {
-
+        // TODO: Implement canceling running method
     }
 }

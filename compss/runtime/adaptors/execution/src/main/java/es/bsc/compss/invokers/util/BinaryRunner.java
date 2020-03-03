@@ -59,6 +59,17 @@ public class BinaryRunner {
     private static final String ERROR_EXT_STREAM_CLOSURE = "ERROR: Cannot close External Stream due to internal error.";
     private static final String ERROR_EXT_STREAM_GET_ID = "ERROR: Cannot close External Stream due to innvalid Id";
 
+    private Process process;
+
+
+    /**
+     * Creates a BinaryRunner instance to execute the command.
+     */
+    public BinaryRunner() {
+        this.process = null;
+    }
+
+    // STATIC API
 
     /**
      * Converts the values to the CMD standard and calculates with are the streamValues.
@@ -82,6 +93,8 @@ public class BinaryRunner {
         }
         return binaryParams;
     }
+
+    // PRIVATE STATIC METHODS
 
     private static ArrayList<String> processParam(InvocationParam param, StdIOStream streamValues,
         String pythonInterpreter) throws InvokeExecutionException {
@@ -210,12 +223,12 @@ public class BinaryRunner {
                     DistroStream<?> ds = (DistroStream<?>) param.getValue();
                     switch (ds.getStreamType()) {
                         case FILE:
-                            // For an fds we send the base dir path
+                            // For an FDS we send the base dir path
                             FileDistroStream fds = (FileDistroStream) ds;
                             binaryParamFields.add(fds.getBaseDir());
                             break;
                         case OBJECT:
-                            // For an ods we send its alias (can be null)
+                            // For an ODS we send its alias (can be null)
                             ObjectDistroStream<?> ods = (ObjectDistroStream<?>) ds;
                             binaryParamFields.add(ods.getAlias());
                             break;
@@ -241,272 +254,6 @@ public class BinaryRunner {
                     binaryParamFields.add(String.valueOf(param.getValue()));
                     break;
             }
-        }
-    }
-
-    /**
-     * Executes a given command {@code cmd} with the stream redirections {@code streamValues}.
-     *
-     * @param cmd Command to execute.
-     * @param stdIOStreamValues Stream values.
-     * @param taskSandboxWorkingDir Execution sandbox.
-     * @param outLog Execution output stream.
-     * @param errLog Execution error stream.
-     * @return Exit value as object.
-     * @throws InvokeExecutionException Error execution the binary.
-     */
-    public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-        PrintStream outLog, PrintStream errLog, String pythonPath, boolean failByEV) throws InvokeExecutionException {
-
-        // Prepare command working dir, environment and STD redirections
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.directory(taskSandboxWorkingDir);
-
-        builder.environment().remove(Tracer.LD_PRELOAD);
-        builder.environment().put(Invoker.COMPSS_HOSTNAMES, System.getProperty(Invoker.COMPSS_HOSTNAMES));
-        builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
-        builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
-        builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
-        builder.environment().put("PYTHONPATH", pythonPath);
-
-        String fileInPath = stdIOStreamValues.getStdIn();
-        if (fileInPath != null) {
-            builder.redirectInput(new File(fileInPath));
-        }
-        String fileOutPath = stdIOStreamValues.getStdOut();
-        if (fileOutPath != null) {
-            builder.redirectOutput(Redirect.appendTo(new File(fileOutPath)));
-        }
-        String fileErrPath = stdIOStreamValues.getStdErr();
-        if (fileErrPath != null) {
-            builder.redirectError(Redirect.appendTo(new File(fileErrPath)));
-        }
-
-        // Launch command
-        Process process = null;
-        int exitValue = -1;
-        try {
-            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            outLog.println("[BINARY EXECUTION WRAPPER] Executing binary command");
-            process = builder.start();
-
-            // Disable inputs to process
-            process.getOutputStream().close();
-
-            // Log binary execution
-            logBinaryExecution(process, fileOutPath, fileErrPath, outLog, errLog);
-
-            // Wait and retrieve exit value
-            exitValue = process.waitFor();
-
-            // Print all process execution information
-            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            outLog.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
-            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        } catch (IOException | InvokeExecutionException | InterruptedException e) {
-            errLog.println(ERROR_PROC_EXEC);
-            throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
-        }
-
-        if (failByEV && exitValue != 0) {
-            throw new InvokeExecutionException(ERROR_EXIT_VALUE);
-        }
-
-        // Return exit value if requested, null if none
-        return exitValue;
-    }
-
-    /**
-     * Executes a given command {@code cmd} with the stream redirections {@code streamValues}.
-     *
-     * @param cmd Command to execute.
-     * @param stdIOStreamValues Stream values.
-     * @param taskSandboxWorkingDir Execution sandbox.
-     * @param outLog Execution output stream.
-     * @param errLog Execution error stream.
-     * @return Exit value as object.
-     * @throws InvokeExecutionException Error execution the binary.
-     */
-    public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-        PrintStream outLog, PrintStream errLog, boolean failByEV) throws InvokeExecutionException {
-
-        // Prepare command working dir, environment and STD redirections
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.directory(taskSandboxWorkingDir);
-
-        builder.environment().remove(Tracer.LD_PRELOAD);
-        builder.environment().put(Invoker.COMPSS_HOSTNAMES, System.getProperty(Invoker.COMPSS_HOSTNAMES));
-        builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
-        builder.environment().put(Invoker.COMPSS_NODES, System.getProperty(Invoker.COMPSS_NODES));
-        builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
-        builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
-
-        String fileInPath = stdIOStreamValues.getStdIn();
-        if (fileInPath != null) {
-            builder.redirectInput(new File(fileInPath));
-        }
-        String fileOutPath = stdIOStreamValues.getStdOut();
-        if (fileOutPath != null) {
-            builder.redirectOutput(Redirect.appendTo(new File(fileOutPath)));
-        }
-        String fileErrPath = stdIOStreamValues.getStdErr();
-        if (fileErrPath != null) {
-            builder.redirectError(Redirect.appendTo(new File(fileErrPath)));
-        }
-
-        // Launch command
-        Process process = null;
-        int exitValue = -1;
-        try {
-            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            outLog.println("[BINARY EXECUTION WRAPPER] Executing binary command");
-            process = builder.start();
-
-            // Disable inputs to process
-            process.getOutputStream().close();
-
-            // Log binary execution
-            logBinaryExecution(process, fileOutPath, fileErrPath, outLog, errLog);
-
-            // Wait and retrieve exit value
-            exitValue = process.waitFor();
-
-            // Print all process execution information
-            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            outLog.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
-            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        } catch (IOException | InvokeExecutionException | InterruptedException e) {
-            errLog.println(ERROR_PROC_EXEC);
-            throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
-        }
-
-        if (failByEV && exitValue != 0) {
-            throw new InvokeExecutionException(ERROR_EXIT_VALUE);
-        }
-
-        // Return exit value if requested, null if none
-        return exitValue;
-    }
-
-    private static void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
-        PrintStream errLog) throws InvokeExecutionException {
-
-        StreamGobbler errorGobbler = null;
-        StreamGobbler outputGobbler = null;
-        outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        outLog.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
-        if (process != null) {
-            if (fileOutPath == null) {
-                outputGobbler =
-                    new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER));
-                outputGobbler.start();
-            } else {
-                try (FileInputStream outputStream = new FileInputStream(fileOutPath)) {
-                    outputGobbler = new StreamGobbler(outputStream, outLog, LogManager.getLogger(Loggers.WORKER));
-                    outputGobbler.start();
-                } catch (IOException ioe) {
-                    errLog.println(ERROR_OUTPUTREADER);
-                    ioe.printStackTrace(errLog);
-                    throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
-                }
-            }
-
-        }
-
-        errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        errLog.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
-        if (process != null) {
-            if (fileErrPath == null) {
-                errorGobbler =
-                    new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER));
-                errorGobbler.start();
-            } else {
-                try (FileInputStream errStream = new FileInputStream(fileErrPath)) {
-                    errorGobbler = new StreamGobbler(errStream, errLog, LogManager.getLogger(Loggers.WORKER));
-                    errorGobbler.start();
-                } catch (IOException ioe) {
-                    throw new InvokeExecutionException(ERROR_ERRORREADER, ioe);
-                }
-            }
-        }
-
-        if (outputGobbler != null) {
-            try {
-                outputGobbler.join();
-            } catch (InterruptedException e) {
-                errLog.println("Error waiting for output gobbler to end");
-                e.printStackTrace();
-            }
-        }
-        outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-        if (errorGobbler != null) {
-            try {
-                errorGobbler.join();
-            } catch (InterruptedException e) {
-                errLog.println("Error waiting for error gobbler to end");
-                e.printStackTrace();
-            }
-        }
-        errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-    }
-
-    /**
-     * Closes any stream parameter of the task.
-     * 
-     * @param parameters Task parameters.
-     * @param pythonInterpreter Currently loaded Python interpreter.
-     * @throws StreamCloseException When an internal error occurs when closing the stream.
-     */
-    public static void closeStreams(List<? extends InvocationParam> parameters, String pythonInterpreter)
-        throws StreamCloseException {
-        for (InvocationParam p : parameters) {
-            if (p.isWriteFinalValue()) {
-                switch (p.getType()) {
-                    case STREAM_T:
-                        // OUT Stream
-                        closeStream(p);
-                        break;
-                    case EXTERNAL_STREAM_T:
-                        // External OUT stream
-                        closeExternalStream(p, pythonInterpreter);
-                        break;
-                    default:
-                        // Nothing to do
-                        break;
-                }
-            }
-        }
-    }
-
-    private static void closeStream(InvocationParam p) {
-        DistroStream<?> ds = (DistroStream<?>) p.getValue();
-        ds.close();
-    }
-
-    private static void closeExternalStream(InvocationParam p, String pythonInterpreter) throws StreamCloseException {
-        // External OUT stream
-        String serializedFile = p.getValue().toString();
-        String streamId = null;
-        try {
-            streamId = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, serializedFile, "id");
-        } catch (ExternalPropertyException epe) {
-            throw new StreamCloseException(ERROR_EXT_STREAM_GET_ID);
-        }
-
-        // Close stream
-        if (streamId != null) {
-            CloseStreamRequest req = new CloseStreamRequest(streamId);
-            DistroStreamClient.request(req);
-
-            req.waitProcessed();
-            int error = req.getErrorCode();
-            if (error != 0) {
-                String internalError = "ERROR CODE = " + error + " ERROR MESSAGE = " + req.getErrorMessage();
-                throw new StreamCloseException(ERROR_EXT_STREAM_CLOSURE + internalError);
-            }
-            // No need to process the answer message. Checking the error is enough.
-        } else {
-            throw new StreamCloseException(ERROR_EXT_STREAM_GET_ID);
         }
     }
 
@@ -618,6 +365,217 @@ public class BinaryRunner {
         }
 
         return serializedValue;
+    }
+
+    // OBJECT API
+
+    /**
+     * Executes a given command {@code cmd} with the stream redirections {@code streamValues}.
+     *
+     * @param cmd Command to execute.
+     * @param stdIOStreamValues Stream values.
+     * @param taskSandboxWorkingDir Execution sandbox.
+     * @param outLog Execution output stream.
+     * @param errLog Execution error stream.
+     * @param pythonPath Execution PYTHONPATH.
+     * @param failByEV Whether to fail by exit value or not.
+     * @return Exit value as object.
+     * @throws InvokeExecutionException Error execution the binary.
+     */
+    public Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
+        PrintStream outLog, PrintStream errLog, String pythonPath, boolean failByEV) throws InvokeExecutionException {
+
+        // Prepare command working dir, environment and STD redirections
+        ProcessBuilder builder = new ProcessBuilder(cmd);
+        builder.directory(taskSandboxWorkingDir);
+
+        builder.environment().remove(Tracer.LD_PRELOAD);
+        builder.environment().put(Invoker.COMPSS_HOSTNAMES, System.getProperty(Invoker.COMPSS_HOSTNAMES));
+        builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
+        builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
+        builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
+        if (pythonPath != null) {
+            builder.environment().put("PYTHONPATH", pythonPath);
+        }
+
+        // Setup STD redirections
+        String fileInPath = stdIOStreamValues.getStdIn();
+        if (fileInPath != null) {
+            builder.redirectInput(new File(fileInPath));
+        }
+        String fileOutPath = stdIOStreamValues.getStdOut();
+        if (fileOutPath != null) {
+            builder.redirectOutput(Redirect.appendTo(new File(fileOutPath)));
+        }
+        String fileErrPath = stdIOStreamValues.getStdErr();
+        if (fileErrPath != null) {
+            builder.redirectError(Redirect.appendTo(new File(fileErrPath)));
+        }
+
+        // Launch command
+        int exitValue = -1;
+        try {
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            outLog.println("[BINARY EXECUTION WRAPPER] Executing binary command");
+            this.process = builder.start();
+
+            // Disable inputs to process
+            this.process.getOutputStream().close();
+
+            // Log binary execution
+            logBinaryExecution(this.process, fileOutPath, fileErrPath, outLog, errLog);
+
+            // Wait and retrieve exit value
+            exitValue = this.process.waitFor();
+
+            // Print all process execution information
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            outLog.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
+            outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        } catch (IOException | InvokeExecutionException | InterruptedException e) {
+            errLog.println(ERROR_PROC_EXEC);
+            throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
+        }
+
+        if (failByEV && exitValue != 0) {
+            throw new InvokeExecutionException(ERROR_EXIT_VALUE);
+        }
+
+        // Return exit value if requested, null if none
+        return exitValue;
+    }
+
+    /**
+     * Closes any stream parameter of the task.
+     * 
+     * @param parameters Task parameters.
+     * @param pythonInterpreter Currently loaded Python interpreter.
+     * @throws StreamCloseException When an internal error occurs when closing the stream.
+     */
+    public void closeStreams(List<? extends InvocationParam> parameters, String pythonInterpreter)
+        throws StreamCloseException {
+        for (InvocationParam p : parameters) {
+            if (p.isWriteFinalValue()) {
+                switch (p.getType()) {
+                    case STREAM_T:
+                        // OUT Stream
+                        closeStream(p);
+                        break;
+                    case EXTERNAL_STREAM_T:
+                        // External OUT stream
+                        closeExternalStream(p, pythonInterpreter);
+                        break;
+                    default:
+                        // Nothing to do
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Cancels the running process.
+     */
+    public void cancelProcess() {
+        if (this.process != null) {
+            this.process.destroy();
+        }
+    }
+
+    // PRIVATE OBJECT METHODS
+
+    private void logBinaryExecution(Process process, String fileOutPath, String fileErrPath, PrintStream outLog,
+        PrintStream errLog) throws InvokeExecutionException {
+
+        StreamGobbler errorGobbler = null;
+        StreamGobbler outputGobbler = null;
+        outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        outLog.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
+        if (process != null) {
+            if (fileOutPath == null) {
+                outputGobbler =
+                    new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER));
+                outputGobbler.start();
+            } else {
+                try (FileInputStream outputStream = new FileInputStream(fileOutPath)) {
+                    outputGobbler = new StreamGobbler(outputStream, outLog, LogManager.getLogger(Loggers.WORKER));
+                    outputGobbler.start();
+                } catch (IOException ioe) {
+                    errLog.println(ERROR_OUTPUTREADER);
+                    ioe.printStackTrace(errLog);
+                    throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
+                }
+            }
+
+        }
+
+        errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        errLog.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
+        if (process != null) {
+            if (fileErrPath == null) {
+                errorGobbler =
+                    new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER));
+                errorGobbler.start();
+            } else {
+                try (FileInputStream errStream = new FileInputStream(fileErrPath)) {
+                    errorGobbler = new StreamGobbler(errStream, errLog, LogManager.getLogger(Loggers.WORKER));
+                    errorGobbler.start();
+                } catch (IOException ioe) {
+                    throw new InvokeExecutionException(ERROR_ERRORREADER, ioe);
+                }
+            }
+        }
+
+        if (outputGobbler != null) {
+            try {
+                outputGobbler.join();
+            } catch (InterruptedException e) {
+                errLog.println("Error waiting for output gobbler to end");
+                e.printStackTrace();
+            }
+        }
+        outLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        if (errorGobbler != null) {
+            try {
+                errorGobbler.join();
+            } catch (InterruptedException e) {
+                errLog.println("Error waiting for error gobbler to end");
+                e.printStackTrace();
+            }
+        }
+        errLog.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+    }
+
+    private void closeStream(InvocationParam p) {
+        DistroStream<?> ds = (DistroStream<?>) p.getValue();
+        ds.close();
+    }
+
+    private void closeExternalStream(InvocationParam p, String pythonInterpreter) throws StreamCloseException {
+        // External OUT stream
+        String serializedFile = p.getValue().toString();
+        String streamId = null;
+        try {
+            streamId = ExternalStreamHandler.getExternalStreamProperty(pythonInterpreter, serializedFile, "id");
+        } catch (ExternalPropertyException epe) {
+            throw new StreamCloseException(ERROR_EXT_STREAM_GET_ID);
+        }
+
+        // Close stream
+        if (streamId != null) {
+            CloseStreamRequest req = new CloseStreamRequest(streamId);
+            DistroStreamClient.request(req);
+
+            req.waitProcessed();
+            int error = req.getErrorCode();
+            if (error != 0) {
+                String internalError = "ERROR CODE = " + error + " ERROR MESSAGE = " + req.getErrorMessage();
+                throw new StreamCloseException(ERROR_EXT_STREAM_CLOSURE + internalError);
+            }
+            // No need to process the answer message. Checking the error is enough.
+        } else {
+            throw new StreamCloseException(ERROR_EXT_STREAM_GET_ID);
+        }
     }
 
 }

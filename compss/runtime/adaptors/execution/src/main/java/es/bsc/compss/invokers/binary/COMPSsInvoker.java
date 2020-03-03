@@ -62,6 +62,8 @@ public class COMPSsInvoker extends Invoker {
     private final String workerInMaster;
     private final boolean failByEV;
 
+    private BinaryRunner br;
+
 
     /**
      * COMPSs Invoker constructor.
@@ -91,6 +93,9 @@ public class COMPSsInvoker extends Invoker {
         this.appName = compssImpl.getAppName();
         this.workerInMaster = compssImpl.getWorkerInMaster();
         this.failByEV = compssImpl.isFailByEV();
+
+        // Internal binary runner
+        this.br = null;
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -121,7 +126,9 @@ public class COMPSsInvoker extends Invoker {
 
         // Close out streams if any
         try {
-            BinaryRunner.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            if (this.br != null) {
+                this.br.closeStreams(this.invocation.getParams(), this.pythonInterpreter);
+            }
         } catch (StreamCloseException se) {
             LOGGER.error("Exception closing binary streams", se);
             throw new JobExecutionException(se);
@@ -327,8 +334,9 @@ public class COMPSsInvoker extends Invoker {
         System.out.println("[COMPSs INVOKER] COMPSs STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), this.failByEV);
+        this.br = new BinaryRunner();
+        return this.br.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
+            this.context.getThreadErrStream(), null, this.failByEV);
     }
 
     private int xmlGenerationScript(String[] cmd) throws IOException, InterruptedException {
@@ -349,6 +357,9 @@ public class COMPSsInvoker extends Invoker {
 
     @Override
     public void cancelMethod() {
-
+        LOGGER.debug("Cancelling COMPSs process");
+        if (this.br != null) {
+            this.br.cancelProcess();
+        }
     }
 }

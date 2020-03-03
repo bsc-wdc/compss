@@ -74,6 +74,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1085,7 +1086,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * @param target Target dir path.
      */
     private void moveDirectory(String source, String target) {
-        target = target.substring(target.indexOf(File.separator));
+        if (target.contains(ProtocolType.DIR_URI.getSchema())) {
+            target = target.substring(target.indexOf(File.separator));
+        }
         LOGGER.info("Moving dir from " + source + " to " + target);
         Path sourcePath = Paths.get(source);
         Path destinationPath = Paths.get(target);
@@ -1099,8 +1102,22 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             } catch (IOException e1) {
                 LOGGER.error("Move not possible ", e1);
             }
+        } catch (FileSystemException fse) {
+            deleteFolder(new File(target));
+            moveDirectory(source, target);
         } catch (IOException e) {
             LOGGER.error("Atomic move not possible ", e);
+        }
+    }
+
+    private void deleteFolder(File folder) {
+        if (folder.isDirectory()) {
+            for (File f : folder.listFiles()) {
+                deleteFolder(f);
+            }
+        }
+        if (!folder.delete()) {
+            LOGGER.error("Error deleting folder " + (folder == null ? "" : folder.getName()));
         }
     }
 
@@ -1272,7 +1289,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(fileName, loc, am, null, false);
+                finalPath = mainAccessToFile(fileName, loc, am, null, true);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("File target Location: " + finalPath);
                 }
@@ -1582,9 +1599,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         FileAccessParams fap = new FileAccessParams(am, ap.getDataInfoProvider(), loc);
         DataLocation targetLocation;
         if (isDirectory) {
-            targetLocation = ap.mainAccessToFile(loc, fap, destDir);
-        } else {
             targetLocation = ap.mainAccessToDirectory(loc, fap, destDir);
+        } else {
+            targetLocation = ap.mainAccessToFile(loc, fap, destDir);
         }
 
         // Checks on target

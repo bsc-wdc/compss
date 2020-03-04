@@ -292,9 +292,23 @@ public class ResourceOptimizer extends Thread {
      * to run every type of task.
      */
     protected void initialCreations() {
-        int alreadyCreated = addBasicNodes();
-        // Distributes the rest of the VM
-        addExtraNodes(alreadyCreated);
+        // Requests initial VMs considering the registered core elements
+        if (DEBUG) {
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Requesting VMs related to registered coreElements");
+        }
+        int ceFilledVms = addBasicNodes();
+        if (DEBUG) {
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Requested " + ceFilledVms + " coreElement-related VMs");
+        }
+
+        // Requests the rest of VMs to fulfill the initial VMs property
+        if (DEBUG) {
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Requesting VMs to fulfill initialVMs property");
+        }
+        int extraVms = addExtraNodes(ceFilledVms);
+        if (DEBUG) {
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Requested " + extraVms + " extra VMs");
+        }
     }
 
     /**
@@ -548,46 +562,13 @@ public class ResourceOptimizer extends Thread {
         }
 
         if (DEBUG) {
+            RUNTIME_LOGGER.debug("[Resource Optimizer] Adding " + vmCount + " extra VMs for initialVM property...");
             RESOURCES_LOGGER.debug("DEBUG_MSG = [\n" + "\tALREADY_CREATED_INSTANCES = " + alreadyCreated + "\n"
                 + "\tMAXIMUM_NEW_PETITIONS = " + vmCount + "\n" + "]");
         }
 
-        /*
-         * Tries to reduce the number of machines by entering methodConstraints in another method's machine
-         */
-        /*
-         * LinkedList<CloudWorkerDescription> requirements = new LinkedList<CloudWorkerDescription>(); for (int coreId =
-         * 0; coreId < CoreManager.coreCount; coreId++) { Implementation impl =
-         * CoreManager.getCoreImplementations(coreId)[0]; if (impl.getType() == Type.METHOD) { WorkerDescription wd =
-         * (WorkerDescription) impl.getRequirements(); requirements.add(new CloudWorkerDescription(wd)); } } if
-         * (requirements.size() == 0) { return 0; } requirements = reduceConstraints(requirements);
-         * 
-         * int numTasks = requirements.size(); int[] vmCountPerContraint = new int[numTasks]; int[]
-         * coreCountPerConstraint = new int[numTasks];
-         * 
-         * for (int index = 0; index < numTasks; index++) { vmCountPerContraint[index] = 1;
-         * coreCountPerConstraint[index] = requirements.get(index).getSlots(); }
-         * 
-         * for (int i = 0; i < vmCount; i++) { float millor = 0.0f; int opcio = 0; for (int j = 0; j <
-         * requirements.size(); j++) { if (millor < ((float) coreCountPerConstraint[j] / (float)
-         * vmCountPerContraint[j])) { opcio = j; millor = ((float) coreCountPerConstraint[j] / (float)
-         * vmCountPerContraint[j]); } } ResourceCreationRequest rcr =
-         * CloudManager.askForResources(requirements.get(opcio), false);
-         * 
-         * LOGGER.info( "CREATION_ORDER = [\n" + "\tTYPE = " + rcr.getRequested().getType() + "\n" + "\tPROVIDER = " +
-         * rcr.getProvider() + "\n" + "\tREASON = Fulfill the initial Cloud instances constraint\n" + "]"); if (DEBUG) {
-         * StringBuilder sb = new StringBuilder("EXPECTED_INSTANCE_SIM_TASKS = ["); int[][] simultaneousImpls =
-         * rcr.requestedSimultaneousTaskCount(); for (int core = 0; core < simultaneousImpls.length; ++core) { int
-         * simultaneousTasks = 0; for (int j = 0; j < simultaneousImpls[core].length; ++j) { if (simultaneousTasks <
-         * simultaneousImpls[core][j]) { simultaneousTasks = simultaneousImpls[core][j]; } }
-         * sb.append("\t").append("CORE = [").append("\n"); sb.append("\t").append
-         * ("\t").append("COREID = ").append(core).append("\n"); sb.append("\t").
-         * append("\t").append("SIM_TASKS = ").append(simultaneousTasks ).append("\n");
-         * sb.append("\t").append("]").append("\n"); sb.append(", ").append(simultaneousTasks); } sb.append("]");
-         * logger.debug(sb.toString()); }
-         * 
-         * vmCountPerContraint[opcio]++; }
-         */
+        // Since the core elements do not trigger any resource creation, we ask for random VMs
+        ResourceManager.requestResources(vmCount, null);
         return vmCount;
     }
 

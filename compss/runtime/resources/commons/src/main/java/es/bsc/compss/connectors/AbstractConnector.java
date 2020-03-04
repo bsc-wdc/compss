@@ -291,7 +291,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             totaltime += vmInfo.getCreationTime();
             this.createdVMs++;
             this.meanCreationTime = totaltime / createdVMs;
-            LOGGER.debug("[Abstract Connector] New mean creation time :" + this.meanCreationTime);
+            LOGGER.debug("[Abstract Connector] New mean creation time: " + this.meanCreationTime);
         }
 
     }

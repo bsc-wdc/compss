@@ -161,6 +161,9 @@ public class Converter {
         setSoftwareInResourceDescription(cmrd, vr.getSd(), requested);
         CloudImageDescription cid = getCloudImageDescription(vr.getHd(), vr.getSd(), requested);
         cmrd.setImage(cid);
+        cmrd.setMaxPort(vr.getMaxPort());
+        cmrd.setMinPort(vr.getMinPort());
+
         return cmrd;
     }
 

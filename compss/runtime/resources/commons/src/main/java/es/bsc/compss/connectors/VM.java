@@ -25,15 +25,19 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
  */
 public class VM implements Comparable<VM> {
 
+    // VM Id
     private final Object envId;
-    private final CloudMethodResourceDescription rd;
 
+    // Associated descriptions
+    private final CloudMethodResourceDescription rd;
     private CloudMethodWorker worker;
 
+    // General Information
     private long requestTime;
     private long startTime;
     private long creationTime;
 
+    // VM marked to delete
     private boolean toDelete;
 
 
@@ -46,9 +50,11 @@ public class VM implements Comparable<VM> {
     public VM(Object envId, CloudMethodResourceDescription description) {
         this.envId = envId;
         this.rd = description;
+
         this.requestTime = System.currentTimeMillis();
         this.startTime = 0;
         this.creationTime = 0;
+
         this.toDelete = false;
     }
 

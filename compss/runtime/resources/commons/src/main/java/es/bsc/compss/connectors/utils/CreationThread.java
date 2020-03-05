@@ -295,6 +295,18 @@ public class CreationThread extends Thread {
         mc.setTotalFPGAComputingUnits(granted.getTotalFPGAComputingUnits());
         mc.setLimitOfOTHERsTasks(granted.getTotalOTHERComputingUnits());
         mc.setTotalOTHERComputingUnits(granted.getTotalOTHERComputingUnits());
+
+        // Fix NIO port range if requested by VM
+        int minPort = granted.getMinPort();
+        if (minPort != -1) {
+            mc.setMinPort(minPort);
+        }
+        int maxPort = granted.getMaxPort();
+        if (maxPort != -1) {
+            mc.setMaxPort(maxPort);
+        }
+
+        // Create cloud method worker
         CloudMethodWorker worker =
             new CloudMethodWorker(granted.getName(), this.provider, granted, mc, cid.getSharedDisks());
 

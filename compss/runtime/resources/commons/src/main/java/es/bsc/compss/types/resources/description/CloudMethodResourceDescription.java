@@ -36,6 +36,10 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     private final Map<CloudInstanceTypeDescription, int[]> typeComposition;
     private CloudImageDescription image = null;
 
+    // Adaptors properties
+    private int minPort;
+    private int maxPort;
+
 
     /**
      * Creates a new empty CloudMethodResourceDescription.
@@ -114,6 +118,42 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Returns the adaptor's minimum port.
+     * 
+     * @return The adaptor's minimum port (-1 if not defined).
+     */
+    public int getMinPort() {
+        return this.minPort;
+    }
+
+    /**
+     * Sets a new value for the adaptor's minimum port.
+     * 
+     * @param minPort New value for the adaptor's minimum port.
+     */
+    public void setMinPort(int minPort) {
+        this.minPort = minPort;
+    }
+
+    /**
+     * Returns the adaptor's maximum port.
+     * 
+     * @return The adaptor's maximum port (-1 if not defined).
+     */
+    public int getMaxPort() {
+        return this.maxPort;
+    }
+
+    /**
+     * Sets a new value for the adaptor's maximum port.
+     * 
+     * @param maxPort New value for the adaptor's maximum port.
+     */
+    public void setMaxPort(int maxPort) {
+        this.maxPort = maxPort;
     }
 
     /**

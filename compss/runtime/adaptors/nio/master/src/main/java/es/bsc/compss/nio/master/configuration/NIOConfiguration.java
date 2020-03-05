@@ -39,8 +39,6 @@ public class NIOConfiguration extends MethodConfiguration {
         });
     public static final String DEFAULT_REMOTE_EXECUTION_COMMAND = SSH_REMOTE_EXECUTION_COMMAND;
 
-    private int minPort;
-    private int maxPort;
     private String remoteExecutionCommand;
 
 
@@ -60,42 +58,12 @@ public class NIOConfiguration extends MethodConfiguration {
      */
     public NIOConfiguration(NIOConfiguration clone) {
         super(clone);
-        this.minPort = clone.minPort;
-        this.maxPort = clone.maxPort;
         this.remoteExecutionCommand = clone.remoteExecutionCommand;
     }
 
     @Override
     public MethodConfiguration copy() {
         return new NIOConfiguration(this);
-    }
-
-    @Override
-    public int getMinPort() {
-        return minPort;
-    }
-
-    /**
-     * Sets a new value for the minPort property.
-     * 
-     * @param minPort New minPort value.
-     */
-    public void setMinPort(int minPort) {
-        this.minPort = minPort;
-    }
-
-    @Override
-    public int getMaxPort() {
-        return maxPort;
-    }
-
-    /**
-     * Sets a new value for the maxPort property.
-     * 
-     * @param maxPort New maxPort value.
-     */
-    public void setMaxPort(int maxPort) {
-        this.maxPort = maxPort;
     }
 
     /**

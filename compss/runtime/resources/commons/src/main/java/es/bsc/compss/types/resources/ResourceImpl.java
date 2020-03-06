@@ -153,6 +153,13 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
     }
 
     @Override
+    public void removeLogicalData(LogicalData ld) {
+        synchronized (this.privateFiles) {
+            this.privateFiles.remove(ld);
+        }
+    }
+
+    @Override
     public final void addObsolete(LogicalData obsolete) {
         if (getType() == ResourceType.WORKER) {
             synchronized (this.obsoletes) {
@@ -161,9 +168,7 @@ public abstract class ResourceImpl implements Comparable<Resource>, Resource {
         }
 
         // Remove from private files
-        synchronized (this.privateFiles) {
-            this.privateFiles.remove(obsolete);
-        }
+        removeLogicalData(obsolete);
 
         // Remove from shared disk files
         List<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);

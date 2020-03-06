@@ -361,6 +361,8 @@ public class ExecutionAction extends AllocatableAction {
             ErrorManager.warn("Transfers for running task " + this.task.getId() + " on worker "
                 + getAssignedResource().getName() + " have failed.");
             this.notifyError();
+            removeJobTempData();
+
         }
     }
 
@@ -371,7 +373,6 @@ public class ExecutionAction extends AllocatableAction {
      */
     public final void doSubmit(int transferGroupId) {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + this.task.getId() + " with state DONE");
-
         JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = submitJob(transferGroupId, listener);
         if (!cancelledBeforeSubmit) {
@@ -384,9 +385,57 @@ public class ExecutionAction extends AllocatableAction {
 
             this.profile.start();
             JobDispatcher.dispatch(job);
+            JOB_LOGGER.info("Submitted Task: " + this.task.getId() + " Job: " + job.getJobId() + " Method: "
+                + this.task.getTaskDescription().getName() + " Resource: " + this.getAssignedResource().getName());
         } else {
             JOB_LOGGER.info("Job" + job.getJobId() + " cancelled before submission.");
         }
+    }
+
+    private void removeJobTempData() {
+        TaskDescription taskDescription = this.task.getTaskDescription();
+        for (Parameter p : taskDescription.getParameters()) {
+            if (DEBUG) {
+                JOB_LOGGER.debug("    * " + p);
+            }
+            if (p instanceof DependencyParameter) {
+                DependencyParameter dp = (DependencyParameter) p;
+                switch (taskDescription.getType()) {
+                    case METHOD:
+                        removeTmpData(dp);
+                        break;
+                    case SERVICE:
+                        if (dp.getDirection() != Direction.INOUT) {
+                            // For services we only transfer IN parameters because the only
+                            // parameter that can be INOUT is the target
+                            removeTmpData(dp);
+                        }
+                        break;
+                }
+            }
+        }
+
+    }
+
+    private void removeTmpData(DependencyParameter param) {
+        if (param.getType() != DataType.STREAM_T && param.getType() != DataType.EXTERNAL_STREAM_T) {
+            if (param.getType() == DataType.COLLECTION_T) {
+                CollectionParameter cp = (CollectionParameter) param;
+                JOB_LOGGER.debug("Detected CollectionParameter " + cp);
+                // Recursively send all the collection parameters
+                for (Parameter p : cp.getParameters()) {
+                    DependencyParameter dp = (DependencyParameter) p;
+                    removeTmpData(dp);
+                }
+            }
+
+            DataAccessId access = param.getDataAccessId();
+            if (access instanceof RWAccessId) {
+                String tgtName = "tmp" + ((RWAccessId) access).getWrittenDataInstance().getRenaming();
+                Comm.removeDataKeepingValue(tgtName);
+            }
+        }
+
     }
 
     protected Job<?> submitJob(int transferGroupId, JobStatusListener listener) {
@@ -441,7 +490,8 @@ public class ExecutionAction extends AllocatableAction {
                 t.setException((COMPSsException) e);
             }
         }
-
+        // Remove tmpData for IN/OUTS
+        removeJobTempData();
         // Update info about the generated/updated data
         doOutputTransfers(job);
 
@@ -456,6 +506,10 @@ public class ExecutionAction extends AllocatableAction {
      */
     public final void failedJob(Job<?> job, JobEndStatus endStatus) {
         this.profile.end();
+
+        // Remove tmpData for IN/OUTS
+        removeJobTempData();
+
         if (this.isCancelling()) {
             JOB_LOGGER.debug("Received a notification for cancelled job " + job.getJobId());
             doOutputTransfers(job);
@@ -493,6 +547,9 @@ public class ExecutionAction extends AllocatableAction {
     public final void completedJob(Job<?> job) {
         // End profile
         this.profile.end();
+
+        // Remove tmpData for IN/OUTS
+        removeJobTempData();
 
         // Notify end
         int jobId = job.getJobId();

@@ -610,33 +610,43 @@ public class Comm {
      */
     public static synchronized void removeDataKeepingValue(String renaming) {
         LOGGER.debug("Removing data " + renaming);
-        DATA.remove(renaming);
+        LogicalData ld = DATA.remove(renaming);
+        if (ld != null) {
+            for (Resource res : ld.getAllHosts()) {
+                res.removeLogicalData(ld);
+            }
+        }
+
     }
 
     /**
      * Removes the data with id {@code renaming}.
      *
      * @param renaming Data Id.
+     * @return return removed logical data
      */
-    public static synchronized void removeData(String renaming) {
+    public static synchronized LogicalData removeData(String renaming) {
         LOGGER.debug("Removing data " + renaming);
 
         LogicalData ld = DATA.remove(renaming);
-        ld.isObsolete();
-        for (DataLocation dl : ld.getLocations()) {
-            MultiURI uri = dl.getURIInHost(appHost);
+        if (ld != null) {
+            ld.isObsolete();
+            for (DataLocation dl : ld.getLocations()) {
+                MultiURI uri = dl.getURIInHost(appHost);
 
-            if (uri != null) {
-                File f = new File(uri.getPath());
-                if (f.exists()) {
-                    LOGGER.info("Deleting file " + f.getAbsolutePath());
-                    if (!f.delete()) {
-                        LOGGER.error("Cannot delete file " + f.getAbsolutePath());
+                if (uri != null) {
+                    File f = new File(uri.getPath());
+                    if (f.exists()) {
+                        LOGGER.info("Deleting file " + f.getAbsolutePath());
+                        if (!f.delete()) {
+                            LOGGER.error("Cannot delete file " + f.getAbsolutePath());
+                        }
                     }
                 }
             }
+            ld.removeValue();
         }
-        ld.removeValue();
+        return ld;
 
     }
 

@@ -166,12 +166,20 @@ public abstract class DataInfo {
      * Marks the data to be written.
      */
     public void willBeWritten() {
+        int oldVersionId = this.currentVersionId;
         this.currentVersionId++;
         DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId);
         Comm.registerData(newVersion.getDataInstanceId().getRenaming());
         newVersion.willBeWritten();
+        DataVersion oldVersion = this.currentVersion;
         this.versions.put(this.currentVersionId, newVersion);
         this.currentVersion = newVersion;
+        if (oldVersion != null) {
+            if (oldVersion.markToDelete()) {
+                Comm.removeData(oldVersion.getDataInstanceId().getRenaming());
+                this.versions.remove(oldVersionId);
+            }
+        }
         this.currentVersion.versionUsed();
     }
 

@@ -849,6 +849,25 @@ public class DataInfoProvider {
     }
 
     /**
+     * Deletes a collection.
+     *
+     * @param collectionId Collection identifier
+     * @param noReuse no reuse flag
+     * @return DataInfo
+     */
+    public DataInfo deleteCollection(String collectionId, boolean noReuse) {
+        Integer oId = this.collectionToId.get(collectionId);
+        DataInfo dataInfo = this.idToData.get(oId);
+
+        // We delete the data associated with all the versions of the same object
+        if (dataInfo.delete(noReuse)) {
+            idToData.remove(oId);
+        }
+
+        return dataInfo;
+    }
+
+    /**
      * Transfers the value of an object.
      *
      * @param toRequest Transfer object request.

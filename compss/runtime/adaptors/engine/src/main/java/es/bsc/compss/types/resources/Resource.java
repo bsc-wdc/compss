@@ -59,6 +59,13 @@ public interface Resource extends Comparable<Resource> {
     public void addLogicalData(LogicalData ld);
 
     /**
+     * Removes a LogicalData available in the host.
+     *
+     * @param ld Logical data to add
+     */
+    public void removeLogicalData(LogicalData ld);
+
+    /**
      * Marks a file as obsolete.
      *
      * @param obsolete logical data to mark as obsolete

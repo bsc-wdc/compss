@@ -47,7 +47,8 @@ public abstract class DataInfo {
     protected final LinkedList<DataVersion> pendingDeletions;
     protected final LinkedList<Integer> canceledVersions;
 
-    protected Boolean canceled;
+    // protected Boolean canceled;
+    protected boolean deleted;
 
 
     /**
@@ -63,7 +64,7 @@ public abstract class DataInfo {
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
         this.canceledVersions = new LinkedList<>();
-        this.canceled = false;
+        this.deleted = false;
     }
 
     /**
@@ -80,7 +81,7 @@ public abstract class DataInfo {
         this.deletionBlocks = 0;
         this.pendingDeletions = new LinkedList<>();
         this.canceledVersions = new LinkedList<>();
-        this.canceled = false;
+        this.deleted = false;
     }
 
     /**
@@ -166,20 +167,12 @@ public abstract class DataInfo {
      * Marks the data to be written.
      */
     public void willBeWritten() {
-        int oldVersionId = this.currentVersionId;
         this.currentVersionId++;
         DataVersion newVersion = new DataVersion(this.dataId, this.currentVersionId);
         Comm.registerData(newVersion.getDataInstanceId().getRenaming());
         newVersion.willBeWritten();
-        DataVersion oldVersion = this.currentVersion;
         this.versions.put(this.currentVersionId, newVersion);
         this.currentVersion = newVersion;
-        if (oldVersion != null) {
-            if (oldVersion.markToDelete()) {
-                Comm.removeData(oldVersion.getDataInstanceId().getRenaming());
-                this.versions.remove(oldVersionId);
-            }
-        }
         this.currentVersion.versionUsed();
     }
 
@@ -234,6 +227,7 @@ public abstract class DataInfo {
      * @return {@code true} if all the versions have been removed, {@code false} otherwise.
      */
     public boolean delete(boolean noReuse) {
+        this.deleted = true;
         if (this.deletionBlocks > 0) {
             this.pendingDeletions.addAll(this.versions.values());
         } else {
@@ -301,11 +295,32 @@ public abstract class DataInfo {
     }
 
     /**
-     * Cancels the given version {@code versionId}.
+     * Cancels the given read version {@code versionId}.
      *
      * @param versionId Version Id.
      */
-    public final void canceledVersion(Integer versionId) {
+    public final boolean canceledReadVersion(Integer versionId) {
+        DataVersion readVersion = this.versions.get(versionId);
+        if (!deleted && readVersion.isToDelete()) {
+            readVersion.unmarkToDelete();
+        }
+        if (readVersion.hasBeenRead()) {
+            Comm.removeData(readVersion.getDataInstanceId().getRenaming());
+            this.versions.remove(versionId);
+            // return (this.toDelete && versions.size() == 0);
+            return this.versions.isEmpty();
+        }
+        return false;
+
+    }
+
+    /**
+     * Cancels the given version {@code versionId}.
+     *
+     * @param versionId Version Id.
+     * @return true if no more versions
+     */
+    public final boolean canceledWriteVersion(Integer versionId) {
         this.canceledVersions.add(versionId);
         if (versionId == currentVersionId) {
             Integer lastVersion = this.currentVersionId;
@@ -313,8 +328,23 @@ public abstract class DataInfo {
                 tryRemoveVersion(lastVersion);
                 lastVersion = lastVersion - 1;
             }
-            this.currentVersionId = lastVersion;
-            this.currentVersion = this.versions.get(this.currentVersionId);
+            if (lastVersion > 1) {
+                this.currentVersionId = lastVersion;
+                this.currentVersion = this.versions.get(this.currentVersionId);
+                return false;
+            } else if (lastVersion == 1) {
+                DataVersion firstVersion = this.getFirstVersion();
+                if (firstVersion.hasBeenUsed()) {
+                    this.currentVersionId = lastVersion;
+                    this.currentVersion = firstVersion;
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
         }
+        return false;
     }
 }

@@ -114,7 +114,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
         // Compute the task parameters
         LinkedList<NIOParam> params = addParams();
-        int numParams = params.size() - taskParams.getNumReturns();
+        int numParams = params.size() - this.taskParams.getNumReturns();
 
         // Create NIOTask
         NIOTask nt = new NIOTask(this.getLang(), DEBUG, absMethodImpl, this.taskParams.hasTargetObject(),
@@ -141,12 +141,12 @@ public class NIOJob extends Job<NIOWorkerNode> {
      */
     public void taskFinished(boolean successful, Exception e) {
         if (successful) {
-            listener.jobCompleted(this);
+            this.listener.jobCompleted(this);
         } else {
             if (e instanceof COMPSsException) {
-                listener.jobFailed(this, JobEndStatus.EXCEPTION, (COMPSsException) e);
+                this.listener.jobFailed(this, JobEndStatus.EXCEPTION, (COMPSsException) e);
             } else {
-                listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
+                this.listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED, null);
             }
         }
     }
@@ -155,7 +155,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     public String toString() {
         AbstractMethodImplementation method = (AbstractMethodImplementation) this.impl;
         String definition = method.getMethodDefinition();
-        String methodName = taskParams.getName();
+        String methodName = this.taskParams.getName();
         return "NIOJob JobId" + this.jobId + " for method " + methodName + " with definition " + definition;
     }
 

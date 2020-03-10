@@ -24,6 +24,13 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 public interface Connector {
 
     /**
+     * Returns whether the connector supports automatic scaling or not.
+     * 
+     * @return {@literal true} if the connector supports automatic scaling, {@literal false} otherwise.
+     */
+    public boolean isAutomaticScalingEnabled();
+
+    /**
      * Starts a resource.
      * 
      * @param name Resource name.

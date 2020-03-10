@@ -32,6 +32,7 @@ DEFAULT_STREAMING="null"
 BASE_STREAMING_PORT=49049
 STREAMING_PORT_RAND_RANGE=100
 DEFAULT_PERSISTENT_WORKER_C=false
+DEFAULT_AUTOMATIC_SCALING=true
 DEFAULT_PYTHON_INTERPRETER=python
 DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
 if [ -z "${VIRTUAL_ENV}" ]; then
@@ -175,7 +176,8 @@ show_opts() {
                                             Default: empty
     --elasticity=<max_extra_nodes>          Activate elasticity specifiying the maximum extra nodes (ONLY AVAILABLE FORM SLURM CLUSTERS WITH NIO ADAPTOR)
                                             Default: 0
-
+    --automatic_scaling=<bool>              Enable or disable the runtime automatic scaling (for elasticity)
+                                            Default: ${DEFAULT_AUTOMATIC_SCALING}
     --jupyter_notebook=<path>,              Swap the COMPSs master initialization with jupyter notebook from the specified path.
     --jupyter_notebook                      Default: ${DEFAULT_JUPYTER_NOTEBOOK}
 
@@ -537,6 +539,9 @@ xml_project_add_elasticity() {
     if [ -n "${cpu_affinity}" ]; then
       props="$props cpu_affinity=${cpu_affinity}"
     fi
+    if [ -n "${automatic_scaling}" ]; then
+      props="$props automatic-scaling=${automatic_scaling}"
+    fi
 
     add_cloud 0 0 "${elasticity}" "SLURM-Cluster" "${props}" "${container_image}" "${worker_install_dir}" "${worker_working_dir}" "NULL" "${appdir:-NULL}" "${library_path:-NULL}" "${cp:-NULL}" "${pythonpath:-NULL}" "${max_tasks_per_node}" "default"
   fi
@@ -642,7 +647,7 @@ xml_resources_add_elasticity() {
   # Add elasticity if defined
   if [ -n "${elasticity}" ]; then
     local instance_types="default:${cpus_per_node}:${gpus_per_node}:${fpgas_per_node}:${node_memory}:1:0.085"
-    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SLURMConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
+    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SlurmConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
   fi
 }
 
@@ -1133,7 +1138,7 @@ get_args() {
           # Remove from runcompss since launcher will add it
           master_port=${OPTARG//master_port=/}
           ;;
-	worker_port_range=*)
+	    worker_port_range=*)
           # Remove from runcompss since launcher will add it
           worker_port_range=${OPTARG//worker_port_range=/}
           ;;
@@ -1149,6 +1154,9 @@ get_args() {
         elasticity=*)
           elasticity=${OPTARG//elasticity=/}
           args_pass="$args_pass --conn=es.bsc.compss.connectors.DefaultNoSSHConnector"
+          ;;
+        automatic_scaling=*)
+          automatic_scaling=${OPTARG//automatic_scaling=/}
           ;;
         queue=*)
           # Added for elasticity
@@ -1303,6 +1311,10 @@ check_args() {
     python_mpi_worker=${DEFAULT_PYTHON_MPI_WORKER}
   fi
 
+  if [ -z "${automatic_scaling}" ]; then
+    automatic_scaling=${DEFAULT_AUTOMATIC_SCALING}
+  fi
+
   #
   # Node checks
   #
@@ -1402,8 +1414,8 @@ check_args() {
     worker_max_port=${DEFAULT_WORKER_MAX_PORT}
     worker_min_port=${DEFAULT_WORKER_MIN_PORT}
   else
-    worker_max_port=$(echo ${worker_port_range} |tr "," "\\t"| awk {'print $2'})
-    worker_min_port=$(echo ${worker_port_range} |tr "," "\\t"| awk {'print $1'})
+    worker_max_port=$(echo "${worker_port_range}" | tr "," "\\t" | awk '{ print $2 }')
+    worker_min_port=$(echo "${worker_port_range}" | tr "," "\\t" | awk '{ print $1 }')
   fi
 
   #

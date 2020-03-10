@@ -111,7 +111,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             }
         }
 
-        LOGGER.debug("[Abstract Connector] Initial mean creation time is" + this.meanCreationTime);
+        LOGGER.debug("[Abstract Connector] Initial mean creation time is " + this.meanCreationTime);
         this.createdVMs = 0;
         this.currentCostPerHour = 0.0f;
         this.deletedMachinesCost = 0.0f;
@@ -132,7 +132,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             return false;
         }
         LOGGER
-            .info("[Abstract Connector]Requesting a resource creation " + name + " : " + rR.getRequested().toString());
+            .info("[Abstract Connector] Requesting a resource creation " + name + " : " + rR.getRequested().toString());
         // Check if we can reuse one of the vms put to delete (but not yet destroyed)
         VM vmInfo = tryToReuseVM(rR.getRequested());
         if (vmInfo != null) {

@@ -70,6 +70,7 @@ public class ResourceOptimizer extends Thread {
     private static final String WARN_EXCEPTION_TURN_ON = "WARN: Connector exception on turn on resource";
 
     // Sleep times
+    private static final int INITIAL_SLEEP = 1_000; // ms
     private static final int SLEEP_TIME = 2_000;
     private static final int EVERYTHING_BLOCKED_INTERVAL_TIME = 20_000;
     private static final int EVERYTHING_BLOCKED_MAX_RETRIES = 3;
@@ -147,58 +148,92 @@ public class ResourceOptimizer extends Thread {
 
     @Override
     public final void run() {
+        // Mark the thread as running
         this.running = true;
+
+        // Initial sleep
         if (ResourceManager.useCloud()) {
-            if (CoreManager.getCoreCount() <= 0) {
-                try {
-                    Thread.sleep(1_000);
-                } catch (InterruptedException e) {
-                    // Nothing to do
-                }
+            try {
+                Thread.sleep(INITIAL_SLEEP);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-            RUNTIME_LOGGER.info("[Resource Optimizer] Checking initial creations.");
+        }
+
+        // Initial creations
+        if (ResourceManager.useCloud()) {
+            RUNTIME_LOGGER.info("[Resource Optimizer] Checking initial creations");
             initialCreations();
         }
 
-        WorkloadState workload;
+        // General running
         while (this.running) {
             try {
-                if (CoreManager.getCoreCount() > 0) {
-                    do {
-                        redo = false;
-                        int blockedTasks = this.ts.getNumberOfBlockedActions();
-                        boolean potentialBlock = (blockedTasks > 0);
-                        if (ResourceManager.useCloud()) {
-                            if (!this.ts.isExternalAdaptationEnabled()) {
-                                // If external adaptation is enabled,
-                                // we do not have to apply the resource optimization policies
-                                workload = this.ts.getWorkload();
-                                applyPolicies(workload);
-                            }
-                            // There is a potentialBlock in cloud only if all
-                            // the possible VMs have been created
-                            int vmsBeingCreated = ResourceManager.getPendingCreationRequests().size();
-                            potentialBlock = potentialBlock && (vmsBeingCreated == 0);
-                        }
-                        handlePotentialBlock(potentialBlock);
-                    } while (redo);
-                    periodicRemoveObsoletes();
-                }
+                // Do operations
+                doOperations();
+
+                // Remove obsoletes
+                periodicRemoveObsoletes();
+
+                // Wait until applying next optimization
                 try {
                     synchronized (this) {
                         if (this.running) {
                             this.wait(SLEEP_TIME);
                         }
                     }
-                } catch (InterruptedException ex) {
+                } catch (InterruptedException ie) {
                     // Do nothing. It was interrupted to trigger another optimization
                 }
-
             } catch (Exception e) {
                 RUNTIME_LOGGER.error(ERROR_OPT_RES, e);
             }
-
         }
+    }
+
+    private void doOperations() {
+        do {
+            redo = false;
+
+            // Apply optimizations
+            if (ResourceManager.useCloud()) {
+                // Only apply them when connector supports it
+                // Only apply them when there is no External Adaptation
+                if (isAutomaticScalingEnabled() && !this.ts.isExternalAdaptationEnabled()) {
+                    if (DEBUG) {
+                        RUNTIME_LOGGER.debug("[Resource Optimizer] Applying automatic scaling operations");
+                    }
+                    WorkloadState workload = this.ts.getWorkload();
+                    applyPolicies(workload);
+                }
+            }
+
+            // Handle potential blocks
+            if (DEBUG) {
+                RUNTIME_LOGGER.debug("[Resource Optimizer] Handling potential blocks");
+            }
+            int blockedTasks = this.ts.getNumberOfBlockedActions();
+            boolean potentialBlock = blockedTasks > 0;
+            if (ResourceManager.useCloud()) {
+                // If cloud is enabled, also check the creating VMs
+                int vmsBeingCreated = ResourceManager.getPendingCreationRequests().size();
+                potentialBlock = potentialBlock && (vmsBeingCreated == 0);
+            }
+            handlePotentialBlock(potentialBlock);
+
+        } while (redo);
+    }
+
+    private boolean isAutomaticScalingEnabled() {
+        // Check if any of the registered Cloud Providers have Automatic Scaling enabled
+        for (CloudProvider cp : ResourceManager.getAvailableCloudProviders()) {
+            if (cp.isAutomaticScalingEnabled()) {
+                return true;
+            }
+        }
+
+        // Otherwise set it to false
+        return false;
     }
 
     private void periodicRemoveObsoletes() {
@@ -247,16 +282,16 @@ public class ResourceOptimizer extends Thread {
     /**
      * Handles a potential block.
      * 
-     * @param potentialBlock Boolean indicating wether there is a potential block or not.
+     * @param potentialBlock Boolean indicating whether there is a potential block or not.
      */
     public final void handlePotentialBlock(boolean potentialBlock) {
-        if (potentialBlock) { // All tasks are blocked, and there are no
-            // resources available...
+        if (potentialBlock) {
+            // All tasks are blocked and there are no resources available...
             if ((System.currentTimeMillis() - this.lastPotentialBlockedCheck) > EVERYTHING_BLOCKED_INTERVAL_TIME) {
                 this.lastPotentialBlockedCheck = System.currentTimeMillis();
                 ++this.everythingBlockedRetryCount;
-                if (this.everythingBlockedRetryCount > 0) { // First time not taken into
-                    // account
+                if (this.everythingBlockedRetryCount > 0) {
+                    // First time not taken into account
                     if (this.everythingBlockedRetryCount < EVERYTHING_BLOCKED_MAX_RETRIES) {
                         // Retries limit not reached. Warn the user...
                         int retriesLeft = EVERYTHING_BLOCKED_MAX_RETRIES - this.everythingBlockedRetryCount;

@@ -46,7 +46,17 @@ public class ConnectorProxy {
         if (conn == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
+
         this.connector = conn;
+    }
+
+    /**
+     * Returns whether the connector supports automatic scaling or not.
+     * 
+     * @return {@literal true} if the connector supports automatic scaling, {@literal false} otherwise.
+     */
+    public boolean isAutomaticScalingEnabled() {
+        return this.connector.isAutomaticScalingEnabled();
     }
 
     /**
@@ -66,7 +76,8 @@ public class ConnectorProxy {
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
-        Object created;
+
+        Object created = null;
         try {
             StarterCommand starterCMD =
                 getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
@@ -79,8 +90,8 @@ public class ConnectorProxy {
 
     private StarterCommand getStarterCommand(String adaptorName, String name, HardwareDescription hd,
         SoftwareDescription sd, Map<String, String> properties) {
-        return null;
 
+        return null;
     }
 
     /**
@@ -102,7 +113,7 @@ public class ConnectorProxy {
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
-        Object[] created;
+        Object[] created = null;
         try {
             StarterCommand starterCMD =
                 getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
@@ -140,7 +151,7 @@ public class ConnectorProxy {
             throw new ConnectorException(ERROR_NO_CONN);
         }
 
-        VirtualResource vr;
+        VirtualResource vr = null;
         try {
             vr = this.connector.waitUntilCreation(id);
         } catch (ConnException ce) {
@@ -174,6 +185,7 @@ public class ConnectorProxy {
         if (this.connector == null) {
             return defaultLength;
         }
+
         return this.connector.getTimeSlot();
     }
 

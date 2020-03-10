@@ -260,7 +260,7 @@ xml_resources_add_elasticity() {
   # Add elasticity if defined
   if [ -n "${elasticity}" ]; then
     local instance_types="default:${cpus_per_node}:${gpus_per_node}:${fpgas_per_node}:${node_memory}:1:0.085"
-    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SLURMConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
+    add_cloud "SLURM-Cluster" "NULL" "slurm-conn.jar" "es.bsc.conn.slurm.SlurmConnector" "${container_image}" "${shared_disks_info:-NULL}" "10" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${instance_types}"
   fi
 }
 

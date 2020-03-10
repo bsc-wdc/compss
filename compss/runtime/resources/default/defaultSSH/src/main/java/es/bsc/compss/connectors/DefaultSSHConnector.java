@@ -111,6 +111,11 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     }
 
     @Override
+    public boolean isAutomaticScalingEnabled() {
+        return this.connector.isAutomaticScalingEnabled();
+    }
+
+    @Override
     public void destroy(Object id) throws ConnectorException {
         LOGGER.debug("Destroy connection with id " + id);
         this.connector.destroy(id);

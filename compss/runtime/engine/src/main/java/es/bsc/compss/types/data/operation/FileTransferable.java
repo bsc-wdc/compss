@@ -24,9 +24,15 @@ public class FileTransferable implements Transferable {
 
     private Object source;
     private String target;
+    private boolean preserveSourceData;
 
 
     public FileTransferable() {
+        this.preserveSourceData = true;
+    }
+
+    public FileTransferable(boolean preserveSource) {
+        this.preserveSourceData = preserveSource;
     }
 
     @Override
@@ -56,7 +62,7 @@ public class FileTransferable implements Transferable {
 
     @Override
     public boolean isSourcePreserved() {
-        return true;
+        return preserveSourceData;
     }
 
 }

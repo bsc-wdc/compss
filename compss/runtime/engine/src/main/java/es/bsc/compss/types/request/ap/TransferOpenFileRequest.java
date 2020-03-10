@@ -162,7 +162,7 @@ public class TransferOpenFileRequest extends APRequest {
                 LOGGER.debug("RW mode. Asking for transfer");
                 RWAccessId rwaId = (RWAccessId) this.faId;
                 String srcName = rwaId.getReadDataInstance().getRenaming();
-                FileTransferable ft = new FileTransferable();
+                FileTransferable ft = new FileTransferable(rwaId.isPreserveSourceData());
                 Comm.getAppHost().getData(srcName, targetName, (LogicalData) null, ft, new CopyListener(ft, this.sem));
             } else {
                 LOGGER.debug("Read only mode. Asking for transfer");

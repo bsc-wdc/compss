@@ -16,8 +16,6 @@ Synchro0 -> 3;
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1;
 1 -> Synchro1 [label="d1v3"];
-2 -> Synchro1 [label="d2v3"];
-3 -> Synchro1 [label="d3v3"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

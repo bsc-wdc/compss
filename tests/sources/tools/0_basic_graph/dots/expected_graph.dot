@@ -30,7 +30,6 @@ Synchro0 -> 10;
 Synchro1[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro0 -> Synchro1;
 8 -> Synchro1 [label="d2v4"];
-9 -> Synchro1 [label="d3v3"];
 11[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro1 -> 11;
 12[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];

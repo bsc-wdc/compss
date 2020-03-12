@@ -51,7 +51,7 @@ Synchro2 -> 9 [label="d1v5"];
 9 -> 10 [label="d1v6"];
 Synchro3[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro2 -> Synchro3;
-10 -> Synchro3 [label="d1v7"];  }
+10 -> Synchro3 [label="d1v8"];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

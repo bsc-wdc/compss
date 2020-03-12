@@ -183,7 +183,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
-                LOGGER.error("Exception", e);
+                ErrorManager.error("Exception", e);
                 if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }

@@ -989,10 +989,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         LOGGER.debug("Getting file " + fileName);
-        String renamedPath = openFile(fileName, Direction.IN);
+        String renamedPath = openFile(fileName, Direction.INOUT);
         String intermediateTmpPath = renamedPath + ".tmp";
         rename(renamedPath, intermediateTmpPath);
-        closeFile(fileName, Direction.IN);
+        closeFile(fileName, Direction.INOUT);
         ap.markForDeletion(sourceLocation, true);
         // In the case of Java file can be stored in the Stream Registry
         if (sReg != null) {

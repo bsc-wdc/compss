@@ -682,7 +682,7 @@ public class TaskAnalyser {
     private void releaseTaskGroups(Task task) {
         for (TaskGroup group : task.getTaskGroupList()) {
             group.removeTask(task);
-            LOGGER.debug("Group " + group.getName() + " released a task");
+            LOGGER.debug("Group " + group.getName() + " released task " + task.getId());
             if (!group.hasPendingTasks() && group.isClosed() && group.hasBarrier()) {
                 group.releaseBarrier();
                 if (group.getBarrierDrawn()) {

@@ -159,7 +159,6 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
     assert not force_insertion or assign_new_key
 
     obj_addr = id(obj)
-
     # Assign an empty dictionary (in case there is nothing there)
     _id2obj = _addr2id2obj.setdefault(obj_addr, {})
 
@@ -180,6 +179,8 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
         _id2obj[new_id] = obj
         _current_id += 1
         return new_id
+    if len(_id2obj) == 0:
+        _addr2id2obj.pop(obj_addr)
     return None
 
 
@@ -193,7 +194,7 @@ def pop_object_id(obj):
     _id2obj = _addr2id2obj.setdefault(id(obj), {})
     for (k, v) in list(_id2obj.items()):
         _id2obj.pop(k)
-        return
+    _addr2id2obj.pop(obj_addr)
 
 
 # Enable or disable the management of *args parameters as a whole tuple built
@@ -350,6 +351,7 @@ def delete_object(obj):
     """
     obj_id = get_object_id(obj, False, False)
     if obj_id is None:
+        pop_object_id(obj)
         return False
 
     try:
@@ -744,7 +746,7 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
         path = module_name + '.' + class_name
 
     # Infer COMPSs types from real types, except for files
-    _serialize_objects(f_parameters)
+    coll_objs_to_delete = _serialize_objects(f_parameters)
 
     # Build values and COMPSs types and directions
     vtdsc = _build_values_types_directions(ftype,
@@ -984,7 +986,6 @@ def _serialize_objects(f_parameters):
         if __debug__:
             logger.debug("Final type for parameter %s: %d" % (k, p.type))
 
-
 def _build_values_types_directions(ftype, f_parameters, f_returns,
                                    code_strings):
     """
@@ -1123,6 +1124,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         con_type = content_type_format.format("collection", _class_name)
         value = "{} {} {}".format(get_object_id(param.object),
                                    len(param.object), con_type)
+        pop_object_id(param.object)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
             x_value, x_type, _, _, _, x_con_type = _extract_parameter(

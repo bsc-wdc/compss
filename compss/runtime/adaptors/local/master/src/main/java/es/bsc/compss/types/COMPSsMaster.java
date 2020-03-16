@@ -839,7 +839,7 @@ public final class COMPSsMaster extends COMPSsWorker implements InvocationContex
 
                     } else {
                         if (DEBUG) {
-                            LOGGER.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to "
+                            LOGGER.debug("Master local move " + ld.getName() + " from " + u.getHost().getName() + " to "
                                 + targetPath);
                         }
                         Files.move((new File(u.getPath())).toPath(), new File(targetPath).toPath(),

@@ -157,7 +157,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
-                LOGGER.error("Error in request " + requestType, e);
+                ErrorManager.error("Error in TaskDispatcher request " + requestType, e);
                 if (Tracer.extraeEnabled()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }

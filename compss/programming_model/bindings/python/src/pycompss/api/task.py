@@ -24,6 +24,7 @@ PyCOMPSs API - Task
 """
 
 from __future__ import print_function
+import copy
 import os
 import sys
 import threading
@@ -73,6 +74,17 @@ DEPRECATED_ARGUMENTS = ['isReplicated',
                         'varargsType',
                         'targetDirection']
 
+# Some attributes causes memory leaks, we must delete them from memory after
+# master call
+ATTRIBUTES_TO_BE_REMOVED = ['decorator_arguments',
+                            'parameters',
+                            'param_args',
+                            'param_varargs',
+                            'param_kwargs',
+                            'param_defaults',
+                            'first_arg_name',
+                            'returns',
+                            'multi_return']
 # This lock allows tasks to be launched with the Threading module while
 # ensuring that no attribute is overwritten
 master_lock = threading.Lock()
@@ -193,6 +205,9 @@ class Task(object):
                     # defined value (not a Parameter object)
                     self.decorator_arguments[key] = value
 
+        # initial decorator arguments must be saved and passed to the following
+        # 'calls' of the 'task'
+        self.init_dec_args = copy.deepcopy(self.decorator_arguments)
         # Add more argument related attributes that will be useful later
         self.parameters = None
         self.param_args = None
@@ -843,6 +858,8 @@ class Task(object):
         # This lock makes this decorator able to handle various threads
         # calling the same task concurrently
         master_lock.acquire()
+        # IMPORTANT! recover initial decorator arguments
+        self.decorator_arguments = copy.deepcopy(self.init_dec_args)
         # Inspect the user function, get information about the arguments and
         # their names. This defines self.param_args, self.param_varargs,
         # self.param_kwargs, self.param_defaults. And gives non-None default
@@ -900,6 +917,10 @@ class Task(object):
             self.decorator_arguments['on_failure'],
             self.decorator_arguments['time_out']
         )
+        # remove unused attributes from the memory
+        for at in ATTRIBUTES_TO_BE_REMOVED:
+            if hasattr(self, at):
+                delattr(self, at)
         master_lock.release()
         return ret
 

@@ -118,6 +118,7 @@ show_opts() {
     --external_debugger=<int>,
     --external_debugger                     Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
                                             Default: ${DEFAULT_DEBUGGER}
+   --jmx_port=<int>		            Enable JVM profiling on specified port
 
   Runtime configuration options:
     --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
@@ -581,13 +582,17 @@ get_args() {
           external_debugger=*)
             # Enable external debugger on specific port
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
-            external_debugger_port=${OPTARG//external-debugger=/}
+            external_debugger_port=${OPTARG//external_debugger=/}
             ;;
           external_debugger)
             # Enable default external debugger
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             external_debugger_port=${DEFAULT_DEBUGGER_PORT}
             ;;
+	  jmx_port=*)
+	    # Enable JMX profiler on specific port
+	    jmx_port=${OPTARG//jmx_port=/}
+	    ;; 
           base_log_dir=*)
             # Set a custom base log dir
             base_log_dir=${OPTARG//base_log_dir=/}
@@ -596,7 +601,7 @@ get_args() {
             # Set a custom specific log dir
             specific_log_dir=${OPTARG//specific_log_dir=/}
             ;;
-	      uuid=*)
+	  uuid=*)
             # Preset an Application UUID
             uuid=${OPTARG//uuid=/}
             ;;
@@ -972,6 +977,14 @@ check_args() {
     jvm_debugger_opts=""
   fi
 
+  if [ -n "${jmx_port}" ]; then
+    jvm_jmx_opts="-Dcom.sun.management.jmxremote,-Dcom.sun.management.jmxremote.port=${jmx_port},-Dcom.sun.management.jmxremote.authenticate=false,-Dcom.sun.management.jmxremote.ssl=false"
+  else
+    jvm_jmx_opts=""
+  fi
+  # Change jvm master opts separation character "," by " "
+  jvm_jmx_opts=$(echo $jvm_jmx_opts | tr "," "\\n")
+
   # Options ONLY for PYTHON
   if [ "$lang" = "python" ]; then
     if [ -z "$pythonpath" ]; then
@@ -1144,6 +1157,7 @@ generate_jvm_opts_file() {
   cat >> "${jvm_options_file}" << EOT
 ${jvm_master_opts}
 ${jvm_debugger_opts}
+${jvm_jmx_opts}
 -XX:+PerfDisableSharedMem
 -XX:-UsePerfData
 -XX:+UseG1GC

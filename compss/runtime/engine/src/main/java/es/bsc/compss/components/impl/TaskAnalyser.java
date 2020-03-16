@@ -29,6 +29,7 @@ import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
+import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.Direction;
 import es.bsc.compss.types.data.DataInfo;
@@ -306,9 +307,9 @@ public class TaskAnalyser {
      * @param aTask Ended task.
      */
     public void endTask(AbstractTask aTask) {
+        int taskId = aTask.getId();
         if (aTask instanceof Task) {
             Task task = (Task) aTask;
-            int taskId = task.getId();
             boolean isFree = task.isFree();
             TaskState taskState = task.getStatus();
             OnFailure onFailure = task.getOnFailure();
@@ -381,6 +382,7 @@ public class TaskAnalyser {
             }
             for (Parameter param : task.getTaskDescription().getParameters()) {
                 updateParameterAccess(task, param);
+                updateLastWritters(task, param);
             }
 
             // Check if the finished task was the last writer of a file, but only if task generation has finished
@@ -392,18 +394,16 @@ public class TaskAnalyser {
                 checkResultFileTransfer(task);
             }
 
-            // Release data dependent tasks
-            if (DEBUG) {
-                LOGGER.debug("Releasing data dependant tasks for task " + taskId);
-            }
-
             // Release task groups of the task
             releaseTaskGroups(task);
 
             // Releases commutative groups dependent and releases all the waiting tasks
             releaseCommutativeGroups(task);
         }
-
+        // Release data dependent tasks
+        if (DEBUG) {
+            LOGGER.debug("Releasing data dependant tasks for task " + taskId);
+        }
         // Release data dependent tasks
         aTask.releaseDataDependents();
     }
@@ -682,7 +682,7 @@ public class TaskAnalyser {
     private void releaseTaskGroups(Task task) {
         for (TaskGroup group : task.getTaskGroupList()) {
             group.removeTask(task);
-            LOGGER.debug("Group " + group.getName() + " released a task");
+            LOGGER.debug("Group " + group.getName() + " released task " + task.getId());
             if (!group.hasPendingTasks() && group.isClosed() && group.hasBarrier()) {
                 group.releaseBarrier();
                 if (group.getBarrierDrawn()) {
@@ -848,6 +848,8 @@ public class TaskAnalyser {
                     hasParamEdge = hasParamEdge || hasCollectionParamEdge;
                 }
                 daId = dip.registerCollectionAccess(am, cp);
+                DataInfo ci = dip.deleteCollection(cp.getCollectionId(), true);
+                deleteData(ci);
                 break;
             default:
                 // This is a basic type, there are no accesses to register
@@ -1211,6 +1213,40 @@ public class TaskAnalyser {
         registerOutputValues(com, dp);
 
         return hasParamEdge;
+    }
+
+    private void updateLastWritters(AbstractTask task, Parameter p) {
+        DataType type = p.getType();
+        int currentTaskId = task.getId();
+        if (type == DataType.COLLECTION_T) {
+            CollectionParameter cp = (CollectionParameter) p;
+            for (Parameter sp : cp.getParameters()) {
+                updateLastWritters(task, sp);
+            }
+        }
+        if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T
+            || type == DataType.EXTERNAL_PSCO_T || type == DataType.BINDING_OBJECT_T || type == DataType.COLLECTION_T) {
+            DependencyParameter dp = (DependencyParameter) p;
+            int dataId = dp.getDataAccessId().getDataId();
+            WritersInfo wi = this.writers.get(dataId);
+            if (wi != null) {
+                if (DEBUG) {
+                    LOGGER.debug("Removing writters info for datum " + dataId + " and task " + currentTaskId);
+                }
+
+                switch (dp.getDirection()) {
+                    case OUT:
+                    case INOUT:
+                        // Substitute the current entry by the new access
+                        if (wi.getDataWriter() != null && wi.getDataWriter().getId() == currentTaskId) {
+                            wi.setDataWriter(null);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 
     private void treatDataAccess(AbstractTask lastWriter, AccessMode am, int dataId) {

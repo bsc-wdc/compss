@@ -589,20 +589,20 @@ public class DataInfoProvider {
             case C:
             case R:
                 rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
-                deleted = di.versionHasBeenRead(rVersionId);
+                deleted = di.canceledReadVersion(rVersionId);
                 break;
             case CV:
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                di.versionHasBeenRead(rVersionId);
+                di.canceledReadVersion(rVersionId);
                 // read and write data version can be removed
                 // di.canceledVersion(rVersionId);
                 wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                di.canceledVersion(wVersionId);
+                deleted = di.canceledWriteVersion(wVersionId);
                 break;
             default:// case W:
                 wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                di.canceledVersion(wVersionId);
+                deleted = di.canceledWriteVersion(wVersionId);
                 break;
         }
 
@@ -628,6 +628,7 @@ public class DataInfoProvider {
                 rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
                 deleted = di.versionHasBeenRead(rVersionId);
                 break;
+            case CV:
             case RW:
                 rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
                 di.versionHasBeenRead(rVersionId);
@@ -638,6 +639,8 @@ public class DataInfoProvider {
                 break;
             default:// case W:
                 wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                Integer prevVersionId = wVersionId - 1;
+                di.tryRemoveVersion(prevVersionId);
                 deleted = di.versionHasBeenWritten(wVersionId);
                 break;
         }
@@ -843,6 +846,25 @@ public class DataInfoProvider {
         // We delete the data associated with all the versions of the same object
         if (dataInfo.delete(noReuse)) {
             idToData.remove(id);
+        }
+
+        return dataInfo;
+    }
+
+    /**
+     * Deletes a collection.
+     *
+     * @param collectionId Collection identifier
+     * @param noReuse no reuse flag
+     * @return DataInfo
+     */
+    public DataInfo deleteCollection(String collectionId, boolean noReuse) {
+        Integer oId = this.collectionToId.get(collectionId);
+        DataInfo dataInfo = this.idToData.get(oId);
+
+        // We delete the data associated with all the versions of the same object
+        if (dataInfo.delete(noReuse)) {
+            idToData.remove(oId);
         }
 
         return dataInfo;

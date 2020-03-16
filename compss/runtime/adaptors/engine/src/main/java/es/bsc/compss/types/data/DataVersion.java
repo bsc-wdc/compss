@@ -142,6 +142,15 @@ public class DataVersion {
     }
 
     /**
+     * Returns the number of writers.
+     *
+     * @return The number of writers
+     */
+    public Integer getNumberOfWriters() {
+        return writters;
+    }
+
+    /**
      * Returns whether the data can be deleted or not.
      *
      * @return {@code true} if the data can be deleted, {@code false} otherwise.
@@ -152,6 +161,10 @@ public class DataVersion {
             return true;
         }
         return false;
+    }
+
+    public void unmarkToDelete() {
+        this.toDelete = false;
     }
 
     /**

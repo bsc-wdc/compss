@@ -199,8 +199,7 @@ Synchro10 -> 29 [label="d1v29"];
 
 Synchro11[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
 Synchro10 -> Synchro11 [color=grey];
-32 -> Synchro11 [color=grey][ ltail="clusterTasksSmallGroup2" ];
-32 -> Synchro11 [label="d1v33"];  }
+32 -> Synchro11 [color=grey][ ltail="clusterTasksSmallGroup2" ];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];

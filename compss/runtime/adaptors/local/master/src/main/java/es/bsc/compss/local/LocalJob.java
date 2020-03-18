@@ -71,7 +71,7 @@ public class LocalJob extends Job<COMPSsMaster> implements Invocation {
 
         for (int rIdx = 0; rIdx < numReturns; rIdx++) {
             Parameter p = params.get(params.size() - numReturns + rIdx);
-            this.results.addFirst(generateLocalParameter(p));
+            this.results.add(generateLocalParameter(p));
         }
         paramsCount -= numReturns;
         if (hasTarget) {

@@ -64,7 +64,7 @@ public class COMPSsInvoker extends Invoker {
 
     /**
      * COMPSs Invoker constructor.
-     * 
+     *
      * @param context Task execution context.
      * @param invocation Task execution description.
      * @param taskSandboxWorkingDir Task execution sandbox directory.
@@ -136,6 +136,15 @@ public class COMPSsInvoker extends Invoker {
         }
     }
 
+    private String computeNodeDescription(String hostname, int cus) {
+        StringBuilder nodeInfo = new StringBuilder();
+        nodeInfo.append(hostname);
+        nodeInfo.append(":").append(String.valueOf(cus));
+        nodeInfo.append(":").append(this.context.getInstallDir());
+        nodeInfo.append(":").append(this.taskSandboxWorkingDir.getAbsolutePath());
+        return nodeInfo.toString();
+    }
+
     private Object runInvocation() throws InvokeExecutionException {
         System.out.println("");
         System.out.println("[COMPSs INVOKER] Begin COMPSs call to " + this.appName);
@@ -149,7 +158,6 @@ public class COMPSsInvoker extends Invoker {
         // --specific_log_dir=nestedLogDir
         // [-extra_flags]
         // appName appArgs
-
         // Retrieve workers information
         HashMap<String, Integer> hostnames2cus = new HashMap<>();
         for (String hostname : this.invocation.getSlaveNodesNames()) {
@@ -160,14 +168,15 @@ public class COMPSsInvoker extends Invoker {
                 hostnames2cus.put(hostname, this.computingUnits);
             }
         }
+
+        String masterName = this.context.getHostName();
         if (!Boolean.parseBoolean(this.workerInMaster)) {
             // User has selected a separated master, take resources from slaveNodes
-            String hostname = this.context.getHostName();
-            if (hostnames2cus.containsKey(hostname)) {
-                int accumComputingUnits = hostnames2cus.remove(hostname);
+            if (hostnames2cus.containsKey(masterName)) {
+                int accumComputingUnits = hostnames2cus.remove(masterName);
                 accumComputingUnits = accumComputingUnits - this.computingUnits;
                 if (accumComputingUnits > 0) {
-                    hostnames2cus.put(hostname, accumComputingUnits);
+                    hostnames2cus.put(masterName, accumComputingUnits);
                 }
             } else {
                 System.err.println("[WARN] Cannot reserve master CUs because hostname does not appear in slavenodes");
@@ -179,18 +188,24 @@ public class COMPSsInvoker extends Invoker {
             }
         }
 
+        StringBuilder masterInfoBuilder = new StringBuilder();
         StringBuilder workersInfoBuilder = new StringBuilder();
         for (Entry<String, Integer> entry : hostnames2cus.entrySet()) {
             String hostname = entry.getKey();
             Integer cus = entry.getValue();
             System.out.println("[COMPSs INVOKER] Slave hostname " + hostname + " with " + String.valueOf(cus) + " cus");
 
-            workersInfoBuilder.append(hostname);
-            workersInfoBuilder.append(":").append(String.valueOf(cus));
-            workersInfoBuilder.append(":").append(this.context.getInstallDir());
-            workersInfoBuilder.append(":").append(this.taskSandboxWorkingDir.getAbsolutePath());
-            workersInfoBuilder.append(" ");
+            String nodeInfo = computeNodeDescription(hostname, cus);
+            if (hostname.compareTo(masterName) == 0) {
+                masterInfoBuilder.append(nodeInfo);
+            } else {
+                if (workersInfoBuilder.length() > 0) {
+                    workersInfoBuilder.append(" ");
+                }
+                workersInfoBuilder.append(nodeInfo);
+            }
         }
+        String masterInfo = masterInfoBuilder.toString();
         String workersInfo = workersInfoBuilder.toString();
 
         // Generate XML files
@@ -204,6 +219,7 @@ public class COMPSsInvoker extends Invoker {
             this.context.getInstallDir() + RELATIVE_PATH_XML_GENERATION + GENERATE_PROJECT_SCRIPT;
         String[] cmdProject = new String[] { generateProjectScript,
             projectXml,
+            masterInfo,
             workersInfo };
         try {
             int ev = xmlGenerationScript(cmdProject);
@@ -251,16 +267,20 @@ public class COMPSsInvoker extends Invoker {
                         .println("[COMPSs INVOKER] Generating random UUID as specific_log_dir inside base_log_dir");
                     int beginPos = "--base_log_dir=".length();
                     nestedLogDir = flag.substring(beginPos) + File.separator + UUID.randomUUID();
-                } else if (flag.startsWith("--specific_log_dir=")) {
-                    // Purged flag
-                    System.out.println("[COMPSs INVOKER] Ommitting flag " + flag + " on nested runcompss command");
-                } else if (flag.startsWith("--classpath=")) {
-                    // Append user classpath to worker classpath
-                    int beginPos = "--classpath=".length();
-                    classpathFlag = classpathFlag + ":" + flag.substring(beginPos);
                 } else {
-                    // Add regular flag to final list
-                    extraFlagsList.add(flag);
+                    if (flag.startsWith("--specific_log_dir=")) {
+                        // Purged flag
+                        System.out.println("[COMPSs INVOKER] Ommitting flag " + flag + " on nested runcompss command");
+                    } else {
+                        if (flag.startsWith("--classpath=")) {
+                            // Append user classpath to worker classpath
+                            int beginPos = "--classpath=".length();
+                            classpathFlag = classpathFlag + ":" + flag.substring(beginPos);
+                        } else {
+                            // Add regular flag to final list
+                            extraFlagsList.add(flag);
+                        }
+                    }
                 }
             }
         }

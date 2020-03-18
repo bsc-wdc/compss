@@ -328,7 +328,8 @@ public class DataInfoProvider {
 
         // Inform the StreamClient
         if (mode != AccessMode.R) {
-            String filePath = location.getPath();
+            String filePath = location.getURIInHost(Comm.getAppHost()).getPath();
+
             try {
                 String pythonInterpreter = System.getProperty(COMPSsConstants.PYTHON_INTERPRETER);
                 if (pythonInterpreter == null || pythonInterpreter.isEmpty() || pythonInterpreter.equals("null")) {

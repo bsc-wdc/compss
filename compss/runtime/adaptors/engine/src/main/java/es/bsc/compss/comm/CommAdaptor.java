@@ -49,17 +49,35 @@ public interface CommAdaptor {
         Map<String, Object> resourcesProperties) throws ConstructConfigurationException;
 
     /**
+     * Creates a worker starter command with the given information.
+     * 
+     * @param workerName Worker name.
+     * @param workerPort Worker port.
+     * @param masterName Master name.
+     * @param workingDir Worker working directory.
+     * @param installDir Installation directory.
+     * @param appDir Application directory.
+     * @param classpathFromFile Classpath.
+     * @param pythonpathFromFile Pythonpath.
+     * @param libPathFromFile Librarypath.
+     * @param totalCPU Total number of CPUs.
+     * @param totalGPU Total number of GPUs.
+     * @param totalFPGA Total number of FPGAs.
+     * @param limitOfTasks Limit of tasks.
+     * @param hostId Tracing host id.
+     * @return The worker start command.
+     */
+    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
+        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
+        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId);
+
+    /**
      * Initializes a worker through an adaptor.
      * 
      * @param config Adaptor configuration.
      * @return A COMPSsWorker object representing the initialized worker.
      */
     public COMPSsWorker initWorker(Configuration config);
-
-    /**
-     * Stops the Communication Adaptor.
-     */
-    public void stop();
 
     /**
      * Retrieves all the pending operations.
@@ -80,8 +98,9 @@ public interface CommAdaptor {
      */
     public void stopSubmittedJobs();
 
-    public StarterCommand getStarterCommand(String workerName, int workerPort, String masterName, String workingDir,
-        String installDir, String appDir, String classpathFromFile, String pythonpathFromFile, String libPathFromFile,
-        int totalCPU, int totalGPU, int totalFPGA, int limitOfTasks, String hostId);
+    /**
+     * Stops the Communication Adaptor.
+     */
+    public void stop();
 
 }

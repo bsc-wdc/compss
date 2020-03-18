@@ -16,6 +16,8 @@
  */
 package es.bsc.compss.connectors.conn.util;
 
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.comm.CommAdaptor;
 import es.bsc.compss.connectors.ConnectorException;
 
 import es.bsc.conn.Connector;
@@ -67,11 +69,12 @@ public class ConnectorProxy {
      * @param softwareDescription Connector software properties.
      * @param properties Specific properties.
      * @param adaptorName Name of the adaptor used to connect to this machine.
+     * @param minPort Minimum available port for the worker.
      * @return Machine Object.
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
     public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription,
-        Map<String, String> properties, String adaptorName) throws ConnectorException {
+        Map<String, String> properties, String adaptorName, int minPort) throws ConnectorException {
 
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
@@ -80,7 +83,7 @@ public class ConnectorProxy {
         Object created = null;
         try {
             StarterCommand starterCMD =
-                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
+                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties, minPort);
             created = this.connector.create(name, hardwareDescription, softwareDescription, properties, starterCMD);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
@@ -89,9 +92,20 @@ public class ConnectorProxy {
     }
 
     private StarterCommand getStarterCommand(String adaptorName, String name, HardwareDescription hd,
-        SoftwareDescription sd, Map<String, String> properties) {
+        SoftwareDescription sd, Map<String, String> properties, int minPort) {
 
-        return null;
+        CommAdaptor adaptor = Comm.getAdaptor(adaptorName);
+        if (adaptor != null) {
+            String hostId = null; // Set by connector
+            return adaptor.getStarterCommand(name, minPort, Comm.getAppHost().getName(),
+                sd.getInstallation().getWorkingDir(), sd.getInstallation().getInstallDir(),
+                sd.getInstallation().getAppDir(), sd.getInstallation().getClasspath(),
+                sd.getInstallation().getPythonPath(), sd.getInstallation().getLibraryPath(),
+                hd.getTotalCPUComputingUnits(), hd.getTotalGPUComputingUnits(), hd.getTotalFPGAComputingUnits(),
+                sd.getInstallation().getLimitOfTasks(), hostId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -103,11 +117,12 @@ public class ConnectorProxy {
      * @param softwareDescription Connector software properties.
      * @param properties Specific properties.
      * @param adaptorName Name of the adaptor used to connect to this machine.
+     * @param minPort Minimum available port for the workers.
      * @return Machine Object.
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
     public Object createMultiple(int replicas, String name, HardwareDescription hardwareDescription,
-        SoftwareDescription softwareDescription, Map<String, String> properties, String adaptorName)
+        SoftwareDescription softwareDescription, Map<String, String> properties, String adaptorName, int minPort)
         throws ConnectorException {
 
         if (this.connector == null) {
@@ -116,7 +131,7 @@ public class ConnectorProxy {
         Object[] created = null;
         try {
             StarterCommand starterCMD =
-                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties);
+                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties, minPort);
             created = this.connector.createMultiple(replicas, name, hardwareDescription, softwareDescription,
                 properties, starterCMD);
         } catch (ConnException ce) {

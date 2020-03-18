@@ -51,7 +51,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     private static final String WARN_NO_COMPSS_HOME = "WARN: COMPSS_HOME not defined, no default connectors loaded";
     private static final float UNASSIGNED_FLOAT = -1.0f;
 
-    private ConnectorProxy connector;
+    private ConnectorProxy connectorProxy;
 
 
     /**
@@ -76,9 +76,8 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
             }
         }
 
-        Connector conn = null;
-
         LOGGER.debug(" - Loading " + connectorJarPath);
+        Connector conn = null;
         try {
             // Check if its relative to CONNECTORS or absolute to system
             String jarPath = connectorJarPath;
@@ -105,29 +104,28 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
         } catch (Exception e) {
             throw new ConnectorException(e);
         } finally {
-            this.connector = new ConnectorProxy(conn);
+            this.connectorProxy = new ConnectorProxy(conn);
         }
-
     }
 
     @Override
     public boolean isAutomaticScalingEnabled() {
-        return this.connector.isAutomaticScalingEnabled();
+        return this.connectorProxy.isAutomaticScalingEnabled();
     }
 
     @Override
     public void destroy(Object id) throws ConnectorException {
         LOGGER.debug("Destroy connection with id " + id);
-        this.connector.destroy(id);
+        this.connectorProxy.destroy(id);
     }
 
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
         LOGGER.debug("Create connection " + name);
-        return this.connector.create(name, Converter.getHardwareDescription(cmrd),
-            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties(),
-            cmrd.getImage().getConfig().getAdaptorName());
 
+        return this.connectorProxy.create(name, Converter.getHardwareDescription(cmrd),
+            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties(),
+            cmrd.getImage().getConfig().getAdaptorName(), cmrd.getMinPort());
     }
 
     @Override
@@ -135,7 +133,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
         throws ConnectorException {
 
         LOGGER.debug("Waiting for " + id);
-        VirtualResource vr = this.connector.waitUntilCreation(id);
+        VirtualResource vr = this.connectorProxy.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);
         LOGGER.debug("Return cloud method resource description " + cmrd.toString());
         return cmrd;
@@ -143,19 +141,18 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
     @Override
     public float getMachineCostPerTimeSlot(CloudMethodResourceDescription cmrd) {
-        return this.connector.getPriceSlot(Converter.getVirtualResource("-1", cmrd), UNASSIGNED_FLOAT);
+        return this.connectorProxy.getPriceSlot(Converter.getVirtualResource("-1", cmrd), UNASSIGNED_FLOAT);
     }
 
     @Override
     public long getTimeSlot() {
-        return this.connector.getTimeSlot(TWO_MIN);
-
+        return this.connectorProxy.getTimeSlot(TWO_MIN);
     }
 
     @Override
     protected void close() {
         LOGGER.debug("Close connector");
-        this.connector.close();
+        this.connectorProxy.close();
     }
 
 }

@@ -401,12 +401,16 @@ create_simple_project() {
   # Function called by the Runtime when executing COMPSs Nested
 
   local project=$1
-  local workers_info=$2  # "name:cus:install_dir:working_dir ..."
+  local master_info=$2  # "name:cus:install_dir:working_dir ..."
+  local workers_info=$3  # "name:cus:install_dir:working_dir ..."
                          # Some parameters are used by the resources generation and skiped here
 
   init "${project}"
   add_header
-  add_master_node "48" "0" "0" "NULL"
+  IFS=":" read -ra master_info_fields <<< "${master_info}"
+  local master_cus=${master_info_fields[1]}
+  add_master_node "${master_cus}" "0" "0" "NULL"
+
   for worker_info in ${workers_info}; do
     IFS=":" read -ra worker_info_fields <<< "${worker_info}"
     local worker_name=${worker_info_fields[0]}

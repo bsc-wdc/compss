@@ -29,7 +29,6 @@ import es.bsc.compss.types.TaskGroup;
 import es.bsc.compss.types.TaskState;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.OnFailure;
-import es.bsc.compss.types.data.CollectionInfo;
 import es.bsc.compss.types.data.DataAccessId;
 import es.bsc.compss.types.data.DataAccessId.Direction;
 import es.bsc.compss.types.data.DataInfo;

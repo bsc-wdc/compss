@@ -704,7 +704,20 @@ public abstract class NIOAgent {
                 } else {
                     reqs = byTarget.remove(t.getFileName());
                 }
-                receivedValue(t.getDestination(), t.getFileName(), t.getObject(), reqs);
+                boolean isDirectory = requests.get(0).getType().equals(DataType.DIRECTORY_T);
+                if (isDirectory) {
+                    LOGGER.debug(" _______________________________________________________");
+                    String zipFile = new File(t.getFileName()).getName();
+                    String targetName = t.getFileName().replace(".zip", "");
+                    LOGGER.debug(DBG_PREFIX + "Compressed data 2 " + zipFile + " will be decompressed  and saved as "
+                        + targetName);
+                    // Creating the directory from zip file
+                    extractFolder(zipFile, targetName);
+                    LOGGER.debug(" ________________________________________________________");
+                    receivedValue(t.getDestination(), targetName, t.getObject(), reqs);
+                } else {
+                    receivedValue(t.getDestination(), t.getFileName(), t.getObject(), reqs);
+                }
             } else {
                 if (t.isObject()) {
                     if (DEBUG) {
@@ -789,6 +802,7 @@ public abstract class NIOAgent {
             int buffer = 2048;
             File zipDir = new File(extractFolder);
             if (zipDir.exists()) {
+                LOGGER.debug(" Removing existing zip..." + zipDir);
                 boolean removed = zipDir.delete();
             }
             if (zipDir.isDirectory()) {
@@ -853,7 +867,9 @@ public abstract class NIOAgent {
 
             }
 
-            file.delete();
+            if (!file.delete()) {
+                LOGGER.warn(" Cannot remove zip file.. " + file.getName());
+            }
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.error("ERROR: " + e.getMessage());

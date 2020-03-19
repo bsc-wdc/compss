@@ -1081,6 +1081,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     /**
      * Moves the directory to its target location.
+     * TODO: recursively?
      *
      * @param source Source dir path.
      * @param target Target dir path.

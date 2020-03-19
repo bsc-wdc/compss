@@ -27,6 +27,7 @@ import es.bsc.compss.nio.NIOParamCollection;
 import es.bsc.compss.nio.exceptions.NoSourcesException;
 import es.bsc.compss.nio.listeners.CollectionFetchOperationsListener;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.InvocationParamURI;
@@ -49,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -568,9 +570,16 @@ public class DataManagerImpl implements DataManager {
                                 }
 
                                 if (param.isPreserveSourceData()) {
-                                    Files.copy(srcPath, tgtPath);
+                                    WORKER_LOGGER.debug("..........FILES.COPY....." + param.getType());
+                                    if (param.getType() == DataType.DIRECTORY_T) {
+                                        FileUtils.copyDirectory(srcPath.toFile(), tgtPath.toFile());
+                                    } else {
+                                        Files.copy(srcPath, tgtPath);
+                                    }
                                 } else {
                                     try {
+                                        // todo: recursive needed for directories?
+                                        WORKER_LOGGER.debug("..........FILES.MOVE....." + param.getType());
                                         Files.move(srcPath, tgtPath, StandardCopyOption.ATOMIC_MOVE);
                                     } catch (AtomicMoveNotSupportedException amnse) {
                                         WORKER_LOGGER.warn("WARN: AtomicMoveNotSupportedException."

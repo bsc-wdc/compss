@@ -1797,7 +1797,7 @@ launch() {
     # Sleep a little before launching master
     local num_workers=$((hostid-1))
     local sleep_time
-    if [ ${num_workers} -ge 1 ] && [ ${num_workers} -lt 100 ]; then
+    if [ ${num_workers} -lt 100 ]; then
       sleep_time="10s"
     else
       if [ ${num_workers} -ge 100 ] && [ ${num_workers} -lt 800 ]; then

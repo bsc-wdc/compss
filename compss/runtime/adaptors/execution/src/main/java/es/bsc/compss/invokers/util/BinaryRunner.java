@@ -332,6 +332,7 @@ public class BinaryRunner {
         builder.environment().remove(Tracer.LD_PRELOAD);
         builder.environment().put(Invoker.COMPSS_HOSTNAMES, System.getProperty(Invoker.COMPSS_HOSTNAMES));
         builder.environment().put(Invoker.COMPSS_NUM_NODES, System.getProperty(Invoker.COMPSS_NUM_NODES));
+        builder.environment().put(Invoker.COMPSS_NODES, System.getProperty(Invoker.COMPSS_NODES));
         builder.environment().put(Invoker.COMPSS_NUM_THREADS, System.getProperty(Invoker.COMPSS_NUM_THREADS));
         builder.environment().put(Invoker.OMP_NUM_THREADS, System.getProperty(Invoker.OMP_NUM_THREADS));
 

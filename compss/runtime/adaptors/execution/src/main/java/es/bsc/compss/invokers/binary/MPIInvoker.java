@@ -44,6 +44,7 @@ public class MPIInvoker extends Invoker {
 
     private final String mpiRunner;
     private final String mpiBinary;
+    private final boolean scaleByCU;
 
 
     /**
@@ -71,6 +72,7 @@ public class MPIInvoker extends Invoker {
         // MPI flags
         this.mpiRunner = mpiImpl.getMpiRunner();
         this.mpiBinary = mpiImpl.getBinary();
+        this.scaleByCU = mpiImpl.getScaleByCU();
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -130,22 +132,33 @@ public class MPIInvoker extends Invoker {
             this.invocation.getTarget(), streamValues, this.pythonInterpreter);
 
         // Create hostfile
-        String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
+        String hostfile = null;
+        int numMPIArgs = NUM_BASE_MPI_ARGS;
+        if (this.scaleByCU) {
+            hostfile = writeHostfile(taskSandboxWorkingDir, workers);
+        } else {
+            hostfile = writeHostfile(taskSandboxWorkingDir, hostnames);
+            numMPIArgs = numMPIArgs + 2; // to add the -x OMP_NUM_THREADS
+        }
 
         // Prepare command
-        String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];
+        String[] cmd = new String[numMPIArgs + binaryParams.size()];
         cmd[0] = this.mpiRunner;
         cmd[1] = "-hostfile";
         cmd[2] = hostfile;
         cmd[3] = "-n";
+        if (scaleByCU) {
+            cmd[4] = String.valueOf(this.numWorkers * this.computingUnits);
+            cmd[5] = this.mpiBinary;
+        } else {
+            cmd[4] = String.valueOf(this.numWorkers);
+            cmd[5] = "-x";
+            cmd[6] = "OMP_NUM_THREADS";
+            cmd[7] = this.mpiBinary;
+        }
 
-        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
-        cmd[4] = numProcs;
-        // cmd[5] = "--bind-to";
-        // cmd[6] = "core";
-        cmd[5] = this.mpiBinary;
         for (int i = 0; i < binaryParams.size(); ++i) {
-            cmd[NUM_BASE_MPI_ARGS + i] = binaryParams.get(i);
+            cmd[numMPIArgs + i] = binaryParams.get(i);
         }
 
         // Prepare environment

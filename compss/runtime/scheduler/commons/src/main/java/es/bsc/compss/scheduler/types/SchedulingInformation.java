@@ -82,8 +82,10 @@ public class SchedulingInformation {
      */
     public static List<ResourceScheduler<? extends WorkerResourceDescription>> getCoreElementExecutors(int coreId) {
         List<ResourceScheduler<? extends WorkerResourceDescription>> res = new LinkedList<>();
-        for (ResourceScheduler<? extends WorkerResourceDescription> rs : CORE_TO_WORKERS.get(coreId)) {
-            res.add(rs);
+        if (!CORE_TO_WORKERS.isEmpty()) {
+            for (ResourceScheduler<? extends WorkerResourceDescription> rs : CORE_TO_WORKERS.get(coreId)) {
+                res.add(rs);
+            }
         }
         return res;
     }

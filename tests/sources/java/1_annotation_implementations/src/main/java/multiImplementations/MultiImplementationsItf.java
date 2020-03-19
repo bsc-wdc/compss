@@ -28,12 +28,12 @@ public interface MultiImplementationsItf {
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "multiImplementations.Implementation1", constraints = @Constraints(computingUnits = "2"))
-    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "1")
+    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", processes = "1")
     void methodMpi(@Parameter(type = Type.FILE, direction = Direction.INOUT) String counterFile);
 
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "multiImplementations.Implementation1", constraints = @Constraints(computingUnits = "2"))
-    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "1")
+    @MPI(binary = "${MPI_BINARY}", mpiRunner = "mpirun", processes = "1", scaleByCU = true)
     void mpiMethod(@Parameter(type = Type.FILE, direction = Direction.INOUT) String counterFile);
 
 }

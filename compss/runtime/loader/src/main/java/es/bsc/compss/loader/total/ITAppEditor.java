@@ -455,7 +455,7 @@ public class ITAppEditor extends ExprEditor {
                 MPI mpiAnnot = declaredMethod.getAnnotation(MPI.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(mpiAnnot.priority()));
                 // Parse computingNodes from environment if needed
-                String numNodesSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.computingNodes());
+                String numNodesSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.processes());
                 numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
                     ? Integer.valueOf(numNodesSTR)
                     : Constants.SINGLE_NODE;

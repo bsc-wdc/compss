@@ -144,6 +144,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String mpiBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String mpiWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     String mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
+                    boolean scaleByCU = Boolean.parseBoolean(implTypeArgs[3]);
+
                     if (mpiRunner == null || mpiRunner.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty mpiRunner annotation for MPI method " + implSignature);
@@ -152,7 +154,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Empty binary annotation for MPI method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new MPIDefinition(implSignature, mpiBinary, mpiWorkingDir,
-                        mpiRunner, (MethodResourceDescription) implConstraints);
+                        mpiRunner, scaleByCU, (MethodResourceDescription) implConstraints);
                     break;
 
                 case COMPSs:

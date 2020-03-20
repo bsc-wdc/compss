@@ -72,14 +72,38 @@ public class SimpleURI {
         this.path = fullPath.substring(parsedIndex);
     }
 
+    /**
+     * Returns the parsed schema.
+     * 
+     * @return The parsed schema.
+     */
     public String getSchema() {
-        return (this.schema.isEmpty() ? "" : this.schema + SCHEMA_SEPARATOR);
+        String parsedSchema = "";
+        if (!this.schema.isEmpty()) {
+            if (this.schema.endsWith(SCHEMA_SEPARATOR)) {
+                parsedSchema = this.schema;
+            } else {
+                parsedSchema = this.schema + SCHEMA_SEPARATOR;
+            }
+        }
+
+        return parsedSchema;
     }
 
+    /**
+     * Returns the host name.
+     * 
+     * @return The URI host name.
+     */
     public String getHost() {
         return this.hostname;
     }
 
+    /**
+     * Returns the path.
+     * 
+     * @return The URI path.
+     */
     public String getPath() {
         return this.path;
     }

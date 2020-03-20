@@ -81,20 +81,16 @@ public class MultiURI implements Comparable<MultiURI> {
         return o;
     }
 
+    public ProtocolType getProtocol() {
+        return this.protocol;
+    }
+
     public Resource getHost() {
         return this.host;
     }
 
     public String getPath() {
         return this.path;
-    }
-
-    public ProtocolType getProtocol() {
-        return this.protocol;
-    }
-
-    public String getScheme() {
-        return this.protocol.getSchema();
     }
 
     @Override
@@ -108,11 +104,16 @@ public class MultiURI implements Comparable<MultiURI> {
      * @return
      */
     public String debugString() {
-        StringBuilder sb =
-            new StringBuilder(this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(this.protocol.getSchema());
+        sb.append(this.host.getName()).append(File.separator).append(this.path);
+        sb.append("\n");
+
         for (Entry<String, Object> e : this.internal.entrySet()) {
             sb.append("\t * ").append(e.getKey()).append(" -> ").append(e.getValue()).append("\n");
         }
+
         return sb.toString();
     }
 

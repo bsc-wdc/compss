@@ -26,6 +26,8 @@ import es.bsc.compss.types.resources.description.CloudMethodResourceDescription;
 import es.bsc.compss.util.Classpath;
 
 import es.bsc.conn.Connector;
+import es.bsc.conn.types.HardwareDescription;
+import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.VirtualResource;
 
 import java.io.File;
@@ -102,7 +104,7 @@ public class DefaultNoSSHConnector extends AbstractConnector {
             Class<?> conClass = Class.forName(connectorMainClass);
             Constructor<?> constructor = conClass.getDeclaredConstructors()[0];
             conn = (Connector) constructor.newInstance(connectorProperties);
-            LOGGER.debug("Ending connector creaton handling");
+            LOGGER.debug("Ending connector handling");
         } catch (FileNotFoundException fnfe) {
             LOGGER.error("Specific connector jar file not found", fnfe);
             throw new ConnectorException("Specific Connector jar file (" + connectorJarPath + ") not found", fnfe);
@@ -124,24 +126,25 @@ public class DefaultNoSSHConnector extends AbstractConnector {
 
     @Override
     public void destroy(Object id) throws ConnectorException {
-        LOGGER.debug("Destroy connection with id " + id);
+        LOGGER.debug("Destroy connectorProxy with id " + id);
         this.connectorProxy.destroy(id);
     }
 
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
-        LOGGER.debug("Create connection " + name);
+        LOGGER.debug("Create connectorProxy " + name);
 
-        return this.connectorProxy.create(name, Converter.getHardwareDescription(cmrd),
-            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties(),
-            cmrd.getImage().getConfig().getAdaptorName(), cmrd.getMinPort());
+        HardwareDescription hd = Converter.getHardwareDescription(cmrd);
+        SoftwareDescription sd = Converter.getSoftwareDescription(cmrd);
+        return this.connectorProxy.create(name, hd, sd, cmrd.getImage().getProperties());
     }
 
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested)
         throws ConnectorException {
 
-        LOGGER.debug("Waiting for " + id);
+        LOGGER.debug("Waiting connectorProxy with id " + id);
+
         VirtualResource vr = this.connectorProxy.waitUntilCreation(id);
         CloudMethodResourceDescription cmrd = Converter.toCloudMethodResourceDescription(vr, requested);
         LOGGER.debug("Return cloud method resource description " + cmrd.toString());
@@ -161,6 +164,7 @@ public class DefaultNoSSHConnector extends AbstractConnector {
     @Override
     protected void close() {
         LOGGER.debug("Close connector");
+
         this.connectorProxy.close();
     }
 

@@ -32,13 +32,9 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     public static final CloudMethodResourceDescription EMPTY = new CloudMethodResourceDescription();
 
     // Resource Description
-    private String name = "";
+    private String name;
     private final Map<CloudInstanceTypeDescription, int[]> typeComposition;
-    private CloudImageDescription image = null;
-
-    // Adaptors properties
-    private int minPort;
-    private int maxPort;
+    private CloudImageDescription image;
 
 
     /**
@@ -46,7 +42,10 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription() {
         super();
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
+        this.image = null;
     }
 
     /**
@@ -56,7 +55,10 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(Constraints constraints) {
         super(constraints);
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
+        this.image = null;
     }
 
     /**
@@ -66,7 +68,10 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(MethodResourceDescription constraints) {
         super(constraints);
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
+        this.image = null;
     }
 
     /**
@@ -76,6 +81,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(CloudMethodResourceDescription clone) {
         super(clone);
+
         this.name = clone.name;
         this.typeComposition = new HashMap<>();
         for (Entry<CloudInstanceTypeDescription, int[]> entry : clone.typeComposition.entrySet()) {
@@ -92,6 +98,8 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
      */
     public CloudMethodResourceDescription(CloudInstanceTypeDescription type, CloudImageDescription image) {
         super(type.getResourceDescription());
+
+        this.name = "";
         this.typeComposition = new HashMap<>();
         this.typeComposition.put(type, new int[] { 1 });
         this.image = image;
@@ -121,39 +129,21 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     }
 
     /**
-     * Returns the adaptor's minimum port.
+     * Returns the associated image.
      * 
-     * @return The adaptor's minimum port (-1 if not defined).
+     * @return The associated cloud image.
      */
-    public int getMinPort() {
-        return this.minPort;
+    public CloudImageDescription getImage() {
+        return this.image;
     }
 
     /**
-     * Sets a new value for the adaptor's minimum port.
+     * Sets a new associated cloud image.
      * 
-     * @param minPort New value for the adaptor's minimum port.
+     * @param image New cloud image.
      */
-    public void setMinPort(int minPort) {
-        this.minPort = minPort;
-    }
-
-    /**
-     * Returns the adaptor's maximum port.
-     * 
-     * @return The adaptor's maximum port (-1 if not defined).
-     */
-    public int getMaxPort() {
-        return this.maxPort;
-    }
-
-    /**
-     * Sets a new value for the adaptor's maximum port.
-     * 
-     * @param maxPort New value for the adaptor's maximum port.
-     */
-    public void setMaxPort(int maxPort) {
-        this.maxPort = maxPort;
+    public void setImage(CloudImageDescription image) {
+        this.image = image;
     }
 
     /**
@@ -258,24 +248,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
             int[] count = typeCount.getValue();
             removeInstances(type, count[0]);
         }
-    }
-
-    /**
-     * Returns the associated image.
-     * 
-     * @return The associated cloud image.
-     */
-    public CloudImageDescription getImage() {
-        return this.image;
-    }
-
-    /**
-     * Sets a new associated cloud image.
-     * 
-     * @param image New cloud image.
-     */
-    public void setImage(CloudImageDescription image) {
-        this.image = image;
     }
 
     @Override

@@ -124,8 +124,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
         LOGGER.debug("Create connection " + name);
 
         return this.connectorProxy.create(name, Converter.getHardwareDescription(cmrd),
-            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties(),
-            cmrd.getImage().getConfig().getAdaptorName(), cmrd.getMinPort());
+            Converter.getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
     }
 
     @Override

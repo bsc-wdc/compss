@@ -65,16 +65,14 @@ public class ConnectorProxy {
      * Creates a new machine in the given connector with the given information.
      * 
      * @param name Machine name.
-     * @param hardwareDescription Connector hardware properties.
-     * @param softwareDescription Connector software properties.
+     * @param hd Connector hardware properties.
+     * @param sd Connector software properties.
      * @param properties Specific properties.
-     * @param adaptorName Name of the adaptor used to connect to this machine.
-     * @param minPort Minimum available port for the worker.
      * @return Machine Object.
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
-    public Object create(String name, HardwareDescription hardwareDescription, SoftwareDescription softwareDescription,
-        Map<String, String> properties, String adaptorName, int minPort) throws ConnectorException {
+    public Object create(String name, HardwareDescription hd, SoftwareDescription sd, Map<String, String> properties)
+        throws ConnectorException {
 
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
@@ -82,22 +80,20 @@ public class ConnectorProxy {
 
         Object created = null;
         try {
-            StarterCommand starterCMD =
-                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties, minPort);
-            created = this.connector.create(name, hardwareDescription, softwareDescription, properties, starterCMD);
+            StarterCommand starterCMD = getStarterCommand(name, hd, sd);
+            created = this.connector.create(name, hd, sd, properties, starterCMD);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }
         return created;
     }
 
-    private StarterCommand getStarterCommand(String adaptorName, String name, HardwareDescription hd,
-        SoftwareDescription sd, Map<String, String> properties, int minPort) {
-
+    private StarterCommand getStarterCommand(String name, HardwareDescription hd, SoftwareDescription sd) {
+        String adaptorName = sd.getInstallation().getAdaptorName();
         CommAdaptor adaptor = Comm.getAdaptor(adaptorName);
         if (adaptor != null) {
             String hostId = null; // Set by connector
-            return adaptor.getStarterCommand(name, minPort, Comm.getAppHost().getName(),
+            return adaptor.getStarterCommand(name, sd.getInstallation().getMinPort(), Comm.getAppHost().getName(),
                 sd.getInstallation().getWorkingDir(), sd.getInstallation().getInstallDir(),
                 sd.getInstallation().getAppDir(), sd.getInstallation().getClasspath(),
                 sd.getInstallation().getPythonPath(), sd.getInstallation().getLibraryPath(),
@@ -113,27 +109,22 @@ public class ConnectorProxy {
      * 
      * @param replicas Number of replicas for this machine
      * @param name Machine name.
-     * @param hardwareDescription Connector hardware properties.
-     * @param softwareDescription Connector software properties.
+     * @param hd Connector hardware properties.
+     * @param sd Connector software properties.
      * @param properties Specific properties.
-     * @param adaptorName Name of the adaptor used to connect to this machine.
-     * @param minPort Minimum available port for the workers.
      * @return Machine Object.
      * @throws ConnectorException If an invalid connector is provided or if machine cannot be created.
      */
-    public Object createMultiple(int replicas, String name, HardwareDescription hardwareDescription,
-        SoftwareDescription softwareDescription, Map<String, String> properties, String adaptorName, int minPort)
-        throws ConnectorException {
+    public Object createMultiple(int replicas, String name, HardwareDescription hd, SoftwareDescription sd,
+        Map<String, String> properties) throws ConnectorException {
 
         if (this.connector == null) {
             throw new ConnectorException(ERROR_NO_CONN);
         }
         Object[] created = null;
         try {
-            StarterCommand starterCMD =
-                getStarterCommand(adaptorName, name, hardwareDescription, softwareDescription, properties, minPort);
-            created = this.connector.createMultiple(replicas, name, hardwareDescription, softwareDescription,
-                properties, starterCMD);
+            StarterCommand starterCMD = getStarterCommand(name, hd, sd);
+            created = this.connector.createMultiple(replicas, name, hd, sd, properties, starterCMD);
         } catch (ConnException ce) {
             throw new ConnectorException(ce);
         }

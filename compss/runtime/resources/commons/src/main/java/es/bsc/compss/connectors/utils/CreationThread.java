@@ -297,11 +297,11 @@ public class CreationThread extends Thread {
         mc.setTotalOTHERComputingUnits(granted.getTotalOTHERComputingUnits());
 
         // Fix NIO port range if requested by VM
-        int minPort = granted.getMinPort();
+        int minPort = granted.getImage().getConfig().getMinPort();
         if (minPort != -1) {
             mc.setMinPort(minPort);
         }
-        int maxPort = granted.getMaxPort();
+        int maxPort = granted.getImage().getConfig().getMaxPort();
         if (maxPort != -1) {
             mc.setMaxPort(maxPort);
         }

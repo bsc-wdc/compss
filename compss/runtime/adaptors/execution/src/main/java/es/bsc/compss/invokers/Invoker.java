@@ -57,6 +57,7 @@ public abstract class Invoker {
     protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type";
 
     public static final String COMPSS_NUM_NODES = "COMPSS_NUM_NODES";
+    public static final String COMPSS_NODES = "COMPSS_NODES";
     public static final String COMPSS_HOSTNAMES = "COMPSS_HOSTNAMES";
     public static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
     public static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
@@ -69,6 +70,7 @@ public abstract class Invoker {
     protected final int computingUnits;
     protected final String workers;
     protected final int numWorkers;
+    protected final List<String> hostnames;
     protected final String pythonInterpreter;
 
 
@@ -99,33 +101,10 @@ public abstract class Invoker {
         }
 
         // Multi-Node flags
-        List<String> hostnames = invocation.getSlaveNodesNames();
+        this.hostnames = invocation.getSlaveNodesNames();
         hostnames.add(context.getHostName());
         this.numWorkers = hostnames.size();
-
-        boolean firstElement = true;
-        StringBuilder hostnamesSTR = new StringBuilder();
-        for (Iterator<String> it = hostnames.iterator(); it.hasNext();) {
-            String hostname = it.next();
-            // Remove infiniband suffix
-            if (hostname.endsWith("-ib0")) {
-                hostname = hostname.substring(0, hostname.lastIndexOf("-ib0"));
-            }
-
-            // Add one host name per process to launch
-            if (firstElement) {
-                firstElement = false;
-                hostnamesSTR.append(hostname);
-                for (int i = 1; i < computingUnits; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
-                }
-            } else {
-                for (int i = 0; i < computingUnits; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
-                }
-            }
-        }
-        this.workers = hostnamesSTR.toString();
+        this.workers = buildWorkersString(hostnames, computingUnits);
 
         // Python interpreter for direct access on stream property calls
         LanguageParams lp = this.context.getLanguageParams(Lang.PYTHON);
@@ -197,6 +176,32 @@ public abstract class Invoker {
             out.println("  * Has Target: " + (invocation.getTarget() != null));
             out.println("  * Has Return: " + (invocation.getResults() != null));
         }
+    }
+
+    private static String buildWorkersString(List<String> hostnames, int computingUnits) {
+        boolean firstElement = true;
+        StringBuilder hostnamesSTR = new StringBuilder();
+        for (String hostname : hostnames) {
+            // Remove infiniband suffix
+            if (hostname.endsWith("-ib0")) {
+                hostname = hostname.substring(0, hostname.lastIndexOf("-ib0"));
+            }
+
+            // Add one host name per process to launch
+            if (firstElement) {
+                firstElement = false;
+                hostnamesSTR.append(hostname);
+                for (int i = 1; i < computingUnits; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
+            } else {
+                for (int i = 0; i < computingUnits; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
+            }
+        }
+        return hostnamesSTR.toString();
+
     }
 
     private void processParameter(InvocationParam np) throws JobExecutionException {
@@ -345,6 +350,7 @@ public abstract class Invoker {
         System.setProperty(COMPSsWorker.COMPSS_TASK_ID, String.valueOf(this.invocation.getTaskId()));
         System.setProperty(COMPSS_NUM_NODES, String.valueOf(this.numWorkers));
         System.setProperty(COMPSS_HOSTNAMES, this.workers);
+        System.setProperty(COMPSS_NODES, buildWorkersString(hostnames, 1));
         System.setProperty(COMPSS_NUM_THREADS, String.valueOf(this.computingUnits));
         System.setProperty(OMP_NUM_THREADS, String.valueOf(this.computingUnits));
 
@@ -400,6 +406,20 @@ public abstract class Invoker {
             throw new InvokeExecutionException("ERROR: Cannot write hostfile", ioe);
         }
         return filename;
+    }
+
+    /**
+     * Writes the given list of workers to a hostfile inside the given task sandbox.
+     *
+     * @param taskSandboxWorkingDir task execution sandbox directory
+     * @param workers list of workers in mpi hostfile style
+     * @return Returns the generated hostfile location inside the task sandbox
+     * @throws InvokeExecutionException Exception writting hostfile
+     */
+    protected static String writeHostfile(File taskSandboxWorkingDir, List<String> workers)
+        throws InvokeExecutionException {
+        String workersStr = buildWorkersString(workers, 1);
+        return writeHostfile(taskSandboxWorkingDir, workersStr);
     }
 
 }

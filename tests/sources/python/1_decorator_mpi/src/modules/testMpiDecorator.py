@@ -25,32 +25,32 @@ def myDate(dprefix, param):
 
 
 @constraint(computing_units="2")
-@mpi(binary="date", working_dir="/tmp", runner="mpirun", computing_nodes=2)
+@mpi(binary="date", working_dir="/tmp", runner="mpirun", processes=2, scale_by_cu=True)
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
 
 @constraint(computing_units="$CUS")
-@mpi(binary="date", working_dir="/tmp", runner="mpirun", computing_nodes="$CUS")
+@mpi(binary="date", working_dir="/tmp", runner="mpirun", processes="$CUS", scale_by_cu=True)
 @task()
 def myDateConstrainedWithEnvVar(dprefix, param):
     pass
 
 
-@mpi(binary="sed", working_dir=".", runner="mpirun", computing_nodes="4")
+@mpi(binary="sed", working_dir=".", runner="mpirun", processes="4")
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass
 
 
-@mpi(binary="date", working_dir=".", runner="mpirun", computing_nodes=1)
+@mpi(binary="date", working_dir=".", runner="mpirun", processes=1)
 @task(returns=int)
 def myReturn():
     pass
 
 
-@mpi(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", computing_nodes=1)
+@mpi(binary="./private.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", processes=1)
 @task(returns=int)
 def failedBinary(code):
     pass
@@ -70,18 +70,18 @@ def myGrepper(keyword, infile, result):
     pass
 
 
-@mpi(binary="ls", runner="mpirun", computing_nodes=2)
+@mpi(binary="ls", runner="mpirun", processes=2)
 @task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Type: IN, Prefix: "--sort="})
 def myLs(flag, hide, sort):
     pass
 
 
-@mpi(binary="ls", runner="mpirun", computing_nodes=2)
+@mpi(binary="ls", runner="mpirun", processes=2)
 @task(hide={Type: FILE_IN, Prefix: "--hide="}, sort={Prefix: "--sort="})
 def myLsWithoutType(flag, hide, sort):
     pass
 
-@mpi(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", computing_nodes=1)
+@mpi(binary="./checkNames.sh", working_dir=os.getcwd() + '/src/scripts/', runner="mpirun", processes=1)
 @task(f=FILE_IN, fp={Type: FILE_IN, Prefix: "--prefix="}, fout={Type: FILE_OUT}, returns=int)
 def checkFileNames(f, fp, name, fout):
     pass

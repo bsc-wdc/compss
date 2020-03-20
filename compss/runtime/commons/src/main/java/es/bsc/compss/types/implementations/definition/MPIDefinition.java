@@ -30,19 +30,21 @@ public class MPIDefinition extends ImplementationDefinition<MethodResourceDescri
     private final String binary;
     private final String workingDir;
     private final String mpiRunner;
+    private final boolean scaleByCU;
 
 
-    protected MPIDefinition(String signature, String binary, String workingDir, String mpiRunner,
+    protected MPIDefinition(String signature, String binary, String workingDir, String mpiRunner, boolean scaleByCU,
         MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;
         this.workingDir = workingDir;
         this.mpiRunner = mpiRunner;
+        this.scaleByCU = scaleByCU;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new MPIImplementation(binary, workingDir, mpiRunner, coreId, implId, this.getSignature(),
+        return new MPIImplementation(binary, workingDir, mpiRunner, scaleByCU, coreId, implId, this.getSignature(),
             this.getConstraints());
     }
 
@@ -54,6 +56,7 @@ public class MPIDefinition extends ImplementationDefinition<MethodResourceDescri
         sb.append("\t Binary: ").append(binary).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
+        sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

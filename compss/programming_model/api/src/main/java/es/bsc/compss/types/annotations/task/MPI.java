@@ -71,7 +71,14 @@ public @interface MPI {
      * 
      * @return the number of computing nodes required.
      */
-    String computingNodes() default Constants.UNASSIGNED;
+    String processes() default Constants.UNASSIGNED;
+
+    /**
+     * Indicates if Computing units in constraints are also considered MPI processes.
+     * 
+     * @return True if processes must be scaled by the computing unit defined in the constraints.
+     */
+    boolean scaleByCU() default false;
 
     /*
      * COMMON PROPERTIES

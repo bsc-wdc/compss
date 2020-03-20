@@ -83,7 +83,8 @@ public class COMPSsRuntimeImplTest {
         implType = "MPI";
         implTypeArgs = new String[] { "mpiBinary",
             "mpiWorkingDir",
-            "mpiRunner" };
+            "mpiRunner",
+            "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCore(1).getImplementations().get(0);

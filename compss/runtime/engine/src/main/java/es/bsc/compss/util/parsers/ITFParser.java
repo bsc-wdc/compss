@@ -550,7 +550,7 @@ public class ITFParser {
             String binary = EnvironmentLoader.loadFromEnvironment(mpiAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(mpiAnnot.workingDir());
             String mpiRunner = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiRunner());
-
+            String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
             if (mpiRunner == null || mpiRunner.isEmpty()) {
                 ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
             }
@@ -576,7 +576,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implConstraints, binary, workingDir, mpiRunner);
+                    implConstraints, binary, workingDir, mpiRunner, scaleByCUStr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

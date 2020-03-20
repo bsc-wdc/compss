@@ -16,7 +16,7 @@ from pycompss.api.parameter import *
 
 
 @constraint(computing_units="2")
-@mpi(runner="mpirun", computing_nodes="2")
+@mpi(runner="mpirun", processes="2", scale_by_cu=True)
 @task(returns=4)
 def init(seed):
     from mpi4py import MPI
@@ -30,7 +30,7 @@ def init(seed):
 
 
 @constraint(computing_units="2")
-@mpi(runner="mpirun", computing_nodes="2")
+@mpi(runner="mpirun", processes="2", scale_by_cu=True)
 @task(input_data=COLLECTION_IN, returns=4)
 def scale(input_data, i):
     from mpi4py import MPI
@@ -43,7 +43,7 @@ def scale(input_data, i):
     return a
 
 @constraint(computing_units="2")
-@mpi(runner="mpirun", computing_nodes="2")
+@mpi(runner="mpirun", processes="2", scale_by_cu=True)
 @task(input_data=COLLECTION_IN, returns=4)
 def increment(input_data):
     from mpi4py import MPI
@@ -57,7 +57,7 @@ def increment(input_data):
 
 
 @constraint(computing_units="2")
-@mpi(runner="mpirun", computing_nodes="2")
+@mpi(runner="mpirun", processes="2", scale_by_cu=True)
 @task(input_data={Type:COLLECTION_IN, Depth:2}, returns=4)
 def merge(input_data):
     from mpi4py import MPI

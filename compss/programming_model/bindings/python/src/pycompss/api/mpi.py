@@ -39,11 +39,13 @@ if __debug__:
 
 MANDATORY_ARGUMENTS = {'runner'}
 SUPPORTED_ARGUMENTS = {'binary',
-                       'computing_nodes',
+                       'processes',
                        'working_dir',
                        'binary',
-                       'runner'}
-DEPRECATED_ARGUMENTS = {'computingNodes',
+                       'runner',
+                       'scale_by_cu'}
+DEPRECATED_ARGUMENTS = {'computing_nodes',
+                        'computingNodes',
                         'workingDir'}
 
 
@@ -81,14 +83,18 @@ class MPI(object):
 
             # Get the computing nodes: This parameter will have to go down
             # until execution when invoked.
-            if 'computing_nodes' not in self.kwargs and \
-                    'computingNodes' not in self.kwargs:
-                self.kwargs['computing_nodes'] = 1
+            if 'processes' not in self.kwargs and \
+                    'computing_nodes' not in self.kwargs and \
+                    'computingNodes' not in self.kwargs :
+                self.kwargs['processes'] = 1
             else:
-                if 'computingNodes' in self.kwargs:
-                    self.kwargs['computing_nodes'] = \
+                if 'computing_nodes' in self.kwargs:
+                    self.kwargs['processes'] = \
+                        self.kwargs.pop('computing_nodes')
+                elif 'computingNodes' in self.kwargs :
+                    self.kwargs['processes'] = \
                         self.kwargs.pop('computingNodes')
-                computing_nodes = self.kwargs['computing_nodes']
+                computing_nodes = self.kwargs['processes']
                 if isinstance(computing_nodes, int):
                     # Nothing to do
                     pass
@@ -100,26 +106,26 @@ class MPI(object):
                         if env_var.startswith('{'):
                             env_var = env_var[1:-1]  # remove brackets
                         try:
-                            self.kwargs['computing_nodes'] = \
+                            self.kwargs['processes'] = \
                                 int(os.environ[env_var])
                         except ValueError:
                             raise Exception(
-                                cast_env_to_int_error('ComputingNodes'))
+                                cast_env_to_int_error('processes'))
                     else:
                         # ComputingNodes is in string form, cast it
                         try:
-                            self.kwargs['computing_nodes'] = \
+                            self.kwargs['processes'] = \
                                 int(computing_nodes)
                         except ValueError:
                             raise Exception(
-                                cast_string_to_int_error('ComputingNodes'))
+                                cast_string_to_int_error('processes'))
                 else:
-                    raise Exception("ERROR: Wrong Computing Nodes value at" +
+                    raise Exception("ERROR: Wrong processes value at" +
                                     " @mpi decorator.")
             if __debug__:
                 logger.debug("This MPI task will have " +
-                             str(self.kwargs['computing_nodes']) +
-                             " computing nodes.")
+                             str(self.kwargs['processes']) +
+                             " processes.")
         else:
             pass
 
@@ -193,14 +199,27 @@ class MPI(object):
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     runner = self.kwargs['runner']
-
+                    if 'scale_by_cu' in self.kwargs:
+                        scale_by_cu = self.kwargs['scale_by_cu']
+                        if isinstance(scale_by_cu, bool):
+                            if scale_by_cu :
+                                scale_by_cu_str = 'true'
+                            else:
+                                scale_by_cu_str = 'false'
+                        elif isinstance(scale_by_cu, str):
+                            scale_by_cu_str = scale_by_cu
+                        else:
+                            raise Exception("Incorrect format for scale_by_cu property. " +
+                                            " It should be boolean or an environment variable")
+                    else :
+                        scale_by_cu_str = 'false'
                     if binary == "[unassigned]":
                         impl_signature = "MPI."
                     else:
                         impl_signature = 'MPI.' + binary
 
                     cce.set_impl_signature(impl_signature)
-                    impl_args = [binary, working_dir, runner]
+                    impl_args = [binary, working_dir, runner, scale_by_cu_str]
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code
@@ -212,7 +231,7 @@ class MPI(object):
 
             # Set the computing_nodes variable in kwargs for its usage
             # in @task decorator
-            kwargs['computing_nodes'] = self.kwargs['computing_nodes']
+            kwargs['computing_nodes'] = self.kwargs['processes']
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

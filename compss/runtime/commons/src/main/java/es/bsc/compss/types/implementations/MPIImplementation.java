@@ -31,11 +31,12 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 3;
+    public static final int NUM_PARAMS = 4;
 
     private String mpiRunner;
     private String binary;
     private String workingDir;
+    private boolean scaleByCU;
 
 
     /**
@@ -52,12 +53,13 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      * @param binary MPI binary path.
      * @param workingDir Binary working directory.
      * @param mpiRunner Path to the MPI command.
+     * @param scaleByCU Scale by computing units property.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature MPI method signature.
      * @param annot MPI requirements.
      */
-    public MPIImplementation(String binary, String workingDir, String mpiRunner, Integer coreId,
+    public MPIImplementation(String binary, String workingDir, String mpiRunner, boolean scaleByCU, Integer coreId,
         Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
@@ -65,6 +67,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         this.mpiRunner = mpiRunner;
         this.workingDir = workingDir;
         this.binary = binary;
+        this.scaleByCU = scaleByCU;
     }
 
     /**
@@ -94,6 +97,15 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         return this.mpiRunner;
     }
 
+    /**
+     * Returns the scale by computing units property.
+     * 
+     * @return scale by computing units property value.
+     */
+    public boolean getScaleByCU() {
+        return this.scaleByCU;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.MPI;
@@ -120,6 +132,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         this.mpiRunner = (String) in.readObject();
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
+        this.scaleByCU = in.readBoolean();
     }
 
     @Override
@@ -128,6 +141,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         out.writeObject(this.mpiRunner);
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
+        out.writeBoolean(this.scaleByCU);
     }
 
 }

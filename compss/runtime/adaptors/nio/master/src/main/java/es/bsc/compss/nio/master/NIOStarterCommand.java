@@ -136,7 +136,7 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         // Application parameters
         cmd[nextPosition++] = DEPLOYMENT_ID;
         cmd[nextPosition++] = this.lang;
-        cmd[nextPosition++] = this.workingDir;
+        cmd[nextPosition++] = this.sandboxedWorkingDir;
         cmd[nextPosition++] = this.installDir;
 
         cmd[nextPosition++] = cmd[2];

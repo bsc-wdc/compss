@@ -84,6 +84,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     protected int workerPort;
     protected String masterName;
     protected String workingDir;
+    protected String sandboxedWorkingDir;
     protected String installDir;
     protected String appDir = "";
     protected String workerClasspath = "";
@@ -134,6 +135,7 @@ public abstract class WorkerStarterCommand implements StarterCommand {
         this.workerPort = workerPort;
         this.masterName = masterName;
         this.workingDir = workingDir;
+        this.sandboxedWorkingDir = workingDir;
         this.installDir = installDir;
 
         if (!appDir.isEmpty()) {
@@ -253,6 +255,11 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     }
 
     @Override
+    public String getBaseWorkingDir() {
+        return this.workingDir;
+    }
+
+    @Override
     public void setWorkerName(String workerName) {
         this.workerName = workerName;
     }
@@ -260,6 +267,11 @@ public abstract class WorkerStarterCommand implements StarterCommand {
     @Override
     public void setNodeId(String nodeId) {
         this.hostId = nodeId;
+    }
+
+    @Override
+    public void setSandboxedWorkingDir(String sandboxedWorkingDir) {
+        this.sandboxedWorkingDir = sandboxedWorkingDir;
     }
 
 }

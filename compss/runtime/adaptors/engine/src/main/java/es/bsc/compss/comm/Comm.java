@@ -648,7 +648,7 @@ public class Comm {
                         if (!f.delete()) {
                             LOGGER.error("Cannot delete file " + f.getAbsolutePath());
                     } else if (f.isDirectory()) {
-                        // check if it's a directory
+                        // directories must be removed recursively
                         Path directory = Paths.get(uri.getPath());
                         try {
                             Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {

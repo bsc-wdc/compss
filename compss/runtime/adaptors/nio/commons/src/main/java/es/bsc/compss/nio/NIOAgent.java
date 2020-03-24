@@ -102,6 +102,8 @@ public abstract class NIOAgent {
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
 
+    private static final String COMPRESSED_DIR_EXTENSION = ".zip";
+
     private int sendTransfers;
     private final int maxSendTransfers;
     private final Connection[] trasmittingConnections;
@@ -244,7 +246,8 @@ public abstract class NIOAgent {
                 }
                 switch (dr.getType()) {
                     case DIRECTORY_T:
-                        c.receiveDataFile(dr.getTarget() + ".zip");
+                        // directories are compressed right before being transferred
+                        c.receiveDataFile(dr.getTarget().concat(COMPRESSED_DIR_EXTENSION));
                         c.finishConnection();
                         break;
                     case FILE_T:
@@ -447,43 +450,24 @@ public abstract class NIOAgent {
     }
 
     private void compressAndSendDir(Connection c, String path, NIOData d) {
-
         File f = new File(path);
         if (f.exists()) {
             if (DEBUG) {
                 LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will compress and transfer directory " + path
                     + " as data " + d.getDataMgmtId());
             }
-
-            String zipFile = path + ".zip";
-            if (!createZip(path, zipFile)) {
-                ErrorManager.warn("Can't send neither file '" + path + "'" + "' via connection " + c.hashCode()
-                    + " because files don't exist.");
+            String zipFile = path.concat(COMPRESSED_DIR_EXTENSION);
+            boolean zipCreated = createZip(path, zipFile);
+            if (!zipCreated) {
+                ErrorManager.warn("Can't send directory '" + path + "'" + "' via connection " + c.hashCode()
+                    + " because '"+ COMPRESSED_DIR_EXTENSION +"' file couldn't be created.");
                 handleDataToSendNotAvailable(c, d);
             }
             c.sendDataFile(zipFile);
-
         } else {
-            // todo: fix!
-            if (!f.getName().equals(d.getDataMgmtId())) {
-                // todo: is renamed in '.zip' format or how?
-                File renamed = new File(getPossiblyRenamedFileName(f, d));
-                if (renamed.exists()) {
-                    if (DEBUG) {
-                        LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will transfer file "
-                            + renamed.getAbsolutePath() + " as data " + d.getDataMgmtId());
-                    }
-                    c.sendDataFile(renamed.getAbsolutePath());
-                } else {
-                    ErrorManager.warn("Can't send neither file '" + path + "' nor file '" + renamed.getAbsolutePath()
-                        + "' via connection " + c.hashCode() + " because files don't exist.");
-                    handleDataToSendNotAvailable(c, d);
-                }
-            } else {
-                ErrorManager.warn(
-                    "Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
+                // todo: make sure this is not the case!
+                ErrorManager.warn("Can't send directory '" + path + "' via connection " + c.hashCode() + " because it doesn't exist.");
                 handleDataToSendNotAvailable(c, d);
-            }
         }
 
     }
@@ -500,14 +484,15 @@ public abstract class NIOAgent {
             try {
                 p = Files.createFile(Paths.get(zipFilePath));
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error(e);
                 return false;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(e);
             return false;
         }
 
+        // walk through the directory and add everything to the zip file
         try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
             Path pp = Paths.get(sourceDirPath);
             Files.walk(pp).filter(path -> !Files.isDirectory(path)).forEach(path -> {
@@ -520,7 +505,7 @@ public abstract class NIOAgent {
                     LOGGER.error(e);
                 }
             });
-            LOGGER.debug("________ zip created: " + sourceDirPath);
+            LOGGER.debug("zip file of the directory '" + sourceDirPath + "' has been created");
         } catch (IOException e) {
             LOGGER.error(e);
             return false;
@@ -627,8 +612,6 @@ public abstract class NIOAgent {
             LOGGER.warn("WARN: No data removed for received data " + dataId);
             return;
         }
-
-        boolean isBindingType = requests.get(0).getType().equals(DataType.BINDING_OBJECT_T);
         Map<String, List<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
             LOGGER.debug(DBG_PREFIX + "Group by target:" + req.getTarget() + "(" + dataId + ")");
@@ -639,6 +622,11 @@ public abstract class NIOAgent {
             }
             sameTarget.add(req);
         }
+
+        // files, binding objects, and directories are all transferred as files, get the exact data type from the request
+        DataType drType = requests.get(0).getType();
+        boolean isBindingType = drType.equals(DataType.BINDING_OBJECT_T);
+        boolean isDirectory = drType.equals(DataType.DIRECTORY_T);
 
         if (byTarget.size() == 1) {
             // if only target data_id value requested raise reception notification with target name
@@ -652,12 +640,12 @@ public abstract class NIOAgent {
                     // When worker binding is not persistent binding objects can be transferred as files
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
-                boolean isDirectory = requests.get(0).getType().equals(DataType.DIRECTORY_T);
+
                 if (isDirectory) {
-                    String zipFile = targetName.concat(".zip");
+                    String zipFile = targetName.concat(COMPRESSED_DIR_EXTENSION);
                     LOGGER.debug(DBG_PREFIX + "Compressed data " + zipFile + " will be decompressed  and saved as "
                         + targetName);
-                    // Creating the directory from zip file
+                    // todo: what to do if decompression fails?
                     extractFolder(zipFile, targetName);
                     receivedValue(t.getDestination(), targetName, t.getObject(), requests);
                 } else {
@@ -704,16 +692,13 @@ public abstract class NIOAgent {
                 } else {
                     reqs = byTarget.remove(t.getFileName());
                 }
-                boolean isDirectory = requests.get(0).getType().equals(DataType.DIRECTORY_T);
+
                 if (isDirectory) {
-                    LOGGER.debug(" _______________________________________________________");
                     String zipFile = new File(t.getFileName()).getName();
-                    String targetName = t.getFileName().replace(".zip", "");
-                    LOGGER.debug(DBG_PREFIX + "Compressed data 2 " + zipFile + " will be decompressed  and saved as "
+                    String targetName = t.getFileName().replace(COMPRESSED_DIR_EXTENSION, "");
+                    LOGGER.debug(DBG_PREFIX + "Compressed data " + zipFile + " will be decompressed  and saved as "
                         + targetName);
-                    // Creating the directory from zip file
                     extractFolder(zipFile, targetName);
-                    LOGGER.debug(" ________________________________________________________");
                     receivedValue(t.getDestination(), targetName, t.getObject(), reqs);
                 } else {
                     receivedValue(t.getDestination(), t.getFileName(), t.getObject(), reqs);
@@ -796,27 +781,29 @@ public abstract class NIOAgent {
 
     }
 
-    private void extractFolder(String zipFile, String extractFolder) {
+    private boolean extractFolder(String zipFilePath, String destination) {
         try {
-            // todo: handle the error
+            // todo: what to do if the zip already exists?
             int buffer = 2048;
-            File zipDir = new File(extractFolder);
-            if (zipDir.exists()) {
-                LOGGER.debug(" Removing existing zip..." + zipDir);
-                boolean removed = zipDir.delete();
+            File destDir = new File(destination);
+            if (destDir.exists() && !destDir.isDirectory()) {
+                LOGGER.warn(" Removing existing file: " + destination);
+                if(!destDir.delete()){
+                    LOGGER.error("Cannot remove: '" + destination+"' " );
+                    LOGGER.error("Cannot extract: '" + zipFilePath+"' " );
+                    return false;
+                }
             }
-            if (zipDir.isDirectory()) {
-                // check if it's a directory
-                Path directory = Paths.get(extractFolder);
+            if (destDir.isDirectory()) {
+                // directories must be deleted recursively
+                Path directory = Paths.get(destination);
                 try {
                     Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-
                         @Override
                         public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
                             Files.delete(file);
                             return FileVisitResult.CONTINUE;
                         }
-
                         @Override
                         public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
                             Files.delete(dir);
@@ -824,13 +811,16 @@ public abstract class NIOAgent {
                         }
                     });
                 } catch (IOException e) {
-                    LOGGER.error("Cannot delete directory " + extractFolder);
+                    LOGGER.error("Cannot delete directory " + destination);
+                    return false;
                 }
             }
-            zipDir.mkdir();
 
-            File file = new File(zipFile);
-            ZipFile zip = new ZipFile(file);
+            // destination doesn't exist, create the directory and extract the compressed data into it
+            destDir.mkdir();
+
+            File zipFile = new File(zipFilePath);
+            ZipFile zip = new ZipFile(zipFile);
             Enumeration zipFileEntries = zip.entries();
 
             // Process each entry
@@ -839,8 +829,7 @@ public abstract class NIOAgent {
                 ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
                 String currentEntry = entry.getName();
 
-                File destFile = new File(extractFolder, currentEntry);
-                // destFile = new File(newPath, destFile.getName());
+                File destFile = new File(destination, currentEntry);
                 File destinationParent = destFile.getParentFile();
 
                 // create the parent directory structure if needed
@@ -867,14 +856,14 @@ public abstract class NIOAgent {
 
             }
 
-            if (!file.delete()) {
-                LOGGER.warn(" Cannot remove zip file.. " + file.getName());
+            if (!zipFile.delete()) {
+                LOGGER.warn(" Cannot remove zip file after decompression: " + zipFile.getName());
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("ERROR: " + e.getMessage());
+            LOGGER.error(e);
+            return false;
         }
-
+        return true;
     }
 
     private String getName(String path) {

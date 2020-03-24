@@ -234,13 +234,12 @@ public interface COMPSsRuntime {
     public String openFile(String fileName, Direction mode);
 
     /**
-     * Returns the renaming of the file version opened.
      *
-     * @param fileName File name.
+     * @param dirName Directory name.
      * @param mode Access mode.
      * @return
      */
-    public String openDirectory(String fileName, Direction mode);
+    public String openDirectory(String dirName, Direction mode);
 
     /**
      * Close the opened file version.
@@ -276,7 +275,7 @@ public interface COMPSsRuntime {
     public void getFile(Long appId, String fileName);
 
     /**
-     * Returns last version of file with its original name.
+     * Returns last version of directory with its original name.
      *
      * @param appId Application id.
      * @param dirName Directory name.

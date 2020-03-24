@@ -1011,27 +1011,26 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     @Override
     public void getDirectory(Long appId, String dirName) {
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.GET_FILE.getId(), TraceEvent.GET_FILE.getType());
+            Tracer.emitEvent(TraceEvent.GET_DIRECTORY.getId(), TraceEvent.GET_DIRECTORY.getType());
         }
 
         // Parse the dir name
         DataLocation sourceLocation = null;
         try {
-            // Check if fileName contains schema
+            // Check if dirName contains schema
             SimpleURI uri = new SimpleURI(dirName);
             if (uri.getSchema().isEmpty()) {
-                // Add default File scheme and wrap local paths
+                // Add default Dir scheme and wrap local paths
                 String canonicalPath = new File(dirName).getCanonicalPath();
                 dirName = ProtocolType.DIR_URI.getSchema() + canonicalPath;
             }
-
             sourceLocation = createLocation(dirName);
 
         } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            ErrorManager.fatal(ERROR_DIR_NAME, ioe);
         }
         if (sourceLocation == null) {
-            ErrorManager.fatal(ERROR_FILE_NAME);
+            ErrorManager.fatal(ERROR_DIR_NAME);
         }
 
         LOGGER.debug("Getting directory " + dirName);
@@ -1052,7 +1051,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         moveDirectory(intermediateTmpPath, dirName);
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_FILE.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_DIRECTORY.getType());
         }
     }
 
@@ -1081,7 +1080,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
     /**
      * Moves the directory to its target location.
-     * TODO: recursively?
      *
      * @param source Source dir path.
      * @param target Target dir path.
@@ -1094,6 +1092,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         Path sourcePath = Paths.get(source);
         Path destinationPath = Paths.get(target);
 
+        // todo: recursively?
         try {
             Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE,
                 StandardCopyOption.REPLACE_EXISTING);
@@ -1112,7 +1111,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     private void deleteFolder(File folder) {
-        if (folder.isDirectory()) {
+        if (folder.isDirectory() && folder.listFiles() != null) {
             for (File f : folder.listFiles()) {
                 deleteFolder(f);
             }
@@ -1248,21 +1247,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     }
 
     @Override
-    public String openDirectory(String fileName, Direction mode) {
-
+    public String openDirectory(String dirName, Direction mode) {
         // todo: common in both api's ??
-
-        LOGGER.info("Opening " + fileName + " in mode " + mode);
+        LOGGER.info("Opening " + dirName + " in mode " + mode);
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(TraceEvent.OPEN_FILE.getId(), TraceEvent.OPEN_FILE.getType());
+            Tracer.emitEvent(TraceEvent.OPEN_DIRECTORY.getId(), TraceEvent.OPEN_DIRECTORY.getType());
         }
         // Parse arguments to internal structures
         DataLocation loc;
         try {
-            loc = createLocation(fileName);
+            loc = createLocation(dirName);
         } catch (IOException ioe) {
-            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            ErrorManager.fatal(ERROR_DIR_NAME, ioe);
             return null;
         }
 
@@ -1290,18 +1287,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         switch (loc.getType()) {
             case PRIVATE:
             case SHARED:
-                finalPath = mainAccessToFile(fileName, loc, am, null, true);
+                finalPath = mainAccessToFile(dirName, loc, am, null, true);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("File target Location: " + finalPath);
+                    LOGGER.debug("File (dir) target Location: " + finalPath);
                 }
                 break;
             default:
                 finalPath = null;
-                ErrorManager.error("ERROR: Unrecognised protocol requesting openFile " + fileName);
+                ErrorManager.error("ERROR: Unrecognised protocol requesting openDirectory " + dirName);
         }
 
         if (Tracer.extraeEnabled()) {
-            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.OPEN_FILE.getType());
+            Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.OPEN_DIRECTORY.getType());
         }
 
         return finalPath;

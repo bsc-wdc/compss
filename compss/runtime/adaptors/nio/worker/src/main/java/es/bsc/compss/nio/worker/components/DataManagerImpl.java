@@ -239,8 +239,6 @@ public class DataManagerImpl implements DataManager {
                 fetchBindingObject(param, paramIdx, tt);
                 break;
             case DIRECTORY_T:
-                fetchFile(param, paramIdx, tt);
-                break;
             case FILE_T:
             case EXTERNAL_STREAM_T:
                 fetchFile(param, paramIdx, tt);
@@ -570,7 +568,6 @@ public class DataManagerImpl implements DataManager {
                                 }
 
                                 if (param.isPreserveSourceData()) {
-                                    WORKER_LOGGER.debug("..........FILES.COPY....." + param.getType());
                                     if (param.getType() == DataType.DIRECTORY_T) {
                                         FileUtils.copyDirectory(srcPath.toFile(), tgtPath.toFile());
                                     } else {
@@ -579,7 +576,6 @@ public class DataManagerImpl implements DataManager {
                                 } else {
                                     try {
                                         // todo: recursive needed for directories?
-                                        WORKER_LOGGER.debug("..........FILES.MOVE....." + param.getType());
                                         Files.move(srcPath, tgtPath, StandardCopyOption.ATOMIC_MOVE);
                                     } catch (AtomicMoveNotSupportedException amnse) {
                                         WORKER_LOGGER.warn("WARN: AtomicMoveNotSupportedException."

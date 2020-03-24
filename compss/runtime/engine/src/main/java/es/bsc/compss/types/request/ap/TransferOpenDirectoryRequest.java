@@ -31,7 +31,6 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.DataOperation;
 import es.bsc.compss.types.data.operation.DirectoryTransferable;
-import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
 import es.bsc.compss.types.uri.SimpleURI;
 import es.bsc.compss.util.ErrorManager;
@@ -41,8 +40,8 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- * The TransferRawFileRequest class represents a request to transfer a file located in a worker to be transferred to
- * another location without register the transfer.
+ * The TransferOpenDirectoryRequest class represents a request to transfer a directory located in a worker to be transferred to
+ * another location.
  */
 public class TransferOpenDirectoryRequest extends APRequest {
 
@@ -53,9 +52,9 @@ public class TransferOpenDirectoryRequest extends APRequest {
 
 
     /**
-     * Constructs a new TransferOpenFileRequest.
+     * Constructs a new TransferOpenDirectoryRequest.
      *
-     * @param faId Data Id and version of the requested file.
+     * @param faId Data Id and version of the requested directory.
      * @param sem Semaphore where to synchronize until the operation is done.
      */
     public TransferOpenDirectoryRequest(DataAccessId faId, Semaphore sem) {

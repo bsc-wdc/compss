@@ -40,8 +40,8 @@ import java.util.concurrent.Semaphore;
 
 
 /**
- * The TransferOpenDirectoryRequest class represents a request to transfer a directory located in a worker to be transferred to
- * another location.
+ * The TransferOpenDirectoryRequest class represents a request to transfer a directory located in a worker to be
+ * transferred to another location.
  */
 public class TransferOpenDirectoryRequest extends APRequest {
 

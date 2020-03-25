@@ -460,14 +460,15 @@ public abstract class NIOAgent {
             boolean zipCreated = createZip(path, zipFile);
             if (!zipCreated) {
                 ErrorManager.warn("Can't send directory '" + path + "'" + "' via connection " + c.hashCode()
-                    + " because '"+ COMPRESSED_DIR_EXTENSION +"' file couldn't be created.");
+                    + " because '" + COMPRESSED_DIR_EXTENSION + "' file couldn't be created.");
                 handleDataToSendNotAvailable(c, d);
             }
             c.sendDataFile(zipFile);
         } else {
-                // todo: make sure this is not the case!
-                ErrorManager.warn("Can't send directory '" + path + "' via connection " + c.hashCode() + " because it doesn't exist.");
-                handleDataToSendNotAvailable(c, d);
+            // todo: make sure this is not the case!
+            ErrorManager.warn(
+                "Can't send directory '" + path + "' via connection " + c.hashCode() + " because it doesn't exist.");
+            handleDataToSendNotAvailable(c, d);
         }
 
     }
@@ -623,7 +624,8 @@ public abstract class NIOAgent {
             sameTarget.add(req);
         }
 
-        // files, binding objects, and directories are all transferred as files, get the exact data type from the request
+        // files, binding objects, and directories are all transferred as files, get the exact data type from the
+        // request
         DataType drType = requests.get(0).getType();
         boolean isBindingType = drType.equals(DataType.BINDING_OBJECT_T);
         boolean isDirectory = drType.equals(DataType.DIRECTORY_T);
@@ -788,9 +790,9 @@ public abstract class NIOAgent {
             File destDir = new File(destination);
             if (destDir.exists() && !destDir.isDirectory()) {
                 LOGGER.warn(" Removing existing file: " + destination);
-                if(!destDir.delete()){
-                    LOGGER.error("Cannot remove: '" + destination+"' " );
-                    LOGGER.error("Cannot extract: '" + zipFilePath+"' " );
+                if (!destDir.delete()) {
+                    LOGGER.error("Cannot remove: '" + destination + "' ");
+                    LOGGER.error("Cannot extract: '" + zipFilePath + "' ");
                     return false;
                 }
             }
@@ -799,11 +801,13 @@ public abstract class NIOAgent {
                 Path directory = Paths.get(destination);
                 try {
                     Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+
                         @Override
                         public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
                             Files.delete(file);
                             return FileVisitResult.CONTINUE;
                         }
+
                         @Override
                         public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
                             Files.delete(dir);

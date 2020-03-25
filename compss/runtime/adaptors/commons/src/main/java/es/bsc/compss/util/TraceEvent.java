@@ -30,7 +30,7 @@ public enum TraceEvent {
     OPEN_DIRECTORY(57, Tracer.API_EVENTS, "Waiting for open directory"), // Open directory
     GET_FILE(8, Tracer.API_EVENTS, "Waiting for get file"), // Get file
     GET_OBJECT(9, Tracer.API_EVENTS, "Waiting for get object"), // Get Object
-    GET_DIRECTORY(58, Tracer.API_EVENTS, "Waiting for get Directory"), //  Get Directory
+    GET_DIRECTORY(58, Tracer.API_EVENTS, "Waiting for get Directory"), // Get Directory
     TASK_RUNNING(11, Tracer.RUNTIME_EVENTS, "Task Running"), // Task running
     DELETE(12, Tracer.API_EVENTS, "Delete File"), // Delete file
     WORKER_RECEIVED_NEW_TASK(13, Tracer.RUNTIME_EVENTS, "Received new task"), // New task at worker

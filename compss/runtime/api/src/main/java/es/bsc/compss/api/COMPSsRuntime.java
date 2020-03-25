@@ -234,7 +234,8 @@ public interface COMPSsRuntime {
     public String openFile(String fileName, Direction mode);
 
     /**
-     *
+     * Returns the renaming of the file version opened.
+     * 
      * @param dirName Directory name.
      * @param mode Access mode.
      * @return

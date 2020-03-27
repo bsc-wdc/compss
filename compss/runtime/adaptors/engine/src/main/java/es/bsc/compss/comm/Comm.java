@@ -647,29 +647,29 @@ public class Comm {
                         LOGGER.info("Deleting file " + f.getAbsolutePath());
                         if (!f.delete()) {
                             LOGGER.error("Cannot delete file " + f.getAbsolutePath());
-                    } else if (f.isDirectory()) {
-                        // directories must be removed recursively
-                        Path directory = Paths.get(uri.getPath());
-                        try {
-                            Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+                        } else if (f.isDirectory()) {
+                            // directories must be removed recursively
+                            Path directory = Paths.get(uri.getPath());
+                            try {
+                                Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
 
-                                @Override
-                                public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
-                                    throws IOException {
-                                    Files.delete(file);
-                                    return FileVisitResult.CONTINUE;
-                                }
+                                    @Override
+                                    public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
+                                        throws IOException {
+                                        Files.delete(file);
+                                        return FileVisitResult.CONTINUE;
+                                    }
 
-                                @Override
-                                public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                                    throws IOException {
-                                    Files.delete(dir);
-                                    return FileVisitResult.CONTINUE;
-                                }
-                            });
-                        } catch (IOException e) {
-                            LOGGER.error("Cannot delete directory " + f.getAbsolutePath());
-                        }
+                                    @Override
+                                    public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                                        throws IOException {
+                                        Files.delete(dir);
+                                        return FileVisitResult.CONTINUE;
+                                    }
+                                });
+                            } catch (IOException e) {
+                                LOGGER.error("Cannot delete directory " + f.getAbsolutePath());
+                            }
                         }
                     }
                 }

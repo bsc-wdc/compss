@@ -60,8 +60,9 @@ public abstract class DataLocation implements Comparable<DataLocation> {
         }
         DataLocation loc = null;
         switch (protocol) {
+            case DIR_URI:
             case FILE_URI:
-                // Local file
+                // Local file or dir
                 String canonicalPath = null;
                 try {
                     canonicalPath = new URI(uri.getPath()).normalize().getPath();
@@ -73,7 +74,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 }
                 LOGGER
                     .debug("Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
-                loc = createLocation(ProtocolType.FILE_URI, host, canonicalPath);
+                loc = createLocation(protocol, host, canonicalPath);
                 break;
             case SHARED_URI:
                 // Shared file of the form: shared://sharedDisk/path/file

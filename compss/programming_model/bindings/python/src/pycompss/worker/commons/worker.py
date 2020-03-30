@@ -56,7 +56,8 @@ def build_task_parameter(p_type, p_stream, p_prefix, p_name, p_value, p_c_type,
     :return: Parameter object
     """
     num_substrings = 0
-    if p_type in [parameter.TYPE.FILE, parameter.TYPE.COLLECTION]:
+    if p_type in [parameter.TYPE.FILE, parameter.TYPE.DIRECTORY,
+                  parameter.TYPE.COLLECTION]:
         # Maybe the file is a object, we dont care about this here
         # We will decide whether to deserialize or to forward the value
         # when processing parameters in the task decorator

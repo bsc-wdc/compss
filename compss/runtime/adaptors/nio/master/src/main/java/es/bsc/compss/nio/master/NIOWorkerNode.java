@@ -631,6 +631,9 @@ public class NIOWorkerNode extends COMPSsWorker {
     public SimpleURI getCompletePath(DataType type, String name) {
         String path = null;
         switch (type) {
+            case DIRECTORY_T:
+                path = ProtocolType.DIR_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
+                break;
             case FILE_T:
                 path = ProtocolType.FILE_URI.getSchema() + this.config.getSandboxWorkingDir() + name;
                 break;

@@ -340,6 +340,20 @@ def get_file(file_name):
     compss.get_file(0, file_name)
 
 
+def get_directory(dir_name):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to request last version of file.
+
+    :param dir_name: dir name to retrieve
+    :return: None
+    """
+    if __debug__:
+        logger.debug("Getting directory %s" % dir_name)
+
+    compss.get_directory(0, dir_name)
+
+
 def delete_object(obj):
     """
     Removes a used object from the internal structures and calls the
@@ -1085,6 +1099,11 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         # and we register it as file
         value = param.file_name
         typ = TYPE.FILE
+
+    elif param.type == TYPE.DIRECTORY:
+        value = param.file_name
+        typ = TYPE.DIRECTORY
+
     elif param.type == TYPE.OBJECT:
         # If the parameter is an object, its value is stored in a file and
         # we register it as file

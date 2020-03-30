@@ -42,6 +42,7 @@ import es.bsc.compss.types.data.location.DataLocation;
 import es.bsc.compss.types.data.location.PersistentLocation;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.data.operation.BindingObjectTransferable;
+import es.bsc.compss.types.data.operation.DirectoryTransferable;
 import es.bsc.compss.types.data.operation.FileTransferable;
 import es.bsc.compss.types.data.operation.ObjectTransferable;
 import es.bsc.compss.types.data.operation.OneOpWithSemListener;
@@ -1057,6 +1058,10 @@ public class DataInfoProvider {
                         if (DEBUG) {
                             LOGGER.debug("Discarding data d" + dataId + " as a result beacuse it is a binding object");
                         }
+                    } else if (rf.getOriginalLocation().getProtocol() == ProtocolType.DIR_URI) {
+                        listener.addOperation();
+                        Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new DirectoryTransferable(),
+                            listener);
                     } else {
                         listener.addOperation();
                         Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);

@@ -625,6 +625,9 @@ public class ExecutionAction extends AllocatableAction {
         DependencyParameter dp = (DependencyParameter) p;
         String targetProtocol;
         switch (dp.getType()) {
+            case DIRECTORY_T:
+                targetProtocol = ProtocolType.DIR_URI.getSchema();
+                break;
             case FILE_T:
                 targetProtocol = ProtocolType.FILE_URI.getSchema();
                 break;

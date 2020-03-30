@@ -208,6 +208,9 @@ public class RemoteRESTAgent extends COMPSsWorker {
         // The path of the data is the same than in the master
         String path = null;
         switch (type) {
+            case DIRECTORY_T:
+                path = ProtocolType.DIR_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
+                break;
             case FILE_T:
                 path = ProtocolType.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;

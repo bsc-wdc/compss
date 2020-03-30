@@ -19,13 +19,13 @@ package es.bsc.compss.nio;
 import static java.lang.Math.abs;
 
 import es.bsc.comm.Connection;
+import es.bsc.comm.Node;
 import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIOConnection;
 import es.bsc.comm.nio.NIOEventManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-
 import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.nio.commands.Command;
@@ -55,16 +55,29 @@ import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.ErrorManager;
 import es.bsc.compss.util.Serializer;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -88,6 +101,8 @@ public abstract class NIOAgent {
     public static final int NUM_PARAMS_NIO_WORKER = 34;
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
+
+    private static final String COMPRESSED_DIR_EXTENSION = ".zip";
 
     private int sendTransfers;
     private final int maxSendTransfers;
@@ -230,6 +245,11 @@ public abstract class NIOAgent {
                     c.receive();
                 }
                 switch (dr.getType()) {
+                    case DIRECTORY_T:
+                        // directories are compressed right before being transferred
+                        c.receiveDataFile(dr.getTarget().concat(COMPRESSED_DIR_EXTENSION));
+                        c.finishConnection();
+                        break;
                     case FILE_T:
                     case EXTERNAL_STREAM_T:
                         c.receiveDataFile(dr.getTarget());
@@ -339,6 +359,9 @@ public abstract class NIOAgent {
         String path = d.getFirstURI().getPath();
         ProtocolType scheme = d.getFirstURI().getProtocol();
         switch (scheme) {
+            case DIR_URI:
+                compressAndSendDir(c, path, d);
+                break;
             case FILE_URI:
             case SHARED_URI:
             case EXTERNAL_STREAM_URI:
@@ -424,6 +447,71 @@ public abstract class NIOAgent {
             }
             sendObject(c, path, d);
         }
+    }
+
+    private void compressAndSendDir(Connection c, String path, NIOData d) {
+        File f = new File(path);
+        if (f.exists()) {
+            if (DEBUG) {
+                LOGGER.debug(DBG_PREFIX + "Connection " + c.hashCode() + " will compress and transfer directory " + path
+                    + " as data " + d.getDataMgmtId());
+            }
+            String zipFile = path.concat(COMPRESSED_DIR_EXTENSION);
+            boolean zipCreated = createZip(path, zipFile);
+            if (!zipCreated) {
+                ErrorManager.warn("Can't send directory '" + path + "'" + "' via connection " + c.hashCode()
+                    + " because '" + COMPRESSED_DIR_EXTENSION + "' file couldn't be created.");
+                handleDataToSendNotAvailable(c, d);
+            }
+            c.sendDataFile(zipFile);
+        } else {
+            // todo: make sure this is not the case!
+            ErrorManager.warn(
+                "Can't send directory '" + path + "' via connection " + c.hashCode() + " because it doesn't exist.");
+            handleDataToSendNotAvailable(c, d);
+        }
+
+    }
+
+    private boolean createZip(String sourceDirPath, String zipFilePath) {
+
+        Path p;
+        try {
+            p = Files.createFile(Paths.get(zipFilePath));
+        } catch (FileAlreadyExistsException fae) {
+            // todo: what to do with the old zip?
+            File oldZipFile = new File(zipFilePath);
+            oldZipFile.delete();
+            try {
+                p = Files.createFile(Paths.get(zipFilePath));
+            } catch (IOException e) {
+                LOGGER.error(e);
+                return false;
+            }
+        } catch (IOException e) {
+            LOGGER.error(e);
+            return false;
+        }
+
+        // walk through the directory and add everything to the zip file
+        try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(p))) {
+            Path pp = Paths.get(sourceDirPath);
+            Files.walk(pp).filter(path -> !Files.isDirectory(path)).forEach(path -> {
+                ZipEntry zipEntry = new ZipEntry(pp.relativize(path).toString());
+                try {
+                    zs.putNextEntry(zipEntry);
+                    Files.copy(path, zs);
+                    zs.closeEntry();
+                } catch (IOException e) {
+                    LOGGER.error(e);
+                }
+            });
+            LOGGER.debug("zip file of the directory '" + sourceDirPath + "' has been created");
+        } catch (IOException e) {
+            LOGGER.error(e);
+            return false;
+        }
+        return true;
     }
 
     private void sendBindingObject(Connection c, String path, NIOData d) {
@@ -525,8 +613,6 @@ public abstract class NIOAgent {
             LOGGER.warn("WARN: No data removed for received data " + dataId);
             return;
         }
-
-        boolean isBindingType = requests.get(0).getType().equals(DataType.BINDING_OBJECT_T);
         Map<String, List<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
             LOGGER.debug(DBG_PREFIX + "Group by target:" + req.getTarget() + "(" + dataId + ")");
@@ -537,6 +623,12 @@ public abstract class NIOAgent {
             }
             sameTarget.add(req);
         }
+
+        // files, binding objects, and directories are all transferred as files, get the exact data type from the
+        // request
+        DataType drType = requests.get(0).getType();
+        boolean isBindingType = drType.equals(DataType.BINDING_OBJECT_T);
+        boolean isDirectory = drType.equals(DataType.DIRECTORY_T);
 
         if (byTarget.size() == 1) {
             // if only target data_id value requested raise reception notification with target name
@@ -550,7 +642,17 @@ public abstract class NIOAgent {
                     // When worker binding is not persistent binding objects can be transferred as files
                     receivedBindingObjectAsFile(t.getFileName(), targetName);
                 }
-                receivedValue(t.getDestination(), targetName, t.getObject(), requests);
+
+                if (isDirectory) {
+                    String zipFile = targetName.concat(COMPRESSED_DIR_EXTENSION);
+                    LOGGER.debug(DBG_PREFIX + "Compressed data " + zipFile + " will be decompressed  and saved as "
+                        + targetName);
+                    // todo: what to do if decompression fails?
+                    extractFolder(zipFile, targetName);
+                    receivedValue(t.getDestination(), targetName, t.getObject(), requests);
+                } else {
+                    receivedValue(t.getDestination(), targetName, t.getObject(), requests);
+                }
             } else {
                 if (t.isObject()) {
                     receivedValue(t.getDestination(), getName(targetName), t.getObject(), requests);
@@ -592,7 +694,17 @@ public abstract class NIOAgent {
                 } else {
                     reqs = byTarget.remove(t.getFileName());
                 }
-                receivedValue(t.getDestination(), t.getFileName(), t.getObject(), reqs);
+
+                if (isDirectory) {
+                    String zipFile = new File(t.getFileName()).getName();
+                    String targetName = t.getFileName().replace(COMPRESSED_DIR_EXTENSION, "");
+                    LOGGER.debug(DBG_PREFIX + "Compressed data " + zipFile + " will be decompressed  and saved as "
+                        + targetName);
+                    extractFolder(zipFile, targetName);
+                    receivedValue(t.getDestination(), targetName, t.getObject(), reqs);
+                } else {
+                    receivedValue(t.getDestination(), t.getFileName(), t.getObject(), reqs);
+                }
             } else {
                 if (t.isObject()) {
                     if (DEBUG) {
@@ -669,6 +781,93 @@ public abstract class NIOAgent {
             shutdown(closingConnection);
         }
 
+    }
+
+    private boolean extractFolder(String zipFilePath, String destination) {
+        try {
+            // todo: what to do if the zip already exists?
+            int buffer = 2048;
+            File destDir = new File(destination);
+            if (destDir.exists() && !destDir.isDirectory()) {
+                LOGGER.warn(" Removing existing file: " + destination);
+                if (!destDir.delete()) {
+                    LOGGER.error("Cannot remove: '" + destination + "' ");
+                    LOGGER.error("Cannot extract: '" + zipFilePath + "' ");
+                    return false;
+                }
+            }
+            if (destDir.isDirectory()) {
+                // directories must be deleted recursively
+                Path directory = Paths.get(destination);
+                try {
+                    Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        @Override
+                        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                } catch (IOException e) {
+                    LOGGER.error("Cannot delete directory " + destination);
+                    return false;
+                }
+            }
+
+            // destination doesn't exist, create the directory and extract the compressed data into it
+            destDir.mkdir();
+
+            File zipFile = new File(zipFilePath);
+            ZipFile zip = new ZipFile(zipFile);
+            Enumeration zipFileEntries = zip.entries();
+
+            // Process each entry
+            while (zipFileEntries.hasMoreElements()) {
+                // grab a zip file entry
+                ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
+                String currentEntry = entry.getName();
+
+                File destFile = new File(destination, currentEntry);
+                File destinationParent = destFile.getParentFile();
+
+                // create the parent directory structure if needed
+                destinationParent.mkdirs();
+
+                if (!entry.isDirectory()) {
+                    BufferedInputStream is = new BufferedInputStream(zip.getInputStream(entry));
+                    int currentByte;
+                    // establish buffer for writing file
+                    byte[] data = new byte[buffer];
+
+                    // write the current file to disk
+                    FileOutputStream fos = new FileOutputStream(destFile);
+                    BufferedOutputStream dest = new BufferedOutputStream(fos, buffer);
+
+                    // read and write until last byte is encountered
+                    while ((currentByte = is.read(data, 0, buffer)) != -1) {
+                        dest.write(data, 0, currentByte);
+                    }
+                    dest.flush();
+                    dest.close();
+                    is.close();
+                }
+
+            }
+
+            if (!zipFile.delete()) {
+                LOGGER.warn(" Cannot remove zip file after decompression: " + zipFile.getName());
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return false;
+        }
+        return true;
     }
 
     private String getName(String path) {
@@ -926,7 +1125,7 @@ public abstract class NIOAgent {
 
     /**
      * Re-send a given command to a given NIONode.
-     * 
+     *
      * @param node NIO node to re-send the command
      * @param cmd Command to re-send
      */
@@ -947,7 +1146,7 @@ public abstract class NIOAgent {
 
     /**
      * Check and handle if error in connection is for a command.
-     * 
+     *
      * @param c Connection with an error.
      * @return Returns true True if error is in a command and it has been managed, otherwise returns False
      */

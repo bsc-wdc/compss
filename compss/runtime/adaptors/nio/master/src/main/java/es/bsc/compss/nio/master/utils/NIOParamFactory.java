@@ -58,6 +58,7 @@ public class NIOParamFactory {
     public static NIOParam fromParameter(Parameter param, NIOWorkerNode node) {
         NIOParam np;
         switch (param.getType()) {
+            case DIRECTORY_T:
             case FILE_T:
             case OBJECT_T:
             case PSCO_T:

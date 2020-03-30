@@ -50,6 +50,8 @@ jmethodID midCloseFile;             /* ID of the closeFile method in the es.bsc.
 jmethodID midDeleteFile;            /* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midGetFile;               /* ID of the getFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
+jmethodID midGetDirectory;          /* ID of the getDirectory method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
+
 jmethodID midBarrier; 		        /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midBarrierNew;            /* ID of the barrier method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midBarrierGroup;            /* ID of the barrierGroup method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -284,6 +286,13 @@ void init_master_jni_types() {
 
     // getFile method
     midGetFile = m_env->GetMethodID(clsITimpl, "getFile", "(Ljava/lang/Long;Ljava/lang/String;)V");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    // getDirectory method
+    midGetDirectory = m_env->GetMethodID(clsITimpl, "getDirectory", "(Ljava/lang/Long;Ljava/lang/String;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -580,6 +589,25 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
             exit(1);
         }
         break;
+
+    case directory_dt:
+        jobjParVal = m_env->NewStringUTF(*(char **)parVal);
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+
+        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Directory: %s\n", *(char **)parVal);
+
+        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("DIRECTORY_T"));
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+        break;
+
     case external_stream_dt:
         jobjParVal = m_env->NewStringUTF(*(char **)parVal);
         if (m_env->ExceptionOccurred()) {
@@ -1212,6 +1240,25 @@ void GS_Get_File(long _appId, char *file_name) {
     }
 
     debug_printf("[BINDING-COMMONS]  -  @GS_Get_File  -  COMPSs filename: %s\n", file_name);
+}
+
+void GS_Get_Directory(long _appId, char *dir_name) {
+
+    get_lock();
+    JNIEnv* local_env = m_env;
+    int isAttached = check_and_attach(m_jvm, local_env);
+    release_lock();
+
+    local_env->CallVoidMethod(jobjIT, midGetDirectory, appId, m_env->NewStringUTF(dir_name));
+    if (local_env->ExceptionOccurred()) {
+        local_env->ExceptionDescribe();
+        exit(1);
+    }
+    if (isAttached==1) {
+        m_jvm->DetachCurrentThread();
+    }
+
+    debug_printf("[BINDING-COMMONS]  -  @GS_Get_Directory  -  COMPSs directory: %s\n", dir_name);
 }
 
 void GS_Get_Object(char *file_name, char**buf) {

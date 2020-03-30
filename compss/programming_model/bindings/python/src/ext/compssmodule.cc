@@ -213,6 +213,7 @@ _get_void_pointer_to_content(PyObject *val, int type, int size) {
     void *ret = new std::uint8_t[size];
     switch ((enum datatype) type) {
         case file_dt:
+        case directory_dt:
         case external_stream_dt:
         case external_psco_dt:
         case string_dt:
@@ -452,6 +453,20 @@ get_file(PyObject *self, PyObject *args) {
 }
 
 /*
+  Given a PyCOMPSs-id directory, get its corresponding last version
+*/
+static PyObject *
+get_directory(PyObject *self, PyObject *args) {
+    debug("####C#### GET DIRECTORY\n");
+    long app_id = long(PyInt_AsLong(PyTuple_GetItem(args, 0)));
+    char *dir_name = _pystring_to_char(PyTuple_GetItem(args, 1));
+    GS_Get_Directory(app_id, dir_name);
+    debug("####C#### COMPSs dir name %s\n", dir_name);
+    debug("####C#### COMPSs getDir for AppId: %ld \n", (app_id));
+    Py_RETURN_NONE;
+}
+
+/*
   Notify the runtime that our current application wants to "execute" a barrier.
   Program will be blocked in GS_BarrierNew until all running tasks have ended.
   Notifies the 'no more tasks' boolean value.
@@ -584,6 +599,7 @@ static PyMethodDef CompssMethods[] = {
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
     { "close_file", close_file, METH_VARARGS, "Close a file." },
     { "get_file", get_file, METH_VARARGS, "Get last version of file with its original name." },
+    { "get_directory", get_directory, METH_VARARGS, "Get last version of a directory with its original name." },
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
     { "open_task_group", open_task_group, METH_VARARGS, "Opens a new task group." },
     { "close_task_group", close_task_group, METH_VARARGS, "Closes a new task group." },

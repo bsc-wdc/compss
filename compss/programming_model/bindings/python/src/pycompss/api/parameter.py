@@ -219,6 +219,20 @@ _param_conversion_dict_ = {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.INOUT
     },
+    'DIRECTORY': {
+        'p_type': TYPE.DIRECTORY
+    },
+    'DIRECTORY_IN': {
+        'p_type': TYPE.DIRECTORY
+    },
+    'DIRECTORY_OUT': {
+        'p_type': TYPE.DIRECTORY,
+        'p_direction': DIRECTION.OUT
+    },
+    'DIRECTORY_INOUT': {
+        'p_type': TYPE.DIRECTORY,
+        'p_direction': DIRECTION.INOUT
+    },
     'FILE_CONCURRENT': {
         'p_type': TYPE.FILE,
         'p_direction': DIRECTION.CONCURRENT
@@ -700,6 +714,13 @@ FILE_CONCURRENT_STDOUT = _Param('FILE_CONCURRENT_STDOUT')
 FILE_COMMUTATIVE_STDIN = _Param('FILE_COMMUTATIVE_STDIN')
 FILE_COMMUTATIVE_STDERR = _Param('FILE_COMMUTATIVE_STDERR')
 FILE_COMMUTATIVE_STDOUT = _Param('FILE_COMMUTATIVE_STDOUT')
+
+# Aliases for dirs
+
+DIRECTORY = _Param('DIRECTORY')
+DIRECTORY_IN = _Param('DIRECTORY_IN')
+DIRECTORY_OUT = _Param('DIRECTORY_OUT')
+DIRECTORY_INOUT = _Param('DIRECTORY_INOUT')
 
 # Aliases for collections
 COLLECTION = _Param('COLLECTION')

@@ -356,7 +356,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         LOGGER.debug("- Workers stopped");
 
         LOGGER.debug("- Shutting down TM...");
-        TM.shutdown(null);
+        TM.shutdown(true, null);
         LOGGER.debug("NIO Adaptor stop completed!");
     }
 

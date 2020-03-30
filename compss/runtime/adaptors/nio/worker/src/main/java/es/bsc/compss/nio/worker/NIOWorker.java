@@ -259,6 +259,24 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         if (this.tracingLevel == NIOTracer.BASIC_MODE) {
             NIOTracer.disablePThreads();
         }
+
+        if (REMOVE_WD) {
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+
+                @Override
+                public void run() {
+                    // Remove workingDir
+                    if (WORKER_LOGGER_DEBUG) {
+                        WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + workingDir);
+                    }
+                    try {
+                        removeFolder(workingDir);
+                    } catch (IOException ioe) {
+                        WORKER_LOGGER.error("Exception", ioe);
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -625,19 +643,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             closingConnection.finishConnection();
         }
 
-        TM.shutdown(closingConnection);
-
-        // Remove workingDir
-        if (REMOVE_WD) {
-            if (WORKER_LOGGER_DEBUG) {
-                WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + this.workingDir);
-            }
-            try {
-                removeFolder(this.workingDir);
-            } catch (IOException ioe) {
-                WORKER_LOGGER.error("Exception", ioe);
-            }
-        }
+        TM.shutdown(true, closingConnection);
 
         WORKER_LOGGER.debug("Finish shutdown method on worker");
     }

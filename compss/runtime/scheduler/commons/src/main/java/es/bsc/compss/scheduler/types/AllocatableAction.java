@@ -298,13 +298,13 @@ public abstract class AllocatableAction {
         if (predecessor.state.equals(State.RUNNABLE) || predecessor.state.equals(State.WAITING)) {
             if (!this.streamDataProducers.contains(predecessor)) {
                 if (DEBUG) {
-                    LOGGER.debug("Adding stream producer " + predecessor.getId() + " to " + this.getId());
+                    LOGGER.debug("Adding stream producer action " + predecessor.getId() + " to action " + this.getId());
                 }
                 this.streamDataProducers.add(predecessor);
             }
             if (!predecessor.streamDataConsumers.contains(this)) {
                 if (DEBUG) {
-                    LOGGER.debug("Adding stream consumer " + this.getId() + " to " + predecessor.getId());
+                    LOGGER.debug("Adding stream consumer action " + this.getId() + " to action " + predecessor.getId());
                 }
                 predecessor.streamDataConsumers.add(this);
             }
@@ -319,7 +319,7 @@ public abstract class AllocatableAction {
     public final void addGroupMember(AllocatableAction member) {
         if (!this.groupMembers.contains(member)) {
             if (DEBUG) {
-                LOGGER.debug("Adding group member " + member.getId() + " to same group of " + this.getId());
+                LOGGER.debug("Adding action " + member.getId() + " to same group of action " + this.getId());
             }
             this.groupMembers.add(member);
         }
@@ -352,7 +352,7 @@ public abstract class AllocatableAction {
             AllocatableAction aa = it.next();
             if (aa == finishedAction) {
                 if (DEBUG) {
-                    LOGGER.debug("Removing stream poducer " + aa.getId() + " from " + this.getId());
+                    LOGGER.debug("Removing stream poducer action " + aa.getId() + " from action " + this.getId());
                 }
                 it.remove();
                 break;
@@ -494,6 +494,15 @@ public abstract class AllocatableAction {
      */
     public final boolean isRunnable() {
         return this.state == State.RUNNABLE;
+    }
+
+    /**
+     * Returns whether the AllocatableAction is in FINISHED state.
+     *
+     * @return {@literal true} if the AllocatableAction is finished, {@literal false} otherwise.
+     */
+    public final boolean isFinished() {
+        return this.state == State.FINISHED;
     }
 
     /**
@@ -986,7 +995,11 @@ public abstract class AllocatableAction {
 
                 // Forward cancellation to successors
                 for (AllocatableAction succ : successors) {
-                    cancel.addAll(succ.canceled());
+                    if (!succ.isFinished()) {
+                        LOGGER.debug("Cancelling action " + succ.getId() + " because of successor of canceled action "
+                            + this.getId());
+                        cancel.addAll(succ.canceled());
+                    }
                 }
 
                 this.dataPredecessors.clear();
@@ -1173,6 +1186,7 @@ public abstract class AllocatableAction {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("ID: " + this.id).append("\n");
         sb.append("HashCode ").append(this.hashCode()).append("\n");
         sb.append("\tdataPredecessors:");
         for (AllocatableAction aa : this.dataPredecessors) {

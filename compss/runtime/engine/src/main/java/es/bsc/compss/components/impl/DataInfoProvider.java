@@ -583,32 +583,37 @@ public class DataInfoProvider {
     public void dataAccessHasBeenCanceled(DataAccessId dAccId) {
         Integer dataId = dAccId.getDataId();
         DataInfo di = this.idToData.get(dataId);
-        Integer rVersionId;
-        Integer wVersionId;
-        boolean deleted = false;
-        switch (dAccId.getDirection()) {
-            case C:
-            case R:
-                rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
-                deleted = di.canceledReadVersion(rVersionId);
-                break;
-            case CV:
-            case RW:
-                rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
-                di.canceledReadVersion(rVersionId);
-                // read and write data version can be removed
-                // di.canceledVersion(rVersionId);
-                wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                deleted = di.canceledWriteVersion(wVersionId);
-                break;
-            default:// case W:
-                wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
-                deleted = di.canceledWriteVersion(wVersionId);
-                break;
-        }
+        if (di != null) {
+            Integer rVersionId;
+            Integer wVersionId;
+            boolean deleted = false;
+            switch (dAccId.getDirection()) {
+                case C:
+                case R:
+                    rVersionId = ((RAccessId) dAccId).getReadDataInstance().getVersionId();
+                    deleted = di.canceledReadVersion(rVersionId);
+                    break;
+                case CV:
+                case RW:
+                    rVersionId = ((RWAccessId) dAccId).getReadDataInstance().getVersionId();
+                    di.canceledReadVersion(rVersionId);
+                    // read and write data version can be removed
+                    // di.canceledVersion(rVersionId);
+                    wVersionId = ((RWAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                    deleted = di.canceledWriteVersion(wVersionId);
+                    break;
+                default:// case W:
+                    wVersionId = ((WAccessId) dAccId).getWrittenDataInstance().getVersionId();
+                    deleted = di.canceledWriteVersion(wVersionId);
+                    break;
+            }
 
-        if (deleted) {
-            idToData.remove(dataId);
+            if (deleted) {
+                idToData.remove(dataId);
+            }
+        } else {
+            LOGGER.debug("Access of Data" + dAccId.getDataId() + " in Mode " + dAccId.getDirection().name()
+                + " can not be cancelled because do not exist in DIP.");
         }
     }
 
@@ -826,10 +831,16 @@ public class DataInfoProvider {
 
         DataInfo dataInfo = this.idToData.get(dataId);
         this.nameToId.remove(locationKey);
-        if (dataInfo.delete(noReuse)) {
-            idToData.remove(dataId);
+        if (dataInfo != null) {
+            if (dataInfo.delete(noReuse)) {
+                idToData.remove(dataId);
+            }
+            return dataInfo;
+        } else {
+            LOGGER.debug("Data " + loc.getPath() + " already removed or cancelled");
+            return null;
         }
-        return dataInfo;
+
     }
 
     /**
@@ -842,14 +853,22 @@ public class DataInfoProvider {
         LOGGER.debug("Deleting Data associated with code: " + String.valueOf(code));
 
         Integer id = this.codeToId.get(code);
+        if (id == null) {
+            LOGGER.debug("No data id found for this data ");
+            return null;
+        }
         DataInfo dataInfo = this.idToData.get(id);
-
-        // We delete the data associated with all the versions of the same object
-        if (dataInfo.delete(noReuse)) {
-            idToData.remove(id);
+        if (dataInfo != null) {
+            // We delete the data associated with all the versions of the same object
+            if (dataInfo.delete(noReuse)) {
+                idToData.remove(id);
+            }
+            return dataInfo;
+        } else {
+            LOGGER.debug("No data info found for this data ");
+            return null;
         }
 
-        return dataInfo;
     }
 
     /**

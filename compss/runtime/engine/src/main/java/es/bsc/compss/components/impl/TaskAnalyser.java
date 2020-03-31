@@ -1070,7 +1070,7 @@ public class TaskAnalyser {
         if (!tasks.contains(currentTask)) {
             if (DEBUG) {
                 LOGGER.debug("There was a concurrent access for datum " + dataId);
-                LOGGER.debug("Adding dependency between list and task " + currentTask.getId());
+                LOGGER.debug("Adding dependency between concurrent list and task " + currentTask.getId());
             }
             for (Task t : tasks) {
                 // Add dependency

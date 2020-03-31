@@ -481,7 +481,7 @@ public abstract class ReadyScheduler extends TaskScheduler {
                 ResourceScheduler<? extends WorkerResourceDescription> assignedResource =
                     freeAction.getAssignedResource();
                 tryToLaunch(freeAction);
-                if (!assignedResource.canRunSomething()) {
+                if (assignedResource != null && !assignedResource.canRunSomething()) {
                     this.availableWorkers.remove(assignedResource);
                 }
                 objectValueToErase.add(obj);

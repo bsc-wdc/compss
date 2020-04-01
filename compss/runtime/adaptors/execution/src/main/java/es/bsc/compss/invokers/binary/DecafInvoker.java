@@ -47,6 +47,7 @@ public class DecafInvoker extends Invoker {
     private String dfScript;
     private String dfExecutor;
     private String dfLib;
+    private final boolean failByEV;
 
 
     /**
@@ -75,6 +76,7 @@ public class DecafInvoker extends Invoker {
         this.dfScript = decafImpl.getDfScript();
         this.dfExecutor = decafImpl.getDfExecutor();
         this.dfLib = decafImpl.getDfLib();
+        this.failByEV = decafImpl.isFailByEV();
     }
 
     @Override
@@ -196,7 +198,7 @@ public class DecafInvoker extends Invoker {
         }
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream());
+            this.context.getThreadErrStream(), this.failByEV);
     }
 
     @Override

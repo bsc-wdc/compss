@@ -515,7 +515,7 @@ public class ITFParser {
             LOGGER.debug("   * Processing @Binary annotation");
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
-
+            String failByEVstr = Boolean.toString(binaryAnnot.failByExitValue());
             if (binary == null || binary.isEmpty()) {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
@@ -533,7 +533,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binary, workingDir);
+                    implConstraints, binary, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -551,6 +551,7 @@ public class ITFParser {
             String workingDir = EnvironmentLoader.loadFromEnvironment(mpiAnnot.workingDir());
             String mpiRunner = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiRunner());
             String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
+            String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
             if (mpiRunner == null || mpiRunner.isEmpty()) {
                 ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
             }
@@ -576,7 +577,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implConstraints, binary, workingDir, mpiRunner, scaleByCUStr);
+                    implConstraints, binary, workingDir, mpiRunner, scaleByCUStr, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -594,6 +595,7 @@ public class ITFParser {
             String dfLib = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfLib());
             String workingDir = EnvironmentLoader.loadFromEnvironment(decafAnnot.workingDir());
             String mpiRunner = EnvironmentLoader.loadFromEnvironment(decafAnnot.mpiRunner());
+            String failByEVstr = Boolean.toString(decafAnnot.failByExitValue());
 
             if (mpiRunner == null || mpiRunner.isEmpty()) {
                 ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
@@ -622,7 +624,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.DECAF.toString(), decafSignature,
-                    implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner);
+                    implConstraints, dfScript, dfExecutor, dfLib, workingDir, mpiRunner, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -640,6 +642,7 @@ public class ITFParser {
             String workerInMaster = EnvironmentLoader.loadFromEnvironment(compssAnnot.workerInMaster());
             String appName = EnvironmentLoader.loadFromEnvironment(compssAnnot.appName());
             String workingDir = EnvironmentLoader.loadFromEnvironment(compssAnnot.workingDir());
+            String failByEVstr = Boolean.toString(compssAnnot.failByExitValue());
 
             if (appName == null || appName.isEmpty()) {
                 ErrorManager.error("Empty appName in COMPSs annotation for method " + m.getName());
@@ -665,7 +668,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.COMPSs.toString(), compssSignature,
-                    implConstraints, runcompss, flags, appName, workerInMaster, workingDir);
+                    implConstraints, runcompss, flags, appName, workerInMaster, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }
@@ -720,7 +723,7 @@ public class ITFParser {
             LOGGER.debug("   * Processing @OmpSs annotation");
             String binary = EnvironmentLoader.loadFromEnvironment(ompssAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(ompssAnnot.workingDir());
-
+            String failByEVstr = Boolean.toString(ompssAnnot.failByExitValue());
             if (binary == null || binary.isEmpty()) {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
             }
@@ -738,7 +741,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.OMPSS.toString(), ompssSignature,
-                    implConstraints, binary, workingDir);
+                    implConstraints, binary, workingDir, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

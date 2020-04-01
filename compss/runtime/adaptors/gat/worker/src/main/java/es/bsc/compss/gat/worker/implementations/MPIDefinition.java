@@ -29,6 +29,7 @@ public class MPIDefinition extends ImplementationDefinition {
     private final String mpiBinary;
     private final String workingDir;
     private final boolean scaleByCU;
+    private final boolean failByEV;
 
     private final MPIImplementation impl;
 
@@ -53,9 +54,10 @@ public class MPIDefinition extends ImplementationDefinition {
             this.workingDir = wDir;
         }
         this.scaleByCU = Boolean.parseBoolean(args[execArgsIdx++]);
+        this.failByEV = Boolean.parseBoolean(args[execArgsIdx++]);
 
-        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, this.scaleByCU, null, null,
-            "", null);
+        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, this.scaleByCU,
+            this.failByEV, null, null, "", null);
     }
 
     @Override

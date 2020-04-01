@@ -43,7 +43,8 @@ SUPPORTED_ARGUMENTS = {'computing_nodes',
                        'flags',
                        'worker_in_master',
                        'app_name',
-                       'working_dir'}
+                       'working_dir',
+                       'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'computingNodes',
                         'workerInMaster',
                         'appName',
@@ -206,6 +207,21 @@ class COMPSs(object):
                         working_dir = self.kwargs['workingDir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
+                    
+                    if 'fail_by_exit_value' in self.kwargs:
+                        fail_by_ev = self.kwargs['fail_by_exit_value']
+                        if isinstance(fail_by_ev, bool):
+                            if fail_by_ev:
+                                fail_by_ev_str = 'true'
+                            else:
+                                fail_by_ev_str = 'false'
+                        elif isinstance(fail_by_ev, str):
+                            fail_by_ev_str = fail_by_ev
+                        else:
+                            raise Exception("Incorrect format for fail_by_exit_value property. " +
+                                            " It should be boolean or an environment variable")
+                    else :
+                        fail_by_ev_str = 'false'
 
                     impl_signature = 'COMPSs.' + app_name
                     cce.set_impl_signature(impl_signature)
@@ -213,7 +229,8 @@ class COMPSs(object):
                                  flags,
                                  app_name,
                                  worker_in_master,
-                                 working_dir]
+                                 working_dir,
+                                 fail_by_ev_str]
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code

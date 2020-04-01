@@ -27,6 +27,7 @@ public class OMPSsDefinition extends ImplementationDefinition {
 
     private final String binary;
     private final String workingDir;
+    private final boolean failByEV;
 
     private final OmpSsImplementation impl;
 
@@ -43,14 +44,14 @@ public class OMPSsDefinition extends ImplementationDefinition {
 
         this.binary = args[execArgsIdx++];
 
-        String wDir = args[execArgsIdx];
+        String wDir = args[execArgsIdx++];
         if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;
         }
-
-        this.impl = new OmpSsImplementation(this.binary, this.workingDir, null, null, "", null);
+        this.failByEV = Boolean.parseBoolean(args[execArgsIdx++]);
+        this.impl = new OmpSsImplementation(this.binary, this.workingDir, this.failByEV, null, null, "", null);
     }
 
     @Override

@@ -43,7 +43,8 @@ SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
                        'binary',
                        'runner',
-                       'scale_by_cu'}
+                       'scale_by_cu',
+                       'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'computing_nodes',
                         'computingNodes',
                         'workingDir'}
@@ -213,13 +214,29 @@ class MPI(object):
                                             " It should be boolean or an environment variable")
                     else :
                         scale_by_cu_str = 'false'
+                        
+                    if 'fail_by_exit_value' in self.kwargs:
+                        fail_by_ev = self.kwargs['fail_by_exit_value']
+                        if isinstance(fail_by_ev, bool):
+                            if fail_by_ev:
+                                fail_by_ev_str = 'true'
+                            else:
+                                fail_by_ev_str = 'false'
+                        elif isinstance(fail_by_ev, str):
+                            fail_by_ev_str = fail_by_ev
+                        else:
+                            raise Exception("Incorrect format for fail_by_exit_value property. " +
+                                            " It should be boolean or an environment variable")
+                    else :
+                        fail_by_ev_str = 'false'
+                    
                     if binary == "[unassigned]":
                         impl_signature = "MPI."
                     else:
                         impl_signature = 'MPI.' + binary
 
                     cce.set_impl_signature(impl_signature)
-                    impl_args = [binary, working_dir, runner, scale_by_cu_str]
+                    impl_args = [binary, working_dir, runner, scale_by_cu_str, fail_by_ev_str]
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code

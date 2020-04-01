@@ -32,21 +32,23 @@ public class DecafDefinition extends ImplementationDefinition<MethodResourceDesc
     private final String dfLib;
     private final String workingDir;
     private final String mpiRunner;
+    private final boolean failByEV;
 
 
     protected DecafDefinition(String signature, String dfScript, String dfExecutor, String dfLib, String workingDir,
-        String mpiRunner, MethodResourceDescription implConstraints) {
+        String mpiRunner, boolean failByEV, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.dfScript = dfScript;
         this.dfExecutor = dfExecutor;
         this.dfLib = dfLib;
         this.workingDir = workingDir;
         this.mpiRunner = mpiRunner;
+        this.failByEV = failByEV;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, coreId, implId,
+        return new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, failByEV, coreId, implId,
             this.getSignature(), this.getConstraints());
     }
 
@@ -60,6 +62,7 @@ public class DecafDefinition extends ImplementationDefinition<MethodResourceDesc
         sb.append("\t Decaf lib: ").append(dfLib).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
+        sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

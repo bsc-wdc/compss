@@ -79,6 +79,13 @@ public @interface Decaf {
      */
     String computingNodes() default Constants.UNASSIGNED;
 
+    /**
+     * Indicates if the task will fail because of an exit value different from 0.
+     * 
+     * @return True if task will fail if exit value different from 0.
+     */
+    boolean failByExitValue() default false;
+
     /*
      * COMMON PROPERTIES
      * 

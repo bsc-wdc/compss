@@ -29,18 +29,21 @@ public class OmpSsDefinition extends ImplementationDefinition<MethodResourceDesc
 
     private final String binary;
     private final String workingDir;
+    private final boolean failByEV;
 
 
-    protected OmpSsDefinition(String signature, String binary, String workingDir,
+    protected OmpSsDefinition(String signature, String binary, String workingDir, boolean failByEV,
         MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.binary = binary;
         this.workingDir = workingDir;
+        this.failByEV = failByEV;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new OmpSsImplementation(binary, workingDir, coreId, implId, this.getSignature(), this.getConstraints());
+        return new OmpSsImplementation(binary, workingDir, failByEV, coreId, implId, this.getSignature(),
+            this.getConstraints());
     }
 
     @Override
@@ -50,6 +53,7 @@ public class OmpSsDefinition extends ImplementationDefinition<MethodResourceDesc
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
         sb.append("\t Binary: ").append(binary).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
+        sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

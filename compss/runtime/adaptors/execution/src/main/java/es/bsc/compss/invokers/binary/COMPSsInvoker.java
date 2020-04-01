@@ -60,6 +60,7 @@ public class COMPSsInvoker extends Invoker {
     private final String extraFlags;
     private final String appName;
     private final String workerInMaster;
+    private final boolean failByEV;
 
 
     /**
@@ -89,6 +90,7 @@ public class COMPSsInvoker extends Invoker {
         this.extraFlags = compssImpl.getFlags();
         this.appName = compssImpl.getAppName();
         this.workerInMaster = compssImpl.getWorkerInMaster();
+        this.failByEV = compssImpl.isFailByEV();
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -326,7 +328,7 @@ public class COMPSsInvoker extends Invoker {
 
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream());
+            this.context.getThreadErrStream(), this.failByEV);
     }
 
     private int xmlGenerationScript(String[] cmd) throws IOException, InterruptedException {

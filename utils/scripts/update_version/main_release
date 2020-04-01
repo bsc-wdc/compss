@@ -38,7 +38,7 @@ usage() {
   commitChanges="true"
   ./update_trunk_version "${baseVersion}" "${version}" "${commitChanges}"
   ./generate_tag "${version}" "${commitChanges}"
-  ./update_documentation "${version}" "${commitChanges}"
+  #./update_documentation "${version}" "${commitChanges}"
   ./update_repo "bar" "apps" "${baseVersion}" "${version}" "${commitChanges}"
   ./update_repo "bar" "tutorial_apps" "${baseVersion}" "${version}" "${commitChanges}"
   ./mvn_deploy_tag "${version}"
@@ -47,6 +47,7 @@ usage() {
   ./deploy_tag_to_MN "${version}"
   ./deploy_tag_to_Nord "${version}"
   ./deploy_tag_to_MT "${version}"
+  ./deploy_tag_to_P9 "${version}"
 
   # END
   echo "ALL SUCCESS!"

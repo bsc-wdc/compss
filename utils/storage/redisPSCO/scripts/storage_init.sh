@@ -1,14 +1,15 @@
-#!/bin/bash 
- 
+#!/bin/bash
+
   #############################################################
   # Name: storage_init.sh
   # Description: Storage API script for COMPSs
-  # Parameters: <jobId>              Queue Job Id 
+  # Parameters: <jobId>              Queue Job Id
   #             <masterNode>         COMPSs Master Node
   #             <storageMasterNode>  Node reserved for Storage Master Node (if needed)
   #             "<workerNodes>"      Nodes set as COMPSs workers
   #             <network>            Network type
   #             <storageProps>       Properties file for storage specific variables
+  #            <filePathWithVariablesToBeSourced>  File path to store the variables to be sourced after storage_init.sh execution
   #############################################################
 
 
@@ -17,7 +18,7 @@
   #---------------------------------------------------------
   ERROR_PROPS_FILE="Cannot find storage properties file"
   ERROR_GENERATE_CONF="Cannot generate conf file"
- 
+
 
   #---------------------------------------------------------
   # HELPER FUNCTIONS
@@ -29,7 +30,7 @@
   usage() {
     local exitValue=$1
 
-    echo " Usage: $0 <jobId> <masterNode> <storageMasterNode> \"<workerNodes>\" <network> <storageProps>"
+    echo " Usage: $0 <jobId> <masterNode> <storageMasterNode> \"<workerNodes>\" <network> <storageProps> <filePathWithVariablesToBeSourced>"
     echo " "
 
     exit $exitValue
@@ -40,7 +41,7 @@
   ####################
   display_error() {
     local errorMsg=$1
-    
+
     echo "ERROR: $errorMsg"
     exit 1
   }
@@ -54,7 +55,7 @@
   # Function to get args
   ####################
   get_args() {
-    NUM_PARAMS=6
+    NUM_PARAMS=7
 
     # Check parameters
     if [ $# -eq 1 ]; then
@@ -74,6 +75,7 @@
     worker_nodes=$4
     network=$5
     storageProps=$6
+    filePathWithVariablesToBeSourced=$7
   }
 
   ####################
@@ -83,10 +85,10 @@
     # Check storage Props file exists
     if [ ! -f ${storageProps} ]; then
       # PropsFile doesn't exist
-      display_error "${ERROR_PROPS_FILE}"   
+      display_error "${ERROR_PROPS_FILE}"
     fi
     source ${storageProps}
-  
+
     # Convert network to suffix
     if [ "${network}" == "ethernet" ]; then
       network=""
@@ -108,6 +110,7 @@
     echo "Worker Nodes:        $worker_nodes"
     echo "Network:             $network"
     echo "Storage Props:       $storageProps"
+    echo "File with variables to be sourced: $filePathWithVariablesToBeSourced"
     echo "-----------------------"
   }
   ####################
@@ -322,5 +325,4 @@
   ############################
   ## END                    ##
   ############################
-  exit 
-
+  exit

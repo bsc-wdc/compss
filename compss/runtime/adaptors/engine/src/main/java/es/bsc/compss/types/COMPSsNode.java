@@ -241,7 +241,8 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
         return getName().compareTo(host.getName());
     }
 
-    /* Removed because COMPSsNodes could have the same name.
+    /*
+     * Removed because COMPSsNodes could have the same name.
      * 
      * @Override public boolean equals(Object obj) { if (obj != null && (obj instanceof COMPSsNode)) { COMPSsNode host =
      * (COMPSsNode) obj; return getName().equals(host.getName()); } return false; }

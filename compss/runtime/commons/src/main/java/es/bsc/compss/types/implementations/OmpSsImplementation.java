@@ -119,7 +119,7 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
-        
+
     }
 
     @Override

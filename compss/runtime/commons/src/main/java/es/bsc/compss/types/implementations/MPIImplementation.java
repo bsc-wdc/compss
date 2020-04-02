@@ -31,12 +31,13 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 4;
+    public static final int NUM_PARAMS = 5;
 
     private String mpiRunner;
     private String binary;
     private String workingDir;
     private boolean scaleByCU;
+    private boolean failByEV;
 
 
     /**
@@ -54,13 +55,14 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      * @param workingDir Binary working directory.
      * @param mpiRunner Path to the MPI command.
      * @param scaleByCU Scale by computing units property.
+     * @param failByEV Flag to enable failure with EV.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature MPI method signature.
      * @param annot MPI requirements.
      */
-    public MPIImplementation(String binary, String workingDir, String mpiRunner, boolean scaleByCU, Integer coreId,
-        Integer implementationId, String signature, MethodResourceDescription annot) {
+    public MPIImplementation(String binary, String workingDir, String mpiRunner, boolean scaleByCU, boolean failByEV,
+        Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 
@@ -68,6 +70,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         this.workingDir = workingDir;
         this.binary = binary;
         this.scaleByCU = scaleByCU;
+        this.failByEV = failByEV;
     }
 
     /**
@@ -106,6 +109,15 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         return this.scaleByCU;
     }
 
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.MPI;
@@ -133,6 +145,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
+        this.failByEV = in.readBoolean();
     }
 
     @Override
@@ -142,6 +155,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);
+        out.writeBoolean(this.failByEV);
     }
 
 }

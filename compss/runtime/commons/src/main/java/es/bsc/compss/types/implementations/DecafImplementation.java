@@ -32,7 +32,7 @@ public class DecafImplementation extends AbstractMethodImplementation implements
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 5;
+    public static final int NUM_PARAMS = 6;
 
     public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator
         + "system" + File.separator + "decaf" + File.separator + "run_decaf.sh";
@@ -42,6 +42,7 @@ public class DecafImplementation extends AbstractMethodImplementation implements
     private String dfExecutor;
     private String dfLib;
     private String workingDir;
+    private boolean failByEV;
 
 
     /**
@@ -60,13 +61,14 @@ public class DecafImplementation extends AbstractMethodImplementation implements
      * @param dfLib Path to df library.
      * @param workingDir Working directory.
      * @param mpiRunner Path to MPI binary command.
+     * @param failByEV Flag to enable failure with EV.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature Decaf operation signature.
      * @param annot Decaf operation requirements.
      */
     public DecafImplementation(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner,
-        Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
+        boolean failByEV, Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 
@@ -75,6 +77,7 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         this.dfScript = dfScript;
         this.dfExecutor = dfExecutor;
         this.dfLib = dfLib;
+        this.failByEV = failByEV;
     }
 
     /**
@@ -122,6 +125,15 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         return this.mpiRunner;
     }
 
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.DECAF;
@@ -153,6 +165,7 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         this.dfExecutor = (String) in.readObject();
         this.dfLib = (String) in.readObject();
         this.workingDir = (String) in.readObject();
+        this.failByEV = in.readBoolean();
     }
 
     @Override
@@ -163,6 +176,7 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         out.writeObject(this.dfExecutor);
         out.writeObject(this.dfLib);
         out.writeObject(this.workingDir);
+        out.writeBoolean(this.failByEV);
     }
 
 }

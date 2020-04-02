@@ -39,6 +39,7 @@ public class OmpSsInvoker extends Invoker {
     private static final int NUM_BASE_OMPSS_ARGS = 1;
 
     private final String ompssBinary;
+    private final boolean failByEV;
 
 
     /**
@@ -64,6 +65,7 @@ public class OmpSsInvoker extends Invoker {
                 ERROR_METHOD_DEFINITION + this.invocation.getMethodImplementation().getMethodType(), e);
         }
         this.ompssBinary = ompssImpl.getBinary();
+        this.failByEV = ompssImpl.isFailByEV();
     }
 
     @Override
@@ -130,7 +132,7 @@ public class OmpSsInvoker extends Invoker {
         }
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream());
+            this.context.getThreadErrStream(), this.failByEV);
     }
 
     @Override

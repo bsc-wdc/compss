@@ -53,6 +53,7 @@ public class BinaryRunner {
     private static final String ERROR_OUTPUTREADER = "ERROR: Cannot retrieve command output";
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
+    private static final String ERROR_EXIT_VALUE = "ERROR: Exception exit value is not 0";
 
     private static final String ERROR_EXT_STREAM_BASE_DIR = "ERROR: Cannot retrieve base_dir from External Stream";
     private static final String ERROR_EXT_STREAM_CLOSURE = "ERROR: Cannot close External Stream due to internal error.";
@@ -255,7 +256,7 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error execution the binary.
      */
     public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-        PrintStream outLog, PrintStream errLog, String pythonPath) throws InvokeExecutionException {
+        PrintStream outLog, PrintStream errLog, String pythonPath, boolean failByEV) throws InvokeExecutionException {
 
         // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -307,6 +308,10 @@ public class BinaryRunner {
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
         }
 
+        if (failByEV && exitValue != 0) {
+            throw new InvokeExecutionException(ERROR_EXIT_VALUE);
+        }
+
         // Return exit value if requested, null if none
         return exitValue;
     }
@@ -323,7 +328,7 @@ public class BinaryRunner {
      * @throws InvokeExecutionException Error execution the binary.
      */
     public static Object executeCMD(String[] cmd, StdIOStream stdIOStreamValues, File taskSandboxWorkingDir,
-        PrintStream outLog, PrintStream errLog) throws InvokeExecutionException {
+        PrintStream outLog, PrintStream errLog, boolean failByEV) throws InvokeExecutionException {
 
         // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -373,6 +378,10 @@ public class BinaryRunner {
         } catch (IOException | InvokeExecutionException | InterruptedException e) {
             errLog.println(ERROR_PROC_EXEC);
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
+        }
+
+        if (failByEV && exitValue != 0) {
+            throw new InvokeExecutionException(ERROR_EXIT_VALUE);
         }
 
         // Return exit value if requested, null if none

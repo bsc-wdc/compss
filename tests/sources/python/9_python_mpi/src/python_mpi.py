@@ -14,7 +14,7 @@ from pycompss.api.constraint import constraint
 from pycompss.api.api import compss_wait_on
 
 @constraint(computing_units="2")
-@mpi(runner="mpirun", computing_nodes="1")
+@mpi(runner="mpirun", processes="1", scale_by_cu=True )
 @task(returns=list)
 def return_rank(seed):
     from mpi4py import MPI

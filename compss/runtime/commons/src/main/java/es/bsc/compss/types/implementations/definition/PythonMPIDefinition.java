@@ -27,10 +27,12 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     private final String methodName;
     private final String workingDir;
     private final String mpiRunner;
+    private final boolean scaleByCU;
+    private final boolean failByEV;
 
 
     protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
-        String mpiRunner, MethodResourceDescription implConstraints) {
+        String mpiRunner, boolean scaleByCU, boolean failByEV, MethodResourceDescription implConstraints) {
 
         super(implSignature, implConstraints);
 
@@ -38,12 +40,14 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         this.mpiRunner = mpiRunner;
         this.declaringClass = declaringClass;
         this.methodName = methodName;
+        this.scaleByCU = scaleByCU;
+        this.failByEV = failByEV;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, coreId, implId,
-            this.getSignature(), this.getConstraints());
+        return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, scaleByCU, failByEV,
+            coreId, implId, this.getSignature(), this.getConstraints());
     }
 
     @Override
@@ -55,6 +59,8 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         sb.append("\t Method name: ").append(methodName).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
+        sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
+        sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

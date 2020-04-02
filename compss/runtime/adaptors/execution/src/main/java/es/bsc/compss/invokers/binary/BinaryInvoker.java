@@ -39,6 +39,7 @@ public class BinaryInvoker extends Invoker {
     private static final int NUM_BASE_BINARY_ARGS = 1;
 
     private final String binary;
+    private final boolean failByEV;
 
 
     /**
@@ -64,6 +65,7 @@ public class BinaryInvoker extends Invoker {
                 ERROR_METHOD_DEFINITION + invocation.getMethodImplementation().getMethodType(), e);
         }
         this.binary = binaryImpl.getBinary();
+        this.failByEV = binaryImpl.isFailByEV();
     }
 
     @Override
@@ -130,7 +132,7 @@ public class BinaryInvoker extends Invoker {
         }
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream());
+            this.context.getThreadErrStream(), this.failByEV);
     }
 
     @Override

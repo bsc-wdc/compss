@@ -333,7 +333,7 @@ public abstract class DataInfo {
                 return false;
             } else if (lastVersion == 1) {
                 DataVersion firstVersion = this.getFirstVersion();
-                if (firstVersion.hasBeenUsed()) {
+                if (firstVersion != null && firstVersion.hasBeenUsed()) {
                     this.currentVersionId = lastVersion;
                     this.currentVersion = firstVersion;
                     return false;

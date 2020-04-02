@@ -26,12 +26,14 @@ import java.io.ObjectOutput;
 
 public class PythonMPIImplementation extends AbstractMethodImplementation implements Externalizable {
 
-    public static final int NUM_PARAMS = 3;
+    public static final int NUM_PARAMS = 6;
 
     private String declaringClass;
     private String alternativeMethod;
     private String mpiRunner;
     private String workingDir;
+    private boolean scaleByCU;
+    private boolean failByEV;
 
 
     /**
@@ -49,13 +51,16 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      * @param altMethodName Alternative method name.
      * @param workingDir Binary working directory.
      * @param mpiRunner Path to the MPI command.
+     * @param scaleByCU Scale by computing units property.
+     * @param failByEV Flag to enable failure with EV.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature Method signature.
      * @param requirements Method requirements.
      */
     public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
-        Integer coreId, Integer implementationId, String signature, MethodResourceDescription requirements) {
+        boolean scaleByCU, boolean failByEV, Integer coreId, Integer implementationId, String signature,
+        MethodResourceDescription requirements) {
 
         super(coreId, implementationId, signature, requirements);
 
@@ -63,6 +68,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.alternativeMethod = altMethodName;
         this.mpiRunner = mpiRunner;
         this.workingDir = workingDir;
+        this.scaleByCU = scaleByCU;
+        this.failByEV = failByEV;
     }
 
     /**
@@ -110,6 +117,24 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         return this.mpiRunner;
     }
 
+    /**
+     * Returns the scale by computing units property.
+     * 
+     * @return scale by computing units property value.
+     */
+    public boolean getScaleByCU() {
+        return this.scaleByCU;
+    }
+
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.PYTHON_MPI;
@@ -121,6 +146,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         sb.append("[DECLARING CLASS=").append(this.declaringClass);
         sb.append(", METHOD NAME=").append(this.alternativeMethod);
         sb.append(", MPI RUNNER=").append(this.mpiRunner);
+        sb.append(", SCALE_BY_CU=").append(this.scaleByCU);
+        sb.append(", FAIL_BY_EV=").append(this.failByEV);
         sb.append("]");
 
         return sb.toString();
@@ -139,6 +166,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.alternativeMethod = (String) in.readObject();
         this.mpiRunner = (String) in.readObject();
         this.workingDir = (String) in.readObject();
+        this.scaleByCU = in.readBoolean();
+        this.failByEV = in.readBoolean();
     }
 
     @Override
@@ -148,6 +177,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         out.writeObject(this.alternativeMethod);
         out.writeObject(this.mpiRunner);
         out.writeObject(this.workingDir);
+        out.writeBoolean(this.scaleByCU);
+        out.writeBoolean(this.failByEV);
     }
 
 }

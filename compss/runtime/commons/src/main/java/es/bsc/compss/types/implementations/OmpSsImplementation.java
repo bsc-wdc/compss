@@ -31,10 +31,11 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 2;
+    public static final int NUM_PARAMS = 3;
 
     private String binary;
     private String workingDir;
+    private boolean failByEV;
 
 
     /**
@@ -50,17 +51,19 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
      * 
      * @param binary Path to the OmpSs binary.
      * @param workingDir Binary working directory.
+     * @param failByEV Flag to enable failure with EV.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature OmpSs operation signature.
      * @param annot OmpSs method requirements.
      */
-    public OmpSsImplementation(String binary, String workingDir, Integer coreId, Integer implementationId,
-        String signature, MethodResourceDescription annot) {
+    public OmpSsImplementation(String binary, String workingDir, boolean failByEV, Integer coreId,
+        Integer implementationId, String signature, MethodResourceDescription annot) {
         super(coreId, implementationId, signature, annot);
 
         this.binary = binary;
         this.workingDir = workingDir;
+        this.failByEV = failByEV;
     }
 
     /**
@@ -81,6 +84,15 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
         return this.workingDir;
     }
 
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.OMPSS;
@@ -90,6 +102,7 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
         sb.append("[BINARY=").append(this.binary);
+        sb.append(", FAIL_BY_EV=").append(this.failByEV);
         sb.append("]");
 
         return sb.toString();
@@ -105,6 +118,8 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
         super.readExternal(in);
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
+        this.failByEV = in.readBoolean();
+
     }
 
     @Override
@@ -112,6 +127,7 @@ public class OmpSsImplementation extends AbstractMethodImplementation implements
         super.writeExternal(out);
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
+        out.writeBoolean(this.failByEV);
     }
 
 }

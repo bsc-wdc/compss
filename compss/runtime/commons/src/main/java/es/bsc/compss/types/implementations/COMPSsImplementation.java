@@ -32,7 +32,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 5;
+    public static final int NUM_PARAMS = 6;
 
     private static final String DEFAULT_RUNCOMPSS = "runcompss";
     private static final String DEFAULT_FLAGS = "";
@@ -42,6 +42,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
     private String appName;
     private String workerInMaster;
     private String workingDir;
+    private boolean failByEV;
 
 
     /**
@@ -60,13 +61,14 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
      * @param appName Application name.
      * @param workerInMaster Whether the nested COMPSs execution should spawn a worker in the master node or not.
      * @param workingDir The nested COMPSs working directory.
+     * @param failByEV Flag to enable failure with EV.
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
      * @param signature Method signature.
      * @param annot Method annotations.
      */
     public COMPSsImplementation(String runcompss, String flags, String appName, String workerInMaster,
-        String workingDir, Integer coreId, Integer implementationId, String signature,
+        String workingDir, boolean failByEV, Integer coreId, Integer implementationId, String signature,
         MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
@@ -84,6 +86,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         this.appName = appName;
         this.workerInMaster = workerInMaster;
         this.workingDir = workingDir;
+        this.failByEV = failByEV;
     }
 
     /**
@@ -131,6 +134,15 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         return this.workingDir;
     }
 
+    /**
+     * Check if fail by exit value is enabled.
+     * 
+     * @return True is fail by exit value is enabled.
+     */
+    public boolean isFailByEV() {
+        return failByEV;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.COMPSs;
@@ -162,6 +174,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         this.appName = (String) in.readObject();
         this.workerInMaster = (String) in.readObject();
         this.workingDir = (String) in.readObject();
+        this.failByEV = in.readBoolean();
     }
 
     @Override
@@ -172,6 +185,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         out.writeObject(this.appName);
         out.writeObject(this.workerInMaster);
         out.writeObject(this.workingDir);
+        out.writeBoolean(this.failByEV);
     }
 
 }

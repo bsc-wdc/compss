@@ -42,7 +42,8 @@ SUPPORTED_ARGUMENTS = {'computing_nodes',
                        'runner',
                        'df_executor',
                        'df_lib',
-                       'df_script'}
+                       'df_script',
+                       'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'computingNodes',
                         'workingDir',
                         'dfExecutor',
@@ -197,13 +198,30 @@ class Decaf(object):
                         df_lib = self.kwargs['dfLib']
                     else:
                         df_lib = '[unassigned]'  # Empty or '[unassigned]'
+                        
+                    if 'fail_by_exit_value' in self.kwargs:
+                        fail_by_ev = self.kwargs['fail_by_exit_value']
+                        if isinstance(fail_by_ev, bool):
+                            if fail_by_ev:
+                                fail_by_ev_str = 'true'
+                            else:
+                                fail_by_ev_str = 'false'
+                        elif isinstance(fail_by_ev, str):
+                            fail_by_ev_str = fail_by_ev
+                        else:
+                            raise Exception("Incorrect format for fail_by_exit_value property. " +
+                                            " It should be boolean or an environment variable")
+                    else :
+                        fail_by_ev_str = 'false'
+                    
                     impl_signature = 'DECAF.' + df_script
                     cce.set_impl_signature(impl_signature)
                     impl_args = [df_script,
                                  df_executor,
                                  df_lib,
                                  working_dir,
-                                 runner]
+                                 runner,
+                                 fail_by_ev_str]
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code

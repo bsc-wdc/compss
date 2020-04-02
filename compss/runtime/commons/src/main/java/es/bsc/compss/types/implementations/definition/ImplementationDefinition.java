@@ -110,6 +110,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String pythonMPImethodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     String pythonMPIWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String pythonMPIRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    boolean pythonMPIscaleByCU = Boolean.parseBoolean(implTypeArgs[4]);
+                    boolean pythonMPIfailByEV = Boolean.parseBoolean(implTypeArgs[5]);
                     if (pythonMPIdeclaringClass == null || pythonMPIdeclaringClass.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty declaringClass annotation for method " + implSignature);
@@ -119,8 +121,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     }
 
                     id = (ImplementationDefinition<T>) new PythonMPIDefinition(implSignature, pythonMPIdeclaringClass,
-                        pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner,
-                        (MethodResourceDescription) implConstraints);
+                        pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner, pythonMPIscaleByCU,
+                        pythonMPIfailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case BINARY:
@@ -129,12 +131,13 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     }
                     String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                    boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[2]);
                     if (binary == null || binary.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for BINARY method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, binary, binaryWorkingDir,
-                        (MethodResourceDescription) implConstraints);
+                        binaryfailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case MPI:
@@ -144,8 +147,8 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String mpiBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String mpiWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     String mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
-                    boolean scaleByCU = Boolean.parseBoolean(implTypeArgs[3]);
-
+                    boolean mpiScaleByCU = Boolean.parseBoolean(implTypeArgs[3]);
+                    boolean mpiFailByEV = Boolean.parseBoolean(implTypeArgs[4]);
                     if (mpiRunner == null || mpiRunner.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty mpiRunner annotation for MPI method " + implSignature);
@@ -154,7 +157,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Empty binary annotation for MPI method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new MPIDefinition(implSignature, mpiBinary, mpiWorkingDir,
-                        mpiRunner, scaleByCU, (MethodResourceDescription) implConstraints);
+                        mpiRunner, mpiScaleByCU, mpiFailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case COMPSs:
@@ -166,12 +169,13 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String appName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String workerInMaster = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     String compssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
+                    boolean compssFailByEV = Boolean.parseBoolean(implTypeArgs[5]);
                     if (appName == null || appName.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty appName annotation for COMPSs method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new COMPSsDefinition(implSignature, runcompss, flags, appName,
-                        workerInMaster, compssWorkingDir, (MethodResourceDescription) implConstraints);
+                        workerInMaster, compssWorkingDir, compssFailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case DECAF:
@@ -183,6 +187,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String dfLib = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String decafWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
                     String decafRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
+                    boolean decafFailByEV = Boolean.parseBoolean(implTypeArgs[5]);
                     if (decafRunner == null || decafRunner.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty mpiRunner annotation for DECAF method " + implSignature);
@@ -192,7 +197,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                             "Empty dfScript annotation for DECAF method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new DecafDefinition(implSignature, dfScript, dfExecutor, dfLib,
-                        decafWorkingDir, decafRunner, (MethodResourceDescription) implConstraints);
+                        decafWorkingDir, decafRunner, decafFailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case OMPSS:
@@ -201,11 +206,12 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     }
                     String ompssBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String ompssWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                    boolean ompssFailByEV = Boolean.parseBoolean(implTypeArgs[2]);
                     if (ompssBinary == null || ompssBinary.isEmpty()) {
                         throw new IllegalArgumentException("Empty binary annotation for OmpSs method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new OmpSsDefinition(implSignature, ompssBinary, ompssWorkingDir,
-                        (MethodResourceDescription) implConstraints);
+                        ompssFailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case OPENCL:

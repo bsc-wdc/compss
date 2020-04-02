@@ -32,21 +32,23 @@ public class COMPSsDefinition extends ImplementationDefinition<MethodResourceDes
     private final String appName;
     private final String workerInMaster;
     private final String workingDir;
+    private final boolean failByEV;
 
 
     protected COMPSsDefinition(String signature, String runcompss, String flags, String appName, String workerInMaster,
-        String workingDir, MethodResourceDescription implConstraints) {
+        String workingDir, boolean failByEV, MethodResourceDescription implConstraints) {
         super(signature, implConstraints);
         this.runcompss = runcompss;
         this.flags = flags;
         this.appName = appName;
         this.workerInMaster = workerInMaster;
         this.workingDir = workingDir;
+        this.failByEV = failByEV;
     }
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new COMPSsImplementation(runcompss, flags, appName, workerInMaster, workingDir, coreId, implId,
+        return new COMPSsImplementation(runcompss, flags, appName, workerInMaster, workingDir, failByEV, coreId, implId,
             this.getSignature(), this.getConstraints());
     }
 
@@ -59,6 +61,7 @@ public class COMPSsDefinition extends ImplementationDefinition<MethodResourceDes
         sb.append("\t Application name: ").append(this.appName).append("\n");
         sb.append("\t Worker in Master: ").append(this.workerInMaster).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
+        sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

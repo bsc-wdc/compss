@@ -30,6 +30,7 @@ public class COMPSsDefinition extends ImplementationDefinition {
     private final String appName;
     private final String workerInMaster;
     private final String workingDir;
+    private final boolean failByEV;
 
     private final COMPSsImplementation impl;
 
@@ -55,9 +56,9 @@ public class COMPSsDefinition extends ImplementationDefinition {
         } else {
             this.workingDir = wDir;
         }
-
+        this.failByEV = Boolean.parseBoolean(args[execArgsIdx++]);
         this.impl = new COMPSsImplementation(this.runcompss, this.flags, this.appName, this.workerInMaster,
-            this.workingDir, null, null, "", null);
+            this.workingDir, this.failByEV, null, null, "", null);
     }
 
     @Override

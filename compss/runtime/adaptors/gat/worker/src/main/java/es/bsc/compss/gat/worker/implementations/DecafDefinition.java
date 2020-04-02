@@ -30,6 +30,7 @@ public class DecafDefinition extends ImplementationDefinition {
     private final String dfLib;
     private final String mpiRunner;
     private final String workingDir;
+    private final boolean failByEV;
 
     private final DecafImplementation impl;
 
@@ -49,15 +50,16 @@ public class DecafDefinition extends ImplementationDefinition {
         this.dfLib = args[execArgsIdx++];
         this.mpiRunner = args[execArgsIdx++];
 
-        String wDir = args[execArgsIdx];
+        String wDir = args[execArgsIdx++];
         if ((wDir == null || wDir.isEmpty() || wDir.equals(Constants.UNASSIGNED))) {
             this.workingDir = null;
         } else {
             this.workingDir = wDir;
         }
+        this.failByEV = Boolean.parseBoolean(args[execArgsIdx++]);
 
         this.impl = new DecafImplementation(this.dfScript, this.dfExecutor, this.dfLib, this.workingDir, this.mpiRunner,
-            null, null, "", null);
+            this.failByEV, null, null, "", null);
     }
 
     @Override

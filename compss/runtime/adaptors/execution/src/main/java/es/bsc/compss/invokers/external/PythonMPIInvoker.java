@@ -37,9 +37,13 @@ import java.util.ArrayList;
 
 public class PythonMPIInvoker extends ExternalInvoker {
 
+    private static final int NUM_BASE_PYTHON_MPI_ARGS = 8;
+
     private final String mpiRunner;
     private final String declaringclass;
     private final String alternativeMethod;
+    private final boolean scaleByCU;
+    private final boolean failByEV;
 
 
     /**
@@ -67,6 +71,9 @@ public class PythonMPIInvoker extends ExternalInvoker {
         this.mpiRunner = pythonmpiImpl.getMpiRunner();
         this.declaringclass = pythonmpiImpl.getDeclaringClass();
         this.alternativeMethod = pythonmpiImpl.getAlternativeMethodName();
+        this.scaleByCU = pythonmpiImpl.getScaleByCU();
+        this.failByEV = pythonmpiImpl.isFailByEV();
+
     }
 
     protected ExecuteTaskExternalCommand getTaskExecutionCommand(InvocationContext context, Invocation invocation,
@@ -112,7 +119,14 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Get COMPSS ENV VARS
 
         final String taskCMD = this.command.getAsString();
-        final int numBasePythonMpiArgs = 8;
+        int numBasePythonMpiArgs = NUM_BASE_PYTHON_MPI_ARGS;
+        String hostfile = null;
+        if (this.scaleByCU) {
+            hostfile = writeHostfile(taskSandboxWorkingDir, workers);
+        } else {
+            hostfile = writeHostfile(taskSandboxWorkingDir, hostnames);
+            numBasePythonMpiArgs = numBasePythonMpiArgs + 2; // to add the -x OMP_NUM_THREADS
+        }
 
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
@@ -122,25 +136,28 @@ public class PythonMPIInvoker extends ExternalInvoker {
         // Prepare command
         String[] cmd = new String[numBasePythonMpiArgs + binaryParams.size()];
         cmd[0] = this.mpiRunner;
-        cmd[1] = "-n";
-
-        String hostfile = writeHostfile(taskSandboxWorkingDir, workers);
-
-        String numProcs = String.valueOf(this.numWorkers * this.computingUnits);
-        cmd[2] = numProcs;
-        cmd[3] = "-hostfile";
-        cmd[4] = hostfile;
-        cmd[5] = ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonInterpreter();
+        cmd[1] = "-hostfile";
+        cmd[2] = hostfile;
+        cmd[3] = "-n";
+        if (scaleByCU) {
+            cmd[4] = String.valueOf(this.numWorkers * this.computingUnits);
+        } else {
+            cmd[4] = String.valueOf(this.numWorkers);
+            cmd[5] = "-x";
+            cmd[6] = "OMP_NUM_THREADS";
+        }
+        cmd[numBasePythonMpiArgs - 3] =
+            ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonInterpreter();
         String installDir = this.context.getInstallDir();
         final String pycompssRelativePath = File.separator + "Bindings" + File.separator + "python";
         String pythonVersion =
             ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonVersion();
         String pyCOMPSsHome = installDir + pycompssRelativePath + File.separator + pythonVersion;
 
-        cmd[6] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker" + File.separator + "external"
-            + File.separator + "mpi_executor.py";
+        cmd[numBasePythonMpiArgs - 2] = pyCOMPSsHome + File.separator + "pycompss" + File.separator + "worker"
+            + File.separator + "external" + File.separator + "mpi_executor.py";
 
-        cmd[7] = taskCMD;
+        cmd[numBasePythonMpiArgs - 1] = taskCMD;
 
         String pythonPath = System.getenv("PYTHONPATH");
         pythonPath = pyCOMPSsHome + ":" + pythonPath;
@@ -166,7 +183,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream(), pythonPath);
+            this.context.getThreadErrStream(), pythonPath, this.failByEV);
 
     }
 

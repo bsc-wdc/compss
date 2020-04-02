@@ -45,6 +45,7 @@ public class MPIInvoker extends Invoker {
     private final String mpiRunner;
     private final String mpiBinary;
     private final boolean scaleByCU;
+    private final boolean failByEV;
 
 
     /**
@@ -73,6 +74,7 @@ public class MPIInvoker extends Invoker {
         this.mpiRunner = mpiImpl.getMpiRunner();
         this.mpiBinary = mpiImpl.getBinary();
         this.scaleByCU = mpiImpl.getScaleByCU();
+        this.failByEV = mpiImpl.isFailByEV();
     }
 
     private void checkArguments() throws JobExecutionException {
@@ -180,7 +182,7 @@ public class MPIInvoker extends Invoker {
 
         // Launch command
         return BinaryRunner.executeCMD(cmd, streamValues, this.taskSandboxWorkingDir, this.context.getThreadOutStream(),
-            this.context.getThreadErrStream());
+            this.context.getThreadErrStream(), this.failByEV);
     }
 
     @Override

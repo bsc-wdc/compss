@@ -389,7 +389,7 @@ fi
 
 # Loading all necessary jars on classpath
 if [ -f "${APPLICATION_PATH}" ]; then
-  CLASSPATH="${APPLICATION_PATH}"
+  CLASSPATH="${CLASSPATH}:${APPLICATION_PATH}"
   APPLICATION_FOLDER="$( cd "$( dirname "${APPLICATION_PATH}" )" && pwd )"
   CLASSPATH="${CLASSPATH}:${APPLICATION_FOLDER}/lib/*"
 fi

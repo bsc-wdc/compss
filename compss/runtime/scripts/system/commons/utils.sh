@@ -56,14 +56,20 @@ convert_pathlist_to_absolute_paths() {
           get_path_info "$currcp"
           currcp="${absdir}/${file}"
         fi
+      else
+	      display_warning "Path \"${currcp}\" does not exist."
+        if [ ! "${currcp:0:1}" == '/' ]; then
+          currcp=""
+        fi
+	    fi
+      
+      if [ -n "${currcp}" ]; then
         if [ -z "${fcp}" ]; then 
           fcp="$currcp"
         else
           fcp="${fcp}:$currcp"
         fi
-      else
-	      display_warning "Path \"${currcp}\" does not exist..."
-	    fi
+      fi
     done
 }
 
@@ -76,4 +82,15 @@ get_path_info() {
 # Checks if a command exists
 command_exists () {
   type "$1" &> /dev/null ;
+}
+
+###############################################
+# Gets an Universally Unique Identifier
+# WARN: Sets global uuid variable
+###############################################
+get_uuid() {
+  uuid=$(uuidgen)
+  if [ -z "$uuid" ]; then
+    uuid=$(cat /proc/sys/kernel/random/uuid)
+  fi
 }

@@ -44,6 +44,7 @@ public class StartApplicationRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String serviceInstanceId;
+    private String lang;
     private String ceiClass;
     private String className;
     private String methodName;
@@ -63,6 +64,23 @@ public class StartApplicationRequest implements Serializable {
 
     public String getServiceInstanceId() {
         return this.serviceInstanceId;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
+
+    /**
+     * Getter for the language of the request. If the language is not definied by default assigns Java.
+     * 
+     * @return language of the request
+     */
+    public String getLang() {
+        String returnLang = lang;
+        if (returnLang == null) {
+            returnLang = "JAVA";
+        }
+        return returnLang;
     }
 
     public String getCeiClass() {

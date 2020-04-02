@@ -99,11 +99,8 @@ check_compss_env() {
 # CHECK DEBUGGER-RELATED SETUP values
 #----------------------------------------------
 check_compss_setup () {
-  if [ -z "$uuid" ]; then
-    uuid=$(uuidgen)
-    if [ -z "$uuid" ]; then
-      uuid=$(cat /proc/sys/kernel/random/uuid)
-    fi
+  if [ -z "${uuid}" ]; then
+    get_uuid
   fi
 
   # JVM
@@ -204,8 +201,8 @@ EOT
 # Prepares all the necessary configuration for the runtime
 #----------------------------------------------
 prepare_runtime_environment() {
-    # Create tmp dir for initial loggers configuration
-  mkdir /tmp/"$uuid"
+  # Create tmp dir for initial loggers configuration
+  mkdir -p /tmp/"$uuid"
 
   # Create JVM Options file
   generate_jvm_opts_file
@@ -299,6 +296,10 @@ exec_c() {
   else
     export CPP_PATH=$cp
   fi
+
+  cat >> "${jvm_options_file}" << EOT
+-Dcompss.constraints.file=$fullAppPath.idl
+EOT
 
   # Launch application
   echo "JVM_OPTIONS_FILE: $JVM_OPTIONS_FILE"

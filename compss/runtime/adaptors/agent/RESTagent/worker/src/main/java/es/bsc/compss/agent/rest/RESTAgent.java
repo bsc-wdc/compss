@@ -71,6 +71,9 @@ import org.json.JSONObject;
 @Path("/COMPSs")
 public class RESTAgent implements AgentInterface<RESTAgentConf> {
 
+    // Error Messages
+    private static final String UNSUPPORTED_LANGUAGE_MSG = "Unsupported language.";
+
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.AGENT);
 
@@ -299,32 +302,38 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_JSON)
     public Response startApplication(StartApplicationRequest request) {
+        System.out.println("Received REST call to run a " + request.getLang() + " method");
         Response response;
-        String ceiClass = request.getCeiClass();
-        if (ceiClass != null) {
-            response = runMain(request);
-        } else {
-            response = runTask(request);
+        try {
+            String ceiClass = request.getCeiClass();
+            if (ceiClass != null) {
+                response = runMain(request);
+            } else {
+                response = runTask(request);
+            }
+        } catch (Exception e) {
+            response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return response;
     }
 
     private static Response runMain(StartApplicationRequest request) {
         // String serviceInstanceId = request.getServiceInstanceId();
+        Lang lang;
+        try {
+            lang = Lang.valueOf(request.getLang().toUpperCase());
+        } catch (java.lang.IllegalArgumentException iae) {
+            return Response.status(Response.Status.NOT_ACCEPTABLE).entity(UNSUPPORTED_LANGUAGE_MSG).build();
+        }
         String ceiClass = request.getCeiClass();
 
         String className = request.getClassName();
         String methodName = request.getMethodName();
         ApplicationParameter[] params = request.getParams();
-        /*
-         * Object[] params; try { params = request.getParamsValuesContent(); } catch (Exception cnfe) { return
-         * Response.status(Response.Status.INTERNAL_SERVER_ERROR) .entity("Could not recover an input parameter value. "
-         * + cnfe.getLocalizedMessage()).build(); }
-         */
         AppMainMonitor monitor = new AppMainMonitor();
         long appId;
         try {
-            appId = Agent.runMain(Lang.JAVA, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
+            appId = Agent.runMain(lang, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
                 monitor);
         } catch (AgentException e) {
             LOGGER.error("ERROR IN runMain : ", e);
@@ -334,6 +343,12 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
     }
 
     private static Response runTask(StartApplicationRequest request) {
+        Lang lang;
+        try {
+            lang = Lang.valueOf(request.getLang().toUpperCase());
+        } catch (java.lang.IllegalArgumentException iae) {
+            return Response.status(Response.Status.NOT_ACCEPTABLE).entity(UNSUPPORTED_LANGUAGE_MSG).build();
+        }
         String className = request.getClassName();
         String methodName = request.getMethodName();
         ApplicationParameterImpl[] arguments = request.getParams();
@@ -359,7 +374,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         AppTaskMonitor monitor = new AppTaskMonitor(numParams, orchestrator);
 
         try {
-            appId = Agent.runTask(Lang.JAVA, className, methodName, arguments, target, results,
+            appId = Agent.runTask(lang, className, methodName, arguments, target, results,
                 MethodResourceDescription.EMPTY_FOR_CONSTRAINTS, monitor);
         } catch (AgentException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();

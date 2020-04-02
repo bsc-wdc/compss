@@ -194,7 +194,6 @@ add_bindings_jvm_opts_c() {
   cat >> "${jvm_options_file}" << EOT
 -Dcompss.worker.persistent.c=${persistent_worker_c}
 -Dcompss.worker.appdir=${appdir}
--Dcompss.constraints.file=$fullAppPath.idl
 EOT
 }
 

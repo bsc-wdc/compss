@@ -84,6 +84,7 @@ public class COMPSsRuntimeImplTest {
         implTypeArgs = new String[] { "mpiBinary",
             "mpiWorkingDir",
             "mpiRunner",
+            "mpiFlags",
             "false",
             "false" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);

@@ -27,17 +27,20 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
     private final String methodName;
     private final String workingDir;
     private final String mpiRunner;
+    private final String mpiFlags;
     private final boolean scaleByCU;
     private final boolean failByEV;
 
 
     protected PythonMPIDefinition(String implSignature, String declaringClass, String methodName, String workingDir,
-        String mpiRunner, boolean scaleByCU, boolean failByEV, MethodResourceDescription implConstraints) {
+        String mpiRunner, String mpiFlags, boolean scaleByCU, boolean failByEV,
+        MethodResourceDescription implConstraints) {
 
         super(implSignature, implConstraints);
 
         this.workingDir = workingDir;
         this.mpiRunner = mpiRunner;
+        this.mpiFlags = mpiFlags;
         this.declaringClass = declaringClass;
         this.methodName = methodName;
         this.scaleByCU = scaleByCU;
@@ -46,8 +49,8 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
 
     @Override
     public Implementation getImpl(int coreId, int implId) {
-        return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, scaleByCU, failByEV,
-            coreId, implId, this.getSignature(), this.getConstraints());
+        return new PythonMPIImplementation(declaringClass, methodName, workingDir, mpiRunner, mpiFlags, scaleByCU,
+            failByEV, coreId, implId, this.getSignature(), this.getConstraints());
     }
 
     @Override
@@ -58,6 +61,7 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         sb.append("\t Declaring class: ").append(declaringClass).append("\n");
         sb.append("\t Method name: ").append(methodName).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
+        sb.append("\t MPI flags: ").append(mpiFlags).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");

@@ -36,6 +36,7 @@ import es.bsc.compss.types.implementations.MethodImplementation;
 import es.bsc.compss.types.implementations.MultiNodeImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
+import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.job.JobEndStatus;
 import es.bsc.compss.types.job.JobListener;
@@ -380,13 +381,17 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 String sandboxDir = binaryImpl.getWorkingDir();
                 lArgs.add(binaryImpl.getBinary());
                 lArgs.add(sandboxDir);
+                lArgs.add(Boolean.toString(binaryImpl.isFailByEV()));
                 break;
             case MPI:
                 MPIImplementation mpiImpl = (MPIImplementation) absImpl;
                 sandboxDir = mpiImpl.getWorkingDir();
                 lArgs.add(mpiImpl.getMpiRunner());
+                lArgs.add(mpiImpl.getMpiFlags());
                 lArgs.add(mpiImpl.getBinary());
                 lArgs.add(sandboxDir);
+                lArgs.add(Boolean.toString(mpiImpl.getScaleByCU()));
+                lArgs.add(Boolean.toString(mpiImpl.isFailByEV()));
                 break;
             case COMPSs:
                 COMPSsImplementation compssImpl = (COMPSsImplementation) absImpl;
@@ -395,6 +400,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 lArgs.add(compssImpl.getFlags());
                 lArgs.add(compssImpl.getAppName());
                 lArgs.add(sandboxDir);
+                lArgs.add(Boolean.toString(compssImpl.isFailByEV()));
                 break;
             case DECAF:
                 DecafImplementation decafImpl = (DecafImplementation) absImpl;
@@ -423,6 +429,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
 
                 lArgs.add(decafImpl.getMpiRunner());
                 lArgs.add(sandboxDir);
+                lArgs.add(Boolean.toString(decafImpl.isFailByEV()));
                 break;
             case MULTI_NODE:
                 MultiNodeImplementation multiNodeImpl = (MultiNodeImplementation) absImpl;
@@ -434,6 +441,7 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 sandboxDir = ompssImpl.getWorkingDir();
                 lArgs.add(ompssImpl.getBinary());
                 lArgs.add(sandboxDir);
+                lArgs.add(Boolean.toString(ompssImpl.isFailByEV()));
                 break;
             case OPENCL:
                 OpenCLImplementation openclImpl = (OpenCLImplementation) absImpl;
@@ -442,7 +450,17 @@ public class GATJob extends es.bsc.compss.types.job.Job<GATWorkerNode> implement
                 lArgs.add(sandboxDir);
                 break;
             case PYTHON_MPI:
-                // TODO: Support Python MPI in GAT
+                // TODO: Python MPI in GAT not implemented
+                PythonMPIImplementation pythonMPIImpl = (PythonMPIImplementation) absImpl;
+                sandboxDir = pythonMPIImpl.getWorkingDir();
+                lArgs.add(pythonMPIImpl.getDeclaringClass());
+                lArgs.add(pythonMPIImpl.getMethodDefinition());
+                lArgs.add(pythonMPIImpl.getMpiRunner());
+                lArgs.add(pythonMPIImpl.getMpiFlags());
+                lArgs.add(sandboxDir);
+                lArgs.add(Boolean.toString(pythonMPIImpl.getScaleByCU()));
+                lArgs.add(Boolean.toString(pythonMPIImpl.isFailByEV()));
+
                 throw new UnsupportedOperationException("Python MPI is not supported in GAT");
         }
 

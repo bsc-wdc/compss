@@ -43,6 +43,7 @@ public class MPIInvoker extends Invoker {
     private static final String ERROR_TARGET_PARAM = "ERROR: MPI Execution doesn't support target parameters";
 
     private final String mpiRunner;
+    private final String mpiFlags;
     private final String mpiBinary;
     private final boolean scaleByCU;
     private final boolean failByEV;
@@ -72,6 +73,7 @@ public class MPIInvoker extends Invoker {
 
         // MPI flags
         this.mpiRunner = mpiImpl.getMpiRunner();
+        this.mpiFlags = mpiImpl.getMpiFlags();
         this.mpiBinary = mpiImpl.getBinary();
         this.scaleByCU = mpiImpl.getScaleByCU();
         this.failByEV = mpiImpl.isFailByEV();
@@ -140,11 +142,19 @@ public class MPIInvoker extends Invoker {
             hostfile = writeHostfile(taskSandboxWorkingDir, workers);
         } else {
             hostfile = writeHostfile(taskSandboxWorkingDir, hostnames);
-            numMPIArgs = numMPIArgs + 2; // to add the -x OMP_NUM_THREADS
+            // numMPIArgs = numMPIArgs + 2; // to add the -x OMP_NUM_THREADS
+        }
+
+        // MPI Flags
+        int numMPIFlags = 0;
+        String[] mpiflagsArray = null;
+        if (this.mpiFlags == null || this.mpiFlags.isEmpty()) {
+            mpiflagsArray = mpiFlags.split(" ");
+            numMPIFlags = mpiflagsArray.length;
         }
 
         // Prepare command
-        String[] cmd = new String[numMPIArgs + binaryParams.size()];
+        String[] cmd = new String[numMPIArgs + numMPIFlags + binaryParams.size()];
         cmd[0] = this.mpiRunner;
         cmd[1] = "-hostfile";
         cmd[2] = hostfile;
@@ -154,13 +164,18 @@ public class MPIInvoker extends Invoker {
             cmd[5] = this.mpiBinary;
         } else {
             cmd[4] = String.valueOf(this.numWorkers);
-            cmd[5] = "-x";
-            cmd[6] = "OMP_NUM_THREADS";
-            cmd[7] = this.mpiBinary;
+            cmd[5] = this.mpiBinary;
+            // cmd[5] = "-x";
+            // cmd[6] = "OMP_NUM_THREADS";
+            // cmd[7] = this.mpiBinary;
+        }
+
+        for (int i = 0; i < mpiflagsArray.length; ++i) {
+            cmd[numMPIArgs + i] = mpiflagsArray[i];
         }
 
         for (int i = 0; i < binaryParams.size(); ++i) {
-            cmd[numMPIArgs + i] = binaryParams.get(i);
+            cmd[numMPIArgs + numMPIFlags + i] = binaryParams.get(i);
         }
 
         // Prepare environment

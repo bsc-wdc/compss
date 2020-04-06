@@ -110,8 +110,9 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String pythonMPImethodName = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     String pythonMPIWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
                     String pythonMPIRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
-                    boolean pythonMPIscaleByCU = Boolean.parseBoolean(implTypeArgs[4]);
-                    boolean pythonMPIfailByEV = Boolean.parseBoolean(implTypeArgs[5]);
+                    String pythonMPIFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]);
+                    boolean pythonMPIscaleByCU = Boolean.parseBoolean(implTypeArgs[5]);
+                    boolean pythonMPIfailByEV = Boolean.parseBoolean(implTypeArgs[6]);
                     if (pythonMPIdeclaringClass == null || pythonMPIdeclaringClass.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty declaringClass annotation for method " + implSignature);
@@ -121,7 +122,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     }
 
                     id = (ImplementationDefinition<T>) new PythonMPIDefinition(implSignature, pythonMPIdeclaringClass,
-                        pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner, pythonMPIscaleByCU,
+                        pythonMPImethodName, pythonMPIWorkingDir, pythonMPIRunner, pythonMPIFlags, pythonMPIscaleByCU,
                         pythonMPIfailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
@@ -147,8 +148,9 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     String mpiBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String mpiWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     String mpiRunner = EnvironmentLoader.loadFromEnvironment(implTypeArgs[2]);
-                    boolean mpiScaleByCU = Boolean.parseBoolean(implTypeArgs[3]);
-                    boolean mpiFailByEV = Boolean.parseBoolean(implTypeArgs[4]);
+                    String mpiFlags = EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]);
+                    boolean mpiScaleByCU = Boolean.parseBoolean(implTypeArgs[4]);
+                    boolean mpiFailByEV = Boolean.parseBoolean(implTypeArgs[5]);
                     if (mpiRunner == null || mpiRunner.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty mpiRunner annotation for MPI method " + implSignature);
@@ -157,7 +159,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                         throw new IllegalArgumentException("Empty binary annotation for MPI method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new MPIDefinition(implSignature, mpiBinary, mpiWorkingDir,
-                        mpiRunner, mpiScaleByCU, mpiFailByEV, (MethodResourceDescription) implConstraints);
+                        mpiRunner, mpiFlags, mpiScaleByCU, mpiFailByEV, (MethodResourceDescription) implConstraints);
                     break;
 
                 case COMPSs:

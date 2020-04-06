@@ -26,12 +26,13 @@ import java.io.ObjectOutput;
 
 public class PythonMPIImplementation extends AbstractMethodImplementation implements Externalizable {
 
-    public static final int NUM_PARAMS = 6;
+    public static final int NUM_PARAMS = 7;
 
     private String declaringClass;
     private String alternativeMethod;
     private String mpiRunner;
     private String workingDir;
+    private String mpiFlags;
     private boolean scaleByCU;
     private boolean failByEV;
 
@@ -59,8 +60,8 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
      * @param requirements Method requirements.
      */
     public PythonMPIImplementation(String methodClass, String altMethodName, String workingDir, String mpiRunner,
-        boolean scaleByCU, boolean failByEV, Integer coreId, Integer implementationId, String signature,
-        MethodResourceDescription requirements) {
+        String mpiFlags, boolean scaleByCU, boolean failByEV, Integer coreId, Integer implementationId,
+        String signature, MethodResourceDescription requirements) {
 
         super(coreId, implementationId, signature, requirements);
 
@@ -68,6 +69,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.alternativeMethod = altMethodName;
         this.mpiRunner = mpiRunner;
         this.workingDir = workingDir;
+        this.mpiFlags = mpiFlags;
         this.scaleByCU = scaleByCU;
         this.failByEV = failByEV;
     }
@@ -118,6 +120,15 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
     }
 
     /**
+     * Returns the flags for the MPI command.
+     * 
+     * @return Flags for the MPI command.
+     */
+    public String getMpiFlags() {
+        return this.mpiFlags;
+    }
+
+    /**
      * Returns the scale by computing units property.
      * 
      * @return scale by computing units property value.
@@ -146,6 +157,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         sb.append("[DECLARING CLASS=").append(this.declaringClass);
         sb.append(", METHOD NAME=").append(this.alternativeMethod);
         sb.append(", MPI RUNNER=").append(this.mpiRunner);
+        sb.append(", MPI FLAGS=").append(this.mpiFlags);
         sb.append(", SCALE_BY_CU=").append(this.scaleByCU);
         sb.append(", FAIL_BY_EV=").append(this.failByEV);
         sb.append("]");
@@ -165,6 +177,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         this.declaringClass = (String) in.readObject();
         this.alternativeMethod = (String) in.readObject();
         this.mpiRunner = (String) in.readObject();
+        this.mpiFlags = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
         this.failByEV = in.readBoolean();
@@ -176,6 +189,7 @@ public class PythonMPIImplementation extends AbstractMethodImplementation implem
         out.writeObject(this.declaringClass);
         out.writeObject(this.alternativeMethod);
         out.writeObject(this.mpiRunner);
+        out.writeObject(this.mpiFlags);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);
         out.writeBoolean(this.failByEV);

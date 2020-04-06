@@ -550,6 +550,7 @@ public class ITFParser {
             String binary = EnvironmentLoader.loadFromEnvironment(mpiAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(mpiAnnot.workingDir());
             String mpiRunner = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiRunner());
+            String mpiFlags = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiFlags());
             String scaleByCUStr = Boolean.toString(mpiAnnot.scaleByCU());
             String failByEVstr = Boolean.toString(mpiAnnot.failByExitValue());
             if (mpiRunner == null || mpiRunner.isEmpty()) {

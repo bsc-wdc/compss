@@ -43,6 +43,7 @@ SUPPORTED_ARGUMENTS = {'binary',
                        'working_dir',
                        'binary',
                        'runner',
+                       'flags',
                        'scale_by_cu',
                        'fail_by_exit_value'}
 DEPRECATED_ARGUMENTS = {'computing_nodes',
@@ -200,6 +201,10 @@ class MPI(object):
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
                     runner = self.kwargs['runner']
+                    if 'flags' in self.kwargs:
+                        flags = self.kwargs['flags']
+                    else:
+                        flags = '[unassigned]'  # Empty or '[unassigned]'
                     if 'scale_by_cu' in self.kwargs:
                         scale_by_cu = self.kwargs['scale_by_cu']
                         if isinstance(scale_by_cu, bool):
@@ -236,7 +241,7 @@ class MPI(object):
                         impl_signature = 'MPI.' + binary
 
                     cce.set_impl_signature(impl_signature)
-                    impl_args = [binary, working_dir, runner, scale_by_cu_str, fail_by_ev_str]
+                    impl_args = [binary, working_dir, runner, flags, scale_by_cu_str, fail_by_ev_str]
                     cce.set_impl_type_args(impl_args)
             else:
                 # worker code

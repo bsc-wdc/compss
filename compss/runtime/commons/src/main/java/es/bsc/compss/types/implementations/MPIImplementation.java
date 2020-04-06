@@ -31,9 +31,10 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      */
     private static final long serialVersionUID = 1L;
 
-    public static final int NUM_PARAMS = 5;
+    public static final int NUM_PARAMS = 6;
 
     private String mpiRunner;
+    private String mpiFlags;
     private String binary;
     private String workingDir;
     private boolean scaleByCU;
@@ -61,12 +62,13 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
      * @param signature MPI method signature.
      * @param annot MPI requirements.
      */
-    public MPIImplementation(String binary, String workingDir, String mpiRunner, boolean scaleByCU, boolean failByEV,
-        Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
+    public MPIImplementation(String binary, String workingDir, String mpiRunner, String mpiFlags, boolean scaleByCU,
+        boolean failByEV, Integer coreId, Integer implementationId, String signature, MethodResourceDescription annot) {
 
         super(coreId, implementationId, signature, annot);
 
         this.mpiRunner = mpiRunner;
+        this.mpiFlags = mpiFlags;
         this.workingDir = workingDir;
         this.binary = binary;
         this.scaleByCU = scaleByCU;
@@ -101,6 +103,15 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
     }
 
     /**
+     * Returns the flags for the MPI command.
+     * 
+     * @return Flags for the MPI command.
+     */
+    public String getMpiFlags() {
+        return this.mpiFlags;
+    }
+
+    /**
      * Returns the scale by computing units property.
      * 
      * @return scale by computing units property value.
@@ -127,6 +138,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
         sb.append("[MPI RUNNER=").append(this.mpiRunner);
+        sb.append(", MPI_FLAGS=").append(this.mpiFlags);
         sb.append(", BINARY=").append(this.binary);
         sb.append("]");
 
@@ -142,6 +154,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
         this.mpiRunner = (String) in.readObject();
+        this.mpiFlags = (String) in.readObject();
         this.binary = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.scaleByCU = in.readBoolean();
@@ -152,6 +165,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
         out.writeObject(this.mpiRunner);
+        out.writeObject(this.mpiFlags);
         out.writeObject(this.binary);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.scaleByCU);

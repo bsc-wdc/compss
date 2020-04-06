@@ -16,10 +16,12 @@
  */
 package es.bsc.compss.types.implementations;
 
+import es.bsc.compss.COMPSsConstants;
 import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 
 import java.io.Externalizable;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -36,6 +38,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
 
     private static final String DEFAULT_RUNCOMPSS = "runcompss";
     private static final String DEFAULT_FLAGS = "";
+    // Annotation properties
 
     private String runcompss;
     private String flags;
@@ -43,6 +46,9 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
     private String workerInMaster;
     private String workingDir;
     private boolean failByEV;
+
+    // Parent application details
+    private String parentAppId;
 
 
     /**
@@ -87,6 +93,9 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         this.workerInMaster = workerInMaster;
         this.workingDir = workingDir;
         this.failByEV = failByEV;
+        this.parentAppId = new File(System.getProperty(COMPSsConstants.APP_LOG_DIR)).getName();
+        // Alternative
+        // this.parentAppId = System.getProperty(COMPSsConstants.DEPLOYMENT_ID);
     }
 
     /**
@@ -143,6 +152,15 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         return failByEV;
     }
 
+    /**
+     * Returns the parent app Identifier.
+     * 
+     * @return The parent app Identifier.
+     */
+    public String getParentAppId() {
+        return this.parentAppId;
+    }
+
     @Override
     public MethodType getMethodType() {
         return MethodType.COMPSs;
@@ -156,6 +174,8 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         sb.append(", APP_NAME=").append(this.appName);
         sb.append(", WORKER_IN_MASTER=").append(this.workerInMaster);
         sb.append(", WORKING_DIR=").append(this.workingDir);
+        sb.append(", FAIL_BY_EV=").append(this.failByEV);
+        sb.append(", PARENT_APP_ID=").append(this.parentAppId);
         sb.append("]");
 
         return sb.toString();
@@ -175,6 +195,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         this.workerInMaster = (String) in.readObject();
         this.workingDir = (String) in.readObject();
         this.failByEV = in.readBoolean();
+        this.parentAppId = (String) in.readObject();
     }
 
     @Override
@@ -186,6 +207,7 @@ public class COMPSsImplementation extends AbstractMethodImplementation implement
         out.writeObject(this.workerInMaster);
         out.writeObject(this.workingDir);
         out.writeBoolean(this.failByEV);
+        out.writeObject(this.parentAppId);
     }
 
 }

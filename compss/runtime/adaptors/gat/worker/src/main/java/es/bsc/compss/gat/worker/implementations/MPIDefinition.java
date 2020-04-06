@@ -26,6 +26,7 @@ import es.bsc.compss.types.implementations.MethodType;
 public class MPIDefinition extends ImplementationDefinition {
 
     private final String mpiRunner;
+    private final String mpiFlags;
     private final String mpiBinary;
     private final String workingDir;
     private final boolean scaleByCU;
@@ -45,6 +46,7 @@ public class MPIDefinition extends ImplementationDefinition {
         super(debug, args, execArgsIdx + MPIImplementation.NUM_PARAMS);
 
         this.mpiRunner = args[execArgsIdx++];
+        this.mpiFlags = args[execArgsIdx++];
         this.mpiBinary = args[execArgsIdx++];
 
         String wDir = args[execArgsIdx++];
@@ -56,8 +58,8 @@ public class MPIDefinition extends ImplementationDefinition {
         this.scaleByCU = Boolean.parseBoolean(args[execArgsIdx++]);
         this.failByEV = Boolean.parseBoolean(args[execArgsIdx++]);
 
-        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, this.scaleByCU,
-            this.failByEV, null, null, "", null);
+        this.impl = new MPIImplementation(this.mpiBinary, this.workingDir, this.mpiRunner, this.mpiFlags,
+            this.scaleByCU, this.failByEV, null, null, "", null);
     }
 
     @Override

@@ -527,7 +527,8 @@ public class Executor implements Runnable {
                 break;
             case COMPSs:
                 COMPSsImplementation compssImpl = (COMPSsImplementation) invocation.getMethodImplementation();
-                specificWD = compssImpl.getWorkingDir();
+                specificWD = compssImpl.getWorkingDir() + File.separator + compssImpl.getParentAppId() + File.separator
+                    + "compss_job_" + invocation.getJobId() + "_" + invocation.getHistory().name();
                 break;
             case MULTI_NODE:
                 // It is executed as a regular native method

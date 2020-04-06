@@ -40,6 +40,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
     private static final int NUM_BASE_PYTHON_MPI_ARGS = 8;
 
     private final String mpiRunner;
+    private final String mpiFlags;
     private final String declaringclass;
     private final String alternativeMethod;
     private final boolean scaleByCU;
@@ -69,6 +70,7 @@ public class PythonMPIInvoker extends ExternalInvoker {
 
         // Python MPI flags
         this.mpiRunner = pythonmpiImpl.getMpiRunner();
+        this.mpiFlags = pythonmpiImpl.getMpiFlags();
         this.declaringclass = pythonmpiImpl.getDeclaringClass();
         this.alternativeMethod = pythonmpiImpl.getAlternativeMethodName();
         this.scaleByCU = pythonmpiImpl.getScaleByCU();
@@ -125,13 +127,23 @@ public class PythonMPIInvoker extends ExternalInvoker {
             hostfile = writeHostfile(taskSandboxWorkingDir, workers);
         } else {
             hostfile = writeHostfile(taskSandboxWorkingDir, hostnames);
-            numBasePythonMpiArgs = numBasePythonMpiArgs + 2; // to add the -x OMP_NUM_THREADS
+            // numBasePythonMpiArgs = numBasePythonMpiArgs + 2; // to add the -x OMP_NUM_THREADS
         }
 
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(this.invocation.getParams(),
             this.invocation.getTarget(), streamValues, this.pythonInterpreter);
+
+        // MPI Flags
+        int numMPIFlags = 0;
+        String[] mpiflagsArray = null;
+        if (this.mpiFlags == null || this.mpiFlags.isEmpty()) {
+            mpiflagsArray = mpiFlags.split(" ");
+            numMPIFlags = mpiflagsArray.length;
+        }
+
+        numBasePythonMpiArgs = numBasePythonMpiArgs + numMPIFlags;
 
         // Prepare command
         String[] cmd = new String[numBasePythonMpiArgs + binaryParams.size()];
@@ -143,9 +155,15 @@ public class PythonMPIInvoker extends ExternalInvoker {
             cmd[4] = String.valueOf(this.numWorkers * this.computingUnits);
         } else {
             cmd[4] = String.valueOf(this.numWorkers);
-            cmd[5] = "-x";
-            cmd[6] = "OMP_NUM_THREADS";
+            // cmd[5] = "-x";
+            // cmd[6] = "OMP_NUM_THREADS";
         }
+
+        // Add mpiFlags
+        for (int i = 0; i < numMPIFlags; ++i) {
+            cmd[5 + i] = mpiflagsArray[i];
+        }
+
         cmd[numBasePythonMpiArgs - 3] =
             ((PythonParams) this.context.getLanguageParams(COMPSsConstants.Lang.PYTHON)).getPythonInterpreter();
         String installDir = this.context.getInstallDir();

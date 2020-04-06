@@ -67,6 +67,13 @@ public @interface MPI {
     String mpiRunner() default Constants.UNASSIGNED;
 
     /**
+     * Returns the mpi runner flags.
+     * 
+     * @return the mpi runner flags.
+     */
+    String mpiFlags() default Constants.UNASSIGNED;
+
+    /**
      * Returns the number of computing nodes required.
      * 
      * @return the number of computing nodes required.

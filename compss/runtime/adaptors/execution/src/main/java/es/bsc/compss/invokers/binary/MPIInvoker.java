@@ -170,7 +170,7 @@ public class MPIInvoker extends Invoker {
             // cmd[7] = this.mpiBinary;
         }
 
-        for (int i = 0; i < mpiflagsArray.length; ++i) {
+        for (int i = 0; i < numMPIFlags; ++i) {
             cmd[numMPIArgs + i] = mpiflagsArray[i];
         }
 

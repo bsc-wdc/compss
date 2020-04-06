@@ -578,7 +578,7 @@ public class ITFParser {
             ImplementationDefinition<?> implDef = null;
             try {
                 implDef = ImplementationDefinition.defineImplementation(MethodType.MPI.toString(), mpiSignature,
-                    implConstraints, binary, workingDir, mpiRunner, scaleByCUStr, failByEVstr);
+                    implConstraints, binary, workingDir, mpiRunner, mpiFlags, scaleByCUStr, failByEVstr);
             } catch (Exception e) {
                 ErrorManager.error(e.getMessage());
             }

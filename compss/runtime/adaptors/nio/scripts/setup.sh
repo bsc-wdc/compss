@@ -37,6 +37,14 @@
            SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/system/adaptors/nio"
         fi
     fi
+    
+    #Unset PMI vars affecting MPI Tasks
+    unset PMI_FD
+    unset PMI_JOBID
+    unset PMI_RANK
+    unset PMI_SIZE
+
+
     # Get parameters
     libPath=$1
     appDir=$2

@@ -21,7 +21,7 @@ ERROR_TMP_FILE="Cannot create TMP Submit file"
 ERROR_STORAGE_PROPS="storage_props flag not defined"
 ERROR_STORAGE_PROPS_FILE="storage_props file doesn't exist"
 ERROR_PROJECT_NAME_NA="Project name not defined (use --project_name flag)"
-
+ERROR_CLUSTER_NA="Cluster not defined (use --cluster flag)"
 
 #---------------------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -87,6 +87,12 @@ EOT
     cat <<EOT
     --constraints=<constraints>		    Constraints to pass to queue system.
 					    Default: ${DEFAULT_CONSTRAINTS}
+EOT
+   fi
+   if ["${ENABLE_QARG_CLUSTER}" == "true" ]; then
+    cat <<EOT
+    --cluster=<cluster>                     Cluster to pass to queue system.
+                                            
 EOT
    fi
    if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
@@ -201,6 +207,10 @@ log_args() {
   if [ -z "${DISABLE_QARG_QOS}" ] || [ "${DISABLE_QARG_QOS}" == "false" ]; then
     echo "QoS:                       ${qos}"
   fi
+  if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
+    echo "Cluster:                   ${cluster}"
+  fi
+
   if [ "${ENABLE_PROJECT_NAME}" == "true" ]; then
     echo "Project name:              ${project_name}"
   fi
@@ -333,6 +343,9 @@ get_args() {
           constraints=*)
             constraints=${OPTARG//constraints=/}
             args_pass="$args_pass --$OPTARG"
+            ;;
+	  cluster=*)
+            cluster=${OPTARG//cluster=/}
             ;;
           project_name=*)
             project_name=${OPTARG//project_name=/}
@@ -527,6 +540,14 @@ check_args() {
     display_error "${ERROR_PROJECT_NAME_NA}"
   fi
 
+  ###############################################################
+  # Cluster name check when required
+  ###############################################################
+  if [ "${ENABLE_QARG_CLUSTER}" == "true" ] && [ -z "${cluster}" ]; then
+    display_error "${ERROR_PROJECT_NAME_NA}"
+  fi
+
+
 }
 
 ###############################################
@@ -563,7 +584,7 @@ add_submission_headers(){
   # Add queue selection
   if [ "${queue}" != "default" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-#${QUEUE_CMD} ${QARG_QUEUE_SELECTION}${QUEUE_SEPARATOR} ${queue}
+#${QUEUE_CMD} ${QARG_QUEUE_SELECTION}${QUEUE_SEPARATOR}${queue}
 EOT
   fi
 
@@ -602,6 +623,7 @@ EOT
 #${QUEUE_CMD} ${QARG_JOB_NAME}${QUEUE_SEPARATOR}${job_name}
 EOT
   fi
+
 
   # Reservation
   if [ -n "${QARG_RESERVATION}" ]; then
@@ -670,20 +692,27 @@ EOT
 EOT
   fi
 
-  # Generic arguments
-  cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+  # Wall Clock
+  if [ -n "${QARG_WALLCLOCK}" ]; then
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_WALLCLOCK}${QUEUE_SEPARATOR}$wc_limit
+EOT
+  fi
+  #Working dir
+  if [ -n "${QARG_WD}" ]; then
+    cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_WD}${QUEUE_SEPARATOR}${master_working_dir}
 EOT
+  fi
   # Add JOBID customizable stderr and stdout redirection when defined in queue system
   if [ -n "${QARG_JOB_OUT}" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-#${QUEUE_CMD} ${QARG_JOB_OUT}${QUEUE_SEPARATOR} compss-${QJOB_ID}.out
+#${QUEUE_CMD} ${QARG_JOB_OUT}${QUEUE_SEPARATOR}compss-${QJOB_ID}.out
 EOT
   fi
   if [ -n "${QARG_JOB_ERROR}" ]; then
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
-#${QUEUE_CMD} ${QARG_JOB_ERROR}${QUEUE_SEPARATOR} compss-${QJOB_ID}.err
+#${QUEUE_CMD} ${QARG_JOB_ERROR}${QUEUE_SEPARATOR}compss-${QJOB_ID}.err
 EOT
   fi
   # Add num nodes when defined in queue system
@@ -723,6 +752,15 @@ EOT
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 #${QUEUE_CMD} ${QARG_PROJECT_NAME}${QUEUE_SEPARATOR}${project_name}
 EOT
+  fi
+
+    # Add cluster name defined in queue system
+  if [ -n "${QARG_CLUSTER}" ]; then
+    if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
+       cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
+#${QUEUE_CMD} ${QARG_CLUSTER}${QUEUE_SEPARATOR}${cluster}
+EOT
+    fi
   fi
 }
 

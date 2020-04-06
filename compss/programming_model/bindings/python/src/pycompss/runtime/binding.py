@@ -177,6 +177,8 @@ def get_object_id(obj, assign_new_key=False, force_insertion=False):
         _id2obj[new_id] = obj
         _current_id += 1
         return new_id
+    if len(_id2obj) == 0:
+        _addr2id2obj.pop(obj_addr)
     return None
 
 
@@ -190,7 +192,7 @@ def pop_object_id(obj):
     _id2obj = _addr2id2obj.setdefault(id(obj), {})
     for (k, v) in list(_id2obj.items()):
         _id2obj.pop(k)
-        return
+    _addr2id2obj.pop(obj_addr)
 
 
 # Enable or disable the management of *args parameters as a whole tuple built
@@ -347,6 +349,7 @@ def delete_object(obj):
     """
     obj_id = get_object_id(obj, False, False)
     if obj_id is None:
+        pop_object_id(obj)
         return False
 
     try:
@@ -1082,6 +1085,7 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     ...
         #     typeN IdN
         value = '%s %d' % (get_object_id(param.object), len(param.object))
+        pop_object_id(param.object)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
             x_value, x_type, _, _, _ = _extract_parameter(

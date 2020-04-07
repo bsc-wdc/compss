@@ -64,6 +64,7 @@ extern "C" void GS_ExecuteTaskNew(long appId,
                                  );
 
 // File methods
+extern "C" int GS_Accessed_File(char *file_name);
 extern "C" void GS_Open_File(char *file_name, int mode, char **buf);
 extern "C" void GS_Close_File(char *file_name, int mode);
 extern "C" void GS_Delete_File(char *file_name, int waitForData);

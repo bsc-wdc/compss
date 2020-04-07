@@ -42,6 +42,15 @@ def compss_stop():
     """
     pass
 
+def compss_file_exists(file_name):
+    """
+    Dummy compss_file_exists.
+    :param file_name: The file name to check
+    :return: True if exists
+    """
+    pass
+    from os import path
+    return path.exists(file_name)
 
 def compss_open(file_name, mode='r'):
     """

@@ -644,7 +644,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * @param loc Location.
      * @return {@code true} if the location has been accessed, {@code false} otherwise.
      */
-    private boolean alreadyAccessed(DataLocation loc) {
+    public boolean alreadyAccessed(DataLocation loc) {
         Semaphore sem = new Semaphore(0);
         AlreadyAccessedRequest request = new AlreadyAccessedRequest(loc, sem);
         if (!this.requestQueue.offer(request)) {

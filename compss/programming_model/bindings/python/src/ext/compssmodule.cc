@@ -387,6 +387,20 @@ process_task(PyObject *self, PyObject *args) {
 }
 
 /*
+  Given a PyCOMPSs-id file, check if it has been accessed before
+*/
+static PyObject *
+accessed_file(PyObject *self, PyObject *args) {
+    debug("####C#### ACCESSED FILE\n");
+    char *file_name = _pystring_to_char(PyTuple_GetItem(args, 0));
+    if (GS_Accessed_File(file_name) == 0){
+    	Py_RETURN_FALSE;
+    }else{
+    	Py_RETURN_TRUE;
+    }
+}
+
+/*
   Given a PyCOMPSs-id file, get its corresponding COMPSs-id file
 */
 static PyObject *
@@ -595,6 +609,7 @@ static PyMethodDef CompssMethods[] = {
     { "stop_runtime", stop_runtime, METH_VARARGS, "Stop the COMPSs runtime." },
     { "cancel_application_tasks", cancel_application_tasks, METH_VARARGS, "Cancel all tasks of an application." },
     { "process_task", process_task, METH_VARARGS, "Process a task call from the application." },
+	{ "accessed_file", accessed_file, METH_VARARGS, "Check if a file has been already accessed. The file can contain an object." },
     { "open_file", open_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
     { "close_file", close_file, METH_VARARGS, "Close a file." },

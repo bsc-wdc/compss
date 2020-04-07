@@ -225,6 +225,14 @@ public interface COMPSsRuntime {
     public void registerData(DataType type, Object stub, String dataId);
 
     /**
+     * Checks if a file has been accessed by the runtime.
+     * 
+     * @param fileName File to check
+     * @return True if accessed.
+     */
+    public boolean isFileAccessed(String fileName);
+
+    /**
      * Returns the renaming of the file version opened.
      *
      * @param fileName File name.
@@ -315,4 +323,5 @@ public interface COMPSsRuntime {
      * @param id Event id.
      */
     public void emitEvent(int type, long id);
+
 }

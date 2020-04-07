@@ -994,15 +994,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         LOGGER.debug("Getting file " + fileName);
         String renamedPath = openFile(fileName, Direction.INOUT);
-        String intermediateTmpPath = renamedPath + ".tmp";
-        rename(renamedPath, intermediateTmpPath);
-        closeFile(fileName, Direction.INOUT);
-        ap.markForDeletion(sourceLocation, true);
-        // In the case of Java file can be stored in the Stream Registry
-        if (sReg != null) {
-            sReg.deleteTaskFile(fileName);
+        // If renamePth is the same as original, file has not accessed. Nothing to do.
+        if (!renamedPath.equals(sourceLocation.getPath())) {
+            String intermediateTmpPath = renamedPath + ".tmp";
+            rename(renamedPath, intermediateTmpPath);
+            closeFile(fileName, Direction.INOUT);
+            ap.markForDeletion(sourceLocation, true);
+            // In the case of Java file can be stored in the Stream Registry
+            if (sReg != null) {
+                sReg.deleteTaskFile(fileName);
+            }
+            rename(intermediateTmpPath, fileName);
         }
-        rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.GET_FILE.getType());
         }
@@ -1183,6 +1186,24 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      * *********************************** COMMON IN BOTH APIs ***********************************
      * *********************************************************************************************************
      */
+
+    @Override
+    public boolean isFileAccessed(String fileName) {
+        DataLocation loc;
+        try {
+            loc = createLocation(fileName);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            loc = null;
+        }
+        if (loc != null) {
+            return ap.alreadyAccessed(loc);
+        } else {
+            return false;
+        }
+
+    }
+
     @Override
     public String openFile(String fileName, Direction mode) {
         LOGGER.info("Opening " + fileName + " in mode " + mode);

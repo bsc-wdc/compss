@@ -45,6 +45,7 @@ jmethodID midRegisterCE;            /* ID of the RegisterCE method in the es.bsc
 jmethodID midEmitEvent;             /* ID of the EmitEvent method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCancelApplicationTasks; /* ID of the CancelApplicationTasks method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 
+jmethodID midIsFileAccessed;        /* ID of the isFileAccessed method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midOpenFile;              /* ID of the openFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midCloseFile;             /* ID of the closeFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
 jmethodID midDeleteFile;            /* ID of the deleteFile method in the es.bsc.compss.api.impl.COMPSsRuntimeImpl class */
@@ -258,6 +259,13 @@ void init_master_jni_types() {
 
     // RegisterCE method
     midRegisterCE = m_env->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
+    if (m_env->ExceptionOccurred()) {
+        m_env->ExceptionDescribe();
+        exit(1);
+    }
+
+    // openFile method
+    midIsFileAccessed = m_env->GetMethodID(clsITimpl, "isFileAccessed", "(Ljava/lang/String;)Z");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -1118,6 +1126,24 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
     debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Task registered: %s\n", CESignature);
 }
 
+
+int GS_Accessed_File(char *file_name){
+	get_lock();
+	JNIEnv* local_env = m_env;
+	int isAttached = check_and_attach(m_jvm, local_env);
+	debug_printf("[BINDING-COMMONS]  -  @GS_Accessed_File  -  Calling runtime isFileAccessed method  for %s  ...\n", file_name);
+	jstring filename_str = local_env->NewStringUTF(file_name);
+	check_and_treat_exception(local_env, "Error getting String UTF");
+	release_lock();
+	jboolean is_accessed = (jboolean)local_env->CallBooleanMethod(jobjIT, midIsFileAccessed, filename_str);
+    check_and_treat_exception(local_env, "Error calling runtime openFile");
+    local_env->DeleteLocalRef(filename_str);
+    int ret = 0;
+    if ((bool)is_accessed){
+    	ret = 1;
+    }
+    return ret;
+}
 
 void GS_Open_File(char *file_name, int mode, char **buf) {
 

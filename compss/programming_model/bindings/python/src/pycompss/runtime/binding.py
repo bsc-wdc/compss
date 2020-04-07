@@ -289,6 +289,19 @@ def stop_runtime(code=0):
         logger.info("COMPSs stopped")
 
 
+def accessed_file(file_name):
+    """
+    Calls the external python library (that calls the bindings-common)
+    in order to check if a file has been accessed.
+
+    :param file_name: <String> File name.
+    :return: True if accessed otherwise False;
+    """
+    if __debug__:
+        logger.debug("Checking if file %s has been accessed." % file_name)
+    return compss.accessed_file(file_name)
+
+
 def open_file(file_name, mode):
     """
     Calls the external python library (that calls the bindings-common)

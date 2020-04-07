@@ -24,6 +24,14 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 public interface LoaderAPI {
 
     /**
+     * Checks if a file has been accessed by the runtime.
+     * 
+     * @param fileName File.
+     * @return True if accessed.
+     */
+    public boolean isFileAccessed(String fileName);
+
+    /**
      * Returns the renaming of the file version opened.
      * 
      * @param fileName File.

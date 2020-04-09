@@ -23,13 +23,16 @@ build/
 # Ignore packages
 builders/packages/*
 
+# Ignore Redis bundle build
+utils/storage/redisPSCO/COMPSs-Redis-bundle
+
 
 # ========== Java ignores =================
 
 # Compiled class file
 *.class
 
-# Package Files 
+# Package Files
 *.jar
 *.war
 *.ear

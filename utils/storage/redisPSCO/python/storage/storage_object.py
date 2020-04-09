@@ -14,76 +14,92 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-'''Redis Storage Object implementation for the PyCOMPSs Python Binding
-'''
+"""
+Redis Storage Object implementation for the PyCOMPSs Python Binding
+"""
 import uuid
 import storage.api
+
 __name__ = "redispycompss"
 
+
 class storage_object(object):
-    '''Storage Object
-    '''
+    """
+    Storage Object
+    """
 
     def __init__(self):
-        '''Constructor method
-        '''
+        """
+        Constructor method
+        """
         # Id will be None until persisted
         self.pycompss_psco_identifier = None
         self.pycompss_mark_as_unmodified()
 
-    def makePersistent(self, identifier = None):
-        '''Stores the object in the Redis database
-        '''
+    def makePersistent(self, identifier=None):
+        """
+        Stores the object in the Redis database
+        """
         storage.api.makePersistent(self, identifier)
 
-    def make_persistent(self, identifier = None):
-        '''Support for underscore notation
-        '''
+    def make_persistent(self, identifier=None):
+        """
+        Support for underscore notation
+        """
         self.makePersistent(identifier)
 
     def deletePersistent(self):
-        '''Deletes the object from the Redis database
-        '''
+        """
+        Deletes the object from the Redis database
+        """
         storage.api.deletePersistent(self)
 
     def delete_persistent(self):
-        '''Support for underscore notation
-        '''
+        """
+        Support for underscore notation
+        """
         self.deletePersistent()
 
     def getID(self):
-        '''Gets the ID of the object
-        '''
+        """
+        Gets the ID of the object
+        """
         return self.pycompss_psco_identifier
 
     def pycompss_is_modified(self):
-        '''Check if the object was modified
-        '''
+        """
+        Check if the object was modified
+        """
         return self._pycompss_modified
 
     def pycompss_set_mod_flag(self, val):
-        '''Set modification flag to given value
-        '''
+        """
+        Set modification flag to given value
+        """
         super(storage_object, self).__setattr__('_pycompss_modified', val)
 
     def pycompss_mark_as_unmodified(self):
-        '''Mark the object as unmodified
-        '''
+        """
+        Mark the object as unmodified
+        """
         self.pycompss_set_mod_flag(False)
 
     def pycompss_mark_as_modified(self):
-        '''Mark the object as modified
-        '''
+        """
+        Mark the object as modified
+        """
         self.pycompss_set_mod_flag(True)
 
     def __setattr__(self, name, value):
-        '''Custom setattr which marks the object as modified and calls
-        the actual setattr
-        '''
+        """
+        Custom setattr which marks the object as modified and calls the
+        actual setattr
+        """
         self.pycompss_set_mod_flag(True)
         super(storage_object, self).__setattr__(name, value)
 
 
-'''Add support for camelCase
-'''
+"""
+Support for camelCase
+"""
 StorageObject = storage_object

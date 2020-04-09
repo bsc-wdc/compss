@@ -8,7 +8,7 @@ PyCOMPSs Testbench
 """
 
 # Imports
-from storage.storage_object import StorageObject
+from storage.api import StorageObject
 from pycompss.api.task import task
 
 from pycompss.api.parameter import *

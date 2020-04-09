@@ -895,7 +895,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
     /**
      * Freezes the task generation until all previous tasks have been executed. The noMoreTasks parameter indicates
      * whether to expect new tasks after the barrier or not
-     * 
+     *
      * @throws COMPSsException Exception thrown by user
      */
     @Override
@@ -1580,6 +1580,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         for (int i = 0; i < parameterCount; ++i) {
             Object content = parameters[NUM_FIELDS_PER_PARAM * i];
             DataType type = (DataType) parameters[NUM_FIELDS_PER_PARAM * i + 1];
+            if (type == null) {
+                type = DataType.NULL_T;
+            }
             Direction direction = (Direction) parameters[NUM_FIELDS_PER_PARAM * i + 2];
             StdIOStream stream = (StdIOStream) parameters[NUM_FIELDS_PER_PARAM * i + 3];
             String prefix = (String) parameters[NUM_FIELDS_PER_PARAM * i + 4];

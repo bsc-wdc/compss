@@ -794,7 +794,6 @@ class Task(object):
         # 3) A basic iterable (tuple, list...). This means 'this task
         #    returns an iterable with the indicated elements inside
 
-
         # We are returning multiple objects until otherwise proven
         # It is important to know because this will determine if we will
         # return a single object or [a single object] in some cases
@@ -1038,15 +1037,20 @@ class Task(object):
                 # with the target_direction flag
                 self.parameters[var_name] = self.decorator_arguments.get(var_name,  # noqa
                                                                          self.get_default_direction(var_name))  # noqa
+
             # If the parameter is a FILE then its type will already be defined,
             # and get_compss_type will misslabel it as a TYPE.STRING
             if self.parameters[var_name].type is None:
                 self.parameters[var_name].type = parameter.get_compss_type(parameter_values[var_name])  # noqa
 
-            # todo: add 'dir_name' to the parameter object
-            if self.parameters[var_name].type in \
-                    [parameter.TYPE.FILE, parameter.TYPE.DIRECTORY]:
-                self.parameters[var_name].file_name = parameter_values[var_name]  # noqa
+            # TODO: add 'dir_name' to the parameter object
+            if parameter.is_file(self.parameters[var_name]) or \
+               parameter.is_directory(self.parameters[var_name]):
+                if parameter_values[var_name]:
+                    self.parameters[var_name].file_name = parameter_values[var_name]  # noqa
+                else:
+                    # is None: Used None for a FILE or DIRECTORY parameter path
+                    self.parameters[var_name].type = parameter.TYPE.NULL
             else:
                 self.parameters[var_name].object = parameter_values[var_name]
 

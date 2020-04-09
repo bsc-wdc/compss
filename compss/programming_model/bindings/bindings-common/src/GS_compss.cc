@@ -102,6 +102,7 @@ jmethodID midFloatCon;    /* ID of the java.lang.Float class constructor method 
 jclass clsDouble;         /* java.lang.Double class */
 jmethodID midDoubleCon;   /* ID of the java.lang.Double class constructor method */
 
+
 void init_basic_jni_types() {
     // Parameter classes
     debug_printf ("[BINDING-COMMONS]  -  @Init JNI Types\n");
@@ -690,6 +691,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
             release_lock();
             exit(1);
         }
+
         debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Collection: %s\n", *(char **)parVal);
 
         jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("COLLECTION_T"));
@@ -699,9 +701,25 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
             exit(1);
         }
         break;
+    case null_dt:
+        jobjParVal = m_env -> NewStringUTF("NULL");
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+
+        debug_printf ("[BINDING-COMMONS]  -  @process_param  -  Null: NULL\n");
+
+        jobjParType = m_env->CallStaticObjectMethod(clsParType, midParTypeCon, m_env->NewStringUTF("NULL_T"));
+        if (m_env->ExceptionOccurred()) {
+            m_env->ExceptionDescribe();
+            release_lock();
+            exit(1);
+        }
+        break;
     case void_dt:
     case any_dt:
-    case null_dt:
     default:
         debug_printf ("[BINDING-COMMONS]  -  @process_param  -  The type of the parameter %s is not registered\n", *(char **)parName);
         break;
@@ -994,7 +1012,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *on_failure, int time_ou
     get_lock();
 
     int isAttached = check_and_attach(m_jvm, m_env);
-    
+
     jobject num_returns_integer = m_env->NewObject(clsInteger, midIntCon, num_returns);
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();

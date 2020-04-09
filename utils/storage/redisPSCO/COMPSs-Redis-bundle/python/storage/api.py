@@ -23,9 +23,14 @@ import uuid
 import redis
 import rediscluster
 import logging
+# Use some existing PyCOMPSs functions to serialize/deserialize
 from pycompss.util.serialization.serializer import serialize_to_string
 from pycompss.util.serialization.serializer import deserialize_from_string
 from pycompss.util.serialization.serializer import deserialize_from_handler
+# Enable to do from storage.api import StorageObject
+# WARN: It is import to avoid circular import error
+import storage.storage_object as storage_object
+
 __name__ = "redispycompss"
 
 '''Constants
@@ -253,3 +258,6 @@ class TaskContext(object):
         pass
 
 task_context = TaskContext
+
+StorageObject = storage_object.StorageObject
+storage_object = storage_object.StorageObject

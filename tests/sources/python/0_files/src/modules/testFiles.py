@@ -91,6 +91,15 @@ class testFiles(unittest.TestCase):
         fout_d2.close()
         return filename1, filename2
 
+    @task(returns=bool, first=FILE_IN, second=FILE_INOUT, third=FILE_OUT)
+    def fileNone(self, first=None, second=None, third=None):
+        if first is None and \
+           second is None and \
+           third is None:
+            return True
+        else:
+            return False
+
     def testFileNAME(self):
         """ Test FILE NAME """
         from pycompss.api.api import compss_wait_on
@@ -192,3 +201,17 @@ class testFiles(unittest.TestCase):
             content_r = f.read()
         content += "\n===> INOUT FILE ADDED CONTENT"
         self.assertEqual(content, content_r, "strings are not equal: {}, {}".format(content_r, content))
+
+    def testFilesWithNone(self):
+        """ Test a workflow with FILES using None"""
+        from pycompss.api.api import compss_wait_on
+        fin = None
+        finout = None
+        fout = None
+        res = self.fileNone(fin, finout, fout)
+        res = compss_wait_on(res)
+        self.assertEqual(res, True, "A parameter was not None in the fileNone task.")
+        res = self.fileNone()
+        res = compss_wait_on(res)
+        self.assertEqual(res, True, "A parameter was not None in the fileNone task using default parameters.")
+        # makes sense to wait on a None file? No

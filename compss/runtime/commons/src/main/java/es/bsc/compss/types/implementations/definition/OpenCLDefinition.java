@@ -48,6 +48,7 @@ public class OpenCLDefinition extends ImplementationDefinition<MethodResourceDes
         StringBuilder sb = new StringBuilder();
         sb.append("OpenCL Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Kernel: ").append(kernel).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());

@@ -187,11 +187,11 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
         StringBuilder writePipes = new StringBuilder();
         StringBuilder readPipes = new StringBuilder();
         for (int i = 0; i < size; ++i) {
-            String pipeName = "compute" + i;
-            PipePair computePipe = new PipePair(basePipePath, pipeName, this);
-            this.pipePool.put(pipeName, computePipe);
-            writePipes.append(computePipe.getOutboundPipe()).append(TOKEN_SEP);
-            readPipes.append(computePipe.getInboundPipe()).append(TOKEN_SEP);
+            String pipeName = "executor" + i;
+            PipePair executorPipe = new PipePair(basePipePath, pipeName, this);
+            this.pipePool.put(pipeName, executorPipe);
+            writePipes.append(executorPipe.getOutboundPipe()).append(TOKEN_SEP);
+            readPipes.append(executorPipe.getInboundPipe()).append(TOKEN_SEP);
         }
 
         // Write Pipes
@@ -268,7 +268,7 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
     }
 
     private void stopExecutors() {
-        LOGGER.info("Stopping compute pipes for mirror " + mirrorId);
+        LOGGER.info("Stopping executor pipes for mirror " + mirrorId);
         for (String executorId : new LinkedList<>(pipePool.keySet())) {
             unregisterExecutor(executorId);
         }

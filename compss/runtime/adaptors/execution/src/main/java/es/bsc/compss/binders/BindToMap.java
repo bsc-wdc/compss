@@ -274,7 +274,9 @@ public class BindToMap implements ThreadBinder {
 
         if (DEBUG) {
             StringBuilder sb = new StringBuilder("[ThreadBinderCPUs] Task " + jobId + " binded to cores ");
-            sb.append(assignedCoreUnits[0]);
+            if (assignedCoreUnits.length != 0) {
+                sb.append(assignedCoreUnits[0]);
+            }
             for (int i = 1; i < assignedCoreUnits.length; ++i) {
                 sb.append(" ").append(assignedCoreUnits[i]);
             }

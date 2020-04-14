@@ -434,7 +434,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         boolean canRun = super.canRunNow(consumption);
 
         // Available slots
-        canRun = canRun && this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU();
+        canRun = canRun && (this.getUsedCPUTaskCount() < this.getMaxCPUTaskCount() || !consumption.containsCPU());
         canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !consumption.containsGPU());
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !consumption.containsFPGA());
         canRun =

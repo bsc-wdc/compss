@@ -38,6 +38,7 @@ public class ResourceManager {
     private final ThreadBinder binderCPUs;
     private final ThreadBinder binderGPUs;
     private final ThreadBinder binderFPGAs;
+    private final ThreadBinder binderIO;
 
 
     /**
@@ -49,10 +50,11 @@ public class ResourceManager {
      * @param gpuMap GPU Mapping
      * @param cusFPGA FPGA Computing units
      * @param fpgaMap FPGA Mapping
+     * @param ioExecNum Number of IO Executors
      * @throws InvalidMapException Incorrect mapping specification
      */
-    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap)
-        throws InvalidMapException {
+    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap,
+        int ioExecNum) throws InvalidMapException {
         // Instantiate CPU binders
         LOGGER.debug("Instantiate CPU Binder with " + cusCPU + " CUs");
 
@@ -127,6 +129,19 @@ public class ResourceManager {
             binderFPGAsTmp = new BindToResource(cusFPGA);
         }
         binderFPGAs = binderFPGAsTmp;
+
+        // Instantiate IO Binders
+        ThreadBinder binderIOTmp;
+        LOGGER.debug("Instantiate IO Binder with " + ioExecNum + " IO executors");
+        try {
+            // case ThreadBinder.BINDER_DISABLED:
+            binderIOTmp = new Unbinded();
+        } catch (Exception e) {
+            LOGGER.warn("Could not load the desidered mapping policy for the IO units. Using default policy ("
+                + ThreadBinder.BINDER_AUTOMATIC + ")");
+            binderIOTmp = new BindToResource(ioExecNum);
+        }
+        binderIO = binderIOTmp;
     }
 
     /**
@@ -142,6 +157,7 @@ public class ResourceManager {
         int cpus;
         int gpus;
         int fpgas;
+        int ios = 0;
         MethodResourceDescription mrd;
         try {
             mrd = (MethodResourceDescription) rd;
@@ -156,8 +172,9 @@ public class ResourceManager {
         int[] assignedCPUs = this.binderCPUs.bindComputingUnits(jobId, cpus);
         int[] assignedGPUs = this.binderGPUs.bindComputingUnits(jobId, gpus);
         int[] assignedFPGAs = this.binderFPGAs.bindComputingUnits(jobId, fpgas);
+        int[] assignedIOunits = this.binderIO.bindComputingUnits(jobId, ios);
 
-        return new InvocationResources(assignedCPUs, assignedGPUs, assignedFPGAs);
+        return new InvocationResources(assignedCPUs, assignedGPUs, assignedFPGAs, assignedIOunits);
     }
 
     /**
@@ -169,6 +186,7 @@ public class ResourceManager {
         this.binderCPUs.releaseComputingUnits(jobId);
         this.binderGPUs.releaseComputingUnits(jobId);
         this.binderFPGAs.releaseComputingUnits(jobId);
+        this.binderIO.releaseComputingUnits(jobId);
     }
 
 }

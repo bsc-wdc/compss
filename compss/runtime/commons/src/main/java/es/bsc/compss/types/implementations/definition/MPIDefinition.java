@@ -58,6 +58,7 @@ public class MPIDefinition extends ImplementationDefinition<MethodResourceDescri
         sb.append("MPI Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
         sb.append("\t Binary: ").append(binary).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
         sb.append("\t MPI flags: ").append(mpiFlags).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");

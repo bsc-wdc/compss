@@ -169,6 +169,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      * @param gpuMap String describing the thread-gpu mapping.
      * @param fpgaMap String describing the thread-fpga mapping.
      * @param limitOfTasks Limit of simultaneous tasks.
+     * @param ioExecNum Number of IO Executors.
      * @param appUuid Application UUID.
      * @param traceFlag Tracing flag.
      * @param traceHost Tracing host name.
@@ -184,9 +185,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
      */
     public NIOWorker(boolean transferLogs, int snd, int rcv, String hostName, String masterName, int masterPort,
         int streamingPort, int computingUnitsCPU, int computingUnitsGPU, int computingUnitsFPGA, String cpuMap,
-        String gpuMap, String fpgaMap, int limitOfTasks, String appUuid, String traceFlag, String traceHost,
-        String storageConf, TaskExecution executionType, boolean persistentC, String workingDir, String installDir,
-        String appDir, JavaParams javaParams, PythonParams pyParams, CParams cParams) {
+        String gpuMap, String fpgaMap, int limitOfTasks, int ioExecNum, String appUuid, String traceFlag,
+        String traceHost, String storageConf, TaskExecution executionType, boolean persistentC, String workingDir,
+        String installDir, String appDir, JavaParams javaParams, PythonParams pyParams, CParams cParams) {
 
         super(snd, rcv, masterPort);
 
@@ -244,7 +245,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         }
 
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap,
-            computingUnitsFPGA, fpgaMap, limitOfTasks);
+            computingUnitsFPGA, fpgaMap, limitOfTasks, ioExecNum);
 
         if (this.tracingLevel == NIOTracer.BASIC_MODE) {
             NIOTracer.enablePThreads();
@@ -951,30 +952,31 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
         String gpuMap = args[12];
         String fpgaMap = args[13];
         int limitOfTasks = Integer.parseInt(args[14]);
+        int ioExecNum = Integer.parseInt(args[15]);
 
-        String appUuid = args[15];
-        // String lang = args[16];
-        String workingDir = args[17];
-        String installDir = args[18];
-        final String appDir = args[19];
-        String libPath = args[20];
-        String classpath = args[21];
-        String pythonpath = args[22];
+        String appUuid = args[16];
+        // String lang = args[17];
+        String workingDir = args[18];
+        String installDir = args[19];
+        final String appDir = args[20];
+        String libPath = args[21];
+        String classpath = args[22];
+        String pythonpath = args[23];
 
-        String traceFlag = args[23];
-        String extraeFile = args[24];
-        String traceHost = args[25];
+        String traceFlag = args[24];
+        String extraeFile = args[25];
+        String traceHost = args[26];
 
-        String storageConf = args[26];
-        TaskExecution executionType = TaskExecution.valueOf(args[27].toUpperCase());
+        String storageConf = args[27];
+        TaskExecution executionType = TaskExecution.valueOf(args[28].toUpperCase());
 
-        boolean persistentC = Boolean.parseBoolean(args[28]);
+        boolean persistentC = Boolean.parseBoolean(args[29]);
 
-        String pythonInterpreter = args[29];
-        String pythonVersion = args[30];
-        String pythonVirtualEnvironment = args[31];
-        String pythonPropagateVirtualEnvironment = args[32];
-        String pythonMpiWorker = args[33];
+        String pythonInterpreter = args[30];
+        String pythonVersion = args[31];
+        String pythonVirtualEnvironment = args[32];
+        String pythonPropagateVirtualEnvironment = args[33];
+        String pythonMpiWorker = args[34];
 
         final JavaParams javaParams = new JavaParams(classpath);
         final PythonParams pyParams = new PythonParams(pythonInterpreter, pythonVersion, pythonVirtualEnvironment,
@@ -999,6 +1001,8 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("User defined GPU Map: " + gpuMap);
             WORKER_LOGGER.debug("User defined FPGA Map: " + fpgaMap);
             WORKER_LOGGER.debug("Limit Of Tasks: " + String.valueOf(limitOfTasks));
+
+            WORKER_LOGGER.debug("IO Executors: " + String.valueOf(ioExecNum));
 
             WORKER_LOGGER.debug("App uuid: " + appUuid);
             WORKER_LOGGER.debug("WorkingDir:" + workingDir);
@@ -1037,8 +1041,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * LAUNCH THE WORKER
          *************************************************************************************************************/
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
-            computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, appUuid, traceFlag, traceHost,
-            storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams, cParams);
+            computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag,
+            traceHost, storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams,
+            cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

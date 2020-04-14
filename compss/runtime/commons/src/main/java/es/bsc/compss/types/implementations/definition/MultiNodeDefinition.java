@@ -49,6 +49,7 @@ public class MultiNodeDefinition extends ImplementationDefinition<MethodResource
         StringBuilder sb = new StringBuilder();
         sb.append("MultiNode Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Class: ").append(multiNodeClass).append("\n");
         sb.append("\t Name: ").append(multiNodeName).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());

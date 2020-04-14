@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.apache.commons.lang.NotImplementedException;
+
 
 /**
  * Data Node representation.
@@ -234,5 +236,10 @@ public class DataResourceDescription extends ResourceDescription {
     @Override
     public String getDynamicDescription() {
         return "";
+    }
+
+    @Override
+    public boolean usesCPUs() {
+        return true;
     }
 }

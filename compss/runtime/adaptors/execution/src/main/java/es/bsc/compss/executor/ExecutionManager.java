@@ -34,6 +34,7 @@ public class ExecutionManager {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
     private final ExecutionPlatform cpuExecutors;
+    private final ExecutionPlatform ioExecutors;
 
 
     /**
@@ -47,17 +48,20 @@ public class ExecutionManager {
      * @param computingUnitsFPGA Number of FPGA Computing Units
      * @param fpgaMap FPGA Mapping
      * @param limitOfTasks Limit of number of simultaneous tasks
+     * @param ioExecNum Number of IO Executors
      */
     public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU,
-        String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks) {
+        String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks, int ioExecNum) {
 
         ResourceManager rm = null;
         try {
-            rm = new ResourceManager(computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap, computingUnitsFPGA, fpgaMap);
+            rm = new ResourceManager(computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap, computingUnitsFPGA, fpgaMap,
+                ioExecNum);
         } catch (InvalidMapException ime) {
             ErrorManager.fatal(ime);
         }
         this.cpuExecutors = new ExecutionPlatform("CPUThreadPool", context, computingUnitsCPU, rm);
+        this.ioExecutors = new ExecutionPlatform("IOThreadPool", context, ioExecNum, rm);
     }
 
     /**
@@ -68,6 +72,7 @@ public class ExecutionManager {
     public void init() throws InitializationException {
         LOGGER.info("Init Execution Manager");
         this.cpuExecutors.start();
+        this.ioExecutors.start();
     }
 
     /**
@@ -76,7 +81,11 @@ public class ExecutionManager {
      * @param exec Task execution description
      */
     public void enqueue(Execution exec) {
-        this.cpuExecutors.execute(exec);
+        if (exec.getInvocation().getMethodImplementation().isIO()) {
+            this.ioExecutors.execute(exec);
+        } else {
+            this.cpuExecutors.execute(exec);
+        }
     }
 
     /**
@@ -86,6 +95,7 @@ public class ExecutionManager {
         LOGGER.info("Stopping Threads...");
         // Stop the job threads
         this.cpuExecutors.stop();
+        this.ioExecutors.stop();
     }
 
     /**

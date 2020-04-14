@@ -588,11 +588,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             }
         }
 
+        MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
         boolean implisIO = (implIO.compareTo("True") == 0);
 
-
-
-        MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
+        if (implisIO) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Nulling computing resources of IO task: " + implSignature);
+            }
+            mrd.setIOResources();
+        }
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);

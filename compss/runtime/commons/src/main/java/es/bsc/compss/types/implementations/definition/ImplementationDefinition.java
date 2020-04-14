@@ -257,6 +257,7 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
      * Constructs a new ImplementationDefinition with the signature and the requirements passed in as parameters.
      *
      * @param signature Signature of the implementation.
+     * @param io Whether the implementation is io.
      * @param constraints requirements to run the implementation
      */
     protected ImplementationDefinition(String signature, T constraints) {

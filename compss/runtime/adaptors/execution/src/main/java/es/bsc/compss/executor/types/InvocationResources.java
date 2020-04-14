@@ -21,6 +21,7 @@ public class InvocationResources {
     private final int[] cpus;
     private final int[] gpus;
     private final int[] fpgas;
+    private final int[] ios;
 
 
     /**
@@ -28,12 +29,14 @@ public class InvocationResources {
      * 
      * @param cpus Assigned CPUs array
      * @param gpus Assigned GPUs array
-     * @param fpgas Assigned FPGAs arrays
+     * @param fpgas Assigned FPGAs array
+     * @param ios Assigned IO units array
      */
-    public InvocationResources(int[] cpus, int[] gpus, int[] fpgas) {
+    public InvocationResources(int[] cpus, int[] gpus, int[] fpgas, int[] ios) {
         this.cpus = cpus;
         this.gpus = gpus;
         this.fpgas = fpgas;
+        this.ios = ios;
     }
 
     public int[] getAssignedCPUs() {
@@ -46,6 +49,10 @@ public class InvocationResources {
 
     public int[] getAssignedFPGAs() {
         return this.fpgas;
+    }
+
+    public int[] getAssignedIOunits() {
+        return this.ios;
     }
 
 }

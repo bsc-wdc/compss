@@ -214,7 +214,7 @@ public class GATWorker implements InvocationContext {
 
         // Prepare execution Manager
         this.executionManager = new ExecutionManager(this, computingUnitsCPU, ThreadBinder.BINDER_DISABLED, 0,
-            ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 1);
+            ThreadBinder.BINDER_DISABLED, 0, ThreadBinder.BINDER_DISABLED, 1, 0);
 
         if (this.debug) {
             System.out.println("Initializing ExecutionManager");

@@ -1,106 +1,39 @@
 #!/bin/bash
 
+# Command to simulate realpath
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+
+# Load auxiliar scripts
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
 
 #---------------------------------------------------
-# SCRIPT CONSTANTS DECLARATION
+# CONSTANTS DEFINTION
 #---------------------------------------------------
-
-DEFAULT_LANGUAGE=java
-
-DEFAULT_SUMMARY=false
-
-DEFAULT_LOG_LEVEL=off
-DEFAULT_LOG_LEVEL_ARGUMENT=debug
-LOG_LEVEL_DEBUG=debug
-LOG_LEVEL_INFO=info
-LOG_LEVEL_OFF=off
-DEFAULT_EXTRAE_CONFIG_FILE="null"
-
-DEFAULT_TASK_EXECUTION=compss
-DEFAULT_GRAPH=false
+# Default value for those parameters with a quick-enabling option (e.g., --monitoring=<int> | -m).
+DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
 DEFAULT_GRAPH_ARGUMENT=true
-
-DEFAULT_TRACING=false
-DEFAULT_TRACING_ARGUMENT=true #-3:arm-ddt, -2:arm-map, -1:scorep, 0:deactivated, 1:basic, 2:advanced
-DEFAULT_TRACE_LABEL="None"
-DEFAULT_MONITORING_INTERVAL=0
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
-
-DEFAULT_STORAGE_CONF="null"
-
-DEFAULT_STREAMING="null"
-BASE_STREAMING_PORT=49049
-STREAMING_PORT_RAND_RANGE=100
-
-DEFAULT_TASK_COUNT=50
-
-if [ -z "${PBS_O_WORKDIR}" ]; then
-  DEFAULT_CLASSPATH=$(pwd)
-  DEFAULT_PYTHONPATH=$(pwd)
-  DEFAULT_LIBRARY_PATH=$(pwd)
-  DEFAULT_APPDIR=$(pwd)
-else
-  DEFAULT_CLASSPATH=${PBS_O_WORKDIR}
-  DEFAULT_PYTHONPATH=${PBS_O_WORKDIR}
-  DEFAULT_LIBRARY_PATH=${PBS_O_WORKDIR}
-  DEFAULT_APPDIR=${PBS_O_WORKDIR}
-fi
-
-DEFAULT_PyOBJECT_SERIALIZE=false
-DEFAULT_PYTHON_INTERPRETER=python
-DEFAULT_PYTHON_VERSION=$( ${DEFAULT_PYTHON_INTERPRETER} -c "import sys; print(sys.version_info[:][0])" )
-if [ -z "${VIRTUAL_ENV}" ]; then
-  DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="null"
-else
-  DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT="${VIRTUAL_ENV}"
-fi
-DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT=true
-DEFAULT_PYTHON_MPI_WORKER=false
-
-NIO_ADAPTOR=es.bsc.compss.nio.master.NIOAdaptor
-#GAT_ADAPTOR=es.bsc.compss.gat.master.GATAdaptor
-DEFAULT_COMMUNICATION_ADAPTOR=${NIO_ADAPTOR}
-#DEFAULT_COMMUNICATION_ADAPTOR=${GAT_ADAPTOR}
-DEFAULT_CONNECTOR=es.bsc.compss.connectors.DefaultSSHConnector
-DEFAULT_MASTER_PORT="[43000,44000]"
-DEFAULT_MASTER_NAME=""
-#DEFAULT_SCHEDULER=es.bsc.compss.scheduler.data.DataScheduler
-#DEFAULT_SCHEDULER=es.bsc.compss.scheduler.fifo.FIFOScheduler
-#DEFAULT_SCHEDULER=es.bsc.compss.scheduler.fifodata.FIFODataScheduler
-#DEFAULT_SCHEDULER=es.bsc.compss.scheduler.lifo.LIFOScheduler
-#DEFAULT_SCHEDULER=es.bsc.compss.components.impl.TaskScheduler
-DEFAULT_SCHEDULER=es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
-RUNTIME_LOADER=es.bsc.compss.loader.ITAppLoader
-DEFAULT_JVM_MASTER=""
-DEFAULT_JVM_WORKERS="-Xms1024m,-Xmx1024m,-Xmn400m"
-DEFAULT_CPU_AFFINITY="automatic" # disabled, automatic, user string
-DEFAULT_GPU_AFFINITY="automatic" # disabled, automatic, user string
-DEFAULT_FPGA_AFFINITY="automatic" # disabled, automatic, user string
-DEFAULT_FPGA_REPROGRAM=""
-
-DEFAULT_DEBUGGER=false
+DEFAULT_TRACING_ARGUMENT=${TRACING_BASIC}
 DEFAULT_DEBUGGER_ARGUMENT=true
-DEFAULT_DEBUGGER_PORT=9999
-
-DEFAULT_PERSISTENT_WORKER_C=false
-DEFAULT_EXTERNAL_ADAPTATION=false
 
 APPLICATION_ERROR="ERROR: Application name not provided"
 LANGUAGE_ERROR="ERROR: Value of option --lang must be: java, c or python"
-JAVA_HOME_ERROR="ERRROR: Cannot find Java JRE installation. Please set JAVA_HOME."
-JAVA_JRE_ERROR="ERROR: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
-TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
 TRACING_ERROR="ERROR: Value of option --tracing must be: false, true, basic, advanced, scorep, arm-map, and arm-ddt"
-STREAM_BACKEND_ERROR="ERROR: Cannot load stream backend. Invalid KAFKA_HOME location"
-ERROR_ZOOKEEPER_CONFIG="ERROR: Cannot create zookeeper configuration file"
-ERROR_KAFKA_CONFIG="ERROR: Cannot create kafka configuration file"
-RUNTIME_ERROR="Error running application"
 
 
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
 
+# Displays available options
 show_opts() {
   cat <<EOT
 
@@ -118,7 +51,7 @@ show_opts() {
     --external_debugger=<int>,
     --external_debugger                     Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
                                             Default: ${DEFAULT_DEBUGGER}
-   --jmx_port=<int>		            Enable JVM profiling on specified port
+   --jmx_port=<int>                         Enable JVM profiling on specified port
 
   Runtime configuration options:
     --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
@@ -141,14 +74,17 @@ show_opts() {
   Advanced options:
     --extrae_config_file=<path>             Sets a custom extrae config file. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE}
-    --trace_label=<string>	            Add a label in the generated trace file. Only used in the case of tracing is activated.
-    					    Default: None                                        
+    --trace_label=<string>                  Add a label in the generated trace file. Only used in the case of tracing is activated.
+                                            Default: None                                        
     --comm=<ClassName>                      Class that implements the adaptor for communications
-                                            Supported adaptors: es.bsc.compss.nio.master.NIOAdaptor | es.bsc.compss.gat.master.GATAdaptor
+                                            Supported adaptors:
+                                                  ├── ${NIO_ADAPTOR}
+                                                  └── ${GAT_ADAPTOR}
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
     --conn=<className>                      Class that implements the runtime connector for the cloud
-                                            Supported connectors: es.bsc.compss.connectors.DefaultSSHConnector
-                                               | es.bsc.compss.connectors.DefaultNoSSHConnector
+                                            Supported connectors:
+                                                  ├── ${DEFAULT_SSH_CONNECTOR}
+                                                  └── ${DEFAULT_NO_SSH_CONNECTOR}
                                             Default: ${DEFAULT_CONNECTOR}
     --streaming=<type>                      Enable the streaming mode for the given type.
                                             Supported types: FILES, OBJECTS, PSCOS, ALL, NONE
@@ -158,12 +94,13 @@ show_opts() {
     --streaming_master_port=<int>           Use an specific port for the streaming master.
                                             Default: null
     --scheduler=<className>                 Class that implements the Scheduler for COMPSs
-                                            Supported schedulers: es.bsc.compss.scheduler.data.DataScheduler
-                                                    | es.bsc.compss.scheduler.fifo.FIFOScheduler
-                                                    | es.bsc.compss.scheduler.fifodata.FIFODataScheduler
-                                                    | es.bsc.compss.scheduler.lifo.LIFOScheduler
-                                                    | es.bsc.compss.scheduler.loadbalancing.LoadBalancingScheduler
-                                                    | es.bsc.compss.components.impl.TaskScheduler
+                                            Supported schedulers: 
+                                                  ├── ${DATA_SCHEDULER}
+                                                  ├── ${FIFO_SCHEDULER}
+                                                  ├── ${FIFO_DATA_SCHEDULER}
+                                                  ├── ${LIFO_SCHEDULER}
+                                                  ├── ${BASE_SCHEDULER}
+                                                  └── ${LOAD_BALANCING_SCHEDULER}
                                             Default: ${DEFAULT_SCHEDULER}
     --scheduler_config_file=<path>          Path to the file which contains the scheduler configuration.
                                             Default: Empty
@@ -209,13 +146,13 @@ show_opts() {
     --output_profile=<path>                 Path to the file to store the application profile at the end of the execution
                                             Default: Empty
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
-                                            Default: $DEFAULT_PyOBJECT_SERIALIZE
+                                            Default: ${DEFAULT_PyOBJECT_SERIALIZE}
     --persistent_worker_c=<bool>            Only for C Binding. Enable the persistent worker in c (true/false).
                                             Default: $DEFAULT_PERSISTENT_WORKER_C
     --enable_external_adaptation=<bool>     Enable external adaptation. This option will disable the Resource Optimizer.
                                             Default: false
-    --gen_coredump			    Enable master coredump generation
-					    Default: false
+    --gen_coredump                          Enable master coredump generation
+                                            Default: false
     --python_interpreter=<string>           Python interpreter to use (python/python2/python3).
                                             Default: $DEFAULT_PYTHON_INTERPRETER Version: ${DEFAULT_PYTHON_VERSION}
     --python_propagate_virtual_environment=<true>  Propagate the master virtual environment to the workers (true/false).
@@ -234,6 +171,7 @@ show_opts() {
 EOT
 }
 
+# Displays usage message 
 usage() {
   exitValue=$1
 
@@ -246,195 +184,58 @@ Usage: $0 [options] application_name application_arguments
 
     --opts                                  Show available options
 
-    --version, -v 			    Print COMPSs version
+    --version, -v                           Print COMPSs version
 EOT
   show_opts
   exit "$exitValue"
 }
 
-show_version() {
-  echo "COMPSs version 2.6 Gardenia"
-  echo " "
-}
-
-show_full_version() {
-  cat << EOF
-        .-~~-.--.            _____           __
-       :         )          |____ \\         / /
- .~ ~ -.\\       /.- ~~ .      ___) |       / /__
- >       \`.   .'       <     / ___/       /  _  \\
-(         .- -.         )   | |____   _  |  |_|  |
- \`- -.-~  \`- -'  ~-.- -'    |______| |_|  \\_____/
-   (        :        )           _ _ .-:
-    ~--.    :    .--~        .-~  .-~  }
-        ~-.-^-.-~ \\       .~  .-~   .~
-                 \\ \\      \\ '_ _ -~
-                  \`.\`.    //
-         . - ~ ~-.__\`.\`-.//
-     .-~   . - ~  }~ ~ ~-.~-.
-   .' .-~      .-~       :/~-.~-./:
-  /_~_ _ . - ~                 ~-.~-._
-                                   ~-.<
-EOF
-  show_version
-}
-
-show_flower() {
-  cat << EOF
-
-Gardenia is a genus of flowering plants in the coffee family, Rubiaceae, native to the tropical and subtropical regions of Africa, Asia, Madagascar and Pacific Islands.The genus was named by Carl Linnaeus and John Ellis after Dr. Alexander Garden (1730–1791), a Scottish-born American naturalist.They are evergreen shrubs and small trees growing to 1–15 metres (3.3–49.2 ft) tall. The leaves are opposite or in whorls of three or four, 5–50 centimetres (2.0–19.7 in) long and 3–25 centimetres (1.2–9.8 in) broad, dark green and glossy with a leathery texture. The flowers are solitary or in small clusters, white, or pale yellow, with a tubular-based corolla with 5–12 lobes (petals) from 5 to 12 centimetres (2.0 to 4.7 in) diameter. Flowering is from about mid-spring to mid-summer, and many species are strongly scented. 
-
-Check more information:
-   https://en.wikipedia.org/wiki/Gardenia
-
-EOF
-}
-
-show_recipe() {
-  cat << EOF
-
-Gardenia  - Cocktail
-
-1 oz of Gin
-1 oz of Pineapple Juice
-1 oz of double cream
-1 tsp of grenadine syrup
-
-Shake and strain into a saucer. Garnish with a pineapple chunk and a sprig of mint, and serve. 
-
-EOF
-}
 
 # Displays parsing arguments errors
-display_error() {
+arguments_error() {
   local error_msg=$1
-
-  echo "$error_msg"
-  echo " "
-
+  display_error "${error_msg}"
   usage 1
 }
 
-# Displays runtime/application errors
-error_msg() {
-  local error_msg=$1
-  local error_code=$2
-
-  # Display error
-  echo
-  echo "$error_msg"
-  echo
-
-  # Exit
-  exit ${error_code}
-}
-
-# Checks if a command exists
-command_exists () {
-  type "$1" &> /dev/null ;
-}
-
-check_env() {
-  # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
-  if [ -z "$LD_LIBRARY_PATH" ]; then
-     # shellcheck disable=SC2153
-     if [ -n "$LIBRARY_PATH" ]; then
-         export LD_LIBRARY_PATH=$LIBRARY_PATH
-         echo "[  INFO] LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
-     fi
-  fi
-
-  # Command to simulate realpath
-  if [ -z "${COMPSS_HOME}" ]; then
-    COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
-  fi
-  export COMPSS_HOME=${COMPSS_HOME}
-
-  # Configuration files
-  if [ -z "$DEFAULT_PROJECT" ]; then
-    DEFAULT_PROJECT=${COMPSS_HOME}/Runtime/configuration/xml/projects/default_project.xml
-  fi
-
-  if [ -z "$DEFAULT_RESOURCES" ]; then
-    DEFAULT_RESOURCES=${COMPSS_HOME}/Runtime/configuration/xml/resources/default_resources.xml
-  fi
-
-  # GAT Environment
-  if [ -z "${GAT_LOCATION}" ]; then
-    GAT_LOCATION=${COMPSS_HOME}/Dependencies/JAVA_GAT
-  fi
-
-  # Extrae Environment
-  if [ -z "${EXTRAE_HOME}" ]; then
-    EXTRAE_HOME=${COMPSS_HOME}/Dependencies/extrae
-  fi
-
-  if [ -z "${EXTRAE_LIB}" ]; then
-    EXTRAE_LIB=${EXTRAE_HOME}/lib
-  fi
-
-  # AutoParallel environment
-  if [ -z "${PLUTO_HOME}" ]; then
-    PLUTO_HOME=${COMPSS_HOME}/Dependencies/pluto/
-    export PLUTO_HOME=${PLUTO_HOME}
-    export PATH=${PLUTO_HOME}/bin:${PATH}
-  fi
-
-  # Object stream environment
-  if [ -z "${KAFKA_HOME}" ]; then
-    KAFKA_HOME=${COMPSS_HOME}/Dependencies/kafka/
-    export KAFKA_HOME=${KAFKA_HOME}
-  fi
-
-  # JAVA HOME
-  if [[ -z "$JAVA_HOME" ]]; then
-    JAVA=java
-  elif [ -f "$JAVA_HOME"/jre/bin/java ]; then
-    JAVA=$JAVA_HOME/jre/bin/java
-  elif [ -f "$JAVA_HOME"/bin/java ]; then
-    JAVA=$JAVA_HOME/bin/java
-  else
-    display_error "${JAVA_HOME_ERROR}"
-  fi
-}
-
+# Parses arguments from the command line
 get_args() {
   # Parse COMPSs Options
   while getopts hvgtmd-: flag; do
     # Treat the argument
     case "$flag" in
       h)
-	# Display help
-	usage 0
-	;;
+        # Display help
+        usage 0
+        ;;
       v)
         # Display version
         show_version
         exit
         ;;
       g)
-	# Enable graph generation at the end of the execution
-	graph=${DEFAULT_GRAPH_ARGUMENT}
-	;;
+        # Enable graph generation at the end of the execution
+        graph=${DEFAULT_GRAPH_ARGUMENT}
+        ;;
       t)
-	# Enable tracing
-	tracing=${DEFAULT_TRACING_ARGUMENT}
-	;;
+        # Enable tracing
+        tracing=${DEFAULT_TRACING_ARGUMENT}
+        ;;
       m)
-	# Enable monitoring with default value
-	monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
-	;;
+        # Enable monitoring with default value
+        monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+        ;;
       d)
         # Enable debug in log level
         log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
         ;;
       -)
-	# Check more complex arguments
-	case "$OPTARG" in
-	  help)
-	    # Display help
-	    usage 0
-	    ;;
+	      # Check more complex arguments
+	      case "$OPTARG" in
+	        help)
+	          # Display help
+	          usage 0
+	          ;;
           version)
             # Show version
             show_full_version
@@ -455,24 +256,24 @@ get_args() {
             show_recipe
             exit 0
             ;;
-	      project=*)
-	        # Custom project file
-	        projFile=${OPTARG//project=/}
-	        if [ ! -f "$projFile" ]; then
-	          echo "[ WARNING ]: Project XML file '$projFile' could not be found."
-	        fi
-	        ;;
-	      resources=*)
-	        # Custom resources file
-	        resFile=${OPTARG//resources=/}
-	        if [ ! -f "$resFile" ]; then
-	          echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
-	        fi
+	        project=*)
+	          # Custom project file
+	          projFile=${OPTARG//project=/}
+	          if [ ! -f "$projFile" ]; then
+	            display_warning "Project XML file '$projFile' could not be found."
+	          fi
+	          ;;
+	        resources=*)
+	          # Custom resources file
+	          resFile=${OPTARG//resources=/}
+	          if [ ! -f "$resFile" ]; then
+	            display_warning "Resources XML file '$resFile' could not be found."
+	          fi
             ;;
           summary)
             summary=true
             ;;
-	      storage_conf=*)
+          storage_conf=*)
             storageConf=${OPTARG//storage_conf=/}
             ;;
           storage_impl=*)
@@ -487,14 +288,14 @@ get_args() {
           streaming_master_port=*)
             streaming_master_port=${OPTARG//streaming_master_port=/}
             ;;
-	      task_execution=*)
-	        # Task execution under COMPSs or Storage
-	        taskExecution=${OPTARG//task_execution=/}
-	        ;;
-	      lang=*)
-	        # Language selection
-	        lang=${OPTARG//lang=/}
-	        ;;
+	        task_execution=*)
+	          # Task execution under COMPSs or Storage
+	          taskExecution=${OPTARG//task_execution=/}
+	          ;;
+	        lang=*)
+	          # Language selection
+	          lang=${OPTARG//lang=/}
+	          ;;
           log_level=*)
             # Enable different log_levels by user selection
             log_level=${OPTARG//log_level=/}
@@ -503,17 +304,33 @@ get_args() {
             # Enable debug in log level
             log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
             ;;
-	      graph=*)
-	        # Graph generation at the end of the execution with user option
-	        graph=${OPTARG//graph=/}
-	        ;;
-	      graph)
-	        # Graph generation at the end of the execution by default arg
-	        graph=${DEFAULT_GRAPH_ARGUMENT}
-	        ;;
+	        graph=*)
+	          # Graph generation at the end of the execution with user option
+	          graph=${OPTARG//graph=/}
+	          ;;
+	        graph)
+	          # Graph generation at the end of the execution by default arg
+	          graph=${DEFAULT_GRAPH_ARGUMENT}
+	          ;;
           tracing=*)
             # Tracing system
             tracing=${OPTARG//tracing=/}
+              # Tracing level
+              if [ "${tracing}" == "false" ]; then
+                tracing=${TRACING_DEACTIVATED}
+              elif [ "${tracing}" == "basic" ] || [ $tracing == "true" ]; then
+                tracing=${TRACING_BASIC}
+              elif [ "${tracing}" == "advanced" ]; then
+                tracing=${TRACING_ADVANCED}
+              elif [ "${tracing}" == "scorep" ]; then
+                tracing=${TRACING_SCOREP}
+              elif [ "${tracing}" == "arm-map" ]; then
+                tracing=${TRACING_ARM-MAP}
+              elif [ "${tracing}" == "arm-ddt" ]; then
+                tracing=${TRACING_ARM-DDT}
+              else
+                arguments_error "${TRACING_ERROR}"
+              fi
             ;;
           tracing)
             # Tracing system
@@ -527,34 +344,34 @@ get_args() {
             # Custom trace_label
             trace_label=${OPTARG//trace_label=/}
             ;;
-	      monitoring=*)
-	        # Value between monitor steps (ms)
-	        monitoring=${OPTARG//monitoring=/}
-	        ;;
-	      monitoring)
-	        # Value between monitor steps (ms)
-	        monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
-	        ;;
-	      comm=*)
-	        # Communication adaptor main class
-	        comm=${OPTARG//comm=/}
-	        ;;
-	      conn=*)
-	        # Communication connector main class
-	        conn=${OPTARG//conn=/}
-	        ;;
+	        monitoring=*)
+	          # Value between monitor steps (ms)
+	          monitoring=${OPTARG//monitoring=/}
+	          ;;
+	        monitoring)
+	          # Value between monitor steps (ms)
+	          monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+	          ;;
+	        comm=*)
+	          # Communication adaptor main class
+	          comm=${OPTARG//comm=/}
+	          ;;
+	        conn=*)
+  	        # Communication connector main class
+	          conn=${OPTARG//conn=/}
+	          ;;
           scheduler=*)
             # Scheduler main class
             scheduler=${OPTARG//scheduler=/}
             ;;
-	      classpath=*)
-	        # Additional classpath
-	        cp=${OPTARG//classpath=/}
-	        ;;
-	      library_path=*)
-	        # Additional library path
-	        library_path=${OPTARG//library_path=/}
-	        ;;
+	        classpath=*)
+	          # Additional classpath
+	          cp=${OPTARG//classpath=/}
+	          ;;
+	        library_path=*)
+	          # Additional library path
+	          library_path=${OPTARG//library_path=/}
+	          ;;
           jvm_master_opts=*)
             # Master JVM option
             jvm_master_opts=${OPTARG//jvm_master_opts=/}
@@ -587,12 +404,11 @@ get_args() {
           external_debugger)
             # Enable default external debugger
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
-            external_debugger_port=${DEFAULT_DEBUGGER_PORT}
             ;;
-	  jmx_port=*)
-	    # Enable JMX profiler on specific port
-	    jmx_port=${OPTARG//jmx_port=/}
-	    ;; 
+	        jmx_port=*)
+	          # Enable JMX profiler on specific port
+	          jmx_port=${OPTARG//jmx_port=/}
+	          ;; 
           base_log_dir=*)
             # Set a custom base log dir
             base_log_dir=${OPTARG//base_log_dir=/}
@@ -601,7 +417,7 @@ get_args() {
             # Set a custom specific log dir
             specific_log_dir=${OPTARG//specific_log_dir=/}
             ;;
-	  uuid=*)
+	        uuid=*)
             # Preset an Application UUID
             uuid=${OPTARG//uuid=/}
             ;;
@@ -617,10 +433,10 @@ get_args() {
             # Maximum task count. Only for bindings
             task_count=${OPTARG//task_count=/}
             ;;
-    	  appdir=*)
-	        # Main binary directory (only for C/C++ applications)
-	        appdir=${OPTARG//appdir=/}
-	        ;;
+    	    appdir=*)
+	          # Main binary directory (only for C/C++ applications)
+	          appdir=${OPTARG//appdir=/}
+	          ;;
           pythonpath=*)
             # Additional pythonpath
             pythonpath=${OPTARG//pythonpath=/}
@@ -661,20 +477,20 @@ get_args() {
             # Enable or disable the virtual environment propagation
             python_mpi_worker=${OPTARG//python_mpi_worker=/}
             ;;
-	      gen_coredump)
+	        gen_coredump)
             # Enable coredump generation
             gen_core=true
             ;;
-  	  *)
-	    # Flag didn't match any patern. Raise exception
-	    display_error "Bad argument: $OPTARG"
-	    ;;
-	  esac
-	  ;;
+  	      *)
+	          # Flag didn't match any patern. Raise exception
+	          arguments_error "Bad argument: $OPTARG"
+	        ;;
+	      esac
+	      ;;
       *)
-	    # Flag didn't match any patern. End of COMPSs flags
-	    break
-	    ;;
+	      # Flag didn't match any patern. End of COMPSs flags
+	      break
+	      ;;
     esac
   done
   # Shift COMPSs arguments
@@ -682,11 +498,11 @@ get_args() {
 
   # Parse application name
   if [[ $# -eq 0 ]]; then
-    display_error "${APPLICATION_ERROR}"
+    arguments_error "${APPLICATION_ERROR}"
   else
     fullAppPath=$1
     if [ -z "$fullAppPath" ]; then
-      display_error "${APPLICATION_ERROR}"
+      arguments_error "${APPLICATION_ERROR}"
     else
       shift 1
     fi
@@ -696,701 +512,38 @@ get_args() {
   application_args=$*
 }
 
-###############################################
-# Infers the language from the Application Path
-# WARN: Sets global lang variable
-###############################################
-infer_language() {
-  local fullApp
-  local fileName
-  local extension
-  local isPython
-  local isPythonCompiled
-  local isC
-
-  fullApp=$1
-
-  fileName=$(basename "$fullApp")
-  extension=${fileName##*.}
-  if [ "$extension" == "py" ] || [ "$extension" == "pyc" ]; then
-    echo "[  INFO] Inferred PYTHON language"
-    lang=python
-  else
-    # Try to infer language by file command
-    isPython=$(file "$fullAppPath" | grep "Python" | cat)
-    isPythonCompiled=$(file "$fullAppPath" | grep "python" | cat)
-    isC=$(file "$fullAppPath" | grep -E "executable|ELF" | cat)
-    if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
-      echo "[  INFO] Inferred PYTHON language"
-      lang=python
-    elif [ -n "$isC" ]; then
-      echo "[  INFO] Inferred C/C++ language"
-      lang=c
-    else
-      # Lang cannot be infered or it's the default JAVA
-      echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
-      lang=${DEFAULT_LANGUAGE}
-    fi
-  fi
-}
-
 check_args() {
-  if [ -z "${taskExecution}" ]; then
-    echo "[  INFO] Using default execution type: ${DEFAULT_TASK_EXECUTION}"
-    taskExecution=${DEFAULT_TASK_EXECUTION}
-  fi
-
-  if [ -z "$projFile" ]; then
-    echo "[  INFO] Using default location for project file: ${DEFAULT_PROJECT}"
-    projFile=${DEFAULT_PROJECT}
-  fi
-
-  if [ -z "$resFile" ]; then
-    echo "[  INFO] Using default location for resources file: ${DEFAULT_RESOURCES}"
-    resFile=${DEFAULT_RESOURCES}
-  fi
-
-  if [ -z "${summary}" ]; then
-    summary=${DEFAULT_SUMMARY}
-  fi
 
   if [ -z "$lang" ]; then
     # Try to infer language
-    infer_language "$fullAppPath"
-  elif [ "$lang" = "java" ]; then
-    lang=java
-  elif [ "$lang" = "c" ]; then
-    lang=c
-  elif [ "$lang" = "python" ]; then
-    lang=python
-  else
-    display_error "${LANGUAGE_ERROR}"
-  fi
-
-  if [ -z "${log_level}" ]; then
-    log_level=${DEFAULT_LOG_LEVEL}
-  fi
-
-  if [ -z "$graph" ]; then
-    graph=${DEFAULT_GRAPH}
-  fi
-
-  # If specific_log_dir is provided, ensure it exists
-  if [ -n "${specific_log_dir}" ]; then
-    mkdir -p "${specific_log_dir}"
-  fi
-
-  # TRACING file option
-  if [ -z "${custom_extrae_config_file}" ]; then
-    custom_extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
+    infer_language "$fullAppPath" "${DEFAULT_LANGUAGE}"
   fi
   
-  if [ -z "${trace_label}" ]; then
-    trace_label=${DEFAULT_TRACE_LABEL}
-  fi
-
-  # Tracing level
-  if [ -z "$tracing" ]; then
-    tracing=0
-  elif [ $tracing == "false" ]; then
-     tracing=0
-  elif [ $tracing == "basic" ] || [ $tracing == "true" ]; then
-    tracing=1
-  elif [ $tracing == "advanced" ]; then
-    tracing=2
-  elif [ $tracing == "scorep" ]; then
-    tracing=-1
-  elif [ $tracing == "arm-map" ]; then
-    tracing=-2
-  elif [ $tracing == "arm-ddt" ]; then
-    tracing=-3
+  if [ "$lang" == "java" ]; then
+    lang=java
+  elif [ "$lang" == "c" ]; then
+    lang=c
+  elif [ "$lang" == "python" ]; then
+    lang=python
   else
-    display_error "${TRACING_ERROR}"
-  fi
-  if [ $tracing -eq 1 ]; then
-    extraeFile=${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml
-  elif [ $tracing -eq 2 ]; then
-    extraeFile=${COMPSS_HOME}/Runtime/configuration/xml/tracing/extrae_advanced.xml
+    arguments_error "${LANGUAGE_ERROR}"
   fi
 
-  # Overwrite extraeFile if already defined
-  if [ "${custom_extrae_config_file}" != "${DEFAULT_EXTRAE_CONFIG_FILE}" ]; then
-    extraeFile=${custom_extrae_config_file}
-  fi
-
-  # Set tracing env
-  if [ $tracing -gt 0 ]; then
-    export EXTRAE_HOME=${EXTRAE_HOME}
-    export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
-    export EXTRAE_CONFIG_FILE=${extraeFile}
-  fi
-
-  if [ -z "$monitoring" ]; then
-    monitoring=${DEFAULT_MONITORING_INTERVAL}
-  else
-    # If monitor has been activated trigger final graph generation and log_level = at least info
-    graph=${DEFAULT_GRAPH_ARGUMENT}
-    if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ] || [ "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
-       log_level=${LOG_LEVEL_INFO}
-    fi
-  fi
-
-  # MASTER
-  if [ -z "${master_name}" ]; then
-    master_name=${DEFAULT_MASTER_NAME}
-  fi
-
-  # Storage configuration
-  if [ -z "$storageConf" ]; then
-    storageConf=${DEFAULT_STORAGE_CONF}
-  fi
-
-  # Streaming
-  if [ -z "${streaming}" ]; then
-    streaming=${DEFAULT_STREAMING}
-  fi
-  if [ "${streaming}" != "null" ] && [ "${streaming}" != "NONE" ]; then
-    if [ -z "${streaming_master_name}" ]; then
-      if [ -z "${master_name}" ]; then
-        streaming_master_name="null"
-      else
-        streaming_master_name=${master_name}
-      fi
-    fi
-    if [ -z "${streaming_master_port}" ]; then
-      streaming_master_port=$((BASE_STREAMING_PORT + RANDOM % STREAMING_PORT_RAND_RANGE))
-    fi
-  else
-    streaming_master_name="null"
-    streaming_master_port="null"
-  fi
-
-  # Master log level
-  if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ]; then
-    itlog4j_file="COMPSsMaster-log4j"
-  else
-    itlog4j_file="COMPSsMaster-log4j.${log_level}"
-  fi
-  if [ "${log_level}" == "${LOG_LEVEL_DEBUG}" ]; then
-    export COMPSS_BINDINGS_DEBUG=1
-  fi
-
-  # Adaptor
-  if [ -z "$comm" ]; then
-    comm=${DEFAULT_COMMUNICATION_ADAPTOR}
-  fi
-
-  # Connector
-  if [ -z "$conn" ]; then
-    conn=${DEFAULT_CONNECTOR}
-  fi
-
-  # Scheduler
-  if [ -z "$scheduler" ]; then
-    scheduler=${DEFAULT_SCHEDULER}
-  fi
-
-  # Classpath
-  if [ -z "$cp" ]; then
-    cp=${DEFAULT_CLASSPATH}
-    for jar in "${DEFAULT_CLASSPATH}"/*.jar; do
-       cp=$cp:$jar
-    done
-  else
-    fcp=""
-    for currcp in ${cp//:/$'\n'}; do
-      if [ ! "${currcp:0:1}" == '/' ]; then # Relative paths to absolute
-        if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists locally
-	  absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
-	  file="$(basename "$currcp")"
-	  fcp="${fcp}$absdir/$file:"
-	else
-	  echo "[ WARNING ]: Classpath \"$currcp\" does not exist..."
-	fi
-      else
-   	fcp="${fcp}$currcp:"
-      fi
-    done
-    cp="$fcp"
-    echo "[  INFO] Relative Classpath resolved: $cp"
-  fi
-
-  if [ -n "$storageImpl" ]; then
-    # Deal with storage implementation
-    for jarname in ${COMPSS_HOME}/Tools/storage/$storageImpl/*.jar; do
-      cp=$cp:$jarname
-    done
-  fi
-
-  export CLASSPATH=$cp:$CLASSPATH
-
-  if [ -z "$task_count" ]; then
-    task_count=${DEFAULT_TASK_COUNT}
-  fi
-
-  if [ -z "$library_path" ]; then
-    library_path=${DEFAULT_LIBRARY_PATH}
-  fi
-  export LD_LIBRARY_PATH=$COMPSS_HOME/Bindings/bindings-common/lib:$COMPSS_HOME/Bindings/c/lib:$library_path:$LD_LIBRARY_PATH
-
-  if [ -z "$uuid" ]; then
-    uuid=$(uuidgen)
-    if [ -z "$uuid" ]; then
-      uuid=$(cat /proc/sys/kernel/random/uuid)
-    fi
-  fi
-
-  # JVM
-  if [ -z "${jvm_master_opts}" ] || [ "${jvm_master_opts}" = \"\" ]; then
-    jvm_master_opts=${DEFAULT_JVM_MASTER}
-  fi
-  # Change jvm master opts separation character "," by " "
-  jvm_master_opts=$(echo $jvm_master_opts | tr "," "\\n")
-
-  if [ -z "${jvm_workers_opts}" ] || [ "${jvm_workers_opts}" = \"\" ]; then
-    jvm_workers_opts=${DEFAULT_JVM_WORKERS}
-  fi
-
-  # WORKER THREAD AFFINITY
-  if [ -z "${worker_cpu_affinity}" ]; then
-    worker_cpu_affinity=${DEFAULT_CPU_AFFINITY}
-  fi
-  if [ -z "${worker_gpu_affinity}" ]; then
-    worker_gpu_affinity=${DEFAULT_GPU_AFFINITY}
-  fi
-  if [ -z "${worker_fpga_affinity}" ]; then
-    worker_fpga_affinity=${DEFAULT_FPGA_AFFINITY}
-  fi
-
-  # Accelerators
-  if [ -z "${fpga_prog}" ]; then
-    fpga_prog=${DEFAULT_FPGA_REPROGRAM}
-  fi
-
-  # Debugger
-  if [ -z "$external_debugger" ]; then
-    external_debugger=${DEFAULT_DEBUGGER}
-  fi
-  if [ "${external_debugger}" == "true" ]; then
-    jvm_debugger_opts="-Xdebug -agentlib:jdwp=transport=dt_socket,address=${external_debugger_port},server=y,suspend=y"
-  else
-    jvm_debugger_opts=""
-  fi
-
-  if [ -n "${jmx_port}" ]; then
-    jvm_jmx_opts="-Dcom.sun.management.jmxremote,-Dcom.sun.management.jmxremote.port=${jmx_port},-Dcom.sun.management.jmxremote.authenticate=false,-Dcom.sun.management.jmxremote.ssl=false"
-  else
-    jvm_jmx_opts=""
-  fi
-  # Change jvm master opts separation character "," by " "
-  jvm_jmx_opts=$(echo $jvm_jmx_opts | tr "," "\\n")
-
-  # Options ONLY for PYTHON
-  if [ "$lang" = "python" ]; then
-    if [ -z "$pythonpath" ]; then
-      pythonpath=${DEFAULT_PYTHONPATH}
-    else
-      # Adds execution dir by default to pythonpath
-      pythonpath=$pythonpath":${DEFAULT_PYTHONPATH}"
-    fi
-
-    # Add application folder to PYTHONPATH
-    module_name=$(basename "${fullAppPath}")
-    if [ -e "${DEFAULT_APPDIR}/${module_name}" ]; then
-      pythonpath=${DEFAULT_APPDIR}:${pythonpath}
-    else
-      module_folder=$(readlink -f "${fullAppPath}" | xargs dirname)
-      pythonpath=${module_folder}:${pythonpath}
-    fi
-
-    # Deal with storage implementation
-    if [ -n "$storageImpl" ]; then
-      pythonpath=$pythonpath:${COMPSS_HOME}/Tools/storage/$storageImpl/python
-    fi
-
-    # Adds all given Pythonpaths to the global variable
-    export PYTHONPATH=$pythonpath:$PYTHONPATH
-
-    if [ -z "$PyObject_serialize" ]; then
-      PyObject_serialize=$DEFAULT_PyOBJECT_SERIALIZE
-    fi
-  fi
-  if [ -z "$python_interpreter" ]; then
-	  python_interpreter=$DEFAULT_PYTHON_INTERPRETER
-    python_version=$DEFAULT_PYTHON_VERSION
-  else
-    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
-  fi
-  if [ -z "$python_propagate_virtual_environment" ]; then
-	  python_propagate_virtual_environment=$DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
-  fi
-  if [ -z "$python_mpi_worker" ]; then
-	  python_mpi_worker=$DEFAULT_PYTHON_MPI_WORKER
-  fi
-
-  # Options ONLY for C
-  if [ "$lang" = "c" ]; then
-    if [ -z "$appdir" ]; then
-      appdir=$DEFAULT_APPDIR
-    fi
-  fi
-  if [ -z "$persistent_worker_c" ]; then
-	persistent_worker_c=${DEFAULT_PERSISTENT_WORKER_C}
-  fi
-
-  if [ "$comm" == "${NIO_ADAPTOR}" ]; then
-    if [ "${persistent_worker_c}" == "true" ]; then
-	export COMPSS_PERSISTENT_BINDING=0
-    fi
-  fi
-
-  if [ -z "$external_adaptation" ]; then
-	external_adaptation=$DEFAULT_EXTERNAL_ADAPTATION
-  fi
+  check_compss_setup
 }
 
-execute_runtime() {
-  # Create tmp dir for initial loggers configuration
-  mkdir /tmp/"$uuid"
-
-  # Create JVM Options file
-  appName=$(basename "$fullAppPath")
-  generate_jvm_opts_file
-
-  # Start streaming backend if required
-  if [ "${streaming}" == "OBJECTS" ] || [ "${streaming}" == "ALL" ]; then
-    echo ""
-    echo "[  INFO] Starting Streaming Backend"
-    if [ -d "${KAFKA_HOME}" ]; then
-      # Generate stream configuration files
-      generate_stream_config_files
-
-      # Clean classpath before starting daemons
-      backup_classpath=$CLASSPATH
-      export CLASSPATH=
-
-      # Start ZooKeeper and Kafka
-      export LOG_DIR="${zookeeper_log_dir}"
-      # echo "ZK: ${KAFKA_HOME}/bin/zookeeper-server-start.sh -daemon ${zookeeper_props_file}"
-      "${KAFKA_HOME}"/bin/zookeeper-server-start.sh -daemon "${zookeeper_props_file}"
-      export LOG_DIR="${kafka_log_dir}"
-      # echo "KAFKA: ${KAFKA_HOME}/bin/kafka-server-start.sh -daemon ${kafka_props_file}"
-      "${KAFKA_HOME}"/bin/kafka-server-start.sh -daemon "${kafka_props_file}"
-
-      # Wait for servers to setup
-      sleep 5s
-
-      # Restore classpath
-      export CLASSPATH=${backup_classpath}
-    else
-      error_msg "${STREAM_BACKEND_ERROR}" 1
-    fi
-    echo "[  INFO] Streaming Backend ready"
-  fi
-
-  # Init COMPSs
-  echo -e "\\n----------------- Executing $appName --------------------------\\n"
-  if [ -n "${gen_core}" ]; then
-    echo "[RUNCOMPSS] Setting coredump generation." 
-    ulimit -c unlimited
-  fi
-  # Launch application execution
-  if [ $lang = java ]; then
-    add_jvm_opts_java
-    exec_java
-  elif [ $lang = c ]; then
-    add_jvm_opts_c
-    exec_c
-  elif [ $lang = python ]; then
-    add_jvm_opts_python
-    exec_python
-  fi
-
-  # End
-  echo
-  echo ------------------------------------------------------------
-}
-
-generate_stream_config_files() {
-  # Create zookeeper properties
-  zookeeper_log_dir="/tmp/zookeeper"
-  mkdir -p "${zookeeper_log_dir}"
-  zookeeper_props_file=$(mktemp -p "${zookeeper_log_dir}") || display_error "${ERROR_ZOOKEEPER_CONFIG}"
-  cat > "${zookeeper_props_file}" << EOT
-dataDir=${zookeeper_log_dir}
-clientPort=49000
-maxClientCnxns=0
-EOT
-
-  # Create kafka properties
-  kafka_log_dir="/tmp/kafka-logs"
-  mkdir -p "${kafka_log_dir}"
-  kafka_props_file=$(mktemp -p "${kafka_log_dir}") || display_error "${ERROR_KAFKA_CONFIG}"
-  cat > "${kafka_props_file}" << EOT
-broker.id=$((RANDOM % 100))
-port=49001
-num.network.threads=3
-num.io.threads=8
-socket.send.buffer.bytes=102400
-socket.receive.buffer.bytes=102400
-socket.request.max.bytes=104857600
-log.dirs=/tmp/kafka-logs
-num.partitions=1
-num.recovery.threads.per.data.dir=1
-offsets.topic.replication.factor=1
-transaction.state.log.replication.factor=1
-transaction.state.log.min.isr=1
-log.retention.hours=168
-log.segment.bytes=1073741824
-log.retention.check.interval.ms=300000
-zookeeper.connect=localhost:49000
-zookeeper.connection.timeout.ms=6000
-group.initial.rebalance.delay.ms=0
-EOT
-}
-
-generate_jvm_opts_file() {
-  jvm_options_file=$(mktemp -p /tmp) || display_error "${TMP_FILE_JVM_ERROR}"
-
-  # PLEASE: Any new parameter added here may be also added into interactive.py config dict.
-
-  cat >> "${jvm_options_file}" << EOT
-${jvm_master_opts}
-${jvm_debugger_opts}
-${jvm_jmx_opts}
--XX:+PerfDisableSharedMem
--XX:-UsePerfData
--XX:+UseG1GC
--XX:+UseThreadPriorities
--XX:ThreadPriorityPolicy=42
--Dlog4j.configurationFile=${COMPSS_HOME}/Runtime/configuration/log/${itlog4j_file}
--Dcompss.to.file=false
--Dcompss.project.file=${projFile}
--Dcompss.resources.file=${resFile}
--Dcompss.project.schema=${COMPSS_HOME}/Runtime/configuration/xml/projects/project_schema.xsd
--Dcompss.resources.schema=${COMPSS_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd
--Dcompss.lang=${lang}
--Dcompss.summary=${summary}
--Dcompss.task.execution=$taskExecution
--Dcompss.storage.conf=$storageConf
--Dcompss.core.count=${task_count}
--Dcompss.appName=${appName}
--Dcompss.uuid=${uuid}
--Dcompss.baseLogDir=${base_log_dir}
--Dcompss.specificLogDir=${specific_log_dir}
--Dcompss.appLogDir=/tmp/${uuid}/
--Dcompss.graph=${graph}
--Dcompss.monitor=${monitoring}
--Dcompss.tracing=${tracing}
--Dcompss.trace.label=${trace_label}
--Dcompss.extrae.file=${custom_extrae_config_file}
--Dcompss.comm=${comm}
--Dcompss.conn=${conn}
--Dcompss.streaming=${streaming}
--Dcompss.streaming.masterName=${streaming_master_name}
--Dcompss.streaming.masterPort=${streaming_master_port}
--Dcompss.masterName=${master_name}
--Dcompss.masterPort=${master_port}
--Dcompss.scheduler=${scheduler}
--Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
--Dgat.debug=false
--Dgat.broker.adaptor=sshtrilead
--Dgat.file.adaptor=sshtrilead
--Dcompss.worker.cp=${CLASSPATH}
--Dcompss.worker.jvm_opts=${jvm_workers_opts}
--Dcompss.worker.cpu_affinity=${worker_cpu_affinity}
--Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
--Dcompss.worker.fpga_affinity=${worker_fpga_affinity}
--Dcompss.worker.fpga_reprogram=${fpga_prog}
--Dcompss.profile.input=${input_profile}
--Dcompss.profile.output=${output_profile}
--Dcompss.scheduler.config=${scheduler_config}
--Dcompss.external.adaptation=${external_adaptation}
-EOT
-# Uncomment block in case that you want to debug errors in JNI
-##  if [ "${log_level}" == "debug" ]; then
-##        cat >> "${jvm_options_file}" << EOT
-##-Xcheck:jni
-##-verbose:jni
-##EOT
-##  fi
-}
-
-add_jvm_opts_java() {
-  cat >> "${jvm_options_file}" << EOT
--noverify
--classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
-EOT
-}
-
-add_jvm_opts_c() {
-  cat >> "${jvm_options_file}" << EOT
--Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
--Djava.library.path=${LD_LIBRARY_PATH}
--Dcompss.constraints.file=$fullAppPath.idl
--Dcompss.worker.persistent.c=${persistent_worker_c}
--Dcompss.worker.appdir=${appdir}
-EOT
-}
-
-add_jvm_opts_python() {
-  # PLEASE: Any new parameter added here may be also added into interactive.py config dict.
-
-  cat >> "${jvm_options_file}" << EOT
--Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
--Djava.library.path=${LD_LIBRARY_PATH}
--Dcompss.worker.pythonpath=${PYTHONPATH}
--Dcompss.python.interpreter=${python_interpreter}
--Dcompss.python.version=${python_version}
--Dcompss.python.virtualenvironment=${DEFAULT_PYTHON_VIRTUAL_ENVIRONMENT}
--Dcompss.python.propagate_virtualenvironment=${python_propagate_virtual_environment}
--Dcompss.python.mpi_worker=${python_mpi_worker}
-EOT
-}
-
-exec_java() {
-  # Define command
-  local java_opts
-  local JAVACMD
-  java_opts=$(tr "\\n" " " < "${jvm_options_file}")
-  JAVACMD=$JAVA" ${java_opts}"
-
-  if [ $tracing -gt 0 ]; then
-    export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
-  fi
-
-  # Launch application
-  # shellcheck disable=SC2086
-  $JAVACMD ${RUNTIME_LOADER} total "$fullAppPath" ${application_args}
-  endCode=$?
-  if [ $tracing -gt 0 ]; then
-      unset LD_PRELOAD  # no tracing check because if not set does nothing
-  fi
-  if [ $endCode -ne 0 ]; then
-    error_msg "${RUNTIME_ERROR}" ${endCode}
-  fi
-}
-
-exec_c() {
-  # Export needed variables
-  if [ -d "${COMPSS_HOME}/Bindings/c" ]; then
-    local CPP_COMPSS_HOME=${COMPSS_HOME}/Bindings/c
-    export CPP_PATH=${CPP_COMPSS_HOME}:$cp
-  else
-    export CPP_PATH=$cp
-  fi
-
-  # Look for the JVM Library
-  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
-  if [ -z "$libjava" ]; then
-    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
-    if [ -z "$libjava" ]; then
-      display_error "${JAVA_JRE_ERROR}"
-    fi
-  fi
-  libjavafolder=$(dirname "$libjava")
-
-  export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${COMPSS_HOME}/Bindings/c/lib:${LD_LIBRARY_PATH}
-
-  export JVM_OPTIONS_FILE=${jvm_options_file}
-
-  # Launch application
-  echo "JVM_OPTIONS_FILE: $JVM_OPTIONS_FILE"
-  echo "COMPSS_HOME: $COMPSS_HOME"
-  echo "Args: $application_args"
-  echo " "
-
-  if [ $tracing -gt 0 ]; then
-    export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
-  fi
-
-  # shellcheck disable=SC2086
-  $fullAppPath ${application_args}
-  endCode=$?
-  if [ $tracing -gt 0 ]; then
-      unset LD_PRELOAD  # no tracing check because if not set does nothing
-  fi
-  if [ $endCode -ne 0 ]; then
-    error_msg "${RUNTIME_ERROR}" ${endCode}
-  fi
-}
-
-exec_python() {
-  # Python Storage API
-  storageApi=${COMPSS_HOME}/Dependencies/
-  cp=$cp:$storageApi
-
-  if ! command_exists $python_interpreter ; then
-    error_msg "ERROR: Python interpreter $python_interpreter does not exist." 1
-  fi
-
-  # Check if installed and export needed variables if needed
-  if [ -d "${COMPSS_HOME}/Bindings/python/$python_version" ]; then
-    PYCOMPSS_HOME=${COMPSS_HOME}/Bindings/python/$python_version
-    export PYTHONPATH=${PYCOMPSS_HOME}:$PYTHONPATH
-  else
-    error_msg "PyCOMPSs for Python $python_version not installed." 1
-  fi
-
-  # Look for the JVM Library
-  libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
-  if [ -z "$libjava" ]; then
-    libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.dylib | head -n 1)
-    if [ -z "$libjava" ]; then
-      display_error "${JAVA_JRE_ERROR}"
-    fi
-  fi
-  libjavafolder=$(dirname "$libjava")
-
-  export LD_LIBRARY_PATH=$libjavafolder:${COMPSS_HOME}/Bindings/bindings-common/lib:${LD_LIBRARY_PATH}
-
-  export JVM_OPTIONS_FILE=${jvm_options_file}
-
-  # Initialize python flags
-  if [ "$log_level" != "debug" ]; then
-    py_flags="-u -O"
-  else
-    py_flags="-u"
-  fi
-
-  # Launch application
-  if [ $tracing -gt 0 ]; then
-    export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
-  fi
-
-  $python_interpreter ${py_flags} "$PYCOMPSS_HOME"/pycompss/runtime/launch.py ${log_level} ${PyObject_serialize} ${storageConf} ${streaming} ${streaming_master_name} ${streaming_master_port} "${fullAppPath}" ${application_args}
-  endCode=$?
-  if [ $tracing -gt 0 ]; then
-      unset LD_PRELOAD
-  fi
-  if [ $endCode -ne 0 ]; then
-    error_msg "${RUNTIME_ERROR}" ${endCode}
-  fi
-}
 
 clean_env() {
-  # Stop streaming backend if necessary
-  if [ "${streaming}" == "OBJECTS" ] || [ "${streaming}" == "ALL" ]; then
-    "${KAFKA_HOME}"/bin/kafka-server-stop.sh
-    "${KAFKA_HOME}"/bin/zookeeper-server-stop.sh
-
-    # Delete ZooKeeper and Kafka logs and configuration files
-    rm -rf "${zookeeper_log_dir}"
-    rm -rf "${kafka_log_dir}"
-  fi
-
-  # Delete JVM options file
-  rm -f "${jvm_options_file}"
-
-  # Delete tmp dir for initial loggers
-  rm -rf "/tmp/$uuid"
+  clear_compss_app
 }
 
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  # Environment and arguments
-  check_env
+  # Environment
+  check_compss_env
+
+  # Validate arguments
   get_args "$@"
   check_args
 
@@ -1398,4 +551,4 @@ clean_env() {
   trap clean_env EXIT
 
   # Real runtime execution
-  execute_runtime
+  start_compss_app

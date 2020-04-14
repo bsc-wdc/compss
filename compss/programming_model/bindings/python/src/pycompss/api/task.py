@@ -1443,7 +1443,7 @@ class Task(object):
             try:
                 # Normal task execution
                 user_returns = self.user_function(*user_args, **user_kwargs)
-            except COMPSsException as ce :
+            except COMPSsException as ce:
                 compss_exception = ce
                 # Check old targetDirection
                 if 'targetDirection' in self.decorator_arguments:
@@ -1528,7 +1528,7 @@ class Task(object):
                 else:
                     serialize_to_file(arg.content, f_name)
 
-        if compss_exception is None:
+        if compss_exception is not None:
             raise compss_exception
 
         # Deal with returns (if any)

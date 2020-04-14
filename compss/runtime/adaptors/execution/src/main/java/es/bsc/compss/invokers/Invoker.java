@@ -145,7 +145,17 @@ public abstract class Invoker {
             out.println("  * Method definition: " + impl.getMethodDefinition());
             out.print("  * Parameter types:");
             for (InvocationParam p : invocation.getParams()) {
-                out.print(" " + p.getValueClass().getName());
+                try {
+                    out.print(" " + p.getValueClass().getName());
+                } catch (NullPointerException e) {
+                    if (p.getType() == DataType.NULL_T) {
+                        // getValueClass can return null if p is NULL_DT
+                        out.print(" null");
+                    } else {
+                        // getValueClass returned a null but it is not NUL_DT
+                        throw new JobExecutionException(e.getMessage(), e);
+                    }
+                }
             }
             out.println("");
 
@@ -252,7 +262,7 @@ public abstract class Invoker {
                     }
                     break;
                 case NULL_T:
-                    np.setValueClass(String.class);
+                    np.setValueClass(null);
                     break;
                 default:
                     throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());

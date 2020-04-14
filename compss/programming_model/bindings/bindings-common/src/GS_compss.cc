@@ -259,7 +259,9 @@ void init_master_jni_types() {
     }
 
     // RegisterCE method
-    midRegisterCE = m_env->GetMethodID(clsITimpl, "registerCoreElement", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
+    midRegisterCE = m_env->GetMethodID(clsITimpl, 
+    "registerCoreElement",  
+    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
     if (m_env->ExceptionOccurred()) {
         m_env->ExceptionDescribe();
         exit(1);
@@ -1106,7 +1108,8 @@ void GS_ExecuteTaskNew(long _appId, char *signature, char *on_failure, int time_
     release_lock();
 }
 
-void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints, char *ImplType, int num_params, char **ImplTypeArgs) {
+void GS_RegisterCE(char *CESignature, char *ImplSignature, char 
+*ImplConstraints, char *ImplType, char *ImplIO, int num_params, char **ImplTypeArgs) {
     get_lock();
 	int isAttached = check_and_attach(m_jvm, m_env);
 
@@ -1115,6 +1118,7 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
     //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplSignature:   %s\n", ImplSignature);
     //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplConstraints: %s\n", ImplConstraints);
     //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplType:        %s\n", ImplType);
+    //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - ImplIO:         %s\n", ImplIO);
     //debug_printf ("[BINDING-COMMONS]  -  @GS_RegisterCE - num_params:      %d\n", num_params);
 
     jobjectArray implArgs; //  array of Objects to be passed to register core element
@@ -1129,6 +1133,7 @@ void GS_RegisterCE(char *CESignature, char *ImplSignature, char *ImplConstraints
                           m_env->NewStringUTF(ImplSignature),
                           m_env->NewStringUTF(ImplConstraints),
                           m_env->NewStringUTF(ImplType),
+                          m_env->NewStringUTF(ImplIO),
                           implArgs);
     if (m_env->ExceptionOccurred()) {
         debug_printf("[BINDING-COMMONS]  -  @GS_RegisterCE  -  Error: Exception received when calling registerCE.\n");

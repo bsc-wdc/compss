@@ -63,10 +63,11 @@ public interface COMPSsRuntime {
      * @param implSignature The implementation signature.
      * @param implConstraints The implementation constraints.
      * @param implType The implementation type.
+     * @param implIO Whether an implementation is IO.
      * @param implTypeArgs The implementation specific arguments.
      */
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String... implTypeArgs);
+        String implType, String implIO, String... implTypeArgs);
 
     /**
      * New Method task for C Binding.

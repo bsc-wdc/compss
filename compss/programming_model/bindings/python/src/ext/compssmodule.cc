@@ -569,10 +569,11 @@ register_core_element(PyObject *self, PyObject *args) {
     char *CESignature,
          *ImplSignature,
          *ImplConstraints,
-         *ImplType;
+         *ImplType,
+         *ImplIO;
     PyObject *typeArgs;
-    if(!PyArg_ParseTuple(args, "ssssO", &CESignature, &ImplSignature,
-                         &ImplConstraints, &ImplType, &typeArgs)) {
+    if(!PyArg_ParseTuple(args, "sssssO", &CESignature, &ImplSignature,
+                         &ImplConstraints, &ImplType, &ImplIO, &typeArgs)) {
         return NULL;
     }
 
@@ -580,6 +581,7 @@ register_core_element(PyObject *self, PyObject *args) {
     debug("####C#### Implementation Signature: %s\n", ImplSignature);
     debug("####C#### Implementation Constraints: %s\n", ImplConstraints);
     debug("####C#### Implementation Type: %s\n", ImplType);
+    debug("####C#### Implementation IO: %s\n", ImplIO);
     int num_params = PyList_Size(typeArgs);
     debug("####C#### Implementation Type num args: %i\n", num_params);
     char **ImplTypeArgs = new char*[num_params];
@@ -592,6 +594,7 @@ register_core_element(PyObject *self, PyObject *args) {
                   ImplSignature,
                   ImplConstraints,
                   ImplType,
+                  ImplIO,
                   num_params,
                   ImplTypeArgs);
     debug("####C#### COMPSs ALREADY REGISTERED THE CORE ELEMENT\n");

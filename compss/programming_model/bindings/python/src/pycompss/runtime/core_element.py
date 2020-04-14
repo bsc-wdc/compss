@@ -32,11 +32,13 @@ class CE(object):
                  impl_signature=None,
                  impl_constraints=None,
                  impl_type=None,
+                 impl_io=None,
                  impl_type_args=None):
         self.__ceSignature = ce_signature
         self.__implSignature = impl_signature
         self.__implConstraints = impl_constraints
         self.__implType = impl_type
+        self.__implIO = impl_io
         self.__implTypeArgs = impl_type_args
 
     ###########
@@ -48,6 +50,7 @@ class CE(object):
         self.__implSignature = None
         self.__implConstraints = None
         self.__implType = None
+        self.__implIO = None
         self.__implTypeArgs = None
 
     ###########
@@ -65,6 +68,9 @@ class CE(object):
 
     def get_impl_type(self):
         return self.__implType
+
+    def get_impl_io(self):
+        return self.__implIO
 
     def get_impl_type_args(self):
         return self.__implTypeArgs
@@ -85,6 +91,9 @@ class CE(object):
     def set_impl_type(self, impl_type):
         self.__implType = impl_type
 
+    def set_impl_io(self, impl_io):
+        self.__implIO = impl_io
+
     def set_impl_type_args(self, impl_type_args):
         self.__implTypeArgs = impl_type_args
 
@@ -101,5 +110,6 @@ class CE(object):
             impl_constraints += key + ':' + str(value) + ';'
         _repr += '\t - Impl. constraints: ' + impl_constraints + '\n'
         _repr += '\t - Impl. type       : ' + self.__implType + '\n'
+        _repr += '\t - Impl. io       : ' + self.__implIO + '\n'
         _repr += '\t - Impl. type args  : ' + ' '.join(self.__implTypeArgs)
         return _repr

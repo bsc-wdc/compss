@@ -8,6 +8,7 @@ PyCOMPSs Testbench
 """
 
 # Imports
+import sys
 import unittest
 
 from modules.testNoReturn import testNoReturn
@@ -17,6 +18,12 @@ from modules.testNoReturnClasses import testNoReturnClasses
 def main():
     suite = unittest.TestLoader().loadTestsFromTestCase(testNoReturn)
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testNoReturnClasses))
+    if sys.version_info >= (3, 5):
+        # Include Type-Hinting checks
+        from modules.testNoReturnTH import testNoReturnTH
+        from modules.testNoReturnClassesTH import testNoReturnClassesTH
+        suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testNoReturnTH))
+        suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testNoReturnClassesTH))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

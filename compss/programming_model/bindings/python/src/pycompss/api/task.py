@@ -326,12 +326,43 @@ class Task(object):
 
         :param f: Function to check
         """
-
         from pycompss.api.parameter import Parameter
         from pycompss.api.parameter import DIRECTION
         from pycompss.api.parameter import TYPE
         from pycompss.util.objects.properties import get_wrapped_source
         import ast
+
+        # Check type-hinting in python3
+        if IS_PYTHON3:
+            from typing import get_type_hints
+            type_hints = get_type_hints(f)
+            if 'return' in type_hints:
+                # There is a return defined as type-hint
+                ret = type_hints['return']
+                try:
+                    num_returns = len(ret)
+                except TypeError:
+                    # Is not iterable, so consider just 1
+                    num_returns = 1
+                if num_returns > 1:
+                    for i in range(num_returns):
+                        param = Parameter(p_type=TYPE.FILE,
+                                          p_direction=DIRECTION.OUT)
+                        param.object = object()
+                        self.returns[parameter.get_return_name(i)] = param
+                else:
+                    param = Parameter(p_type=TYPE.FILE,
+                                      p_direction=DIRECTION.OUT)
+                    param.object = object()
+                    self.returns[parameter.get_return_name(0)] = param
+                # Found return defined as type-hint
+                return
+            else:
+                # The user has not defined return as type-hint
+                # So, continue searching as usual
+                pass
+
+        # It is python2 or could not find type-hinting
         source_code = get_wrapped_source(f).strip()
 
         if self.first_arg_name == 'self' or \
@@ -1487,17 +1518,19 @@ class Task(object):
                 for (content, elem) in get_collection_objects(arg.content, arg):
                     f_name = get_file_name(elem.file_name)
                     if python_mpi:
-                                serialize_to_file_mpienv(content, f_name, False)
+                        serialize_to_file_mpienv(content, f_name, False)
                     else:
                         serialize_to_file(content, f_name)
             else:
                 f_name = get_file_name(arg.file_name)
                 if python_mpi:
-                        serialize_to_file_mpienv(arg.content, f_name, False)
+                    serialize_to_file_mpienv(arg.content, f_name, False)
                 else:
                     serialize_to_file(arg.content, f_name)
-        if compss_exception != None :
+
+        if compss_exception is None:
             raise compss_exception
+
         # Deal with returns (if any)
         if num_returns > 0:
             if num_returns == 1:
@@ -1505,10 +1538,11 @@ class Task(object):
                 # code
                 user_returns = [user_returns]
             elif num_returns > 1 and python_mpi:
+
                 def get_ret_rank(ret_params):
                     from mpi4py import MPI
                     return [ret_params[MPI.COMM_WORLD.rank]]
-					
+
                 user_returns = [user_returns]
                 ret_params = get_ret_rank(ret_params)
             # Note that we are implicitly assuming that the length of the user
@@ -1526,9 +1560,9 @@ class Task(object):
                 f_name = get_file_name(param.file_name)
                 if python_mpi:
                     if num_returns > 1:
-                       rank_zero_reduce = False
+                        rank_zero_reduce = False
                     else:
-                       rank_zero_reduce = True
+                        rank_zero_reduce = True
 
                     serialize_to_file_mpienv(obj, f_name, rank_zero_reduce)
                 else:

@@ -11,6 +11,7 @@ DEFAULT_CUS=""
 DEFAULT_GPUS=""
 DEFAULT_FPGAS=""
 DEFAULT_MEMORY=""
+DEFAULT_NODE_STORAGE_BANDWIDTH=""
 DEFAULT_MIN_PORT="43001"
 DEFAULT_MAX_PORT="43002"
 DEFAULT_REMOTE_EXECUTOR=""
@@ -99,8 +100,8 @@ add_compute_node() {
   <ComputeNode Name="${node_name}">
 EOT
 
-  _fill_hw "${@:1:4}"
-  shift 4
+  _fill_hw "${@:1:5}"
+  shift 5
 
   _fill_sw "$@"
 
@@ -245,7 +246,8 @@ EOT
 
 _fill_hw() {
   _fill_processors "$@"
-  _fill_memory "${!#}"
+  _fill_memory "${4}"
+  _fill_storage "${!#}"
 }
 
 _fill_sw() {
@@ -312,6 +314,23 @@ _fill_memory() {
     <Memory>
       <Size>${memory}</Size>
     </Memory>
+EOT
+  fi
+}
+
+_fill_storage() {
+  # Retrieve parameters
+  local bandwidth=${1:-$DEFAULT_STORAGE_BANDWIDTH}
+
+  # Check parameters
+  :
+
+  # Dump information to file
+  if [ -n "${bandwidth}" ] && [ "${bandwidth}" != "NULL" ]; then
+    cat >> "${RESOURCES_FILE}" << EOT
+    <Storage>
+      <Bandwidth>${bandwidth}</Bandwidth>
+    </Storage>
 EOT
   fi
 }
@@ -457,7 +476,7 @@ create_simple_resources() {
     #local worker_working_dir=${worker_info_fields[3]}
     min_port=$((43101 + ( RANDOM % 100 )))
     max_port=$((min_port + 1))
-    add_compute_node "${worker_name}" "${worker_cus}" "0" "0" "" "${min_port}" "${max_port}" "" ""
+    add_compute_node "${worker_name}" "${worker_cus}" "0" "0" "" "" "${min_port}" "${max_port}" "" ""
   done
   add_footer
 }

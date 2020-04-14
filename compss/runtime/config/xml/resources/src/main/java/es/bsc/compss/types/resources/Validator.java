@@ -466,7 +466,7 @@ public class Validator {
                     } else {
                         bandwidthTagFound = true;
                         Integer val = (Integer) obj;
-                        if (val < 0) {
+                        if (val <= 0) {
                             throw new InvalidElementException("Storage", "Attribute Bandwidth",
                                 "Must be greater than 0");
                         }
@@ -474,10 +474,6 @@ public class Validator {
                 } else {
                     throw new InvalidElementException("Storage", "Attribute " + obj.getClass(), "Incorrect attribute");
                 }
-            }
-            // Check minimum appearences
-            if (!sizeTagFound) {
-                throw new InvalidElementException("Storage ", "Attribute Size", "Doesn't appear");
             }
         } else {
             // Empty inner elements

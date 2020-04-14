@@ -1572,6 +1572,8 @@ set_variables() {
   if [ "${node_storage_bandwidth}" == "${DEFAULT_NODE_STORAGE_BANDWIDTH}" ]; then
     # Default value
     node_storage_bandwidth=${DEFAULT_NODE_STORAGE_BANDWIDTH}
+  else
+    node_storage_bandwidth=${node_storage_bandwidth}
   fi
 
   if [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then

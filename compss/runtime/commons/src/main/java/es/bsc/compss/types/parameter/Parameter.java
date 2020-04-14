@@ -42,7 +42,7 @@ public abstract class Parameter implements Serializable {
 
     /**
      * Creates a new Parameter instance from the given values.
-     * 
+     *
      * @param type Parameter type.
      * @param direction Parameter direction.
      * @param stream Parameter IO stream mode.
@@ -66,7 +66,7 @@ public abstract class Parameter implements Serializable {
 
     /**
      * Returns the parameter type.
-     * 
+     *
      * @return The parameter type.
      */
     public DataType getType() {
@@ -75,7 +75,7 @@ public abstract class Parameter implements Serializable {
 
     /**
      * Sets a new parameter type.
-     * 
+     *
      * @param type New parameter type.
      */
     public void setType(DataType type) {
@@ -84,7 +84,7 @@ public abstract class Parameter implements Serializable {
 
     /**
      * Returns the parameter direction.
-     * 
+     *
      * @return The parameter direction.
      */
     public Direction getDirection() {
@@ -93,7 +93,7 @@ public abstract class Parameter implements Serializable {
 
     /**
      * Returns the parameter IO stream mode.
-     * 
+     *
      * @return The parameter IO stream mode.
      */
     public StdIOStream getStream() {
@@ -102,7 +102,7 @@ public abstract class Parameter implements Serializable {
 
     /**
      * Returns the parameter prefix.
-     * 
+     *
      * @return The parameter prefix.
      */
     public String getPrefix() {
@@ -111,13 +111,18 @@ public abstract class Parameter implements Serializable {
 
     /**
      * Returns the parameter name.
-     * 
+     *
      * @return The parameter name.
      */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Returns the python object type.
+     *
+     * @return The content type.
+     */
     public String getContentType() {
         return this.contentType;
     }

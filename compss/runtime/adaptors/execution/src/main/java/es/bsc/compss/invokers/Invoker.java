@@ -29,6 +29,7 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.parameter.NullParameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -145,17 +146,7 @@ public abstract class Invoker {
             out.println("  * Method definition: " + impl.getMethodDefinition());
             out.print("  * Parameter types:");
             for (InvocationParam p : invocation.getParams()) {
-                try {
-                    out.print(" " + p.getValueClass().getName());
-                } catch (NullPointerException e) {
-                    if (p.getType() == DataType.NULL_T) {
-                        // getValueClass can return null if p is NULL_DT
-                        out.print(" null");
-                    } else {
-                        // getValueClass returned a null but it is not NUL_DT
-                        throw new JobExecutionException(e.getMessage(), e);
-                    }
-                }
+                out.print(" " + p.getValueClass().getName());
             }
             out.println("");
 
@@ -262,7 +253,9 @@ public abstract class Invoker {
                     }
                     break;
                 case NULL_T:
-                    np.setValueClass(null);
+                    NullParameter nullParam = new NullParameter();
+                    np.setValue(nullParam);
+                    np.setValueClass(nullParam.getClass());
                     break;
                 default:
                     throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());

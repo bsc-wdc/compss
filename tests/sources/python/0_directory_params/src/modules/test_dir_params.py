@@ -86,6 +86,15 @@ class TestDirParams(unittest.TestCase):
 
         return res
 
+    @task(returns=bool, first=DIRECTORY_IN, second=DIRECTORY_INOUT, third=DIRECTORY_OUT)
+    def directory_None(self, first=None, second=None, third=None):
+        if first is None and \
+           second is None and \
+           third is None:
+            return True
+        else:
+            return False
+
     def test_workflow(self):
         """
         Test multiple tasks with directory in, out, and inout params.
@@ -238,3 +247,19 @@ class TestDirParams(unittest.TestCase):
             self.assertTrue(word in res, "missing word: {}".format(word))
 
         shutil.rmtree(dir_in)
+
+    def test_dir_with_none(self):
+        """
+        Test DIRECTORY parameters with None
+        """
+        from pycompss.api.api import compss_wait_on
+        din = None
+        dinout = None
+        dout = None
+        res = self.directory_None(din, dinout, dout)
+        res = compss_wait_on(res)
+        self.assertEqual(res, True, "A parameter was not None in the directory_None task.")
+        res = self.directory_None()
+        res = compss_wait_on(res)
+        self.assertEqual(res, True, "A parameter was not None in the directory_None task using default parameters.")
+        # makes sense to wait on a None directory? No

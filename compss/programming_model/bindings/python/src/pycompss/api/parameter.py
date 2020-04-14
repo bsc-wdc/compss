@@ -481,7 +481,7 @@ def is_return(param_name):
     Determine if a parameter is named as a (internal) return.
 
     :param param_name: String with a parameter name
-    :returns: True iff the name has the form of an internal return name
+    :returns: True if the name has the form of an internal return name
     """
     return param_name.startswith('$return')
 
@@ -491,9 +491,29 @@ def is_object(param):
     Determine if a parameter is an object (not a FILE).
 
     :param param: Parameter to determine
-    :return: True iff x represents an object (IN, INOUT, OUT)
+    :return: True if param represents an object (IN, INOUT, OUT)
     """
     return param.type is None
+
+
+def is_file(param):
+    """
+    Determine if a parameter is a FILE.
+
+    :param param: Parameter to determine
+    :return: True if param represents an FILE (IN, INOUT, OUT)
+    """
+    return param.type is TYPE.FILE
+
+
+def is_directory(param):
+    """
+    Determine if a parameter is a DIRECTORY.
+
+    :param param: Parameter to determine
+    :return: True if param represents an DIRECTORY
+    """
+    return param.type is TYPE.DIRECTORY
 
 
 # Note that the given internal names to these parameters are

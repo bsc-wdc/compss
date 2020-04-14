@@ -29,6 +29,7 @@ import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.parameter.NullParameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.Tracer;
@@ -54,7 +55,7 @@ public abstract class Invoker {
 
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
-    protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type";
+    protected static final String ERROR_UNKNOWN_TYPE = "ERROR: Unrecognised type ";
 
     public static final String COMPSS_NUM_NODES = "COMPSS_NUM_NODES";
     public static final String COMPSS_NODES = "COMPSS_NODES";
@@ -76,7 +77,7 @@ public abstract class Invoker {
 
     /**
      * Invoker constructor.
-     * 
+     *
      * @param context Invocation context
      * @param invocation task execution invocation description (job)
      * @param taskSandboxWorkingDir task execution sandboxed working dir
@@ -251,6 +252,11 @@ public abstract class Invoker {
                         np.setValueClass(obj.getClass());
                     }
                     break;
+                case NULL_T:
+                    NullParameter nullParam = new NullParameter();
+                    np.setValue(nullParam);
+                    np.setValueClass(nullParam.getClass());
+                    break;
                 default:
                     throw new JobExecutionException(ERROR_UNKNOWN_TYPE + np.getType());
             }
@@ -261,7 +267,7 @@ public abstract class Invoker {
 
     /**
      * Perform the task execution (job).
-     * 
+     *
      * @throws JobExecutionException When an error in the task execution occurs.
      * @throws COMPSsException When the task needs to be stopped (task groups, failure management).
      */
@@ -279,7 +285,7 @@ public abstract class Invoker {
 
     /**
      * Serialize the exit value in the task execution return parameter location.
-     * 
+     *
      * @param returnParam Task execution return parameter
      * @param exitValue Exit value
      * @throws JobExecutionException Exception serializing the exist value.

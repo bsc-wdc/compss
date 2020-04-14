@@ -24,6 +24,12 @@ def main():
         from modules.testNoReturnClassesTH import testNoReturnClassesTH
         suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testNoReturnTH))
         suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testNoReturnClassesTH))
+    elif sys.version_info >= (3, 0):
+        raise Exception("ERROR: PYTHON >= 3.5 REQUIRED.")
+    else:
+        # Python 2 does not support type-hinting, so nothing else to do.
+        pass
+
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

@@ -1531,7 +1531,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     } else {
                         ratio = pThis.getComputingUnits() / p.getComputingUnits();
                     }
-                    min = Math.min(min, (int) ratio);
+                	min = Math.min(min, (int) ratio);
                 }
             }
         }

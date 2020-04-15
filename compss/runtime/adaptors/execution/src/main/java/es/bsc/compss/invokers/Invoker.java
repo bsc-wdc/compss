@@ -28,6 +28,7 @@ import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.LanguageParams;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.AbstractMethodImplementation;
+import es.bsc.compss.types.implementations.MethodType;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.parameter.NullParameter;
 import es.bsc.compss.types.resources.MethodResourceDescription;
@@ -96,7 +97,18 @@ public abstract class Invoker {
         // ComputingUnits flags
         ResourceDescription rd = this.invocation.getRequirements();
         if (this.invocation.getTaskType() == TaskType.METHOD) {
-            this.computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
+            boolean mpiImpl = false;
+            AbstractMethodImplementation impl = this.invocation.getMethodImplementation();
+
+            if (impl.getMethodType() == MethodType.PYTHON_MPI || impl.getMethodType() == MethodType.MPI) {
+                mpiImpl = true;
+            }
+
+            if (impl.isIO() && mpiImpl) {
+                this.computingUnits = ((MethodResourceDescription) rd).getTotalMPIComputingUnits();
+            } else {
+                this.computingUnits = ((MethodResourceDescription) rd).getTotalCPUComputingUnits();
+            }
         } else {
             this.computingUnits = 0;
         }

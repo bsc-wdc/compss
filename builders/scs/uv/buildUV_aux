@@ -41,6 +41,7 @@
   extrae_with_openmpi="true"
   openmpi_version=""
   extrae_with_impi="false"
+  impi_version=""
   autoparallel="false"
 
   # CALL buildSC_aux

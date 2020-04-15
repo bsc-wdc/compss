@@ -30,7 +30,6 @@
 
   # DEFINE MODULES
   modules="intel/2017.4 transfer/1.0 bsc/1.0 impi/2017.4 mkl/2017.4 java/8u131 papi/5.5.1 gcc/7.2.0 boost/1.64.0"
-
   unload_before_python="boost/1.64.0"
   # Plain python modules:
   py2_modules="python/2.7.13"

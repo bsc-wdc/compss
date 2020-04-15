@@ -35,7 +35,7 @@
   unload_before_python="boost/1.64.0"
   py2_modules="python/2.7.13"
   py3_modules="python/3.6.1"
-  py3_other_modules="python/3.7.4"
+  py3_other_modules="python/3.7.4 python/3-intel-2018.2 python/3-intel-2019.2"
   # Python modules with jupyter:
   # py2_modules="ANACONDA/5.0.1_python2"  # python 2.7.14
   # py3_modules="ANACONDA/5.1.0_py3"      # "ANACONDA/5.1.0.py3conda" # python 3.6.3

@@ -4,6 +4,7 @@
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
 APP_CMD="curl"
+DEFAULT_LANG="JAVA"
 DEFAULT_METHOD="main"
 
 #---------------------------------------------------------------------------------------
@@ -63,7 +64,7 @@ display_invocation() {
   echo "Invocation details:"
   echo "    Host:               ${master_node}"
   echo "    Port:               ${master_port}"
-  echo "    Lang:               JAVA"
+  echo "    Lang:               ${lang}"
   echo "    Class name:         ${fullAppPath}"
   echo "    Method name:        ${method_name}"
   if [ ! -z "${cei}" ]; then
@@ -110,6 +111,9 @@ show_opts() {
   cat <<EOT
     --cei=<string>                          Canonical name of the interface declaring the methods
                                             Default: No interface declared
+
+    --lang=<string>                         Language implementing the operation
+                                            Default: ${DEFAULT_LANG}
 
     --method_name=<string>                  Name of the method to invoke
                                             Default: main and enables array parameter
@@ -178,6 +182,9 @@ get_args() {
         cei=*)
           cei=${OPTARG//cei=/}
           ;;
+        lang=*)
+          lang=${OPTARG//lang=/}
+          ;;
         method_name=*)
           method_name=${OPTARG//method_name=/}
           ;;
@@ -222,6 +229,10 @@ check_args() {
   if [ -z "${method_name}" ]; then
     method_name=${DEFAULT_METHOD}
     params_as_array="true"
+  fi
+
+  if [ -z "${lang}" ]; then
+    lang=${DEFAULT_LANG}
   fi
 }
 
@@ -291,6 +302,7 @@ call(){
   http_header="content-type: application/xml"
   http_data="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
   http_data="${http_data}<startApplication>"
+  http_data="${http_data}<lang>${lang}</lang>"
   if [ ! -z "${cei}" ]; then
     http_data="${http_data}<ceiClass>${cei}</ceiClass>"
   fi
@@ -305,7 +317,7 @@ call(){
   #http_data="${http_data}<resources/>"
   http_data="${http_data}</startApplication>"
 
-  "${APP_CMD}" "-s" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}" 
+  "${APP_CMD}" "-s" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}"
 }
 
 #---------------------------------------------------------------------------------------

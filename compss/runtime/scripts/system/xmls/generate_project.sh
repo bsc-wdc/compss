@@ -429,7 +429,7 @@ create_simple_project() {
 
 if [ $# -ne 0 ]; then
   #to check if it is sourced or executed
-  if [ "$(basename $0)" = "$(basename $BASH_SOURCE)" ]; then
+  if [ "$(basename "$0")" = "$(basename "$BASH_SOURCE")" ]; then
       create_simple_project "$@"
   else
       echo "Sourcing generate_project.sh"

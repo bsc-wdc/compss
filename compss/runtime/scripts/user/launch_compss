@@ -54,6 +54,7 @@ ERROR_CFG_Q="Queue system CFG file doesn't exist"
 ERROR_MASTER_NODE="Missing master node parameter"
 ERROR_WORKER_NODES="Missing worker nodes parameter"
 ERROR_NUM_CPUS="Invalid number of CPUS per node"
+ERROR_NUM_IO_EXECUTORS="Invalid number of IO executors per node. Only integers >= 0 allowed"
 ERROR_WORKER_WD="Invalid Worker Working Dir option"
 ERROR_NETWORK="Invalid network option"
 ERROR_WORKER_IN_MASTER_CPUS="Parameter worker_in_master_cpus is bigger than the maximum number of cpus_per_node"
@@ -127,6 +128,8 @@ show_opts() {
                                             Default: ${DEFAULT_GPUS_PER_NODE}
     --fpgas_per_node=<int>                  Available FPGA computing units on each node
                                             Default: ${DEFAULT_FPGAS_PER_NODE}
+    --io_executors=<int>                    Number of IO executors on each node
+                                            Default: ${DEFAULT_IO_EXECUTORS}
     --fpga_reprogram="<string>              Specify the full command that needs to be executed to reprogram the FPGA with
                                             the desired bitstream. The location must be an absolute path.
                                             Default: ${DEFAULT_FPGA_REPROGRAM}
@@ -309,9 +312,10 @@ worker_cmd() {
   local cpuMap=${11}
   local gpuMap=${12}
   local fpgaMap=${13}
-  local lot=${14}
-  local streaming_backend=${15}
-  local streaming_master_port=${16}
+  local ioExec=${14}
+  local lot=${15}
+  local streaming_backend=${16}
+  local streaming_master_port=${17}
 
   if [ -z "${streaming_master_port}" ] || [ "${streaming_master_port}" == "null" ]; then
     # Value will be ignored, just add a random number so that the parser does not complain
@@ -355,6 +359,7 @@ worker_cmd() {
             ${cpuMap} \
             ${gpuMap} \
             ${fpgaMap} \
+            ${ioExec} \
             ${lot} \
             ${uuid} \
             ${lang} \
@@ -949,6 +954,9 @@ get_args() {
         fpgas_per_node=*)
           fpgas_per_node=${OPTARG//fpgas_per_node=/}
           ;;
+        io_executors=*)
+          io_executors=${OPTARG//io_executors=/}
+          ;;
         max_tasks_per_node=*)
           max_tasks_per_node=${OPTARG//max_tasks_per_node=}
           ;;
@@ -1318,6 +1326,14 @@ check_args() {
     fpgas_per_node=${DEFAULT_FPGAS_PER_NODE}
   fi
 
+  if [ -z "${io_executors}" ]; then
+    io_executors=${DEFAULT_IO_EXECUTORS}
+  fi
+
+  if [ "${io_executors}" -lt 0 ]; then
+    display_error "${ERROR_NUM_IO_EXECUTORS}"
+  fi
+
   if [ -z "${cpu_affinity}" ]; then
     cpu_affinity=${DEFAULT_CPU_AFFINITY}
   fi
@@ -1630,6 +1646,7 @@ log_variables() {
   echo "CPUs per Node:             ${cpus_per_node}"
   echo "GPUs per Node:             ${gpus_per_node}"
   echo "FPGAs per Node:            ${fpgas_per_node}"
+  echo "IO Executors:              ${io_executors}"
   echo "CPU Affinity:              ${cpu_affinity}"
   echo "GPU Affinity:              ${gpu_affinity}"
   echo "FPGA Affinity:             ${fpga_affinity}"
@@ -1713,7 +1730,7 @@ launch() {
         fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
         fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
+        worker_cmd "$hostid" "${master_node}${network}" "${master_node}${network}" "${jvm_worker_in_master_opts_size}" "${jvm_worker_in_master_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
           master_node=$(${NODE_NAME_QUEUE} "${master_node}")
@@ -1744,7 +1761,7 @@ launch() {
       fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
       for node in ${worker_nodes}; do
         # worker_cmd id name master_name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot streaming_backend streaming_master_port
-        worker_cmd $hostid "$node${network}" "${master_node}${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
+        worker_cmd $hostid "$node${network}" "${master_node}${network}" "${jvm_workers_opts_size}" "${jvm_workers_opts_str}" "${fpga_reprogram_size}" "${fpga_reprogram_str}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${cpu_affinity}" "${gpu_affinity}" "${fpga_affinity}" "${io_executors}" "${max_tasks_per_node}" "${streaming}" "${streaming_master_port}"
 
         if [ ! -z "${NODE_NAME_QUEUE}" ]; then
             node=$(${NODE_NAME_QUEUE} ${node})

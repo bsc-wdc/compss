@@ -17,6 +17,7 @@ DEFAULT_AGENTS_HIERARCHY="tree"
 #---------------------------------------------------
 ERROR_NUM_NODES="Invalid number of nodes"
 ERROR_NUM_CPUS="Invalid number of CPUS per node"
+ERROR_NUM_IO_EXECUTORS="Invalid number of IO executors. Only integers >= 0 allowed."
 ERROR_SWITCHES="Too little switches for the specified number of nodes"
 ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
 ERROR_NODE_MEMORY="Incorrect node_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
@@ -93,7 +94,7 @@ EOT
 					    Default: ${DEFAULT_CONSTRAINTS}
 EOT
    fi
-   if ["${ENABLE_QARG_CLUSTER}" == "true" ]; then
+   if [ "${ENABLE_QARG_CLUSTER}" == "true" ]; then
     cat <<EOT
     --cluster=<cluster>                     Cluster to pass to queue system.
                                             
@@ -346,6 +347,10 @@ get_args() {
             cpus_per_node=${OPTARG//cpus_per_node=/}
             args_pass="$args_pass --$OPTARG"
             ;;
+          io_executors=*)
+            io_executors=${OPTARG//io_executors=/}
+            args_pass="$args_pass --$OPTARG"
+            ;;
           gpus_per_node=*)
             gpus_per_node=${OPTARG//gpus_per_node=/}
             args_pass="$args_pass --$OPTARG"
@@ -517,6 +522,14 @@ check_args() {
 
   if [ "${cpus_per_node}" -lt "${MINIMUM_CPUS_PER_NODE}" ]; then
     display_error "${ERROR_NUM_CPUS}"
+  fi
+
+  if [ -z "${io_executors}" ]; then
+    io_executors=${DEFAULT_IO_EXECUTORS}
+  fi
+
+  if [ "${io_executors}" -lt 0 ]; then
+    display_error "${ERROR_NUM_IO_EXECUTORS}"
   fi
 
   if [ -z "${gpus_per_node}" ]; then

@@ -98,7 +98,7 @@ public abstract class NIOAgent {
     protected static final TransferManager TM = new TransferManager();
 
     public static final int NUM_PARAMS_PER_WORKER_SH = 6;
-    public static final int NUM_PARAMS_NIO_WORKER = 34;
+    public static final int NUM_PARAMS_NIO_WORKER = 35;
     public static final String BINDER_DISABLED = "disabled";
     public static final String BINDER_AUTOMATIC = "automatic";
 

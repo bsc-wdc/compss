@@ -128,6 +128,7 @@ public class NIOStarterCommand extends WorkerStarterCommand {
         cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(GPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(FPGA_AFFINITY);
+        cmd[nextPosition++] = String.valueOf(IO_EXECUTORS);
         cmd[nextPosition++] = String.valueOf(limitOfTasks);
 
         // Application parameters

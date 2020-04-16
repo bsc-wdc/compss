@@ -47,11 +47,11 @@ public class ExecutionManager {
      * @param gpuMap GPU Mapping
      * @param computingUnitsFPGA Number of FPGA Computing Units
      * @param fpgaMap FPGA Mapping
-     * @param limitOfTasks Limit of number of simultaneous tasks
      * @param ioExecNum Number of IO Executors
+     * @param limitOfTasks Limit of number of simultaneous tasks
      */
     public ExecutionManager(InvocationContext context, int computingUnitsCPU, String cpuMap, int computingUnitsGPU,
-        String gpuMap, int computingUnitsFPGA, String fpgaMap, int limitOfTasks, int ioExecNum) {
+        String gpuMap, int computingUnitsFPGA, String fpgaMap, int ioExecNum, int limitOfTasks) {
 
         ResourceManager rm = null;
         try {
@@ -72,17 +72,25 @@ public class ExecutionManager {
     public void init() throws InitializationException {
         LOGGER.info("Init Execution Manager");
         this.cpuExecutors.start();
-        this.ioExecutors.start();
+        if (this.ioExecutors.getSize() > 0) {
+            this.ioExecutors.start();
+        }
     }
 
     /**
      * Enqueues a new task.
      *
      * @param exec Task execution description
+     * @throws Exception if there is no IO executors to execute the IO task
      */
     public void enqueue(Execution exec) {
         if (exec.getInvocation().getMethodImplementation().isIO()) {
-            this.ioExecutors.execute(exec);
+            if (this.ioExecutors.getSize() == 0) {
+                ErrorManager.error("No available IO executors to execute: "
+                    + exec.getInvocation().getMethodImplementation().getSignature());
+            } else {
+                this.ioExecutors.execute(exec);
+            }
         } else {
             this.cpuExecutors.execute(exec);
         }
@@ -95,7 +103,9 @@ public class ExecutionManager {
         LOGGER.info("Stopping Threads...");
         // Stop the job threads
         this.cpuExecutors.stop();
-        this.ioExecutors.stop();
+        if (this.ioExecutors.getSize() > 0) {
+            this.ioExecutors.stop();
+        }
     }
 
     /**

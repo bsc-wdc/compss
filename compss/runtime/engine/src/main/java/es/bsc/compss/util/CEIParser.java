@@ -41,16 +41,9 @@ public class CEIParser {
     static {
         // Compute language
         Lang l = Lang.JAVA;
-
         String langProperty = System.getProperty(COMPSsConstants.LANG);
         if (langProperty != null) {
-            if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.PYTHON.name())) {
-                l = Lang.PYTHON;
-            } else {
-                if (langProperty.equalsIgnoreCase(COMPSsConstants.Lang.C.name())) {
-                    l = Lang.C;
-                }
-            }
+            l = Lang.valueOf(langProperty.toUpperCase());
         }
 
         LANG = l;
@@ -80,6 +73,9 @@ public class CEIParser {
                 break;
             case PYTHON:
                 loadPython();
+                break;
+            case UNKNOWN:
+                // No need to load anything. CEIs will be provided at runtime.
                 break;
             default:
                 throw new LangNotDefinedException();

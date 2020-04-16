@@ -64,6 +64,7 @@ check_bindings_setup () {
   enable_c=false
   enable_python=false
   if [ -z "$lang" ]; then
+    lang="UNKNOWN"
     enable_java=true
     enable_bindings=true
     enable_c=true

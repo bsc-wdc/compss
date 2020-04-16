@@ -30,17 +30,22 @@ fi
 #----------------------------------------------
 # RUNTIME INTERNAL COMPONENTS
 #----------------------------------------------
-# Master
-#   Loader implementation
-RUNTIME_LOADER=es.bsc.compss.loader.ITAppLoader
-#   Master's JVM options
+# Agent implementation
+AGENT_IMPLEMENTATION=es.bsc.compss.agent.Agent
+
+# Default path containing the configuration to start an agent
+DEFAULT_AGENT_CONFIG="${COMPSS_HOME}Runtime/configuration/agents/all.json"
+
+# Master's JVM options
 DEFAULT_JVM_MASTER=""
 
-
+# Loader implementation
+RUNTIME_LOADER=es.bsc.compss.loader.ITAppLoader
 
 #----------------------------------------------
 # ERROR MESSAGES
 #----------------------------------------------
+AGENT_ERROR="Error running the agent"
 JAVA_HOME_ERROR="ERROR: Cannot find Java JRE installation. Please set JAVA_HOME."
 RUNTIME_ERROR="Error running application"
 TMP_FILE_JVM_ERROR="ERROR: Can't create temporary file for JVM options."
@@ -148,7 +153,12 @@ check_compss_setup () {
     export PYTHONPATH=${pythonpath}:${PYTHONPATH}
   fi
 
+  if [ -z "${agent_config}" ]; then
+    agent_config=${DEFAULT_AGENT_CONFIG}
+  fi
+  
   check_analysis_setup
+
   check_worker_setup
   check_adaptors_setup
   check_scheduler_setup
@@ -227,6 +237,16 @@ EOT
 }
 
 #----------------------------------------------
+# APPEND PROPERTIES TO FILE - Specific for the agent
+#----------------------------------------------
+append_agent_jvm_options_to_file() {
+  # Add Application-specific options
+  cat >> "${jvm_options_file}" << EOT
+-Dcompss.agent.configpath=${agent_config}
+EOT
+}
+
+#----------------------------------------------
 # Cleans up all the runtime environment
 #----------------------------------------------
 clean_runtime_environment() {
@@ -245,6 +265,29 @@ clean_runtime_environment() {
 #----------------------------------------------
 # MAIN FUNCTION TO START AN APPLICATION
 #----------------------------------------------
+start_compss_agent() {
+  # Prepare COMPSs Runtime + Bindings environment
+  prepare_runtime_environment
+  
+  append_agent_jvm_options_to_file "${jvm_options_file}"
+
+  # Define command
+  local java_opts
+  local JAVACMD
+  java_opts=$(tr "\\n" " " < "${jvm_options_file}")
+  JAVACMD=$JAVA" -noverify -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-agent.jar:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
+  
+  # Launch application
+  start_tracing
+  # shellcheck disable=SC2086
+  $JAVACMD "${AGENT_IMPLEMENTATION}"
+  endCode=$?
+  stop_tracing
+  if [ $endCode -ne 0 ]; then
+    fatal_error "${AGENT_ERROR}" ${endCode}
+  fi
+}
+
 start_compss_app() {
   appName=$(basename "${fullAppPath}")
 

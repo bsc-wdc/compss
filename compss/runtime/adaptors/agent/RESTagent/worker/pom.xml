@@ -32,22 +32,41 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
+        <!-- COMPSs Dependencies -->
+        <!-- REST agent commons -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-agent-rest-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-agent-commons</artifactId>
-        </dependency>
+                
+        <!-- Agent Interface -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-agent-impl</artifactId>
-            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>        
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-agent-commons</artifactId>
+            <scope>provided</scope>
         </dependency>
-        
+
+        <!-- Common Adaptor classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-adaptors-commons</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Engine classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-engine</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+            
         <!-- JUnit dependencies -->
         <dependency>
             <groupId>junit</groupId>

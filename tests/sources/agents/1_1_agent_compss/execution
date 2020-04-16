@@ -79,16 +79,15 @@
   mkdir -p "${agent1_log_dir}" 
   agent1_output_log="${agent1_log_dir}agent1.outputlog"
   agent1_error_log="${agent1_log_dir}agent1.errorlog"
-  "${COMPSS_HOME}/Runtime/scripts/system/adaptors/agent/startAgent.sh" \
-     -h COMPSsWorker01 \
-     -a "${base_app_dir}/${jar_name}" \
-     -log "${agent1_log_dir}" \
-     -DC \
-     -rp 46101 \
-     -cp 46102 \
-     -d debug  \
-     --project "${base_app_dir}"/project.xml \
-     --resources "${base_app_dir}"/resources.xml 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
+  compss_agent_start \
+   "--hostname=COMPSsWorker01" \
+   "--classpath=${base_app_dir}/${jar_name}" \
+   "--log_dir=${agent1_log_dir}" \
+   "--rest_port=46101" \
+   "--comm_port=46102" \
+   "-d" \
+   "--project=${base_app_dir}/project.xml" \
+   "--resources=${base_app_dir}/resources.xml" 1>"${agent1_output_log}" 2>"${agent1_error_log}" &
 
   agent_pid="$!"
   AGENT_PIDS="${AGENT_PIDS} ${agent_pid}"

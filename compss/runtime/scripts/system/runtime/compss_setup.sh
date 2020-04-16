@@ -101,7 +101,7 @@ check_compss_env() {
 }
 
 #----------------------------------------------
-# CHECK DEBUGGER-RELATED SETUP values
+# CHECK COMPSS-RELATED SETUP values
 #----------------------------------------------
 check_compss_setup () {
   if [ -z "${uuid}" ]; then
@@ -203,7 +203,6 @@ EOT
   append_storage_jvm_options_to_file "${jvm_options_file}"
 
   append_tracing_jvm_options_to_file "${jvm_options_file}"
-  append_debugger_jvm_options_to_file "${jvm_options_file}"
 
 }
 
@@ -275,8 +274,7 @@ start_compss_agent() {
   local java_opts
   local JAVACMD
   java_opts=$(tr "\\n" " " < "${jvm_options_file}")
-  JAVACMD=$JAVA" -noverify -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-agent.jar:${COMPSS_HOME}/Runtime/compss-engine.jar ${java_opts}"
-  
+  JAVACMD=$JAVA" -noverify -classpath ${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar:${COMPSS_HOME}/Runtime/compss-agent-impl.jar ${java_opts}"
   # Launch application
   start_tracing
   # shellcheck disable=SC2086

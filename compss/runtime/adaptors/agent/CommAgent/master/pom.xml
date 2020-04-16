@@ -21,12 +21,21 @@
     <!-- DEPENDENCIES -->
     <dependencies>
         <!-- COMPSs dependencies -->
+        <!-- Common classes for all Agent communications -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-agent-commons</artifactId>
+            <scope>provided</scope>
+        </dependency>
+                
         <!-- Common classes for the Comm Agent communications -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-agent-comm-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!-- Classes for the NIO adaptor which the agent extends -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-nio-master</artifactId>
@@ -34,6 +43,19 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-engine</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- Configuration classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-project-schema</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-resources-schema</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

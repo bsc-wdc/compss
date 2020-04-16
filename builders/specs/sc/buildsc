@@ -144,7 +144,10 @@ install_adaptor() {
   done
 
   # Engine
-  cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/
+  cp "${trunk_rel_path}/compss/runtime/compss-engine.jar" "${COMPSs_target}/Runtime/"
+
+  # Agent
+  cp "${trunk_rel_path}/compss/agent/compss-agent-impl.jar" "${COMPSs_target}/Runtime"
 
   # TOOLS DEPLOYMENT
   echo "--- Copy tools"

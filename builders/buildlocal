@@ -614,6 +614,10 @@ install_compss() {
   echo "--- Copy engine"
   cp "${TMP_DIR}/compss/runtime/compss-engine.jar" "${targetDir}/Runtime/"
 
+  # Agent
+  echo "--- Copy Agent"
+  cp "${TMP_DIR}/compss/agent/compss-agent-impl.jar" "${targetDir}/Runtime/"
+
   # TOOLS DEPLOYMENT
   if [ "$monitor" == "true" ]; then
     echo "- Deploying COMPSs Tools"

@@ -91,7 +91,7 @@
 	<xsd:complexType name="StorageType">
                 <xsd:choice minOccurs="1" maxOccurs="unbounded">
                         <!-- Not Mandatory -->
-                        <xsd:element name="Size" type="xsd:float"                         minOccurs="0" maxOccurs="1" />	<!-- GB -->
+                        <xsd:element name="Size" type="xsd:float" minOccurs="0" maxOccurs="1" />	<!-- GB -->
 			            <xsd:element name="Type" type="xsd:string" minOccurs="0" maxOccurs="1" />
         		        <xsd:element name="Bandwidth" type="xsd:int" minOccurs="0" maxOccurs="1" />
          </xsd:choice>

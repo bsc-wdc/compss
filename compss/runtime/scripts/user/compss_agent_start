@@ -1,0 +1,354 @@
+#!/bin/bash
+
+# Command to simulate realpath
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+# Load auxiliar scripts
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
+
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+
+#---------------------------------------------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------------------------------------------
+DEFAULT_DC_ENABLED="false"
+DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
+
+###############################################
+# COMPSs Default values re-definitions
+###############################################
+DEFAULT_COMMUNICATION_ADAPTOR=${COMM_AGENT_ADAPTOR}
+
+DEFAULT_RESOURCES="${COMPSS_HOME}Runtime/configuration/xml/resources/examples/local/resources.xml"
+DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local/project.xml"
+
+###############################################
+###############################################
+# Display functions
+###############################################
+###############################################
+
+###############################################
+# Display Usage 
+###############################################
+usage() {
+  cat << EOF
+Usage: $0 [OPTION]...
+
+COMPSs options:
+  --appdir=<path>                    Path for the application class folder.
+                                     Default: ${DEFAULT_APPDIR}
+
+  --classpath=<path>                 Path for the application classes / modules
+                                     Default: Working Directory
+
+  --comm=<className>                 Class that implements the adaptor for communications with other nodes
+                                     Supported adaptors:
+                                          ├── ${NIO_ADAPTOR}
+                                          ├── ${GAT_ADAPTOR}
+                                          ├── ${REST_AGENT_ADAPTOR}
+                                          └── ${COMM_AGENT_ADAPTOR}
+                                     Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
+
+  --comm_port=<int>                  Port on which the agent sets up a Comm interface. (<=0: Disabled)
+
+  --scheduler=<className>            Class that implements the Scheduler for COMPSs
+                                     Supported schedulers: 
+                                          ├── ${DATA_SCHEDULER}
+                                          ├── ${FIFO_SCHEDULER}
+                                          ├── ${FIFO_DATA_SCHEDULER}
+                                          ├── ${LIFO_SCHEDULER}
+                                          ├── ${BASE_SCHEDULER}
+                                          └── ${LOAD_BALANCING_SCHEDULER}
+                                     Default: ${DEFAULT_SCHEDULER}
+
+  -d, --debug                        Enable debug. (Default: disabled)
+
+  --library_path=<path>              Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
+                                     Default: Working Directory
+
+  --log_dir=<path>                   Log directory. (Default: /tmp/${app_uuid})
+
+  --log_level=<level>                Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
+                                     Default: ${DEFAULT_LOG_LEVEL}
+
+  --master_port=<int>                Port to run the COMPSs master communications. 
+                                     (Only when ${NIO_ADAPTOR} is used. The value is overriden by the comm_port value.)
+                                     Default: ${DEFAULT_MASTER_PORT}
+
+  --pythonpath=<path>                Additional folders or paths to add to the PYTHONPATH
+                                     Default: ${DEFAULT_PYTHONPATH}
+
+  --project=<path>                   Path of the project file 
+                                     (Default: ${DEFAULT_PROJECT})
+
+  --resources=<path>                 Path of the resources file 
+                                     (Default: ${DEFAULT_RESOURCES})
+
+  --rest_port=<int>                  Port on which the agent sets up a REST interface. (<=0: Disabled)
+
+  --scheduler=<className>            Class that implements the Scheduler for COMPSs
+                                     Supported schedulers: 
+                                          ├── ${DATA_SCHEDULER}
+                                          ├── ${FIFO_SCHEDULER}
+                                          ├── ${FIFO_DATA_SCHEDULER}
+                                          ├── ${LIFO_SCHEDULER}
+                                          ├── ${BASE_SCHEDULER}
+                                          └── ${LOAD_BALANCING_SCHEDULER}
+                                     Default: ${DEFAULT_SCHEDULER}
+
+  --scheduler_config_file=<path>     Path to the file which contains the scheduler configuration.
+                                     Default: Empty
+
+  --summary                          Displays a task execution summary at the end of the application execution
+                                     Default: ${DEFAULT_SUMMARY}
+
+Other options:
+  --help                    prints this message
+
+EOF
+}
+
+###############################################
+# Display Arguments & Environment error 
+###############################################
+arguments_error() {
+  local error_msg=$1
+  display_error "${error_msg}"
+  usage
+  exit 1
+}
+
+###############################################
+# Display Runtime configuration 
+###############################################
+display_settings () {
+  echo "Options setup"
+  echo  "AGENT NAME: ${master_name}"
+  echo  "AGENT REST PORT: ${agent_rest_port}"
+  echo  "AGENT COMM PORT: ${agent_comm_port}"
+  echo  ""
+  echo  "RESOURCES FILE: ${resFile}"
+  echo  "PROJECT FILE: ${projFile}"
+  echo  "COMM ADAPTOR: ${comm}"
+
+  echo  "DEBUG: ${DEBUG}"
+
+}
+
+###############################################
+# Parses the options from the commandline and updates the current option values
+###############################################
+parse_options() {
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "${flag}" in
+      d)
+        # Enable debug in log level
+        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        ;;
+      h)
+        usage
+        exit 0
+        ;;
+      v)
+        # Display version
+        show_version
+        exit
+        ;;
+      -)
+	      # Check more complex arguments
+	      case "$OPTARG" in
+          appdir=*)
+	          # Main binary directory (only for C/C++ applications)
+	          appdir=${OPTARG//appdir=/}
+	          ;;
+          flower)
+            # Display flower
+            show_flower
+            exit 0
+            ;;
+        	help)
+	          # Display help
+	          usage 0
+	          ;;
+          hostname=*)
+            master_name=${OPTARG//hostname=/}
+            echo "-hostname=${master_name}"
+            ;;
+	        classpath=*)
+	          # Additional classpath
+	          cp=${OPTARG//classpath=/}
+	          ;;            
+          comm=*)
+            comm=${OPTARG//comm=/}
+            ;;
+          comm_port=*)
+            agent_comm_port=${OPTARG//comm_port=/}
+            export COMM_AGENT_PORT=${agent_comm_port};
+            ;;
+          debug)
+            # Enable debug in log level
+            log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            ;;
+	        library_path=*)
+	          # Additional library path
+	          library_path=${OPTARG//library_path=/}
+	          ;;
+          log_dir=*)
+            # Set a custom specific log dir
+            specific_log_dir=${OPTARG//log_dir=/}
+            ;;
+          log_level=*)
+            # Enable different log_levels by user selection
+            log_level=${OPTARG//log_level=/}
+            ;;
+          master_port=*)
+            # Preset a Master port
+            master_port=${OPTARG//master_port=/}
+            ;;
+          pythonpath=*)
+            # Additional pythonpath
+            pythonpath=${OPTARG//pythonpath=/}
+            ;;
+          project=*)
+	          # Custom project file
+	          projFile=${OPTARG//project=/}
+	          if [ ! -f "$projFile" ]; then
+	            display_warning "Project XML file '$projFile' could not be found."
+	          fi
+	          ;;
+          recipe)
+            # Display recipe
+            show_recipe
+            exit 0
+            ;;
+ 	        resources=*)
+	          # Custom resources file
+	          resFile=${OPTARG//resources=/}
+	          if [ ! -f "$resFile" ]; then
+	            display_warning "Resources XML file '$resFile' could not be found."
+	          fi
+            ;;
+          rest_port=*)
+            agent_rest_port=${OPTARG//rest_port=/}
+            export REST_AGENT_PORT=${agent_rest_port};
+            ;;
+          scheduler=*)
+            # Scheduler main class
+            scheduler=${OPTARG//scheduler=/}
+            ;;
+          scheduler_config_file=*)
+            # Specify the file where COMPSs will store the tasks profile
+            scheduler_config=${OPTARG//scheduler_config_file=/}
+            ;;            
+          summary)
+            summary=true
+            ;;
+          version)
+            # Show version
+            show_full_version
+            exit 0
+            ;;
+        *)
+	        # Flag didn't match any patern. Raise exception
+	        arguments_error "Bad argument: $OPTARG"
+	        ;;
+        esac
+        ;;
+      *)
+	      # Flag didn't match any patern. Raise exception
+	      arguments_error "Bad argument: $OPTARG"
+	      ;;
+    esac
+  done
+
+}
+
+###############################################
+# Validates the current configuration
+###############################################
+check_setup() {
+  if [ -z "${master_name}" ]; then
+    arguments_error "ERROR! HOSTNAME not set"
+  fi
+
+  if  [[ "${comm}" == "${COMM_AGENT_ADAPTOR}" ]]; then
+    if [[ -z "${agent_comm_port}" ]]; then
+	      fatal_error "When using the Comm Agent adaptor, COMM port needs to be specified (--comm_port)"
+    fi
+  fi
+
+  if  [[ "${comm}" == "${REST_AGENT_ADAPTOR}" ]]; then
+    if [[ -z "${agent_rest_port}" ]]; then
+	      fatal_error "When using the REST Agent adaptor, REST port needs to be specified (--rest_port)"
+    fi
+  fi
+
+  if  [[ "${comm}" == "${NIO_ADAPTOR}" ]]; then
+    if [[ -z "${agent_rest_port}" ]]; then
+	      master_port=${agent_rest_port}
+    fi
+  fi  
+
+  if [ -n "${agent_rest_port}" ]; then
+    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}Runtime/adaptors/CommAgent/worker/compss-adaptors-agent-comm-worker.jar"
+    comm_port_msg="(comm: ${agent_rest_port})"
+  fi
+  if [ -n "${agent_rest_port}" ]; then
+    CLASSPATH="${CLASSPATH}:${COMPSS_HOME}Runtime/adaptors/RESTAgent/worker/compss-adaptors-agent-rest-worker.jar"
+    rest_port_msg="(rest: ${agent_rest_port})"
+  fi
+
+  get_uuid
+  if [ -z "${uuid}" ]; then
+    fatal_error "UUID is empty" 1
+  fi
+
+  WORKING_DIR="/tmp/${uuid}/"
+  rm -rf "${WORKING_DIR}"
+  mkdir -p "${WORKING_DIR}"
+  CONFIG_DIR="${WORKING_DIR}cfgfiles/"
+  mkdir -p "${CONFIG_DIR}"
+
+  if [ -z "${specific_log_dir}" ]; then
+    specific_log_dir="/tmp/${uuid}"
+  fi
+    
+  check_compss_setup
+}
+
+clean_script(){
+  if [ -n "${WORKING_DIR}" ]; then
+    rm -rf "${WORKING_DIR}"
+  fi  
+
+}
+
+clean_agent(){
+    clean_runtime_environment
+}
+##############################################
+############### MAIN CODE ####################
+##############################################
+check_compss_env
+
+
+parse_options "$@"
+# trap clean_script EXIT
+check_setup
+display_settings
+
+# trap clean_agent EXIT
+
+display_info "-----------------------------------------------"
+display_info "              AGENT  ${master_name}"
+display_info "-----------------------------------------------"
+display_info "Launching COMPSs agent on device ${master_name} and ports ${comm_port_msg} ${rest_port_msg} with debug level ${DEBUG}"
+
+start_compss_agent

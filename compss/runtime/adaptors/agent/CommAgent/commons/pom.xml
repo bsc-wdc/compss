@@ -36,6 +36,7 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-agent-commons</artifactId>
+            <scope>provided</scope>
         </dependency>
         
         <!-- NIO Adaptor common classes -->
@@ -43,21 +44,17 @@
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-nio-commons</artifactId>
         </dependency>
-        
-        <!-- NIO Adaptor master classes -->
-        <dependency>
-            <groupId>es.bsc.compss</groupId>
-            <artifactId>compss-adaptors-nio-master</artifactId>
-        </dependency>
-        
+                
         <!-- Configuration classes -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-project-schema</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-resources-schema</artifactId>
+            <scope>provided</scope>
         </dependency>
                 
         <!-- Comm Library -->

@@ -36,21 +36,28 @@
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-adaptors-commons</artifactId>
+            <scope>provided</scope>
         </dependency>
+        
         <!-- Agent Interface -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-agent-commons</artifactId>
+            <scope>provided</scope>
         </dependency>
+        
         <!-- Resource configuration classes -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-resources-schema</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-project-schema</artifactId>
+            <scope>provided</scope>
         </dependency>
+        
     </dependencies>
 
     <!-- BUILD -->

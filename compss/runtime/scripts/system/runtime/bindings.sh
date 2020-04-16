@@ -64,6 +64,7 @@ check_bindings_setup () {
   enable_c=false
   enable_python=false
   if [ -z "$lang" ]; then
+    lang="UNKNOWN"
     enable_java=true
     enable_bindings=true
     enable_c=true
@@ -184,7 +185,7 @@ add_bindings_jvm_opts_java() {
 add_bindings_jvm_opts_bindings() {  # PLEASE: Any new parameter added here may be also added into interactive.py config dict.
   local jvm_options_file=${1}
   cat >> "${jvm_options_file}" << EOT
--Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar
+-Djava.class.path=${CLASSPATH}:${COMPSS_HOME}/Runtime/compss-engine.jar:${COMPSS_HOME}/Runtime/compss-agent-impl.jar
 -Djava.library.path=${LD_LIBRARY_PATH}
 EOT
 }

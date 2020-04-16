@@ -35,4 +35,24 @@
         <module>commons</module>
         <module>implementation</module>
     </modules>
+    
+    <build>
+        <plugins>
+            <!-- Remove final *.jar from project basedir -->
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>${maven-clean-plugin.version}</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${basedir}</directory>
+                            <includes>
+                                <include>*.jar</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

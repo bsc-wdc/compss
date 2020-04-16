@@ -51,18 +51,38 @@
             <artifactId>compss-adaptors-nio-commons</artifactId>
         </dependency>
                  
+        <!-- Agent interface -->                 
         <!-- Common classes for the all agents -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-agent-commons</artifactId>
         </dependency>
         
-        
         <!-- Agent implementation -->
         <dependency>
             <groupId>es.bsc.compss</groupId>
             <artifactId>compss-agent-impl</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- Engine classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-engine</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- Configuration classes -->
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-project-schema</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>es.bsc.compss</groupId>
+            <artifactId>compss-resources-schema</artifactId>
+            <scope>provided</scope>
         </dependency>
         
         <!-- JUnit dependencies -->

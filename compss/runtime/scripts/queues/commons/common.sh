@@ -17,6 +17,7 @@ ERROR_NUM_CPUS="Invalid number of CPUS per node"
 ERROR_SWITCHES="Too little switches for the specified number of nodes"
 ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
 ERROR_NODE_MEMORY="Incorrect node_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
+ERROR_NODE_STORAGE_BANDWIDTH="Incorrect node_storage_bandwidth parameter. Only <int> allowed. I.e. 120, 450"
 ERROR_TMP_FILE="Cannot create TMP Submit file"
 ERROR_STORAGE_PROPS="storage_props flag not defined"
 ERROR_STORAGE_PROPS_FILE="storage_props file doesn't exist"
@@ -366,6 +367,9 @@ get_args() {
           node_memory=*)
             node_memory=${OPTARG//node_memory=/}
             ;;
+          node_storage_bandwidth=*)
+            node_storage_bandwidth=${OPTARG//node_storage_bandwidth=/}
+            ;;
           network=*)
             network=${OPTARG//network=/}
             args_pass="$args_pass --$OPTARG"
@@ -517,6 +521,12 @@ check_args() {
     node_memory=${DEFAULT_NODE_MEMORY}
   elif [ "${node_memory}" != "disabled" ] && ! [[ "${node_memory}" =~ ^[0-9]+$ ]]; then
     display_error "${ERROR_NODE_MEMORY}"
+  fi
+
+  if [ -z "${node_storage_bandwidth}" ]; then
+     node_storage_bandwidth=${DEFAULT_NODE_STORAGE_BANDWIDTH}
+  elif ! [[ "${node_storage_bandwidth}" =~ ^[0-9]+$ ]]; then
+     display_error "${ERROR_NODE_STORAGE_BANDWIDTH}"
   fi
 
   if [ -z "${master_working_dir}" ]; then
@@ -841,7 +851,7 @@ if [ -f "\${variables_to_be_sourced}" ]; then
     rm "\${variables_to_be_sourced}"
 fi
 
-${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --storage_conf=\${storage_conf} ${args_pass}
+${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} --storage_conf=\${storage_conf} ${args_pass}
 
 ${storage_home}/scripts/storage_stop.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 
@@ -850,7 +860,7 @@ EOT
     # ONLY ADD EXECUTE COMMAND
     cat >> "${TMP_SUBMIT_SCRIPT}" << EOT
 
-${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} ${args_pass}
+${SCRIPT_DIR}/../../user/launch_compss${AGENT_SUFFIX} --master_node="\${master_node}" --worker_nodes="\${worker_nodes}" --node_memory=${node_memory} --node_storage_bandwidth=${node_storage_bandwidth} ${args_pass}
 EOT
   fi
 }

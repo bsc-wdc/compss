@@ -60,6 +60,7 @@ ERROR_WORKER_IN_MASTER_CPUS="Parameter worker_in_master_cpus is bigger than the 
 ERROR_WORKER_IN_MASTER_MEMORY="Incorrect worker_in_master_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
 ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH="Parameter worker_in_master_memory exceeds the node_memory limit"
 ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory is mandatory if worker_in_master_cpus is not 0"
+ERROR_NODE_STORAGE_BANDWIDTH_TOO_HIGH="Parameter node_storage_bandwidth exceeds available storage bandwidth limit"
 ERROR_PROLOG_ACTION="Exception executing prolog action"
 ERROR_EPILOG_ACTION="Exception executing epilog action"
 ERROR_LANGUAGE="Value of option --lang must be: java, c or python"
@@ -133,6 +134,9 @@ show_opts() {
                                             Default: ${DEFAULT_MAX_TASKS_PER_NODE}
     --node_memory=<MB>                      Maximum node memory: disabled | <int> (MB)
                                             Default: ${DEFAULT_NODE_MEMORY}
+    --node_storage_bandwidth=<MB>           Maximum node storage bandwidth: <int> (MB)
+                                            Default: ${DEFAULT_NODE_STORAGE_BANDWIDTH}
+
     --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
                                             Default: ${DEFAULT_NETWORK}
 
@@ -602,7 +606,7 @@ xml_resources_add_worker_in_master() {
     fi
     # Add compute node
     master_node_name=${master_node_name}${network}
-    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    add_compute_node "${master_node_name}" "${worker_in_master_cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${worker_in_master_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
   fi
 }
 
@@ -622,7 +626,7 @@ xml_resources_add_workers() {
     fi
     # Add compute node
     worker_node_name=${worker_node_name}${network}
-    add_compute_node "${worker_node_name}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${node_memory}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+    add_compute_node "${worker_node_name}" "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${node_memory}" "${node_storage_bandwidth}" "${worker_min_port}" "${worker_max_port}" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
   done
 }
 
@@ -981,6 +985,9 @@ get_args() {
         node_memory=*)
           node_memory=${OPTARG//node_memory=/}
           ;;
+        node_storage_bandwidth=*)
+          node_storage_bandwidth=${OPTARG//node_storage_bandwidth=/}
+          ;;
         network=*)
           network=${OPTARG//network=/}
           ;;
@@ -1331,6 +1338,14 @@ check_args() {
     node_memory=${DEFAULT_NODE_MEMORY}
   fi
 
+  if [ -z "${node_storage_bandwidth}" ]; then
+    node_storage_bandwidth=${DEFAULT_NODE_STORAGE_BANDWIDTH}
+  elif [ "${node_storage_bandwidth}" -gt "${DEFAULT_NODE_STORAGE_BANDWIDTH}" ]; then
+    display_error "${ERROR_NODE_STORAGE_BANDWIDTH_TOO_HIGH} ${node_storage_bandwidth} > ${DEFAULT_NODE_STORAGE_BANDWIDTH}"
+  elif [ "${node_storage_bandwidth}" -le 0 ]; then
+    display_error "${ERROR_NODE_STORAGE_BANDWIDTH_INVALID} ${node_storage_bandwidth} <= 0"
+  fi
+
   if [ -z "${worker_in_master_cpus}" ]; then
     worker_in_master_cpus=${DEFAULT_WORKER_IN_MASTER_CPUS}
   fi
@@ -1551,6 +1566,14 @@ set_variables() {
   else
     # Change from MB to GB
     node_memory=$(( node_memory / 1024 - 4))
+  fi
+
+  # Disk Storage variables
+  if [ "${node_storage_bandwidth}" == "${DEFAULT_NODE_STORAGE_BANDWIDTH}" ]; then
+    # Default value
+    node_storage_bandwidth=${DEFAULT_NODE_STORAGE_BANDWIDTH}
+  else
+    node_storage_bandwidth=${node_storage_bandwidth}
   fi
 
   if [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then

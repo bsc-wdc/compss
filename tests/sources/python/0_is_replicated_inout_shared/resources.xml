@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+	<SharedDisk Name="Disk1">
+        <Storage>
+            <Size>100.0</Size>
+        </Storage>
+    </SharedDisk>
+    
+    <ComputeNode Name="COMPSsWorker01">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+            <Architecture>architecture1</Architecture>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="Disk1">
+                <MountPoint>/tmp/sharedDisk/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
+    
+	<ComputeNode Name="COMPSsWorker02">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+            <Architecture>architecture2</Architecture>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43002</MinPort>
+                    <MaxPort>43003</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="Disk1">
+                <MountPoint>/tmp/sharedDisk/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
+    
+	<ComputeNode Name="COMPSsWorker03">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+            <Architecture>architecture3</Architecture>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="es.bsc.compss.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43003</MinPort>
+                    <MaxPort>43004</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="es.bsc.compss.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="Disk1">
+                <MountPoint>/tmp/sharedDisk/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
+</ResourcesList>

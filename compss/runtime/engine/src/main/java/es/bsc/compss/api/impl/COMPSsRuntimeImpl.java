@@ -1547,8 +1547,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 }
                 CollectionParameter cp = new CollectionParameter(collectionId, collectionParameters, direction, stream,
                     prefix, name, colPyType);
-                LOGGER.debug("Add COLLECTION_T with " + cp.getParameters().size() + " parameters");
-                LOGGER.debug(cp.toString());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER
+                        .debug("Add Collection " + cp.getName() + " with " + cp.getParameters().size() + " parameters");
+                    LOGGER.debug(cp.toString());
+                }
                 pars.add(cp);
                 return ret;
             default:

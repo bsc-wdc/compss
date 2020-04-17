@@ -563,7 +563,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void enforceDataObtaining(Transferable reason, EventListener listener) {
-        NIOParam param = NIOParamFactory.fromParameter((Parameter) reason, this);
+        NIOParam param = NIOParamFactory.fromParameter((Parameter) reason, this, false);
         CommandDataFetch cmd = new CommandDataFetch(param, listener.getId());
         Connection c = NIOAgent.getTransferManager().startConnection(node);
         NIOAgent.registerOngoingCommand(c, cmd);

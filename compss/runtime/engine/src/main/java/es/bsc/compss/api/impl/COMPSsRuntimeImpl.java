@@ -990,15 +990,17 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         LOGGER.debug("Getting file " + fileName);
         String renamedPath = openFile(fileName, Direction.INOUT);
-        String intermediateTmpPath = renamedPath + ".tmp";
-        rename(renamedPath, intermediateTmpPath);
-        closeFile(fileName, Direction.INOUT);
-        ap.markForDeletion(sourceLocation, true);
-        // In the case of Java file can be stored in the Stream Registry
-        if (sReg != null) {
-            sReg.deleteTaskFile(fileName);
+        if (!renamedPath.equals(sourceLocation.getPath())) {
+            String intermediateTmpPath = renamedPath + ".tmp";
+            rename(renamedPath, intermediateTmpPath);
+            closeFile(fileName, Direction.INOUT);
+            ap.markForDeletion(sourceLocation, true);
+            // In the case of Java file can be stored in the Stream Registry
+            if (sReg != null) {
+                sReg.deleteTaskFile(fileName);
+            }
+            rename(intermediateTmpPath, fileName);
         }
-        rename(intermediateTmpPath, fileName);
         if (Tracer.extraeEnabled()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
@@ -1357,8 +1359,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
                 }
                 CollectionParameter cp =
                     new CollectionParameter(collectionId, collectionParameters, direction, stream, prefix, name);
-                LOGGER.debug("Add COLLECTION_T with " + cp.getParameters().size() + " parameters");
-                LOGGER.debug(cp.toString());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(
+                        "Add COLLECTION " + cp.getName() + "  with " + cp.getParameters().size() + " parameters");
+                    LOGGER.debug(cp.toString());
+                }
                 pars.add(cp);
                 return ret;
             default:

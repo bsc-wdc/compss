@@ -591,6 +591,7 @@ public class DataManagerImpl implements DataManager {
                                 return;
                             } catch (IOException ioe) {
                                 WORKER_LOGGER.error("IOException", ioe);
+                                tt.errorFetchingValue(param.getDataMgmtId(), ioe);
                             }
                         } else {
                             fetchedLocalParameter(param, index, tt);

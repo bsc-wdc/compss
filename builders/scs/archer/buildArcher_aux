@@ -28,17 +28,24 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
+  # DEFINE MODULES
   modules="packages-archer PrgEnv-cray/5.2.56 java/jdk1.8.0_51 boost/1.55 python-compute/2.7.6 gcc/7.2.0"
+  unload_before_python="ignore"
   py2_modules="python-compute/2.7.6"
   py3_modules="python-compute/3.4.3"
+  py3_other_modules="ignore"
+
+  # DEFINE CONFIGURATION PARAMETERS
   additionalExports=""
   queues_cfg="archer.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="false"
   impi_version=""
+  autoparallel="false"
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${py2_modules}" "${py3_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "false"
+  # CALL buildSC_aux
+  "${SCRIPT_DIR}"/buildSC_aux "${targetDir}" "${modules}" "${unload_before_python}" "${py2_modules}" "${py3_modules}" "${py3_other_modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}" "${autoparallel}"
 
   # END
   exit 0

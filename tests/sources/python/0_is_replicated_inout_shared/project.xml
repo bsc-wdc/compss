@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode>
+    	<SharedDisks>
+            <AttachedDisk Name="Disk1">
+                <MountPoint>/tmp/sharedDisk/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </MasterNode>
+    
+    <ComputeNode Name="COMPSsWorker01">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+	<WorkingDir>/tmp/sharedDisk/</WorkingDir>
+    </ComputeNode>
+    
+    <ComputeNode Name="COMPSsWorker02">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/sharedDisk/</WorkingDir>
+    </ComputeNode>
+    
+</Project>
+

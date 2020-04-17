@@ -74,6 +74,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     // Processor
     protected List<Processor> processors = new LinkedList<>();
     protected int totalCPUComputingUnits = ZERO_INT;
+    protected int totalMPIioComputingUnits = ZERO_INT;
     protected int totalCPUs = ZERO_INT;
     protected int totalGPUComputingUnits = ZERO_INT;
     protected int totalGPUs = ZERO_INT;
@@ -708,7 +709,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public boolean usesCPUs() {
         return (!this.getProcessors().isEmpty() && this.getTotalCPUComputingUnits() != 0);
     }
-
+    
     /**
      * Returns the registered processors.
      *
@@ -808,9 +809,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             case CPU:
                 if (cu > 0) {
                     totalCPUComputingUnits += cu;
+                    totalMPIioComputingUnits += cu;
 
                 } else {
                     totalCPUComputingUnits++;
+                    totalMPIioComputingUnits++;
                 }
                 totalCPUs++;
                 break;
@@ -871,6 +874,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      */
     public int getTotalCPUComputingUnits() {
         return this.totalCPUComputingUnits;
+    }
+
+    /**
+     * Returns the total number of MPI computing units.
+     *
+     * @return The total number of MPI computing units.
+     */
+    public int getTotalMPIComputingUnits() {
+        return this.totalMPIioComputingUnits;
     }
 
     /**
@@ -1531,7 +1543,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     } else {
                         ratio = pThis.getComputingUnits() / p.getComputingUnits();
                     }
-                	min = Math.min(min, (int) ratio);
+                    min = Math.min(min, (int) ratio);
                 }
             }
         }
@@ -1959,6 +1971,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         this.processors = (List<Processor>) in.readObject();
         this.totalCPUComputingUnits = in.readInt();
+        this.totalMPIioComputingUnits = in.readInt();
         this.totalCPUs = in.readInt();
         this.totalGPUComputingUnits = in.readInt();
         this.totalGPUs = in.readInt();
@@ -1987,6 +2000,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(this.processors);
         out.writeInt(this.totalCPUComputingUnits);
+        out.writeInt(this.totalMPIioComputingUnits);
         out.writeInt(this.totalCPUs);
         out.writeInt(this.totalGPUComputingUnits);
         out.writeInt(this.totalGPUs);

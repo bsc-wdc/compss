@@ -55,7 +55,7 @@ public class NIOParamFactory {
      * @param node NIO Worker node
      * @return NIOParam representing this Parameter.
      */
-    public static NIOParam fromParameter(Parameter param, NIOWorkerNode node) {
+    public static NIOParam fromParameter(Parameter param, NIOWorkerNode node, boolean fromReplicatedTask) {
         NIOParam np;
         switch (param.getType()) {
             case DIRECTORY_T:
@@ -66,11 +66,11 @@ public class NIOParamFactory {
             case EXTERNAL_STREAM_T:
             case EXTERNAL_PSCO_T:
             case BINDING_OBJECT_T:
-                np = buildNioDependencyParam(param, node);
+                np = buildNioDependencyParam(param, node, fromReplicatedTask);
                 break;
             case COLLECTION_T:
-                NIOParam collNioParam = buildNioDependencyParam(param, node);
-                np = buildNioCollectionParam(param, collNioParam, node);
+                NIOParam collNioParam = buildNioDependencyParam(param, node, fromReplicatedTask);
+                np = buildNioCollectionParam(param, collNioParam, node, fromReplicatedTask);
                 break;
             default:
                 np = buildNioBasicParam(param);
@@ -80,7 +80,7 @@ public class NIOParamFactory {
         return np;
     }
 
-    private static NIOParam buildNioDependencyParam(Parameter param, NIOWorkerNode node) {
+    private static NIOParam buildNioDependencyParam(Parameter param, NIOWorkerNode node, boolean fromReplicatedTask) {
         DependencyParameter dPar = (DependencyParameter) param;
         Object value = dPar.getDataTarget();
 
@@ -89,19 +89,27 @@ public class NIOParamFactory {
         String renaming = null;
         String dataMgmtId;
         DataAccessId dAccId = dPar.getDataAccessId();
+        boolean preserveSourceData = fromReplicatedTask;
         if (dAccId instanceof RWAccessId) {
             // Read write mode
             RWAccessId rwaId = (RWAccessId) dAccId;
             renaming = rwaId.getReadDataInstance().getRenaming();
             dataMgmtId = rwaId.getWrittenDataInstance().getRenaming();
+            if (!fromReplicatedTask) {
+                preserveSourceData = dPar.isSourcePreserved();
+            }
         } else if (dAccId instanceof RAccessId) {
             // Read only mode
             RAccessId raId = (RAccessId) dAccId;
             renaming = raId.getReadDataInstance().getRenaming();
             dataMgmtId = renaming;
+            if (!fromReplicatedTask) {
+                preserveSourceData = dPar.isSourcePreserved();
+            }
         } else {
             WAccessId waId = (WAccessId) dAccId;
             dataMgmtId = waId.getWrittenDataInstance().getRenaming();
+            preserveSourceData = dPar.isSourcePreserved();
         }
         if (renaming != null) {
             String pscoId = Comm.getData(renaming).getPscoId();
@@ -129,12 +137,13 @@ public class NIOParamFactory {
         // Create the NIO Param
         boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
         NIOParam np = new NIOParam(dataMgmtId, param.getType(), param.getStream(), param.getPrefix(), param.getName(),
-            param.getContentType(), dPar.isSourcePreserved(), writeFinalValue, value, (NIOData) dPar.getDataSource(),
+            param.getContentType(), preserveSourceData, writeFinalValue, value, (NIOData) dPar.getDataSource(),
             dPar.getOriginalName());
         return np;
     }
 
-    private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam, NIOWorkerNode node) {
+    private static NIOParam buildNioCollectionParam(Parameter param, NIOParam collNioParam, NIOWorkerNode node,
+        boolean fromReplicatedTask) {
         if (DEBUG) {
             LOGGER.debug("Detected COLLECTION_T parameter");
         }
@@ -143,7 +152,7 @@ public class NIOParamFactory {
 
         CollectionParameter collParam = (CollectionParameter) param;
         for (Parameter subParam : collParam.getParameters()) {
-            npc.addParameter(NIOParamFactory.fromParameter(subParam, node));
+            npc.addParameter(NIOParamFactory.fromParameter(subParam, node, fromReplicatedTask));
         }
 
         if (DEBUG) {

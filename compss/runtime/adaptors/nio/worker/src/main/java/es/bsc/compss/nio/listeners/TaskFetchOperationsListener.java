@@ -77,11 +77,12 @@ public class TaskFetchOperationsListener extends MultiOperationFetchListener {
         // Same for the worker when sending, throwing an error when trying
         // to read the job out, which wouldn't exist
         String baseJobPath = this.nw.getStandardStreamsPath(this.task);
-        String errorMessage = "Worker closed because the data " + failedDataId + " couldn't be retrieved.";
+        String errorMessage = "Job failed because the data " + failedDataId + " couldn't be retrieved. "
+            + "Check worker logs for more information about the error.";
         String taskFileOutName = baseJobPath + ".out";
-        this.nw.checkStreamFileExistence(taskFileOutName, "out", errorMessage);
+        this.nw.checkStreamFileExistence(taskFileOutName, "out", errorMessage, cause);
         String taskFileErrName = baseJobPath + ".err";
-        this.nw.checkStreamFileExistence(taskFileErrName, "err", errorMessage);
+        this.nw.checkStreamFileExistence(taskFileErrName, "err", errorMessage, cause);
         this.nw.sendTaskDone(task, false, cause);
     }
 

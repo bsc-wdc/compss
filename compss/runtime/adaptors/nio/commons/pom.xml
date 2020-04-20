@@ -31,6 +31,12 @@
 
     <!-- DEPENDENCIES -->
     <dependencies>
+        <!-- Apache Commons IO (FileUtils) -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+
         <!-- COMPSs Dependencies -->
         <!-- Common Adaptor classes -->
         <dependency>

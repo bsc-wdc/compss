@@ -35,6 +35,7 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
         </dependency>
+
         <!-- Apache Commons IO (FileUtils) -->
         <dependency>
             <groupId>commons-io</groupId>

@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Command to simulate realpath
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+# Load auxiliar scripts
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
@@ -18,21 +30,10 @@ ERROR_NO_TARGET_HOST="Target host not specified."
 #---------------------------------------------------------------------------------------
 
 ###############################################
-# Displays version
-###############################################
-display_version() {
-  local exitValue=$1
-
-  "${SCRIPT_DIR}"/runcompss --version
-
-  exit "$exitValue"
-}
-
-###############################################
 # Displays usage
 ###############################################
 usage() {
-  SCRIPT_NAME=`basename "$0"`
+  SCRIPT_NAME=$(basename "$0")
   cat <<EOT
 Usage: ${SCRIPT_NAME} [options] resource_name [<adaptor_property_name=adaptor_property_value>]
 
@@ -48,49 +49,22 @@ Usage: ${SCRIPT_NAME} [options] resource_name [<adaptor_property_name=adaptor_pr
                                             Default: ${DEFAULT_AGENT_NODE}
 
     --agent_port=<string>                   Port of the node where to add the resource
-                                            Default: ${DEFAULT_AGENT_PORT}                                            
-  Resource description:
+                                            Default: ${DEFAULT_AGENT_PORT}
 EOT
-  show_opts
 }
 
 ###############################################
 # Displays errors when treating arguments
 ###############################################
 display_invocation() {
-  echo "Target agent details:"
-  echo "    Host:                     ${agent_node}"
-  echo "    Port:                     ${agent_port}"
-  echo ""
-  echo "Lost agent details:"
-  echo "    Resource Name:            ${resource_node}"
+  display_info "Target agent details: 
+      Host:                     ${agent_node} 
+      Port:                     ${agent_port} 
+  
+  Lost agent details: 
+      Resource Name:            ${resource_node}"
   
 }
-
-###############################################
-# Displays errors when treating arguments
-###############################################
-display_error() {
-  local error_msg=$1
-
-  echo "$error_msg"
-  echo " "
-
-  usage
-  exit 1
-}
-
-###############################################
-# Show Options
-###############################################
-show_opts() {
-
-  # Show usage
-  cat <<EOT
-EOT
-}
-
-
 
 #---------------------------------------------------------------------------------------
 # MAIN FUNCTIONS
@@ -109,7 +83,8 @@ get_args() {
         ;;
       v)
         # Display version
-        display_version 0
+        show_version
+        exit 0
         ;;
       -)
       # Check more complex arguments
@@ -119,8 +94,9 @@ get_args() {
           usage 0
           ;;
         version)
-          # Display compss version
-          display_version 0
+          # Display version
+          show_full_version
+          exit 0
           ;;
         opts)
           # Display options

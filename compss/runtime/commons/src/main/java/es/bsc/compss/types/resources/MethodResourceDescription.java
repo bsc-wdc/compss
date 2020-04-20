@@ -31,6 +31,8 @@ import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -693,6 +695,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      *
      * @return A list containing the registered processors.
      */
+    @XmlElementWrapper(name = "processors")
+    @XmlElement(name = "processor")
     public List<Processor> getProcessors() {
         return this.processors;
     }

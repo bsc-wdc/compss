@@ -1,19 +1,21 @@
 #!/bin/bash
 
+# Command to simulate realpath
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+# Load auxiliar scripts
+source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
 APP_CMD="curl"
-DEFAULT_AGENT_NODE="localhost"
-DEFAULT_AGENT_PORT="46101"
-DEFAULT_CPU_COUNT="1"
-DEFAULT_GPU_COUNT="0"
-DEFAULT_FPGA_COUNT="0"
-DEFAULT_MEM_TYPE="[unassigned]"
-DEFAULT_MEM_SIZE="-1"
-DEFAULT_OS_TYPE="[unassigned]"
-DEFAULT_OS_DISTR="[unassigned]"
-DEFAULT_OS_VERSION="[unassigned]"
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -25,23 +27,12 @@ ERROR_NO_TARGET_HOST="Target host not specified."
 #---------------------------------------------------------------------------------------
 
 ###############################################
-# Displays version
-###############################################
-display_version() {
-  local exitValue=$1
-
-  "${SCRIPT_DIR}"/runcompss --version
-
-  exit "$exitValue"
-}
-
-###############################################
 # Displays usage
 ###############################################
 usage() {
-  SCRIPT_NAME=`basename "$0"`
+  SCRIPT_NAME=$(basename "$0")
   cat <<EOT
-Usage: ${SCRIPT_NAME} [options] resource_name [<adaptor_property_name=adaptor_property_value>]
+Usage: ${SCRIPT_NAME} [options] resource_name
 
 * Options:
   General:
@@ -65,39 +56,26 @@ EOT
 # Displays errors when treating arguments
 ###############################################
 display_invocation() {
-  echo "Target agent details:"
-  echo "    Host:                     ${agent_node}"
-  echo "    Port:                     ${agent_port}"
-  echo ""
-  echo "Interaction details:"
-  echo "    Resource Name:            ${resource_node}"
-
-  echo "Removed resource details:"
-  echo "    Description:"
-  echo "        Processors:"
-  echo "            CPU:              ${resource_cpu_count}"
-  echo "            GPU:              ${resource_gpu_count}"
-  echo "            FPGA:             ${resource_fpga_count}"
-  echo "        Memory:"
-  echo "            Type:             ${resource_mem_type}"
-  echo "            Size:             ${resource_mem_size}"
-  echo "        OS:"
-  echo "            Type:             ${resource_os_type}"
-  echo "            Distribution:     ${resource_os_distr}"
-  echo "            Version:          ${resource_os_version}"
-}
-
-###############################################
-# Displays errors when treating arguments
-###############################################
-display_error() {
-  local error_msg=$1
-
-  echo "$error_msg"
-  echo " "
-
-  usage
-  exit 1
+  display_info "Target agent details: 
+      Host:                     ${agent_node} 
+      Port:                     ${agent_port} 
+  
+  Interaction details: 
+      Resource Name:            ${resource_node} 
+  
+  Removed resource details: 
+      Description: 
+          Processors: 
+              CPU:              ${resource_cpu_count} 
+              GPU:              ${resource_gpu_count} 
+              FPGA:             ${resource_fpga_count} 
+          Memory: 
+              Type:             ${resource_mem_type} 
+              Size:             ${resource_mem_size} 
+          OS: 
+              Type:             ${resource_os_type} 
+              Distribution:     ${resource_os_distr} 
+              Version:          ${resource_os_version}"
 }
 
 ###############################################
@@ -152,7 +130,8 @@ get_args() {
         ;;
       v)
         # Display version
-        display_version 0
+        show_version
+        exit 0
         ;;
       -)
       # Check more complex arguments
@@ -162,8 +141,9 @@ get_args() {
           usage 0
           ;;
         version)
-          # Display compss version
-          display_version 0
+          # Display version
+          show_full_version
+          exit 0
           ;;
         opts)
           # Display options
@@ -258,65 +238,16 @@ check_args() {
 ###############################################
 # Agent Invocation
 ###############################################
-add_resource() {
-  local processors
-  processors="<processors>"
-
-  if [ "${resource_cpu_count}" -gt "0" ]; then
-    processors="${processors}
-        <name>MainProcessor</name>
-        <type>CPU</type>
-        <architecture>[unassigned]</architecture>
-        <computingUnits>${resource_cpu_count}</computingUnits>
-        <internalMemory>-1.0</internalMemory>
-        <propName>[unassigned]</propName>
-        <propValue>[unassigned]</propValue>
-        <speed>-1.0</speed>"
-  fi
-
-  if [ "${resource_gpu_count}" -gt "0" ]; then
-    processors="${processors}
-        <name>gpu</name>
-        <type>GPU</type>
-        <architecture>[unassigned]</architecture>
-        <computingUnits>${resource_gpu_count}</computingUnits>
-        <internalMemory>-1.0</internalMemory>
-        <propName>[unassigned]</propName>
-        <propValue>[unassigned]</propValue>
-        <speed>-1.0</speed>"
-  fi
-
-  if [ "${resource_fpga_count}" -gt "0" ]; then
-    processors="${processors}
-        <name>FPGA</name>
-        <type>FPGA</type>
-        <architecture>[unassigned]</architecture>
-        <computingUnits>${resource_fpga_count}</computingUnits>
-        <internalMemory>-1.0</internalMemory>
-        <propName>[unassigned]</propName>
-        <propValue>[unassigned]</propValue>
-        <speed>-1.0</speed>"
-  fi
-  processors="${processors}
-      </processors>"
+reduce_resource() {
+  get_resource_description "  " "${resource_cpu_count}" "${resource_gpu_count}" "${resource_fpga_count}" "${resource_mem_size}" "${resource_mem_type}" "${resource_os_distr}" "${resource_os_type}" "${resource_os_version}"
+  local description=${RESOURCE_DESCRIPTION}
 
   ${APP_CMD} "-s" "-XPUT" "http://${agent_node}:${agent_port}/COMPSs/removeResources" -H 'content-type: application/xml' -d "\
 <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
 <reduceNode>
   <workerName>${resource_node}</workerName>
   <resources>
-    ${processors}
-    <memorySize>${resource_mem_size}</memorySize>
-    <memoryType>${resource_mem_type}</memoryType>
-    <storageSize>-1.0</storageSize>
-    <storageType>[unassigned]</storageType>
-    <operatingSystemDistribution>${resource_os_distr}</operatingSystemDistribution>
-    <operatingSystemType>${resource_os_type}</operatingSystemType>
-    <operatingSystemVersion>${resource_os_version}</operatingSystemVersion>
-    <pricePerUnit>-1.0</pricePerUnit>
-    <priceTimeUnit>-1</priceTimeUnit>
-    <value>0.0</value>
-    <wallClockLimit>-1</wallClockLimit>
+  ${description}
   </resources>
 </reduceNode>"
 
@@ -340,4 +271,4 @@ resource_node=${1}
 shift 1
 
 display_invocation
-add_resource
+reduce_resource

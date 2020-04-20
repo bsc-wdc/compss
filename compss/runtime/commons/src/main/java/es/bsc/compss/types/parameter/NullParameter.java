@@ -16,7 +16,6 @@
  */
 package es.bsc.compss.types.parameter;
 
-import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
@@ -25,6 +24,12 @@ import java.io.Serializable;
 
 
 public class NullParameter extends Parameter implements Serializable {
+
+    /**
+     * Serializable objects Version UID are 1L in all Runtime.
+     */
+    private static final long serialVersionUID = 1L;
+
 
     /**
      * Creates a new Parameter instance from the given values.

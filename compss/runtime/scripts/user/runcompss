@@ -11,11 +11,19 @@ export COMPSS_HOME=${COMPSS_HOME}
 
 
 # Load auxiliar scripts
+# shellcheck source=../system/commons/logger.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
+# shellcheck source=../system/commons/version.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+# shellcheck source=../system/commons/utils.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
-
+# shellcheck source=../system/runtime/compss_setup.sh
+# shellcheck disable=SC1091
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+
 
 #---------------------------------------------------
 # CONSTANTS DEFINTION
@@ -54,7 +62,7 @@ show_opts() {
     --external_debugger=<int>,
     --external_debugger                     Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
                                             Default: ${DEFAULT_DEBUGGER}
-   --jmx_port=<int>                         Enable JVM profiling on specified port
+    --jmx_port=<int>                        Enable JVM profiling on specified port
 
   Runtime configuration options:
     --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
@@ -541,23 +549,25 @@ check_args() {
   check_compss_setup
 }
 
-
 clean_env() {
   clear_compss_app
 }
 
+
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  # Environment
-  check_compss_env
 
-  # Validate arguments
-  get_args "$@"
-  check_args
+# Environment
+check_compss_env
 
-  # Trap to ensure clean end
-  trap clean_env EXIT
+# Validate arguments
+get_args "$@"
+check_args
 
-  # Real runtime execution
-  start_compss_app
+# Trap to ensure clean end
+trap clean_env EXIT
+
+# Real runtime execution
+start_compss_app
+

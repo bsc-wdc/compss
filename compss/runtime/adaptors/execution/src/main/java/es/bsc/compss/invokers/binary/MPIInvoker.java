@@ -134,9 +134,7 @@ public class MPIInvoker extends Invoker {
 
     private Object runInvocation() throws InvokeExecutionException {
         // Command similar to
-        // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
-        // 2 (--bind-to core) exec args
-        // Get COMPSS ENV VARS
+        // mpirun -H COMPSsWorker01,COMPSsWorker02 -n 2 (--bind-to core) exec args
 
         // Convert binary parameters and calculate binary-streams redirection
         StdIOStream streamValues = new StdIOStream();
@@ -147,9 +145,9 @@ public class MPIInvoker extends Invoker {
         String hostfile = null;
         int numMPIArgs = NUM_BASE_MPI_ARGS;
         if (this.scaleByCU) {
-            hostfile = writeHostfile(taskSandboxWorkingDir, workers);
+            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.workers);
         } else {
-            hostfile = writeHostfile(taskSandboxWorkingDir, hostnames);
+            hostfile = writeHostfile(this.taskSandboxWorkingDir, this.hostnames);
             // numMPIArgs = numMPIArgs + 2; // to add the -x OMP_NUM_THREADS
         }
 

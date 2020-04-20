@@ -1,11 +1,21 @@
 #!/bin/bash
 
+# Command to simulate realpath
+if [ -z "${COMPSS_HOME}" ]; then
+  COMPSS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../../.. && pwd )/"
+fi
+export COMPSS_HOME=${COMPSS_HOME}
+
+# Load auxiliar scripts
+source "${COMPSS_HOME}Runtime/scripts/system/commons/version.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
+
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
 APP_CMD="curl"
-DEFAULT_LANG="JAVA"
 DEFAULT_METHOD="main"
+DEFAULT_LANG="JAVA"
 
 #---------------------------------------------------------------------------------------
 # ERROR CONSTANTS DECLARATION
@@ -19,22 +29,11 @@ ERROR_MASTER_PORT="Missing master port parameter"
 #---------------------------------------------------------------------------------------
 
 ###############################################
-# Displays version
-###############################################
-display_version() {
-  local exitValue=$1
-
-  "${SCRIPT_DIR}"/runcompss --version
-
-  exit "$exitValue"
-}
-
-###############################################
 # Displays usage
 ###############################################
 usage() {
   local exitValue=$1
-  SCRIPT_NAME=`basename "$0"`
+  SCRIPT_NAME=$(basename "$0")
   cat <<EOT
 Usage: ${SCRIPT_NAME} [options] application_name application_arguments
 
@@ -90,18 +89,6 @@ display_invocation() {
 }
 
 ###############################################
-# Displays errors when treating arguments
-###############################################
-display_error() {
-  local error_msg=$1
-
-  echo "$error_msg"
-  echo " "
-
-  usage 1
-}
-
-###############################################
 # Show Options
 ###############################################
 show_opts() {
@@ -150,7 +137,8 @@ get_args() {
         ;;
       v)
         # Display version
-        display_version 0
+        show_version
+        exit 0
         ;;
       -)
       # Check more complex arguments
@@ -166,8 +154,9 @@ get_args() {
           usage 0
           ;;
         version)
-          # Display compss version
-          display_version 0
+          # Display version
+          show_full_version
+          exit 0
           ;;
         opts)
           # Display options
@@ -237,85 +226,35 @@ check_args() {
 }
 
 
-
-###############################################
-# Function to get the arguments
-###############################################
-get_parameters(){
-  http_data="${http_data}<parameters>"
-  param_id=0
-  for param in "$@"; do
-    http_data="${http_data}<params paramId=\"${param_id}\">"
-    http_data="${http_data}<direction>IN</direction>"
-    http_data="${http_data}<paramName></paramName>"
-    http_data="${http_data}<prefix></prefix>"
-    http_data="${http_data}<stdIOStream>UNSPECIFIED</stdIOStream>"
-    http_data="${http_data}<type>STRING_T</type>"
-    http_data="${http_data}<element paramId=\"${param_id}\">"
-    http_data="${http_data}<className>java.lang.String</className>"
-    http_data="${http_data}<value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\">"
-    http_data="${http_data}${param}"
-    http_data="${http_data}</value>"
-    http_data="${http_data}</element>"
-    http_data="${http_data}</params>"
-    param_id=$((param_id + 1))
-  done
-  http_data="${http_data}</parameters>"
-}
-
-get_parameters_as_array(){
-  http_data="${http_data}<parameters>"
-  http_data="${http_data}<params paramId=\"0\">"
-  http_data="${http_data}<direction>IN</direction>"
-  http_data="${http_data}<paramName>args</paramName>"
-  http_data="${http_data}<prefix></prefix>"
-  http_data="${http_data}<stdIOStream>UNSPECIFIED</stdIOStream>"
-  http_data="${http_data}<type>OBJECT_T</type>"
-  http_data="${http_data}<array paramId=\"0\">"
-  http_data="${http_data}<componentClassname>java.lang.String</componentClassname>"
-  http_data="${http_data}<values>"
-
-  param_id=0
-  for param in "$@"; do
-    http_data="${http_data}<element paramId=\"${param_id}\">"
-    http_data="${http_data}<className>java.lang.String</className>"
-    http_data="${http_data}<value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\">"
-    http_data="${http_data}${param}"
-    http_data="${http_data}</value>"
-    http_data="${http_data}</element>"
-    param_id=$((param_id + 1))
-  done
-
-  http_data="${http_data}</values>"
-  http_data="${http_data}</array>"
-  http_data="${http_data}</params>"
-  http_data="${http_data}</parameters>"
-}
-
 ###############################################
 # Invoke remote method
 ###############################################
 call(){
   display_invocation "$@"
-
-  http_resource="http://${master_node}:${master_port}/COMPSs/startApplication"
-  http_header="content-type: application/xml"
-  http_data="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
-  http_data="${http_data}<startApplication>"
-  http_data="${http_data}<lang>${lang}</lang>"
+  local http_cei=""
   if [ ! -z "${cei}" ]; then
-    http_data="${http_data}<ceiClass>${cei}</ceiClass>"
+    http_cei="<ceiClass>${cei}</ceiClass>"
   fi
-  http_data="${http_data}<className>${fullAppPath}</className>"
-  http_data="${http_data}<hasResult>false</hasResult>"
-  http_data="${http_data}<methodName>${method_name}</methodName>"
+
   if [ "${params_as_array}" == "true" ]; then
     get_parameters_as_array "$@"
   else
     get_parameters "$@"
-  fi
-  #http_data="${http_data}<resources/>"
-  http_data="${http_data}</startApplication>"
+  fi  
+  local http_parameters=${PARAMETERS}
+
+  local http_resource="http://${master_node}:${master_port}/COMPSs/startApplication"
+  local http_header="content-type: application/xml"
+
+  local http_data="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
+  <startApplication>
+    <lang>${lang}</lang>
+    ${http_cei}
+    <className>${fullAppPath}</className>
+    <hasResult>false</hasResult>
+    <methodName>${method_name}</methodName>
+    ${http_parameters}
+  </startApplication>"
 
   "${APP_CMD}" "-s" "-XPUT" "${http_resource}" "-H" "${http_header}" "-d" "${http_data}"
 }
@@ -323,14 +262,6 @@ call(){
 #---------------------------------------------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------------------------------------------
-
-# Set script variables
-if [ -z "$COMPSS_HOME" ]; then
-    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    COMPSS_HOME=${SCRIPT_DIR}/../../../
-else
-    SCRIPT_DIR="${COMPSS_HOME}/Runtime/scripts/user"
-fi
 
 # Get command args
 get_args "$@"

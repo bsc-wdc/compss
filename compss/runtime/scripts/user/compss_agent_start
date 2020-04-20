@@ -12,20 +12,13 @@ source "${COMPSS_HOME}Runtime/scripts/system/commons/logger.sh"
 source "${COMPSS_HOME}Runtime/scripts/system/commons/utils.sh"
 
 source "${COMPSS_HOME}Runtime/scripts/system/runtime/compss_setup.sh"
+source "${COMPSS_HOME}Runtime/scripts/system/agents/commons.sh"
 
 #---------------------------------------------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------------------------------------------
 DEFAULT_DC_ENABLED="false"
 DEFAULT_LOG_LEVEL_ARGUMENT=${LOG_LEVEL_DEBUG}
-
-###############################################
-# COMPSs Default values re-definitions
-###############################################
-DEFAULT_COMMUNICATION_ADAPTOR=${COMM_AGENT_ADAPTOR}
-
-DEFAULT_RESOURCES="${COMPSS_HOME}Runtime/configuration/xml/resources/examples/local/resources.xml"
-DEFAULT_PROJECT="${COMPSS_HOME}Runtime/configuration/xml/projects/examples/local/project.xml"
 
 ###############################################
 ###############################################
@@ -128,16 +121,16 @@ arguments_error() {
 # Display Runtime configuration 
 ###############################################
 display_settings () {
-  echo "Options setup"
-  echo  "AGENT NAME: ${master_name}"
-  echo  "AGENT REST PORT: ${agent_rest_port}"
-  echo  "AGENT COMM PORT: ${agent_comm_port}"
-  echo  ""
-  echo  "RESOURCES FILE: ${resFile}"
-  echo  "PROJECT FILE: ${projFile}"
-  echo  "COMM ADAPTOR: ${comm}"
-
-  echo  "DEBUG: ${DEBUG}"
+  display_info "Options setup: \
+        AGENT NAME: ${master_name} \
+        AGENT REST PORT: ${agent_rest_port} \
+        AGENT COMM PORT: ${agent_comm_port} \
+        \
+        RESOURCES FILE: ${resFile} \
+        PROJECT FILE: ${projFile} \
+        COMM ADAPTOR: ${comm} \
+        \
+        DEBUG: ${DEBUG}"
 
 }
 
@@ -179,7 +172,6 @@ parse_options() {
 	          ;;
           hostname=*)
             master_name=${OPTARG//hostname=/}
-            echo "-hostname=${master_name}"
             ;;
 	        classpath=*)
 	          # Additional classpath

@@ -120,6 +120,10 @@ public class ApplicationParameterImpl implements ApplicationParameter {
         return this.paramName;
     }
 
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
     @Override
     public String getContentType() {
         return this.contentType;

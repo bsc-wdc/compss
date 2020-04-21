@@ -184,7 +184,12 @@ public abstract class ExternalInvoker extends Invoker {
         paramArgs.add(Integer.toString(type.ordinal()));
         paramArgs.add(Integer.toString(np.getStdIOStream().ordinal()));
         paramArgs.add(np.getPrefix());
-        paramArgs.add(np.getName());
+        String name = np.getName();
+        if (name == null || name.isEmpty()) {
+            paramArgs.add("null");
+        } else {
+            paramArgs.add(name);
+        }
         paramArgs.add(np.getContentType());
         switch (type) {
             case FILE_T:

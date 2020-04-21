@@ -237,9 +237,9 @@ call(){
   fi
 
   if [ "${params_as_array}" == "true" ]; then
-    get_parameters_as_array "$@"
+    get_parameters_as_array "${lang}" "$@"
   else
-    get_parameters "$@"
+    get_parameters "${lang}" "$@"
   fi  
   local http_parameters=${PARAMETERS}
 

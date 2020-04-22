@@ -37,10 +37,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -58,6 +62,8 @@ public class BinaryRunner {
     private static final String ERROR_EXT_STREAM_BASE_DIR = "ERROR: Cannot retrieve base_dir from External Stream";
     private static final String ERROR_EXT_STREAM_CLOSURE = "ERROR: Cannot close External Stream due to internal error.";
     private static final String ERROR_EXT_STREAM_GET_ID = "ERROR: Cannot close External Stream due to innvalid Id";
+
+    private static final int PB_KILL_SIGNAL = 15;
 
     private Process process;
 
@@ -398,6 +404,48 @@ public class BinaryRunner {
             builder.environment().put("PYTHONPATH", pythonPath);
         }
 
+        // Setup SLURM environment (for elasticity MPI in MN4)
+        int numNodes = Integer.parseInt(System.getProperty(Invoker.COMPSS_NUM_NODES));
+        int procsPerNode = 16;
+        String uniqueHostnames =
+            String.join(",", new HashSet<>(Arrays.asList(System.getProperty(Invoker.COMPSS_HOSTNAMES).split(","))));
+        builder.environment().put("SLURM_NODELIST", uniqueHostnames);
+        builder.environment().put("SLURM_JOB_NODELIST", uniqueHostnames);
+        builder.environment().put("SLURM_NNODES", System.getProperty(Invoker.COMPSS_NUM_NODES));
+        builder.environment().put("SLURM_JOB_NUM_NODES", System.getProperty(Invoker.COMPSS_NUM_NODES));
+        builder.environment().put("SLURM_JOB_CPUS_PER_NODE",
+            "16(x" + System.getProperty(Invoker.COMPSS_NUM_NODES) + ")");
+        builder.environment().put("SLURM_TASKS_PER_NODE",
+            procsPerNode + "(x" + System.getProperty(Invoker.COMPSS_NUM_NODES) + ")");
+
+        builder.environment().put("SLURM_NPROCS", Integer.toString(procsPerNode * numNodes));
+        builder.environment().put("SLURM_NTASKS", Integer.toString(procsPerNode * numNodes));
+        builder.environment().remove("SLURM_MEM_PER_CPU");
+        builder.environment().remove("SLURM_STEP_NUM_TASKS");
+        builder.environment().remove("SLURM_STEP_TASKS_PER_NODE");
+        builder.environment().remove("SLURM_STEP_NODELIST");
+        builder.environment().remove("SLURM_STEP_NUM_NODES");
+        builder.environment().remove("SLURM_STEP_LAUNCHER_PORT");
+        builder.environment().remove("SLURM_STEP_RESV_PORTS");
+        builder.environment().remove("SLURM_STEP_ID");
+        builder.environment().remove("SLURM_STEPID");
+        builder.environment().remove("SLURM_NODEID");
+        builder.environment().remove("SLURM_LOCALID");
+        builder.environment().remove("SLURM_GTIDS");
+        builder.environment().remove("SLURM_CPU_BIND");
+        builder.environment().remove("SLURM_CPU_BIND_LIST");
+        builder.environment().remove("SLURM_CPU_BIND_TYPE");
+        builder.environment().remove("SLURM_LAUNCH_NODE_IPADDR");
+        builder.environment().remove("SLURM_SRUN_COMM_HOST");
+        builder.environment().remove("SLURM_TASK_PID");
+        builder.environment().remove("SLURM_DISTRIBUTION");
+        builder.environment().remove("SLURM_PROCID");
+
+        // outLog.println("[ENV] ------------------------------------");
+        // for (Entry<String, String> e : builder.environment().entrySet()) {
+        // outLog.println(e.getKey() + " = " + e.getValue());
+        // }
+
         // Setup STD redirections
         String fileInPath = stdIOStreamValues.getStdIn();
         if (fileInPath != null) {
@@ -477,8 +525,21 @@ public class BinaryRunner {
      * Cancels the running process.
      */
     public void cancelProcess() {
+
         if (this.process != null) {
-            this.process.destroy();
+            if (this.process.getClass().getName().equals("java.lang.UNIXProcess")) {
+                try {
+                    Field f = this.process.getClass().getDeclaredField("pid");
+                    f.setAccessible(true);
+                    int pid = f.getInt(this.process);
+                    System.out.println("Killing process " + pid);
+                    Runtime.getRuntime().exec("kill -" + PB_KILL_SIGNAL + " " + pid);
+                } catch (Throwable e) {
+                    System.err.println("Error geting pid");
+                }
+            } else {
+                this.process.destroy();
+            }
         }
     }
 

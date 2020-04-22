@@ -121,15 +121,15 @@ arguments_error() {
 # Display Runtime configuration 
 ###############################################
 display_settings () {
-  display_info "Options setup: \
-        AGENT NAME: ${master_name} \
-        AGENT REST PORT: ${agent_rest_port} \
-        AGENT COMM PORT: ${agent_comm_port} \
-        \
-        RESOURCES FILE: ${resFile} \
-        PROJECT FILE: ${projFile} \
-        COMM ADAPTOR: ${comm} \
-        \
+  display_info "Options setup: 
+        AGENT NAME: ${master_name} 
+        AGENT REST PORT: ${agent_rest_port} 
+        AGENT COMM PORT: ${agent_comm_port} 
+        
+        RESOURCES FILE: ${resFile} 
+        PROJECT FILE: ${projFile} 
+        COMM ADAPTOR: ${comm} 
+        
         DEBUG: ${DEBUG}"
 
 }

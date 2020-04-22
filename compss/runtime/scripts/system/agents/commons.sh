@@ -130,17 +130,29 @@ ${indent}  <wallClockLimit>-1</wallClockLimit>"
 get_parameters(){
   PARAMETERS="<parameters>"
   param_id=0
+  local lang=${1}
+  shift 1
   for param in "$@"; do
     PARAMETERS="${PARAMETERS}
       <params paramId=\"${param_id}\">
         <direction>IN</direction>
         <paramName></paramName>
         <prefix></prefix>
+        <contentType></contentType>
         <stdIOStream>UNSPECIFIED</stdIOStream>
         <type>STRING_T</type>
         <element paramId=\"${param_id}\">
           <className>java.lang.String</className>
-          <value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\">${param}</value>
+          <value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\">"
+  if [ "${lang}"  == "JAVA" ] || [ "${lang}"  == "java" ]; then  
+    PARAMETERS="${PARAMETERS}${param}"
+  elif [ "${lang}"  == "PYTHON" ] || [ "${lang}"  == "python" ]; then
+    encoded_value=$(python -c "import base64; print(base64.b64encode('#5'.encode()).decode())")
+    PARAMETERS="${PARAMETERS}${encoded_value}"
+  elif [ "${lang}"  == "C" ] || [ "${lang}"  == "c" ]; then
+    PARAMETERS="${PARAMETERS}${param}"
+  fi
+  PARAMETERS="${PARAMETERS}</value>
         </element>
       </params>"
     param_id=$((param_id + 1))
@@ -150,11 +162,14 @@ get_parameters(){
 }
 
 get_parameters_as_array(){
+  local lang=${1}
+  shift 1
   PARAMETERS="<parameters>
       <params paramId=\"0\">
         <direction>IN</direction>
         <paramName>args</paramName>
         <prefix></prefix>
+        <contentType></contentType>
         <stdIOStream>UNSPECIFIED</stdIOStream>
         <type>OBJECT_T</type>
         <array paramId=\"0\">
@@ -166,7 +181,16 @@ get_parameters_as_array(){
     PARAMETERS="${PARAMETERS}
             <element paramId=\"${param_id}\">
               <className>java.lang.String</className>
-              <value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\">${param}</value>
+              <value xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xsi:type=\"xs:string\">"
+    if [ "${lang}"  == "JAVA" ] || [ "${lang}"  == "java" ]; then  
+      PARAMETERS="${PARAMETERS}${param}"
+    elif [ "${lang}"  == "PYTHON" ] || [ "${lang}"  == "python" ]; then
+      encoded_value=$(python -c "import base64; print(base64.b64encode('#5'.encode()).decode())")
+      PARAMETERS="${PARAMETERS}${encoded_value}"
+    elif [ "${lang}"  == "C" ] || [ "${lang}"  == "c" ]; then
+      PARAMETERS="${PARAMETERS}${param}"
+    fi
+    PARAMETERS="${PARAMETERS}</value>
             </element>"
     param_id=$((param_id + 1))
   done

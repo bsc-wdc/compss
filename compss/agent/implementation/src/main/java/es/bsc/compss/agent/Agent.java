@@ -124,8 +124,8 @@ public class Agent {
         ced.setCeSignature(LOADER_SIGNATURE);
         MethodResourceDescription mrd = new MethodResourceDescription("");
         ImplementationDefinition<?> implDef;
-        implDef = ImplementationDefinition.defineImplementation("METHOD", LOADER_SIGNATURE + LOADER_CLASS_NAME, mrd, 
-                LOADER_CLASS_NAME, LOADER_METHOD_NAME);
+        implDef = ImplementationDefinition.defineImplementation("METHOD", LOADER_SIGNATURE + LOADER_CLASS_NAME, mrd,
+            LOADER_CLASS_NAME, LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
     }

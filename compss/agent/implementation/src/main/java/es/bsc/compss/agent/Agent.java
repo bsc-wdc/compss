@@ -123,12 +123,9 @@ public class Agent {
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(LOADER_SIGNATURE);
         MethodResourceDescription mrd = new MethodResourceDescription("");
-        for (Processor p : mrd.getProcessors()) {
-            p.setName("MainProcessor");
-        }
-        ImplementationDefinition<?> implDef =
-            ImplementationDefinition.defineImplementation("METHOD", LOADER_SIGNATURE + LOADER_CLASS_NAME,
-                new MethodResourceDescription(""), LOADER_CLASS_NAME, LOADER_METHOD_NAME);
+        ImplementationDefinition<?> implDef;
+        implDef = ImplementationDefinition.defineImplementation("METHOD", LOADER_SIGNATURE + LOADER_CLASS_NAME, mrd, 
+                LOADER_CLASS_NAME, LOADER_METHOD_NAME);
         ced.addImplementation(implDef);
         RUNTIME.registerCoreElement(ced);
     }

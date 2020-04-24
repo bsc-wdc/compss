@@ -13,7 +13,22 @@ generate_resources() {
 ###############################################
 # Identifies other agents which it may interact
 ###############################################
-get_topology() {
+get_topology_plain() {
+
+  local MASTER="${1}"
+  shift 1
+  local workers="$@"
+
+  CHILD_NODES=$(
+    for blade in ${@}; do
+      if [ "${blade}" != "${master}" ]; then
+        echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${storage_bw_per_node} ${max_tasks_per_node}";
+      fi
+    done
+  )
+}
+
+get_topology_tree() {
   MASTER="${1}"
 
   local HOST_RACK;
@@ -32,7 +47,7 @@ get_topology() {
       
       CHILD_NODES=$(
         for blade in ${RACK_OTHER_BLADES}; do
-          echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${max_tasks_per_node}"
+          echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${storage_bw_per_node} ${max_tasks_per_node}"
         done
         for rack in ${WORKER_RACKS}; do
           WORKER_RACK_BLADES=$(echo "${@:2}"| tr " " "\\n" | grep "${rack}")
@@ -57,7 +72,7 @@ get_topology() {
 
         CHILD_NODES=$(
          for blade in ${RACK_OTHER_BLADES}; do
-           echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${max_tasks_per_node}"; 
+           echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${storage_bw_per_node} ${max_tasks_per_node}";
          done
         )
       #else
@@ -78,7 +93,18 @@ get_topology() {
 # Add agents' own resources to project.xml
 ###############################################
 xml_project_add_own_resources() {
-  add_master_node "${cpus_per_node}" "${gpus_per_node}" "${fpgas_per_node}" "${memory_per_node}" "${shared_disks_info}"
+  local cpu=${cpus_per_node}
+  local mem=${memory_per_node};
+  if [ "${HOSTNAME}" == "${MASTER}" ]; then
+    if [ -n "${cpus_in_master}" ]; then
+      cpu=${cpus_in_master}
+    fi
+
+    if [ -n "${memory_in_master}" ]; then
+      mem=${memory_in_master};
+    fi
+  fi
+  add_master_node "${cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${mem}" "${shared_disks_info}"
 }
 
 ###############################################
@@ -201,7 +227,7 @@ xml_resources_setup() {
 xml_resources_add_workers() {
   # Add workers
   if [ ! -z "${CHILD_NODES}" ]; then
-    while read -r worker_node cpus gpus fpgas memory max_tasks_per_node; do
+    while read -r worker_node cpus gpus fpgas memory storage_bw max_tasks_per_node; do
       local worker_node_name
       if [ ! -z "${NODE_NAME_XML}" ]; then
         worker_node_name=$(${NODE_NAME_XML} "${worker_node}" "${network}")
@@ -216,7 +242,7 @@ xml_resources_add_workers() {
       fi
       # Add compute node
       worker_node_name=${worker_node_name}${network}
-      add_compute_node "${worker_node_name}" "${cpus}" "${gpus}" "${fpgas}" "${memory}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
+      add_compute_node "${worker_node_name}" "${cpus}" "${gpus}" "${fpgas}" "${memory}" "${storage_bw}" "43001" "43002" "${REMOTE_EXECUTOR:-NULL}" "${shared_disks_info}"
     done <<< "${CHILD_NODES}"
   fi
 }
@@ -236,55 +262,38 @@ xml_resources_add_elasticity() {
 # MAIN (when script is called directly)
 #
 # Expected parameters:
-
-
 HOSTNAME="${1}"
-network="${2}"
+master_node="${2}"
+worker_nodes="${3}"
+network="${4}" 
+agents_hierarchy="${5}"
 
-debug="${3}"
-
-log_dir="${4}${HOSTNAME}"
+log_dir="${6}"
 mkdir -p ${log_dir}
+shift 6
 
+cpus_in_master=${1}
+cpus_per_node=${2}
+cpu_affinity=${3}
 
-worker_working_dir="${5}"
-mkdir -p "${worker_working_dir}"
+gpus_per_node=${4}
+gpu_affinity=${5}
 
-worker_install_dir="${6}"
+fpgas_per_node=${6}
+fpga_affinity=${7}
 
-jvm_opts_size="${7}"
-shift 7
-# IGNORING JVM OPTS
-# jvm_opts_str="${*:1:!jvm_opts_size}"
-shift "${jvm_opts_size}"
+memory_in_master=${8}
+memory_per_node=${9}
 
-fpga_reprogram_size="${1}"
-shift 1
-# IGNORING FPGA REPROGRAM
-# fpga_reprogram_str="${*:1:!fpga_reprogram_size}"
-shift "${fpga_reprogram_size}"
-
-scheduler="${1}"
-shift 1
-
-cpus_per_node="${1}"
-gpus_per_node="${2}"
-fpgas_per_node="${3}"
-cpu_affinity="${4}"
-gpu_affinity="${5}"
-fpga_affinity="${6}"
-memory_per_node="${7}"
-max_tasks_per_node="${8}"
-streaming="${9}"
-streaming_master_port="${10}"
+storage_bw_per_node=${10}
 shift 10
 
-APP_DIR=${1}
-shift
+worker_working_dir=${1}
+worker_install_dir=${2}
+max_tasks_per_node=${3}
+shift 3
 
-get_topology "${@}" # masterName workerName[]
-
-
+"get_topology_${agents_hierarchy}" "${masterName}" ${worker_nodes}
 
 echo "--------${HOSTNAME}--------" >"${log_dir}/INFO"
 echo "VARIABLES" >>"${log_dir}/INFO"
@@ -297,17 +306,17 @@ echo "Working Dir:    ${worker_working_dir}" >>"${log_dir}/INFO"
 echo "Install Dir:    ${worker_install_dir}" >>"${log_dir}/INFO"
 echo "Log Dir:        ${log_dir}" >>"${log_dir}/INFO"
 
-echo "Scheduler:      ${scheduler}" >>"${log_dir}/INFO"
 echo "CPUs:           ${cpus_per_node} ${cpu_affinity}" >>"${log_dir}/INFO"
 echo "GPUs:           ${gpus_per_node} ${gpu_affinity}" >>"${log_dir}/INFO"
 echo "FPGAs:          ${fpgas_per_node} ${fpga_affinity}" >>"${log_dir}/INFO"
+echo "Storage BW:     ${storage_bw_per_node}" >>"${log_dir}/INFO"
 
 
 echo "Child nodes:" >>"${log_dir}/INFO"
 
 if [ ! -z "${CHILD_NODES}" ]; then
-  while read -r blade cpu gpu fpgas memory limit_of_tasks; do
-    echo "  * name ${blade} cpus ${cpu} gpus ${gpu} fpgas ${fpgas} memory ${memory} limit of tasks ${limit_of_tasks}" >>"${log_dir}/INFO"
+  while read -r blade cpu gpu fpgas memory storage_bw limit_of_tasks; do
+    echo "  * name ${blade} cpus ${cpu} gpus ${gpu} fpgas ${fpgas} memory ${memory} storage_bw ${storage_bw} limit of tasks ${limit_of_tasks}" >>"${log_dir}/INFO"
   done <<< "${CHILD_NODES}"
 fi
 
@@ -320,8 +329,23 @@ generate_project
 RESOURCES_FILE="${worker_working_dir}/resources_$HOSTNAME.xml"
 export RESOURCES_FILE
 generate_resources
-
 echo "--------${HOSTNAME}-OUT----" >"${log_dir}/OUT"
 echo "--------${HOSTNAME}-ERR----" >"${log_dir}/ERR"
-echo "${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d ${debug} -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" --scheduler ${scheduler}>>"${log_dir}/OUT" 2>>"${log_dir}/ERR" 
-"${worker_install_dir}/Runtime/scripts/system/adaptors/agent/startAgent.sh" -h "${HOSTNAME}${network}" -a "${APP_DIR}" -DC -rp 46101 -cp 46102 -d ${debug} -log "${log_dir}" --project "${PROJECT_FILE}" --resources "${RESOURCES_FILE}" --scheduler ${scheduler}>>"${log_dir}/OUT" 2>>"${log_dir}/ERR"
+
+echo "${worker_install_dir}/Runtime/scripts/user/compss_agent_start" \
+"--hostname=${HOSTNAME}${network}" \
+"--rest_port=46101" \
+"--comm_port=46102" \
+"--project=${PROJECT_FILE}" \
+"--resources=${RESOURCES_FILE}" \
+${@} \
+>> "${log_dir}/OUT"
+
+"${worker_install_dir}/Runtime/scripts/user/compss_agent_start" \
+"--hostname=${HOSTNAME}${network}" \
+"--rest_port=46101" \
+"--comm_port=46102" \
+"--project=${PROJECT_FILE}" \
+"--resources=${RESOURCES_FILE}" \
+${@} \
+>>"${log_dir}/OUT" 2>>"${log_dir}/ERR"

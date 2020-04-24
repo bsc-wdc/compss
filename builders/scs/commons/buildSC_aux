@@ -267,6 +267,10 @@
   echo "--- Copy engine"
   cp "${TMP_DIR}"/compss/runtime/compss-engine.jar "${targetDir}"/Runtime/
 
+  # Agent
+  echo "--- Copy Agent"
+  cp "${TMP_DIR}"/compss/agent/compss-agent-impl.jar "${targetDir}"/Runtime/
+  
   # TOOLS DEPLOYMENT
   echo "- Deploying COMPSs Tools"
   cd "${TMP_DIR}" || exit 1

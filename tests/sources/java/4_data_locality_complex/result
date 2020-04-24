@@ -49,13 +49,13 @@
   expected="${target_log_folder}/complexTest_expected.out"
   got="${target_log_folder}/complexTest_got.out"
 
-  #Parse log files
+  # Parse log files
   echo "[LOG] Parsing expected file"
   "${base_app_dir}"/result_getAvailableExpected "${runtime_log}" > "$expected"
   echo "[LOG] Parsing got file"
   "${base_app_dir}"/result_getSubmittedGot "${runtime_log}" > "$got"
   
-  #Compute result
+  # Compute result
   echo "[LOG] Computing test result"
   # We check that all the got are executed as expected and viceversa
   resultAllGotIsExpected=$(grep -c -v -x -f "$got" "$expected" | cat)

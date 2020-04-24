@@ -80,7 +80,7 @@ generate_stream_config_files() {
   # Create zookeeper properties
   zookeeper_log_dir="/tmp/zookeeper"
   mkdir -p "${zookeeper_log_dir}"
-  zookeeper_props_file=$(mktemp -p "${zookeeper_log_dir}") || fatal_error "${ERROR_ZOOKEEPER_CONFIG}"
+  zookeeper_props_file=$(mktemp -p "${zookeeper_log_dir}") || fatal_error "${ERROR_ZOOKEEPER_CONFIG}" 1
   cat > "${zookeeper_props_file}" << EOT
 dataDir=${zookeeper_log_dir}
 clientPort=49000
@@ -90,7 +90,7 @@ EOT
   # Create kafka properties
   kafka_log_dir="/tmp/kafka-logs"
   mkdir -p "${kafka_log_dir}"
-  kafka_props_file=$(mktemp -p "${kafka_log_dir}") || fatal_error "${ERROR_KAFKA_CONFIG}"
+  kafka_props_file=$(mktemp -p "${kafka_log_dir}") || fatal_error "${ERROR_KAFKA_CONFIG}" 1
   cat > "${kafka_props_file}" << EOT
 broker.id=$((RANDOM % 100))
 port=49001

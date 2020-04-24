@@ -55,8 +55,7 @@ public class ExecutionManager {
 
         ResourceManager rm = null;
         try {
-            rm = new ResourceManager(computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap, computingUnitsFPGA, fpgaMap,
-                ioExecNum);
+            rm = new ResourceManager(computingUnitsCPU, cpuMap, computingUnitsGPU, gpuMap, computingUnitsFPGA, fpgaMap);
         } catch (InvalidMapException ime) {
             ErrorManager.fatal(ime);
         }

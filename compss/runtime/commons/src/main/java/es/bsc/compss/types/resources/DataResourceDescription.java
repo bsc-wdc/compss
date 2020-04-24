@@ -240,6 +240,6 @@ public class DataResourceDescription extends ResourceDescription {
 
     @Override
     public boolean usesCPUs() {
-        return true;
+        return false;
     }
 }

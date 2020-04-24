@@ -168,6 +168,6 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
 
     @Override
     public boolean usesCPUs() {
-        return true;
+        return false;
     }
 }

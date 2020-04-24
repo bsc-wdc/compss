@@ -581,7 +581,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
             LOGGER.debug("\t - Implementation: " + implSignature);
             LOGGER.debug("\t - Constraints   : " + implConstraints);
             LOGGER.debug("\t - Type          : " + implType);
-            LOGGER.debug("\t - IO            : " + implIO);
+            LOGGER.debug("\t - I/O            : " + implIO);
             LOGGER.debug("\t - ImplTypeArgs  : ");
             for (String implTypeArg : implTypeArgs) {
                 LOGGER.debug("\t\t Arg: " + implTypeArg);
@@ -593,7 +593,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
 
         if (implisIO) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Nulling computing resources of IO task: " + implSignature);
+                LOGGER.debug("Nulling computing resources for I/O task: " + implSignature);
             }
             mrd.setIOResources();
         }

@@ -275,13 +275,13 @@ check_setup() {
 
   if  [[ "${comm}" == "${COMM_AGENT_ADAPTOR}" ]]; then
     if [[ -z "${agent_comm_port}" ]]; then
-	      fatal_error "When using the Comm Agent adaptor, COMM port needs to be specified (--comm_port)"
+	      fatal_error "When using the Comm Agent adaptor, COMM port needs to be specified (--comm_port)" 1
     fi
   fi
 
   if  [[ "${comm}" == "${REST_AGENT_ADAPTOR}" ]]; then
     if [[ -z "${agent_rest_port}" ]]; then
-	      fatal_error "When using the REST Agent adaptor, REST port needs to be specified (--rest_port)"
+	      fatal_error "When using the REST Agent adaptor, REST port needs to be specified (--rest_port)" 1
     fi
   fi
 

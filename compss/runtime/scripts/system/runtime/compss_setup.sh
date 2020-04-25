@@ -67,7 +67,7 @@ check_compss_env() {
   elif [ -f "$JAVA_HOME"/bin/java ]; then
     JAVA=$JAVA_HOME/bin/java
   else
-    fatal_error "${JAVA_HOME_ERROR}"
+    fatal_error "${JAVA_HOME_ERROR}" 1
   fi
 
   # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH

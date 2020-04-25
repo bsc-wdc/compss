@@ -95,6 +95,7 @@ get_topology_tree() {
 xml_project_add_own_resources() {
   local cpu=${cpus_per_node}
   local mem=${memory_per_node};
+
   if [ "${HOSTNAME}" == "${MASTER}" ]; then
     if [ -n "${cpus_in_master}" ]; then
       cpu=${cpus_in_master}
@@ -104,7 +105,8 @@ xml_project_add_own_resources() {
       mem=${memory_in_master};
     fi
   fi
-  add_master_node "${cpus}" "${gpus_per_node}" "${fpgas_per_node}" "${mem}" "${shared_disks_info}"
+  
+  add_master_node "${cpu}" "${gpus_per_node}" "${fpgas_per_node}" "${mem}" "${shared_disks_info}"
 }
 
 ###############################################
@@ -263,7 +265,7 @@ xml_resources_add_elasticity() {
 #
 # Expected parameters:
 HOSTNAME="${1}"
-master_node="${2}"
+MASTER="${2}"
 worker_nodes="${3}"
 network="${4}" 
 agents_hierarchy="${5}"

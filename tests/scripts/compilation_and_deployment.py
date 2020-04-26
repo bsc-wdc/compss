@@ -119,7 +119,7 @@ def compile_and_deploy_tests(cmd_args, compss_cfg):
     except OSError:
         raise TestCompilationError("[ERROR] Cannot create log deployment directory: " + str(tests_logs))
     print("[INFO] Deployment structure created")
-
+    
     # Compile and deploy tests
     print()
     print("[INFO] Compiling and Deploying tests...")
@@ -320,6 +320,7 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
     :return:
     :raise TestCompilationError: If any compilation error has raised
     """
+
     test_exec_sandbox = os.path.join(test_exec_sandbox_global, "app" + "{:03d}".format(test_num))
     try:
         os.makedirs(test_exec_sandbox)
@@ -359,3 +360,6 @@ def _deploy(source_path, test_exec_sandbox_global, test_num, cmd_args, compss_cf
         if exit_value != 0:
             raise TestDeploymentError("[ERROR] Deployment command has failed with exit value: " + str(exit_value))
         print("[INFO] Deployment of " + str(source_path) + " completed")
+
+
+

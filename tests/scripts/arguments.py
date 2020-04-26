@@ -172,6 +172,13 @@ def get_args():
                              "If <int> is provided, executes test with global number <int>.\n"
                              "If <str>:<int> is provided, executes test with local number <int> in family <str>.\n"
                              "If <str1>:<str2> is provided, executes test with name <str2> in family <str1>.")
+    # Add coverage options
+    parser.add_argument("-c", "--coverage",
+                        action="store_true",
+                        dest="coverage",
+                        default=False,
+                        help="Executes in Coverage mode")
+
 
     if __debug__:
         print("[DEBUG] Argument parser created")
@@ -203,8 +210,11 @@ def get_args():
     print("[INFO]   - families: " + str(args.families))
     print("[INFO]   - cfg_file: " + str(args.cfg_file))
     print("[INFO]   - tests: " + str(args.tests))
-    # print("[INFO]   - test_numbers: " + str(args.test_numbers))
+    print("[INFO]   - coverage: " + str(args.coverage))
 
+    # print("[INFO]   - test_numbers: " + str(args.test_numbers)) 
+    
+    
     return args
 
 

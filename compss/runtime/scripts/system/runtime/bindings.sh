@@ -58,6 +58,7 @@ check_bindings_setup () {
     task_count=${DEFAULT_TASK_COUNT}
   fi
 
+
   # Language handling
   enable_java="false"
   enable_bindings="false"
@@ -99,36 +100,51 @@ check_bindings_setup () {
   # PYTHON BINDING VARIABLES
   # ------------------------
   # Add application folder to PYTHONPATH
-  module_name=$(basename "${fullAppPath}")
-  if [ -e "${DEFAULT_APPDIR}/${module_name}" ]; then
-    pythonpath=${DEFAULT_APPDIR}:${pythonpath}
-  else
-    module_folder=$(readlink -f "${fullAppPath}" | xargs dirname)
-    pythonpath=${module_folder}:${pythonpath}
-  fi
-
-  if [ -z "$PyObject_serialize" ]; then
-    PyObject_serialize="${DEFAULT_PyOBJECT_SERIALIZE}"
-  fi
-  
-  if [ -z "$python_interpreter" ]; then
-    python_interpreter=$DEFAULT_PYTHON_INTERPRETER
-    python_version=$DEFAULT_PYTHON_VERSION
-  else
-    python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
-  fi
-
-  if [ -z "$python_propagate_virtual_environment" ]; then
-	  python_propagate_virtual_environment=$DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
-  fi
-
-  if [ -z "$python_mpi_worker" ]; then
-	  python_mpi_worker=$DEFAULT_PYTHON_MPI_WORKER
-  fi
 
   if [ "${enable_python}" = "true" ]; then
-    if ! command_exists "${python_interpreter}" ; then
-      fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
+    module_name=$(basename "${fullAppPath}")
+    if [ -e "${DEFAULT_APPDIR}/${module_name}" ]; then
+            pythonpath=${DEFAULT_APPDIR}:${pythonpath}
+    else
+            module_folder=$(readlink -f "${fullAppPath}" | xargs dirname)
+            pythonpath=${module_folder}:${pythonpath}
+    fi
+
+
+    if [ -z "$PyObject_serialize" ]; then
+             PyObject_serialize="${DEFAULT_PyOBJECT_SERIALIZE}"
+    fi
+    
+    if [ -z "$python_interpreter" ]; then
+        python_interpreter=$DEFAULT_PYTHON_INTERPRETER
+        python_version=$DEFAULT_PYTHON_VERSION
+        if ! command_exists "${python_interpreter}" ; then
+           fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
+        fi
+    else 
+        if [ "${coverage}" = "true" ]; then
+           echo "import sys; print(sys.version_info[:][0])" > .tmp.py
+           py_aux=$(echo ${python_interpreter} | tr "#" " ")
+           python_version=$(${py_aux} .tmp.py)
+           rm .tmp.py
+           if ! command_exists ${py_aux} ; then
+              fatal_error "ERROR: Python interpreter $py_aux does not exist." 1
+           fi
+
+        else
+	   python_version=$( ${python_interpreter} -c "import sys; print(sys.version_info[:][0])")
+           if ! command_exists "${python_interpreter}" ; then
+              fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
+           fi
+	fi
+    fi
+
+    if [ -z "$python_propagate_virtual_environment" ]; then
+            python_propagate_virtual_environment=$DEFAULT_PYTHON_PROPAGATE_VIRTUAL_ENVIRONMENT
+    fi
+
+    if [ -z "$python_mpi_worker" ]; then
+            python_mpi_worker=$DEFAULT_PYTHON_MPI_WORKER
     fi
 
     # Check if installed

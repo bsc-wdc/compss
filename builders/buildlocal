@@ -22,6 +22,7 @@ DEFAULT_PYCOMPSS=true
 DEFAULT_TRACING=true
 DEFAULT_AUTOPARALLEL=true
 DEFAULT_KAFKA=true
+DEFAULT_JACOCO=true
 DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 DEFAULT_MVN_TESTS=""
@@ -34,6 +35,7 @@ NO_PYCOMPSS="Warning: No pycompss specified. Loading default value"
 NO_TRACING="Warning: No tracing specified. Loading default value"
 NO_AUTOPARALLEL="Warning: No autoparallel specified. Loading default value"
 NO_KAFKA="Warning: No Kafka module specified. Loading default value"
+NO_JACOCO="Warning: No jacoco module specified. Loading default value"
 NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
 
 
@@ -80,6 +82,10 @@ show_opts() {
     --kafka, -k                 Enable Kafka module installation
     --no-kafka, -K              Disable Kafka module installation
                                 Default: ${DEFAULT_KAFKA}
+
+    --jacoco, -j                Enable Jacoco module installation
+    --no-jacoco, -J             Disable Jacoco module installation
+                                Default: ${DEFAULT_JACOCO}
 
     --nothing, -N               Disable all previous options
                                 Default: unused
@@ -193,6 +199,14 @@ get_args() {
         # Custom Kafka value
         kafka=false
         ;;
+      j)
+        # Custom Jacoco value
+        jacoco=true
+        ;;
+      J)
+        # Custom Jacoco value
+        jacoco=false
+        ;;
       N)
         # Disables all flags
         tracing=false
@@ -201,6 +215,7 @@ get_args() {
         pycompss=false
         autoparallel=false
         kafka=false
+	jacoco=false
         ;;
       -)
 	# Check more complex arguments
@@ -269,6 +284,14 @@ get_args() {
             # Custom Kafka value
             kafka=false
             ;;
+	  jacoco)
+            # Custom Jacoco value
+            jacoco=true
+            ;;
+          no-jacoco)
+            # Custom Jacoco value
+            jacoco=false
+            ;;
           nothing)
             # Disables all flags
             tracing=false
@@ -277,6 +300,7 @@ get_args() {
             pycompss=false
             autoparallel=false
             kafka=false
+	    jacoco=false
             ;;
           user-exec=*)
             # Enables specific user mvn execution
@@ -338,6 +362,11 @@ check_args() {
   if [ -z "${kafka}" ]; then
     display_warning "${NO_KAFKA}"
     kafka=${DEFAULT_KAFKA}
+  fi
+
+  if [ -z "${jacoco}" ]; then
+    display_warning "${NO_JACOCO}"
+    jacoco=${DEFAULT_JACOCO}
   fi
 
   if [ -z "${user_exec}" ]; then
@@ -639,7 +668,7 @@ install_compss() {
 
   # TOOLS DEPLOYMENT
   if [ "$monitor" == "true" ]; then
-    echo "- Deploying COMPSs Tools"
+    echo "- Deploying Monitor at Tools"
     cd "${TMP_DIR}"
     TOMCAT_VER="8.5.23" #"7.0.65"
     TOMCAT_PCK_NAME="apache-tomcat-${TOMCAT_VER}.tar.gz"
@@ -654,6 +683,18 @@ install_compss() {
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/compss-monitor.conf "${targetDir}/Tools/monitor/apache-tomcat/conf/"
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/server.xml "${targetDir}/Tools/monitor/apache-tomcat/conf/"
     cp "${TMP_DIR}"/compss/tools/monitor/target/classes/*log4j* "${targetDir}/Tools/monitor/"
+  fi
+  
+  if [ "$jacoco" == "true" ]; then
+    echo "- Deploying Jacoco at Tools"
+    cd "${TMP_DIR}"
+    JACOCO_VER="0.8.5" 
+    JACOCO_PCK_NAME="jacoco-${JACOCO_VER}.zip"
+    JACOCO_URL="https://repo1.maven.org/maven2/org/jacoco/jacoco/${JACOCO_VER}/${JACOCO_PCK_NAME}"
+    wget $JACOCO_URL
+    unzip ${JACOCO_PCK_NAME} -d jacoco
+    cd "${SCRIPT_DIR}"
+    mv "${TMP_DIR}/jacoco" "${targetDir}/Tools/"
   fi
 
   # BINDINGS DEPLOYMENT

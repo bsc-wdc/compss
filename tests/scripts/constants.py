@@ -40,3 +40,5 @@ TESTS_DIR = os.path.join(SCRIPT_DIR, "../sources")
 CONFIGURATIONS_DIR = os.path.join(SCRIPT_DIR, "../configurations")
 RUNCOMPSS_REL_PATH = "Runtime/scripts/user/runcompss"
 CLEAN_PROCS_REL_PATH = "Runtime/scripts/utils/compss_clean_procs"
+JACOCO_LIB_REL_PATH ="Tools/jacoco/lib/"
+

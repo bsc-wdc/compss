@@ -62,6 +62,7 @@ public class PythonMPIDefinition extends ImplementationDefinition<MethodResource
         sb.append("\t Method name: ").append(methodName).append("\n");
         sb.append("\t MPI runner: ").append(mpiRunner).append("\n");
         sb.append("\t MPI flags: ").append(mpiFlags).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Scale by Computing Units: ").append(scaleByCU).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");

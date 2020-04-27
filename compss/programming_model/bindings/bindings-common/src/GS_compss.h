@@ -35,6 +35,7 @@ extern "C" void GS_RegisterCE(char *CESignature,
                               char *ImplSignature,
                               char *ImplConstraints,
                               char *ImplType,
+                              char *ImplIO,
                               int num_params,
                               char **ImplTypeArgs
                              );

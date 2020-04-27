@@ -170,7 +170,7 @@ public class ExecutionPlatform implements ExecutorContext {
         }
         for (int i = 0; i < numWorkerThreads; i++) {
             int id = this.nextThreadId++;
-            Executor executor = new Executor(this.context, this, "compute" + id) {
+            Executor executor = new Executor(this.context, this, "executor" + id) {
 
                 @Override
                 public void run() {
@@ -183,7 +183,7 @@ public class ExecutionPlatform implements ExecutorContext {
                 }
             };
             Thread t = new Thread(executor);
-            t.setName(this.platformName + " compute thread # " + id);
+            t.setName(this.platformName + " executor thread # " + id);
             this.workerThreads.add(t);
             if (this.started) {
                 t.start();

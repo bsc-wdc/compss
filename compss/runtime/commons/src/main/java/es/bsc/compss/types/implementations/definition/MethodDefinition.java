@@ -50,6 +50,7 @@ public class MethodDefinition extends ImplementationDefinition<MethodResourceDes
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
         sb.append("\t Declaring class: ").append(declaringClass).append("\n");
         sb.append("\t Method name: ").append(methodName).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());
         return sb.toString();
     }

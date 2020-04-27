@@ -116,14 +116,14 @@ public class PythonMirror extends PipedMirror {
         cmd.append(context.getStreamingMasterName()).append(TOKEN_SEP);
         cmd.append(context.getStreamingMasterPort()).append(TOKEN_SEP);
         cmd.append(this.size).append(TOKEN_SEP);
-        String computePipes = this.basePipePath + "compute";
+        String executorPipes = this.basePipePath + "executor";
 
         for (int i = 0; i < this.size; ++i) {
-            cmd.append(computePipes).append(i).append(".outbound").append(TOKEN_SEP);
+            cmd.append(executorPipes).append(i).append(".outbound").append(TOKEN_SEP);
         }
 
         for (int i = 0; i < this.size; ++i) {
-            cmd.append(computePipes).append(i).append(".inbound").append(TOKEN_SEP);
+            cmd.append(executorPipes).append(i).append(".inbound").append(TOKEN_SEP);
         }
 
         cmd.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
@@ -161,8 +161,16 @@ public class PythonMirror extends PipedMirror {
         String workingDir = super.getPBWorkingDir(context);
         if (Tracer.isActivated()) {
             workingDir += "python";
-            if (!new File(workingDir).mkdirs()) {
-                ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
+            File wdpath = new File(workingDir);
+            if (!wdpath.exists()) {
+                if (!wdpath.mkdirs()) {
+                    ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
+                }
+            } else {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(
+                        "Working directorty for python trace files: " + workingDir + " already exists!.. Skipping!");
+                }
             }
         }
         return workingDir;

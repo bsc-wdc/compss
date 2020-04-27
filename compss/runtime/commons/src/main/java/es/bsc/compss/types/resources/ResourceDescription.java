@@ -144,4 +144,11 @@ public abstract class ResourceDescription implements Externalizable {
      * @return A string containing the dynamic description of the resource.
      */
     public abstract String getDynamicDescription();
+
+    /**
+     * Returns whether a method uses CPU or not.
+     * 
+     * @return true if the method uses CPUs, false otherwise.
+     */
+    public abstract boolean usesCPUs();
 }

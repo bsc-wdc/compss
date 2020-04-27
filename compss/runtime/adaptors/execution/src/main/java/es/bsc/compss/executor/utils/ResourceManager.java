@@ -142,6 +142,7 @@ public class ResourceManager {
         int cpus;
         int gpus;
         int fpgas;
+        int ios = 0;
         MethodResourceDescription mrd;
         try {
             mrd = (MethodResourceDescription) rd;

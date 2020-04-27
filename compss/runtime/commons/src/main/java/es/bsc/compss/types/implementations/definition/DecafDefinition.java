@@ -57,6 +57,7 @@ public class DecafDefinition extends ImplementationDefinition<MethodResourceDesc
         StringBuilder sb = new StringBuilder();
         sb.append("DECAF Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Decaf script: ").append(dfScript).append("\n");
         sb.append("\t Decaf executor: ").append(dfExecutor).append("\n");
         sb.append("\t Decaf lib: ").append(dfLib).append("\n");

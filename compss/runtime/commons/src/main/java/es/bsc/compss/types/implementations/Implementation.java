@@ -34,6 +34,7 @@ public abstract class Implementation implements Externalizable {
     protected Integer coreId;
     protected Integer implementationId;
     protected String signature;
+    protected boolean io;
     protected WorkerResourceDescription requirements;
 
 
@@ -49,7 +50,7 @@ public abstract class Implementation implements Externalizable {
      *
      * @param coreId Core Id.
      * @param implementationId Implementation Id.
-     * @param signature Signature of the implementation
+     * @param signature Signature of the implementation.
      * @param requirements Implementation requirements.
      */
     public Implementation(Integer coreId, Integer implementationId, String signature,
@@ -59,6 +60,11 @@ public abstract class Implementation implements Externalizable {
         this.implementationId = implementationId;
         this.signature = signature;
         this.requirements = requirements;
+        if (requirements != null) {
+            this.io = !requirements.usesCPUs();
+        } else {
+            this.io = false;
+        }
     }
 
     /**
@@ -86,6 +92,15 @@ public abstract class Implementation implements Externalizable {
      */
     public String getSignature() {
         return signature;
+    }
+
+    /**
+     * Returns whether the implementation is IO or not.
+     *
+     * @return true if the implementation is IO, false otherwise.
+     */
+    public boolean isIO() {
+        return this.io;
     }
 
     /**
@@ -117,6 +132,7 @@ public abstract class Implementation implements Externalizable {
         this.coreId = (Integer) in.readObject();
         this.implementationId = (Integer) in.readObject();
         this.signature = in.readUTF();
+        this.io = (boolean) in.readObject();
     }
 
     @Override
@@ -124,6 +140,7 @@ public abstract class Implementation implements Externalizable {
         out.writeObject(this.coreId);
         out.writeObject(this.implementationId);
         out.writeUTF(signature);
+        out.writeObject(this.io);
     }
 
 }

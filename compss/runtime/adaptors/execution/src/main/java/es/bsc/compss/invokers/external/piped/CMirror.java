@@ -64,15 +64,15 @@ public class CMirror extends PipedMirror {
 
         cmd.append(installDir).append(PIPER_SCRIPT_RELATIVE_PATH).append(C_PIPER).append(TOKEN_SEP);
 
-        String computePipes = basePipePath + "compute";
+        String executorPipes = basePipePath + "executor";
         cmd.append(size).append(TOKEN_SEP);
         for (int i = 0; i < size; ++i) {
-            cmd.append(computePipes).append(i).append(".outbound").append(TOKEN_SEP);
+            cmd.append(executorPipes).append(i).append(".outbound").append(TOKEN_SEP);
         }
 
         cmd.append(size).append(TOKEN_SEP);
         for (int i = 0; i < size; ++i) {
-            cmd.append(computePipes).append(i).append(".inbound").append(TOKEN_SEP);
+            cmd.append(executorPipes).append(i).append(".inbound").append(TOKEN_SEP);
         }
         cmd.append(pipe.getOutboundPipe()).append(TOKEN_SEP);
         cmd.append(pipe.getInboundPipe());

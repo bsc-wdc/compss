@@ -65,6 +65,13 @@ public @interface Service {
     String port();
 
     /**
+     * Returns Whether task is IO.
+     * 
+     * @return Whether task is IO.
+     */
+    boolean isIO() default false;
+
+    /**
      * Returns the operation name of the Service.
      * 
      * @return the operation name of the Service.

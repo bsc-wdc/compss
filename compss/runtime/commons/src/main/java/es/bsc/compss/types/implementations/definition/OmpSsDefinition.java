@@ -52,6 +52,7 @@ public class OmpSsDefinition extends ImplementationDefinition<MethodResourceDesc
         sb.append("OmpSs Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
         sb.append("\t Binary: ").append(binary).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Working directory: ").append(workingDir).append("\n");
         sb.append("\t Fail by EV: ").append(this.failByEV).append("\n");
         sb.append("\t Constraints: ").append(this.getConstraints());

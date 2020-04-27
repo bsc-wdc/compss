@@ -1,6 +1,6 @@
 #!/bin/bash
 
-  NUM_PARAMS=34
+  NUM_PARAMS=35
 
   ######################
   # INTERNAL FUNCTIONS
@@ -91,26 +91,27 @@
     cusCPU=${9}
     cusGPU=${10}
     cusFPGA=${11}
-    lot=${15}
-    appUuid=${16}
-    lang=${17}
-    workingDir=${18}
-    installDir=${19}
-    appDirNW=${20}
-    libPathNW=${21}
-    cpNW=${22}
-    pythonpath=${23}
-    tracing=${24}
-    extraeFile=${25}
-    hostId=${26}
-    storageConf=${27}
-    execType=${28}
-    persistentBinding=${29}
-    pythonInterpreter=${30}
-    pythonVersion=${31}
-    pythonVirtualEnvironment=${32}
-    pythonPropagateVirtualEnvironment=${33}
-    pythonMpiWorker=${34}
+    ioExec=${12}
+    lot=${16}
+    appUuid=${17}
+    lang=${18}
+    workingDir=${19}
+    installDir=${20}
+    appDirNW=${21}
+    libPathNW=${22}
+    cpNW=${23}
+    pythonpath=${24}
+    tracing=${25}
+    extraeFile=${26}
+    hostId=${27}
+    storageConf=${28}
+    execType=${29}
+    persistentBinding=${30}
+    pythonInterpreter=${31}
+    pythonVersion=${32}
+    pythonVirtualEnvironment=${33}
+    pythonPropagateVirtualEnvironment=${34}
+    pythonMpiWorker=${35}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"

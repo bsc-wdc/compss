@@ -20,6 +20,7 @@ DEFAULT_GPU_AFFINITY=${AFFINITY_AUTOMATIC} # disabled, automatic, user string
 DEFAULT_FPGA_AFFINITY=${AFFINITY_AUTOMATIC} # disabled, automatic, user string
 
 DEFAULT_FPGA_REPROGRAM=""
+DEFAULT_IO_EXECUTORS=0
 
 #----------------------------------------------
 # ERROR MESSAGES
@@ -59,6 +60,10 @@ check_worker_setup () {
     worker_fpga_affinity=${DEFAULT_FPGA_AFFINITY}
   fi
 
+  if [ -z "${worker_io_executors}" ]; then
+    worker_io_executors=${DEFAULT_IO_EXECUTORS}
+  fi
+
   # Accelerators
   if [ -z "${fpga_prog}" ]; then
     fpga_prog=${DEFAULT_FPGA_REPROGRAM}
@@ -80,6 +85,7 @@ append_worker_jvm_options_to_file() {
 -Dcompss.worker.gpu_affinity=${worker_gpu_affinity}
 -Dcompss.worker.fpga_affinity=${worker_fpga_affinity}
 -Dcompss.worker.fpga_reprogram=${fpga_prog}
+-Dcompss.worker.io_executors=${worker_io_executors}
 EOT
 }
 

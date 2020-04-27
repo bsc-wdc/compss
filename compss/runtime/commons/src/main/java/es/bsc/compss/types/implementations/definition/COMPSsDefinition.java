@@ -57,6 +57,7 @@ public class COMPSsDefinition extends ImplementationDefinition<MethodResourceDes
         StringBuilder sb = new StringBuilder();
         sb.append("COMPSs Implementation \n");
         sb.append("\t Signature: ").append(this.getSignature()).append("\n");
+        sb.append("\t IO: ").append(!this.getConstraints().usesCPUs()).append("\n");
         sb.append("\t Flags: ").append(this.flags).append("\n");
         sb.append("\t Application name: ").append(this.appName).append("\n");
         sb.append("\t Worker in Master: ").append(this.workerInMaster).append("\n");

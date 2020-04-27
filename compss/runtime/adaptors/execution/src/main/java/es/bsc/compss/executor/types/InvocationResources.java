@@ -28,7 +28,7 @@ public class InvocationResources {
      * 
      * @param cpus Assigned CPUs array
      * @param gpus Assigned GPUs array
-     * @param fpgas Assigned FPGAs arrays
+     * @param fpgas Assigned FPGAs array
      */
     public InvocationResources(int[] cpus, int[] gpus, int[] fpgas) {
         this.cpus = cpus;
@@ -47,5 +47,4 @@ public class InvocationResources {
     public int[] getAssignedFPGAs() {
         return this.fpgas;
     }
-
 }

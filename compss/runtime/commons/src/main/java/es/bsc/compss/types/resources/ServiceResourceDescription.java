@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.apache.commons.lang.NotImplementedException;
+
 
 public class ServiceResourceDescription extends WorkerResourceDescription {
 
@@ -162,5 +164,10 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     @Override
     public String getDynamicDescription() {
         return "Connections:" + this.connections;
+    }
+
+    @Override
+    public boolean usesCPUs() {
+        return false;
     }
 }

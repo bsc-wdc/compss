@@ -560,6 +560,7 @@ def register_ce(core_element):
     impl_signature = core_element.get_impl_signature()
     impl_constraints = core_element.get_impl_constraints()
     impl_type = core_element.get_impl_type()
+    impl_io = str(core_element.get_impl_io())
     impl_type_args = core_element.get_impl_type_args()
 
     if __debug__:
@@ -590,6 +591,7 @@ def register_ce(core_element):
                                  impl_signature,
                                  impl_constraints_str,
                                  impl_type,
+                                 impl_io,
                                  impl_type_args)
     if __debug__:
         logger.debug("CE with signature %s registered." % ce_signature)

@@ -574,13 +574,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
      */
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints,
-        String implType, String... implTypeArgs) {
+        String implType, String implIO, String... implTypeArgs) {
 
         LOGGER.info("Registering CoreElement " + coreElementSignature);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("\t - Implementation: " + implSignature);
             LOGGER.debug("\t - Constraints   : " + implConstraints);
             LOGGER.debug("\t - Type          : " + implType);
+            LOGGER.debug("\t - I/O            : " + implIO);
             LOGGER.debug("\t - ImplTypeArgs  : ");
             for (String implTypeArg : implTypeArgs) {
                 LOGGER.debug("\t\t Arg: " + implTypeArg);
@@ -588,6 +589,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI, FatalErrorHa
         }
 
         MethodResourceDescription mrd = new MethodResourceDescription(implConstraints);
+        boolean implisIO = (implIO.compareTo("True") == 0);
+
+        if (implisIO) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Nulling computing resources for I/O task: " + implSignature);
+            }
+            mrd.setIOResources();
+        }
 
         CoreElementDefinition ced = new CoreElementDefinition();
         ced.setCeSignature(coreElementSignature);

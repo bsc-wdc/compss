@@ -103,6 +103,7 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
         sb.append("[BINARY=").append(binary);
+        sb.append(",IO=").append(this.isIO());
         sb.append("]");
 
         return sb.toString();

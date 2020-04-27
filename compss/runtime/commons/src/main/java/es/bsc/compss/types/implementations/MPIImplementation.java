@@ -140,6 +140,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         sb.append("[MPI RUNNER=").append(this.mpiRunner);
         sb.append(", MPI_FLAGS=").append(this.mpiFlags);
         sb.append(", BINARY=").append(this.binary);
+        sb.append(", IO=").append(this.isIO());
         sb.append("]");
 
         return sb.toString();

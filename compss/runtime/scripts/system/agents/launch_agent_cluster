@@ -19,13 +19,17 @@ get_topology_plain() {
   shift 1
   local workers="$@"
 
-  CHILD_NODES=$(
-    for blade in ${@}; do
-      if [ "${blade}" != "${master}" ]; then
-        echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${storage_bw_per_node} ${max_tasks_per_node}";
-      fi
-    done
-  )
+  if [ "${HOSTNAME}" == "${MASTER}" ]; then
+    CHILD_NODES=$(
+      for blade in ${@}; do
+        if [ "${blade}" != "${MASTER}" ]; then
+          echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${storage_bw_per_node} ${max_tasks_per_node}";
+        fi
+      done
+    )
+  else
+    CHILD_NODES=""
+  fi
 }
 
 get_topology_tree() {
@@ -295,7 +299,7 @@ worker_install_dir=${2}
 max_tasks_per_node=${3}
 shift 3
 
-"get_topology_${agents_hierarchy}" "${masterName}" ${worker_nodes}
+"get_topology_${agents_hierarchy}" "${MASTER}" ${worker_nodes}
 
 echo "--------${HOSTNAME}--------" >"${log_dir}/INFO"
 echo "VARIABLES" >>"${log_dir}/INFO"

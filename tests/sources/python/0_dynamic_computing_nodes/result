@@ -57,7 +57,7 @@
   cns=$(grep "COMPSS_NUM_NODES" "${target_log_folder}"/jobs/job?_NEW.out | awk '{ print $NF }' | sort | tr "\\n" " ")
   expected_cns="1 2 2 2 2 2 4 "
   if [ "${cns}" != "${expected_cns}" ]; then
-    echo "ERROR: Assigned computing_nodes are different than expected." | tee -a "${output_file}"
+    echo "ERROR: Assigned processes are different than expected." | tee -a "${output_file}"
     echo "EXPECTED: ${expected_cns}" | tee -a "${output_file}"
     echo "GOT:      ${cns}" | tee -a "${output_file}"
     exit 1

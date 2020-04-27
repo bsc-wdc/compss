@@ -22,31 +22,31 @@ def default_cn():
     pass
 
 
-@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", computing_nodes=2)
+@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", processes="2", scale_by_cu=True)
 @task(returns=1)
 def static_int_cn():
     pass
 
 
-@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", computing_nodes="2")
+@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", processes="2", scale_by_cu=True)
 @task(returns=1)
 def static_str_cn():
     pass
 
 
-@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", computing_nodes="$CN")
+@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", processes="$CN", scale_by_cu=True)
 @task(returns=1)
 def dynamic_env_cn():
     pass
 
 
-@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", computing_nodes="${CN}")
+@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", processes="${CN}", scale_by_cu=True)
 @task(returns=1)
 def dynamic_env_cn():
     pass
 
 
-@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", computing_nodes="cn")
+@mpi(runner="mpirun", binary="${PATH_BINARY}/simple.sh", processes="cn", scale_by_cu=True)
 @task(returns=1)
 def dynamic_gv_cn():
     global cn

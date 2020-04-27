@@ -23,6 +23,7 @@ PyCOMPSs Dummy API
     This file defines the public PyCOMPSs API functions without functionality.
     It implements a dummy compss_open and compss_wait_on functions.
 """
+from os import path
 
 
 def compss_start():
@@ -49,8 +50,6 @@ def compss_file_exists(file_name):
     :param file_name: The file name to check
     :return: True if exists
     """
-    pass
-    from os import path
     return path.exists(file_name)
 
 

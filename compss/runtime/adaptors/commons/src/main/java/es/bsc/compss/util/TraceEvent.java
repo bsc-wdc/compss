@@ -32,7 +32,7 @@ public enum TraceEvent {
     TASK_RUNNING(11, Tracer.RUNTIME_EVENTS, "Task Running"), // Task running
     DELETE(12, Tracer.RUNTIME_EVENTS, "Delete File"), // Delete file
     WORKER_RECEIVED_NEW_TASK(13, Tracer.RUNTIME_EVENTS, "Received new task"), // New task at worker
-
+    
     // Access Processor Events
     DEBUG(17, Tracer.RUNTIME_EVENTS, "Access Processor: Debug"), // Debug
     ANALYSE_TASK(18, Tracer.RUNTIME_EVENTS, "Access Processor: Analyse task"), // Analyse task
@@ -56,6 +56,7 @@ public enum TraceEvent {
     DELETE_FILE(36, Tracer.RUNTIME_EVENTS, "Access Processor: Delete file"), // Delete file
     FINISH_ACCESS_FILE(37, Tracer.RUNTIME_EVENTS, "Access Processor: Finish acess to file"), // Finish access to file
     CANCEL_ALL_TASKS(56, Tracer.RUNTIME_EVENTS, "Acces Processor: Cancel all tasks"),
+    WAIT_FOR_CONCURRENT(57, Tracer.API_EVENTS, "Wait on concurrent")
 
     // Storage Events
     STORAGE_GETBYID(38, Tracer.STORAGE_TYPE, "getByID"), // Get By Id

@@ -81,6 +81,7 @@ class MPI(object):
                             SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()),
                             "@mpi")
+
             # Get the computing nodes: This parameter will have to go down
             # until execution when invoked.
             if 'processes' not in self.kwargs and \
@@ -122,8 +123,10 @@ class MPI(object):
                 else:
                     raise Exception("ERROR: Wrong processes value at" +
                                     " @mpi decorator.")
+
             if __debug__:
-                logger.debug("This MPI task will have " + str(processes) + " processes.")
+                logger.debug("This MPI task will have " +
+                             str(processes) + " processes.")
         else:
             pass
 
@@ -148,7 +151,8 @@ class MPI(object):
                 mod = inspect.getmodule(func)
                 self.module = mod.__name__  # not func.__module__
 
-                if self.module == '__main__' or self.module == 'pycompss.runtime.launch':
+                if self.module == '__main__' or \
+                        self.module == 'pycompss.runtime.launch':
                     # The module where the function is defined was run as
                     # __main__, so we need to find out the real module name.
 
@@ -183,7 +187,8 @@ class MPI(object):
                 if not self.registered:
                     self.registered = True
 
-                    # Update the core element information with the @mpi information
+                    # Update the core element information with the @mpi
+                    # information
                     if "binary" in self.kwargs:
                         binary = self.kwargs['binary']
                         cce.set_impl_type("MPI")
@@ -235,7 +240,10 @@ class MPI(object):
                     if binary == "[unassigned]":
                         impl_signature = "MPI."
                     else:
-                        impl_signature = 'MPI.' + str(self.kwargs['processes']) + "." + binary
+                        impl_signature = 'MPI.' + \
+                                         str(self.kwargs['processes']) + \
+                                         "." + \
+                                         binary
 
                     # Add information to CoreElement
                     cce.set_impl_signature(impl_signature)

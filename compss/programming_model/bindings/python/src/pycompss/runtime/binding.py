@@ -765,9 +765,9 @@ def synchronize(obj, mode):
 
     # Runtime can return a path or a PSCOId
     if compss_file.startswith('/'):
-        # If the real filename is null, then return None. The task that produces
-        # the output file may have been ignored or cancelled, so its result
-        # does not exist.
+        # If the real filename is null, then return None. The task that
+        # produces the output file may have been ignored or cancelled, so its
+        # result does not exist.
         real_file_name = compss_file.split('/')[-1]
         if real_file_name == 'null':
             print("WARNING: Could not retrieve the object " + str(file_name) +
@@ -837,15 +837,14 @@ def process_task(f, module_name, class_name, ftype, f_parameters, f_returns,
         path = module_name + '.' + class_name
 
     # Infer COMPSs types from real types, except for files
-    coll_objs_to_delete = _serialize_objects(f_parameters)
+    _serialize_objects(f_parameters)
 
     # Build values and COMPSs types and directions
     vtdsc = _build_values_types_directions(ftype,
                                            f_parameters,
                                            f_returns,
                                            f.__code_strings__)
-    values, names, compss_types, compss_directions, compss_streams, \
-    compss_prefixes, content_types = vtdsc  # noqa
+    values, names, compss_types, compss_directions, compss_streams, compss_prefixes, content_types = vtdsc  # noqa: E501
 
     # Get priority
     has_priority = task_kwargs['priority']
@@ -995,8 +994,7 @@ def _build_return_objects(f_returns):
                 fo = ret_value()
             except TypeError:
                 if __debug__:
-                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(
-                        ret_value))  # noqa
+                    logger.warning("Type {0} does not have an empty constructor, building generic future object".format(ret_value))  # noqa: E501
                 fo = Future()
         else:
             fo = Future()  # modules, functions, methods
@@ -1028,9 +1026,7 @@ def _build_return_objects(f_returns):
                     foe = v.object()
                 except TypeError:
                     if __debug__:
-                        logger.warning(
-                            "Type {0} does not have an empty constructor, building generic future object".format(
-                                v['Value']))  # noqa
+                        logger.warning("Type {0} does not have an empty constructor, building generic future object".format(v['Value']))  # noqa: E501
                     foe = Future()
             else:
                 foe = Future()  # modules, functions, methods
@@ -1080,6 +1076,7 @@ def _serialize_objects(f_parameters):
         if __debug__:
             logger.debug("Final type for parameter %s: %d" % (k, p.type))
 
+
 def _build_values_types_directions(ftype, f_parameters, f_returns,
                                    code_strings):
     """
@@ -1102,6 +1099,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
     compss_streams = []
     compss_prefixes = []
     content_types = list()
+    slf_name = None
 
     # Build the range of elements
     ra = list(f_parameters.keys())
@@ -1147,8 +1145,7 @@ def _build_values_types_directions(ftype, f_parameters, f_returns,
         names.append(result_names.pop(0))
         content_types.append(p.content_type)
 
-    return values, names, compss_types, compss_directions, compss_streams, \
-           compss_prefixes, content_types
+    return values, names, compss_types, compss_directions, compss_streams, compss_prefixes, content_types  # noqa: E501
 
 
 def _extract_parameter(param, code_strings, collection_depth=0):
@@ -1221,7 +1218,8 @@ def _extract_parameter(param, code_strings, collection_depth=0):
         #     typeN IdN pyTypeN
         _class_name = str(param.object.__class__.__name__)
         con_type = content_type_format.format("collection", _class_name)
-        value = "{} {} {}".format(get_object_id(param.object), len(param.object), con_type)
+        value = "{} {} {}".format(get_object_id(param.object),
+                                  len(param.object), con_type)
         pop_object_id(param.object)
         typ = TYPE.COLLECTION
         for (i, x) in enumerate(param.object):
@@ -1381,8 +1379,8 @@ def _serialize_object_into_file(name, p):
                     p.object = list(map(synchronize,
                                         p.object,
                                         [mode] * len(p.object)))
-            _skip_file_creation = ((p.direction == DIRECTION.OUT)
-                                   and p.type != TYPE.EXTERNAL_STREAM)
+            _skip_file_creation = (p.direction == DIRECTION.OUT and
+                                   p.type != TYPE.EXTERNAL_STREAM)
             _turn_into_file(name, p, skip_creation=_skip_file_creation)
         except SerializerException:
             import sys

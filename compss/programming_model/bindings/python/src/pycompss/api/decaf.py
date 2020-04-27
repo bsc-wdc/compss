@@ -198,7 +198,7 @@ class Decaf(object):
                         df_lib = self.kwargs['dfLib']
                     else:
                         df_lib = '[unassigned]'  # Empty or '[unassigned]'
-                        
+
                     if 'fail_by_exit_value' in self.kwargs:
                         fail_by_ev = self.kwargs['fail_by_exit_value']
                         if isinstance(fail_by_ev, bool):
@@ -209,11 +209,11 @@ class Decaf(object):
                         elif isinstance(fail_by_ev, str):
                             fail_by_ev_str = fail_by_ev
                         else:
-                            raise Exception("Incorrect format for fail_by_exit_value property. " +
-                                            " It should be boolean or an environment variable")
-                    else :
+                            raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
+                                            "It should be boolean or an environment variable")  # noqa: E501
+                    else:
                         fail_by_ev_str = 'false'
-                    
+
                     impl_signature = 'DECAF.' + df_script
                     cce.set_impl_signature(impl_signature)
                     impl_args = [df_script,

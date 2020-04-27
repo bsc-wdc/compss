@@ -207,7 +207,7 @@ class COMPSs(object):
                         working_dir = self.kwargs['workingDir']
                     else:
                         working_dir = '[unassigned]'  # Empty or '[unassigned]'
-                    
+
                     if 'fail_by_exit_value' in self.kwargs:
                         fail_by_ev = self.kwargs['fail_by_exit_value']
                         if isinstance(fail_by_ev, bool):
@@ -218,9 +218,9 @@ class COMPSs(object):
                         elif isinstance(fail_by_ev, str):
                             fail_by_ev_str = fail_by_ev
                         else:
-                            raise Exception("Incorrect format for fail_by_exit_value property. " +
-                                            " It should be boolean or an environment variable")
-                    else :
+                            raise Exception("Incorrect format for fail_by_exit_value property. " +  # noqa: E501
+                                            "It should be boolean or an environment variable")  # noqa: E501
+                    else:
                         fail_by_ev_str = 'false'
 
                     impl_signature = 'COMPSs.' + app_name

@@ -195,8 +195,14 @@ def get_input_params(num_params, logger, args):
             logger.debug("\t * Content Type: %r" % p_c_type)
             logger.debug("\t * Value: %r" % p_value)
 
-        task_param, offset = build_task_parameter(p_type, p_stream, p_prefix,
-                                                  p_name, p_value, p_c_type, args, pos)
+        task_param, offset = build_task_parameter(p_type,
+                                                  p_stream,
+                                                  p_prefix,
+                                                  p_name,
+                                                  p_value,
+                                                  p_c_type,
+                                                  args,
+                                                  pos)
         ret.append(task_param)
         pos += offset + 6
 
@@ -271,7 +277,7 @@ def task_execution(logger, process_name, module, method_name, time_out,
     except COMPSsException as compss_exception:
         logger.exception("COMPSS EXCEPTION IN %s" % process_name)
         return_message = "No message"
-        if (compss_exception.message != None):
+        if compss_exception.message is not None:
             return_message = compss_exception.message
         return task_returns(2,
                             new_types,
@@ -555,7 +561,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
             klass = getattr(module, class_name)
         except Exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            lines = traceback.format_exception(exc_type,
+                                               exc_value,
+                                               exc_traceback)
             logger.exception("EXCEPTION IMPORTING MODULE IN %s" % process_name)
             logger.exception(''.join(line for line in lines))
             return 1, [], [], False, None
@@ -587,12 +595,14 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                     file_name = self_elem.file_name.split(':')[-1]
                     if __debug__:
                         logger.debug("Deserialize self from file.")
-                    try:    
+                    try:
                         obj = deserialize_from_file(file_name)
                     except Exception:
                         exc_type, exc_value, exc_traceback = sys.exc_info()
-                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                        logger.exception("EXCEPTION DESERIALIZING SELF IN %s" % process_name)
+                        lines = traceback.format_exception(exc_type,
+                                                           exc_value,
+                                                           exc_traceback)
+                        logger.exception("EXCEPTION DESERIALIZING SELF IN %s" % process_name)  # noqa: E501
                         logger.exception(''.join(line for line in lines))
                         return 1, [], [], False, None
                     if __debug__:
@@ -629,8 +639,9 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
             # within the task decorator, the task_execution returns the value
             # of target_direction in order to know here if self has to be
             # serialized. This solution avoids to use inspect.
-            if target_direction != None and (target_direction.direction == parameter.DIRECTION.INOUT or \
-                    target_direction.direction == parameter.DIRECTION.COMMUTATIVE ) :  # noqa: E501
+            if target_direction is not None and \
+                    (target_direction.direction == parameter.DIRECTION.INOUT or
+                     target_direction.direction == parameter.DIRECTION.COMMUTATIVE):  # noqa: E501
                 if is_psco(obj):
                     # There is no explicit update if self is a PSCO.
                     # Consequently, the changes on the PSCO must have been
@@ -644,12 +655,14 @@ def execute_task(process_name, storage_conf, params, tracing, logger,
                     if __debug__:
                         logger.debug("Serializing self to file: %s" %
                                      file_name)
-                    try:    
+                    try:
                         serialize_to_file(obj, file_name)
                     except:
                         exc_type, exc_value, exc_traceback = sys.exc_info()
-                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                        logger.exception("EXCEPTION SERIALIZING SELF IN %s" % process_name)
+                        lines = traceback.format_exception(exc_type,
+                                                           exc_value,
+                                                           exc_traceback)
+                        logger.exception("EXCEPTION SERIALIZING SELF IN %s" % process_name)  # noqa: E501
                         logger.exception(''.join(line for line in lines))
                         return 1, new_types, new_values, timed_out, except_msg
                     if __debug__:

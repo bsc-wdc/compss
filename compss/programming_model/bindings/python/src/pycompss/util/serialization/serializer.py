@@ -203,9 +203,9 @@ def serialize_to_file_mpienv(obj, file_name, rank_zero_reduce):
     if rank_zero_reduce:
         obj = MPI.COMM_WORLD.reduce([obj], root=0)
         if MPI.COMM_WORLD.rank == 0:
-           serialize_to_file(obj, file_name)
+            serialize_to_file(obj, file_name)
     else:
-        serialize_to_file(obj, file_name)		
+        serialize_to_file(obj, file_name)
 
 
 def serialize_to_string(obj):

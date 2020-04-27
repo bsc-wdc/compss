@@ -846,7 +846,7 @@ class Task(object):
                     num_rets = self.user_function.__globals__.get(_returns)
                 except AttributeError:
                     # This is a numba jit declared task
-                    num_rets = self.user_function.py_func.__globals__.get(_returns)
+                    num_rets = self.user_function.py_func.__globals__.get(_returns)  # noqa: E501
             # Construct hidden multi-return
             if num_rets > 1:
                 to_return = [tuple([]) for _ in range(num_rets)]
@@ -1191,7 +1191,8 @@ class Task(object):
 
     def is_parameter_file_collection(self, name):
         """
-        Given the name of a parameter, determine if it is an file collection or not
+        Given the name of a parameter, determine if it is an file collection
+        or not
 
         :param name: Name of the parameter
         :return: True if the parameter is a file collection
@@ -1261,7 +1262,7 @@ class Task(object):
                 _col_dep = _dec_arg.depth if _dec_arg else depth
 
                 for (i, line) in enumerate(open(col_f_name, 'r')):
-                    data_type, content_file, content_type = line.strip().split()
+                    data_type, content_file, content_type = line.strip().split()  # noqa: E501
                     # Same naming convention as in COMPSsRuntimeImpl.java
                     sub_name = "%s.%d" % (arg.name, i)
                     if name_prefix:
@@ -1499,7 +1500,7 @@ class Task(object):
                     target_label = 'targetDirection'
                 else:
                     target_label = 'target_direction'
-                compss_exception.target_direction = self.decorator_arguments[target_label]
+                compss_exception.target_direction = self.decorator_arguments[target_label]  # noqa: E501
 
         # Reestablish the hook if it was disabled
         if restore_hook:
@@ -1561,10 +1562,11 @@ class Task(object):
             if not (_is_inout or _is_col_out):
                 continue
 
-            # Now it's 'INOUT' or 'COL_OUT' object param, serialize to a file
+            # Now it's 'INOUT' or 'COLLLECTION_OUT' object param, serialize
+            # to a file
             if arg.type == parameter.TYPE.COLLECTION:
                 # handle collections recursively
-                for (content, elem) in get_collection_objects(arg.content, arg):
+                for (content, elem) in get_collection_objects(arg.content, arg):  # noqa: E501
                     f_name = get_file_name(elem.file_name)
                     if python_mpi:
                         serialize_to_file_mpienv(content, f_name, False)

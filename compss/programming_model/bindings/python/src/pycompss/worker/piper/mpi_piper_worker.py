@@ -65,6 +65,7 @@ def shutdown_handler(signal, frame):
     else:
         print("[PYTHON EXECUTOR %s] Shutdown signal handler" % RANK)
 
+
 def user_signal_handler(signal, frame):
     """
     User signal handler (do not remove the parameters).
@@ -78,9 +79,11 @@ def user_signal_handler(signal, frame):
     else:
         print("[PYTHON EXECUTOR %s] Default user signal handler" % RANK)
 
+
 ######################
 # Main method
 ######################
+
 def compss_persistent_worker(config):
     """
     Persistent worker main function.
@@ -159,7 +162,8 @@ def compss_persistent_worker(config):
             elif line[0] == CANCEL_TASK_TAG:
                 in_pipe = line[1]
                 pid = PROCESSES.get(in_pipe)
-                logger.debug("[PYTHON WORKER] Signaling process with PID " + pid + " to cancel a task")
+                logger.debug("[PYTHON WORKER] Signaling process with PID " +
+                             pid + " to cancel a task")
                 kill(int(pid), signal.SIGUSR2)
 
             elif line[0] == PING_TAG:

@@ -100,18 +100,19 @@ if context.in_pycompss():
 
     def compss_file_exists(file_name):
         """
-        Check if a file exists. If it does not exist, it check 
+        Check if a file exists. If it does not exist, it check
         if file has been accessed before by calling the runtime.
 
         :param file_name: File name.
-        :return: True, either the file exists or has been accessed by the runtime.
+        :return: True, either the file exists or has been accessed by the
+                 runtime.
         """
         from os import path
         if not path.exists(file_name):
             return accessed_file(file_name)
         else:
             return True
-    
+
 
     def compss_open(file_name, mode='r'):
         """

@@ -59,16 +59,16 @@ class ODSPublisher(object):
         from kafka import KafkaProducer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
-        bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))
+        bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))  # noqa: E501
         bootstrap_server_port = str(bootstrap_server_info[1])
-        self.kafka_producer = KafkaProducer(bootstrap_servers=bootstrap_server_ip + ":" + bootstrap_server_port,
+        self.kafka_producer = KafkaProducer(bootstrap_servers=bootstrap_server_ip + ":" + bootstrap_server_port,  # noqa: E501
                                             acks="all",
                                             retries=0,
                                             batch_size=16384,
                                             # auto_commit_interval_ms=2,
                                             linger_ms=0,
-                                            # key_serializer="org.apache.kafka.common.serialization.StringSerializer",
-                                            # value_serializer="org.apache.kafka.common.serialization.StringSerializer",
+                                            # key_serializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
+                                            # value_serializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
                                             # block_on_buffer_full=True
                                             )
 
@@ -146,14 +146,14 @@ class ODSConsumer(object):
         from kafka import KafkaConsumer
 
         bootstrap_server_info = str(bootstrap_server).split(":")
-        bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))
+        bootstrap_server_ip = str(socket.gethostbyname(bootstrap_server_info[0]))  # noqa: E501
         bootstrap_server_port = str(bootstrap_server_info[1])
-        self.kafka_consumer = KafkaConsumer(bootstrap_servers=bootstrap_server_ip + ":" + bootstrap_server_port,
+        self.kafka_consumer = KafkaConsumer(bootstrap_servers=bootstrap_server_ip + ":" + bootstrap_server_port,  # noqa: E501
                                             enable_auto_commit=True,
                                             auto_commit_interval_ms=200,
                                             group_id=self.topic,
-                                            # key_deserializer="org.apache.kafka.common.serialization.StringSerializer",
-                                            # value_deserializer="org.apache.kafka.common.serialization.StringSerializer",
+                                            # key_deserializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
+                                            # value_deserializer="org.apache.kafka.common.serialization.StringSerializer",  # noqa: E501
                                             auto_offset_reset="earliest",
                                             session_timeout_ms=10000,
                                             fetch_min_bytes=1,
@@ -180,15 +180,15 @@ class ODSConsumer(object):
 
         import pickle
         new_messages = []
-        for tp, records in self.kafka_consumer.poll(timeout_ms=timeout).items():
+        for tp, records in self.kafka_consumer.poll(timeout_ms=timeout).items():  # noqa: E501
             for record in records:
                 if record.topic == self.topic:
                     deserialized_message = pickle.loads(record.value)
                     new_messages.append(deserialized_message)
                 else:
-                    logger.warn("Ignoring received message on unregistered topic " + str(record.topic))
+                    logger.warn("Ignoring received message on unregistered topic " + str(record.topic))  # noqa: E501
 
         if __debug__:
-            logger.debug("DONE Polling Messages (" + str(len(new_messages)) + " elements)")
+            logger.debug("DONE Polling Messages (" + str(len(new_messages)) + " elements)")  # noqa: E501
 
         return new_messages

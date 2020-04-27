@@ -65,7 +65,12 @@ def compss_worker(tracing, task_id, storage_conf, params):
     import pycompss.util.context as context
     context.set_pycompss_context(context.WORKER)
 
-    exit_code, new_types, new_values, timed_out, except_msg = execute_task("Task " + task_id, storage_conf, params, tracing, logger)
+    result = execute_task("Task " + task_id,
+                          storage_conf,
+                          params,
+                          tracing,
+                          logger)
+    exit_code, new_types, new_values, timed_out, except_msg = result
 
     if __debug__:
         logger.debug("Finishing Worker")

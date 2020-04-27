@@ -152,6 +152,7 @@ def load_loggers(debug, persistent_storage):
 ######################
 # Main method
 ######################
+
 def compss_persistent_worker(config):
     """
     Persistent worker main function.
@@ -249,7 +250,8 @@ def compss_persistent_worker(config):
                 in_pipe = line[1]
                 proc = PROCESSES.get(in_pipe)
                 pid = proc.pid
-                logger.debug("[PYTHON WORKER] Signaling process with PID " + str(pid) + " to cancel a task")
+                logger.debug("[PYTHON WORKER] Signaling process with PID " +
+                             str(pid) + " to cancel a task")
                 kill(pid, signal.SIGUSR2)
 
             elif line[0] == REMOVE_EXECUTOR_TAG:

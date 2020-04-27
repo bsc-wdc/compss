@@ -67,10 +67,10 @@ public abstract class WorkerStarterCommand implements StarterCommand {
 
     private static final boolean IS_IO_EXECUTORS_DEFINED =
         System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS) != null
-                      && !System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS).isEmpty();
+            && !System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS).isEmpty();
     protected static final String IO_EXECUTORS =
         IS_IO_EXECUTORS_DEFINED ? System.getProperty(COMPSsConstants.WORKER_IO_EXECUTORS) : "0";
-            
+
     private static final String WORKER_APPDIR_FROM_ENVIRONMENT =
         System.getProperty(COMPSsConstants.WORKER_APPDIR) != null
             && !System.getProperty(COMPSsConstants.WORKER_APPDIR).isEmpty()

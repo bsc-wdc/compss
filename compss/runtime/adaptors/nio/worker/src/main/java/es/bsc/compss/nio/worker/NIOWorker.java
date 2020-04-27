@@ -1001,7 +1001,7 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
             WORKER_LOGGER.debug("User defined GPU Map: " + gpuMap);
             WORKER_LOGGER.debug("User defined FPGA Map: " + fpgaMap);
             WORKER_LOGGER.debug("Limit Of Tasks: " + String.valueOf(limitOfTasks));
-            
+
             WORKER_LOGGER.debug("IO Executors: " + String.valueOf(ioExecNum));
 
             WORKER_LOGGER.debug("App uuid: " + appUuid);
@@ -1041,8 +1041,9 @@ public class NIOWorker extends NIOAgent implements InvocationContext, DataProvid
          * LAUNCH THE WORKER
          *************************************************************************************************************/
         NIOWorker nw = new NIOWorker(debug, maxSnd, maxRcv, workerIP, mName, mPort, streamingPort, computingUnitsCPU,
-            computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag, traceHost,
-            storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams, cParams);
+            computingUnitsGPU, computingUnitsFPGA, cpuMap, gpuMap, fpgaMap, limitOfTasks, ioExecNum, appUuid, traceFlag,
+            traceHost, storageConf, executionType, persistentC, workingDir, installDir, appDir, javaParams, pyParams,
+            cParams);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

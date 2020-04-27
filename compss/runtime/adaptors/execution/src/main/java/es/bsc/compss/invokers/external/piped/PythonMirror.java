@@ -162,14 +162,15 @@ public class PythonMirror extends PipedMirror {
         if (Tracer.isActivated()) {
             workingDir += "python";
             File wdpath = new File(workingDir);
-            if(!wdpath.exists()) {
-            	if (!wdpath.mkdirs()) {
-            		ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
-            	}
-            }else {
-            	if(LOGGER.isDebugEnabled()) {
-            		LOGGER.debug("Working directorty for python trace files: " + workingDir + " already exists!.. Skipping!");
-            	}
+            if (!wdpath.exists()) {
+                if (!wdpath.mkdirs()) {
+                    ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
+                }
+            } else {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(
+                        "Working directorty for python trace files: " + workingDir + " already exists!.. Skipping!");
+                }
             }
         }
         return workingDir;

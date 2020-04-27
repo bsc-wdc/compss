@@ -22,6 +22,7 @@ public class InvocationResources {
     private final int[] gpus;
     private final int[] fpgas;
 
+
     /**
      * Invocation resources constructor.
      * 

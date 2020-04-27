@@ -39,6 +39,7 @@ public class ResourceManager {
     private final ThreadBinder binderGPUs;
     private final ThreadBinder binderFPGAs;
 
+
     /**
      * Resource Manager constructor.
      * 
@@ -50,8 +51,8 @@ public class ResourceManager {
      * @param fpgaMap FPGA Mapping
      * @throws InvalidMapException Incorrect mapping specification
      */
-    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap) 
-    		throws InvalidMapException {
+    public ResourceManager(int cusCPU, String cpuMap, int cusGPU, String gpuMap, int cusFPGA, String fpgaMap)
+        throws InvalidMapException {
         // Instantiate CPU binders
         LOGGER.debug("Instantiate CPU Binder with " + cusCPU + " CUs");
 

@@ -709,7 +709,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public boolean usesCPUs() {
         return (!this.getProcessors().isEmpty() && this.getTotalCPUComputingUnits() != 0);
     }
-    
+
     /**
      * Returns the registered processors.
      *

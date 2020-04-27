@@ -25,6 +25,10 @@
                     <Name>max-connection-errors</Name>
                     <Value>5</Value>
                 </Property>
+                <Property>
+                    <Name>automatic-scaling</Name>
+                    <Value>false</Value>
+                </Property>
             </Properties>
             <Images>
                 <Image Name="image_1">

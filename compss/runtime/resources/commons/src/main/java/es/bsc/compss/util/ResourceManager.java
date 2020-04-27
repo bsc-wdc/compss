@@ -45,7 +45,6 @@ import es.bsc.compss.types.resources.updates.ResourceUpdate;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -614,20 +613,28 @@ public class ResourceManager {
      * @param numResources Number of resources to destroy.
      */
     public static void freeResources(int numResources) {
-        CloudProvider cp = getAvailableCloudProviders().iterator().next(); // first
-        if (cp != null) {
-            Iterator<CloudMethodWorker> it = cp.getHostedWorkers().iterator();
-            for (int i = 1; i <= numResources; ++i) {
-                CloudMethodWorker cmw = it.next(); // next
+        // Iterator for Cloud providers
+        Collection<CloudProvider> availableCloudProviders = getAvailableCloudProviders();
+        int n = 1;
+        for (CloudProvider cp : availableCloudProviders) {
+            for (CloudMethodWorker cmw : cp.getHostedWorkers()) {
                 if (cmw != null) {
+                    n = n + 1;
                     requestWorkerReduction(cmw, cmw.getDescription());
                     RUNTIME_LOGGER.info(
-                        "Submited request to destroy resources " + cmw.getName() + " (" + i + "/" + numResources + ")");
-                } else {
-                    RUNTIME_LOGGER
-                        .info("No remaining workers to destroy. Skipping request (" + i + "/" + numResources + ")");
+                        "Submited request to destroy resources " + cmw.getName() + " (" + n + "/" + numResources + ")");
+                }
+
+                // Stop if we have freed enough resources
+                if (n > numResources) {
+                    return;
                 }
             }
+        }
+
+        // Check if we have not freed enough resources
+        if (n <= numResources) {
+            RUNTIME_LOGGER.info("No remaining workers to destroy. Skipping the rest of requests");
         }
     }
 

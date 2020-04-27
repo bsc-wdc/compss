@@ -60,7 +60,11 @@ public abstract class Implementation implements Externalizable {
         this.implementationId = implementationId;
         this.signature = signature;
         this.requirements = requirements;
-        this.io = !requirements.usesCPUs();
+        if(requirements != null) {
+        	this.io = !requirements.usesCPUs();
+        }else {
+        	this.io = false;
+        }
     }
 
     /**

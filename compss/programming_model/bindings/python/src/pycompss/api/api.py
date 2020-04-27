@@ -294,6 +294,8 @@ else:
     def compss_stop():
         __dummy_compss_stop__()
 
+    def compss_file_exists(file_name):
+        return __dummy_compss_file_exists__(file_name)
 
     def compss_file_exists(file_name):
         return __dummy_compss_file_exists__(file_name)

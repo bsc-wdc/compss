@@ -42,6 +42,7 @@ def compss_stop():
     """
     pass
 
+
 def compss_file_exists(file_name):
     """
     Dummy compss_file_exists.
@@ -51,6 +52,7 @@ def compss_file_exists(file_name):
     pass
     from os import path
     return path.exists(file_name)
+
 
 def compss_open(file_name, mode='r'):
     """

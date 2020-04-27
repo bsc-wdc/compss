@@ -258,6 +258,8 @@ else:
         __dummy_compss_start__
     from pycompss.api.dummy.api import compss_stop as \
         __dummy_compss_stop__
+    from pycompss.api.dummy.api import compss_file_exists as \
+        __dummy_compss_file_exists__
     from pycompss.api.dummy.api import compss_open as \
         __dummy_compss_open__
     from pycompss.api.dummy.api import compss_delete_file as \
@@ -290,6 +292,10 @@ else:
 
     def compss_stop():
         __dummy_compss_stop__()
+
+
+    def compss_file_exists(file_name):
+        return __dummy_compss_file_exists__(file_name)
 
 
     def compss_open(file_name, mode='r'):

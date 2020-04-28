@@ -440,6 +440,25 @@ install_compss() {
   fi
   cd "${SCRIPT_DIR}"
 
+  # CHECKING PEP8 IN BINDING - only if pep8 is available (MUST be in the test infrastructure)
+  if [ "${pycompss}" == "true" ]; then
+    echo "- Checking PEP8 in Python Binding"
+    if command_exists "pep8" ; then
+      cd "${SOURCES_DIR}/compss/programming_model/bindings/python/src/pycompss/"
+      pep8 --exclude=util/translators,dds --statistics --count *
+      ev=$?
+      if [ $ev -ne 0 ]; then
+        echo "ERROR: Python binding PEP8 errors. Please, fix them and reinstall."
+        cd "${SCRIPT_DIR}"
+        exit 1
+      fi
+      echo "  - Python Binding format is OK."
+      cd "${SCRIPT_DIR}"
+    else
+      echo "WARNING: Could not check PEP8 format of Python Binding (pep8 not installed)."
+    fi
+  fi
+
   # COPY TRUNK
   echo "- Copy trunk to tmpdir"
   rm -rf "${TMP_DIR}"

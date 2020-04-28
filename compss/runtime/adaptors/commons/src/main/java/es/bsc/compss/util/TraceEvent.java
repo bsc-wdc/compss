@@ -31,11 +31,13 @@ public enum TraceEvent {
     GET_FILE(8, Tracer.API_EVENTS, "Waiting for get file"), // Get file
     GET_OBJECT(9, Tracer.API_EVENTS, "Waiting for get object"), // Get Object
     GET_DIRECTORY(58, Tracer.API_EVENTS, "Waiting for get Directory"), // Get Directory
-    TASK_RUNNING(11, Tracer.RUNTIME_EVENTS, "Task Running"), // Task running
     DELETE(12, Tracer.API_EVENTS, "Delete File"), // Delete file
+    WAIT_FOR_CONCURRENT(59, Tracer.API_EVENTS, "Wait on concurrent"),
+
+    TASK_RUNNING(11, Tracer.RUNTIME_EVENTS, "Task Running"), // Task running
     WORKER_RECEIVED_NEW_TASK(13, Tracer.RUNTIME_EVENTS, "Received new task"), // New task at worker
 
-    // Access Processor Events
+    // Access Processor Events which are not in the API
     DEBUG(17, Tracer.RUNTIME_EVENTS, "Access Processor: Debug"), // Debug
     ANALYSE_TASK(18, Tracer.RUNTIME_EVENTS, "Access Processor: Analyse task"), // Analyse task
     UPDATE_GRAPH(19, Tracer.RUNTIME_EVENTS, "Access Processor: Update graph"), // Update graph

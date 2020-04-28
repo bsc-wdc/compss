@@ -18,33 +18,26 @@
 # -*- coding: utf-8 -*-
 
 """
-PyCOMPSs API - Information
-==========================
-   Information about available resources and functions in PyCOMPSs
+PyCOMPSs Dummy API - Container
+===============================
+    This file contains the dummy class container used as decorator.
 """
 
-available_decorators = (
-    'binary',
-    'container',
-    'compss',
-    'constraint',
-    'decaf',
-    'implement',
-    'local',
-    'mpi',
-    'multinode',
-    'ompss',
-    'opencl',
-    'parallel',
-    'task'
-)
 
-non_worker_decorators = (
-    'binary',
-    'container',
-    'compss',
-    'decaf',
-    'mpi',
-    'ompss',
-    'opencl'
-)
+class Container(object):
+    """
+    Dummy Container class (decorator style)
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, f):
+        def wrapped_f(*args, **kwargs):
+            return f(*args, **kwargs)
+
+        return wrapped_f
+
+
+container = Container

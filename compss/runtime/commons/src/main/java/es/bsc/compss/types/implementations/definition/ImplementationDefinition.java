@@ -29,6 +29,7 @@ import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.PythonMPIImplementation;
 import es.bsc.compss.types.implementations.ServiceImplementation;
 import es.bsc.compss.types.implementations.TaskType;
+import es.bsc.compss.types.resources.BinaryContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.types.resources.ResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
@@ -84,6 +85,25 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                 throw new IllegalArgumentException("Unrecognised method type " + implType);
             }
             switch (mt) {
+
+                case CONTAINER:
+                    if (implTypeArgs.length != BinaryImplementation.NUM_PARAMS) {
+                        throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);
+                    }
+
+                    String binaryc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
+                    String binaryWorkingDirc = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
+                    boolean binaryfailByEVc = Boolean.parseBoolean(implTypeArgs[2]);
+                    BinaryContainerDescription containerc =
+                        new BinaryContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
+                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]));
+                    if (binaryc == null || binaryc.isEmpty()) {
+                        throw new IllegalArgumentException(
+                            "Empty binary annotation for BINARY method " + implSignature);
+                    }
+                    id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, binaryc, binaryWorkingDirc,
+                    		binaryfailByEVc, containerc, (MethodResourceDescription) implConstraints);
+                    break;
                 case METHOD:
                     if (implTypeArgs.length != MethodImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type METHOD on " + implSignature);
@@ -130,15 +150,20 @@ public abstract class ImplementationDefinition<T extends ResourceDescription> {
                     if (implTypeArgs.length != BinaryImplementation.NUM_PARAMS) {
                         throw new IllegalArgumentException("Incorrect parameters for type BINARY on " + implSignature);
                     }
+
                     String binary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                     String binaryWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
                     boolean binaryfailByEV = Boolean.parseBoolean(implTypeArgs[2]);
+                    BinaryContainerDescription container =
+                        new BinaryContainerDescription(EnvironmentLoader.loadFromEnvironment(implTypeArgs[3]),
+                            EnvironmentLoader.loadFromEnvironment(implTypeArgs[4]));
                     if (binary == null || binary.isEmpty()) {
                         throw new IllegalArgumentException(
                             "Empty binary annotation for BINARY method " + implSignature);
                     }
                     id = (ImplementationDefinition<T>) new BinaryDefinition(implSignature, binary, binaryWorkingDir,
-                        binaryfailByEV, (MethodResourceDescription) implConstraints);
+                        binaryfailByEV, container, (MethodResourceDescription) implConstraints);
+
                     break;
 
                 case MPI:

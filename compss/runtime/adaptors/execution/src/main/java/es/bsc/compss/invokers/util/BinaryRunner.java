@@ -35,6 +35,7 @@ import es.bsc.distrostreamlib.requests.CloseStreamRequest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Field;
@@ -392,6 +393,7 @@ public class BinaryRunner {
 
         // Prepare command working dir, environment and STD redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
+        outLog.println("[BINARY EXECUTION WRAPPER] CMD " + cmd[0]);
         builder.directory(taskSandboxWorkingDir);
 
         builder.environment().remove(Tracer.LD_PRELOAD);
@@ -539,7 +541,7 @@ public class BinaryRunner {
                     new StreamGobbler(process.getInputStream(), outLog, LogManager.getLogger(Loggers.WORKER));
                 outputGobbler.start();
             } else {
-                try (FileInputStream outputStream = new FileInputStream(fileOutPath)) {
+                try (InputStream outputStream = new FileInputStream(fileOutPath)) {
                     outputGobbler = new StreamGobbler(outputStream, outLog, LogManager.getLogger(Loggers.WORKER));
                     outputGobbler.start();
                 } catch (IOException ioe) {
@@ -559,7 +561,7 @@ public class BinaryRunner {
                     new StreamGobbler(process.getErrorStream(), errLog, LogManager.getLogger(Loggers.WORKER));
                 errorGobbler.start();
             } else {
-                try (FileInputStream errStream = new FileInputStream(fileErrPath)) {
+                try (InputStream errStream = new FileInputStream(fileErrPath)) {
                     errorGobbler = new StreamGobbler(errStream, errLog, LogManager.getLogger(Loggers.WORKER));
                     errorGobbler.start();
                 } catch (IOException ioe) {

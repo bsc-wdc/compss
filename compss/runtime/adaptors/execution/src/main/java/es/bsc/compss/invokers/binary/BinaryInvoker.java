@@ -28,6 +28,7 @@ import es.bsc.compss.types.execution.InvocationContext;
 import es.bsc.compss.types.execution.InvocationParam;
 import es.bsc.compss.types.execution.exceptions.JobExecutionException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
+import es.bsc.compss.types.resources.BinaryContainerDescription;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -37,9 +38,15 @@ import java.util.ArrayList;
 public class BinaryInvoker extends Invoker {
 
     private static final int NUM_BASE_BINARY_ARGS = 1;
+    private static final int NUM_BASE_DOCKER_ARGS = 7;
+    private static final int NUM_BASE_SINGULARITY_ARGS = 6;
+    private static final String DOCKER_ENGINE = "DOCKER";
+    private static final String SINGULARITY_ENGINE = "SINGULARITY";
+    private static final String UNASSIGNED_ENGINE = "[unassigned]";
 
     private final String binary;
     private final boolean failByEV;
+    private final BinaryContainerDescription container;
 
     private BinaryRunner br;
 
@@ -70,8 +77,11 @@ public class BinaryInvoker extends Invoker {
         this.binary = binaryImpl.getBinary();
         this.failByEV = binaryImpl.isFailByEV();
 
+
         // Internal binary runner
         this.br = null;
+
+        this.container = binaryImpl.getContainer();
     }
 
     @Override
@@ -117,16 +127,48 @@ public class BinaryInvoker extends Invoker {
             this.invocation.getTarget(), streamValues, this.pythonInterpreter);
 
         // Prepare command
-        String[] cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
-        cmd[0] = this.binary;
-        for (int i = 0; i < binaryParams.size(); ++i) {
-            cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);
+        String[] cmd = null;
+        switch (container.getEngine()) {
+            case DOCKER_ENGINE:
+                cmd = new String[NUM_BASE_DOCKER_ARGS + binaryParams.size()];
+                cmd[0] = "docker";
+                cmd[1] = "run";
+                cmd[2] = "--rm";
+                cmd[3] = "-v";
+                cmd[4] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
+                cmd[5] = container.getImage();
+                cmd[6] = this.binary;
+                for (int i = 0; i < binaryParams.size(); ++i) {
+                    cmd[NUM_BASE_DOCKER_ARGS + i] = binaryParams.get(i);
+                }
+                break;
+            case SINGULARITY_ENGINE:
+                cmd = new String[NUM_BASE_SINGULARITY_ARGS + binaryParams.size()];
+                cmd[0] = "singularity";
+                cmd[1] = "exec";
+                cmd[2] = "--bind";
+                cmd[3] = this.taskSandboxWorkingDir + ":" + this.taskSandboxWorkingDir;
+                cmd[4] = container.getImage();
+                cmd[5] = this.binary;
+                for (int i = 0; i < binaryParams.size(); ++i) {
+                    cmd[NUM_BASE_SINGULARITY_ARGS + i] = binaryParams.get(i);
+                }
+                break;
+            case UNASSIGNED_ENGINE:
+                // Prepare a simple binary command
+                cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
+                cmd[0] = this.binary;
+                for (int i = 0; i < binaryParams.size(); ++i) {
+                    cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);
+                }
+                break;
         }
 
         if (invocation.isDebugEnabled()) {
             PrintStream outLog = context.getThreadOutStream();
             outLog.println("");
             outLog.println("[BINARY INVOKER] Begin binary call to " + this.binary);
+            outLog.println("[BINARY INVOKER] " + this.container);
             outLog.println("[BINARY INVOKER] On WorkingDir : " + this.taskSandboxWorkingDir.getAbsolutePath());
             // Debug command
             outLog.print("[BINARY INVOKER] BINARY CMD: ");

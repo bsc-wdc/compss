@@ -80,7 +80,7 @@ public class CoreManager {
      */
     public static CoreElement registerNewCoreElement(CoreElementDefinition ced) {
         String ceSignature = ced.getCeSignature();
-
+        LOGGER.debug("ceSignature = " + ceSignature + "\n");
         // Check that the signature is valid
         if (ceSignature == null || ceSignature.isEmpty()) {
             LOGGER.warn(ERROR_INVALID_SIGNATURE);
@@ -89,11 +89,11 @@ public class CoreManager {
 
         // Check that the signature does not exist
         CoreElement coreElement = SIGNATURE_TO_CORE.get(ceSignature);
+
         if (coreElement == null) {
             coreElement = insertCoreElement(ceSignature);
         }
         for (ImplementationDefinition<?> implDef : ced.getImplementations()) {
-
             String implSignature = implDef.getSignature();
             if (implSignature != null && !implSignature.isEmpty()) {
                 boolean alreadyExisting = coreElement.addImplementation(implDef);

@@ -26,7 +26,9 @@ import es.bsc.compss.types.annotations.parameter.Direction;
 import es.bsc.compss.types.annotations.parameter.StdIOStream;
 import es.bsc.compss.types.annotations.parameter.Type;
 import es.bsc.compss.types.annotations.task.Binary;
+import es.bsc.compss.types.annotations.task.BinaryContainer;
 import es.bsc.compss.types.annotations.task.COMPSs;
+import es.bsc.compss.types.annotations.task.Container;
 import es.bsc.compss.types.annotations.task.Decaf;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
@@ -35,6 +37,7 @@ import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Binaries;
+import es.bsc.compss.types.annotations.task.repeatables.Containers;
 import es.bsc.compss.types.annotations.task.repeatables.Decafs;
 import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
@@ -52,6 +55,7 @@ import es.bsc.compss.types.implementations.OmpSsImplementation;
 import es.bsc.compss.types.implementations.OpenCLImplementation;
 import es.bsc.compss.types.implementations.TaskType;
 import es.bsc.compss.types.implementations.definition.ImplementationDefinition;
+import es.bsc.compss.types.resources.BinaryContainerDescription;
 import es.bsc.compss.types.resources.MethodResourceDescription;
 import es.bsc.compss.util.EnvironmentLoader;
 import es.bsc.compss.util.ErrorManager;
@@ -88,6 +92,7 @@ public class ITFParser {
 
         // Check registered methods
         for (java.lang.reflect.Method m : annotItfClass.getDeclaredMethods()) {
+            LOGGER.debug("Method = " + m);
             CoreElementDefinition ced = parseITFMethod(m);
             if (!ced.getImplementations().isEmpty()) {
                 updatedMethods.add(ced);
@@ -154,6 +159,8 @@ public class ITFParser {
                 && !annot.annotationType().getName().equals(Method.class.getName())
                 && !annot.annotationType().getName().equals(Service.class.getName())
                 && !annot.annotationType().getName().equals(Binary.class.getName())
+                && !annot.annotationType().getName().equals(Container.class.getName())
+                && !annot.annotationType().getName().equals(BinaryContainer.class.getName())
                 && !annot.annotationType().getName().equals(MPI.class.getName())
                 && !annot.annotationType().getName().equals(Decaf.class.getName())
                 && !annot.annotationType().getName().equals(COMPSs.class.getName())
@@ -164,6 +171,8 @@ public class ITFParser {
                 && !annot.annotationType().getName().equals(Methods.class.getName())
                 && !annot.annotationType().getName().equals(Services.class.getName())
                 && !annot.annotationType().getName().equals(Binaries.class.getName())
+                && !annot.annotationType().getName().equals(Containers.class.getName())
+                && !annot.annotationType().getName().equals(BinaryContainer.class.getName())
                 && !annot.annotationType().getName().equals(MPIs.class.getName())
                 && !annot.annotationType().getName().equals(Decafs.class.getName())
                 && !annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
@@ -190,6 +199,8 @@ public class ITFParser {
          */
         for (Annotation annot : m.getAnnotations()) {
             if (annot.annotationType().getName().equals(Binary.class.getName())
+                || annot.annotationType().getName().equals(Container.class.getName())
+                || annot.annotationType().getName().equals(BinaryContainer.class.getName())
                 || annot.annotationType().getName().equals(MPI.class.getName())
                 || annot.annotationType().getName().equals(Decaf.class.getName())
                 || annot.annotationType().getName().equals(COMPSs.class.getName())
@@ -198,6 +209,7 @@ public class ITFParser {
                 || annot.annotationType().getName().equals(OpenCL.class.getName())
                 // Repeatable annotations
                 || annot.annotationType().getName().equals(Binaries.class.getName())
+                || annot.annotationType().getName().equals(Containers.class.getName())
                 || annot.annotationType().getName().equals(MPIs.class.getName())
                 || annot.annotationType().getName().equals(Decafs.class.getName())
                 || annot.annotationType().getName().equals(MultiCOMPSs.class.getName())
@@ -274,7 +286,6 @@ public class ITFParser {
                 }
                 hasStreams = hasStreams || !par.stream().equals(StdIOStream.UNSPECIFIED);
                 hasPrefixes = hasPrefixes || !par.prefix().equals(Constants.PREFIX_EMPTY);
-
                 // Check parameter annotation (warnings and errors)
                 checkParameterAnnotation(m, par, i, hasNonNative);
             }
@@ -487,7 +498,7 @@ public class ITFParser {
          * SERVICE
          */
         for (Service serviceAnnot : m.getAnnotationsByType(Service.class)) {
-            // Services don't have constraints
+            // Services don't have constraints* Method method ls has 1 annotations
             LOGGER.debug("   * Processing @Service annotation");
 
             // Warning for ignoring streams
@@ -514,10 +525,57 @@ public class ITFParser {
         }
 
         /*
+         * CONTAINER
+         */
+        for (Container containerAnnot : m.getAnnotationsByType(Container.class)) {
+            String engine = EnvironmentLoader.loadFromEnvironment(containerAnnot.engine());
+            String image = EnvironmentLoader.loadFromEnvironment(containerAnnot.image());
+            String binaryC = EnvironmentLoader.loadFromEnvironment(containerAnnot.binary());
+            String hostDir = EnvironmentLoader.loadFromEnvironment(containerAnnot.workingDir());
+
+            if (image == null || image.isEmpty()) {
+                ErrorManager.error("Empty image annotation for method " + m.getName());
+            }
+            if (binaryC == null || binaryC.isEmpty()) {
+                ErrorManager.error("Empty binary annotation for method " + m.getName());
+            }
+
+            String binarySignature = calleeMethodSignature.toString() + LoaderUtils.CONTAINER_SIGNATURE;
+
+            // Load specific method constraints if present
+            MethodResourceDescription implConstraints = defaultConstraints;
+            if (containerAnnot.constraints() != null) {
+                implConstraints = new MethodResourceDescription(containerAnnot.constraints());
+                implConstraints.mergeMultiConstraints(defaultConstraints);
+            }
+
+            // Register service implementation
+            ImplementationDefinition<?> implDef = null;
+            try {
+                LOGGER.debug("Aqui empieza el try CONTAINER \n");
+                LOGGER.debug("MethodType.BINARY.toString() : " + MethodType.CONTAINER.toString() + "\n");
+                LOGGER.debug("binarySignature : " + binarySignature + "\n");
+                LOGGER.debug("implConstraints : " + implConstraints + "\n");
+                LOGGER.debug("binary : " + binaryC + "\n");
+                LOGGER.debug("workingDir : " + hostDir + "\n");
+                LOGGER.debug("container.getEngine() : " + engine + "\n");
+                LOGGER.debug("container.getImage() : " + image + "\n");
+                implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
+                    implConstraints, binaryC, hostDir, engine, image);
+                LOGGER.debug("implDef = " + implDef + "\n");
+                LOGGER.debug("Aqui muere el try CONTAINER \n");
+
+            } catch (Exception e) {
+                ErrorManager.error(e.getMessage());
+            }
+
+            ced.addImplementation(implDef);
+        }
+
+        /*
          * BINARY
          */
         for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
-            LOGGER.debug("   * Processing @Binary annotation");
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
             String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
             String failByEVstr = Boolean.toString(binaryAnnot.failByExitValue());
@@ -533,13 +591,30 @@ public class ITFParser {
                 implConstraints.mergeMultiConstraints(defaultConstraints);
             }
 
+            // Load specific method container if present
+            BinaryContainerDescription container = null;
+            if (binaryAnnot.container() != null) {
+                container =
+                    new BinaryContainerDescription(binaryAnnot.container().engine(), binaryAnnot.container().image());
+            }
+
             // Register service implementation
             ImplementationDefinition<?> implDef = null;
             try {
+                LOGGER.debug("Aqui empieza el try \n");
+                LOGGER.debug("MethodType.BINARY.toString() : " + MethodType.BINARY.toString() + "\n");
+                LOGGER.debug("binarySignature : " + binarySignature + "\n");
+                LOGGER.debug("implConstraints : " + implConstraints + "\n");
+                LOGGER.debug("binary : " + binary + "\n");
+                LOGGER.debug("workingDir : " + workingDir + "\n");
+                LOGGER.debug("container.getEngine() : " + container.getEngine() + "\n");
+                LOGGER.debug("container.getImage() : " + container.getImage() + "\n");
                 implDef = ImplementationDefinition.defineImplementation(MethodType.BINARY.toString(), binarySignature,
-                    implConstraints, binary, workingDir, failByEVstr);
+                    implConstraints, binary, workingDir, failByEVstr, container.getImage());
+                LOGGER.debug("implDef = " + implDef + "\n");
+                LOGGER.debug("Aqui muere el try \n");
             } catch (Exception e) {
-                ErrorManager.error(e.getMessage());
+                ErrorManager.error(e.getMessage(), e);
             }
 
             ced.addImplementation(implDef);

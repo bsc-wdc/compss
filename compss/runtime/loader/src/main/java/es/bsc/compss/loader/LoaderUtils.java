@@ -21,6 +21,7 @@ import es.bsc.compss.types.annotations.Constants;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.annotations.task.Binary;
 import es.bsc.compss.types.annotations.task.COMPSs;
+import es.bsc.compss.types.annotations.task.Container;
 import es.bsc.compss.types.annotations.task.Decaf;
 import es.bsc.compss.types.annotations.task.MPI;
 import es.bsc.compss.types.annotations.task.Method;
@@ -29,6 +30,7 @@ import es.bsc.compss.types.annotations.task.OmpSs;
 import es.bsc.compss.types.annotations.task.OpenCL;
 import es.bsc.compss.types.annotations.task.Service;
 import es.bsc.compss.types.annotations.task.repeatables.Binaries;
+import es.bsc.compss.types.annotations.task.repeatables.Containers;
 import es.bsc.compss.types.annotations.task.repeatables.Decafs;
 import es.bsc.compss.types.annotations.task.repeatables.MPIs;
 import es.bsc.compss.types.annotations.task.repeatables.Methods;
@@ -40,6 +42,7 @@ import es.bsc.compss.types.annotations.task.repeatables.Services;
 import es.bsc.compss.types.exceptions.NonInstantiableException;
 import es.bsc.compss.types.implementations.BinaryImplementation;
 import es.bsc.compss.types.implementations.COMPSsImplementation;
+import es.bsc.compss.types.implementations.ContainerImplementation;
 import es.bsc.compss.types.implementations.DecafImplementation;
 import es.bsc.compss.types.implementations.MPIImplementation;
 import es.bsc.compss.types.implementations.OmpSsImplementation;
@@ -60,6 +63,7 @@ public class LoaderUtils {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
 
+    public static final String CONTAINER_SIGNATURE = ContainerImplementation.SIGNATURE;
     public static final String BINARY_SIGNATURE = BinaryImplementation.SIGNATURE;
     public static final String MPI_SIGNATURE = MPIImplementation.SIGNATURE;
     public static final String DECAF_SIGNATURE = DecafImplementation.SIGNATURE;
@@ -118,6 +122,12 @@ public class LoaderUtils {
                 // SERVICE
                 Service remoteMethodAnnotation = remoteMethod.getAnnotation(Service.class);
                 if (isSelectedService(method, remoteMethod, remoteMethodAnnotation)) {
+                    return remoteMethod;
+                }
+            }
+            if (remoteMethod.isAnnotationPresent(Container.class)) {
+                // BINARY
+                if (isSelectedNonNativeMethod(method, remoteMethod, CONTAINER_SIGNATURE)) {
                     return remoteMethod;
                 }
             }
@@ -183,6 +193,12 @@ public class LoaderUtils {
                     if (isSelectedService(method, remoteMethod, remoteServiceAnnotation)) {
                         return remoteMethod;
                     }
+                }
+            }
+            if (remoteMethod.isAnnotationPresent(Containers.class)) {
+                // BINARIES
+                if (isSelectedNonNativeMethod(method, remoteMethod, CONTAINER_SIGNATURE)) {
+                    return remoteMethod;
                 }
             }
             if (remoteMethod.isAnnotationPresent(Binaries.class)) {

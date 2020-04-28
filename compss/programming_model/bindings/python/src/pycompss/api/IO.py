@@ -43,7 +43,7 @@ DEPRECATED_ARGUMENTS = {''}
 class IO(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
-    __call__ methods, useful on mpi task creation.
+    __call__ methods, useful on IO task creation.
     """
 
     def __init__(self, *args, **kwargs):

@@ -18,7 +18,7 @@ package es.bsc.compss.agent.rest;
 
 import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.rest.types.TaskProfile;
-import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.agent.types.ApplicationParameter;
 
 
 public class AppMainMonitor extends AppMonitor {
@@ -26,75 +26,87 @@ public class AppMainMonitor extends AppMonitor {
     private final TaskProfile profile;
 
 
-    public AppMainMonitor() {
-        super();
+    public AppMainMonitor(ApplicationParameter[] params) {
+        super(params);
+        this.profile = new TaskProfile();
+    }
+
+    public AppMainMonitor(ApplicationParameter[] args, ApplicationParameter target, ApplicationParameter[] results) {
+        super(args, target, results);
         this.profile = new TaskProfile();
     }
 
     @Override
     public void onCreation() {
+        super.onCreation();
         profile.created();
     }
 
     @Override
     public void onAccessesProcessed() {
+        super.onAccessesProcessed();
         profile.processedAccesses();
     }
 
     @Override
     public void onSchedule() {
+        super.onSchedule();
         profile.scheduled();
     }
 
     @Override
     public void onSubmission() {
+        super.onSubmission();
         profile.submitted();
     }
 
     @Override
-    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
-
-    }
-
-    @Override
     public void onAbortedExecution() {
+        super.onAbortedExecution();
         profile.finished();
     }
 
     @Override
     public void onErrorExecution() {
+        super.onAbortedExecution();
         profile.finished();
     }
 
     @Override
     public void onFailedExecution() {
+        super.onFailedExecution();
         profile.finished();
     }
 
     @Override
     public void onException() {
+        super.onException();
         profile.finished();
     }
 
     @Override
     public void onSuccesfulExecution() {
+        super.onSuccesfulExecution();
         profile.finished();
     }
 
     @Override
     public void onCancellation() {
+        super.onCancellation();
         profile.end();
         System.out.println("Main Job cancelled after " + profile.getTotalTime());
     }
 
     @Override
     public void onCompletion() {
+        super.onCompletion();
         profile.end();
         System.out.println("Main Job completed after " + profile.getTotalTime());
     }
 
     @Override
     public void onFailure() {
+        super.onFailure();
         profile.end();
         System.out.println("Main Job failed after " + profile.getTotalTime());
     }

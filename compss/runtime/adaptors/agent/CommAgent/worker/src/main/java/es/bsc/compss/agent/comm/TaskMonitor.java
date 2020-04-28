@@ -22,14 +22,11 @@ import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.comm.Comm;
-import es.bsc.compss.nio.NIOParam;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.types.annotations.parameter.DataType;
-import es.bsc.compss.types.data.LogicalData;
-import es.bsc.compss.types.data.location.ProtocolType;
-import es.bsc.compss.types.uri.SimpleURI;
 import java.util.LinkedList;
 
 
@@ -41,62 +38,40 @@ class TaskMonitor extends PrintMonitor {
     private static final TransferManager TM = CommAgentAdaptor.getTransferManager();
     private final CommResource orchestrator;
     private final CommTask task;
-    private final DataType[] paramTypes;
-    private final String[] paramLocations;
 
     private boolean successful;
 
 
-    public TaskMonitor(CommResource orchestrator, CommTask request) {
+    /**
+     * Constructs a new Task Monitor.
+     * 
+     * @param args Monitored execution's arguments
+     * @param target Monitored execution's target
+     * @param results Monitored execution's results
+     * @param orchestrator endpoint where to notify changes on the execution
+     * @param request Execution request
+     */
+    public TaskMonitor(ApplicationParameter[] args, ApplicationParameter target, ApplicationParameter[] results,
+        CommResource orchestrator, CommTask request) {
+        super(args, target, results);
         this.orchestrator = orchestrator;
         this.successful = false;
         this.task = request;
-        int argsCount = request.getParams().size();
-        int resultsCount = request.getResults().size();
-        int numParams = argsCount + resultsCount + (request.getTarget() != null ? 1 : 0);
-        this.paramTypes = new DataType[numParams];
-        this.paramLocations = new String[numParams];
     }
 
     @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
         super.valueGenerated(paramId, paramName, paramType, dataId, dataLocation);
-        this.paramTypes[paramId] = paramType;
-        if (paramType == DataType.OBJECT_T) {
-            LogicalData ld = Comm.getData(dataId);
-            if (ld.getPscoId() != null) {
-                this.paramTypes[paramId] = DataType.PSCO_T;
-                SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
-                this.paramLocations[paramId] = targetURI.toString();
-            } else {
-                this.paramTypes[paramId] = paramType;
-                this.paramLocations[paramId] = dataLocation.toString();
-            }
-        } else {
-            this.paramTypes[paramId] = paramType;
-            this.paramLocations[paramId] = dataLocation.toString();
-        }
-        NIOParam originalParam = obtainJobParameter(paramId);
-        String originalDataMgmtId = originalParam.getDataMgmtId();
-        if (dataId.compareTo(originalDataMgmtId) != 0) {
-            Comm.linkData(originalDataMgmtId, dataId);
-        }
-    }
-
-    private NIOParam obtainJobParameter(int paramId) {
-        int paramsCount = task.getParams().size();
-        if (paramId < paramsCount) {
-            return task.getParams().get(paramId);
-        }
-
-        paramId -= paramsCount;
-        if (task.getTarget() != null) {
-            if (paramId == 0) {
-                return task.getTarget();
-            }
-            paramId--;
-        }
-        return task.getResults().get(paramId);
+        /*
+         * this.paramTypes[paramId] = paramType; if (paramType == DataType.OBJECT_T) { LogicalData ld =
+         * Comm.getData(dataId); if (ld.getPscoId() != null) { this.paramTypes[paramId] = DataType.PSCO_T; SimpleURI
+         * targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
+         * this.paramLocations[paramId] = targetURI.toString(); } else { this.paramTypes[paramId] = paramType;
+         * this.paramLocations[paramId] = dataLocation.toString(); } } else { this.paramTypes[paramId] = paramType;
+         * this.paramLocations[paramId] = dataLocation.toString(); } NIOParam originalParam =
+         * obtainJobParameter(paramId); String originalDataMgmtId = originalParam.getDataMgmtId(); if
+         * (dataId.compareTo(originalDataMgmtId) != 0) { Comm.linkData(originalDataMgmtId, dataId); }
+         */
     }
 
     @Override
@@ -132,5 +107,6 @@ class TaskMonitor extends PrintMonitor {
         cmd = new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), null);
         c.sendCommand(cmd);
         c.finishConnection();
+        System.out.println(Comm.dataDump());
     }
 }

@@ -21,7 +21,6 @@ import es.bsc.compss.agent.Agent;
 import es.bsc.compss.agent.AgentException;
 import es.bsc.compss.agent.AgentInterface;
 import es.bsc.compss.agent.RESTAgentConfig;
-import es.bsc.compss.agent.RESTAgentConstants;
 import es.bsc.compss.agent.rest.types.ApplicationParameterImpl;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
@@ -330,7 +329,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         String className = request.getClassName();
         String methodName = request.getMethodName();
         ApplicationParameter[] params = request.getParams();
-        AppMainMonitor monitor = new AppMainMonitor();
+        AppMainMonitor monitor = new AppMainMonitor(params);
         long appId;
         try {
             appId = Agent.runMain(lang, ceiClass, className, methodName, params, null, new ApplicationParameter[0],
@@ -371,7 +370,7 @@ public class RESTAgent implements AgentInterface<RESTAgentConf> {
         if (hasResult) {
             numParams++;
         }
-        AppTaskMonitor monitor = new AppTaskMonitor(numParams, orchestrator);
+        AppTaskMonitor monitor = new AppTaskMonitor(arguments, target, results, orchestrator);
 
         try {
             appId = Agent.runTask(lang, className, methodName, arguments, target, results,

@@ -19,6 +19,7 @@ package es.bsc.compss.agent.rest;
 import es.bsc.compss.agent.AppMonitor;
 import es.bsc.compss.agent.rest.types.Orchestrator;
 import es.bsc.compss.agent.rest.types.messages.EndApplicationNotification;
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.comm.Comm;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
@@ -45,99 +46,62 @@ public class AppTaskMonitor extends AppMonitor {
     private static final Client CLIENT = ClientBuilder.newClient(new ClientConfig());
 
     private final Orchestrator orchestrator;
-    private final DataType[] paramTypes;
-    private final String[] paramLocations;
+
     private boolean successful;
 
 
     /**
      * Constructs a new AppTaskMonitor.
      *
-     * @param numParams number of parameters of the task to monitor.
+     * @param args Monitored execution's arguments
+     * @param target Monitored execution's target
+     * @param results Monitored execution's results
      * @param orchestrator orchestrator to notify any task status updates.
      */
-    public AppTaskMonitor(int numParams, Orchestrator orchestrator) {
-        super();
+    public AppTaskMonitor(ApplicationParameter[] args, ApplicationParameter target, ApplicationParameter[] results,
+        Orchestrator orchestrator) {
+        super(args, target, results);
         this.orchestrator = orchestrator;
         this.successful = false;
-        this.paramTypes = new DataType[numParams];
-        this.paramLocations = new String[numParams];
-    }
-
-    @Override
-    public void onCreation() {
-    }
-
-    @Override
-    public void onAccessesProcessed() {
-    }
-
-    @Override
-    public void onSchedule() {
-    }
-
-    @Override
-    public void onSubmission() {
     }
 
     @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
-        this.paramTypes[paramId] = paramType;
-        if (paramType == DataType.OBJECT_T) {
-            LogicalData ld = Comm.getData(dataId);
-            StubItf psco = (StubItf) ld.getValue();
-            psco.makePersistent(ld.getName());
-            this.paramTypes[paramId] = DataType.PSCO_T;
-            ld.setPscoId(psco.getID());
-            DataLocation outLoc = null;
-            try {
-                SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + psco.getID());
-                outLoc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-                this.paramLocations[paramId] = outLoc.toString();
-            } catch (Exception e) {
-                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dataId, e);
-            }
-        } else {
-            this.paramLocations[paramId] = dataLocation.toString();
-        }
-    }
-
-    @Override
-    public void onAbortedExecution() {
-    }
-
-    @Override
-    public void onErrorExecution() {
+        super.valueGenerated(paramId, paramName, paramType, dataId, dataLocation);
+        /*
+         * this.paramTypes[paramId] = paramType; if (paramType == DataType.OBJECT_T) { LogicalData ld =
+         * Comm.getData(dataId); StubItf psco = (StubItf) ld.getValue(); psco.makePersistent(ld.getName());
+         * this.paramTypes[paramId] = DataType.PSCO_T; ld.setPscoId(psco.getID()); DataLocation outLoc = null; try {
+         * SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + psco.getID()); outLoc =
+         * DataLocation.createLocation(Comm.getAppHost(), targetURI); this.paramLocations[paramId] = outLoc.toString();
+         * } catch (Exception e) { ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dataId, e); } } else {
+         * this.paramLocations[paramId] = dataLocation.toString(); }
+         */
     }
 
     @Override
     public void onFailedExecution() {
+        super.onFailedExecution();
         this.successful = false;
     }
 
     @Override
     public void onSuccesfulExecution() {
+        super.onSuccesfulExecution();
         this.successful = true;
     }
 
     @Override
-    public void onCancellation() {
-    }
-
-    @Override
-    public void onException() {
-    }
-
-    @Override
     public void onCompletion() {
+        super.onCompletion();
         if (this.orchestrator != null) {
             String masterId = this.orchestrator.getHost();
             String operation = this.orchestrator.getOperation();
             WebTarget target = CLIENT.target(masterId);
             WebTarget wt = target.path(operation);
             EndApplicationNotification ean = new EndApplicationNotification("" + getAppId(),
-                this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.paramTypes,
-                this.paramLocations);
+                this.successful ? JobEndStatus.OK : JobEndStatus.EXECUTION_FAILED, this.getParamTypes(),
+                this.getParamLocations());
 
             Response response = wt.request(MediaType.APPLICATION_JSON).put(Entity.xml(ean), Response.class);
             if (response.getStatusInfo().getStatusCode() != 200) {
@@ -146,8 +110,4 @@ public class AppTaskMonitor extends AppMonitor {
         }
     }
 
-    @Override
-    public void onFailure() {
-
-    }
 }

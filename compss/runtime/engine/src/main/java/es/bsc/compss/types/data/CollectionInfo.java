@@ -33,19 +33,21 @@ public class CollectionInfo extends DataInfo {
     /**
      * Default constructor.
      * 
+     * @param appId application generating the data
      * @see DataInfo empty constructor.
      */
-    public CollectionInfo() {
-        super();
+    public CollectionInfo(Long appId) {
+        super(appId);
     }
 
     /**
      * Constructor with a String representing the collection Id.
      * 
+     * @param appId application generating the data
      * @param collectionId String representing the collection Id.
      */
-    public CollectionInfo(String collectionId) {
-        super();
+    public CollectionInfo(Long appId, String collectionId) {
+        super(appId);
         this.collectionId = collectionId;
     }
 

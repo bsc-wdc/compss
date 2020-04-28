@@ -34,12 +34,13 @@ public class FileAccessParams extends AccessParams {
     /**
      * Creates a new FileAccessParams instance with the given mode {@code mode} and for the given file location
      * {@code loc}.
-     * 
+     *
+     * @param appId Id of the application accessing the file.
      * @param mode Access mode.
      * @param loc File location.
      */
-    public FileAccessParams(AccessMode mode, DataLocation loc) {
-        super(mode);
+    public FileAccessParams(Long appId, AccessMode mode, DataLocation loc) {
+        super(appId, mode);
         this.loc = loc;
     }
 
@@ -54,7 +55,7 @@ public class FileAccessParams extends AccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerFileAccess(this.mode, this.loc);
+        return dip.registerFileAccess(this.appId, this.mode, this.loc);
     }
 
     @Override

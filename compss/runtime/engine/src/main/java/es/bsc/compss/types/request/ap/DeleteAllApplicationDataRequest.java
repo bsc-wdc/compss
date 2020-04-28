@@ -23,35 +23,29 @@ import es.bsc.compss.components.impl.TaskDispatcher;
 import es.bsc.compss.types.request.exceptions.ShutdownException;
 
 
-public class RegisterRemoteObjectDataRequest extends APRequest {
+public class DeleteAllApplicationDataRequest extends APRequest {
 
     private final Long appId;
-    private final int code;
-    private final String data;
 
 
     /**
-     * Contructs a new Request to register an external object and bind it to an existing LogicalData.
+     * Contructs a new Request to remove all the data bound to an application.
      *
-     * @param appId Id of application accessing the value
-     * @param code Object Id.
-     * @param data Existing LogicalData to bind the value access.
+     * @param appId Id of application whose values are to be removed
      */
-    public RegisterRemoteObjectDataRequest(Long appId, int code, String data) {
+    public DeleteAllApplicationDataRequest(Long appId) {
         this.appId = appId;
-        this.code = code;
-        this.data = data;
     }
 
     @Override
     public APRequestType getRequestType() {
-        return APRequestType.REGISTER_REMOTE_OBJECT;
+        return APRequestType.REMOVE_APP_DATA;
     }
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td)
         throws ShutdownException {
-        dip.registerRemoteObjectSources(appId, code, data);
+        dip.removeAllApplicationData(appId);
     }
 
 }

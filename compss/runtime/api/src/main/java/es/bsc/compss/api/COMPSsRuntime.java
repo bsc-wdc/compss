@@ -244,11 +244,12 @@ public interface COMPSsRuntime {
     /**
      * Registers a new Data value.
      *
+     * @param appId Id of the application accessing the data.
      * @param type Data type
      * @param stub Local object representing the data
      * @param dataId already existing data with the content
      */
-    public void registerData(DataType type, Object stub, String dataId);
+    public void registerData(Long appId, DataType type, Object stub, String dataId);
 
     /**
      * Checks if a file has been accessed by the runtime.
@@ -337,6 +338,13 @@ public interface COMPSsRuntime {
      * Cancels all tasks of the application.
      */
     public void cancelApplicationTasks(Long appId);
+
+    /**
+     * Removes all the data information related to a specific application.
+     * 
+     * @param appId Id of the application whose data is to be remove
+     */
+    public void removeApplicationData(Long appId);
 
     /*
      * *****************************************************************************************************************

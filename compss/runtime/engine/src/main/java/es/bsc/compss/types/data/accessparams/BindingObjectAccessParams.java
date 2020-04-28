@@ -32,12 +32,13 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
     /**
      * Creates a new BindingObjectAccessParams instance.
      * 
+     * @param appId Id of the application accessing the BindingObject.
      * @param mode Access mode.
      * @param bo Associated BindingObject.
      * @param hashCode Hashcode of the associated BindingObject.
      */
-    public BindingObjectAccessParams(AccessMode mode, BindingObject bo, int hashCode) {
-        super(mode, bo, hashCode);
+    public BindingObjectAccessParams(Long appId, AccessMode mode, BindingObject bo, int hashCode) {
+        super(appId, mode, bo, hashCode);
     }
 
     /**
@@ -51,7 +52,7 @@ public class BindingObjectAccessParams extends ObjectAccessParams {
 
     @Override
     public DataAccessId registerAccess(DataInfoProvider dip) {
-        return dip.registerBindingObjectAccess(this.mode, this.getBindingObject(), this.getCode());
+        return dip.registerBindingObjectAccess(this.appId, this.mode, this.getBindingObject(), this.getCode());
     }
 
 }

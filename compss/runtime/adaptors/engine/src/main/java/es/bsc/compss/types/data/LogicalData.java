@@ -21,6 +21,7 @@ import es.bsc.compss.data.BindingDataManager;
 import es.bsc.compss.exceptions.CannotLoadException;
 import es.bsc.compss.log.Loggers;
 import es.bsc.compss.types.BindingObject;
+import es.bsc.compss.types.CommException;
 import es.bsc.compss.types.data.listener.SafeCopyListener;
 import es.bsc.compss.types.data.location.BindingObjectLocation;
 import es.bsc.compss.types.data.location.DataLocation;
@@ -38,6 +39,12 @@ import es.bsc.compss.util.Tracer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,10 +76,12 @@ public class LogicalData {
     // Id if Binding object, null otherwise
     private String bindingId;
 
+    // List of names the identify the value
+    private Set<String> knownAlias = new TreeSet<>();
     // List of existing copies
-    private final Set<DataLocation> locations = new TreeSet<>();
+    private Set<DataLocation> locations = new TreeSet<>();
     // In progress
-    private final List<CopyInProgress> inProgress = new LinkedList<>();
+    private List<CopyInProgress> inProgress = new LinkedList<>();
     // File's size.
     private float size;
 
@@ -91,6 +100,7 @@ public class LogicalData {
      */
     public LogicalData(String name) {
         this.name = name;
+        this.knownAlias.add(name);
         this.value = null;
         this.pscoId = null;
         this.bindingId = null;
@@ -99,9 +109,82 @@ public class LogicalData {
         this.size = 0;
     }
 
-    /*
-     * Getters
+    /**
+     * Merges two logicalDataValues and makes it look like the same one.
+     *
+     * @param ld first LogicalData
+     * @param ld2 second LogicalData
+     * @throws CommException the values within the logicalData instances are inconsistent.
      */
+    public static void link(LogicalData ld, LogicalData ld2) throws CommException {
+        Object value = null;
+        String pscoId = null;
+        String bindingId = null;
+        if (ld.value != null) {
+            if (ld2.value != null) {
+                if (ld2.value != ld.value) {
+                    throw new CommException("Linking two LogicalData with different value in memory");
+                }
+            } else {
+                value = ld.value;
+            }
+        } else {
+            value = ld2.value;
+        }
+        if (ld.pscoId != null) {
+            if (ld2.pscoId != null) {
+                if (ld2.pscoId.compareTo(ld.pscoId) != 0) {
+                    throw new CommException("Linking two LogicalData with different pscoId in memory");
+                }
+            } else {
+                pscoId = ld.pscoId;
+            }
+        } else {
+            pscoId = ld2.pscoId;
+        }
+        if (ld.bindingId != null) {
+            if (ld2.bindingId != null) {
+                if (ld2.bindingId.compareTo(ld.bindingId) != 0) {
+                    throw new CommException("Linking two LogicalData with different value in memory");
+                }
+            } else {
+                bindingId = ld.bindingId;
+            }
+        } else {
+            bindingId = ld2.bindingId;
+        }
+
+        if (ld.isInMemory()) {
+            if (!ld2.isInMemory()) {
+                for (String alias : ld2.knownAlias) {
+                    ld.addKnownAlias(alias);
+                }
+                ld2.knownAlias = ld.knownAlias;
+            } // If they both have the same value, it will be locations will be added later on
+        } else {
+            if (ld2.isInMemory()) {
+                for (String alias : ld.knownAlias) {
+                    ld2.addKnownAlias(alias);
+                }
+                ld.knownAlias = ld2.knownAlias;
+            } else {
+                ld.knownAlias.addAll(ld2.knownAlias);
+                ld2.knownAlias = ld.knownAlias;
+            }
+        }
+
+        ld.value = value;
+        ld2.value = value;
+        ld.pscoId = pscoId;
+        ld2.pscoId = pscoId;
+        ld.bindingId = bindingId;
+        ld2.bindingId = bindingId;
+        ld.locations.addAll(ld2.locations);
+        ld2.locations = ld.locations;
+        ld.inProgress.addAll(ld2.inProgress);
+        ld2.inProgress = ld.inProgress;
+    }
+
     /**
      * Returns the data version name.
      *
@@ -110,6 +193,102 @@ public class LogicalData {
     public String getName() {
         // No need to sync because it cannot be modified
         return this.name;
+    }
+
+    /**
+     * Returns the set with all the known alias for the data.
+     *
+     * @return set containing all the known alias for the data.
+     */
+    public Set<String> getKnownAlias() {
+        return knownAlias;
+    }
+
+    /**
+     * Adds a new alias to the data, and includes the corresponding new locations if the object is in memory.
+     *
+     * @param name The new alias that the data is known as
+     */
+    public void addKnownAlias(String name) {
+        if (this.knownAlias.add(name)) {
+            if (this.isInMemory()) {
+                String targetPath = ProtocolType.OBJECT_URI.getSchema() + name;
+                try {
+                    DataLocation loc;
+                    SimpleURI uri = new SimpleURI(targetPath);
+                    loc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                    this.locations.add(loc);
+                } catch (Exception e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes an alias from the data. If no more aliases are known for that data, all the values stored locally on the
+     * devices, either on memory or disk, are removed.
+     *
+     * @param name Alias to remove from the list of known aliases.
+     */
+    public void removeKnownAlias(String name) {
+        if (this.knownAlias.remove(name)) {
+            if (this.knownAlias.isEmpty()) {
+                isObsolete();
+                for (DataLocation dl : this.locations) {
+                    MultiURI uri = dl.getURIInHost(Comm.getAppHost());
+
+                    if (uri != null) {
+                        File f = new File(uri.getPath());
+                        if (f.exists()) {
+                            LOGGER.info("Deleting file " + f.getAbsolutePath());
+                            if (!f.delete()) {
+                                LOGGER.error("Cannot delete file " + f.getAbsolutePath());
+                            } else {
+                                if (f.isDirectory()) {
+                                    // directories must be removed recursively
+                                    Path directory = Paths.get(uri.getPath());
+                                    try {
+                                        Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+
+                                            @Override
+                                            public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
+                                                throws IOException {
+                                                Files.delete(file);
+                                                return FileVisitResult.CONTINUE;
+                                            }
+
+                                            @Override
+                                            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                                                throws IOException {
+                                                Files.delete(dir);
+                                                return FileVisitResult.CONTINUE;
+                                            }
+                                        });
+                                    } catch (IOException e) {
+                                        LOGGER.error("Cannot delete directory " + f.getAbsolutePath());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                value = null;
+            } else {
+                // There are other alias pointing to the data. Remove only
+                if (this.isInMemory()) {
+                    String targetPath = ProtocolType.OBJECT_URI.getSchema() + name;
+                    try {
+                        DataLocation loc;
+                        SimpleURI uri = new SimpleURI(targetPath);
+                        loc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                        this.locations.remove(loc);
+                    } catch (Exception e) {
+                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -144,6 +323,15 @@ public class LogicalData {
      * @param loc New location
      */
     public synchronized void addLocation(DataLocation loc) {
+        if (loc.getProtocol() == ProtocolType.OBJECT_URI && loc.getHosts().contains(Comm.getAppHost())) {
+            // Is registering the location of the object on main memory.
+            try {
+                addLocationsForInMemoryObject();
+                return;
+            } catch (Exception e) {
+                ErrorManager.error("ERROR generating a new location for the object in memory for data " + this.name, e);
+            }
+        }
         this.isBeingSaved = false;
         this.locations.add(loc);
         switch (loc.getType()) {
@@ -190,7 +378,7 @@ public class LogicalData {
 
     /**
      * Obtain all URIs in a resource.
-     * 
+     *
      * @param targetHost Resource
      * @return list of uri where data is located in the node
      */
@@ -244,9 +432,6 @@ public class LogicalData {
         return this.value;
     }
 
-    /*
-     * Setters
-     */
     /**
      * Removes the object from master main memory and removes its location.
      *
@@ -398,12 +583,8 @@ public class LogicalData {
                             this.value = null;
                             continue;
                         }
-
-                        String targetPath = ProtocolType.OBJECT_URI.getSchema() + this.name;
-                        SimpleURI uri = new SimpleURI(targetPath);
                         try {
-                            DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
-                            addLocation(tgtLoc);
+                            addLocationsForInMemoryObject();
                         } catch (IOException e) {
                             // Check next location since location was invalid
                             this.value = null;
@@ -430,11 +611,8 @@ public class LogicalData {
                         }
                     }
 
-                    String targetPath = ProtocolType.OBJECT_URI.getSchema() + this.name;
-                    SimpleURI uri = new SimpleURI(targetPath);
                     try {
-                        DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
-                        addLocation(tgtLoc);
+                        addLocationsForInMemoryObject();
                     } catch (IOException e) {
                         // Check next location since location was invalid
                         this.value = null;
@@ -450,6 +628,22 @@ public class LogicalData {
 
         // Any location has been able to load the value
         throw new CannotLoadException("Object has not any valid location available in the master");
+    }
+
+    private void addLocationsForInMemoryObject() throws IOException {
+        LinkedList<DataLocation> locations = new LinkedList();
+        for (String alias : this.knownAlias) {
+            String targetPath = ProtocolType.OBJECT_URI.getSchema() + alias;
+            SimpleURI uri = new SimpleURI(targetPath);
+            DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+            locations.add(tgtLoc);
+        }
+        // Loop splitted just in case that 1 location cannot be created. It raises an exception and adds no new location
+        for (DataLocation loc : locations) {
+            this.isBeingSaved = false;
+            this.locations.add(loc);
+            Comm.getAppHost().addLogicalData(this);
+        }
     }
 
     /**

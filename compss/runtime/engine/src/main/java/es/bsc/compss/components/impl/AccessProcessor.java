@@ -49,6 +49,7 @@ import es.bsc.compss.types.request.ap.BarrierRequest;
 import es.bsc.compss.types.request.ap.CancelApplicationTasksRequest;
 import es.bsc.compss.types.request.ap.CancelTaskGroupRequest;
 import es.bsc.compss.types.request.ap.CloseTaskGroupRequest;
+import es.bsc.compss.types.request.ap.DeleteAllApplicationDataRequest;
 import es.bsc.compss.types.request.ap.DeleteBindingObjectRequest;
 import es.bsc.compss.types.request.ap.DeleteFileRequest;
 import es.bsc.compss.types.request.ap.DeregisterObject;
@@ -467,17 +468,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Notifies a main access to an object {@code obj}.
      *
+     * @param appId Id of the application accessing the object.
      * @param obj Object.
      * @param hashCode Object hashcode.
      * @return Synchronized object.
      */
-    public Object mainAccessToObject(Object obj, int hashCode) {
+    public Object mainAccessToObject(Long appId, Object obj, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to object with hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, obj, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(appId, AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -515,17 +517,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Notifies a main access to an external PSCO {@code id}.
      *
+     * @param appId Id of the application accessing the external PSCO.
      * @param id PSCO Id.
      * @param hashCode Object hashcode.
      * @return Location containing final the PSCO Id.
      */
-    public String mainAccessToExternalPSCO(String id, int hashCode) {
+    public String mainAccessToExternalPSCO(Long appId, String id, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to external object with hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
-        ObjectAccessParams oap = new ObjectAccessParams(AccessMode.RW, id, hashCode);
+        ObjectAccessParams oap = new ObjectAccessParams(appId, AccessMode.RW, id, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -570,11 +573,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Notifies a main access to an external binding object.
      *
+     * @param appId Id of the application accessing the binding object.
      * @param bo Binding object.
      * @param hashCode Binding object's hashcode.
      * @return Location containing the binding's object final path.
      */
-    public String mainAccessToBindingObject(BindingObject bo, int hashCode) {
+    public String mainAccessToBindingObject(Long appId, BindingObject bo, int hashCode) {
         if (DEBUG) {
             LOGGER.debug(
                 "Requesting main access to binding object with bo " + bo.toString() + " and hash code " + hashCode);
@@ -583,7 +587,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Tell the DIP that the application wants to access an object
         // AccessParams.BindingObjectAccessParams oap = new AccessParams.BindingObjectAccessParams(AccessMode.RW, bo,
         // hashCode);
-        BindingObjectAccessParams oap = new BindingObjectAccessParams(AccessMode.R, bo, hashCode);
+        BindingObjectAccessParams oap = new BindingObjectAccessParams(appId, AccessMode.R, bo, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
 
         // DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
@@ -795,7 +799,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Sets the task group to assign to all the following tasks.
-     * 
+     *
      * @param groupName Name of the task group
      */
     public void setCurrentTaskGroup(String groupName, boolean implicitBarrier, Long appId) {
@@ -1060,13 +1064,26 @@ public class AccessProcessor implements Runnable, TaskProducer {
     /**
      * Registers a data value as available on remote locations.
      *
+     * @param appId Id of the application accessing the object.
      * @param code code identifying the object
      * @param dataId name of the data associated to the object
      */
-    public void registerRemoteObject(int code, String dataId) {
-        RegisterRemoteObjectDataRequest request = new RegisterRemoteObjectDataRequest(code, dataId);
+    public void registerRemoteObject(Long appId, int code, String dataId) {
+        RegisterRemoteObjectDataRequest request = new RegisterRemoteObjectDataRequest(appId, code, dataId);
         if (!this.requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "register data");
+        }
+    }
+
+    /**
+     * Removes all the information related to data bound to a specific application.
+     *
+     * @param appId Id of application whose values are to be removed
+     */
+    public void deleteAllApplicationDataRequest(Long appId) {
+        DeleteAllApplicationDataRequest request = new DeleteAllApplicationDataRequest(appId);
+        if (!this.requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "delete all data from application " + appId);
         }
     }
 

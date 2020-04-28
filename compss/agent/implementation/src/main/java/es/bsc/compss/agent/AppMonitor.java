@@ -19,10 +19,12 @@ package es.bsc.compss.agent;
 import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.api.TaskMonitor;
 import es.bsc.compss.comm.Comm;
+import es.bsc.compss.types.CommException;
 import es.bsc.compss.types.annotations.parameter.DataType;
 import es.bsc.compss.types.data.LogicalData;
 import es.bsc.compss.types.data.location.ProtocolType;
 import es.bsc.compss.types.uri.SimpleURI;
+import es.bsc.compss.util.ErrorManager;
 
 
 public abstract class AppMonitor implements TaskMonitor {
@@ -116,7 +118,11 @@ public abstract class AppMonitor implements TaskMonitor {
         ApplicationParameter originalParam = this.params[paramId];
         String originalDataMgmtId = originalParam.getDataMgmtId();
         if (dataId.compareTo(originalDataMgmtId) != 0) {
-            Comm.linkData(originalDataMgmtId, dataId);
+            try {
+                Comm.linkData(originalDataMgmtId, dataId);
+            } catch (CommException ce) {
+                ErrorManager.error("Could not link " + originalDataMgmtId + " and " + dataId, ce);
+            }
         }
     }
 
@@ -154,9 +160,11 @@ public abstract class AppMonitor implements TaskMonitor {
 
     @Override
     public void onCompletion() {
+        Agent.finishedApplication(appId);
     }
 
     @Override
     public void onFailure() {
+        Agent.finishedApplication(appId);
     }
 }

@@ -23,7 +23,6 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.compss.agent.comm.messages.types.CommResource;
 import es.bsc.compss.agent.comm.messages.types.CommTask;
 import es.bsc.compss.agent.types.ApplicationParameter;
-import es.bsc.compss.comm.Comm;
 import es.bsc.compss.nio.NIOTaskResult;
 import es.bsc.compss.nio.commands.CommandNIOTaskDone;
 import es.bsc.compss.types.annotations.parameter.DataType;
@@ -62,16 +61,6 @@ class TaskMonitor extends PrintMonitor {
     @Override
     public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
         super.valueGenerated(paramId, paramName, paramType, dataId, dataLocation);
-        /*
-         * this.paramTypes[paramId] = paramType; if (paramType == DataType.OBJECT_T) { LogicalData ld =
-         * Comm.getData(dataId); if (ld.getPscoId() != null) { this.paramTypes[paramId] = DataType.PSCO_T; SimpleURI
-         * targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
-         * this.paramLocations[paramId] = targetURI.toString(); } else { this.paramTypes[paramId] = paramType;
-         * this.paramLocations[paramId] = dataLocation.toString(); } } else { this.paramTypes[paramId] = paramType;
-         * this.paramLocations[paramId] = dataLocation.toString(); } NIOParam originalParam =
-         * obtainJobParameter(paramId); String originalDataMgmtId = originalParam.getDataMgmtId(); if
-         * (dataId.compareTo(originalDataMgmtId) != 0) { Comm.linkData(originalDataMgmtId, dataId); }
-         */
     }
 
     @Override
@@ -107,6 +96,5 @@ class TaskMonitor extends PrintMonitor {
         cmd = new CommandNIOTaskDone(tr, successful, task.getHistory().toString(), null);
         c.sendCommand(cmd);
         c.finishConnection();
-        System.out.println(Comm.dataDump());
     }
 }

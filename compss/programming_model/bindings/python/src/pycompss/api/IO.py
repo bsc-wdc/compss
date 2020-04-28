@@ -69,12 +69,11 @@ class IO(object):
                 logger.debug("Init @IO decorator...")
 
             # Check the arguments
-            check_arguments(MANDATORY_ARGUMENTS, 
-                            DEPRECATED_ARGUMENTS, 
-                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS, 
+            check_arguments(MANDATORY_ARGUMENTS,
+                            DEPRECATED_ARGUMENTS,
+                            SUPPORTED_ARGUMENTS | DEPRECATED_ARGUMENTS,
                             list(kwargs.keys()), "@IO")
-             
-             
+
     def __call__(self, func):
         """
         Parse and set the IO parameters within the task core element.

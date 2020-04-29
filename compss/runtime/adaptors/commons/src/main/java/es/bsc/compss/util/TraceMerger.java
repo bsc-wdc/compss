@@ -80,14 +80,14 @@ public class TraceMerger {
     private class LineInfo {
 
         private final String resourceId;
-	private final int value;
+        private final int value;
         private final Long timestamp;
 
 
         public LineInfo(String resourceID, Long timestamp, int value) {
             this.resourceId = resourceID;
             this.timestamp = timestamp;
-	    this.value = value;
+            this.value = value;
         }
 
         public String getResourceId() {
@@ -98,9 +98,9 @@ public class TraceMerger {
             return this.timestamp;
         }
 
-	public int getValue() {
-	    return this.value;
-	}
+        public int getValue() {
+            return this.value;
+        }
     }
 
 
@@ -225,7 +225,7 @@ public class TraceMerger {
                     Integer wID = (workerID == -1) ? Integer.parseInt(m.group(WORKER_ID_INDEX)) : workerID;
                     String resourceID = m.group(R_ID_INDEX);
                     Long timestamp = Long.parseLong(m.group(TIMESTAMP_INDEX));
-		    Integer value = Integer.parseInt(m.group(VALUE_INDEX));
+                    Integer value = Integer.parseInt(m.group(VALUE_INDEX));
 
                     add(idToSyncInfo, wID, new LineInfo(resourceID, timestamp, value));
                 }
@@ -259,13 +259,13 @@ public class TraceMerger {
     }
 
     private String updateEvent(LineInfo workerHeader, String line, Integer workerID) {
-        int numThreads = workerHeader.getValue()
-	Matcher taskMatcher = WORKER_THREAD_INFO_PATTERN.matcher(line);
+        int numThreads = workerHeader.getValue();
+        Matcher taskMatcher = WORKER_THREAD_INFO_PATTERN.matcher(line);
         String newLine = "";
         if (taskMatcher.find()) {
             Integer threadID = Integer.parseInt(taskMatcher.group(WORKER_THREAD_ID));
             Integer stateID = Integer.parseInt(taskMatcher.group(STATE_TYPE));
-	    int newThreadID = threadID;
+            int newThreadID = threadID;
             if (threadID > 1) {
                 newThreadID = numThreads + 3 - threadID;
             }

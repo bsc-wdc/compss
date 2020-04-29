@@ -45,13 +45,14 @@ public class TraceMerger {
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Info used for matching sync events
-    private static final Integer SYNC_TYPE = 8_000_666;
+    private static final Integer SYNC_TYPE = Tracer.SYNC_TYPE;
     private static final String SYNC_REGEX = "(^\\d+:\\d+:\\d+):(\\d+):(\\d+):(\\d+).*:" + SYNC_TYPE + ":(\\d+)";
     private static final Pattern SYNC_PATTERN = Pattern.compile(SYNC_REGEX);
     // Selectors for replace Pattern
     private static final Integer R_ID_INDEX = 1;
     private static final Integer TIMESTAMP_INDEX = 4;
     private static final Integer WORKER_ID_INDEX = 2;
+    private static final Integer VALUE_INDEX = 5;
 
     // could be wrong this regex (designed for matching tasks not workers)
     private static final String WORKER_THREAD_INFO_REGEX = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
@@ -79,12 +80,14 @@ public class TraceMerger {
     private class LineInfo {
 
         private final String resourceId;
+        private final int value;
         private final Long timestamp;
 
 
-        public LineInfo(String resourceID, Long timestamp) {
+        public LineInfo(String resourceID, Long timestamp, int value) {
             this.resourceId = resourceID;
             this.timestamp = timestamp;
+            this.value = value;
         }
 
         public String getResourceId() {
@@ -93,6 +96,10 @@ public class TraceMerger {
 
         public Long getTimestamp() {
             return this.timestamp;
+        }
+
+        public int getValue() {
+            return this.value;
         }
     }
 
@@ -218,8 +225,9 @@ public class TraceMerger {
                     Integer wID = (workerID == -1) ? Integer.parseInt(m.group(WORKER_ID_INDEX)) : workerID;
                     String resourceID = m.group(R_ID_INDEX);
                     Long timestamp = Long.parseLong(m.group(TIMESTAMP_INDEX));
+                    Integer value = Integer.parseInt(m.group(VALUE_INDEX));
 
-                    add(idToSyncInfo, wID, new LineInfo(resourceID, timestamp));
+                    add(idToSyncInfo, wID, new LineInfo(resourceID, timestamp, value));
                 }
             }
             // note that Scanner suppresses exceptions
@@ -241,10 +249,9 @@ public class TraceMerger {
 
     private void writeWorkerEvents(Map<Integer, List<LineInfo>> masterSyncEvents,
         Map<Integer, List<LineInfo>> workerSyncEvents, List<String> eventsLine, Integer workerID) throws Exception {
-
-        LOGGER.debug("Writing " + eventsLine.size() + " lines from worker " + workerID);
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
-
+        LOGGER.debug("Writing " + eventsLine.size() + " lines from worker " + workerID + " with "
+            + workerHeader.getValue() + " threads");
         for (String line : eventsLine) {
             String newEvent = updateEvent(workerHeader, line, workerID);
             this.masterWriter.println(newEvent);
@@ -252,12 +259,17 @@ public class TraceMerger {
     }
 
     private String updateEvent(LineInfo workerHeader, String line, Integer workerID) {
+        int numThreads = workerHeader.getValue();
         Matcher taskMatcher = WORKER_THREAD_INFO_PATTERN.matcher(line);
         String newLine = "";
         if (taskMatcher.find()) {
             Integer threadID = Integer.parseInt(taskMatcher.group(WORKER_THREAD_ID));
             Integer stateID = Integer.parseInt(taskMatcher.group(STATE_TYPE));
-            String eventHeader = stateID + ":" + threadID + ":1:" + workerID + ":" + threadID;
+            int newThreadID = threadID;
+            if (threadID > 1) {
+                newThreadID = numThreads + 3 - threadID;
+            }
+            String eventHeader = stateID + ":" + newThreadID + ":1:" + workerID + ":" + newThreadID;
             Long timestamp = workerHeader.getTimestamp() + Long.parseLong(taskMatcher.group(WORKER_TIMESTAMP));
             String lineInfo = taskMatcher.group(WORKER_LINE_INFO);
             newLine = eventHeader + ":" + timestamp + ":" + lineInfo;
@@ -283,7 +295,7 @@ public class TraceMerger {
 
         Long overhead = (javaTime - workerTime) / 2;
 
-        return new LineInfo(javaStart.getResourceId(), javaStart.getTimestamp() + overhead);
+        return new LineInfo(javaStart.getResourceId(), javaStart.getTimestamp() + overhead, javaStart.getValue());
     }
 
 }

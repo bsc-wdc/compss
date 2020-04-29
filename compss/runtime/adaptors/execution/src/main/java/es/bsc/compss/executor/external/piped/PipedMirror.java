@@ -132,8 +132,8 @@ public abstract class PipedMirror implements ExecutionPlatformMirror<PipePair> {
             pb.environment().remove(Tracer.EXTRAE_CONFIG_FILE);
 
             if (Tracer.extraeEnabled()) {
-                long tracingHostId = context.getTracingHostID();
-                Tracer.emitEvent(tracingHostId, Tracer.getSyncType());
+                // long tracingHostId = context.getTracingHostID();
+                Tracer.emitEvent(this.size, Tracer.getSyncType());
             }
 
             pipeBuilderProcess = pb.start();

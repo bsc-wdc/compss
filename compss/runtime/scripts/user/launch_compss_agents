@@ -1050,10 +1050,12 @@ launch_agent () {
   jvm_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
   fpga_reprogram_str=$(echo "${fpga_prog}" | tr "," " ")
   fpga_reprogram_size=$(echo "${fpga_prog}" | wc -w)
+  workers_size=$(echo "${worker_nodes}" | wc -w)
 
   agent_cmd \
   "${node_name}" \
   "${master_node}" \
+  "${workers_size}" \
   "${worker_nodes}" \
   "${network}" \
   "${agents_hierarchy}" \

@@ -17,11 +17,11 @@ get_topology_plain() {
 
   local MASTER="${1}"
   shift 1
-  local workers="$@"
+  local workers=${@}
 
   if [ "${HOSTNAME}" == "${MASTER}" ]; then
     CHILD_NODES=$(
-      for blade in ${@}; do
+      for blade in ${workers}; do
         if [ "${blade}" != "${MASTER}" ]; then
           echo "${blade} ${cpus_per_node} ${gpus_per_node} ${fpgas_per_node} ${memory_per_node} ${storage_bw_per_node} ${max_tasks_per_node}";
         fi
@@ -270,13 +270,21 @@ xml_resources_add_elasticity() {
 # Expected parameters:
 HOSTNAME="${1}"
 MASTER="${2}"
-worker_nodes="${3}"
-network="${4}" 
-agents_hierarchy="${5}"
+worker_nodes_size="${3}"
+shift 3
 
-log_dir="${6}"
-mkdir -p ${log_dir}
-shift 6
+worker_nodes=""
+for (( worker_idx=1; worker_idx<=${worker_nodes_size}; worker_idx++ ))
+do
+  worker_nodes="${worker_nodes} ${1}"
+  shift 1
+done
+
+network="${1}" 
+agents_hierarchy="${2}"
+log_dir="${3}"
+mkdir -p "${log_dir}"
+shift 3
 
 cpus_in_master=${1}
 cpus_per_node=${2}
@@ -299,15 +307,19 @@ worker_install_dir=${2}
 max_tasks_per_node=${3}
 shift 3
 
+# shellcheck disable=SC2086
 "get_topology_${agents_hierarchy}" "${MASTER}" ${worker_nodes}
 
-echo "--------${HOSTNAME}--------" >"${log_dir}/INFO"
+echo "--------${HOSTNAME}--------" >> "${log_dir}/INFO"
 echo "VARIABLES" >>"${log_dir}/INFO"
 
 echo "hostname:       ${HOSTNAME}" >>"${log_dir}/INFO"
 echo "Network         ${network}" >>"${log_dir}/INFO"
 
-echo "Debug Level:    ${debug}" >>"${log_dir}/INFO"
+echo "Topology:       ${agents_hierarchy}" >>"${log_dir}/INFO"
+echo "Master name:    ${MASTER}" >>"${log_dir}/INFO"
+echo "Workers' names: ${worker_nodes}" >>"${log_dir}/INFO"
+
 echo "Working Dir:    ${worker_working_dir}" >>"${log_dir}/INFO"
 echo "Install Dir:    ${worker_install_dir}" >>"${log_dir}/INFO"
 echo "Log Dir:        ${log_dir}" >>"${log_dir}/INFO"

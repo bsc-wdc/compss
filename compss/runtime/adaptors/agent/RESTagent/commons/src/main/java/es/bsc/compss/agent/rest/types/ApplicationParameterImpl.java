@@ -149,4 +149,10 @@ public class ApplicationParameterImpl implements ApplicationParameter {
         // Cannot be obtained from a remote location
         return null;
     }
+
+    @Override
+    public String getDataMgmtId() {
+        return null;
+    }
+
 }

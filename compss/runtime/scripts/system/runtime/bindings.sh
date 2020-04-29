@@ -59,27 +59,31 @@ check_bindings_setup () {
   fi
 
   # Language handling
-  enable_java=false
-  enable_bindings=false
-  enable_c=false
-  enable_python=false
+  enable_java="false"
+  enable_bindings="false"
+  enable_c="false"
+  enable_python="false"
   if [ -z "$lang" ]; then
     lang="UNKNOWN"
-    enable_java=true
-    enable_bindings=true
-    enable_c=true
-    enable_python=true
-  elif [ "$lang" == "java" ]; then
-    enable_java=true
-  elif [ "$lang" == "c" ]; then
-    enable_bindings=true
-    enable_c=true
-  elif [ "$lang" == "python" ]; then
-    enable_bindings=true
-    enable_python=true
+    enable_java="true"
+    enable_bindings="true"
+    enable_c="true"
+    if [ -d "${COMPSS_HOME}Bindings/python/2" ] || [ -d "${COMPSS_HOME}Bindings/python/3" ]; then
+      enable_python="true"
+    else
+      enable_python="false"
+    fi
+  elif [ "$lang" = "java" ]; then
+    enable_java="true"
+  elif [ "$lang" = "c" ]; then
+    enable_bindings="true"
+    enable_c="true"
+  elif [ "$lang" = "python" ]; then
+    enable_bindings="true"
+    enable_python="true"
   fi
 
-  if [ ${enable_bindings} ]; then
+  if [ "${enable_bindings}" = "true" ]; then
     # Look for the JVM Library
     libjava=$(find "${JAVA_HOME}"/jre/lib/ -name libjvm.so | head -n 1)
     if [ -z "$libjava" ]; then
@@ -122,7 +126,7 @@ check_bindings_setup () {
 	  python_mpi_worker=$DEFAULT_PYTHON_MPI_WORKER
   fi
 
-  if [ ${enable_python} ]; then
+  if [ "${enable_python}" = "true" ]; then
     if ! command_exists "${python_interpreter}" ; then
       fatal_error "ERROR: Python interpreter $python_interpreter does not exist." 1
     fi
@@ -143,8 +147,8 @@ check_bindings_setup () {
     persistent_worker_c=${DEFAULT_PERSISTENT_WORKER_C}
   fi
 
-  if [ "${persistent_worker_c}" == "true" ]; then
-    if [ "${comm}" == "${NIO_ADAPTOR}" ]; then
+  if [ "${persistent_worker_c}" = "true" ]; then
+    if [ "${comm}" = "${NIO_ADAPTOR}" ]; then
       export COMPSS_PERSISTENT_BINDING=0
     else
       display_warning "${WARN_INCOMPATIBLE_ADAPTOR_AND_PERSITENT_C}"
@@ -164,16 +168,16 @@ append_bindings_jvm_options_to_file() {
 -Dcompss.lang=${lang}
 -Dcompss.core.count=${task_count}
 EOT
-  if [ ${enable_java} ]; then
+  if [ "${enable_java}" = "true" ]; then
     add_bindings_jvm_opts_java "${jvm_options_file}"
   fi
-  if [ ${enable_bindings} ]; then
+  if [ "${enable_bindings}" = "true" ]; then
     add_bindings_jvm_opts_bindings "${jvm_options_file}"
   fi
-  if [ ${enable_python} ]; then
+  if [ "${enable_python}" = "true" ]; then
     add_bindings_jvm_opts_python "${jvm_options_file}"
   fi
-  if [ ${enable_c} ]; then
+  if [ "${enable_c}" = "true" ]; then
     add_bindings_jvm_opts_c "${jvm_options_file}"
   fi
 }

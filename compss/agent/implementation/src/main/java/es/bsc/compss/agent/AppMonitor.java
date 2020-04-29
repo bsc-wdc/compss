@@ -16,15 +16,60 @@
  */
 package es.bsc.compss.agent;
 
+import es.bsc.compss.agent.types.ApplicationParameter;
 import es.bsc.compss.api.TaskMonitor;
+import es.bsc.compss.comm.Comm;
+import es.bsc.compss.types.annotations.parameter.DataType;
+import es.bsc.compss.types.data.LogicalData;
+import es.bsc.compss.types.data.location.ProtocolType;
+import es.bsc.compss.types.uri.SimpleURI;
 
 
 public abstract class AppMonitor implements TaskMonitor {
 
     private long appId;
+    private final ApplicationParameter[] params;
+    private final DataType[] paramTypes;
+    private final String[] paramLocations;
 
 
-    public AppMonitor() {
+    /**
+     * Constructs a new Application monitor.
+     *
+     * @param params Monitored execution's parameters
+     */
+    public AppMonitor(ApplicationParameter[] params) {
+        int numParams = params.length;
+
+        this.params = params;
+        this.paramTypes = new DataType[numParams];
+        this.paramLocations = new String[numParams];
+    }
+
+    /**
+     * Constructs a new Application monitor.
+     *
+     * @param args Monitored execution's arguments
+     * @param target Monitored execution's target
+     * @param results Monitored execution's results
+     */
+    public AppMonitor(ApplicationParameter[] args, ApplicationParameter target, ApplicationParameter[] results) {
+        int argsCount = args.length;
+        int resultsCount = results.length;
+        int numParams = argsCount + resultsCount + (target != null ? 1 : 0);
+
+        this.params = new ApplicationParameter[numParams];
+        int offset = 0;
+        System.arraycopy(args, 0, this.params, 0, argsCount);
+        offset = argsCount;
+        if (target != null) {
+            params[argsCount] = target;
+            offset++;
+        }
+        System.arraycopy(results, 0, this.params, offset, resultsCount);
+
+        this.paramTypes = new DataType[numParams];
+        this.paramLocations = new String[numParams];
     }
 
     public void setAppId(long appId) {
@@ -35,4 +80,83 @@ public abstract class AppMonitor implements TaskMonitor {
         return this.appId;
     }
 
+    @Override
+    public void onCreation() {
+    }
+
+    @Override
+    public void onAccessesProcessed() {
+    }
+
+    @Override
+    public void onSchedule() {
+    }
+
+    @Override
+    public void onSubmission() {
+    }
+
+    @Override
+    public void valueGenerated(int paramId, String paramName, DataType paramType, String dataId, Object dataLocation) {
+        this.paramTypes[paramId] = paramType;
+        if (paramType == DataType.OBJECT_T) {
+            LogicalData ld = Comm.getData(dataId);
+            if (ld.getPscoId() != null) {
+                this.paramTypes[paramId] = DataType.PSCO_T;
+                SimpleURI targetURI = new SimpleURI(ProtocolType.PERSISTENT_URI.getSchema() + ld.getPscoId());
+                this.paramLocations[paramId] = targetURI.toString();
+            } else {
+                this.paramTypes[paramId] = paramType;
+                this.paramLocations[paramId] = dataLocation.toString();
+            }
+        } else {
+            this.paramTypes[paramId] = paramType;
+            this.paramLocations[paramId] = dataLocation.toString();
+        }
+        ApplicationParameter originalParam = this.params[paramId];
+        String originalDataMgmtId = originalParam.getDataMgmtId();
+        if (dataId.compareTo(originalDataMgmtId) != 0) {
+            Comm.linkData(originalDataMgmtId, dataId);
+        }
+    }
+
+    public String[] getParamLocations() {
+        return paramLocations;
+    }
+
+    public DataType[] getParamTypes() {
+        return paramTypes;
+    }
+
+    @Override
+    public void onAbortedExecution() {
+    }
+
+    @Override
+    public void onErrorExecution() {
+    }
+
+    @Override
+    public void onFailedExecution() {
+    }
+
+    @Override
+    public void onSuccesfulExecution() {
+    }
+
+    @Override
+    public void onCancellation() {
+    }
+
+    @Override
+    public void onException() {
+    }
+
+    @Override
+    public void onCompletion() {
+    }
+
+    @Override
+    public void onFailure() {
+    }
 }

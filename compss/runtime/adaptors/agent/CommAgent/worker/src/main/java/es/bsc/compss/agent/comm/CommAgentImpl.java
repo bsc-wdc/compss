@@ -181,9 +181,9 @@ public class CommAgentImpl implements AgentInterface<CommAgentConfig>, CommAgent
         System.out.println("S'ha de notificat la peticio a " + orchestrator);
         AppMonitor monitor;
         if (orchestrator == null) {
-            monitor = new PrintMonitor();
+            monitor = new PrintMonitor(arguments, target, results);
         } else {
-            monitor = new TaskMonitor(orchestrator, request);
+            monitor = new TaskMonitor(arguments, target, results, orchestrator, request);
         }
 
         if (cei != null) {

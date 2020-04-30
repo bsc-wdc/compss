@@ -20,6 +20,8 @@ import es.bsc.compss.types.resources.Resource;
 import es.bsc.compss.types.resources.ResourcesPool;
 import es.bsc.compss.types.uri.MultiURI;
 import es.bsc.compss.util.ErrorManager;
+import es.bsc.compss.util.TraceEvent;
+import es.bsc.compss.util.Tracer;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -56,10 +58,17 @@ public class PersistentLocation extends DataLocation {
     public List<MultiURI> getURIs() {
         // Retrieve locations from Back-end
         List<String> locations = null;
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS.getId(), TraceEvent.STORAGE_GETLOCATIONS.getType());
+        }
         try {
             locations = StorageItf.getLocations(this.id);
         } catch (StorageException e) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETLOCATIONS.getType());
+            }
         }
         if (locations == null) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
@@ -85,10 +94,17 @@ public class PersistentLocation extends DataLocation {
 
         // Retrieve locations from Back-end
         List<String> locations = null;
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS.getId(), TraceEvent.STORAGE_GETLOCATIONS.getType());
+        }
         try {
             locations = StorageItf.getLocations(this.id);
         } catch (StorageException e) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETLOCATIONS.getType());
+            }
         }
         if (locations == null) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
@@ -112,10 +128,17 @@ public class PersistentLocation extends DataLocation {
     public MultiURI getURIInHost(Resource targetHost) {
         // Retrieve locations from Back-end
         List<String> locations = null;
+        if (Tracer.extraeEnabled()) {
+            Tracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS.getId(), TraceEvent.STORAGE_GETLOCATIONS.getType());
+        }
         try {
             locations = StorageItf.getLocations(this.id);
         } catch (StorageException e) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        } finally {
+            if (Tracer.extraeEnabled()) {
+                Tracer.emitEvent(Tracer.EVENT_END, TraceEvent.STORAGE_GETLOCATIONS.getType());
+            }
         }
         if (locations == null) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");

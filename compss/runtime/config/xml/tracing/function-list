@@ -6,6 +6,8 @@ deserialize_from_string
 deserialize_from_file
 serialize_to_file
 create_threads
-getByID
-makePersistent
-deletePersistent
+get_by_id
+make_persistent
+delete_persistent
+init_storage
+stop_storage

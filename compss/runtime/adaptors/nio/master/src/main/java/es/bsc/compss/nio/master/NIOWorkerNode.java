@@ -431,28 +431,37 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         // Get the current locations
         List<String> currentLocations;
+        if (NIOTracer.extraeEnabled()) {
+            NIOTracer.emitEvent(TraceEvent.STORAGE_GETLOCATIONS.getId(), TraceEvent.STORAGE_GETLOCATIONS.getType());
+        }
         try {
             currentLocations = StorageItf.getLocations(pscoId);
         } catch (StorageException se) {
             // Cannot obtain current locations from back-end
             sc.end(OperationEndState.OP_FAILED, se);
             return;
+        } finally {
+            if (NIOTracer.extraeEnabled()) {
+                NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_GETLOCATIONS.getType());
+            }
         }
 
         if (!currentLocations.contains(targetHostname)) {
             // Perform replica
-            LOGGER.debug("Performing new replica for PSCO " + pscoId);
-            if (NIOTracer.extraeEnabled()) {
-                NIOTracer.emitEvent(TraceEvent.STORAGE_NEWREPLICA.getId(), TraceEvent.STORAGE_NEWREPLICA.getType());
-            }
-            try {
-                // TODO: WARN New replica is NOT necessary because we can't prefetch data
-                // StorageItf.newReplica(pscoId, targetHostname);
-            } finally {
-                if (NIOTracer.extraeEnabled()) {
-                    NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_NEWREPLICA.getType());
-                }
-            }
+            // TODO: Not doing new replica so we do not emit the event
+            // LOGGER.debug("Performing new replica for PSCO " + pscoId);
+            // if (NIOTracer.extraeEnabled()) {
+            // NIOTracer.emitEvent(TraceEvent.STORAGE_NEWREPLICA.getId(), TraceEvent.STORAGE_NEWREPLICA.getType());
+            // }
+            // try {
+            // TODO: WARN New replica is NOT necessary because we can't prefetch data
+            // StorageItf.newReplica(pscoId, targetHostname);
+            // } finally {
+            // if (NIOTracer.extraeEnabled()) {
+            //
+            // NIOTracer.emitEvent(NIOTracer.EVENT_END, TraceEvent.STORAGE_NEWREPLICA.getType());
+            // }
+            // }
         } else {
             LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
